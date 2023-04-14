@@ -27,6 +27,9 @@ import java.security.KeyStore;
 
 import javax.net.ssl.SSLContext;
 
+import cloud.docbyte.aws.auth.AWSRequestSigningApacheInterceptor;
+import com.amazonaws.auth.AWS4Signer;
+import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -185,7 +188,9 @@ public class ESRestClientFactory implements ESClientFactory {
         signer.setServiceName(SERVICE_NAME);
         signer.setRegionName(config.getOption(AUTH_IAM_REGION));
 
-        builder.setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(new AWSRequestSigningApacheInterceptor(SERVICE_NAME, signer, DefaultAWSCredentialsProviderChain.getInstance()))).build();
+        builder.setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(
+                new AWSRequestSigningApacheInterceptor(SERVICE_NAME, signer,
+                        DefaultAWSCredentialsProviderChain.getInstance()))).build();
     }
 
     protected BasicCredentialsProvider getCredentialProvider(ElasticSearchClientConfig config) {
