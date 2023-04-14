@@ -9,7 +9,7 @@ ARG ROCKY_LINUX_VERSION=9.1
 # RPM download stage
 FROM rockylinux/rockylinux:$ROCKY_LINUX_VERSION as rpm-download
 
-ARG EXIFTOOL_VERSION=12.42-1.el9
+ARG EXIFTOOL_VERSION=12.*
 
 ## Add Nexus Private Yum Release Repository
 #COPY target/nuxeo-private.repo /etc/yum.repos.d/
