@@ -68,6 +68,8 @@ public class ESRestClientFactory implements ESClientFactory {
 
     public static final String AUTH_PASSWORD_OPT = "password";
 
+    public static final String AUTH_TYPE_OPT = "authenticationType";
+
     /** @since 10.3 */
     public static final String TRUST_STORE_PATH_OPT = "trustStorePath";
 
@@ -85,6 +87,9 @@ public class ESRestClientFactory implements ESClientFactory {
 
     /** @since 10.3 */
     public static final String KEY_STORE_TYPE_OPT = "keyStoreType";
+
+
+    public static final String AUTH_IAM_REGION = "region";
 
     /** @deprecated since 10.3, misnamed, use {@link #TRUST_STORE_PATH_OPT} instead */
     @Deprecated
@@ -152,7 +157,16 @@ public class ESRestClientFactory implements ESClientFactory {
         return new ESRestClient(client.getLowLevelClient(), client);
     }
 
-    private void addClientCallback(ElasticSearchClientConfig config, RestClientBuilder builder) {
+    protected void addClientCallback(ElasticSearchClientConfig config, RestClientBuilder builder) {
+        String authenticationType = config.getOption(AUTH_TYPE_OPT);
+        if ("iam".equalsIgnoreCase(authenticationType)) {
+            addIamAuthClientCallback(config, builder);
+        } else {
+            addBasicClientCallback(config, builder);
+        }
+    }
+
+    protected void addBasicClientCallback(ElasticSearchClientConfig config, RestClientBuilder builder) {
         BasicCredentialsProvider credentialProvider = getCredentialProvider(config);
         SSLContext sslContext = getSslContext(config);
         if (sslContext == null && credentialProvider == null) {
@@ -163,6 +177,15 @@ public class ESRestClientFactory implements ESClientFactory {
             httpClientBuilder.setDefaultCredentialsProvider(credentialProvider);
             return httpClientBuilder;
         });
+    }
+
+    protected void addIamAuthClientCallback(ElasticSearchClientConfig config, RestClientBuilder builder) {
+        String SERVICE_NAME = "es";
+        AWS4Signer signer = new AWS4Signer();
+        signer.setServiceName(SERVICE_NAME);
+        signer.setRegionName(config.getOption(AUTH_IAM_REGION));
+
+        builder.setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(new AWSRequestSigningApacheInterceptor(SERVICE_NAME, signer, DefaultAWSCredentialsProviderChain.getInstance()))).build();
     }
 
     protected BasicCredentialsProvider getCredentialProvider(ElasticSearchClientConfig config) {

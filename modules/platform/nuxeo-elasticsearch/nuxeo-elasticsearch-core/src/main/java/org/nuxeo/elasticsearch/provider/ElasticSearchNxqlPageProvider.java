@@ -21,7 +21,7 @@ package org.nuxeo.elasticsearch.provider;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,7 +68,7 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
 
     private static final long serialVersionUID = 1L;
 
-    protected HashMap<String, Aggregate<? extends Bucket>> currentAggregates;
+    protected LinkedHashMap<String, Aggregate<? extends Bucket>> currentAggregates;
 
     protected Long maxResultWindow;
 
@@ -112,7 +112,7 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
 
             EsResult ret = ess.queryAndAggregate(nxQuery);
             DocumentModelList dmList = ret.getDocuments();
-            currentAggregates = new HashMap<>(ret.getAggregates().size());
+            currentAggregates = new LinkedHashMap<>(ret.getAggregates().size());
             for (Aggregate<Bucket> agg : ret.getAggregates()) {
                 currentAggregates.put(agg.getId(), agg);
             }
@@ -211,12 +211,12 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
 
         super.incorporateAggregates(eventProps);
         if (currentAggregates != null) {
-            HashMap<String, Serializable> aggregateMatches = new HashMap<>();
+            LinkedHashMap<String, Serializable> aggregateMatches = new LinkedHashMap<>();
             for (String key : currentAggregates.keySet()) {
                 Aggregate<? extends Bucket> ag = currentAggregates.get(key);
-                ArrayList<HashMap<String, Serializable>> buckets = new ArrayList<>();
+                ArrayList<LinkedHashMap<String, Serializable>> buckets = new ArrayList<>();
                 for (Bucket bucket : ag.getBuckets()) {
-                    HashMap<String, Serializable> b = new HashMap<>();
+                    LinkedHashMap<String, Serializable> b = new LinkedHashMap<>();
                     b.put("key", bucket.getKey());
                     b.put("count", bucket.getDocCount());
                     buckets.add(b);
