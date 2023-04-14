@@ -11,8 +11,9 @@ FROM rockylinux/rockylinux:$ROCKY_LINUX_VERSION as rpm-download
 
 ARG EXIFTOOL_VERSION=12.42-1.el9
 
-# Add Nexus Private Yum Release Repository
-COPY target/nuxeo-private.repo /etc/yum.repos.d/
+## Add Nexus Private Yum Release Repository
+#COPY target/nuxeo-private.repo /etc/yum.repos.d/
+RUN dnf -y install epel-release
 
 RUN dnf -y install --downloadonly --downloaddir=/rpms \
   perl-Image-ExifTool-$EXIFTOOL_VERSION

@@ -52,7 +52,6 @@
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
             </goals>
           </execution>
         </executions>
@@ -63,9 +62,10 @@
               <build>
                 <args>
                   <BASE_IMAGE>${docker.base.image}</BASE_IMAGE>
-                  <BUILD_TAG>local-nuxeo-nuxeo</BUILD_TAG>
+                  <BUILD_TAG>local-nuxeo-nuxeo-base</BUILD_TAG>
                   <SCM_REF>built-locally</SCM_REF>
                   <VERSION>latest-lts</VERSION>
+                  <BUILD_DIR>${custom.environment.build.directroy}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
               </build>

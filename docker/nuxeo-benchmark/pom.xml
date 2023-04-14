@@ -57,7 +57,6 @@
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
             </goals>
           </execution>
         </executions>
@@ -71,6 +70,7 @@
                   <BUILD_TAG>local-nuxeo-nuxeo-benchmark</BUILD_TAG>
                   <SCM_REF>built-locally</SCM_REF>
                   <VERSION>latest-lts</VERSION>
+                  <BUILD_DIR>${custom.environment.build.directroy}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
               </build>
