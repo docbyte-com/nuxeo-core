@@ -33,7 +33,7 @@
       <code>
 		    <filterConfig name="filterName" transactional="true" synchonize="true"
 		     cached="true" private="true" cachetime="3600">
-		      <pattern>/nuxeo/urlPattern/.*</pattern>
+		      <pattern>${org.nuxeo.ecm.contextPath}/urlPattern/.*</pattern>
 		    </filterConfig>
       </code>
     @author Thierry Delprat (td@nuxeo.com)
@@ -73,7 +73,7 @@
        - Minimal contribution:
       <code>
         <corsConfig name="minimal">
-          <pattern>/nuxeo/site/.*</pattern>
+          <pattern>${org.nuxeo.ecm.contextPath}/site/.*</pattern>
         </corsConfig>
       </code>
 
@@ -83,7 +83,7 @@
           allowOrigin="*" allowSubdomains="false" supportedMethods="GET, POST, HEAD, OPTIONS"
           supportedHeaders="*" exposedHeaders=""
           supportsCredentials="true" maxAge="-1">
-          <pattern>/nuxeo/site/.*</pattern>
+          <pattern>${org.nuxeo.ecm.contextPath}/site/.*</pattern>
         </corsConfig>
       </code>
 
@@ -95,7 +95,7 @@
           supportedHeaders="Content-Type, X-Requested-With"
           exposedHeaders="X-Custom-1, X-Custom-2"
           supportsCredentials="false" maxAge="3600">
-          <pattern>/nuxeo/site/.*</pattern>
+          <pattern>${org.nuxeo.ecm.contextPath}/site/.*</pattern>
         </corsConfig>
       </code>
 
