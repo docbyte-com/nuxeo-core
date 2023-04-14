@@ -14,7 +14,7 @@ nuxeo.bind.address=0.0.0.0
 nuxeo.url=http://localhost:8080/core
 
 # Application context path
-org.nuxeo.ecm.contextPath=/nuxeo
+org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Nuxeo EP
 
