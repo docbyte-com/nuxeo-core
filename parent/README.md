@@ -39,7 +39,7 @@ To depend on a promoted release, for instance `X.Y`, set your parent POM to:
     <version>X.Y</version>
   </parent>
 
-  <groupId>org.nuxeo.sample</groupId>
+  <groupId>cloud.docbyte.nuxeo.sample</groupId>
   <artifactId>nuxeo-sample</artifactId>
   <name>Nuxeo Sample Module</name>
 

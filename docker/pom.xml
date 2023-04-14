@@ -9,7 +9,7 @@
     <version>2023.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.docker</groupId>
+  <groupId>cloud.docbyte.nuxeo.docker</groupId>
   <artifactId>nuxeo-docker-images</artifactId>
   <name>Nuxeo Docker Images</name>
   <packaging>pom</packaging>

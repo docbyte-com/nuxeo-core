@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.utils</groupId>
+    <groupId>cloud.docbyte.nuxeo.utils</groupId>
     <artifactId>nuxeo-target-platforms-parent</artifactId>
     <version>2023.0-SNAPSHOT</version>
   </parent>
@@ -12,15 +12,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.utils</groupId>
+      <groupId>cloud.docbyte.nuxeo.utils</groupId>
       <artifactId>nuxeo-target-platforms-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.utils</groupId>
+      <groupId>cloud.docbyte.nuxeo.utils</groupId>
       <artifactId>nuxeo-target-platforms-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.webengine</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
       <artifactId>nuxeo-webengine-core</artifactId>
     </dependency>
     <dependency>
@@ -29,22 +29,22 @@
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-features-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.utils</groupId>
+      <groupId>cloud.docbyte.nuxeo.utils</groupId>
       <artifactId>nuxeo-target-platforms-core</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
@@ -55,17 +55,17 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-rest-api-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-tag</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-url</artifactId>
       <scope>test</scope>
     </dependency>

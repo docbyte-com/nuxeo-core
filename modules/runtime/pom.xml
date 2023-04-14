@@ -6,7 +6,7 @@
     <version>2023.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.runtime</groupId>
+  <groupId>cloud.docbyte.nuxeo.runtime</groupId>
   <artifactId>nuxeo-runtime-parent</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Runtime Parent</name>

@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.ftests</groupId>
+    <groupId>cloud.docbyte.nuxeo.ftests</groupId>
     <artifactId>nuxeo-ftests</artifactId>
     <version>2023.0-SNAPSHOT</version>
   </parent>
@@ -11,7 +11,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-imap-connector-package</artifactId>
       <type>zip</type>
       <scope>test</scope>

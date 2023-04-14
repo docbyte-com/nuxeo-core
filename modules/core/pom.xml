@@ -6,7 +6,7 @@
     <version>2023.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.ecm.core</groupId>
+  <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
   <artifactId>nuxeo-core-parent</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Core Parent</name>
@@ -53,7 +53,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>

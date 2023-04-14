@@ -6,7 +6,7 @@
     <version>2023.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.ecm.distribution</groupId>
+  <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
   <artifactId>nuxeo-server</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Server</name>
