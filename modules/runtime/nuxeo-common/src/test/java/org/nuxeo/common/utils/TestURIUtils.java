@@ -36,7 +36,7 @@ public class TestURIUtils {
 
     private static final String URI_QUERY = "currentTab=TAB_CONTENT&documentId=4012a2d7-384e-4735-ab98-b06b598072fa&repositoryName=demo";
 
-    private static final String PARTIAL_URI = "nuxeo/view_documents.faces?" + URI_QUERY;
+    private static final String PARTIAL_URI = "core/view_documents.faces?" + URI_QUERY;
 
     private static final String URI = "http://localhost:8080/" + PARTIAL_URI;
 
@@ -79,7 +79,7 @@ public class TestURIUtils {
         // Then test partial URI
         String newPartialUri = URIUtils.addParametersToURIQuery(PARTIAL_URI, newParams);
         assertEquals(
-                "nuxeo/view_documents.faces?currentTab=TAB_CONTENT&documentId=4012a2d7-384e-4735-ab98-b06b598072fa&repositoryName=demo&conversationId=0NXMAIN21",
+                "core/view_documents.faces?currentTab=TAB_CONTENT&documentId=4012a2d7-384e-4735-ab98-b06b598072fa&repositoryName=demo&conversationId=0NXMAIN21",
                 newPartialUri);
 
         uriPath = URIUtils.getURIPath(newPartialUri);

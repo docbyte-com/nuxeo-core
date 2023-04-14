@@ -240,7 +240,7 @@ public class TestNuxeoCorsCsrfFilter {
     @Test
     public void testMatchReferer() throws Exception {
         mockRequestURI(request, "GET", "");
-        when(request.getHeader(eq(REFERER))).thenReturn(URL_BASE + "nuxeo/somepage.html");
+        when(request.getHeader(eq(REFERER))).thenReturn(URL_BASE + "core/somepage.html");
         when(request.getHeader(eq(NUXEO_VIRTUAL_HOST))).thenReturn(URL_BASE);
 
         filter.doFilter(request, response, chain);
