@@ -3,7 +3,7 @@
   <extension target="org.nuxeo.ecm.platform.ec.notification.service.NotificationService"
              point="generalSettings">
     <settings>
-      <serverPrefix>http://localhost:8080/nuxeo/</serverPrefix>
+      <serverPrefix>http://localhost:8080/core/</serverPrefix>
       <eMailSubjectPrefix>[Nuxeo5]</eMailSubjectPrefix>
       <mailSessionJndiName>java:comp/env/Mail</mailSessionJndiName>
     </settings>

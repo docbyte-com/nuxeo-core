@@ -86,7 +86,7 @@ public class TestAnonymousDownload {
     public void testAnonymousDownload() throws Exception {
 
         String repositoryName = "test";
-        String baseUrl = "http://localhost:8080/nuxeo/";
+        String baseUrl = "http://localhost:8080/core/";
         Framework.getProperties().setProperty("nuxeo.url", baseUrl);
 
         DocumentModel doc = session.createDocumentModel("/", "MyDoc", "File");

@@ -136,7 +136,7 @@ public class HttpClientTestRule implements TestRule {
         private Map<String, String> headers;
 
         public Builder() {
-            this.url = System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo").replaceAll("/$", "");
+            this.url = System.getProperty("nuxeoURL", "http://localhost:8080/core").replaceAll("/$", "");
             this.username = null;
             this.password = null;
             this.accept = null;

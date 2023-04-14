@@ -45,7 +45,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @WithFrameworkProperty(name = "nuxeo.mobile.application.iTunesId", value = "id1103802613")
 public class TestMobileBannerHelper {
 
-    public static final String BASE_URL = "http://localhost:8080/nuxeo/";
+    public static final String BASE_URL = "http://localhost:8080/core/";
 
     public static final String OTHER_BASE_URL = "https://demo.nuxeo.com/nuxeo";
 
@@ -75,25 +75,25 @@ public class TestMobileBannerHelper {
         String protocol = MobileBannerHelper.getIOSProtocol();
 
         String url = MobileBannerHelper.getURLForMobileApplication(protocol, BASE_URL, doc, null);
-        assertEquals("nuxeo://http/localhost:8080/nuxeo/test/id/" + doc.getId(), url);
+        assertEquals("nuxeo://http/localhost:8080/core/test/id/" + doc.getId(), url);
         url = MobileBannerHelper.getURLForMobileApplication(protocol, OTHER_BASE_URL, doc, null);
         assertEquals("nuxeo://https/demo.nuxeo.com/nuxeo/test/id/" + doc.getId(), url);
 
         String requestedURL = "nxdoc/default/abd6e1a0-0a4d-4654-8ca2-92480b7f3d1b/view_documents";
         url = MobileBannerHelper.getURLForMobileApplication(protocol, BASE_URL, null, requestedURL);
-        assertEquals("nuxeo://http/localhost:8080/nuxeo/default/id/abd6e1a0-0a4d-4654-8ca2-92480b7f3d1b", url);
+        assertEquals("nuxeo://http/localhost:8080/core/default/id/abd6e1a0-0a4d-4654-8ca2-92480b7f3d1b", url);
         url = MobileBannerHelper.getURLForMobileApplication(protocol, OTHER_BASE_URL, null, requestedURL);
         assertEquals("nuxeo://https/demo.nuxeo.com/nuxeo/default/id/abd6e1a0-0a4d-4654-8ca2-92480b7f3d1b", url);
 
         requestedURL = "nxpath/default/default-domain/workspaces/foo@view_documents";
         url = MobileBannerHelper.getURLForMobileApplication(protocol, BASE_URL, null, requestedURL);
-        assertEquals("nuxeo://http/localhost:8080/nuxeo/default/path/default-domain/workspaces/foo", url);
+        assertEquals("nuxeo://http/localhost:8080/core/default/path/default-domain/workspaces/foo", url);
         url = MobileBannerHelper.getURLForMobileApplication(protocol, OTHER_BASE_URL, null, requestedURL);
         assertEquals("nuxeo://https/demo.nuxeo.com/nuxeo/default/path/default-domain/workspaces/foo", url);
 
         requestedURL = "nxdoc/default/";
         url = MobileBannerHelper.getURLForMobileApplication(protocol, BASE_URL, null, requestedURL);
-        assertEquals("nuxeo://http/localhost:8080/nuxeo/", url);
+        assertEquals("nuxeo://http/localhost:8080/core/", url);
 
         requestedURL = "nxhome/not/exist";
         url = MobileBannerHelper.getURLForMobileApplication(protocol, OTHER_BASE_URL, null, requestedURL);

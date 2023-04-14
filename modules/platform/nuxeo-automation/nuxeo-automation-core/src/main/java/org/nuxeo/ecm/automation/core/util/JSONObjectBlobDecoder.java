@@ -39,7 +39,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  *
  * <pre>
  * {
- *     "data": "http://localhost:8080/nuxeo/nxfile/REPOSITORY/DOC_ID/file:content"
+ *     "data": "http://localhost:8080/core/nxfile/REPOSITORY/DOC_ID/file:content"
  * }
  * </pre>
  *

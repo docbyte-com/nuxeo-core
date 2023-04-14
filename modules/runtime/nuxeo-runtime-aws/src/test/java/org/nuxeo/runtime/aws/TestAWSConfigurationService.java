@@ -31,6 +31,7 @@ import static org.junit.Assume.assumeTrue;
 
 import javax.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -78,6 +79,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoCredentialsProvider() {
         AWSCredentials credentials = NuxeoAWSCredentialsProvider.getInstance().getCredentials();
@@ -85,6 +87,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoCredentialsProviderWithId() {
         AWSCredentials credentials = new NuxeoAWSCredentialsProvider(MY_CONFIG).getCredentials();
@@ -97,6 +100,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     public void testNuxeoCredentialsProviderWithoutNuxeoConfiguration() {
         try {
             assumeTrue("Cannot run if AWS env vars are already set",
@@ -148,6 +152,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoRegionProvider() {
         String region = NuxeoAWSRegionProvider.getInstance().getRegion();
@@ -155,6 +160,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoRegionProviderWithId() {
         String region = new NuxeoAWSRegionProvider(MY_CONFIG).getRegion();
@@ -167,6 +173,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     public void testNuxeoRegionProviderWithoutNuxeoConfiguration() {
         assumeTrue("Cannot run if AWS env vars are already set",
                 new AwsEnvVarOverrideRegionProvider().getRegion() == null);

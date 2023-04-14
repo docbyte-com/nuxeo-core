@@ -155,7 +155,7 @@ public class TestRegisterNotificationService {
     public void testExpandVarsInGeneralSettings() throws Exception {
         hotDeployer.deploy("org.nuxeo.ecm.platform.notification.tests:notification-contrib.xml");
 
-        assertEquals("http://localhost:8080/nuxeo/", getService().getServerUrlPrefix());
+        assertEquals("http://localhost:8080/core/", getService().getServerUrlPrefix());
         assertEquals("[Nuxeo5]", getService().getEMailSubjectPrefix());
 
         // this one should not be expanded

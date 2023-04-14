@@ -49,13 +49,14 @@ import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.codec.FileAvroSchemaStore;
 import org.nuxeo.lib.stream.codec.SerializableCodec;
 import org.nuxeo.lib.stream.computation.Record;
+import org.nuxeo.lib.stream.tests.TestUtils;
 
 /**
  * @since 10.2
  */
 public class TestCodec {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(TestUtils.getBuildDirectory()));
 
     protected static final int MAX_DATA_SIZE = 1000;
 

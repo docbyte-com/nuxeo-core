@@ -31,13 +31,14 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.nuxeo.lib.stream.codec.AvroSchemaStore;
 import org.nuxeo.lib.stream.codec.FileAvroSchemaStore;
+import org.nuxeo.lib.stream.tests.TestUtils;
 
 /**
  * @since 10.3
  */
 public class TestFileAvroSchemaStore {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(TestUtils.getBuildDirectory()));
 
     @Test
     public void testAvroEvolution() throws IOException {

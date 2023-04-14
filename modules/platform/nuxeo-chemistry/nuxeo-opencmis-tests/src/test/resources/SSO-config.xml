@@ -11,7 +11,7 @@
     <authenticationPlugin name="CAS2_AUTH">
       <parameters>
         <parameter name="ticketKey">ticket</parameter>
-        <parameter name="appURL">http://127.0.0.1:8080/nuxeo/nxstartup.faces</parameter>
+        <parameter name="appURL">http://127.0.0.1:8080/core/nxstartup.faces</parameter>
         <parameter name="serviceLoginURL">http://127.0.0.1:8080/cas/login</parameter>
         <parameter name="serviceValidateURL">http://127.0.0.1:8080/cas/serviceValidate</parameter>
         <parameter name="serviceKey">service</parameter>

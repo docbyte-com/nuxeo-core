@@ -715,7 +715,7 @@ public class TestDownloadService {
     public void testDownloadUrlWithChangeToken() throws IOException {
         String repositoryName = "test";
         CoreSession session = CoreInstance.getCoreSession(repositoryName);
-        Framework.getProperties().setProperty("nuxeo.url", "http://localhost:8080/nuxeo");
+        Framework.getProperties().setProperty("nuxeo.url", "http://localhost:8080/core");
         DocumentModel doc = session.createDocumentModel("/", "James-Bond", "File");
         doc.setProperty("dublincore", "title", "Spectre");
 

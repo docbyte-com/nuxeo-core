@@ -22,7 +22,7 @@ This plugin is available for Nuxeo Platform 5.8 and above.
 
 - Follow Login Plugin Configuration part before starting Nuxeo.
 
-- Check Nuxeo correctly re-started `http://localhost:8080/nuxeo`
+- Check Nuxeo correctly re-started `http://localhost:8080/core`
   - username: Administrator
   - password: Administrator
 

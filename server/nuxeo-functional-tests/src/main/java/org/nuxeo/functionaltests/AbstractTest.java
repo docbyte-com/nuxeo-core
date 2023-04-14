@@ -186,7 +186,7 @@ public abstract class AbstractTest {
 
     static final Log log = LogFactory.getLog(AbstractTest.class);
 
-    public static final String NUXEO_URL = System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo")
+    public static final String NUXEO_URL = System.getProperty("nuxeoURL", "http://localhost:8080/core")
                                                  .replaceAll("/$", "");
 
     public static RemoteWebDriver driver; // NOSONAR (public static but not final, ok for tests)

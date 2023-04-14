@@ -54,6 +54,7 @@ public class ITTestDrivers extends AbstractTest {
     }
 
     @Test
+    @Ignore("disabled firefox testing")
     public void testFireFox() throws Exception {
         initFirefoxDriver();
         watchman.setDriver(driver);

@@ -37,7 +37,7 @@ DEFAULT_MARKETPLACE_PATTERN = MARKET_PLACE_PREFIX + r"\-\d\.\d.*?\.zip"
 DEFAULT_MARKETPLACE_FILENAME = MARKET_PLACE_PREFIX + '.zip'
 LINKS_PATTERN = r'\bhref="([^"]+)"'
 
-DEFAULT_SERVER_URL = "http://localhost:8080/nuxeo"
+DEFAULT_SERVER_URL = "http://localhost:8080/core"
 
 DEFAULT_MSI_FOLDER = 'dist'
 DEFAULT_LESSMSI_URL = "http://lessmsi.googlecode.com/files/lessmsi-v1.0.8.zip"

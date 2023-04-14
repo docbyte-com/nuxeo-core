@@ -53,8 +53,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
  *       ...,
  *       "wopi": {
  *         "appName": "Word",
- *         "view": "http://localhost:8080/nuxeo/wopi/view/REPOSITORY/DOC_ID/file:content",
- *         "edit": "http://localhost:8080/nuxeo/wopi/edit/REPOSITORY/DOC_ID/file:content"
+ *         "view": "http://localhost:8080/core/wopi/view/REPOSITORY/DOC_ID/file:content",
+ *         "edit": "http://localhost:8080/core/wopi/edit/REPOSITORY/DOC_ID/file:content"
  *       }
  *     },
  *     "other:xpath": {
@@ -63,8 +63,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
  *       ...,
  *       "wopi": {
  *         "appName": "Excel",
- *         "view": "http://localhost:8080/nuxeo/wopi/view/REPOSITORY/DOC_ID/other:xpath",
- *         "edit": "http://localhost:8080/nuxeo/wopi/edit/REPOSITORY/DOC_ID/other:xpath"
+ *         "view": "http://localhost:8080/core/wopi/view/REPOSITORY/DOC_ID/other:xpath",
+ *         "edit": "http://localhost:8080/core/wopi/edit/REPOSITORY/DOC_ID/other:xpath"
  *       }
  *     }
  *   }

@@ -495,7 +495,7 @@ public class TestNuxeoAuthenticationFilter {
         checkCachedUser(sessionAttributes, "bob");
 
         // redirect was called
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/my/page"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/my/page"));
     }
 
     /**
@@ -528,7 +528,7 @@ public class TestNuxeoAuthenticationFilter {
 
         // redirecting to /login
         verify(response).setStatus(SC_UNAUTHORIZED);
-        verify(response).addHeader(eq("Location"), eq("http://localhost:8080/nuxeo/" + LOGIN_PAGE));
+        verify(response).addHeader(eq("Location"), eq("http://localhost:8080/core/" + LOGIN_PAGE));
     }
 
     /**
@@ -564,7 +564,7 @@ public class TestNuxeoAuthenticationFilter {
 
         // redirecting to /login
         verify(response).setStatus(SC_UNAUTHORIZED);
-        verify(response).addHeader(eq("Location"), eq("http://localhost:8080/nuxeo/" + LOGIN_PAGE));
+        verify(response).addHeader(eq("Location"), eq("http://localhost:8080/core/" + LOGIN_PAGE));
     }
 
     /**
@@ -632,7 +632,7 @@ public class TestNuxeoAuthenticationFilter {
 
         // forceAnonymousLogin is removed
         assertTrue(entity, entity.contains(
-                "window.location = 'http://localhost:8080/nuxeo/dummy_login.jsp?requestedUrl=mystart%2Ffoo';"));
+                "window.location = 'http://localhost:8080/core/dummy_login.jsp?requestedUrl=mystart%2Ffoo';"));
     }
 
     /**
@@ -673,7 +673,7 @@ public class TestNuxeoAuthenticationFilter {
         writer.flush();
         String entity = out.toString(UTF_8);
         assertTrue(entity, entity.contains(
-                "window.location = 'http://localhost:8080/nuxeo/dummy_login.jsp?requestedUrl=mystart%2Ffoo';"));
+                "window.location = 'http://localhost:8080/core/dummy_login.jsp?requestedUrl=mystart%2Ffoo';"));
 
         // check that start url was saved
         assertEquals("mystart/foo", sessionAttributes.get(START_PAGE_SAVE_KEY));
@@ -702,7 +702,7 @@ public class TestNuxeoAuthenticationFilter {
         checkNoEvents();
 
         // redirecting to /login
-        verify(response).sendRedirect("http://localhost:8080/nuxeo/dummy_login.jsp");
+        verify(response).sendRedirect("http://localhost:8080/core/dummy_login.jsp");
 
         // redirect is not done through the HTML page as we don't need to save start url
         verify(response, never()).setContentType(eq("text/html;charset=UTF-8"));
@@ -749,7 +749,7 @@ public class TestNuxeoAuthenticationFilter {
         // check that the redirect is to our dummy login page (defined in the auth plugin)
         writer.flush();
         String entity = out.toString(UTF_8);
-        assertTrue(entity, entity.contains("window.location = 'http://localhost:8080/nuxeo/dummy_login.jsp';"));
+        assertTrue(entity, entity.contains("window.location = 'http://localhost:8080/core/dummy_login.jsp';"));
     }
 
     /**
@@ -799,7 +799,7 @@ public class TestNuxeoAuthenticationFilter {
         checkCachedUser(sessionAttributes, "bob");
 
         // redirect was called
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/mystart/foo"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/mystart/foo"));
 
         // make sure the session was invalidated with a successful authentication
         verify(session).invalidate();
@@ -832,7 +832,7 @@ public class TestNuxeoAuthenticationFilter {
         checkNoEvents();
 
         // redirect was called
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/dummy_login.jsp?loginFailed=true"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/dummy_login.jsp?loginFailed=true"));
 
         // login error
         assertEquals("Username and password do not match", requestAttributes.get(LOGIN_ERROR));
@@ -862,7 +862,7 @@ public class TestNuxeoAuthenticationFilter {
         checkNoCachedUser(sessionAttributes);
 
         // redirect was called. home.html is the default LoginScreenHelper startup page
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/home.html"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/home.html"));
     }
 
     protected void initAuthPluginFormLogoutRequest(HttpServletRequest request, HttpSession session,
@@ -893,7 +893,7 @@ public class TestNuxeoAuthenticationFilter {
         initAuthPluginFormLogoutRequest(request, session, sessionAttributes);
 
         // set the callbackURL parameter to a valid URL
-        when(request.getParameter(eq(CALLBACK_URL_PARAMETER))).thenReturn("http://localhost:8080/nuxeo/redirect");
+        when(request.getParameter(eq(CALLBACK_URL_PARAMETER))).thenReturn("http://localhost:8080/core/redirect");
 
         filter.doFilter(request, response, chain);
 
@@ -907,7 +907,7 @@ public class TestNuxeoAuthenticationFilter {
         checkNoCachedUser(sessionAttributes);
 
         // redirect was called and callback URL was valid
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/redirect"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/redirect"));
     }
 
     /**
@@ -937,7 +937,7 @@ public class TestNuxeoAuthenticationFilter {
         checkNoCachedUser(sessionAttributes);
 
         // redirect was called. home.html is the default LoginScreenHelper startup page
-        verify(response).sendRedirect(eq("http://localhost:8080/nuxeo/home.html"));
+        verify(response).sendRedirect(eq("http://localhost:8080/core/home.html"));
     }
 
     /**
@@ -1056,24 +1056,24 @@ public class TestNuxeoAuthenticationFilter {
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
     public void testCallbackURL() {
-        String baseURL = "http://localhost:8080/nuxeo/";
+        String baseURL = "http://localhost:8080/core/";
         assertFalse(filter.isCallbackURLValid(null, baseURL));
         assertFalse(filter.isCallbackURLValid("http://foo.bar/nuxeo/redirect", null));
-        assertTrue(filter.isCallbackURLValid("http://localhost:8080/nuxeo/redirect", baseURL));
+        assertTrue(filter.isCallbackURLValid("http://localhost:8080/core/redirect", baseURL));
         assertFalse(filter.isCallbackURLValid("https://example.com/redirect", baseURL));
         assertTrue(filter.isCallbackURLValid("nuxeo://redirect", baseURL));
         assertTrue(filter.isCallbackURLValid("nxdrive://redirect", baseURL));
         assertFalse(filter.isCallbackURLValid("foo://", baseURL));
 
         // wrong callback URL => redirects to startup page
-        assertEquals("http://localhost:8080/nuxeo/home.html",
+        assertEquals("http://localhost:8080/core/home.html",
                 filter.getLogoutRedirectURL("https://example.com/redirect", baseURL, null));
-        assertEquals("http://localhost:8080/nuxeo/home.html", filter.getLogoutRedirectURL(null, baseURL, null));
-        assertEquals("http://localhost:8080/nuxeo/home.html",
+        assertEquals("http://localhost:8080/core/home.html", filter.getLogoutRedirectURL(null, baseURL, null));
+        assertEquals("http://localhost:8080/core/home.html",
                 filter.getLogoutRedirectURL("foo://redirect", baseURL, null));
         // OK
-        assertEquals("http://localhost:8080/nuxeo/redirect",
-                filter.getLogoutRedirectURL("http://localhost:8080/nuxeo/redirect", baseURL, null));
+        assertEquals("http://localhost:8080/core/redirect",
+                filter.getLogoutRedirectURL("http://localhost:8080/core/redirect", baseURL, null));
         assertEquals("nuxeo://redirect", filter.getLogoutRedirectURL("nuxeo://redirect", baseURL, null));
         assertEquals("nxdrive://redirect", filter.getLogoutRedirectURL("nxdrive://redirect", baseURL, null));
     }

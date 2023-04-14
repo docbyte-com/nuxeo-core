@@ -52,7 +52,7 @@ Testing the tomcat server
 -------------------------
 
 Start the Nuxeo server, then use the same information as above, except for the
-URL: http://localhost:8080/nuxeo/site/dav/default-domain/workspaces
+URL: http://localhost:8080/core/site/dav/default-domain/workspaces
 
 More tests
 ----------

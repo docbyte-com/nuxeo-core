@@ -70,7 +70,7 @@
           "key": "nuxeo.log.dir"
         },
         {
-          "value": "http://127.0.0.1:8080/nuxeo",
+          "value": "http://127.0.0.1:8080/core",
           "key": "nuxeo.loopback.url"
         },
         {
@@ -94,7 +94,7 @@
           "key": "nuxeo.tmp.dir"
         },
         {
-          "value": "http://localhost:8080/nuxeo",
+          "value": "http://localhost:8080/core",
           "key": "nuxeo.url"
         },
         {
@@ -106,7 +106,7 @@
           "value": "10.10"
         },
         {
-          "value": "/nuxeo",
+          "value": "/core",
           "key": "org.nuxeo.ecm.contextPath"
         },
         {

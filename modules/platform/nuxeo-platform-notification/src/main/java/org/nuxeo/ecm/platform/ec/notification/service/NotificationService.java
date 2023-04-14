@@ -124,7 +124,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
 
         // init default settings
         generalSettings = new GeneralSettingsDescriptor();
-        generalSettings.serverPrefix = "http://localhost:8080/nuxeo/";
+        generalSettings.serverPrefix = "http://localhost:8080/core/";
         generalSettings.eMailSubjectPrefix = "[Nuxeo]";
         generalSettings.mailSessionJndiName = "java:/Mail";
     }

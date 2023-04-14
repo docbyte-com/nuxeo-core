@@ -128,6 +128,12 @@ public class TestMimetypeSniffing {
         assertEquals("text/csv", mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/test.csv")));
     }
 
+
+    @Test
+    public void testXmlDocument() throws Exception {
+        assertEquals("text/xml", mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/hello.xml")));
+    }
+
     // OpenDocument Writer
     private static File getODFwriterDocument() {
         return getFileFromResource("test-data/hello.odt");

@@ -159,7 +159,7 @@ public class OAuth2Client {
      * <li>It is not empty</li>
      * <li>It starts with https, e.g. https://my.redirect.uri</li>
      * <li>It doesn't start with http, e.g. nuxeo://authorize</li>
-     * <li>It starts with http://localhost with localhost not part of the domain name, e.g. http://localhost:8080/nuxeo,
+     * <li>It starts with http://localhost with localhost not part of the domain name, e.g. http://localhost:8080/core,
      * a counter-example being http://localhost.somecompany.com</li>
      * <li>The Nuxeo node is in Dev mode</li>
      * </ul>

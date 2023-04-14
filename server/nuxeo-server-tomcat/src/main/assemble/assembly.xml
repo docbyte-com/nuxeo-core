@@ -70,7 +70,7 @@
     <delete dir="${tomcat}/webapps/examples" />
     <!-- install Nuxeo-specific files -->
     <copy tofile="${tomcat}/bin/nuxeo-launcher.jar">
-	<artifact:file key="org.nuxeo:nuxeo-launcher:::jar-with-dependencies" />
+	<artifact:file key="cloud.docbyte.nuxeo:nuxeo-launcher:::jar-with-dependencies" />
     </copy>
     <copy todir="${tomcat}">
       <fileset dir="src/main/resources/tomcat" />
@@ -88,7 +88,7 @@
 
     <!-- Nuxeo Server NXR -->
     <unzip dest="${distribution.dir}/nxserver">
-      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-server:${maven.project.version}:zip" />
+      <artifact:file key="cloud.docbyte.nuxeo.ecm.distribution:nuxeo-nxr-server:${maven.project.version}:zip" />
     </unzip>
     <!-- Move templates to their correct location -->
     <mkdir dir="${distribution.dir}/templates" />
@@ -118,17 +118,19 @@
       <artifact:set excludeRoots="true">
         <includes>
           <artifact groupId="org.nuxeo*" scope="" />
+          <artifact groupId="cloud.docbyte.nuxeo*" scope="" />
         </includes>
         <excludes>
           <artifact groupId="org.nuxeo.lib*" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" />
         </excludes>
       </artifact:set>
     </copy>
     <copy todir="${distribution.dir}/nxserver/lib" overwrite="true">
       <artifact:set>
         <includes>
-          <artifact groupId="!org.nuxeo*" scope="" />
-          <artifact groupId="org.nuxeo.lib*" scope="" />
+          <artifact groupId="!cloud.docbyte.nuxeo*" scope="" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" scope="" />
         </includes>
       </artifact:set>
     </copy>

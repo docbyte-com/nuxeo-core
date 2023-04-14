@@ -3,7 +3,7 @@
 <p>
 <% if (request.getAttribute("edu.yale.its.tp.cas.badUsernameOrPassword")
        != null) { %>
-<font color="red">Désolé, vous avez rentré un identifiant ou un mot de passe invalide. <br />Reessayer s'il vous plait.</font>
+<font color="red">Dï¿½solï¿½, vous avez rentrï¿½ un identifiant ou un mot de passe invalide. <br />Reessayer s'il vous plait.</font>
   <% } else if (request.getAttribute("edu.yale.its.tp.cas.service") == null) { %>
   Vous devez vous identifier maintenant &agrave; CAS avant d'acc&egrave;der
   aux diff&eacute;rentes applications.
@@ -15,7 +15,7 @@
 
 <font face="Arial,Helvetica">
 <p> Entrez votre identifiant et votre mot de passe ci-desous; puis cli quez sur
-  le bouton <b>OK</b>  ou bien cliquer <a href="http://localhost:8080/nuxeo">ici</a> pour vous connecter sur Nuxeo en utilisateur anonyme</p>
+  le bouton <b>OK</b>  ou bien cliquer <a href="http://localhost:8080/core">ici</a> pour vous connecter sur Nuxeo en utilisateur anonyme</p>
 </font>
 
 

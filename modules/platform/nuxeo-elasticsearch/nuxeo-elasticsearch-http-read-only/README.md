@@ -36,9 +36,9 @@ For instance if your REST client application want to query Elasticsearch like th
 
 To do this search through Nuxeo, you need to change the base URL and use authentication:
 
-    curl -XGET -u jdoe:password  'http://localhost:8080/nuxeo/site/es/_search?size=0' -d '{ "query": { "match_all":{}}}'
+    curl -XGET -u jdoe:password  'http://localhost:8080/core/site/es/_search?size=0' -d '{ "query": { "match_all":{}}}'
 
-Note that the base URL change from **http://my-elastic-search-server:9200** to **http://my-nuxeo-server:8080/nuxeo/site/es**.
+Note that the base URL change from **http://my-elastic-search-server:9200** to **http://my-nuxeo-server:8080/core/site/es**.
 
 The previous request is rewritten and the final request submitted to Elasticsearch is equivalent to:
 
@@ -73,7 +73,7 @@ clients are not able to send GET request with a body.
 
 The Nuxeo proxy accepts POST request, but only if the content type is set properly, like this:
 
-    curl -XPOST -u jdoe:password -H "Content-Type: application/json" 'http://localhost:8080/nuxeo/site/es/_search?size=0' -d '{ "query": { "match_all":{}}}'
+    curl -XPOST -u jdoe:password -H "Content-Type: application/json" 'http://localhost:8080/core/site/es/_search?size=0' -d '{ "query": { "match_all":{}}}'
 
 If you don't set this header you will get error like:
 
