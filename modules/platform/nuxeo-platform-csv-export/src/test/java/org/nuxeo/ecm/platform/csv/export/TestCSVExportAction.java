@@ -252,7 +252,7 @@ public class TestCSVExportAction {
 
         int systemHeaderSize = SYSTEM_PROPERTIES_HEADER_FIELDS.length;
         String[] dcFields = new String[] { "dc:contributors", "dc:coverage", "dc:coverage[label]", "dc:created",
-                "dc:creator", "dc:description", "dc:expired", "dc:format", "dc:issued", "dc:language",
+                "dc:creator", "dc:description", "dc:expired", "dc:format", "dc:identifier", "dc:issued", "dc:language",
                 "dc:lastContributor", "dc:modified", "dc:nature", "dc:nature[label]", "dc:publisher", "dc:rights",
                 "dc:source", "dc:subjects", "dc:subjects[label]", "dc:title", "dc:valid", "cpx:complex/foo",
                 "file:content/length", "file:content/name" };

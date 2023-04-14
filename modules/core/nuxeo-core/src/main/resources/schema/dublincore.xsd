@@ -42,6 +42,7 @@
   <xs:element name="expired" type="xs:date" />
   <xs:element name="format" type="xs:string" />
   <xs:element name="language" type="xs:string" />
+  <xs:element name="identifier" type="xs:string" />
   <xs:element name="creator">
     <xs:simpleType>
       <xs:restriction base="xs:string" ref:resolver="userManagerResolver" ref:type="user" ref:validation="false" />
