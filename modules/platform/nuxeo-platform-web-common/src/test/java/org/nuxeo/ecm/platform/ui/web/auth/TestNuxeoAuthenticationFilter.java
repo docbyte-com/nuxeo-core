@@ -975,7 +975,7 @@ public class TestNuxeoAuthenticationFilter {
         // check that the redirect is to the SSO login page
         writer.flush();
         String entity = out.toString(UTF_8);
-        String expectedRedirect = URLEncoder.encode("http://localhost:8080//nuxeo/mystart/foo?bar=baz", "UTF-8");
+        String expectedRedirect = URLEncoder.encode("http://localhost:8080//core/mystart/foo?bar=baz", "UTF-8");
         assertTrue(entity,
                 entity.contains("window.location = 'http://sso.example.com/login?redirect=" + expectedRedirect + "';"));
     }
