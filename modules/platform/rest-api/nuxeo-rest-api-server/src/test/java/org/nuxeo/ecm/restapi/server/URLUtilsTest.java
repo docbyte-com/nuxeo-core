@@ -49,7 +49,7 @@ public class URLUtilsTest {
     public void testAPIServletForwarding() throws Exception {
         APIServlet servlet = new APIServlet();
 
-        when(req.getContextPath()).thenReturn("/nuxeo");
+        when(req.getContextPath()).thenReturn("/core");
         when(req.getRequestURI()).thenReturn("/nuxeo/api/path/doc%20with%20space/");
         servlet.service(req, resp);
         verify(req).getRequestDispatcher("/site/api/path/doc%20with%20space/");

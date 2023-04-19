@@ -81,7 +81,7 @@ public class TestNuxeoCorsCsrfFilter {
 
     protected static final String URL_BASE = SCHEME + "://" + HOST + ":" + PORT + "/";
 
-    protected static final String CONTEXT = "/nuxeo";
+    protected static final String CONTEXT = "/core";
 
     protected static final String NUXEO_VIRTUAL_HOST = "nuxeo-virtual-host";
 

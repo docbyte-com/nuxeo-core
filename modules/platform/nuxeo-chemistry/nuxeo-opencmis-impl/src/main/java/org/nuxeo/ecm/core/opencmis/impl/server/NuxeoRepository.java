@@ -141,7 +141,7 @@ public class NuxeoRepository {
 
     private static final String NUXEO_CONTEXT_PATH_PROP = "org.nuxeo.ecm.contextPath";
 
-    private static final String NUXEO_CONTEXT_PATH_DEFAULT = "/nuxeo";
+    private static final String NUXEO_CONTEXT_PATH_DEFAULT = "/core";
 
     private static final String X_FORWARDED_HOST = "x-forwarded-host";
 

@@ -387,7 +387,7 @@ public class OSGiRuntimeService extends AbstractRuntimeService implements Framew
     protected void loadDefaultConfig() {
         String varName = "org.nuxeo.ecm.contextPath";
         if (Framework.getProperty(varName) == null) {
-            properties.setProperty(varName, "/nuxeo");
+            properties.setProperty(varName, "/core");
         }
     }
 

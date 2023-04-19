@@ -115,7 +115,7 @@ public class TestNuxeoAuthenticationFilter {
 
     protected static final int PORT = 8080;
 
-    protected static final String CONTEXT = "/nuxeo";
+    protected static final String CONTEXT = "/core";
 
     @Mock
     @RuntimeService

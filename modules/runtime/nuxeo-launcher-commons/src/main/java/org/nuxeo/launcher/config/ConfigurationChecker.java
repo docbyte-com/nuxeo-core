@@ -76,7 +76,7 @@ public class ConfigurationChecker {
 
     protected static final int PARAM_RETRY_POLICY_DEFAULT_RETRIES = 20;
 
-    protected static final String DEFAULT_CONTEXT_NAME = "/nuxeo";
+    protected static final String DEFAULT_CONTEXT_NAME = "/core";
 
     protected static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "17" };
 

@@ -179,7 +179,7 @@ public class VirtualHostHelper {
     }
 
     public static String getContextPathProperty() {
-        return Framework.getProperty("org.nuxeo.ecm.contextPath", "/nuxeo");
+        return Framework.getProperty("org.nuxeo.ecm.contextPath", "/core");
     }
 
     /**
