@@ -118,7 +118,7 @@ public class TestLoginScreenConfig {
         assertNotNull(config);
 
         String style = config.getBodyBackgroundStyle();
-        assertTrue(style.contains("/nuxeo/img/login_bg.png"));
+        assertTrue(style.contains("/core/img/login_bg.png"));
     }
 
     @Test

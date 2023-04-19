@@ -94,28 +94,28 @@ public class TestService {
         assertFalse(config.needSynchronization());
         assertFalse(config.needTransaction());
 
-        uri = "/nuxeo/TestServlet/";
+        uri = "/core/TestServlet/";
         config = requestControllerService.computeConfigForRequest(uri);
         assertTrue(config.needSynchronization());
         assertTrue(config.needTransaction());
 
-        uri = "/nuxeo/TestServlet";
+        uri = "/core/TestServlet";
         config = requestControllerService.computeConfigForRequest(uri);
         assertTrue(config.needSynchronization());
         assertTrue(config.needTransaction());
 
-        uri = "/nuxeo/TestServlet/toto";
+        uri = "/core/TestServlet/toto";
         config = requestControllerService.computeConfigForRequest(uri);
         assertTrue(config.needSynchronization());
         assertTrue(config.needTransaction());
 
-        uri = "/nuxeo/CacheDefault";
+        uri = "/core/CacheDefault";
         config = requestControllerService.computeConfigForRequest(uri);
         assertFalse(config.isCached());
         assertFalse(config.isPrivate());
         assertEquals("3599", config.getCacheTime());
 
-        uri = "/nuxeo/Cache";
+        uri = "/core/Cache";
         config = requestControllerService.computeConfigForRequest(uri);
         assertTrue(config.isCached());
         assertTrue(config.isPrivate());
@@ -134,14 +134,14 @@ public class TestService {
         filter = requestControllerManager.getCorsFilterForRequest(request);
         assertNull(filter);
 
-        uri = "/nuxeo/site/minimal/something/long/dummy.html";
+        uri = "/core/site/minimal/something/long/dummy.html";
         when(request.getRequestURI()).thenReturn(uri);
         filter = requestControllerManager.getCorsFilterForRequest(request);
         config = filter.getConfiguration();
         assertEquals(-1, config.maxAge);
         assertEquals(Collections.emptySet(), config.allowedOrigins);
 
-        uri = "/nuxeo/site/dummy/";
+        uri = "/core/site/dummy/";
         when(request.getRequestURI()).thenReturn(uri);
         filter = requestControllerManager.getCorsFilterForRequest(request);
         config = filter.getConfiguration();
@@ -172,7 +172,7 @@ public class TestService {
 
         // file:content
         RequestFilterConfig config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/file:content/IMG_20170910_110134.jpg");
+                "/core/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/file:content/IMG_20170910_110134.jpg");
         assertNotNull(config);
         // !!!WARN: Don't change this unit test without asking front end devs !!!
         assertTrue(config.isCached());
@@ -184,7 +184,7 @@ public class TestService {
 
         // picture:views
         config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/picture:views/3/content/FullHD_IMG_20170910_110134.jpg");
+                "/core/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/picture:views/3/content/FullHD_IMG_20170910_110134.jpg");
         assertNotNull(config);
         // !!!WARN: Don't change this unit test without asking front end devs !!!
         assertTrue(config.isCached());
@@ -196,7 +196,7 @@ public class TestService {
 
         // picture:views but with changeToken
         config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/picture:views/3/content/FullHD_IMG_20170910_110134.jpg?changeToken=5-1");
+                "/core/nxfile/default/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/picture:views/3/content/FullHD_IMG_20170910_110134.jpg?changeToken=5-1");
         assertNotNull(config);
         // !!!WARN: Don't change this unit test without asking front end devs !!!
         assertTrue(config.isCached());
@@ -214,7 +214,7 @@ public class TestService {
     public void testThumbnailPatterns() {
         RequestControllerService requestControllerService = (RequestControllerService) requestControllerManager;
         RequestFilterConfig config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/api/v1/repo/default/id/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/@rendition/thumbnail");
+                "/core/api/v1/repo/default/id/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/@rendition/thumbnail");
         assertNotNull(config);
         // !!!WARN: Don't change this unit test without asking front end devs !!!
         assertTrue(config.isCached());
@@ -223,7 +223,7 @@ public class TestService {
         assertTrue(config.isPrivate());
         assertTrue(config.needTransaction());
         config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/api/v1/repo/default/id/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/@rendition/thumbnail?changeToken=5-1");
+                "/core/api/v1/repo/default/id/45ad4c71-f1f3-4e9d-97a1-61aa317ce105/@rendition/thumbnail?changeToken=5-1");
         assertNotNull(config);
         // !!!WARN: Don't change this unit test without asking front end devs !!!
         assertTrue(config.isCached());
@@ -240,7 +240,7 @@ public class TestService {
     public void testAdminPatterns() {
         RequestControllerService requestControllerService = (RequestControllerService) requestControllerManager;
         RequestFilterConfig config = requestControllerService.computeConfigForRequest(
-                "/nuxeo/nxadmin/default/default-domain@view_admin?tabIds=NUXEO_ADMIN");
+                "/core/nxadmin/default/default-domain@view_admin?tabIds=NUXEO_ADMIN");
         assertNotNull(config);
         assertFalse(config.isCached());
         assertTrue(config.isPrivate());

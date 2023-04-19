@@ -321,17 +321,17 @@ public class TestNuxeoAuthenticationFilter {
     @Test
     public void testGetRequestedPage() throws Exception {
         // case of a servlet mapped with <url-pattern>*.xhtml</url-pattern>
-        doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/foo/bar.xhtml", "/foo/bar.xhtml", null, null);
-        doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/login.jsp/../foo/bar.xhtml;jsessionid=123?gee=moo",
+        doTestGetRequestedPage("foo/bar.xhtml", "/core/foo/bar.xhtml", "/foo/bar.xhtml", null, null);
+        doTestGetRequestedPage("foo/bar.xhtml", "/core/login.jsp/../foo/bar.xhtml;jsessionid=123?gee=moo",
                 "/foo/bar.xhtml", null, "gee=moo");
         // case of a servlet mapped with <url-pattern>/foo/*</url-pattern>
-        doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/foo/bar.xhtml", "/foo", "/bar.xhtml", null);
-        doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/login.jsp/../foo/bar.xhtml;jsessionid=123?gee=moo", "/foo",
+        doTestGetRequestedPage("foo/bar.xhtml", "/core/foo/bar.xhtml", "/foo", "/bar.xhtml", null);
+        doTestGetRequestedPage("foo/bar.xhtml", "/core/login.jsp/../foo/bar.xhtml;jsessionid=123?gee=moo", "/foo",
                 "/bar.xhtml", "gee=moo");
         // index.jsp requested
-        doTestGetRequestedPage("ui/index.jsp", "/nuxeo/ui/index.jsp", "/ui/index.jsp", null, null);
+        doTestGetRequestedPage("ui/index.jsp", "/core/ui/index.jsp", "/ui/index.jsp", null, null);
         // index.jsp not in the request uri but present in the servlet path (welcome file)
-        doTestGetRequestedPage("ui/", "/nuxeo/ui/", "/ui/index.jsp", null, null);
+        doTestGetRequestedPage("ui/", "/core/ui/", "/ui/index.jsp", null, null);
         // the original request path is returned when set as a request attribute
         doTestGetOriginalPage("repo/default/ui", "/ui", "/repo/default/ui");
     }
@@ -367,21 +367,21 @@ public class TestNuxeoAuthenticationFilter {
     }
 
     protected void doTestGetRequestedUrl(String expectedSuffix, String queryString) {
-        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/nuxeo/foo/bar.xhtml", "/foo/bar.xhtml", null,
+        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/core/foo/bar.xhtml", "/foo/bar.xhtml", null,
                 queryString);
-        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/nuxeo/foo/bar.xhtml", "/foo", "/bar.xhtml",
+        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/core/foo/bar.xhtml", "/foo", "/bar.xhtml",
                 queryString);
         // we expected the requested URL to NOT be decoded
-        doTestGetRequestedUrl("foo%20bar.xhtml" + expectedSuffix, "/nuxeo/foo%20bar.xhtml", "/foo bar.xhtml", null,
+        doTestGetRequestedUrl("foo%20bar.xhtml" + expectedSuffix, "/core/foo%20bar.xhtml", "/foo bar.xhtml", null,
                 queryString);
         // here we use info that a servlet container would provide, based on parsing per the servlet spec
-        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/nuxeo/login.jsp/../foo/bar.xhtml;jsessionid=123",
+        doTestGetRequestedUrl("foo/bar.xhtml" + expectedSuffix, "/core/login.jsp/../foo/bar.xhtml;jsessionid=123",
                 "/foo", "/bar.xhtml", queryString);
         // index.jsp requested
-        doTestGetRequestedUrl("ui/index.jsp" + expectedSuffix, "/nuxeo/ui/index.jsp", "/ui/index.jsp", null,
+        doTestGetRequestedUrl("ui/index.jsp" + expectedSuffix, "/core/ui/index.jsp", "/ui/index.jsp", null,
                 queryString);
         // index.jsp not in the request uri but present in the servlet path (welcome file)
-        doTestGetRequestedUrl("ui/" + expectedSuffix, "/nuxeo/ui/", "/ui/index.jsp", null, queryString);
+        doTestGetRequestedUrl("ui/" + expectedSuffix, "/core/ui/", "/ui/index.jsp", null, queryString);
     }
 
     protected void doTestGetRequestedUrl(String expected, String requestURI, String servletPath, String pathInfo,
