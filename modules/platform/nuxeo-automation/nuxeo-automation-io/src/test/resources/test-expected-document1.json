@@ -59,6 +59,7 @@
       "dc:description" : null,
       "dc:expired" : null,
       "dc:format" : null,
+      "dc:identifier" : null,
       "dc:issued" : null,
       "dc:language" : null,
       "dc:lastContributor" : null,
