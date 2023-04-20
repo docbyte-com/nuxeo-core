@@ -72,7 +72,7 @@ public class SessionFactory {
         }
         RepositoryManager m = Framework.getService(RepositoryManager.class);
         if (m != null ) {
-            return m.getRepository(v)  != null  ? v : m.getDefaultRepositoryName();
+            return m.getRepository(v)  != null  ? v : defaultRepository;
         }
 
         return v != null ? v : defaultRepository;
