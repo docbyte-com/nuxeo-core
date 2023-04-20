@@ -122,7 +122,7 @@ public class TestDigestAuthenticator {
         if (corrupted) {
             response = "0000dead0000";
         } else {
-            response = "e9b3cb9ae4a744666897781b3f8ebd5a";
+            response = "8352b014808756d6f60813d40595d5e5";
         }
         return "Digest " //
                 + "username=\"" + USERNAME + "\"," //
