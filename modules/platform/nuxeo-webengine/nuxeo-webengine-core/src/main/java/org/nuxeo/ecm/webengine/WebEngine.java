@@ -133,7 +133,7 @@ public class WebEngine implements ResourceLocator {
         if (skinPathPrefix == null) {
             // TODO: should put this in web.xml and not use jboss.home.dir to
             // test if on jboss
-            skinPathPrefix = System.getProperty("jboss.home.dir") != null ? "/nuxeo/site/skin" : "/skin";
+            skinPathPrefix = System.getProperty("jboss.home.dir") != null ? "/core/site/skin" : "/skin";
         }
 
         env = new HashMap<>();

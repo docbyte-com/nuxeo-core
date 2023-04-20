@@ -50,17 +50,17 @@ public class URLUtilsTest {
         APIServlet servlet = new APIServlet();
 
         when(req.getContextPath()).thenReturn("/core");
-        when(req.getRequestURI()).thenReturn("/nuxeo/api/path/doc%20with%20space/");
+        when(req.getRequestURI()).thenReturn("/core/api/path/doc%20with%20space/");
         servlet.service(req, resp);
         verify(req).getRequestDispatcher("/site/api/path/doc%20with%20space/");
 
-        when(req.getRequestURI()).thenReturn("/nuxeo/api/path/default-domain/@children");
+        when(req.getRequestURI()).thenReturn("/core/api/path/default-domain/@children");
         servlet.service(req, resp);
         verify(req).getRequestDispatcher("/site/api/path/default-domain/@children");
 
         String encodedDocName = URIUtils.quoteURIPathComponent("test ; doc [with] some #, $, :, ; &? and =+", false,
                 false);
-        when(req.getRequestURI()).thenReturn("/nuxeo/api/path/default-domain/" + encodedDocName);
+        when(req.getRequestURI()).thenReturn("/core/api/path/default-domain/" + encodedDocName);
         servlet.service(req, resp);
         verify(req).getRequestDispatcher("/site/api/path/default-domain/" + encodedDocName);
     }

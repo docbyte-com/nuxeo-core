@@ -170,7 +170,7 @@ public class CreateDocumentsAction extends AbstractMailAction {
                         String key = fileNames.get(blob.getFilename());
                         if (key != null) {
                             html = html.replace(CONTENT_ID + key,
-                                    String.format("/nuxeo/nxfile/default/%s/files:files/%s/file/%s", document.getId(),
+                                    String.format("/core/nxfile/default/%s/files:files/%s/file/%s", document.getId(),
                                             i, blob.getFilename()));
                         }
                     }

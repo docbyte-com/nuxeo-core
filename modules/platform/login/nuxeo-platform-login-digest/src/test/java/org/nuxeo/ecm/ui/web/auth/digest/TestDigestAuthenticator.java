@@ -114,7 +114,7 @@ public class TestDigestAuthenticator {
         String realm = "NUXEO";
         String nonce = "MTM4MTI4ODc4NDYyNTo0ZTcxNTcyYmNmNjI1YWMxOTk4MTllM2JhOTNmOTFjMw==";
         // URI includes a comma, to check proper parsing
-        String uri = "/nuxeo/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
+        String uri = "/core/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
         String cnonce = "d30fb25c5345b787bccd677d1cb93bd6";
         String nc = "00000001";
         String qpop = "auth";

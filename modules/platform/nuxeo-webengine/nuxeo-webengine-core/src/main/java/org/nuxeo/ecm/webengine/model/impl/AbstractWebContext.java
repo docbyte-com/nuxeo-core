@@ -416,7 +416,7 @@ public abstract class AbstractWebContext implements WebContext {
         StringBuilder buf = new StringBuilder(request.getRequestURI().length());
         String path = request.getContextPath();
         if (path == null) {
-            path = "/nuxeo/site"; // for testing
+            path = "/core/site"; // for testing
         }
         buf.append(path).append(request.getServletPath());
         if ("/".equals(path)) {
