@@ -12,7 +12,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo</groupId>
+      <groupId>cloud.docbyte.nuxeo</groupId>
       <artifactId>nuxeo-adobe-connector-core</artifactId>
     </dependency>
   </dependencies>

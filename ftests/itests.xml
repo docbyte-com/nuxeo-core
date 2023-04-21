@@ -5,7 +5,7 @@
 
   <property name="out.dir" value="${maven.project.build.directory}" />
   <unzip dest="${out.dir}/" overwrite="false">
-    <artifact:resolveFile key="org.nuxeo:nuxeo-ftest::zip" />
+    <artifact:resolveFile key="cloud.docbyte.nuxeo:nuxeo-ftest::zip" />
   </unzip>
   <import file="${out.dir}/nuxeo-ftest.xml" />
 
@@ -22,7 +22,7 @@
     <copy todir="${out.dir}/packages">
       <artifact:set>
         <includes>
-          <artifact groupId="org.nuxeo.packages" type="zip" />
+          <artifact groupId="cloud.docbyte.nuxeo.packages" type="zip" />
         </includes>
       </artifact:set>
     </copy>

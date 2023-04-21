@@ -42,7 +42,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeGroupIds>org.nuxeo.packages</includeGroupIds>
+              <includeGroupIds>cloud.docbyte.nuxeo.packages</includeGroupIds>
               <outputDirectory>${project.build.directory}/packages</outputDirectory>
               <overWriteIfNewer>true</overWriteIfNewer>
             </configuration>

@@ -11,7 +11,7 @@
   <property name="mail.transport.host" value="127.0.0.1" />
 
   <unzip dest="${out.dir}/" overwrite="false">
-    <artifact:resolveFile key="org.nuxeo:nuxeo-ftest::zip" />
+    <artifact:resolveFile key="cloud.docbyte.nuxeo:nuxeo-ftest::zip" />
   </unzip>
   <import file="${out.dir}/nuxeo-ftest.xml" />
 

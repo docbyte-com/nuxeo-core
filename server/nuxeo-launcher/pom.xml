@@ -6,7 +6,7 @@
     <version>2023.0-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo</groupId>
+  <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-launcher</artifactId>
   <name>Nuxeo Control Panel and Launcher</name>
   <description>Nuxeo Control Panel and Launcher</description>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.nuxeo</groupId>
+  <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
   <version>2023.0-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -132,7 +132,7 @@
     <nuxeo.skip.enforcer>false</nuxeo.skip.enforcer>
 
     <!-- Tests properties -->
-    <!-- for use integration/vcstests.xml and org.nuxeo:nuxeo-ftest -->
+    <!-- for use integration/vcstests.xml and cloud.docbyte.nuxeo:nuxeo-ftest -->
     <!-- (related profiles: customdb, default, pgsql, oracle10g, oracle11g, oracle12c, oracle18c, mysql, mongodb) -->
     <nuxeo.test.core>vcs</nuxeo.test.core>
     <nuxeo.db.host.default>localhost</nuxeo.db.host.default>
@@ -185,7 +185,7 @@
         <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-ecm</artifactId>
         <type>zip</type>
         <classifier>tools</classifier>
@@ -1832,7 +1832,7 @@
 
       <!-- Adobe CC Connector -->
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-adobe-connector-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -1864,7 +1864,7 @@
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-launcher</artifactId>
         <version>${nuxeo.platform.version}</version>
         <classifier>jar-with-dependencies</classifier>
@@ -2065,7 +2065,7 @@
         <classifier>all</classifier>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-ftest</artifactId>
         <version>${nuxeo.ftest.version}</version>
         <type>zip</type>
@@ -4919,7 +4919,7 @@
                   <onlyWhenRelease>false</onlyWhenRelease>
                   <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
                   <includes>
-                    <include>org.nuxeo:nuxeo-ftest</include>
+                    <include>cloud.docbyte.nuxeo:nuxeo-ftest</include>
                     <include>org.nuxeo.connect:nuxeo-connect-client</include>
                   </includes>
                 </requireReleaseDeps>
@@ -5240,7 +5240,7 @@
           <version>3.19.0</version>
           <dependencies>
             <dependency>
-              <groupId>org.nuxeo</groupId>
+              <groupId>cloud.docbyte.nuxeo</groupId>
               <artifactId>nuxeo-qa-tools</artifactId>
               <version>1.0</version>
             </dependency>
@@ -5264,7 +5264,7 @@
           <version>2.11</version>
           <dependencies>
             <dependency>
-              <groupId>org.nuxeo</groupId>
+              <groupId>cloud.docbyte.nuxeo</groupId>
               <artifactId>nuxeo-qa-tools</artifactId>
               <version>1.0</version>
             </dependency>
@@ -6130,7 +6130,7 @@
                 </group>
                 <group>
                   <title>Nuxeo Runtime Packages</title>
-                  <packages>org.nuxeo.runtime:org.nuxeo.runtime.*:org.nuxeo.osgi</packages>
+                  <packages>cloud.docbyte.nuxeo.runtime:org.nuxeo.runtime.*:org.nuxeo.osgi</packages>
                 </group>
                 <group>
                   <title>Nuxeo Core Packages</title>
