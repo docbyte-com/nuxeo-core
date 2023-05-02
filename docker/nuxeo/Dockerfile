@@ -18,8 +18,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 
-RUN ls $BUILD_DIR/distrib
-RUN ls $BUILD_DIR/distrib/nuxeo-server-tomcat-*.zip
 COPY $BUILD_DIR/distrib/nuxeo-server-tomcat-*.zip /tmp/nuxeo-distribution-tomcat.zip
 
 ENV NUXEO_HOME=/distrib
