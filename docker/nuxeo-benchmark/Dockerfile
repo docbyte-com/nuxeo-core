@@ -18,7 +18,7 @@ LABEL org.nuxeo.benchmark.version=$VERSION
 LABEL org.label-schema.name="Nuxeo Benchmark Server"
 LABEL org.opencontainers.image.title="Nuxeo Benchmark Server"
 
-COPY --chown=900:0 ${BUILD_DIR}/packages/*.zip /tmp/local-packages/
+COPY --chown=900:0 $BUILD_DIR/packages/*.zip /tmp/local-packages/
 
 RUN /install-packages.sh --offline /tmp/local-packages/*.zip
 
