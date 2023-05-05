@@ -5,8 +5,8 @@
 ARG BASE_IMAGE
 
 FROM $BASE_IMAGE
-ARG BUILD_DIR
 
+ARG BUILD_DIR
 ARG BUILD_TAG
 ARG SCM_REF
 ARG VERSION
@@ -17,6 +17,8 @@ LABEL org.nuxeo.benchmark.version=$VERSION
 # Override parent ones
 LABEL org.label-schema.name="Nuxeo Benchmark Server"
 LABEL org.opencontainers.image.title="Nuxeo Benchmark Server"
+
+RUN echo $BUILD_DIR
 
 COPY --chown=900:0 $BUILD_DIR/packages/*.zip /tmp/local-packages/
 
