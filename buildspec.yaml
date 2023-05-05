@@ -44,10 +44,9 @@ phases:
 
   build:
     commands:
-      - mvn clean compile test install $MAVEN_ARGS -fae
+      - mvn clean compile test install deploy $MAVEN_ARGS -fae
       - mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_ARGS
       - . ~/tools/codebuild-dependencytrack-results.sh
-      - mvn deploy -DskipTests=true $MAVEN_ARGS
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
       - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:latest
       - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:$IMAGE_TAG
