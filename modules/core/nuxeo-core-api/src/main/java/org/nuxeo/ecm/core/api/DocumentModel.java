@@ -22,6 +22,8 @@ package org.nuxeo.ecm.core.api;
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -452,6 +454,16 @@ public interface DocumentModel extends Serializable {
     }
 
     /**
+     * Gets the retained properties of this document at the time it became a record.
+     *
+     * @return the retained properties
+     * @since 2021.32
+     */
+    default List<String> getRetainedProperties() {
+        return Collections.emptyList();
+    }
+
+    /**
      * Gets the retention date for the document.
      *
      * @return the retention date, or {@value org.nuxeo.ecm.core.api.security.SecurityConstants#SET_RETENTION} for a
@@ -533,6 +545,14 @@ public interface DocumentModel extends Serializable {
      * @since 8.4
      */
     Property getPropertyObject(String schema, String name);
+
+    /**
+     * Sets a property object.
+     *
+     * @param property the property object
+     * @since 2023.0
+     */
+    void setPropertyObject(Property property);
 
     /**
      * Sets the property value from the given schema.
@@ -799,29 +819,6 @@ public interface DocumentModel extends Serializable {
     <T extends Serializable> T getSystemProp(String systemProperty, Class<T> type);
 
     /**
-     * Get a document part given its schema name
-     *
-     * @param schema the schema
-     * @return the document aprt or null if none exists for that schema
-     * @deprecated since 8.4, use direct {@link Property} getters instead
-     * @see #getPropertyObject
-     * @see #getPropertyObjects
-     */
-    @Deprecated
-    DocumentPart getPart(String schema);
-
-    /**
-     * Gets this document's parts.
-     *
-     * @deprecated since 8.4, use direct {@link Property} getters instead
-     * @see #getSchemas
-     * @see #getPropertyObject
-     * @see #getPropertyObjects
-     */
-    @Deprecated
-    DocumentPart[] getParts();
-
-    /**
      * Gets the {@link Property} objects for the given schema.
      * <p>
      * An empty list is returned if the document doesn't have the schema.
@@ -935,6 +932,8 @@ public interface DocumentModel extends Serializable {
         public boolean isTrashed;
 
         public boolean isRecord;
+
+        public List<String> retainedProperties;
 
         public Calendar retainUntil;
 

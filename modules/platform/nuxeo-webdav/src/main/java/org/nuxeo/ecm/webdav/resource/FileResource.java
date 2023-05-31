@@ -36,7 +36,30 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.Blobs;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
+import org.nuxeo.ecm.core.api.blobholder.DocumentBlobHolder;
+import org.nuxeo.ecm.webdav.backend.Backend;
+import org.nuxeo.ecm.webdav.jaxrs.Util;
+import org.xml.sax.SAXException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.Blobs;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
+import org.nuxeo.ecm.core.api.blobholder.DocumentBlobHolder;
+import org.nuxeo.ecm.webdav.backend.Backend;
+import org.nuxeo.ecm.webdav.jaxrs.Util;
 
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
 import net.java.dev.webdav.jaxrs.xml.elements.HRef;
@@ -50,23 +73,12 @@ import net.java.dev.webdav.jaxrs.xml.elements.PropStat;
 import net.java.dev.webdav.jaxrs.xml.elements.Status;
 import net.java.dev.webdav.jaxrs.xml.properties.SupportedLock;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.Blobs;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
-import org.nuxeo.ecm.core.api.blobholder.DocumentBlobHolder;
-import org.nuxeo.ecm.webdav.backend.Backend;
-import org.nuxeo.ecm.webdav.jaxrs.Util;
-
 /**
  * Resource representing a file-like object in the repository. (I.e. not a folder).
  */
 public class FileResource extends ExistingResource {
 
-    private static final Log log = LogFactory.getLog(FileResource.class);
+    private static final Logger log = LogManager.getLogger(FileResource.class);
 
     public FileResource(String path, DocumentModel doc, HttpServletRequest request, Backend backend) {
         super(path, doc, request, backend);
@@ -117,16 +129,16 @@ public class FileResource extends ExistingResource {
 
     @PROPFIND
     @Produces({ "application/xml", "text/xml" })
-    public Response propfind(@Context UriInfo uriInfo) throws IOException, JAXBException {
-
-        Unmarshaller u = Util.getUnmarshaller();
+    public Response propfind(@Context UriInfo uriInfo)
+            throws IOException, JAXBException, ParserConfigurationException, SAXException {
 
         Prop prop = null;
         if (request.getInputStream() != null && request.getContentLength() > 0) {
             PropFind propFind;
             try {
-                propFind = (PropFind) u.unmarshal(request.getInputStream());
+                propFind = (PropFind) Util.unmarshal(request.getInputStream());
             } catch (JAXBException e) {
+                log.error(e);
                 return Response.status(400).build();
             }
             prop = propFind.getProp();
@@ -142,8 +154,8 @@ public class FileResource extends ExistingResource {
 
         net.java.dev.webdav.jaxrs.xml.elements.Response response;
         URI uri = uriInfo.getRequestUri();
-        PropStat filePropStat = new PropStat(new Prop(new SupportedLock(new LockEntry(LockScope.EXCLUSIVE,
-                LockType.WRITE))), new Status(OK));
+        PropStat filePropStat = new PropStat(
+                new Prop(new SupportedLock(new LockEntry(LockScope.EXCLUSIVE, LockType.WRITE))), new Status(OK));
         if (doc.isLocked()) {
             PropStat lockDiscoveryPropStat = new PropStat(new Prop(getLockDiscovery(doc, uriInfo)), new Status(OK));
             if (propStatNotFound != null) {

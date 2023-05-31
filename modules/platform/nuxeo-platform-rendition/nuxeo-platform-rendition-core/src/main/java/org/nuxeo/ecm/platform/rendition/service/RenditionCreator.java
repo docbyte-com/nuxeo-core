@@ -32,8 +32,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -56,7 +56,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class RenditionCreator extends UnrestrictedSessionRunner {
 
-    private static final Log log = LogFactory.getLog(RenditionCreator.class);
+    private static final Logger log = LogManager.getLogger(RenditionCreator.class);
 
     public static final String FILE = "File";
 
@@ -95,14 +95,6 @@ public class RenditionCreator extends UnrestrictedSessionRunner {
     }
 
     public DocumentModel getDetachedRendition() {
-        return detachedRendition;
-    }
-
-    /**
-     * @deprecated since 7.10, misspelled, use {@link #getDetachedRendition} instead.
-     */
-    @Deprecated
-    public DocumentModel getDetachedDendition() {
         return detachedRendition;
     }
 

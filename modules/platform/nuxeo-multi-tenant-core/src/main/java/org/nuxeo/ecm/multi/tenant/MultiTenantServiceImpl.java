@@ -35,8 +35,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
@@ -45,6 +45,7 @@ import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.trash.TrashService;
+import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.api.Framework;
@@ -59,7 +60,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  */
 public class MultiTenantServiceImpl extends DefaultComponent implements MultiTenantService {
 
-    private static final Log log = LogFactory.getLog(MultiTenantServiceImpl.class);
+    private static final Logger log = LogManager.getLogger(MultiTenantServiceImpl.class);
 
     public static final String CONFIGURATION_EP = "configuration";
 
@@ -227,7 +228,7 @@ public class MultiTenantServiceImpl extends DefaultComponent implements MultiTen
     public List<DocumentModel> getTenants() {
         DirectoryService directoryService = Framework.getService(DirectoryService.class);
         try (Session session = directoryService.open(TENANTS_DIRECTORY)) {
-            return session.getEntries();
+            return session.query(new QueryBuilder(), false);
         }
     }
 
@@ -241,7 +242,7 @@ public class MultiTenantServiceImpl extends DefaultComponent implements MultiTen
     }
 
     @Override
-    public void applicationStarted(ComponentContext context) {
+    public void start(ComponentContext context) {
         TransactionHelper.runInTransaction(() -> {
             RepositoryManager repositoryManager = Framework.getService(RepositoryManager.class);
             for (String repositoryName : repositoryManager.getRepositoryNames()) {

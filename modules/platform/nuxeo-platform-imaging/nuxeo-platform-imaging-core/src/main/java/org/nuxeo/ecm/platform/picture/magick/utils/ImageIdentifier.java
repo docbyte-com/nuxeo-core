@@ -19,16 +19,14 @@
  */
 package org.nuxeo.ecm.platform.picture.magick.utils;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.platform.commandline.executor.api.CmdParameters;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandException;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandLineExecutorService;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandNotAvailable;
 import org.nuxeo.ecm.platform.commandline.executor.api.ExecResult;
 import org.nuxeo.ecm.platform.picture.api.ImageInfo;
-import org.nuxeo.ecm.platform.picture.magick.MagickExecutor;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -36,15 +34,15 @@ import org.nuxeo.runtime.api.Framework;
  *
  * @author tiry
  */
-public class ImageIdentifier extends MagickExecutor {
+public class ImageIdentifier {
 
-    private static final Log log = LogFactory.getLog(ImageIdentifier.class);
+    private static final Logger log = LogManager.getLogger(ImageIdentifier.class);
 
     public static ImageInfo getInfo(String inputFilePath) throws CommandNotAvailable, CommandException {
 
         ExecResult result = getIdentifyResult(inputFilePath);
         if (!result.isSuccessful()) {
-            log.debug("identify failed for file: " + inputFilePath);
+            log.debug("identify failed for file: {}", inputFilePath);
             throw result.getError();
         }
         String out = result.getOutput().get(result.getOutput().size() > 1 ? result.getOutput().size() - 1 : 0);

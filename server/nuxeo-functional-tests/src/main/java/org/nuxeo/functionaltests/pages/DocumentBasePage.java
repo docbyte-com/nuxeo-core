@@ -32,8 +32,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.functionaltests.AjaxRequestManager;
 import org.nuxeo.functionaltests.Constants;
 import org.nuxeo.functionaltests.Locator;
@@ -83,7 +83,7 @@ import org.openqa.selenium.support.FindBy;
  */
 public class DocumentBasePage extends AbstractPage {
 
-    private static final Log log = LogFactory.getLog(DocumentBasePage.class);
+    private static final Logger log = LogManager.getLogger(DocumentBasePage.class);
 
     /**
      * Exception occurred a user is expected to be connected but it isn't.
@@ -268,14 +268,6 @@ public class DocumentBasePage extends AbstractPage {
                                                                .collect(Collectors.toList());
     }
 
-    /**
-     * @deprecated since 7.3: use {@link #goToWorkspaces()} instead
-     */
-    @Deprecated
-    public DocumentBasePage getDocumentManagement() {
-        return goToWorkspaces();
-    }
-
     public EditTabSubPage getEditTab() {
         return getEditTab(EditTabSubPage.class);
     }
@@ -437,24 +429,6 @@ public class DocumentBasePage extends AbstractPage {
         arm.end();
         WebElement elt = AbstractPage.getFancyBoxContent();
         return getWebFragment(elt, AddToCollectionForm.class);
-    }
-
-    /**
-     * @since 5.9.3
-     * @deprecated since 9.1 use actions from {@link ContentTabSubPage} instead.
-     */
-    @Deprecated
-    public AddAllToCollectionForm getAddAllToCollectionPopup() {
-        Locator.waitUntilGivenFunctionIgnoring(
-                driver -> StringUtils.isBlank(
-                        driver.findElement(By.id(ADD_ALL_TO_COLLECTION_ACTION_ID)).getAttribute("disabled")),
-                StaleElementReferenceException.class);
-        AjaxRequestManager arm = new AjaxRequestManager(driver);
-        arm.begin();
-        findElementWaitUntilEnabledAndClick(By.id(ADD_ALL_TO_COLLECTION_ACTION_ID));
-        arm.end();
-        WebElement elt = AbstractPage.getFancyBoxContent();
-        return getWebFragment(elt, AddAllToCollectionForm.class);
     }
 
     public boolean isAddToCollectionUpperActionAvailable() {

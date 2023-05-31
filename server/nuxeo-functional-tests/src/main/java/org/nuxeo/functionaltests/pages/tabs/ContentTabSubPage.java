@@ -55,13 +55,6 @@ public class ContentTabSubPage extends AbstractContentTabSubPage {
 
     /**
      * @since 8.3
-     * @deprecated since 9.1 not used anymore as we now have {@link ContentViewSelectionActions#delete()}
-     */
-    @Deprecated
-    public static final String DELETE = "Delete";
-
-    /**
-     * @since 8.3
      */
     public static final String ADD_TO_WORKLIST = "Add to Worklist";
 
@@ -115,14 +108,6 @@ public class ContentTabSubPage extends AbstractContentTabSubPage {
         return asPage(pageClassToProxy);
     }
 
-    /**
-     * @deprecated since 9.1 no need - use {@link ContentViewElement#selectByTitle(String...)} then the action instead
-     */
-    @Deprecated
-    protected void deleteSelectedDocuments() {
-        getContentView().getSelectionActions().delete();
-    }
-
     public ContentTabSubPage addToWorkList(String documentTitle) {
         return getContentView().selectByTitle(documentTitle).clickOnActionByTitle(ADD_TO_WORKLIST,
                 ContentTabSubPage.class);
@@ -134,22 +119,6 @@ public class ContentTabSubPage extends AbstractContentTabSubPage {
     @Override
     public ContentTabSubPage removeAllDocuments() {
         return removeAllDocuments(ContentTabSubPage.class);
-    }
-
-    /**
-     * Perform filter on the given string.
-     *
-     * @param filter the string to filter
-     * @since 5.7.2
-     * @deprecated since 9.1 use {@link ContentTabSubPage#filterDocument(String)} instead and assert in your test the
-     *             expected number of results.
-     */
-    @Deprecated
-    public ContentTabSubPage filterDocument(final String filter, final int expectedNbOfDisplayedResult,
-            final int timeout) {
-        filterDocument(filter);
-        assertEquals(expectedNbOfDisplayedResult, getChildDocumentRows().size());
-        return asPage(ContentTabSubPage.class);
     }
 
     /**
@@ -169,25 +138,6 @@ public class ContentTabSubPage extends AbstractContentTabSubPage {
     }
 
     /**
-     * Reset the filter.
-     *
-     * @since 5.7.2
-     * @deprecated since 9.1 use {@link #clearFilter()} instead and assert the expected number of result in your test
-     */
-    @Deprecated
-    public ContentTabSubPage clearFilter(final int expectedNbOfDisplayedResult, final int timeout) {
-        Locator.waitUntilEnabledAndClick(clearFilterButton);
-        Locator.waitUntilGivenFunction(driver -> {
-            try {
-                return getChildDocumentRows().size() == expectedNbOfDisplayedResult;
-            } catch (NoSuchElementException | StaleElementReferenceException e) {
-                return false;
-            }
-        });
-        return asPage(ContentTabSubPage.class);
-    }
-
-    /**
      * Selects documents by their index in the content view.
      *
      * @since 8.1
@@ -195,17 +145,6 @@ public class ContentTabSubPage extends AbstractContentTabSubPage {
     public ContentTabSubPage selectByIndex(int... indexes) {
         getContentView().selectByIndex(indexes);
         return asPage(ContentTabSubPage.class);
-    }
-
-    /**
-     * Selects documents by their title in the content view.
-     *
-     * @since 5.7.8
-     * @deprecated since 8.1 use {@link #selectByTitle(String...)}
-     */
-    @Deprecated
-    public ContentTabSubPage selectDocumentByTitles(String... titles) {
-        return selectByTitle(titles);
     }
 
     /**

@@ -191,7 +191,8 @@ kafka.check.class=org.nuxeo.runtime.kafka.KafkaChecker
 
 kafka.enabled=false
 kafka.bootstrap.servers=localhost:9092
-kafka.default.replication.factor=1
+# a factor < 1 means broker default replication
+kafka.default.replication.factor=-1
 kafka.topicPrefix=nuxeo-
 # max duration of processing
 kafka.max.poll.interval.ms=7200000
@@ -304,12 +305,6 @@ metrics.datadog.port=8125
 metrics.prometheus.enabled=false
 metrics.prometheus.port=9090
 
-# Stackdriver reporter
-metrics.stackdriver.enabled=false
-metrics.stackdriver.gcpProjectId=
-metrics.stackdriver.pollInterval=60
-metrics.stackdriver.timeout=30s
-
 ## Open tracing
 tracing.attributes.max=128
 tracing.annotations.max=128
@@ -337,11 +332,6 @@ tracing.datadog.url=http://localhost:8126/v0.3/traces
 tracing.datadog.service=nuxeo
 tracing.datadog.timeout=10s
 
-# Stackdriver trace reporter
-tracing.stackdriver.enabled=false
-tracing.stackdriver.timeout=30s
-tracing.stackdriver.gcpProjectId=
-
 # Cors config (active if nuxeo.cors.urls has a value)
 nuxeo.cors.allowSubdomains=true
 nuxeo.cors.supportedMethods=GET,POST,HEAD,OPTIONS,DELETE,PUT
@@ -355,14 +345,20 @@ nuxeo.bulk.action.automation.defaultConcurrency=2
 nuxeo.bulk.action.automation.defaultPartitions=2
 nuxeo.bulk.action.automationUi.defaultConcurrency=2
 nuxeo.bulk.action.automationUi.defaultPartitions=2
+nuxeo.bulk.action.blobGC.defaultConcurrency=1
+nuxeo.bulk.action.blobGC.defaultPartitions=1
 nuxeo.bulk.action.csvExport.defaultConcurrency=2
 nuxeo.bulk.action.csvExport.defaultPartitions=2
 nuxeo.bulk.action.deletion.defaultConcurrency=2
 nuxeo.bulk.action.deletion.defaultPartitions=2
+nuxeo.bulk.action.documentRoutingEscalation.defaultConcurrency=2
+nuxeo.bulk.action.documentRoutingEscalation.defaultPartitions=4
 nuxeo.bulk.action.driveFireGroupUpdatedEvent.defaultConcurrency=2
 nuxeo.bulk.action.driveFireGroupUpdatedEvent.defaultPartitions=4
 nuxeo.bulk.action.evalInputEventBasedRule.defaultConcurrency=2
 nuxeo.bulk.action.evalInputEventBasedRule.defaultPartitions=4
+nuxeo.bulk.action.extractBinaryFulltext.defaultConcurrency=2
+nuxeo.bulk.action.extractBinaryFulltext.defaultPartitions=4
 nuxeo.bulk.action.holdDocumentsAction.defaultConcurrency=2
 nuxeo.bulk.action.holdDocumentsAction.defaultPartitions=4
 nuxeo.bulk.action.processRetentionEvent.defaultConcurrency=2

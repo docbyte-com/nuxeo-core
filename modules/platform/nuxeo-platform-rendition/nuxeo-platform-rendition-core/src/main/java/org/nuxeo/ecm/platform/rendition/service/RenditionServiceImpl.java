@@ -147,21 +147,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
         return new ArrayList<>(renditionDefinitionRegistry.descriptors.values());
     }
 
-    /**
-     * @deprecated since 7.2 because unused
-     */
-    @Override
-    @Deprecated(since = "7.2")
-    public List<RenditionDefinition> getDeclaredRenditionDefinitionsForProviderType(String providerType) {
-        List<RenditionDefinition> defs = new ArrayList<>();
-        for (RenditionDefinition def : getDeclaredRenditionDefinitions()) {
-            if (def.getProviderType().equals(providerType)) {
-                defs.add(def);
-            }
-        }
-        return defs;
-    }
-
     @Override
     public List<RenditionDefinition> getAvailableRenditionDefinitions(DocumentModel doc) {
 
@@ -177,15 +162,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
     public DocumentRef storeRendition(DocumentModel source, String renditionDefinitionName) {
         Rendition rendition = getRendition(source, renditionDefinitionName, true);
         return rendition == null ? null : rendition.getHostDocument().getRef();
-    }
-
-    /**
-     * @deprecated since 8.1
-     */
-    @Deprecated(since = "8.1")
-    protected DocumentModel storeRendition(DocumentModel sourceDocument, Rendition rendition, String name) {
-        StoredRendition storedRendition = storeRendition(sourceDocument, rendition);
-        return storedRendition == null ? null : storedRendition.getHostDocument();
     }
 
     /**

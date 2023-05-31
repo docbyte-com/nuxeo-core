@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.api.security;
 
 import java.io.Serializable;
-import java.util.Set;
 
 /**
  * Access control policy (ACP) control the permissions access on a resource.
@@ -105,13 +104,6 @@ public interface ACP extends Serializable, Cloneable {
 
     void addACL(int pos, ACL acl);
 
-    /**
-     * @deprecated since 7.4. Always use {@link #addACL(ACL)} to have correctly ordered acls. To force by-passing the
-     *             order, use {@link #addACL(int, ACL)}.
-     */
-    @Deprecated
-    void addACL(String afterMe, ACL acl);
-
     ACL removeACL(String name);
 
     ACL getACL(String name);
@@ -123,16 +115,6 @@ public interface ACP extends Serializable, Cloneable {
     ACL getOrCreateACL(String name);
 
     ACL getOrCreateACL();
-
-    /**
-     * Returns the usernames granted to perform an operation based on a list of permissions.
-     *
-     * @deprecated since 5.4.2 Use the method from UserManager service getUsersForPermission instead
-     * @param perms the list of permissions.
-     * @return a list of usernames
-     */
-    @Deprecated
-    String[] listUsernamesForAnyPermission(Set<String> perms);
 
     /**
      * Return a recursive copy of the ACP sharing no mutable substructure with the original

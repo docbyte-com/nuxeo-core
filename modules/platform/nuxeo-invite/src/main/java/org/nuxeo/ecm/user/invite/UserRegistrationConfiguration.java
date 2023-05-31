@@ -19,15 +19,15 @@
 package org.nuxeo.ecm.user.invite;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 
 @XObject("configuration")
 public class UserRegistrationConfiguration {
 
-    private static Log log = LogFactory.getLog(UserRegistrationConfiguration.class);
+    private static final Logger log = LogManager.getLogger(UserRegistrationConfiguration.class);
 
     public static final String DEFAULT_CONFIGURATION_NAME = "default_registration";
 
@@ -60,13 +60,6 @@ public class UserRegistrationConfiguration {
 
     @XNode("userInfo/companyField")
     private String userInfoCompanyField = "userinfo:company";
-
-    /**
-     * @deprecated since 7.3. Not used anymore, the password is not stored.
-     */
-    @Deprecated
-    @XNode("userInfo/passwordField")
-    private String userInfoPasswordField = "userinfo:password";
 
     @XNode("userInfo/groupsField")
     private String userInfoGroupsField = "userinfo:groups";
@@ -161,7 +154,7 @@ public class UserRegistrationConfiguration {
 
     public String getValidationRelUrl() {
         if (StringUtils.isBlank(validationRelUrl)) {
-            log.info("Configuration " + name + " has empty validation url");
+            log.info("Configuration: {} has empty validation url", name);
             return "";
         }
         return validationRelUrl;
@@ -169,7 +162,7 @@ public class UserRegistrationConfiguration {
 
     public String getEnterPasswordUrl() {
         if (StringUtils.isBlank(enterPasswordUrl)) {
-            log.info("Configuration " + name + " has empty validation url");
+            log.info("Configuration: {} has empty password url", name);
             return "";
         }
         if (enterPasswordUrl.startsWith("/")) {
@@ -208,10 +201,6 @@ public class UserRegistrationConfiguration {
 
     public String getUserInfoCompanyField() {
         return userInfoCompanyField;
-    }
-
-    public String getUserInfoPasswordField() {
-        return userInfoPasswordField;
     }
 
     public String getUserInfoGroupsField() {
@@ -345,10 +334,6 @@ public class UserRegistrationConfiguration {
 
         if (!StringUtils.isEmpty(other.userInfoEmailField)) {
             this.userInfoEmailField = other.userInfoEmailField;
-        }
-
-        if (!StringUtils.isEmpty(other.userInfoPasswordField)) {
-            this.userInfoPasswordField = other.userInfoPasswordField;
         }
 
         if (!StringUtils.isEmpty(other.userInfoCompanyField)) {

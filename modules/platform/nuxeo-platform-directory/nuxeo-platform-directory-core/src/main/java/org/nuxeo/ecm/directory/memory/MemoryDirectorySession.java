@@ -214,24 +214,6 @@ public class MemoryDirectorySession extends BaseSession {
     }
 
     @Override
-    public DocumentModelList getEntries() {
-        checkClose();
-        DocumentModelList list = new DocumentModelListImpl();
-        for (String id : data.keySet()) {
-            list.add(getEntry(id));
-        }
-        return list;
-    }
-
-    // given our storage model this doesn't even make sense, as id field is
-    // unique
-    @Override
-    public void deleteEntry(String id, Map<String, String> map) {
-        checkClose();
-        throw new DirectoryException("Not implemented");
-    }
-
-    @Override
     public void deleteEntry(DocumentModel docModel) {
         checkClose();
         deleteEntry(docModel.getId());

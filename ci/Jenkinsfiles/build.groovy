@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.13"
+library identifier: "platform-ci-shared-library@v0.0.17"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -52,8 +52,9 @@ void runFunctionalTests(String baseDir, String tier) {
   try {
     retry(2) {
       sh "mvn ${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -D${tier} -f ${baseDir}/pom.xml verify"
+      nxUtils.lookupText(regexp: ".*ERROR.*(?=(?:\\n.*)*\\[.*FrameworkLoader\\] Nuxeo Platform is Trying to Shut Down)",
+        fileSet: "ftests/**/log/server.log")
     }
-    findText regexp: ".*ERROR.*", fileSet: "ftests/**/log/server.log"
   } catch(err) {
     echo "${baseDir} functional tests error: ${err}"
     throw err
@@ -103,81 +104,76 @@ def buildUnitTestStage(env) {
   return {
     stage("Run ${env} unit tests") {
       container("${containerName}") {
-        // TODO NXP-29512: on a PR, make the build continue even if there is a test error
-        // on other environments than the dev one
-        // to remove when all test environments will be mandatory
-        catchError(buildResult: nxUtils.isPullRequest() && "dev" != env ? 'SUCCESS' : 'FAILURE', stageResult: 'FAILURE', catchInterruptions: false) {
-          nxWithGitHubStatus(context: "utests/${env}", message: "Unit tests - ${env} environment") {
-            echo """
-            ----------------------------------------
-            Run ${env} unit tests
-            ----------------------------------------"""
-            echo "${env} unit tests: install external services"
-            nxWithHelmfileDeployment(namespace: testNamespace, environment: environment) {
-              script {
-                try {
-                  echo "${env} unit tests: run Maven"
-                  if (isDev) {
-                    // empty file required by the read-project-properties goal of the properties-maven-plugin with the
-                    // customEnvironment profile
-                    sh "touch ${HOME}/nuxeo-test-${env}.properties"
-                  } else {
-                    // prepare test framework system properties
-                    // prefix sample: nuxeo-lts-pr-48-3-mongodb
-                    def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
-                    def testBlobProviderPrefix = "$bucketPrefix-test"
-                    def otherBlobProviderPrefix = "$bucketPrefix-other"
+        nxWithGitHubStatus(context: "utests/${env}", message: "Unit tests - ${env} environment") {
+          echo """
+          ----------------------------------------
+          Run ${env} unit tests
+          ----------------------------------------"""
+          echo "${env} unit tests: install external services"
+          nxWithHelmfileDeployment(namespace: testNamespace, environment: environment) {
+            script {
+              try {
+                echo "${env} unit tests: run Maven"
+                if (isDev) {
+                  // empty file required by the read-project-properties goal of the properties-maven-plugin with the
+                  // customEnvironment profile
+                  sh "touch ${HOME}/nuxeo-test-${env}.properties"
+                } else {
+                  // prepare test framework system properties
+                  // prefix sample: nuxeo-lts-pr-48-3-mongodb
+                  def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
+                  def testBlobProviderPrefix = "$bucketPrefix-test"
+                  def otherBlobProviderPrefix = "$bucketPrefix-other"
 
-                    sh """
-                      cat ci/mvn/nuxeo-test-${env}.properties \
-                        ci/mvn/nuxeo-test-opensearch.properties \
-                        ci/mvn/nuxeo-test-s3.properties \
-                        > ci/mvn/nuxeo-test-${env}.properties~gen
-                      BUCKET_PREFIX=${bucketPrefix} \
-                        TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
-                        OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
-                        NAMESPACE=${testNamespace} \
-                        DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
-                        envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
-                    """
-                  }
-                  // run unit tests:
-                  // - in modules/core and dependent projects only (modules/runtime is run in a dedicated stage)
-                  // - for the given environment (see the customEnvironment profile in pom.xml):
-                  //   - in an alternative build directory
-                  //   - loading some test framework system properties
-                  def testCore = env == 'mongodb' ? 'mongodb' : 'vcs'
-                  def kafkaOptions = isDev ? '' : "-Pkafka -Dkafka.bootstrap.servers=${kafkaHost}"
-                  def mvnCommand = """                 
-                    mvn ${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -rf :nuxeo-core-parent \
-                      -Dcustom.environment=${env} \
-                      -Dcustom.environment.log.dir=target-${env} \
-                      -Dnuxeo.test.core=${testCore} \
-                      -Dnuxeo.test.redis.host=${redisHost} \
-                      ${kafkaOptions} \
-                      test
+                  sh """
+                    cat ci/mvn/nuxeo-test-${env}.properties \
+                      ci/mvn/nuxeo-test-opensearch.properties \
+                      ci/mvn/nuxeo-test-s3.properties \
+                      > ci/mvn/nuxeo-test-${env}.properties~gen
+                    BUCKET_PREFIX=${bucketPrefix} \
+                      TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
+                      OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
+                      NAMESPACE=${testNamespace} \
+                      DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
+                      envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
                   """
-                  retry(2) {
-                    if (isDev) {
+                }
+                // run unit tests:
+                // - in modules/core and dependent projects only (modules/runtime is run in a dedicated stage)
+                // - for the given environment (see the customEnvironment profile in pom.xml):
+                //   - in an alternative build directory
+                //   - loading some test framework system properties
+                def testCore = env == 'mongodb' ? 'mongodb' : 'vcs'
+                def kafkaOptions = isDev ? '' : "-Pkafka -Dkafka.bootstrap.servers=${kafkaHost}"
+                def mvnCommand = """                 
+                  mvn ${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -rf :nuxeo-core-parent \
+                    -Dcustom.environment=${env} \
+                    -Dcustom.environment.log.dir=target-${env} \
+                    -Dnuxeo.test.core=${testCore} \
+                    -Dnuxeo.test.redis.host=${redisHost} \
+                    ${kafkaOptions} \
+                    test
+                """
+                retry(2) {
+                  if (isDev) {
+                    sh "${mvnCommand}"
+                  } else {
+                    // always read AWS credentials from secret in the platform namespace, even when running in platform-staging:
+                    // credentials rotation is disabled in platform-staging to prevent double rotation on the same keys
+                    def awsAccessKeyId = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'access_key_id')
+                    def awsSecretAccessKey = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'secret_access_key')
+                    withEnv([
+                      "AWS_ACCESS_KEY_ID=${awsAccessKeyId}",
+                      "AWS_SECRET_ACCESS_KEY=${awsSecretAccessKey}",
+                      "AWS_REGION=${AWS_REGION}",
+                      "AWS_ROLE_ARN=${AWS_ROLE_ARN}"
+                    ]) {
                       sh "${mvnCommand}"
-                    } else {
-                      // always read AWS credentials from secret in the platform namespace, even when running in platform-staging:
-                      // credentials rotation is disabled in platform-staging to prevent double rotation on the same keys
-                      def awsAccessKeyId = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'access_key_id')
-                      def awsSecretAccessKey = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'secret_access_key')
-                      withEnv([
-                        "AWS_ACCESS_KEY_ID=${awsAccessKeyId}",
-                        "AWS_SECRET_ACCESS_KEY=${awsSecretAccessKey}",
-                        "AWS_REGION=${AWS_REGION}",
-                        "AWS_ROLE_ARN=${AWS_ROLE_ARN}"
-                      ]) {
-                        sh "${mvnCommand}"
-                      }
                     }
                   }
-                } finally {
-                  junit allowEmptyResults: true, testResults: "**/target-${env}/surefire-reports/*.xml"
                 }
+              } finally {
+                junit allowEmptyResults: true, testResults: "**/target-${env}/surefire-reports/*.xml"
               }
             }
           }
@@ -223,6 +219,7 @@ pipeline {
     AWS_REGION = 'eu-west-3'
     AWS_ROLE_ARN= 'arn:aws:iam::783725821734:role/nuxeo-s3directupload-role'
     AWS_CREDENTIALS_SECRET = 'aws-credentials'
+    GITHUB_WORKFLOW_DOCKER_SCAN = 'docker-image-scan.yaml'
   }
 
   stages {
@@ -387,6 +384,45 @@ pipeline {
       }
     }
 
+    stage('Scan Docker image') {
+      when {
+        anyOf {
+          expression {
+            !nxUtils.isPullRequest()
+          }
+          expression {
+            pullRequest.labels.contains('docker-scan')
+          }
+          changeset "docker/**"
+        }
+      }
+      steps {
+        container('maven') {
+          nxWithGitHubStatus(context: 'docker/scan', message: 'Scan Docker image') {
+            script {
+              def imageName = "${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+              echo """
+              ----------------------------------------
+              Scan Docker image
+              ----------------------------------------
+              Image full name: ${DOCKER_REGISTRY}/${imageName}
+              """
+              nxGitHub.runAndWatchWorkflow(
+                workflowId: "${GITHUB_WORKFLOW_DOCKER_SCAN}",
+                branch: "${CHANGE_BRANCH}",
+                rawFields: [
+                  internalRegistry: true,
+                  imageName: "${imageName}",
+                ],
+                sha: "${GIT_COMMIT}",
+                exitStatus: false
+              )
+            }
+          }
+        }
+      }
+    }
+
     stage('Trigger Benchmark tests') {
       when {
         expression { nxUtils.isPullRequest() && pullRequest.labels.contains('benchmark') }
@@ -477,6 +513,11 @@ pipeline {
           }
         }
       }
+      post {
+        always {
+          junit testResults: 'server/**/target/surefire-reports/*.xml'
+        }
+      }
     }
 
     stage('Build Nuxeo Packages') {
@@ -517,10 +558,6 @@ pipeline {
       post {
         always {
           junit testResults: '**/target/failsafe-reports/*.xml'
-        }
-        unsuccessful {
-          // findText does mark the build in FAILURE but doesn't stop the pipeline, error does
-          error "Errors were found!"
         }
       }
     }
@@ -637,75 +674,6 @@ pipeline {
             dockerDeploy("${PRIVATE_DOCKER_REGISTRY}", "${NUXEO_IMAGE_NAME}")
             dockerDeploy("${PRIVATE_DOCKER_REGISTRY}", "${NUXEO_BENCHMARK_IMAGE_NAME}")
           }
-        }
-      }
-    }
-
-    stage('Deploy Server Preview') {
-      when {
-        expression { !nxUtils.isPullRequest() }
-      }
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'server/preview', message: 'Deploy server preview') {
-            script {
-              echo """
-              ----------------------------------------
-              Deploy Preview environment
-              ----------------------------------------"""
-              // Kubernetes namespace, requires lower case alphanumeric characters
-              def previewNamespace = "${CURRENT_NAMESPACE}-nuxeo-preview-${BRANCH_NAME.toLowerCase()}"
-              def previewEnvironment = 'default'
-              def previewHelmRelease = 'nuxeo'
-              boolean nsExists = sh(returnStatus: true, script: "kubectl get namespace ${previewNamespace}") == 0
-              if (!nsExists) {
-                echo 'Create preview namespace'
-                sh "kubectl create namespace ${previewNamespace}"
-                nxK8s.copySecret(fromNamespace: 'platform', toNamespace: previewNamespace, name: 'kubernetes-docker-cfg')
-                nxK8s.copySecret(fromNamespace: 'platform', toNamespace: previewNamespace, name: 'platform-cluster-tls')
-              }
-
-              if (nsExists) {
-                // scale down nuxeo preview deployment, otherwise K8s won't be able to mount the binaries volume for the pods
-                // TODO: rely on a statefulset in the nuxeo Helm chart, as in mongodb
-                echo 'Scale down nuxeo preview deployment before release upgrade'
-                sh """
-                  kubectl scale deployment ${previewHelmRelease} \
-                    --namespace=${previewNamespace} \
-                    --replicas=0
-                """
-              }
-
-              echo 'Upgrade external service and nuxeo preview releases'
-              nxHelmfile.template(namespace: previewNamespace, environment: previewEnvironment, outputDir: 'target')
-              try {
-                nxHelmfile.deploy(namespace: previewNamespace, environment: previewEnvironment)
-              } catch (e) {
-                sh """
-                  kubectl --namespace=${previewNamespace} get event --sort-by .lastTimestamp
-                  kubectl --namespace=${previewNamespace} get all,configmaps,secrets
-                  kubectl --namespace=${previewNamespace} describe pod --selector=app=${previewHelmRelease}
-                  kubectl --namespace=${previewNamespace} logs --selector=app=${previewHelmRelease} --tail=1000
-                """
-                throw e
-              }
-
-              host = sh(returnStdout: true, script: """
-                kubectl get ingress ${previewHelmRelease} \
-                  --namespace=${previewNamespace} \
-                  -ojsonpath='{.spec.rules[*].host}'
-              """)
-              echo """
-              -----------------------------------------------
-              Preview available at: https://${host}
-              -----------------------------------------------"""
-            }
-          }
-        }
-      }
-      post {
-        always {
-          archiveArtifacts allowEmptyArchive: true, artifacts: '**/target/**/*.yaml'
         }
       }
     }

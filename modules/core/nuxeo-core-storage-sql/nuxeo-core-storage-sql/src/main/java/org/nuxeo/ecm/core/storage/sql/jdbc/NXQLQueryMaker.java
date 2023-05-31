@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.core.storage.sql.jdbc;
 
-
 import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IN_MIGRATION;
 import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDICATED_PROPERTY;
 import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
@@ -26,7 +25,6 @@ import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS
 import java.io.Serializable;
 import java.sql.Types;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -42,10 +40,9 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.FullTextUtils;
-import org.nuxeo.common.utils.PeriodAndDuration;
 import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.impl.FacetFilter;
 import org.nuxeo.ecm.core.api.trash.TrashService;
@@ -93,8 +90,6 @@ import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect.ArraySubQuery;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect.FulltextMatchInfo;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.migration.MigrationService;
-import org.nuxeo.runtime.migration.MigrationService.MigrationStatus;
 
 /**
  * Transformer of NXQL queries into underlying SQL queries to the actual database.
@@ -153,15 +148,11 @@ import org.nuxeo.runtime.migration.MigrationService.MigrationStatus;
  */
 public class NXQLQueryMaker implements QueryMaker {
 
-    private static final Log log = LogFactory.getLog(NXQLQueryMaker.class);
+    private static final Logger log = LogManager.getLogger(NXQLQueryMaker.class);
 
     public static final String TYPE_DOCUMENT = "Document";
 
     public static final String TYPE_RELATION = "Relation";
-
-    public static final String TYPE_TAGGING = "Tagging";
-
-    public static final String RELATION_TABLE = "relation";
 
     public static final String ECM_SIMPLE_ACP_PRINCIPAL = NXQL.ECM_ACL + "/*/" + NXQL.ECM_ACL_PRINCIPAL;
 
@@ -895,7 +886,7 @@ public class NXQLQueryMaker implements QueryMaker {
     // non-canonical index syntax, for replaceAll
     protected final static Pattern NON_CANON_INDEX = Pattern.compile("[^/\\[\\]]+" // name
             + "\\[(\\d+|\\*|\\*\\d+)\\]" // index in brackets
-            );
+    );
 
     /**
      * Canonicalizes a Nuxeo-xpath.
@@ -1461,7 +1452,7 @@ public class NXQLQueryMaker implements QueryMaker {
                 } else {
                     throw new QueryParseException("Function not supported in WHERE clause: " + node);
                 }
-             }
+            }
         }
 
         @Override
@@ -1657,44 +1648,13 @@ public class NXQLQueryMaker implements QueryMaker {
             } else if (name.startsWith(NXQL.ECM_FULLTEXT)) {
                 throw new QueryParseException(NXQL.ECM_FULLTEXT + " must be used as left-hand operand");
             } else if (NXQL.ECM_TAG.equals(name) || name.startsWith(ECM_TAG_STAR)) {
-                // checking the migration service is a hack but we can't really do better here without refactoring
-                MigrationStatus status = Framework.getService(MigrationService.class).getStatus("tag-storage");
-                boolean facetedTag = "facets".equals(status.getState());
-                if (facetedTag) {
-                    String newName = FACETED_TAG + "/*";
-                    if (name.startsWith(ECM_TAG_STAR)) {
-                        newName += name.substring(ECM_TAG_STAR.length()) + "/" + FACETED_TAG_LABEL;
-                    } else {
-                        newName += "1/" + FACETED_TAG_LABEL;
-                    }
-                    return getRegularColumnInfo(newName);
+                String newName = FACETED_TAG + "/*";
+                if (name.startsWith(ECM_TAG_STAR)) {
+                    newName += name.substring(ECM_TAG_STAR.length()) + "/" + FACETED_TAG_LABEL;
                 } else {
-                    /*
-                     * JOIN relation _F1 ON hierarchy.id = _F1.source JOIN hierarchy _F2 ON _F1.id = _F2.id AND
-                     * _F2.primarytype = 'Tagging' and returns _F2.name
-                     */
-                    String suffix;
-                    if (name.startsWith(ECM_TAG_STAR)) {
-                        suffix = name.substring(ECM_TAG_STAR.length());
-                        if (suffix.isEmpty()) {
-                            // any
-                            suffix = "/*-" + getUniqueJoinIndex();
-                        } else {
-                            // named
-                            suffix = "/*" + suffix;
-                        }
-                    } else {
-                        suffix = "";
-                    }
-                    String relContextKey = "_tag_relation" + suffix;
-                    Table rel = getFragmentTable(Join.INNER, dataHierTable, relContextKey, RELATION_TABLE, "source", -1,
-                            false, null);
-                    String fragmentName = Model.HIER_TABLE_NAME;
-                    fragmentKey = Model.HIER_CHILD_NAME_KEY;
-                    String hierContextKey = "_tag_hierarchy" + suffix;
-                    table = getFragmentTable(Join.INNER, rel, hierContextKey, fragmentName, Model.MAIN_KEY, -1, false,
-                            TYPE_TAGGING);
+                    newName += "1/" + FACETED_TAG_LABEL;
                 }
+                return getRegularColumnInfo(newName);
             } else if (name.startsWith(NXQL.ECM_ACL)) {
                 // get index and suffix; we already checked that there are two slashes
                 int i = name.indexOf('/');
@@ -2323,7 +2283,7 @@ public class NXQLQueryMaker implements QueryMaker {
                 }
             } else {
                 // single field matched with ILIKE
-                log.warn("No fulltext index configured for field " + name + ", falling back on LIKE query");
+                log.warn("No fulltext index configured for field {}, falling back on LIKE query", name);
                 String value = ((StringLiteral) node.rvalue).value;
 
                 // fulltext translation into pseudo-LIKE syntax

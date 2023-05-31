@@ -21,8 +21,6 @@ package org.nuxeo.ecm.platform.audio.extension;
 import java.io.IOException;
 import java.io.Serializable;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -46,9 +44,6 @@ public class AudioImporter extends AbstractFileImporter {
 
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("unused")
-    private static final Log log = LogFactory.getLog(AudioImporter.class);
-
     public static final String AUDIO_TYPE = "Audio";
 
     @Override
@@ -71,9 +66,6 @@ public class AudioImporter extends AbstractFileImporter {
             // update known attributes, format is: schema, attribute, value
             docModel.setPropertyValue("file:content", (Serializable) blob);
             docModel.setPropertyValue("dc:title", title);
-
-            // now save the uploaded file as another new version
-            checkIn(docModel);
             docModel = session.saveDocument(docModel);
 
         } else {

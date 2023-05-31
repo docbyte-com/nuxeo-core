@@ -53,6 +53,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.NullNode;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
@@ -454,26 +455,6 @@ public class SearchTest extends BaseTest {
     }
 
     @Test
-    public void iCanPerformPageProviderWithNamedParametersInWhereClauseWithDoc() throws Exception {
-        MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
-        queryParams.add("np:title", "Folder 0");
-        try (CloseableClientResponse response = getResponse(RequestType.GET,
-                getSearchPageProviderExecutePath("namedParamProviderWithWhereClauseWithDoc"), queryParams)) {
-            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-            JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(1, getLogEntries(node).size());
-        }
-
-        // retry without params
-        try (CloseableClientResponse response = getResponse(RequestType.GET,
-                getSearchPageProviderExecutePath("namedParamProviderWithWhereClauseWithDoc"))) {
-            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
-            JsonNode node = mapper.readTree(response.getEntityInputStream());
-            assertEquals(2, getLogEntries(node).size());
-        }
-    }
-
-    @Test
     public void iCanPerformPageProviderWithNamedParametersComplex() throws Exception {
         MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
         queryParams.add("parameter1", "Folder 0");
@@ -670,6 +651,22 @@ public class SearchTest extends BaseTest {
                 + "  \"queryParams\": \"$currentUser\",\n" + "  \"pageSize\": \"2\"\n" + "}";
         try (CloseableClientResponse response = getResponse(RequestType.POST, SAVED_SEARCH_PATH, data)) {
             assertMissingParams(response);
+        }
+    }
+
+    // NXP-31456
+    @Test
+    public void iCanSaveSearchWithNullValueParams() throws IOException {
+        String data = "{\n" + "  \"entity-type\": \"savedSearch\",\n"
+                + "  \"query\": \"select * from Document where dc:creator = ?\",\n" + "  \"queryLanguage\": \"NXQL\",\n"
+                + "  \"params\":{\"dublincore_modified\":null},\"title\":\"bar\"}";
+        try (CloseableClientResponse response = getResponse(RequestType.POST, SAVED_SEARCH_PATH, data)) {
+            assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+            JsonNode node = mapper.readTree(response.getEntityInputStream());
+            assertEquals(node.get("entity-type").asText(), "savedSearch");
+            assertEquals(node.get("title").asText(), "bar");
+            assertEquals(node.get("params").size(), 1);
+            assertTrue(node.get("params").get("dublincore_modified") instanceof NullNode);
         }
     }
 

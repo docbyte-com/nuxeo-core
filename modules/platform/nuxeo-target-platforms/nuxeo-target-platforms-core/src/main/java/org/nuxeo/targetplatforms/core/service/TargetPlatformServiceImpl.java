@@ -29,10 +29,11 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.DateUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
@@ -65,7 +66,7 @@ import org.nuxeo.targetplatforms.core.descriptors.TargetPlatformDescriptor;
  */
 public class TargetPlatformServiceImpl extends DefaultComponent implements TargetPlatformService {
 
-    private static final Log log = LogFactory.getLog(TargetPlatformServiceImpl.class);
+    private static final Logger log = LogManager.getLogger(TargetPlatformServiceImpl.class);
 
     public static final String XP_CONF = "configuration";
 
@@ -102,11 +103,11 @@ public class TargetPlatformServiceImpl extends DefaultComponent implements Targe
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         if (XP_PLATFORMS.equals(extensionPoint)) {
             TargetPlatformDescriptor desc = (TargetPlatformDescriptor) contribution;
-            log.info(String.format("Register target platform '%s'", desc.getId()));
+            log.info("Register target platform: {}", desc::getId);
             platforms.addContribution(desc);
         } else if (XP_PACKAGES.equals(extensionPoint)) {
             TargetPackageDescriptor desc = (TargetPackageDescriptor) contribution;
-            log.info(String.format("Register target package '%s'", desc.getId()));
+            log.info("Register target package: {}", desc::getId);
             packages.addContribution(desc);
         } else if (XP_CONF.equals(extensionPoint)) {
             ServiceConfigurationDescriptor desc = (ServiceConfigurationDescriptor) contribution;
@@ -119,11 +120,11 @@ public class TargetPlatformServiceImpl extends DefaultComponent implements Targe
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         if (XP_PLATFORMS.equals(extensionPoint)) {
             TargetPlatformDescriptor desc = (TargetPlatformDescriptor) contribution;
-            log.info(String.format("Unregister target platform '%s'", desc.getId()));
+            log.info("Unregister target platform: {}", desc::getId);
             platforms.removeContribution(desc);
         } else if (XP_PACKAGES.equals(extensionPoint)) {
             TargetPackageDescriptor desc = (TargetPackageDescriptor) contribution;
-            log.info(String.format("Unregister target package '%s'", desc.getId()));
+            log.info("Unregister target package: {}", desc::getId);
             packages.removeContribution(desc);
         } else if (XP_CONF.equals(extensionPoint)) {
             ServiceConfigurationDescriptor desc = (ServiceConfigurationDescriptor) contribution;
@@ -393,7 +394,7 @@ public class TargetPlatformServiceImpl extends DefaultComponent implements Targe
                 if (tpkg != null) {
                     tpi.addEnabledPackage(tpkg);
                 } else {
-                    log.warn(String.format("Referenced target package '%s' not found.", pkg));
+                    log.warn("Referenced target package: {} not found.", pkg);
                 }
             }
         }
@@ -481,8 +482,8 @@ public class TargetPlatformServiceImpl extends DefaultComponent implements Targe
         new DirectoryUpdater(getOverrideDirectory()) {
             @Override
             public void run(DirectoryService service, Session session) {
-                for (DocumentModel entry : session.getEntries()) {
-                    session.deleteEntry(entry.getId());
+                for (var id : session.queryIds(new QueryBuilder())) {
+                    session.deleteEntry(id);
                 }
             }
         }.run();

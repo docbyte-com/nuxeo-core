@@ -410,15 +410,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
-    @Deprecated
-    public DocumentModel copy(DocumentRef src, DocumentRef dst, String name, boolean resetLifeCycle) {
-        if (resetLifeCycle) {
-            return copy(src, dst, name, CopyOption.RESET_LIFE_CYCLE);
-        }
-        return copy(src, dst, name);
-    }
-
-    @Override
     public DocumentModel copy(DocumentRef src, DocumentRef dst, String name, CopyOption... copyOptions) {
         Document dstDoc = resolveReference(dst);
         checkPermission(dstDoc, ADD_CHILDREN);
@@ -471,26 +462,8 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
-    @Deprecated
-    public List<DocumentModel> copy(List<DocumentRef> src, DocumentRef dst, boolean resetLifeCycle) {
-        if (resetLifeCycle) {
-            return copy(src, dst, CopyOption.RESET_LIFE_CYCLE);
-        }
-        return copy(src, dst);
-    }
-
-    @Override
     public List<DocumentModel> copy(List<DocumentRef> src, DocumentRef dst, CopyOption... opts) {
         return src.stream().map(ref -> copy(ref, dst, null, opts)).collect(Collectors.toList());
-    }
-
-    @Override
-    @Deprecated
-    public DocumentModel copyProxyAsDocument(DocumentRef src, DocumentRef dst, String name, boolean resetLifeCycle) {
-        if (resetLifeCycle) {
-            return copyProxyAsDocument(src, dst, name, CopyOption.RESET_LIFE_CYCLE);
-        }
-        return copyProxyAsDocument(src, dst, name);
     }
 
     @Override
@@ -523,15 +496,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         notifyEvent(DocumentEventTypes.DOCUMENT_DUPLICATED, srcDocModel, options, null, comment, true, false);
 
         return docModel;
-    }
-
-    @Override
-    @Deprecated
-    public List<DocumentModel> copyProxyAsDocument(List<DocumentRef> src, DocumentRef dst, boolean resetLifeCycle) {
-        if (resetLifeCycle) {
-            return copyProxyAsDocument(src, dst, CopyOption.RESET_LIFE_CYCLE);
-        }
-        return copyProxyAsDocument(src, dst);
     }
 
     @Override
@@ -705,7 +669,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
 
         Map<String, Serializable> options = new HashMap<>();
         options.put(CoreEventConstants.PARENT_PATH, parentPath);
-        options.put(CoreEventConstants.DOCUMENT_MODEL_ID, name);
         options.put(CoreEventConstants.DESTINATION_NAME, name);
         return createDocumentModelFromTypeName(typeName, options);
     }
@@ -1519,31 +1482,36 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Map<String, Serializable> options = new HashMap<>();
         options.put("docTitle", docModel.getTitle());
         String versionLabel = "";
-        Document sourceDoc = null;
-        // notify different events depending on wether the document is a
-        // version or not
+        Document workingCopy = null;
+        // notify different events depending on whether the document is a version, a proxy or not
         if (!doc.isVersion()) {
+            if (doc.isProxy()) {
+                workingCopy = doc.getWorkingCopy();
+            }
             notifyEvent(DocumentEventTypes.ABOUT_TO_REMOVE, docModel, options, null, null, true, true);
             CoreService coreService = Framework.getService(CoreService.class);
             coreService.getVersionRemovalPolicy().removeVersions(getSession(), doc, this);
         } else {
             versionLabel = docModel.getVersionLabel();
-            sourceDoc = doc.getSourceDocument();
+            workingCopy = doc.getSourceDocument();
             notifyEvent(DocumentEventTypes.ABOUT_TO_REMOVE_VERSION, docModel, options, null, null, true, true);
-
         }
         doc.remove(getPrincipal());
-        if (doc.isVersion()) {
-            if (sourceDoc != null) {
-                DocumentModel sourceDocModel = readModel(sourceDoc);
-                if (sourceDocModel != null) {
-                    options.put("comment", versionLabel); // to be used by
-                    // audit service
-                    notifyEvent(DocumentEventTypes.VERSION_REMOVED, sourceDocModel, options, null, null, false, false);
+        if ((doc.isVersion() || doc.isProxy()) && workingCopy != null) {
+            DocumentModel workingCopyModel = readModel(workingCopy);
+            if (workingCopyModel != null) {
+                if (doc.isVersion()) {
+                    options.put("comment", versionLabel); // to be used by audit service
+                    notifyEvent(DocumentEventTypes.VERSION_REMOVED, workingCopyModel, options, null, null, false, false);
                     options.remove("comment");
+                } else if (doc.isProxy()) {
+                    notifyEvent(DocumentEventTypes.PROXY_REMOVED, workingCopyModel, options, null, null, false, false);
                 }
-                options.put("docSource", sourceDoc.getUUID());
             }
+            if (doc.isVersion()) {
+                options.put("docSource", workingCopy.getUUID()); // keep it for backward compatibility
+            }
+            options.put("workingCopy", workingCopy.getUUID());
         }
         notifyEvent(DocumentEventTypes.DOCUMENT_REMOVED, docModel, options, null, null, false, false);
     }
@@ -1717,6 +1685,9 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             notifyCheckedInVersion(docModel, checkedInVersionRef, options, checkinComment);
         }
 
+        if (!dirty) {
+            options.putIfAbsent(DISABLE_AUDIT_LOGGER, true);
+        }
         notifyEvent(DocumentEventTypes.DOCUMENT_UPDATED, docModel, options, null, null, true, false);
         updateDocumentCountInc();
 
@@ -2170,6 +2141,13 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
         return doc.isRecord();
+    }
+
+    @Override
+    public List<String> getRetainedProperties(DocumentRef docRef) {
+        Document doc = resolveReference(docRef);
+        checkPermission(doc, READ);
+        return List.of(doc.getRetainedProperties());
     }
 
     @Override
@@ -2802,7 +2780,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         String parentPath = parentRef == null ? null : resolveReference(parentRef).getPath();
         Map<String, Serializable> options = new HashMap<>();
         options.put(CoreEventConstants.PARENT_PATH, parentPath);
-        options.put(CoreEventConstants.DOCUMENT_MODEL_ID, name);
         options.put(CoreEventConstants.DESTINATION_NAME, name);
         return createDocumentModelFromParentAndType(parentRef, typeName, options);
     }

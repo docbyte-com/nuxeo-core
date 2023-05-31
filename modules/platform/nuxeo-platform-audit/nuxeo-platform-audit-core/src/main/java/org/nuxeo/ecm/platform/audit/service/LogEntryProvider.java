@@ -24,15 +24,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Query;
 
 import org.apache.commons.lang3.mutable.MutableInt;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.query.sql.model.Literals;
 import org.nuxeo.ecm.core.query.sql.model.MultiExpression;
 import org.nuxeo.ecm.core.query.sql.model.Operand;
@@ -42,7 +41,6 @@ import org.nuxeo.ecm.core.query.sql.model.OrderByList;
 import org.nuxeo.ecm.core.query.sql.model.Predicate;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.query.sql.model.Reference;
-import org.nuxeo.ecm.platform.audit.api.FilterMapEntry;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.api.query.AuditQueryException;
 import org.nuxeo.ecm.platform.audit.api.query.DateRangeParser;
@@ -50,7 +48,7 @@ import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 
 public class LogEntryProvider implements BaseLogEntryProvider {
 
-    private static final Log log = LogFactory.getLog(LogEntryProvider.class);
+    private static final Logger log = LogManager.getLogger(LogEntryProvider.class);
 
     public static final String LIKE = "LIKE";
 
@@ -67,7 +65,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     public void append(List<LogEntry> entries) {
         entries.forEach(e -> {
             if (em.contains(e)) {
-                log.warn("Log entry already exists for id " + e.getId());
+                log.warn("Log entry already exists for id: {}", e::getId);
             }
             em.merge(e);
         });
@@ -124,86 +122,11 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     }
 
     @SuppressWarnings("unchecked")
-    @Override
     public List<LogEntry> getLogEntriesFor(String uuid, String repositoryId) {
-        if (log.isDebugEnabled()) {
-            log.debug("getLogEntriesFor() UUID=" + uuid + " and repositoryId=" + repositoryId);
-        }
+        log.debug("getLogEntriesFor() UUID: {} and repositoryId: {}", uuid, repositoryId);
         Query query = em.createNamedQuery("LogEntry.findByDocumentAndRepository");
         query.setParameter("docUUID", uuid);
         query.setParameter("repositoryId", repositoryId);
-        return doPublish(query.getResultList());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<LogEntry> getLogEntriesFor(String uuid) {
-        if (log.isDebugEnabled()) {
-            log.debug("getLogEntriesFor() UUID=" + uuid);
-        }
-        Query query = em.createNamedQuery("LogEntry.findByDocument");
-        query.setParameter("docUUID", uuid);
-        return doPublish(query.getResultList());
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<LogEntry> getLogEntriesFor(String uuid, Map<String, FilterMapEntry> filterMap, boolean doDefaultSort) {
-        if (log.isDebugEnabled()) {
-            log.debug("getLogEntriesFor() UUID=" + uuid);
-        }
-
-        if (filterMap == null) {
-            filterMap = new HashMap<>();
-        }
-
-        StringBuilder queryStr = new StringBuilder();
-        queryStr.append(" FROM LogEntry log WHERE log.docUUID=:uuid ");
-
-        Set<String> filterMapKeySet = filterMap.keySet();
-        for (String currentKey : filterMapKeySet) {
-            FilterMapEntry currentFilterMapEntry = filterMap.get(currentKey);
-            String currentOperator = currentFilterMapEntry.getOperator();
-            String currentQueryParameterName = currentFilterMapEntry.getQueryParameterName();
-            String currentColumnName = currentFilterMapEntry.getColumnName();
-
-            if (LIKE.equals(currentOperator)) {
-                queryStr.append(" AND log.")
-                        .append(currentColumnName)
-                        .append(" LIKE :")
-                        .append(currentQueryParameterName)
-                        .append(" ");
-            } else {
-                queryStr.append(" AND log.")
-                        .append(currentColumnName)
-                        .append(currentOperator)
-                        .append(":")
-                        .append(currentQueryParameterName)
-                        .append(" ");
-            }
-        }
-
-        if (doDefaultSort) {
-            queryStr.append(" ORDER BY log.eventDate DESC");
-        }
-
-        Query query = em.createQuery(queryStr.toString());
-
-        query.setParameter("uuid", uuid);
-
-        for (String currentKey : filterMapKeySet) {
-            FilterMapEntry currentFilterMapEntry = filterMap.get(currentKey);
-            String currentOperator = currentFilterMapEntry.getOperator();
-            String currentQueryParameterName = currentFilterMapEntry.getQueryParameterName();
-            Object currentObject = currentFilterMapEntry.getObject();
-
-            if (LIKE.equals(currentOperator)) {
-                query.setParameter(currentQueryParameterName, "%" + currentObject + "%");
-            } else {
-                query.setParameter(currentQueryParameterName, currentObject);
-            }
-        }
-
         return doPublish(query.getResultList());
     }
 
@@ -212,9 +135,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
      * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#getLogEntryByID (long)
      */
     public LogEntry getLogEntryByID(long id) {
-        if (log.isDebugEnabled()) {
-            log.debug("getLogEntriesFor() logID=" + id);
-        }
+        log.debug("getLogEntriesFor() logID: {}", id);
         return doPublish(em.find(LogEntryImpl.class, id));
     }
 
@@ -269,9 +190,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     @SuppressWarnings("unchecked")
     public List<LogEntry> queryLogs(QueryBuilder builder) {
-        if (log.isDebugEnabled()) {
-            log.debug("queryLogs() builder=" + builder);
-        }
+        log.debug("queryLogs() builder: {}", builder);
         // prepare parameters
         MultiExpression multiExpression = builder.predicate();
         OrderByList orders = builder.orders();
@@ -313,11 +232,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
                 value = value + "%";
             }
 
-            queryStr.append(" log.")
-                    .append(fieldName)
-                    .append(" ")
-                    .append(toString(operator))
-                    .append(" ");
+            queryStr.append(" log.").append(fieldName).append(" ").append(toString(operator)).append(" ");
             if (operator == Operator.IN) {
                 queryStr.append("("); // parentheses needed in old HQL for IN
             }
@@ -404,9 +319,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
                     + " ORDER BY log.eventDate DESC";
         }
 
-        if (log.isDebugEnabled()) {
-            log.debug("queryLogs() =" + queryStr);
-        }
+        log.debug("queryLogs(): {}", queryStr);
         Query query = em.createQuery(queryStr);
         query.setParameter("limit", limit);
 
@@ -509,9 +422,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             em.remove(entry);
             count += 1;
         }
-        if (log.isDebugEnabled()) {
-            log.debug("removed " + count + " entries from " + pathPattern);
-        }
+        log.debug("removed {} entries from {}", count, pathPattern);
         return count;
     }
 

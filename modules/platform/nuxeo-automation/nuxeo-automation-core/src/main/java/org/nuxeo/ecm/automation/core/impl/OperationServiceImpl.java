@@ -24,13 +24,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.AutomationAdmin;
 import org.nuxeo.ecm.automation.AutomationFilter;
 import org.nuxeo.ecm.automation.AutomationService;
@@ -62,7 +61,7 @@ import com.google.common.collect.Iterables;
  */
 public class OperationServiceImpl implements AutomationService, AutomationAdmin {
 
-    private static final Log log = LogFactory.getLog(OperationServiceImpl.class);
+    private static final Logger log = LogManager.getLogger(OperationServiceImpl.class);
 
     public static final String EXPORT_ALIASES_CONFIGURATION_PARAM = "nuxeo.automation.export.aliases";
 
@@ -99,7 +98,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
             throw new IllegalArgumentException("No such operation " + operationId);
         }
         if (args == null) {
-            log.warn("null operation parameters given for " + operationId, new Throwable("stack trace"));
+            log.warn("null operation parameters given for {}", operationId, new Throwable("stack trace"));
             args = Collections.emptyMap();
         }
         return ctx.callWithChainParameters(() -> run(ctx, getOperationChain(operationId)), (Map<String, Object>) args);
@@ -230,31 +229,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
         return operationParameters;
     }
 
-    @Override
-    public void putOperationChain(OperationChain chain) throws OperationException {
-        putOperationChain(chain, false);
-    }
-
-    final Map<String, OperationType> typeofChains = new HashMap<>();
-
-    @Override
-    public void putOperationChain(OperationChain chain, boolean replace) throws OperationException {
-        final OperationType typeof = OperationType.typeof(chain, replace);
-        this.putOperation(typeof, replace);
-        typeofChains.put(chain.getId(), typeof);
-    }
-
-    @Override
-    public void removeOperationChain(String id) {
-        OperationType typeof = operations.lookup().get(id);
-        if (typeof == null) {
-            throw new IllegalArgumentException("no such chain " + id);
-        }
-        this.removeOperation(typeof);
-    }
-
-    @Override
-    public OperationChain getOperationChain(String id) throws OperationNotFoundException {
+    protected OperationChain getOperationChain(String id) throws OperationNotFoundException {
         OperationType type = getOperation(id);
         if (type instanceof ChainTypeImpl) {
             return ((ChainTypeImpl) type).chain;
@@ -262,21 +237,6 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
         OperationChain chain = new OperationChain(id);
         chain.add(id);
         return chain;
-    }
-
-    @Override
-    public List<OperationChain> getOperationChains() {
-        List<ChainTypeImpl> chainsType = new ArrayList<>();
-        List<OperationChain> chains = new ArrayList<>();
-        for (OperationType operationType : operations.lookup().values()) {
-            if (operationType instanceof ChainTypeImpl) {
-                chainsType.add((ChainTypeImpl) operationType);
-            }
-        }
-        for (ChainTypeImpl chainType : chainsType) {
-            chains.add(chainType.getChain());
-        }
-        return chains;
     }
 
     @Override
@@ -317,7 +277,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     public void removeOperation(Class<?> key) {
         OperationType type = operations.getOperationType(key);
         if (type == null) {
-            log.warn("Cannot remove operation, no such operation " + key);
+            log.warn("Cannot remove operation, no such operation {}", key);
             return;
         }
         removeOperation(type);
@@ -331,7 +291,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     @Override
     public OperationType[] getOperations() {
         HashSet<OperationType> values = new HashSet<>(operations.lookup().values());
-        return values.toArray(new OperationType[values.size()]);
+        return values.toArray(OperationType[]::new);
     }
 
     @Override
@@ -431,7 +391,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
         HashSet<OperationType> ops = new HashSet<>(operations.lookup().values());
         ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
         boolean exportAliases = configurationService.isBooleanTrue(EXPORT_ALIASES_CONFIGURATION_PARAM);
-        for (OperationType ot : ops.toArray(new OperationType[ops.size()])) {
+        for (OperationType ot : ops.toArray(OperationType[]::new)) {
             try {
                 OperationDocumentation documentation = ot.getDocumentation();
                 result.add(documentation);
@@ -495,7 +455,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     @Override
     public ChainException[] getChainExceptions() {
         Collection<ChainException> chainExceptions = chainExceptionRegistry.lookup().values();
-        return chainExceptions.toArray(new ChainException[chainExceptions.size()]);
+        return chainExceptions.toArray(ChainException[]::new);
     }
 
     /**
@@ -544,7 +504,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     @Override
     public AutomationFilter[] getAutomationFilters() {
         Collection<AutomationFilter> automationFilters = automationFilterRegistry.lookup().values();
-        return automationFilters.toArray(new AutomationFilter[automationFilters.size()]);
+        return automationFilters.toArray(AutomationFilter[]::new);
     }
 
 }

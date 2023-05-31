@@ -28,10 +28,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.text.StringEscapeUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
@@ -62,7 +63,7 @@ public class FulltextExtractorWork extends AbstractWork {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Log log = LogFactory.getLog(FulltextExtractorWork.class);
+    private static final Logger log = LogManager.getLogger(FulltextExtractorWork.class);
 
     public static final String SYSPROP_FULLTEXT_SIMPLE = "fulltextSimple";
 
@@ -144,6 +145,15 @@ public class FulltextExtractorWork extends AbstractWork {
         session.save();
         setProgress(Progress.PROGRESS_100_PC);
         setStatus("Done");
+    }
+
+    // @since 2021.32
+    public void extractBinaryFulltext(CoreSession session, DocumentModel doc) {
+        this.session = session;
+        docsToUpdate = Collections.singletonList(doc.getRef());
+        document = doc;
+        initFulltextConfiguration();
+        extractAndUpdateBinaryText();
     }
 
     protected void initFulltextConfiguration() {

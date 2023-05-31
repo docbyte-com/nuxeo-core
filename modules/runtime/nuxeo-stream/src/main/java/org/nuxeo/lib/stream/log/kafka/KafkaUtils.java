@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
@@ -32,8 +33,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.kafka.clients.admin.AdminClient;
 import org.apache.kafka.clients.admin.AdminClientConfig;
 import org.apache.kafka.clients.admin.ConsumerGroupListing;
@@ -51,6 +50,9 @@ import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.TopicPartitionInfo;
 import org.apache.kafka.common.errors.TopicExistsException;
 import org.apache.kafka.common.errors.UnknownTopicOrPartitionException;
+import org.apache.kafka.common.errors.UnsupportedVersionException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.lib.stream.StreamRuntimeException;
 import org.nuxeo.lib.stream.log.LogPartition;
 import org.nuxeo.lib.stream.log.Name;
@@ -61,7 +63,8 @@ import org.nuxeo.lib.stream.log.Name;
  * @since 9.3
  */
 public class KafkaUtils implements AutoCloseable {
-    private static final Log log = LogFactory.getLog(KafkaUtils.class);
+
+    private static final Logger log = LogManager.getLogger(KafkaUtils.class);
 
     public static final String BOOTSTRAP_SERVERS_PROP = "kafka.bootstrap.servers";
 
@@ -165,14 +168,37 @@ public class KafkaUtils implements AutoCloseable {
         return ret;
     }
 
+    /**
+     * Creates a topic with partitions and replications that default to broker configuration.
+     *
+     * @since 2021.33
+     */
+    public void createTopic(String topic) {
+        createTopic(topic, -1, (short) -1);
+    }
+
+    /**
+     * Creates a topic with replication factor that defaults to broker configuration.
+     *
+     * @since 2021.33
+     */
+    public void createTopic(String topic, int partitions) {
+        createTopic(topic, partitions, (short) -1);
+    }
+
     public void createTopicWithoutReplication(String topic, int partitions) {
         createTopic(topic, partitions, (short) 1);
     }
 
+    /**
+     * Creates a topic with the given partitions and replication.
+     * Since 2021.33 partitions (or replications) below 1 defaults to broker configuration.
+     */
     public void createTopic(String topic, int partitions, short replicationFactor) {
-        log.info("Creating topic: " + topic + ", partitions: " + partitions + ", replications: " + replicationFactor);
-        CreateTopicsResult ret = adminClient.createTopics(
-                Collections.singletonList(new NewTopic(topic, partitions, replicationFactor)));
+        Optional<Integer> parts = (partitions < 1) ? Optional.empty() : Optional.of(partitions);
+        Optional<Short> factor = (replicationFactor < 1) ? Optional.empty() : Optional.of(replicationFactor);
+        log.info("Creating topic: {}, partitions: {}, replications: {}", topic, parts, factor);
+        CreateTopicsResult ret = adminClient.createTopics(Collections.singletonList(new NewTopic(topic, parts, factor)));
         try {
             ret.all().get(5, TimeUnit.MINUTES);
         } catch (InterruptedException e) {
@@ -180,9 +206,14 @@ public class KafkaUtils implements AutoCloseable {
             throw new StreamRuntimeException(e);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof TopicExistsException) {
-                log.warn("Cannot create topic, it already exists: " + topic);
+                log.warn("Cannot create topic, it already exists: {}", topic);
             } else if (e.getCause() instanceof org.apache.kafka.common.errors.TimeoutException) {
                 throw new StreamRuntimeException("Unable to create topic " + topic + " within the request timeout", e);
+            } else if (e.getCause() instanceof UnsupportedVersionException) {
+                throw new StreamRuntimeException(
+                        "Using default replication factor (or partitions) is only supported with Kafka broker >= 2.4. "
+                                + "Update your Kafka cluster or use kafka.default.replication.factor >= 1",
+                        e);
             } else {
                 throw new StreamRuntimeException(e);
             }
@@ -193,13 +224,13 @@ public class KafkaUtils implements AutoCloseable {
             waitForTopicCreation(topic, Duration.ofMinutes(3));
         }
         if (partitions(topic) != partitions) {
-            log.warn("Topic: " + topic + " created with different partitioning, expected: " + partitions + ", actual: "
-                    + partitions(topic));
+            log.warn("Topic: {} created with different partitioning, expected: {}, actual: {}", topic, partitions,
+                    partitions(topic));
         }
     }
 
     protected void waitForTopicCreation(String topic, Duration timeout) {
-        log.warn("Waiting for brokers to become aware that the topic " + topic + " has been created.");
+        log.warn("Waiting for brokers to become aware that the topic {} has been created.", topic);
         long deadline = System.currentTimeMillis() + timeout.toMillis();
         do {
             if (System.currentTimeMillis() > deadline) {
@@ -227,12 +258,12 @@ public class KafkaUtils implements AutoCloseable {
                                                .get(topic)
                                                .get();
             if (desc.partitions().size() < 1) {
-                log.warn("Topic: " + topic + ", without partition");
+                log.warn("Topic: {}, without partition", topic);
                 return false;
             }
             for (TopicPartitionInfo info : desc.partitions()) {
                 if (info.leader().isEmpty()) {
-                    log.warn("Topic: " + topic + " not ready, no leader for partition: " + info);
+                    log.warn("Topic: {} not ready, no leader for partition: {}", topic, info);
                     return false;
                 }
             }
@@ -241,7 +272,7 @@ public class KafkaUtils implements AutoCloseable {
             throw new StreamRuntimeException(e);
         } catch (ExecutionException e) {
             if (e.getCause() instanceof UnknownTopicOrPartitionException) {
-                log.info("Topic: " + topic + " unknown");
+                log.info("Topic: {} unknown", topic);
                 return false;
             }
             throw new StreamRuntimeException(e);
@@ -255,9 +286,7 @@ public class KafkaUtils implements AutoCloseable {
                                                .values()
                                                .get(topic)
                                                .get();
-            if (log.isDebugEnabled()) {
-                log.debug(String.format("Topic %s exists: %s", topic, desc));
-            }
+            log.debug("Topic {} exists: {}", topic, desc);
             return desc.partitions().size();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -346,7 +375,7 @@ public class KafkaUtils implements AutoCloseable {
     }
 
     public boolean delete(String topic) {
-        log.info("Deleting topic: " + topic);
+        log.info("Deleting topic: {}", topic);
         DeleteTopicsResult result = adminClient.deleteTopics(Collections.singleton(topic));
         return result.values().get(topic).isDone();
     }

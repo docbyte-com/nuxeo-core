@@ -1,0 +1,55 @@
+name: "Docker image scan"
+
+on:
+  # Run manually or with the GitHub CLI
+  workflow_dispatch:
+    inputs:
+      internalRegistry:
+        description: 'Use internal Docker registry'
+        type: boolean
+      imageName:
+        description: 'Docker image name'
+        required: true
+        default: 'nuxeo/nuxeo:2023.x'
+        type: string
+
+env:
+  DOCKER_REGISTRY: ${{ inputs.internalRegistry && vars.DOCKER_REGISTRY_INTERNAL || vars.DOCKER_REGISTRY_PRIVATE }}
+  DOCKER_REGISTRY_USERNAME: ${{ inputs.internalRegistry && secrets.DOCKER_REGISTRY_INTERNAL_USERNAME || secrets.DOCKER_REGISTRY_PRIVATE_USERNAME }}
+  DOCKER_REGISTRY_PASSWORD: ${{ inputs.internalRegistry && secrets.DOCKER_REGISTRY_INTERNAL_PASSWORD || secrets.DOCKER_REGISTRY_PRIVATE_PASSWORD }}
+
+jobs:
+  scan:
+    name: Scan Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Print workflow inputs
+        run: |
+          echo internalRegistry = ${{ inputs.internalRegistry }}
+          echo imageName = ${{ inputs.imageName }}
+
+      - name: Log in to Docker registry
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: Pull Docker image
+        run: docker pull ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
+
+      - name: Scan Docker image with Prisma Cloud
+        id: scan
+        uses: PaloAltoNetworks/prisma-cloud-scan@v1.4.0
+        with:
+          pcc_console_url: ${{ secrets.PRISMA_BASE_URL }}
+          pcc_user: ${{ secrets.PRISMA_ACCESS_KEY_ID }}
+          pcc_pass: ${{ secrets.PRISMA_SECRET_KEY }}
+          image_name: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
+
+      - name: Upload SARIF file
+        if: always() # necessary as using failure thresholds in the image scan
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: ${{ steps.scan.outputs.sarif_file }}

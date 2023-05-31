@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.event.impl;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -294,18 +295,6 @@ public class ShallowDocumentModel implements DocumentModel {
     }
 
     @Override
-    @Deprecated
-    public DocumentPart getPart(String schema) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Deprecated
-    public DocumentPart[] getParts() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Collection<Property> getPropertyObjects(String schema) {
         throw new UnsupportedOperationException();
     }
@@ -501,6 +490,11 @@ public class ShallowDocumentModel implements DocumentModel {
     }
 
     @Override
+    public void setPropertyObject(Property property) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void setPropertyValue(String xpath, Serializable value) {
         throw new UnsupportedOperationException();
     }
@@ -571,6 +565,11 @@ public class ShallowDocumentModel implements DocumentModel {
     @Override
     public PropertyObjectResolver getObjectResolver(String xpath) {
         return DocumentPropertyObjectResolverImpl.create(this, xpath);
+    }
+
+    @Override
+    public List<String> getRetainedProperties() {
+        throw new UnsupportedOperationException();
     }
 
 }
