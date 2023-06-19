@@ -23,7 +23,9 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ_PROPERTIES;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.nuxeo.ecm.core.api.Blob;
@@ -34,6 +36,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
+import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.pathsegment.PathSegmentService;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
@@ -71,7 +74,11 @@ public abstract class AbstractFileImporter implements FileImporter {
 
     public static final String SKIP_UPDATE_AUDIT_LOGGING = "org.nuxeo.filemanager.skip.audit.logging.forupdates";
 
-    // duplicated from Audit module to avoid circular dependency
+    /**
+     * Originally duplicated from NXAuditEventsService.DISABLE_AUDIT_LOGGER to avoid circular dependency.
+     *
+     * @deprecated since 2021.34, use {@link CoreSession#DISABLE_AUDIT_LOGGER} instead
+     */
     public static final String DISABLE_AUDIT_LOGGER = "disableAuditLogger";
 
     // to be used by plugin implementation to gain access to standard file
@@ -247,7 +254,7 @@ public abstract class AbstractFileImporter implements FileImporter {
             }
             if (Framework.isBooleanPropertyTrue(SKIP_UPDATE_AUDIT_LOGGING)) {
                 // skip the update event if configured to do so
-                doc.putContextData(DISABLE_AUDIT_LOGGER, true);
+                doc.putContextData(CoreSession.DISABLE_AUDIT_LOGGER, true);
             }
             if (context.isPersistDocument()) {
                 // save
@@ -257,7 +264,9 @@ public abstract class AbstractFileImporter implements FileImporter {
             }
         } else {
             // create document model
-            doc = session.createDocumentModel(targetDocType);
+            Map<String, Object> options = new HashMap<>();
+            options.put(CoreEventConstants.PARENT_PATH, path);
+            doc = session.createDocumentModel(targetDocType, options);
             createDocument(doc, title);
             // set path
             PathSegmentService pss = Framework.getService(PathSegmentService.class);
@@ -272,18 +281,6 @@ public abstract class AbstractFileImporter implements FileImporter {
             }
         }
         return doc;
-    }
-
-    /**
-     * Avoid checkin for a 0-length blob. Microsoft-WebDAV-MiniRedir first creates a 0-length file and then locks it
-     * before putting the real file. But we don't want this first placeholder to cause a versioning event.
-     *
-     * @deprecated since 9.1 automatic versioning is now handled at versioning service level, remove versioning
-     *             behaviors from importers
-     */
-    @Deprecated(since = "9.1")
-    protected boolean skipCheckInForBlob(Blob blob) {
-        return blob == null || blob.getLength() == 0;
     }
 
     /**
@@ -347,29 +344,6 @@ public abstract class AbstractFileImporter implements FileImporter {
             path = path.substring(0, path.lastIndexOf('/'));
         }
         return path;
-    }
-
-    /**
-     * @deprecated since 9.1 automatic versioning is now handled at versioning service level, remove versioning
-     *             behaviors from importers
-     */
-    @Deprecated(since = "9.1")
-    protected void checkIn(DocumentModel doc) {
-        VersioningOption option = fileManagerService.getVersioningOption();
-        if (option != null && option != VersioningOption.NONE && doc.isCheckedOut()) {
-            doc.checkIn(option, null);
-        }
-    }
-
-    /**
-     * @deprecated since 9.1 automatic versioning is now handled at versioning service level, remove versioning
-     *             behaviors from importers
-     */
-    @Deprecated(since = "9.1")
-    protected void checkInAfterAdd(DocumentModel doc) {
-        if (fileManagerService.doVersioningAfterAdd()) {
-            checkIn(doc);
-        }
     }
 
     /**

@@ -34,8 +34,8 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.collections.ListenerList;
 import org.nuxeo.common.function.ThrowableRunnable;
@@ -67,7 +67,7 @@ import org.nuxeo.runtime.trackers.files.FileEventTracker;
  */
 public final class Framework {
 
-    private static final Log log = LogFactory.getLog(Framework.class);
+    private static final Logger log = LogManager.getLogger(Framework.class);
 
     /**
      * Global dev property
@@ -84,15 +84,6 @@ public final class Framework {
      * @see #isTestModeSet()
      */
     public static final String NUXEO_TESTING_SYSTEM_PROP = "org.nuxeo.runtime.testing";
-
-    /**
-     * Property to control strict runtime mode
-     *
-     * @since 5.6
-     * @deprecated since 9.1 This property is not documented and doesn't work.
-     */
-    @Deprecated(since = "9.1")
-    public static final String NUXEO_STRICT_RUNTIME_SYSTEM_PROP = "org.nuxeo.runtime.strict";
 
     /**
      * The runtime instance.
@@ -240,16 +231,6 @@ public final class Framework {
     }
 
     /**
-     * Gets a service given its class.
-     *
-     * @deprecated since 9.10, use {@link #getService} instead
-     */
-    @Deprecated(since = "9.10")
-    public static <T> T getLocalService(Class<T> serviceClass) {
-        return getService(serviceClass);
-    }
-
-    /**
      * Runs the given {@link Runnable} while logged in as a system user.
      *
      * @param runnable what to run
@@ -300,10 +281,12 @@ public final class Framework {
      *
      * @since 11.1
      */
-    protected static <T, E extends Throwable> T loginAndDo(ThrowableSupplier<NuxeoLoginContext, LoginException> authSupplier,
-            ThrowableSupplier<T, E> supplier) throws E {
+    protected static <T, E extends Throwable> T loginAndDo(
+            ThrowableSupplier<NuxeoLoginContext, LoginException> authSupplier, ThrowableSupplier<T, E> supplier)
+            throws E {
         try {
-            try (@SuppressWarnings("unused") NuxeoLoginContext loginContext = authSupplier.get()) {
+            try (@SuppressWarnings("unused")
+            NuxeoLoginContext loginContext = authSupplier.get()) {
                 return supplier.get();
             }
         } catch (LoginException e) {

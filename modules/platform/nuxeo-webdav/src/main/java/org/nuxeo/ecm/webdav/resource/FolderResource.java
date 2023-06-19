@@ -37,7 +37,26 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.commons.text.StringEscapeUtils;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.webdav.EscapeUtils;
+import org.nuxeo.ecm.webdav.backend.Backend;
+import org.nuxeo.ecm.webdav.jaxrs.IsFolder;
+import org.nuxeo.ecm.webdav.jaxrs.Util;
+import org.xml.sax.SAXException;
+
+import org.apache.commons.text.StringEscapeUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.webdav.EscapeUtils;
+import org.nuxeo.ecm.webdav.backend.Backend;
+import org.nuxeo.ecm.webdav.jaxrs.IsFolder;
+import org.nuxeo.ecm.webdav.jaxrs.Util;
 
 import net.java.dev.webdav.jaxrs.methods.PROPFIND;
 import net.java.dev.webdav.jaxrs.xml.elements.HRef;
@@ -49,21 +68,12 @@ import net.java.dev.webdav.jaxrs.xml.elements.Status;
 import net.java.dev.webdav.jaxrs.xml.properties.LockDiscovery;
 import net.java.dev.webdav.jaxrs.xml.properties.SupportedLock;
 
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.webdav.EscapeUtils;
-import org.nuxeo.ecm.webdav.backend.Backend;
-import org.nuxeo.ecm.webdav.jaxrs.IsFolder;
-import org.nuxeo.ecm.webdav.jaxrs.Util;
-
 /**
  * A resource for folder-like objects in the repository.
  */
 public class FolderResource extends ExistingResource {
 
-    private static final Log log = LogFactory.getLog(FolderResource.class);
+    private static final Logger log = LogManager.getLogger(FolderResource.class);
 
     public FolderResource(String path, DocumentModel doc, HttpServletRequest request, Backend backend) {
         super(path, doc, request, backend);
@@ -97,19 +107,17 @@ public class FolderResource extends ExistingResource {
     @PROPFIND
     @Produces({ "application/xml", "text/xml" })
     public Response propfind(@Context UriInfo uriInfo, @HeaderParam("depth") String depth)
-            throws IOException, JAXBException {
+            throws IOException, JAXBException, ParserConfigurationException, SAXException {
 
         if (depth == null) {
             depth = "1";
         }
 
-        Unmarshaller u = Util.getUnmarshaller();
-
         Prop prop = null;
         if (request.getInputStream() != null && request.getContentLength() > 0) {
             PropFind propFind;
             try {
-                propFind = (PropFind) u.unmarshal(request.getInputStream());
+                propFind = (PropFind) Util.unmarshal(request.getInputStream());
             } catch (JAXBException e) {
                 log.error(e);
                 // FIXME: check this is the right response code

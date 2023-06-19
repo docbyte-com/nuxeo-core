@@ -60,19 +60,6 @@ public interface Session extends AutoCloseable {
     DocumentModel getEntry(String id, boolean fetchReferences);
 
     /**
-     * Retrieves all the entries in the directory. If the remote server issues a size limit exceeded error while sending
-     * partial results up to that limit, the method {@code DocumentModelList#totalsize} on the returned list will return
-     * -2 as a special marker for truncated results.
-     *
-     * @deprecated since 6.0 Use query method instead with parameters
-     * @return a collection with all the entries in the directory
-     * @throws SizeLimitExceededException if the number of results is larger than the limit configured for the directory
-     *             and the server does not send partial results.
-     */
-    @Deprecated
-    DocumentModelList getEntries();
-
-    /**
      * Creates an entry in a directory.
      *
      * @param fieldMap A map with keys and values that should be stored in a directory
@@ -106,18 +93,6 @@ public interface Session extends AutoCloseable {
      * @throws UnsupportedOperationException if the directory does not support entry deleting
      */
     void deleteEntry(String id);
-
-    /**
-     * Deletes a directory entry by id and secondary ids.
-     * <p>
-     * This is used for hierarchical vocabularies, where the actual unique key is the couple (parent, id).
-     *
-     * @param id the id of the entry to delete.
-     * @param map a map of secondary key values.
-     * @deprecated since 9.2 (unused), use {@link #deleteEntry(String)} instead.
-     */
-    @Deprecated
-    void deleteEntry(String id, Map<String, String> map);
 
     /*
      * FIXME: Parses a query string and create a query object for this directory.

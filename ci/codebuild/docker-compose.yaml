@@ -20,8 +20,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: ".5"
-          memory: "256M"
+          cpus: "1"
+          memory: "1024M"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -36,7 +36,7 @@ services:
       resources:
         limits:
           cpus: "2"
-          memory: "1024M"
+          memory: "2048M"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181

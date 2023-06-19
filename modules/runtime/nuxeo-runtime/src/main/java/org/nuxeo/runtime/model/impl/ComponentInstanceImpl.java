@@ -25,8 +25,8 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.ExceptionUtils;
 import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.RuntimeMessage.Level;
@@ -52,7 +52,7 @@ import org.osgi.framework.ServiceRegistration;
  */
 public class ComponentInstanceImpl implements ComponentInstance {
 
-    private static final Log log = LogFactory.getLog(ComponentInstanceImpl.class);
+    private static final Logger log = LogManager.getLogger(ComponentInstanceImpl.class);
 
     protected Object instance;
 
@@ -171,22 +171,6 @@ public class ComponentInstanceImpl implements ComponentInstance {
     public void stop() throws InterruptedException {
         if (instance instanceof Component) {
             ((Component) instance).stop(this);
-        }
-    }
-
-    /**
-     * @deprecated since 9.3, but in fact since 5.6, only usage in {@link RegistrationInfoImpl}
-     */
-    @Deprecated
-    @Override
-    public void reload() {
-        // activate the implementation instance
-        try {
-            MethodUtils.invokeMethod(instance, true, "reload", this);
-        } catch (NoSuchMethodException e) {
-            // ignore this exception since the reload method is not mandatory
-        } catch (ReflectiveOperationException e) {
-            handleError("Failed to reload component: " + getName(), Source.COMPONENT, getName().getName(), e);
         }
     }
 

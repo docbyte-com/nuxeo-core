@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.security.ACE;
@@ -126,22 +125,6 @@ public class ACPImpl implements ACP {
         }
         acls.add(pos, acl);
         cache.clear();
-    }
-
-    @Override
-    public void addACL(String afterMe, ACL acl) {
-        if (afterMe == null) {
-            addACL(0, acl);
-        } else {
-            int i;
-            int len = acls.size();
-            for (i = 0; i < len; i++) {
-                if (acls.get(i).getName().equals(afterMe)) {
-                    break;
-                }
-            }
-            addACL(i + 1, acl);
-        }
     }
 
     @Override
@@ -337,25 +320,6 @@ public class ACPImpl implements ACP {
         in.defaultReadObject();
         // initialize cache to avoid NPE
         cache = new HashMap<>();
-    }
-
-    /*
-     * NXP-1822 Rux: method for validating in one shot the users allowed to perform an oration. It gets the list of
-     * individual permissions which supposedly all grant.
-     */
-    @Override
-    public String[] listUsernamesForAnyPermission(Set<String> perms) {
-        List<String> usernames = new ArrayList<>();
-        ACL merged = getMergedACLs("merged");
-        for (ACE ace : merged.getACEs()) {
-            if (perms.contains(ace.getPermission()) && ace.isGranted()) {
-                String username = ace.getUsername();
-                if (!usernames.contains(username)) {
-                    usernames.add(username);
-                }
-            }
-        }
-        return usernames.toArray(new String[usernames.size()]);
     }
 
     @Override

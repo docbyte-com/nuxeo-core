@@ -31,8 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.lib.stream.codec.AvroMessageCodec;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.Record;
@@ -57,7 +56,8 @@ import org.nuxeo.lib.stream.log.internals.LogOffsetImpl;
  * @since 11.1
  */
 public class LogStreamManager implements StreamManager {
-    private static final Log log = LogFactory.getLog(LogStreamManager.class);
+
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(LogStreamManager.class);
 
     // Internal stream to describe started processors
     // @since 11.5
@@ -101,7 +101,7 @@ public class LogStreamManager implements StreamManager {
 
     @Override
     public void register(String processorName, Topology topology, Settings settings) {
-        log.debug("Register processor: " + processorName);
+        log.debug("Register processor: {}", processorName);
         topologies.put(processorName, topology);
         this.settings.put(processorName, settings);
         initStreams(topology, settings);
@@ -125,7 +125,7 @@ public class LogStreamManager implements StreamManager {
         processor.init(topologies.get(processorName), settings.get(processorName));
         processors.put(processorName, processor);
         Map<String, String> meta = new HashMap<>();
-        meta.put("processorName",  processorName);
+        meta.put("processorName", processorName);
         meta.putAll(getSystemMetadata());
         append(PROCESSORS_STREAM, Record.of(meta.get("ip"), processor.toJson(meta).getBytes(UTF_8)));
         return processor;
@@ -182,6 +182,21 @@ public class LogStreamManager implements StreamManager {
         processors.clear();
     }
 
+    /**
+     * Returns {@code true} if the {@link #subscribe} method is supported for the specific stream.
+     *
+     * @since 2021.34
+     */
+    public boolean supportSubscribe(Name stream) {
+        return logManager.supportSubscribe(stream);
+    }
+
+    /**
+     * Returns {@code true} if the {@link #subscribe} method is supported.
+     * Now deprecated because some implementations support subscribe only on specific streams.
+     *
+     * @deprecated since 2021.34 use {@link #supportSubscribe(Name)} instead
+     */
     public boolean supportSubscribe() {
         return logManager.supportSubscribe();
     }
@@ -231,9 +246,8 @@ public class LogStreamManager implements StreamManager {
         } else {
             int size = logManager.size(stream);
             if (settings.getPartitions(streamName) != size) {
-                log.debug(String.format(
-                        "Update settings for stream: %s defined with %d partitions but exists with %d partitions",
-                        streamName, settings.getPartitions(streamName), size));
+                log.debug("Update settings for stream: {} defined with {} partitions but exists with {} partitions",
+                        streamName, settings.getPartitions(streamName), size);
                 settings.setPartitions(streamName, size);
             }
         }
@@ -241,8 +255,8 @@ public class LogStreamManager implements StreamManager {
     }
 
     protected void initAppenders(Collection<String> streams, Settings settings) {
-        log.debug("Initializing source appenders so we ensure they use codec defined in the processor:");
-        streams.forEach(stream -> log.debug(stream));
+        log.debug(() -> "Initializing source appenders so we ensure they use codec defined in the processor:\n"
+                + String.join("\n", streams));
         streams.stream()
                .filter(stream -> !settings.isExternal(Name.ofUrn(stream)))
                .forEach(stream -> logManager.getAppender(Name.ofUrn(stream), settings.getCodec(stream)));

@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.storage;
 
+import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.BLOBS_CANDIDATE_FOR_DELETION_EVENT;
 import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.MAIN_BLOB_XPATH;
 
 import java.io.IOException;
@@ -39,6 +40,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.Blob;
@@ -58,6 +60,9 @@ import org.nuxeo.ecm.core.api.model.impl.ComplexProperty;
 import org.nuxeo.ecm.core.api.model.impl.primitives.BlobProperty;
 import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
+import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.event.EventService;
+import org.nuxeo.ecm.core.event.impl.BlobEventContext;
 import org.nuxeo.ecm.core.model.BaseSession;
 import org.nuxeo.ecm.core.model.Document;
 import org.nuxeo.ecm.core.schema.SchemaManager;
@@ -87,6 +92,8 @@ import org.nuxeo.runtime.api.Framework;
  * @since 7.3
  */
 public abstract class BaseDocument<T extends StateAccessor> implements Document {
+
+    protected static final Pattern LIST_INDEX_PATTERN = Pattern.compile("/\\d+$");
 
     public static final String[] EMPTY_STRING_ARRAY = new String[0];
 
@@ -138,6 +145,9 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
     /** @since 11.1 */
     public static final String HAS_LEGAL_HOLD_PROP = "ecm:hasLegalHold";
 
+    /** @since 2021.32 */
+    public static final String RETAINED_PROPERTIES_PROP = "ecm:retainedProperties";
+
     public static final Set<String> VERSION_WRITABLE_PROPS = new HashSet<>(Arrays.asList( //
             FULLTEXT_JOBID_PROP, //
             FULLTEXT_BINARYTEXT_PROP, //
@@ -148,6 +158,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
             DC_ISSUED, //
             IS_RECORD_PROP, //
             RETAIN_UNTIL_PROP, //
+            RETAINED_PROPERTIES_PROP, //
             HAS_LEGAL_HOLD_PROP, //
             RELATED_TEXT_RESOURCES, //
             RELATED_TEXT_ID, //
@@ -679,6 +690,12 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
     }
 
     protected void setValueBlob(T state, Blob blob, String xpath) throws PropertyException {
+        Blob oldValue = getValueBlob(state, xpath);
+        if (oldValue instanceof ManagedBlob oldBlob) {
+            EventService es = Framework.getService(EventService.class);
+            es.fireEvent(new BlobEventContext(NuxeoPrincipal.getCurrent(), getRepositoryName(), getUUID(), xpath,
+                    oldBlob).newEvent(BLOBS_CANDIDATE_FOR_DELETION_EVENT));
+        }
         BlobInfo blobInfo = new BlobInfo();
         DocumentBlobManager blobManager = Framework.getService(DocumentBlobManager.class);
         try {
@@ -858,6 +875,32 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
         return writeComplexProperty(state, (ComplexProperty) dp, null, writeAll, writeAllChildren, writeContext);
     }
 
+    public boolean isRetainable(String xp) {
+        if (MAIN_BLOB_XPATH.equals(xp)) {
+            return true;
+        }
+        String[] rprops = getRetainedProperties();
+        if (rprops == null || rprops.length == 0) {
+            return false;
+        }
+        // remove prefix if it exists
+        // replace any '/0/' by '/*/'
+        // remove any simple list index e.g. '/0'
+        String cleanedXp = LIST_INDEX_PATTERN.matcher(SchemaManager.normalizePath(xp)).replaceFirst("");
+        // if `files/*/file` is a retainable property
+        // so is `files` because we cannot allow to nullify it
+        return Arrays.stream(rprops)
+                     .anyMatch(p -> Stream
+                                          .iterate(p, StringUtils::isNotBlank,
+                                                  key -> key.substring(0, Math.max(key.lastIndexOf('/'), 0)))
+                                          .anyMatch(sp -> sp.equals(cleanedXp)));
+    }
+
+    @Override
+    public boolean isRetained(String xp) {
+        return isUnderRetentionOrLegalHold() && isRetainable(xp);
+    }
+
     /**
      * Writes state from a complex property.
      * <p>
@@ -892,8 +935,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 continue;
             }
             String xp = xpath == null ? name : xpath + '/' + name;
-            SchemaManager schemaManager = Framework.getService(SchemaManager.class);
-            if (isUnderRetentionOrLegalHold() && (MAIN_BLOB_XPATH.equals(xp) || schemaManager.isRetainable(xp))) {
+            if (isRetained(xp)) {
                 if (!BaseSession.canDeleteUndeletable(NuxeoPrincipal.getCurrent())) {
                     throw new DocumentSecurityException(
                             "Cannot change blob from document " + getUUID() + ", it is under retention / hold");
@@ -1055,8 +1097,13 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 blobVisitor.accept(new StateBlobAccessor(path, state, markDirty));
                 return;
             }
-            for (Field field : complexType.getFields()) {
-                visitBlobsField(state, field);
+            try {
+                for (Field field : complexType.getFields()) {
+                    visitBlobsField(state, field);
+                }
+            } catch (ClassCastException e) {
+                throw new PropertyConversionException(
+                        String.format("Unable to read property: %s for document: %s", path, getUUID()), e);
             }
         }
 

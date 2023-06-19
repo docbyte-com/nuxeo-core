@@ -7,7 +7,7 @@
 ARG ROCKY_LINUX_VERSION=9.1
 # ------------------------------------------------------------------------
 # RPM download stage
-FROM rockylinux/rockylinux:$ROCKY_LINUX_VERSION as rpm-download
+FROM rockylinux:$ROCKY_LINUX_VERSION as rpm-download
 
 ARG EXIFTOOL_VERSION=12.*
 
@@ -20,12 +20,13 @@ RUN dnf -y install --downloadonly --downloaddir=/rpms \
 
 # ------------------------------------------------------------------------
 # Target stage
-FROM rockylinux/rockylinux:$ROCKY_LINUX_VERSION
+FROM rockylinux:$ROCKY_LINUX_VERSION
 
 ARG BUILD_TAG
 ARG SCM_REF
 ARG VERSION
 
+ARG ROCKY_LINUX_VERSION=9.1
 ARG LIBREOFFICE_VERSION=7.4.2
 ARG GHOSTSCRIPT_MAJOR_VERSION=9
 ARG GHOSTSCRIPT_MINOR_VERSION=25
@@ -72,10 +73,11 @@ RUN dnf -y update \
   && curl -f -L https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs$GHOSTSCRIPT_MAJOR_VERSION$GHOSTSCRIPT_MINOR_VERSION/ghostscript-$GHOSTSCRIPT_VERSION-linux-x86_64.tgz | tar -xzv \
   && mv ghostscript-$GHOSTSCRIPT_VERSION-linux-x86_64/gs-$GHOSTSCRIPT_MAJOR_VERSION$GHOSTSCRIPT_MINOR_VERSION-linux-x86_64 /usr/bin/gs \
   && rm -rf ghostscript-$GHOSTSCRIPT_VERSION-linux-x86_64 \
+  # ImageMagick 7 for Rocky Linux 9 is only provided by a third party repo
+  && dnf -y install https://rpms.remirepo.net/enterprise/remi-release-$ROCKY_LINUX_VERSION.rpm \
+  && dnf -y --enablerepo=remi install ImageMagick7 \
   # devel repository required for some packages such as libwpd-tools
   && dnf -y --setopt=skip_missing_names_on_install=False --enablerepo=devel install \
-    # don't specify ImageMagick version, the package repositories only host the latest package for Rocky Linux 9
-    ImageMagick \
     libwpd-tools \
     # required by exiftool to extract binary metadata from open office document
     perl-Archive-Zip \
@@ -87,6 +89,9 @@ RUN dnf -y update \
     # Add CJK fonts
     google-noto-cjk-fonts-common \
   && dnf clean all
+
+# Remove perl-Net-SSLeay example private key
+RUN rm /usr/share/doc/perl-Net-SSLeay/examples/server_key.pem
 
 # Remove setuid/setgid binaries from images for security
 RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true

@@ -80,24 +80,6 @@ public interface DocumentRoutingService {
             boolean startInstance);
 
     /**
-     * @deprecated since 5.6, use other APIs
-     */
-    @Deprecated
-    DocumentRoute createNewInstance(DocumentRoute model, String documentId, CoreSession session, boolean startInstance);
-
-    /**
-     * @deprecated since 5.6, use other APIs
-     */
-    @Deprecated
-    DocumentRoute createNewInstance(DocumentRoute model, List<String> documentIds, CoreSession session);
-
-    /**
-     * @deprecated since 5.6, use other APIs
-     */
-    @Deprecated
-    DocumentRoute createNewInstance(DocumentRoute model, String documentId, CoreSession session);
-
-    /**
      * Starts an instance that was created with {@link #createNewInstance} but with {@code startInstance = false}.
      *
      * @param routeInstanceId the route instance id
@@ -168,32 +150,6 @@ public interface DocumentRoutingService {
     List<DocumentRoute> getAvailableDocumentRoute(CoreSession session);
 
     /**
-     * Return the operation chain to run for a documentType. The document type should extend the DocumentRouteStep. Use
-     * the <code>chainsToType</code> extension point to contribute new mapping.
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     * @param documentType The document type
-     * @return The operation chain id.
-     */
-    @Deprecated
-    String getOperationChainId(String documentType);
-
-    /**
-     * Return the operation chain to undo a step when the step is in running state. The document type should extend the
-     * DocumentRouteStep. Use the <code>chainsToType</code> extension point to contribute new mapping.
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     */
-    @Deprecated
-    String getUndoFromRunningOperationChainId(String documentType);
-
-    /**
-     * Return the operation chain to undo a step when the step is in done state. The document type should extend the
-     * DocumentRouteStep. Use the <code>chainsToType</code> extension point to contribute new mapping.
-     */
-    String getUndoFromDoneOperationChainId(String documentType);
-
-    /**
      * Validates the given {@link DocumentRoute} model by changing its lifecycle state and setting it and all its
      * children in ReadOnly.
      *
@@ -211,14 +167,6 @@ public interface DocumentRoutingService {
     DocumentRoute unlockDocumentRouteUnrestrictedSession(final DocumentRoute routeModel, CoreSession userSession);
 
     /**
-     * Computes the list of elements {@link DocumentRouteTableElement} for this {@link DocumentRoute}.
-     *
-     * @param route {@link DocumentRoute}.
-     * @param session The session used to query the {@link DocumentRoute}.
-     */
-    List<DocumentRouteTableElement> getRouteElements(DocumentRoute route, CoreSession session);
-
-    /**
      * Return the list of related {@link DocumentRoute} in a state for a given attached document.
      *
      * @param session The session used to query the {@link DocumentRoute}.
@@ -234,61 +182,9 @@ public interface DocumentRoutingService {
     List<DocumentRoute> getDocumentRoutesForAttachedDocument(CoreSession session, String attachedDocId);
 
     /**
-     * if the user can validate a route.
-     *
-     * @deprecated use {@link #canValidateRoute(DocumentModel, CoreSession)} instead.
-     */
-    @Deprecated
-    boolean canUserValidateRoute(NuxeoPrincipal currentUser);
-
-    /**
      * Checks if the principal that created the client session can validate the route
      */
     boolean canValidateRoute(DocumentModel documentRoute, CoreSession coreSession);
-
-    /**
-     * Add a route element in another route element.
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     * @param parentDocumentRef The DocumentRef of the parent document.
-     * @param idx The position of the document in its container.
-     * @param routeElement The document to add.
-     */
-    @Deprecated
-    void addRouteElementToRoute(DocumentRef parentDocumentRef, int idx, DocumentRouteElement routeElement,
-            CoreSession session) throws DocumentRouteNotLockedException;
-
-    /**
-     * Add a route element in another route element.
-     * <p>
-     * If the parent element is in draft state, the routeElement is kept in draft state. Otherwise, the element is set
-     * to 'ready' state.
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     * @param parentDocumentRef The DocumentRef of the parent document.
-     * @param sourceName the name of the previous document in the container.
-     * @param routeElement the document to add.
-     */
-    @Deprecated
-    void addRouteElementToRoute(DocumentRef parentDocumentRef, String sourceName, DocumentRouteElement routeElement,
-            CoreSession session) throws DocumentRouteNotLockedException;
-
-    /**
-     * Remove the given route element
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     */
-    @Deprecated
-    void removeRouteElement(DocumentRouteElement routeElement, CoreSession session)
-            throws DocumentRouteNotLockedException;
-
-    /**
-     * Get the children of the given stepFolder ordered by the ecm:pos metadata.
-     *
-     * @deprecated since 5.9.2 - Use only routes of type 'graph'
-     */
-    @Deprecated
-    DocumentModelList getOrderedRouteElement(String routeElementId, CoreSession session);
 
     /**
      * Locks this {@link DocumentRoute} if not already locked by the current user. If the document is already locked by
@@ -430,17 +326,6 @@ public interface DocumentRoutingService {
      * @since 5.6, was on RoutingTaskService before
      */
     List<DocumentModel> getWorkflowInputDocuments(CoreSession session, Task task);
-
-    /**
-     * Finishes an open task. All permissions granted to the tasks assignees on the document following the worklflow are
-     * removed. Doesn't resume the workflow as the <code>completeTask</code> method. Not executed using an unrestricted
-     * session.
-     *
-     * @since 5.7
-     * @deprecated // will be removed in 5.8, use completeTask instead
-     */
-    @Deprecated
-    void finishTask(CoreSession session, DocumentRoute route, Task task, boolean delete) throws DocumentRouteException;
 
     /**
      * Cancels an open task. If the task was created by an workflow, all permissions granted to the tasks assignees on

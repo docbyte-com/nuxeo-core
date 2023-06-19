@@ -28,8 +28,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.log.LogManager;
 import org.nuxeo.lib.stream.log.LogPartition;
@@ -57,7 +56,8 @@ import net.jodah.failsafe.Execution;
  * @since 9.1
  */
 public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatus>, RebalanceListener {
-    private static final Log log = LogFactory.getLog(ConsumerRunner.class);
+
+    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(ConsumerRunner.class);
 
     // This is the registry name used by Nuxeo without adding a dependency nuxeo-runtime
     public static final String NUXEO_METRICS_REGISTRY_NAME = "org.nuxeo.runtime.metrics.MetricsService";
@@ -101,6 +101,8 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
 
     protected Counter globalConsumersCounter;
 
+    protected boolean usingSubscribe;
+
     /**
      * @deprecated since 11.1, due to serialization issue with java 11, use
      *             {@link #ConsumerRunner(ConsumerFactory, ConsumerPolicy, LogManager, Codec, List)} which allows to
@@ -123,15 +125,17 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
         consumerId = tailer.toString();
         globalConsumersCounter = registry.counter(MetricRegistry.name("nuxeo", "importer", "stream", "consumers"));
         setTailerPosition = setTailerPosition(manager);
-        log.debug("Consumer thread created tailing on: " + consumerId);
+        log.debug("Consumer thread created tailing on: {}", consumerId);
     }
 
     protected LogTailer<M> createTailer(LogManager manager, Codec<M> codec, List<LogPartition> defaultAssignments) {
         LogTailer<M> tailer;
-        if (manager.supportSubscribe()) {
-            Set<Name> names = defaultAssignments.stream().map(LogPartition::name).collect(Collectors.toSet());
+        Set<Name> names = defaultAssignments.stream().map(LogPartition::name).collect(Collectors.toSet());
+        if (manager.supportSubscribe(names.isEmpty() ? null : names.iterator().next())) {
+            usingSubscribe = true;
             tailer = manager.subscribe(Name.ofUrn(policy.getName()), names, this, codec);
         } else {
+            usingSubscribe = false;
             tailer = manager.createTailer(Name.ofUrn(policy.getName()), defaultAssignments, codec);
         }
         return tailer;
@@ -181,14 +185,14 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
 
     protected java.util.function.Consumer<LogTailer<M>> setTailerPosition(LogManager manager) {
         ConsumerPolicy.StartOffset seekPosition = policy.getStartOffset();
-        if (manager.supportSubscribe() && seekPosition != ConsumerPolicy.StartOffset.LAST_COMMITTED) {
+        if (usingSubscribe && seekPosition != ConsumerPolicy.StartOffset.LAST_COMMITTED) {
             throw new UnsupportedOperationException(
                     "Tailer startOffset to " + seekPosition + " is not supported in subscribe mode");
         }
         return switch (policy.getStartOffset()) {
-            case BEGIN -> LogTailer::toStart;
-            case END -> LogTailer::toEnd;
-            default -> LogTailer::toLastCommitted;
+        case BEGIN -> LogTailer::toStart;
+        case END -> LogTailer::toEnd;
+        default -> LogTailer::toLastCommitted;
         };
     }
 
@@ -253,7 +257,7 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
             BatchState state = acceptBatch();
             commitBatch(state);
             if (state.getState() == BatchState.State.LAST) {
-                log.info("No more message on tailer: " + tailer);
+                log.info("No more message on tailer: {}", tailer);
                 end = true;
             }
         } catch (Exception e) {
@@ -278,9 +282,7 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
             committedCounter += state.getSize();
             globalCommittedCounter.inc(state.getSize());
             batchCommitCounter += 1;
-            if (log.isDebugEnabled()) {
-                log.debug("Commit batch size: " + state.getSize() + ", total committed: " + committedCounter);
-            }
+            log.debug("Commit batch size: {}, total committed: {}", state.getSize(), committedCounter);
         }
     }
 
@@ -302,7 +304,7 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
             addSalt(); // do this here so kafka subscription happens concurrently
             message = record.message();
             if (message.poisonPill()) {
-                log.warn("Receive a poison pill: " + message);
+                log.warn("Receive a poison pill: {}", message);
                 batch.last();
             } else {
                 try (Timer.Context ignore = globalAcceptTimer.time()) {
@@ -312,9 +314,7 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
                 }
                 batch.inc();
                 if (message.forceBatch()) {
-                    if (log.isDebugEnabled()) {
-                        log.debug("Force end of batch: " + message);
-                    }
+                    log.debug("Force end of batch: {}", message);
                     batch.force();
                 }
             }
@@ -323,8 +323,7 @@ public class ConsumerRunner<M extends Message> implements Callable<ConsumerStatu
             }
         }
         batch.last();
-        log.info(String.format("No record after: %ds on %s, terminating", policy.getWaitMessageTimeout().getSeconds(),
-                consumerId));
+        log.info("No record after: {}s on {}, terminating", policy.getWaitMessageTimeout().getSeconds(), consumerId);
         return batch;
     }
 

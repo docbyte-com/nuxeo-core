@@ -45,8 +45,6 @@ import javax.transaction.SystemException;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.ExceptionUtils;
@@ -81,7 +79,6 @@ import io.dropwizard.metrics5.MetricName;
 import io.dropwizard.metrics5.MetricRegistry;
 import io.dropwizard.metrics5.SharedMetricRegistries;
 import io.dropwizard.metrics5.Timer;
-
 import io.opencensus.common.Scope;
 import io.opencensus.trace.Tracer;
 import io.opencensus.trace.Tracing;
@@ -322,7 +319,8 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
 
     protected boolean isProcessingDisabled() {
         if (Boolean.parseBoolean(Framework.getProperty(WORKMANAGER_PROCESSING_DISABLE, "false"))) {
-            log.warn("nuxeo.work.processing.disable=true is now deprecated, use nuxeo.work.processing.enabled=false instead");
+            log.warn(
+                    "nuxeo.work.processing.disable=true is now deprecated, use nuxeo.work.processing.enabled=false instead");
             return true;
         }
         if (Framework.isBooleanPropertyFalse(WORKMANAGER_PROCESSING_ENABLED)) {
@@ -481,7 +479,7 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
     protected WorkThreadPoolExecutor getExecutor(String queueId) {
         if (!started) {
             if (Framework.isTestModeSet() && !Framework.getRuntime().isShuttingDown()) {
-                LogFactory.getLog(WorkManagerImpl.class).warn("Lazy starting of work manager in test mode");
+                log.warn("Lazy starting of work manager in test mode");
                 init();
             } else {
                 throw new IllegalStateException("Work manager not started, could not access to executors");
@@ -612,16 +610,17 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         }
 
         protected void handleUncaughtException(Thread t, Throwable e) {
-            Log logLocal = LogFactory.getLog(WorkManagerImpl.class);
+            var logLocal = LogManager.getLogger(WorkManagerImpl.class);
             if (e instanceof RejectedExecutionException) {
                 // we are responsible of this exception, we use it during shutdown phase to not run the task taken just
                 // before shutdown due to race condition, so log it as WARN
-                logLocal.warn("Rejected execution error on thread " + t.getName(), e);
+                logLocal.warn("Rejected execution error on thread: {}", t.getName(), e);
             } else if (ExceptionUtils.hasInterruptedCause(e)) {
-                logLocal.warn("Interrupted error on thread" + t.getName(), e);
+                logLocal.warn("Interrupted error on thread: {}", t.getName(), e);
             } else {
-                logLocal.error(String.format("Uncaught error on thread: %s, "
-                        + "current work might be lost, WorkManager metrics might be corrupted.", t.getName()), e);
+                logLocal.error(
+                        "Uncaught error on thread: {}, current work might be lost, WorkManager metrics might be corrupted.",
+                        t.getName(), e);
             }
         }
 
@@ -665,21 +664,17 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
             queueId = queue.queueId;
             running = new ConcurrentLinkedQueue<>();
             // init metrics
-            scheduledCount = registry.counter(
-                    MetricName.build("nuxeo.works.queue.scheduled").tagged("queue", queueId));
-            runningCount = registry.counter(
-                    MetricName.build("nuxeo.works.queue.running").tagged("queue", queueId));
-            completedCount = registry.counter(
-                    MetricName.build("nuxeo.works.queue.completed").tagged("queue", queueId));
+            scheduledCount = registry.counter(MetricName.build("nuxeo.works.queue.scheduled").tagged("queue", queueId));
+            runningCount = registry.counter(MetricName.build("nuxeo.works.queue.running").tagged("queue", queueId));
+            completedCount = registry.counter(MetricName.build("nuxeo.works.queue.completed").tagged("queue", queueId));
             workTimer = registry.timer(MetricName.build("nuxeo.works.queue.timer").tagged("queue", queueId));
         }
 
         public int getScheduledOrRunningSize() {
-            int ret = 0;
-            for (String queueId : getWorkQueueIds()) {
-                ret += getQueueSize(queueId, null);
-            }
-            return ret;
+            return getWorkQueueIds().stream()
+                                    .map(WorkManagerImpl.this::getMetrics)
+                                    .mapToInt(m -> m.getScheduled().intValue() + m.getRunning().intValue())
+                                    .sum();
         }
 
         @Override
@@ -914,21 +909,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
     }
 
     @Override
-    public int getQueueSize(String queueId, State state) {
-        WorkQueueMetrics metrics = getMetrics(queueId);
-        if (state == null) {
-            return metrics.scheduled.intValue() + metrics.running.intValue();
-        }
-        if (state == State.SCHEDULED) {
-            return metrics.scheduled.intValue();
-        } else if (state == State.RUNNING) {
-            return metrics.running.intValue();
-        } else {
-            throw new IllegalArgumentException(String.valueOf(state));
-        }
-    }
-
-    @Override
     public boolean awaitCompletion(long duration, TimeUnit unit) throws InterruptedException {
         return awaitCompletion(null, duration, unit);
     }
@@ -978,9 +958,10 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         if (!isProcessingEnabled(queueId)) {
             return getExecutor(queueId).runningCount.getCount() == 0L;
         }
-        if (getQueueSize(queueId, null) > 0) {
-            log.trace("{} not empty, sched: {}, running: {}", () -> queueId,
-                    () -> getQueueSize(queueId, State.SCHEDULED), () -> getQueueSize(queueId, State.RUNNING));
+        var metrics = getMetrics(queueId);
+        if (metrics.getScheduled().intValue() + metrics.getRunning().intValue() > 0) {
+            log.trace("{} not empty, sched: {}, running: {}", () -> queueId, metrics::getScheduled,
+                    metrics::getRunning);
             return false;
         }
         log.trace("{} is completed", queueId);

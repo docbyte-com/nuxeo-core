@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,9 +32,10 @@ import java.util.Properties;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.utils.StringUtils;
 import org.nuxeo.osgi.BundleFile;
@@ -52,15 +55,11 @@ import org.osgi.framework.FrameworkEvent;
  */
 public class FrameworkLoader {
 
+    private static final Logger log = LogManager.getLogger(FrameworkLoader.class);
+
     public static final String HOST_NAME = "org.nuxeo.app.host.name";
 
     public static final String HOST_VERSION = "org.nuxeo.app.host.version";
-
-    /**
-     * @deprecated since 5.4.2 prefer use of {@link Environment#NUXEO_TMP_DIR}
-     */
-    @Deprecated
-    public static final String TMP_DIR = "org.nuxeo.app.tmp";
 
     public static final String LIBS = "org.nuxeo.app.libs"; // class path
 
@@ -76,7 +75,21 @@ public class FrameworkLoader {
 
     public static final String ARGS = "org.nuxeo.app.args";
 
-    private static final Log log = LogFactory.getLog(FrameworkLoader.class);
+    /**
+     * Copied from {@code NuxeoLauncher}.
+     *
+     * @since 2023.0
+     */
+    protected static final String STOP_MAX_WAIT_PARAM = "launcher.stop.max.wait";
+
+    /**
+     * Default maximum time to wait for effective stop (in seconds).
+     * <p>
+     * Copied from {@code NuxeoLauncher}.
+     *
+     * @since 2023.0
+     */
+    protected static final String STOP_MAX_WAIT_DEFAULT = "60";
 
     private static boolean isInitialized;
 
@@ -160,15 +173,8 @@ public class FrameworkLoader {
     }
 
     protected static void printDeploymentOrderInfo(List<File> files) {
-        if (log.isDebugEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            for (File file : files) {
-                if (file != null) {
-                    sb.append("\n\t").append(file.getPath());
-                }
-            }
-            log.debug("Deployment order: " + sb.toString());
-        }
+        log.debug(() -> "Deployment order:\n"
+                + files.stream().map(f -> "\t" + f.getPath()).collect(Collectors.joining("\n")));
     }
 
     protected static Attributes.Name SYMBOLIC_NAME = new Attributes.Name(Constants.BUNDLE_SYMBOLICNAME);
@@ -220,7 +226,7 @@ public class FrameworkLoader {
             try {
                 install(f);
             } catch (IOException | BundleException | RuntimeException e) {
-                log.error("Failed to install bundle: " + f, e);
+                log.error("Failed to install bundle: {}", f, e);
             }
         }
         osgi.fireFrameworkEvent(new FrameworkEvent(FrameworkEvent.STARTED, systemBundle, null));
@@ -228,7 +234,15 @@ public class FrameworkLoader {
 
     private static void doStop() throws BundleException {
         try {
+            var ttl = Duration.ofSeconds(
+                    Integer.parseInt(Framework.getProperty(STOP_MAX_WAIT_PARAM, STOP_MAX_WAIT_DEFAULT)));
+            log.info(() -> String.format("Nuxeo Platform is Trying to Shut Down within %dm%02ds", ttl.toMinutesPart(),
+                    ttl.toSecondsPart()));
+            var begin = Instant.now();
             osgi.shutdown();
+            var duration = Duration.between(begin, Instant.now());
+            log.info(() -> String.format("Nuxeo Platform has Shut Down in %dm%02ds", duration.toMinutesPart(),
+                    duration.toSecondsPart()));
         } catch (IOException e) {
             throw new BundleException("Cannot shutdown OSGi", e);
         }
@@ -378,8 +392,7 @@ public class FrameworkLoader {
     }
 
     protected static void printStartMessage() {
-        StringBuilder msg = getStartMessage();
-        log.info(msg);
+        log.info(FrameworkLoader::getStartMessage);
     }
 
     /**

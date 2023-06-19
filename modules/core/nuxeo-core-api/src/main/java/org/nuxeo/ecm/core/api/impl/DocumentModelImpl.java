@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.collections.PrimitiveArrays;
 import org.nuxeo.common.utils.Path;
 import org.nuxeo.ecm.core.api.Blob;
@@ -87,13 +87,13 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
 
     private static final long serialVersionUID = 1L;
 
+    private static final Logger log = LogManager.getLogger(DocumentModelImpl.class);
+
     public static final long F_VERSION = 16L;
 
     public static final long F_PROXY = 32L;
 
     public static final long F_IMMUTABLE = 256L;
-
-    private static final Log log = LogFactory.getLog(DocumentModelImpl.class);
 
     protected DocumentRef ref;
 
@@ -110,6 +110,9 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
 
     /** Facets including those on instance. */
     protected Set<String> facets;
+
+    /** Retained properties. */
+    protected List<String> retainedProperties;
 
     /** Instance facets. */
     public Set<String> instanceFacets;
@@ -438,10 +441,7 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
      * Lazily loads the given data model.
      */
     protected DataModel loadDataModel(String schema) {
-
-        if (log.isTraceEnabled()) {
-            log.trace("lazy loading of schema " + schema + " for doc " + toString());
-        }
+        log.trace("lazy loading of schema: {} for doc: {}", schema, this);
 
         if (!schemas.contains(schema)) {
             return null;
@@ -491,7 +491,7 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
 
     @Override
     public String[] getSchemas() {
-        return schemas.toArray(new String[schemas.size()]);
+        return schemas.toArray(String[]::new);
     }
 
     @Override
@@ -502,6 +502,14 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     @Override
     public Set<String> getFacets() {
         return Collections.unmodifiableSet(facets);
+    }
+
+    @Override
+    public List<String> getRetainedProperties() {
+        if (!isStateLoaded && isAttached()) {
+            refresh(REFRESH_STATE, null);
+        }
+        return retainedProperties != null ? Collections.unmodifiableList(retainedProperties) : Collections.emptyList();
     }
 
     @Override
@@ -609,6 +617,14 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     public Property getPropertyObject(String schema, String name) {
         DocumentPart part = getPart(schema);
         return part == null ? null : part.get(name);
+    }
+
+    @Override
+    public void setPropertyObject(Property property) {
+        var part = getPart(property.getSchema().getName());
+        if (part != null) {
+            part.set(property.getName(), property);
+        }
     }
 
     @Override
@@ -917,11 +933,11 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
                     return (T) dae.getFactory().getAdapter(this, itf);
                 } else {
                     // TODO: throw an exception
-                    log.error("Document model cannot be adapted to " + itf + " because it has no facet " + facet);
+                    log.error("Document model cannot be adapted to {} because it has no facet {}", itf, facet);
                 }
             }
         } else {
-            log.warn("DocumentAdapterService not available. Cannot get document model adaptor for " + itf);
+            log.warn("DocumentAdapterService not available. Cannot get document model adaptor for {}", itf);
         }
         return null;
     }
@@ -1234,8 +1250,6 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
         return currentLifeCycleState != null;
     }
 
-    @Override
-    @Deprecated
     public DocumentPart getPart(String schema) {
         DataModel dm = getDataModel(schema);
         if (dm != null) {
@@ -1244,8 +1258,6 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
         return null; // TODO thrown an exception?
     }
 
-    @Override
-    @Deprecated
     public DocumentPart[] getParts() {
         // DocumentType type = getDocumentType();
         // type = Framework.getService(SchemaManager.class).getDocumentType(
@@ -1409,6 +1421,7 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
             isTrashed = refresh.isTrashed;
             isRecord = refresh.isRecord;
             retainUntil = refresh.retainUntil;
+            retainedProperties = refresh.retainedProperties;
             hasLegalHold = refresh.hasLegalHold;
             isStateLoaded = true;
         }

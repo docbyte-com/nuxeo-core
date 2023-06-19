@@ -1080,8 +1080,6 @@ public class NuxeoLauncher {
             launcher.config();
         } else if (launcher.commandIs("register")) {
             commandSucceeded = launcher.register();
-        } else if (launcher.commandIs("register-trial")) {
-            commandSucceeded = launcher.registerTrial();
         } else {
             printLongHelp();
             throw new NuxeoLauncherException(
@@ -1398,27 +1396,6 @@ public class NuxeoLauncher {
         log.info("Server registered to {} for project {}\nType: {}\nDescription: {}", username, project, type,
                 description);
         return true;
-    }
-
-    /**
-     * Register a trial project. The command synopsis:
-     *
-     * <pre>
-     * <code>
-     * nuxeoctl register-trial [ &lt;first&gt; &lt;last&gt; &lt;email&gt; &lt;company&gt; &lt;project&gt; ]
-     * </code>
-     * </pre>
-     *
-     * @since 8.3
-     * @deprecated Since 9.3: To register for a free 30 day trial on Nuxeo Online Services, please visit
-     *             https://connect.nuxeo.com/register
-     */
-    @Deprecated
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    public boolean registerTrial() {
-        String msg = "This command is deprecated. To register for a free 30 day trial on Nuxeo Online Services,"
-                + " please visit https://connect.nuxeo.com/register";
-        throw new NuxeoLauncherException(msg, EXIT_CODE_UNIMPLEMENTED);
     }
 
     /**
@@ -1906,11 +1883,10 @@ public class NuxeoLauncher {
 
         @Override
         public void run() {
-            log.info("Shutting down...");
             if (launcher.isRunning()) {
+                NuxeoLauncher.setQuiet();
                 launcher.doStop();
             }
-            log.info("Shutdown complete.");
         }
 
         @Override
@@ -1953,10 +1929,12 @@ public class NuxeoLauncher {
                 // don't send too many requests to Tomcat - we're going to re-try
                 Thread.sleep(1000);
             }
-            log.info(".");
+            if (!quiet) {
+                log.info(".");
+            }
             if (!isAliveAndNotZombie(nuxeoProcess)) {
                 Duration duration = Duration.between(startTime, Instant.now());
-                log.info(String.format("Stopped in %dmin%02ds", duration.toMinutes(), duration.toSeconds() % 60));
+                log.info(String.format("Stopped in %dmin%02ds", duration.toMinutes(), duration.toSecondsPart()));
             } else if (Instant.now().isAfter(waitUntil)) {
                 log.info("No answer from server, try to kill process {}...", nuxeoProcess::pid);
                 processManager.kill(nuxeoProcess);

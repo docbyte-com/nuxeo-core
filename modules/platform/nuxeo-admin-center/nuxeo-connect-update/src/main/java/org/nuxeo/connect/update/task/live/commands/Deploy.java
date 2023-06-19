@@ -19,15 +19,14 @@
 package org.nuxeo.connect.update.task.live.commands;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.connect.update.PackageException;
 import org.nuxeo.connect.update.task.Command;
 import org.nuxeo.connect.update.task.Task;
@@ -48,7 +47,7 @@ import org.osgi.framework.BundleException;
  */
 public class Deploy extends DeployPlaceholder {
 
-    private static final Log log = LogFactory.getLog(Deploy.class);
+    private static final Logger log = LogManager.getLogger(Deploy.class);
 
     public Deploy() {
         super();
@@ -58,10 +57,20 @@ public class Deploy extends DeployPlaceholder {
         super(file);
     }
 
-    /**
-     * @deprecated since 9.3, reload mechanism has changed, keep it for backward compatibility
-     */
-    @Deprecated
+    @Override
+    protected Command doRun(Task task, Map<String, String> prefs) throws PackageException {
+        if (!file.exists()) {
+            log.warn("Can't deploy a non existing file: {}", file);
+            return null;
+        }
+        ReloadService srv = Framework.getService(ReloadService.class);
+        if (file.isDirectory()) {
+            return deployDirectory(file, srv);
+        } else {
+            return deployFile(file, srv);
+        }
+    }
+
     protected Undeploy deployFile(File file, ReloadService service) throws PackageException {
         String name = service.getOSGIBundleName(file);
         if (name == null) {
@@ -69,93 +78,17 @@ public class Deploy extends DeployPlaceholder {
             return null;
         }
         try {
-            service.deployBundle(file, true);
-        } catch (BundleException e) {
-            throw new PackageException("Failed to deploy bundle " + file, e);
-        }
-        return new Undeploy(file);
-    }
-
-    /**
-     * @deprecated since 9.3, reload mechanism has changed, keep it for backward compatibility
-     */
-    @Deprecated
-    protected CompositeCommand deployDirectory(File dir, ReloadService service) throws PackageException {
-        CompositeCommand cmd = new CompositeCommand();
-        File[] files = dir.listFiles();
-        if (files != null) {
-            for (File fileInDir : files) {
-                Command ud = deployFile(fileInDir, service);
-                if (ud != null) {
-                    cmd.addCommand(ud);
-                }
-            }
-        }
-        if (cmd.isEmpty()) {
-            // nothing to rollback
-            return null;
-        }
-        return cmd;
-    }
-
-    @Override
-    protected Command doRun(Task task, Map<String, String> prefs) throws PackageException {
-        if (!file.exists()) {
-            log.warn("Can't deploy file " + file + ". File is missing.");
-            return null;
-        }
-        ReloadService srv = Framework.getService(ReloadService.class);
-        boolean useCompatReload = Framework.isBooleanPropertyTrue(ReloadService.USE_COMPAT_HOT_RELOAD);
-        if (useCompatReload) {
-            return doCompatRun(srv);
-        }
-        if (file.isDirectory()) {
-            return _deployDirectory(file, srv);
-        } else {
-            return _deployFile(file, srv);
-        }
-    }
-
-    /**
-     * @deprecated since 9.3, reload mechanism has changed, keep it for backward compatibility
-     */
-    @Deprecated
-    protected Command doCompatRun(ReloadService srv) throws PackageException {
-        Command rollback;
-        if (file.isDirectory()) {
-            rollback = deployDirectory(file, srv);
-        } else {
-            rollback = deployFile(file, srv);
-        }
-        if (rollback != null) {
-            // some deployments where done
-            try {
-                srv.runDeploymentPreprocessor();
-            } catch (IOException e) {
-                throw new PackageException(e.getMessage(), e);
-            }
-        }
-        return rollback;
-    }
-
-    // TODO change the method name when removing deployFile
-    protected Undeploy _deployFile(File file, ReloadService service) throws PackageException {
-        String name = service.getOSGIBundleName(file);
-        if (name == null) {
-            // not an OSGI bundle => ignore
-            return null;
-        }
-        try {
             ReloadResult result = service.reloadBundles(new ReloadContext().deploy(file));
-            return result.deployedFilesAsStream().map(Undeploy::new).findFirst().orElseThrow(
-                    () -> new IllegalStateException("Bundle " + file + " wasn't deployed"));
+            return result.deployedFilesAsStream()
+                         .map(Undeploy::new)
+                         .findFirst()
+                         .orElseThrow(() -> new IllegalStateException("Bundle " + file + " wasn't deployed"));
         } catch (BundleException e) {
             throw new PackageException("Failed to deploy bundle " + file, e);
         }
     }
 
-    // TODO change the method name when removing deployDirectory
-    protected CompositeCommand _deployDirectory(File dir, ReloadService service) throws PackageException {
+    protected CompositeCommand deployDirectory(File dir, ReloadService service) throws PackageException {
         File[] files = dir.listFiles();
         if (files != null) {
             List<File> bundles = Arrays.stream(files)
@@ -167,8 +100,10 @@ public class Deploy extends DeployPlaceholder {
             }
             try {
                 ReloadResult result = service.reloadBundles(new ReloadContext().deploy(bundles));
-                return result.deployedFilesAsStream().map(Undeploy::new).collect(
-                        Collector.of(CompositeCommand::new, CompositeCommand::addCommand, CompositeCommand::combine));
+                return result.deployedFilesAsStream()
+                             .map(Undeploy::new)
+                             .collect(Collector.of(CompositeCommand::new, CompositeCommand::addCommand,
+                                     CompositeCommand::combine));
             } catch (BundleException e) {
                 throw new PackageException("Failed to deploy bundles " + bundles, e);
             }

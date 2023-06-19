@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.blob;
 
 import static java.util.stream.Collectors.toList;
+import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.BLOBS_CANDIDATE_FOR_DELETION_EVENT;
 import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.MAIN_BLOB_XPATH;
 
 import java.time.Instant;
@@ -38,17 +39,21 @@ import java.util.function.IntPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentSecurityException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.api.model.PropertyConversionException;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
+import org.nuxeo.ecm.core.event.EventService;
+import org.nuxeo.ecm.core.event.impl.BlobEventContext;
 import org.nuxeo.ecm.core.model.BaseSession;
 import org.nuxeo.ecm.core.model.Document;
+import org.nuxeo.ecm.core.model.Repository;
 import org.nuxeo.ecm.core.model.Document.BlobAccessor;
-import org.nuxeo.ecm.core.schema.SchemaManager;
+import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -102,7 +107,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class DefaultBlobDispatcher implements BlobDispatcher {
 
-    private static final Log log = LogFactory.getLog(DefaultBlobDispatcher.class);
+    private static final Logger log = LogManager.getLogger(DefaultBlobDispatcher.class);
 
     protected static final String NAME_DEFAULT = "default";
 
@@ -190,15 +195,8 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
             providerIds.add(providerId);
             if (clausesString.equals(NAME_RECORDS)) {
                 Clause recordClause = new Clause(IS_RECORD, Op.EQ, "true");
-                Clause defaultContentClause = new Clause("blob:xpath", Op.EQ, MAIN_BLOB_XPATH);
-                rules.add(new Rule(List.of(recordClause, defaultContentClause), providerId));
-                SchemaManager schemaManager = Framework.getService(SchemaManager.class);
-                schemaManager.getRetainableProperties()
-                             .forEach((prop) -> rules.add(new Rule(
-                                     List.of(recordClause,
-                                             getClause("blob:xpath" + (prop.contains("*") ? "~" : "=") + prop)),
-                                     providerId)));
-                rules.forEach(rule -> rule.clauses.forEach(clause -> rulesXPaths.add(clause.xpath)));
+                rules.add(new Rule(List.of(recordClause), providerId));
+                rulesXPaths.add(recordClause.xpath);
             } else if (clausesString.equals(NAME_DEFAULT)) {
                 defaultProviderId = providerId;
             } else {
@@ -254,12 +252,12 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
                 value = Pattern.compile((String) value);
                 break;
             default:
-                log.error("Invalid dispatcher configuration operator: " + ops);
+                log.error("Invalid dispatcher configuration operator: {}", ops);
                 return null;
             }
             return new Clause(xpath, op, value);
         } else {
-            log.error("Invalid dispatcher configuration property name: " + name);
+            log.error("Invalid dispatcher configuration property name: {}", name);
             return null;
         }
     }
@@ -314,7 +312,7 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
             return doc.getPath();
         }
         if (xpath.equals(IS_RECORD)) {
-            return doc.isRecord();
+            return doc.isRecord() && (blobXPath != null && doc.isRetainable(blobXPath));
         }
         if (xpath.startsWith(BLOB_PREFIX)) {
             switch (xpath.substring(BLOB_PREFIX.length())) {
@@ -331,7 +329,7 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
             case BLOB_XPATH:
                 return blobXPath;
             default:
-                log.error("Invalid dispatcher configuration property name: " + xpath);
+                log.error("Invalid dispatcher configuration property name: {}", xpath);
                 throw new PropertyNotFoundException(xpath);
             }
         }
@@ -461,8 +459,8 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
     }
 
     /**
-     * Checks if the blob is stored in the expected blob provider to which it's supposed to be dispatched. If not,
-     * store it in the correct one (and maybe remove it from the previous one if it makes sense).
+     * Checks if the blob is stored in the expected blob provider to which it's supposed to be dispatched. If not, store
+     * it in the correct one (and maybe remove it from the previous one if it makes sense).
      */
     protected void checkBlob(Document doc, BlobAccessor accessor) {
         Blob blob = accessor.getBlob();
@@ -480,8 +478,10 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
         // re-dispatch blob to new blob provider
         // this calls back into blobProvider.writeBlob for the expected blob provider
         accessor.setBlob(blob);
-        // if old blob provider is in record mode, delete from it
-        deleteBlobIfRecord(previousProviderId, doc, xpath);
+        // Notify blob candidate for deletion
+        EventService es = Framework.getService(EventService.class);
+        es.fireEvent(new BlobEventContext(NuxeoPrincipal.getCurrent(), doc.getRepositoryName(), doc.getUUID(), xpath,
+                managedBlob).newEvent(BLOBS_CANDIDATE_FOR_DELETION_EVENT));
     }
 
     @Override
@@ -498,18 +498,38 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
 
     @Override
     public void notifyBeforeRemove(Document doc) {
-        String xpath = MAIN_BLOB_XPATH;
-        Blob blob;
-        try {
-            blob = (Blob) doc.getValue(xpath);
-        } catch (PropertyNotFoundException e) {
-            return;
+        RepositoryService repositoryService = Framework.getService(RepositoryService.class);
+        Repository repository = repositoryService.getRepository(doc.getRepositoryName());
+        if (repository.hasCapability(Repository.CAPABILITY_QUERY_BLOB_KEYS)) {
+            EventService es = Framework.getService(EventService.class);
+            try {
+                doc.visitBlobs(accessor -> {
+                    Blob blob = accessor.getBlob();
+                    if (blob instanceof ManagedBlob managedBlob) {
+                        es.fireEvent(new BlobEventContext(NuxeoPrincipal.getCurrent(), doc.getRepositoryName(),
+                                doc.getUUID(), accessor.getXPath(), managedBlob).newEvent(
+                                        BLOBS_CANDIDATE_FOR_DELETION_EVENT));
+                    }
+                });
+            } catch (PropertyConversionException e) {
+                log.error("Cannot visit blobs for doc: {}", doc.getUUID(), e);
+            }
+        } else {
+            // Legacy: VCS does not support ecm:blobKeys
+            // Let's handle record's main blob deletion
+            String xpath = MAIN_BLOB_XPATH;
+            Blob blob;
+            try {
+                blob = (Blob) doc.getValue(xpath);
+            } catch (PropertyNotFoundException e) {
+                return;
+            }
+            if (!(blob instanceof ManagedBlob managedBlob)) {
+                return;
+            }
+            String blobProviderId = managedBlob.getProviderId();
+            deleteBlobIfRecord(blobProviderId, doc, xpath);
         }
-        if (!(blob instanceof ManagedBlob)) {
-            return;
-        }
-        String blobProviderId = ((ManagedBlob) blob).getProviderId();
-        deleteBlobIfRecord(blobProviderId, doc, xpath);
     }
 
     protected void deleteBlobIfRecord(String blobProviderId, Document doc, String xpath) {
@@ -521,8 +541,7 @@ public class DefaultBlobDispatcher implements BlobDispatcher {
     }
 
     protected void checkBlobCanBeDeleted(Document doc, String xpath) {
-        SchemaManager schemaManager = Framework.getService(SchemaManager.class);
-        if (doc.isUnderRetentionOrLegalHold() && (MAIN_BLOB_XPATH.equals(xpath) || schemaManager.isRetainable(xpath))) {
+        if (doc.isRetained(xpath)) {
             if (!BaseSession.canDeleteUndeletable(NuxeoPrincipal.getCurrent())) {
                 throw new DocumentSecurityException(
                         "Cannot remove main blob from document " + doc.getUUID() + ", it is under retention / hold");

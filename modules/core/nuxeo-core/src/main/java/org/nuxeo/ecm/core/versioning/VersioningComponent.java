@@ -20,26 +20,21 @@
 package org.nuxeo.ecm.core.versioning;
 
 import java.io.Serializable;
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.model.Document;
-import org.nuxeo.runtime.RuntimeMessage.Level;
-import org.nuxeo.runtime.RuntimeMessage.Source;
-import org.nuxeo.runtime.logging.DeprecationLogger;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
-import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.SimpleContributionRegistry;
 
@@ -48,11 +43,9 @@ import org.nuxeo.runtime.model.SimpleContributionRegistry;
  */
 public class VersioningComponent extends DefaultComponent implements VersioningService {
 
-    private static final Log log = LogFactory.getLog(VersioningComponent.class);
+    private static final Logger log = LogManager.getLogger(VersioningComponent.class);
 
     public static final String VERSIONING_SERVICE_XP = "versioningService";
-
-    public static final String VERSIONING_RULE_XP = "versioningRules";
 
     public static final String VERSIONING_POLICY_XP = "policies";
 
@@ -63,12 +56,6 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
     protected static final StandardVersioningService STANDARD_VERSIONING_SERVICE = new StandardVersioningService();
 
     protected Map<VersioningServiceDescriptor, VersioningService> versioningServices = new LinkedHashMap<>();
-
-    /**
-     * @deprecated since 9.1 use 'policy', 'filter' and 'restriction' contributions instead
-     */
-    @Deprecated
-    protected VersioningRuleRegistry versioningRulesRegistry = new VersioningRuleRegistry();
 
     protected VersioningPolicyRegistry versioningPoliciesRegistry = new VersioningPolicyRegistry();
 
@@ -120,57 +107,6 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
 
     }
 
-    /**
-     * @deprecated since 9.1 use 'policy', 'filter' and 'restriction' contributions instead
-     */
-    @Deprecated
-    protected static class VersioningRuleRegistry extends SimpleContributionRegistry<VersioningRuleDescriptor> {
-
-        @Override
-        public String getContributionId(VersioningRuleDescriptor contrib) {
-            return contrib.getTypeName();
-        }
-
-        @Override
-        public VersioningRuleDescriptor clone(VersioningRuleDescriptor orig) {
-            return new VersioningRuleDescriptor(orig);
-        }
-
-        @Override
-        public void merge(VersioningRuleDescriptor src, VersioningRuleDescriptor dst) {
-            dst.merge(src);
-        }
-
-        @Override
-        public boolean isSupportingMerge() {
-            return true;
-        }
-
-        @Override
-        public void contributionUpdated(String id, VersioningRuleDescriptor contrib,
-                VersioningRuleDescriptor newOrigContrib) {
-            if (contrib.isEnabled()) {
-                currentContribs.put(id, contrib);
-            } else {
-                currentContribs.remove(id);
-            }
-        }
-
-        public void clear() {
-            currentContribs.clear();
-        }
-
-        public Map<String, VersioningRuleDescriptor> getVersioningRuleDescriptors() {
-            return currentContribs;
-        }
-    }
-
-    /**
-     * @deprecated since 9.1 use 'policy', 'filter' and 'restriction' contributions instead
-     */
-    @Deprecated
-    protected Deque<DefaultVersioningRuleDescriptor> defaultVersioningRuleList = new ArrayDeque<>();
-
     // public for tests
     public VersioningService service = null;
 
@@ -193,30 +129,6 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
         switch (point) {
         case VERSIONING_SERVICE_XP:
             registerVersioningService((VersioningServiceDescriptor) contrib);
-            break;
-        case VERSIONING_RULE_XP:
-            if (contrib instanceof VersioningRuleDescriptor) {
-                VersioningRuleDescriptor rule = (VersioningRuleDescriptor) contrib;
-                registerVersioningRule(rule);
-                ComponentName compName = contributor.getName();
-                String message = String.format(
-                        "Versioning rule for '%s' on component %s should now be contributed to extension points '%s', "
-                                + "'%s' and '%s': a compatibility registration was performed but it may not be accurate.",
-                        (rule).getTypeName(), compName, VERSIONING_POLICY_XP, VERSIONING_FILTER_XP,
-                        VERSIONING_RESTRICTION_XP);
-                DeprecationLogger.log(message, "9.1");
-                addRuntimeMessage(Level.WARNING, message, Source.EXTENSION, compName.getName());
-            } else if (contrib instanceof DefaultVersioningRuleDescriptor) {
-                registerDefaultVersioningRule((DefaultVersioningRuleDescriptor) contrib);
-                ComponentName compName = contributor.getName();
-                String message = String.format("Default versioning rule on component %s should now be contributed to "
-                        + "extension points '%s' and '%s': a compatibility registration was performed but it may not be "
-                        + "accurate.", compName, VERSIONING_POLICY_XP, VERSIONING_RESTRICTION_XP);
-                DeprecationLogger.log(message, "9.1");
-                addRuntimeMessage(Level.WARNING, message, Source.EXTENSION, compName.getName());
-            } else {
-                throw new RuntimeException("Unknown contribution to " + point + ": " + contrib.getClass());
-            }
             break;
         case VERSIONING_POLICY_XP:
             var policy = (VersioningPolicyDescriptor) contrib;
@@ -246,13 +158,6 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
         case VERSIONING_SERVICE_XP:
             unregisterVersioningService((VersioningServiceDescriptor) contrib);
             break;
-        case VERSIONING_RULE_XP:
-            if (contrib instanceof VersioningRuleDescriptor) {
-                unregisterVersioningRule((VersioningRuleDescriptor) contrib);
-            } else if (contrib instanceof DefaultVersioningRuleDescriptor) {
-                unregisterDefaultVersioningRule((DefaultVersioningRuleDescriptor) contrib);
-            }
-            break;
         case VERSIONING_POLICY_XP:
             unregisterVersioningPolicy((VersioningPolicyDescriptor) contrib);
             break;
@@ -278,88 +183,49 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
         } catch (ReflectiveOperationException e) {
             throw new RuntimeException("Failed to instantiate: " + klass, e);
         }
-        log.info("Registered versioning service: " + klass);
+        log.info("Registered versioning service: {}", klass);
         recompute();
     }
 
     protected void unregisterVersioningService(VersioningServiceDescriptor contrib) {
         versioningServices.remove(contrib);
-        log.info("Unregistered versioning service: " + contrib.className);
-        recompute();
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected void registerVersioningRule(VersioningRuleDescriptor contrib) {
-        versioningRulesRegistry.addContribution(contrib);
-        log.info("Registered versioning rule: " + contrib.getTypeName());
-        recompute();
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected void unregisterVersioningRule(VersioningRuleDescriptor contrib) {
-        versioningRulesRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning rule: " + contrib.getTypeName());
-        recompute();
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected void registerDefaultVersioningRule(DefaultVersioningRuleDescriptor contrib) {
-        // could use a linked set instead, but given the size a linked list is enough
-        defaultVersioningRuleList.add(contrib);
-        recompute();
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected void unregisterDefaultVersioningRule(DefaultVersioningRuleDescriptor contrib) {
-        defaultVersioningRuleList.remove(contrib);
+        log.info("Unregistered versioning service: {}", contrib.className);
         recompute();
     }
 
     protected void registerVersioningPolicy(VersioningPolicyDescriptor contrib) {
         versioningPoliciesRegistry.addContribution(contrib);
-        log.info("Registered versioning policy: " + contrib.getId());
+        log.info("Registered versioning policy: {}", contrib::getId);
         recompute();
     }
 
     protected void unregisterVersioningPolicy(VersioningPolicyDescriptor contrib) {
         versioningPoliciesRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning policy: " + contrib.getId());
+        log.info("Unregistered versioning policy: {}", contrib::getId);
         recompute();
     }
 
     protected void registerVersioningFilter(VersioningFilterDescriptor contrib) {
         versioningFiltersRegistry.addContribution(contrib);
-        log.info("Registered versioning filter: " + contrib.getId());
+        log.info("Registered versioning filter: {}", contrib::getId);
         recompute();
     }
 
     protected void unregisterVersioningFilter(VersioningFilterDescriptor contrib) {
         versioningFiltersRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning filter: " + contrib.getId());
+        log.info("Unregistered versioning filter: {}", contrib::getId);
         recompute();
     }
 
     protected void registerVersioningRestriction(VersioningRestrictionDescriptor contrib) {
         versioningRestrictionsRegistry.addContribution(contrib);
-        log.info("Registered versioning restriction: " + contrib.getType());
+        log.info("Registered versioning restriction: {}", contrib::getType);
         recompute();
     }
 
     protected void unregisterVersioningRestriction(VersioningRestrictionDescriptor contrib) {
         versioningRestrictionsRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning restriction: " + contrib.getType());
+        log.info("Unregistered versioning restriction: {}", contrib::getType);
         recompute();
     }
 
@@ -373,26 +239,8 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
             evs.setVersioningPolicies(getVersioningPolicies());
             evs.setVersioningFilters(getVersioningFilters());
             evs.setVersioningRestrictions(getVersioningRestrictions());
-            evs.setVersioningRules(getVersioningRules());
-            evs.setDefaultVersioningRule(getDefaultVersioningRule());
         }
         this.service = versioningService;
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected Map<String, VersioningRuleDescriptor> getVersioningRules() {
-        return versioningRulesRegistry.getVersioningRuleDescriptors();
-    }
-
-    /**
-     * @deprecated since 9.1, use policy and filter contributions instead
-     */
-    @Deprecated
-    protected DefaultVersioningRuleDescriptor getDefaultVersioningRule() {
-        return defaultVersioningRuleList.peekLast();
     }
 
     protected Map<String, VersioningPolicyDescriptor> getVersioningPolicies() {
