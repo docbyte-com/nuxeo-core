@@ -5606,4 +5606,20 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>artifacts-snapshot-docbyte-com-docbyte-mvn-snapshot</id>
+      <url>
+        https://artifacts-snapshot-docbyte-com-518241560725.d.codeartifact.eu-west-1.amazonaws.com/maven/docbyte-mvn-snapshot/
+      </url>
+    </snapshotRepository>
+    <repository>
+      <id>artifacts-beta-docbyte-com-docbyte-mvn-beta</id>
+      <url>
+        https://artifacts-beta-docbyte-com-518241560725.d.codeartifact.eu-west-1.amazonaws.com/maven/docbyte-mvn-beta/
+      </url>
+    </repository>
+
+  </distributionManagement>
 </project>
