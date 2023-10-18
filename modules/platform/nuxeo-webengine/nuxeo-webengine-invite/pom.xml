@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
     <artifactId>nuxeo-webengine-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-webengine-invite</artifactId>
@@ -14,10 +14,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-rendering</artifactId>
-    </dependency>
-    <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
       <artifactId>nuxeo-webengine-core</artifactId>
     </dependency>
@@ -27,15 +23,9 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-
-    <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
-
 </project>

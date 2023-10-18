@@ -38,6 +38,7 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.REMOVE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.REMOVE_CHILDREN;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SET_RETENTION;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNLOCK;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSET_RETENTION;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_LIFE_CYCLE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_PROPERTIES;
@@ -91,6 +92,7 @@ import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.filter.CharacterFilteringService;
 import org.nuxeo.ecm.core.lifecycle.LifeCycleService;
+import org.nuxeo.ecm.core.model.BaseSession;
 import org.nuxeo.ecm.core.model.Document;
 import org.nuxeo.ecm.core.model.PathComparator;
 import org.nuxeo.ecm.core.model.Session;
@@ -155,6 +157,24 @@ public abstract class AbstractSession implements CoreSession, Serializable {
 
     // @since 2021.17
     public static final String RESTRICT_PROXY_CREATION_PROPERTY = "org.nuxeo.proxy.creation.restricted";
+
+    /**
+     * @since 2023
+     */
+    public static final String BLOCKED_PERMISSION_QUERY = "SELECT " + NXQL.ECM_UUID
+            + " FROM Document, Relation WHERE ecm:ancestorId = '%s' AND ecm:acl/*1/grant = 0";
+
+    /**
+     * @since 2023
+     */
+    public static final String RETENTION_QUERY = "SELECT " + NXQL.ECM_UUID
+            + " FROM Document, Relation WHERE ecm:ancestorId = '%s' AND ecm:isProxy = 0 AND ecm:retainUntil >= TIMESTAMP '%s'";
+
+    /**
+     * @since 2023
+     */
+    public static final String LEGAL_HOLD_QUERY = "SELECT " + NXQL.ECM_UUID
+            + " FROM Document, Relation WHERE ecm:ancestorId = '%s' AND ecm:isProxy = 0 AND ecm:hasLegalHold = 1";
 
     private Boolean limitedResults;
 
@@ -1413,45 +1433,122 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     @Override
     public boolean canRemoveDocument(DocumentRef docRef) {
         Document doc = resolveReference(docRef);
-        return canRemoveDocument(doc) == null;
+        try {
+            checkCanRemoveDocument(doc);
+        } catch (NuxeoException e) {
+            return false;
+        }
+        return true;
     }
 
     /**
      * Checks if a document can be removed, and returns a failure reason if not.
+     *
+     * @deprecated since 2023, better use {@link AbstractSession#checkCanRemoveDocument(Document)}
      */
+    @Deprecated
     protected String canRemoveDocument(Document doc) {
+        try {
+            checkCanRemoveDocument(doc);
+        } catch (NuxeoException e) {
+            return e.getMessage();
+        }
+        return null;
+    }
+
+    protected void checkCanRemoveDocument(Document doc) {
         // TODO must also check for proxies on live docs (NXP-22312)
         if (doc.isVersion()) {
             // TODO a hasProxies method would be more efficient
             @SuppressWarnings("unchecked")
             Collection<Document> proxies = getSession().getProxies(doc, null);
             if (!proxies.isEmpty()) {
-                return "Proxy " + proxies.iterator().next().getUUID() + " targets version " + doc.getUUID();
+                throw new DocumentSecurityException(
+                        proxies.iterator().next().getUUID() + " targets version " + doc.getUUID());
             }
             // find a working document to check security
             Document working = doc.getSourceDocument();
             if (working != null) {
                 Document baseVersion = working.getBaseVersion();
                 if (baseVersion != null && !baseVersion.isCheckedOut() && baseVersion.getUUID().equals(doc.getUUID())) {
-                    return "Working copy " + working.getUUID() + " is checked in with base version " + doc.getUUID();
+                    throw new DocumentSecurityException(
+                            "Permission denied: cannot remove document " + doc.getUUID() + ", " + "Working copy "
+                                    + working.getUUID() + " is checked in with base version " + doc.getUUID());
                 }
-                return hasPermission(working, WRITE_VERSION) ? null
-                        : "Missing permission '" + WRITE_VERSION + "' on working copy " + working.getUUID();
-            } else {
-                // no working document, only admins can remove
-                return isAdministrator() ? null : "No working copy and not an Administrator";
+                if (!hasPermission(working, WRITE_VERSION)) {
+                    throw new DocumentSecurityException("Permission denied: cannot remove document " + doc.getUUID()
+                            + ", " + "Missing permission '" + WRITE_VERSION + "' on working copy " + working.getUUID());
+                }
+            } else if (!isAdministrator()) {
+                throw new DocumentSecurityException("Permission denied: cannot remove document " + doc.getUUID() + ", "
+                        + "No working copy and not an Administrator");
             }
         } else {
             if (!hasPermission(doc, REMOVE)) {
-                return "Missing permission '" + REMOVE + "' on document " + doc.getUUID();
+                throw new DocumentSecurityException("Permission denied: cannot remove document " + doc.getUUID() + ", "
+                        + "Missing permission '" + REMOVE + "' on document " + doc.getUUID());
             }
             Document parent = doc.getParent();
-            if (parent == null) {
-                return null; // ok
+            if (parent != null && !hasPermission(parent, REMOVE_CHILDREN)) {
+                throw new DocumentSecurityException("Permission denied: cannot remove document " + doc.getUUID() + ", "
+                        + "Missing permission '" + REMOVE_CHILDREN + "' on parent document " + parent.getUUID());
             }
-            return hasPermission(parent, REMOVE_CHILDREN) ? null
-                    : "Missing permission '" + REMOVE_CHILDREN + "' on parent document " + parent.getUUID();
+            if (doc.isFolder()) {
+                checkRetainedDescendants(doc);
+                checkBlockedDescendants(doc);
+            }
         }
+    }
+
+    /**
+     * @throws DocumentSecurityException if a descendant has blocked permission for current user
+     * @since 2023
+     */
+    protected void checkBlockedDescendants(Document doc) {
+        CoreInstance.doPrivileged(this, privileged -> {
+            // Privileged required to detect doc for which we are missing permission to remove them
+            return privileged.queryProjection(String.format(BLOCKED_PERMISSION_QUERY, doc.getUUID()), 0, 0)
+                             .stream()
+                             .filter(entry -> {
+                                 try {
+                                     Document blocked = this.resolveReference(
+                                             new IdRef((String) entry.get(NXQL.ECM_UUID)));
+                                     return !this.hasPermission(blocked, REMOVE);
+                                 } catch (DocumentNotFoundException e) {
+                                     // We can't READ it, even less REMOVE it
+                                     return true;
+                                 }
+                             })
+                             .findFirst();
+        }).ifPresent(blockedDescendant -> {
+            throw new DocumentSecurityException("Cannot remove descendant " + blockedDescendant.get(NXQL.ECM_UUID)
+                    + ", permissions are blocked for " + getPrincipal());
+        });
+    }
+
+    /**
+     * @throws DocumentExistsException if a descendant is retained
+     * @since 2023
+     */
+    protected void checkRetainedDescendants(Document doc) {
+        if (BaseSession.canDeleteUndeletable(this.getPrincipal())) {
+            return;
+        }
+        CoreInstance.doPrivileged(this, privileged -> {
+            String legalHoldQuery = String.format(LEGAL_HOLD_QUERY, doc.getUUID());
+            privileged.queryProjection(legalHoldQuery, 1, 0).stream().findFirst().ifPresent(retainedDescendant -> {
+                throw new DocumentExistsException("Cannot remove " + doc.getUUID() + ", subdocument "
+                        + retainedDescendant.get(NXQL.ECM_UUID) + " is under legal hold");
+            });
+            String retentionQuery = String.format(RETENTION_QUERY, doc.getUUID(), Calendar.getInstance().toInstant());
+            privileged.queryProjection(retentionQuery, 1, 0, false)
+                      .stream()
+                      .findFirst()
+                      .ifPresent(retainedDescendant -> {
+                          throw new DocumentExistsException("Cannot remove " + doc.getUUID() + ", subdocument "
+                                  + retainedDescendant.get(NXQL.ECM_UUID) + " is under retention");
+                      });
+        });
     }
 
     @Override
@@ -1462,11 +1559,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
 
     protected void removeDocument(Document doc) {
         try {
-            String reason = canRemoveDocument(doc);
-            if (reason != null) {
-                throw new DocumentSecurityException(
-                        "Permission denied: cannot remove document " + doc.getUUID() + ", " + reason);
-            }
+            checkCanRemoveDocument(doc);
             removeNotifyOneDoc(doc);
 
         } catch (ConcurrentUpdateException e) {
@@ -1502,7 +1595,8 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             if (workingCopyModel != null) {
                 if (doc.isVersion()) {
                     options.put("comment", versionLabel); // to be used by audit service
-                    notifyEvent(DocumentEventTypes.VERSION_REMOVED, workingCopyModel, options, null, null, false, false);
+                    notifyEvent(DocumentEventTypes.VERSION_REMOVED, workingCopyModel, options, null, null, false,
+                            false);
                     options.remove("comment");
                 } else if (doc.isProxy()) {
                     notifyEvent(DocumentEventTypes.PROXY_REMOVED, workingCopyModel, options, null, null, false, false);
@@ -2119,21 +2213,42 @@ public abstract class AbstractSession implements CoreSession, Serializable {
 
     @Override
     public void makeRecord(DocumentRef docRef) {
+        makeRecord(docRef, false);
+    }
+
+    @Override
+    public void makeFlexibleRecord(DocumentRef docRef) {
+        makeRecord(docRef, true);
+    }
+
+    protected void makeRecord(DocumentRef docRef, boolean flexible) {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
         if (doc.isRecord()) {
-            // already a record, don't do anything
-            return;
+            if (doc.isFlexibleRecord() == flexible) {
+                // already such record, don't do anything
+                return;
+            } else if (!doc.isFlexibleRecord() && flexible) {
+                throw new IllegalStateException(String.format(
+                        "Document: %s is already an enforced record, cannot turn it into flexible record.", docRef));
+            }
+            // else we want to turn a flexible record into an enforced one
         }
         if (doc.isVersion()) {
             throw new PropertyException("Version cannot be made record: " + doc.getUUID());
         }
         checkPermission(doc, MAKE_RECORD);
         DocumentModel docModel = readModel(doc);
-        notifyEvent(DocumentEventTypes.BEFORE_MAKE_RECORD, docModel, null, null, null, true, false);
-        doc.makeRecord();
+        Map<String, Serializable> options = new HashMap<>();
+        options.put("flexibleRecord", flexible);
+        notifyEvent(DocumentEventTypes.BEFORE_MAKE_RECORD, docModel, options, null, null, true, false);
+        if (flexible) {
+            doc.makeFlexibleRecord();
+        } else {
+            doc.makeRecord();
+        }
         docModel = readModel(doc);
-        notifyEvent(DocumentEventTypes.AFTER_MAKE_RECORD, docModel, null, null, null, true, false);
+        notifyEvent(DocumentEventTypes.AFTER_MAKE_RECORD, docModel, options, null, null, true, false);
     }
 
     @Override
@@ -2141,6 +2256,20 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
         return doc.isRecord();
+    }
+
+    @Override
+    public boolean isEnforcedRecord(DocumentRef docRef) {
+        Document doc = resolveReference(docRef);
+        checkPermission(doc, READ);
+        return doc.isEnforcedRecord();
+    }
+
+    @Override
+    public boolean isFlexibleRecord(DocumentRef docRef) {
+        Document doc = resolveReference(docRef);
+        checkPermission(doc, READ);
+        return doc.isFlexibleRecord();
     }
 
     @Override
@@ -2181,6 +2310,24 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    public void unsetRetainUntil(DocumentRef docRef) throws PropertyException {
+        Document doc = resolveReference(docRef);
+        checkPermission(doc, READ);
+        if (!doc.isRecord()) {
+            throw new PropertyException("Document is not a record");
+        }
+        if (!doc.isFlexibleRecord()) {
+            throw new PropertyException("Document is not a flexible record");
+        }
+        checkPermission(doc, UNSET_RETENTION);
+        DocumentModel docModel = readModel(doc);
+        notifyEvent(DocumentEventTypes.BEFORE_UNSET_RETENTION, docModel, null, null, null, true, false);
+        doc.setRetainUntil(null);
+        docModel = readModel(doc);
+        notifyEvent(DocumentEventTypes.AFTER_UNSET_RETENTION, docModel, null, null, null, true, false);
+    }
+
+    @Override
     public Calendar getRetainUntil(DocumentRef docRef) {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
@@ -2192,6 +2339,10 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Document doc = resolveReference(docRef);
         if (!isRecord(docRef)) {
             throw new PropertyException("Document is not a record");
+        }
+        if (isFlexibleRecord(docRef)) {
+            // let's turn it into enforced
+            makeRecord(docRef);
         }
         if (hasLegalHold(docRef) == hold) {
             // unchanged, don't do anything

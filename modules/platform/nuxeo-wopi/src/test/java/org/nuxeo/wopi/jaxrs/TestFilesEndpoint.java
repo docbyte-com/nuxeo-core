@@ -23,12 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.withSettings;
-import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ_WRITE;
-import static org.nuxeo.ecm.jwt.JWTClaims.CLAIM_SUBJECT;
-import static org.nuxeo.wopi.Constants.ACCESS_TOKEN_PARAMETER;
 import static org.nuxeo.wopi.Constants.HOST_EDIT_URL;
 import static org.nuxeo.wopi.Constants.HOST_VIEW_URL;
 import static org.nuxeo.wopi.Constants.NAME;
@@ -56,7 +51,6 @@ import static org.nuxeo.wopi.TestConstants.ITEM_VERSION_VAR;
 import static org.nuxeo.wopi.TestConstants.REPOSITORY_VAR;
 import static org.nuxeo.wopi.TestConstants.XPATH_VAR;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -64,225 +58,30 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
-
-import javax.inject.Inject;
 
 import org.json.JSONException;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.nuxeo.common.Environment;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.security.ACE;
-import org.nuxeo.ecm.core.api.security.ACL;
-import org.nuxeo.ecm.core.api.security.ACP;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.jwt.JWTService;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.ecm.webengine.test.WebEngineFeature;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
-import org.nuxeo.jaxrs.test.JerseyClientHelper;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.ServletContainerFeature;
-import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.wopi.FileInfo;
 import org.nuxeo.wopi.Operation;
-import org.nuxeo.wopi.WOPIDiscoveryFeature;
-import org.nuxeo.wopi.WOPIFeature;
 import org.nuxeo.wopi.lock.LockHelper;
 import org.skyscreamer.jsonassert.JSONAssert;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
 
 /**
  * Tests the {@link FilesEndpoint} WOPI endpoint.
  *
  * @since 10.3
  */
-@RunWith(FeaturesRunner.class)
-@Features({ WOPIFeature.class, WOPIDiscoveryFeature.class, WebEngineFeature.class })
-@Deploy("org.nuxeo.ecm.jwt")
-@Deploy("org.nuxeo.wopi:OSGI-INF/test-jwt-contrib.xml")
-@Deploy("org.nuxeo.wopi:OSGI-INF/test-webengine-servletcontainer-contrib.xml")
-@WithFrameworkProperty(name = Environment.PRODUCT_NAME, value = "WOPI Test")
-public class TestFilesEndpoint {
-
-    public static final String WOPI_FILES = "site/wopi/files";
-
-    public static final String CONTENTS_PATH = "contents";
-
-    @Inject
-    protected UserManager userManager;
-
-    @Inject
-    protected CoreSession session;
-
-    @Inject
-    protected CoreFeature coreFeature;
-
-    @Inject
-    protected JWTService jwtService;
-
-    @Inject
-    protected TransactionalFeature transactionalFeature;
-
-    @Inject
-    protected ServletContainerFeature servletContainerFeature;
-
-    protected Client client;
-
-    protected String joeToken;
-
-    protected String johnToken;
-
-    protected DocumentModel blobDoc;
-
-    protected String blobDocFileId;
-
-    protected DocumentModel zeroLengthBlobDoc;
-
-    protected String zeroLengthBlobDocFileId;
-
-    protected DocumentModel hugeBlobDoc;
-
-    protected String hugeBlobDocFileId;
-
-    protected DocumentModel noBlobDoc;
-
-    protected String noBlobDocFileId;
-
-    protected DocumentModel multipleBlobsDoc;
-
-    protected String multipleBlobsDocFileId;
-
-    protected String multipleBlobsDocAttachementId;
-
-    protected Blob expectedFileBlob;
-
-    protected Blob expectedAttachementBlob;
-
-    ObjectMapper mapper;
-
-    @Before
-    public void setUp() throws IOException {
-        mapper = new ObjectMapper();
-
-        createUsers();
-
-        createDocuments();
-
-        // initialize REST API clients
-        joeToken = jwtService.newBuilder().withClaim(CLAIM_SUBJECT, "joe").build();
-        johnToken = jwtService.newBuilder().withClaim(CLAIM_SUBJECT, "john").build();
-        client = JerseyClientHelper.clientBuilder().build();
-
-        // make sure everything is committed
-        transactionalFeature.nextTransaction();
-    }
-
-    protected String getBaseURL() {
-        int port = servletContainerFeature.getPort();
-        return "http://localhost:" + port + "/";
-    }
-
-    protected void createUsers() {
-        DocumentModel joe = userManager.getBareUserModel();
-        joe.setPropertyValue("user:username", "joe");
-        joe.setPropertyValue("user:password", "joe");
-        joe.setPropertyValue("user:firstName", "Joe");
-        joe.setPropertyValue("user:lastName", "Jackson");
-        userManager.createUser(joe);
-
-        DocumentModel john = userManager.getBareUserModel();
-        john.setPropertyValue("user:username", "john");
-        john.setPropertyValue("user:password", "john");
-        john.setPropertyValue("user:firstName", "John");
-        john.setPropertyValue("user:lastName", "Doe");
-        userManager.createUser(john);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected void createDocuments() throws IOException {
-        DocumentModel folder = session.createDocumentModel("/", "wopi", "Folder");
-        folder = session.createDocument(folder);
-        Map<String, String> userPermissions = new HashMap<>();
-        userPermissions.put("john", READ_WRITE);
-        userPermissions.put("joe", READ);
-        setPermissions(folder, userPermissions);
-
-        expectedFileBlob = Blobs.createBlob(FileUtils.getResourceFileFromContext("test-file.txt"));
-        expectedAttachementBlob = Blobs.createBlob(FileUtils.getResourceFileFromContext("test-attachment.txt"));
-
-        CoreSession johnSession = coreFeature.getCoreSession("john");
-        blobDoc = johnSession.createDocumentModel("/wopi", "blobDoc", "File");
-        blobDoc.setPropertyValue(FILE_CONTENT_PROPERTY, (Serializable) expectedFileBlob);
-        blobDoc = johnSession.createDocument(blobDoc);
-        // retrieve the blob to get an updated digest
-        expectedFileBlob = (Blob) blobDoc.getPropertyValue(FILE_CONTENT_PROPERTY);
-        blobDocFileId = FileInfo.computeFileId(blobDoc, FILE_CONTENT_PROPERTY);
-
-        zeroLengthBlobDoc = johnSession.createDocumentModel("/wopi", "zeroLengthBlobDoc", "File");
-        Blob zeroLengthBlob = Blobs.createBlob("");
-        zeroLengthBlob.setFilename("zero-length-blob");
-        zeroLengthBlobDoc.setPropertyValue(FILE_CONTENT_PROPERTY, (Serializable) zeroLengthBlob);
-        zeroLengthBlobDoc = johnSession.createDocument(zeroLengthBlobDoc);
-        zeroLengthBlobDocFileId = FileInfo.computeFileId(zeroLengthBlobDoc, FILE_CONTENT_PROPERTY);
-
-        hugeBlobDoc = johnSession.createDocumentModel("/wopi", "hugeBlobDoc", "File");
-        Blob hugeBlob = mock(Blob.class, withSettings().serializable());
-        Mockito.when(hugeBlob.getLength()).thenReturn(Long.MAX_VALUE);
-        Mockito.when(hugeBlob.getStream()).thenReturn(new ByteArrayInputStream(new byte[] {}));
-        Mockito.when(hugeBlob.getFilename()).thenReturn("hugeBlobFilename");
-        hugeBlobDoc.setPropertyValue(FILE_CONTENT_PROPERTY, (Serializable) hugeBlob);
-        hugeBlobDoc = johnSession.createDocument(hugeBlobDoc);
-        hugeBlobDocFileId = FileInfo.computeFileId(hugeBlobDoc, FILE_CONTENT_PROPERTY);
-
-        noBlobDoc = johnSession.createDocumentModel("/wopi", "noBlobDoc", "File");
-        noBlobDoc = johnSession.createDocument(noBlobDoc);
-        noBlobDocFileId = FileInfo.computeFileId(noBlobDoc, FILE_CONTENT_PROPERTY);
-
-        multipleBlobsDoc = johnSession.createDocumentModel("/wopi", "multipleBlobsDoc", "File");
-        multipleBlobsDoc.setPropertyValue(FILE_CONTENT_PROPERTY, (Serializable) expectedFileBlob);
-        List<Map<String, Serializable>> files = Collections.singletonList(
-                Collections.singletonMap("file", (Serializable) expectedAttachementBlob));
-        multipleBlobsDoc.setPropertyValue("files:files", (Serializable) files);
-        multipleBlobsDoc = johnSession.createDocument(multipleBlobsDoc);
-        // retrieve the blob to get an updated digest
-        files = (List<Map<String, Serializable>>) multipleBlobsDoc.getPropertyValue("files:files");
-        expectedAttachementBlob = (Blob) files.get(0).get("file");
-
-        multipleBlobsDocFileId = FileInfo.computeFileId(multipleBlobsDoc, FILE_CONTENT_PROPERTY);
-        multipleBlobsDocAttachementId = FileInfo.computeFileId(multipleBlobsDoc, FILES_FIRST_FILE_PROPERTY);
-    }
-
-    protected void setPermissions(DocumentModel doc, Map<String, String> userPermissions) {
-        ACP acp = doc.getACP();
-        ACL localACL = acp.getOrCreateACL(ACL.LOCAL_ACL);
-        userPermissions.forEach((user, permission) -> localACL.add(new ACE(user, permission, true)));
-        doc.setACP(acp, true);
-    }
-
-    @After
-    public void tearDown() {
-        Stream.of("john", "joe").forEach(userManager::deleteUser);
-        client.destroy();
-    }
+public class TestFilesEndpoint extends AbstractTestFilesEndpoint {
 
     @Test
     public void testCheckFileInfo() throws IOException, JSONException {
@@ -314,8 +113,6 @@ public class TestFilesEndpoint {
         convertibleBlob.setFilename(convertibleFilename);
         convertibleBlobDoc.setPropertyValue(FILE_CONTENT_PROPERTY, (Serializable) convertibleBlob);
         convertibleBlobDoc = session.createDocument(convertibleBlobDoc);
-        // retrieve the blob to get an updated digest
-        convertibleBlob = (Blob) convertibleBlobDoc.getPropertyValue(FILE_CONTENT_PROPERTY);
         String convertibleBlobDocFileId = FileInfo.computeFileId(convertibleBlobDoc, FILE_CONTENT_PROPERTY);
         transactionalFeature.nextTransaction();
         toReplace.put(DOC_ID_VAR, convertibleBlobDoc.getId());
@@ -960,7 +757,7 @@ public class TestFilesEndpoint {
 
         // success - 200 - conversion from suggested filename with a custom WOPI base URL
         headers.put(SUGGESTED_TARGET, "bar.docx");
-        String customWOPIBaseURL = "http://foo";
+        String customWOPIBaseURL = "https://foo";
         try {
             Framework.getProperties().setProperty(WOPI_BASE_URL_PROPERTY, customWOPIBaseURL);
             try (CloseableClientResponse response = post(johnToken, data, headers, hugeBlobDocFileId)) {
@@ -1039,7 +836,7 @@ public class TestFilesEndpoint {
     public void testOnAttachment() throws IOException, JSONException {
         DocumentRef multipleBlobsDocRef = multipleBlobsDoc.getRef();
         // CheckFileInfo
-        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachmentId)) {
             Map<String, String> toReplace = new HashMap<>();
             toReplace.put(REPOSITORY_VAR, multipleBlobsDoc.getRepositoryName());
             toReplace.put(DOC_ID_VAR, multipleBlobsDoc.getId());
@@ -1051,17 +848,17 @@ public class TestFilesEndpoint {
         }
 
         // GetFile
-        try (CloseableClientResponse response = get(joeToken, multipleBlobsDocAttachementId, CONTENTS_PATH)) {
+        try (CloseableClientResponse response = get(joeToken, multipleBlobsDocAttachmentId, CONTENTS_PATH)) {
             assertEquals(200, response.getStatus());
             Blob actualBlob = Blobs.createBlob(response.getEntityInputStream());
-            assertEquals(expectedAttachementBlob.getString(), actualBlob.getString());
+            assertEquals(expectedAttachmentBlob.getString(), actualBlob.getString());
         }
 
         // Lock
         Map<String, String> headers = new HashMap<>();
         headers.put(OVERRIDE, Operation.LOCK.name());
         headers.put(LOCK, "foo");
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
             assertTrue(session.getDocument(multipleBlobsDocRef).isLocked());
@@ -1072,7 +869,7 @@ public class TestFilesEndpoint {
         // PutFile
         String data = "new attachment";
         headers.put(OVERRIDE, Operation.PUT.name());
-        try (CloseableClientResponse response = post(johnToken, data, headers, multipleBlobsDocAttachementId,
+        try (CloseableClientResponse response = post(johnToken, data, headers, multipleBlobsDocAttachmentId,
                 CONTENTS_PATH)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
@@ -1090,7 +887,7 @@ public class TestFilesEndpoint {
         headers.put(OVERRIDE, Operation.PUT_RELATIVE.name());
         headers.put(FILE_CONVERSION, "True");
         headers.put(SUGGESTED_TARGET, ".docx");
-        try (CloseableClientResponse response = post(johnToken, data, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, data, headers, multipleBlobsDocAttachmentId)) {
             // a version is done before updating the document, thus 0.1+
             assertPutRelativeFileCreateVersionResponse(response, multipleBlobsDoc.getRef(), FILES_FIRST_FILE_PROPERTY,
                     "test-attachment.docx", getBaseURL(), data, "0.1+");
@@ -1114,7 +911,7 @@ public class TestFilesEndpoint {
 
         // Lock files:files/0/file
         headers.put(LOCK, "fooAttachment");
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
             // doc is still locked
@@ -1138,7 +935,7 @@ public class TestFilesEndpoint {
         // Unlock files:files/0/file
         headers.put(OVERRIDE, Operation.UNLOCK.name());
         // fail - 409 - lock mismatch
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(409, response.getStatus());
             transactionalFeature.nextTransaction();
             assertTrue(session.getDocument(multipleBlobsDocRef).isLocked());
@@ -1158,7 +955,7 @@ public class TestFilesEndpoint {
 
         // Unlock files:files/0/file
         headers.put(LOCK, "fooAttachment");
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
             // document is now unlocked, no more WOPI lock set
@@ -1197,22 +994,22 @@ public class TestFilesEndpoint {
         // Lock files:files/0/file
         headers.put(LOCK, "fooAttachment");
         headers.remove(OLD_LOCK);
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
             assertTrue(session.getDocument(multipleBlobsDocRef).isLocked());
-            String lock = LockHelper.getLock(multipleBlobsDocAttachementId);
+            String lock = LockHelper.getLock(multipleBlobsDocAttachmentId);
             assertEquals("fooAttachment", lock);
         }
 
         // Unlock and relock files:files/0/file
         headers.put(LOCK, "barAttachment");
         headers.put(OLD_LOCK, "fooAttachment");
-        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = post(johnToken, headers, multipleBlobsDocAttachmentId)) {
             assertEquals(200, response.getStatus());
             transactionalFeature.nextTransaction();
             assertTrue(session.getDocument(multipleBlobsDocRef).isLocked());
-            String lock = LockHelper.getLock(multipleBlobsDocAttachementId);
+            String lock = LockHelper.getLock(multipleBlobsDocAttachmentId);
             assertEquals("barAttachment", lock);
         }
     }
@@ -1263,7 +1060,7 @@ public class TestFilesEndpoint {
         }
 
         // files:files/0/file
-        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachmentId)) {
             JsonNode node = mapper.readTree(response.getEntityInputStream());
             assertEquals("0", node.get("Version").asText());
         }
@@ -1273,7 +1070,7 @@ public class TestFilesEndpoint {
         session.saveDocument(doc);
         transactionalFeature.nextTransaction();
 
-        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachementId)) {
+        try (CloseableClientResponse response = get(johnToken, multipleBlobsDocAttachmentId)) {
             JsonNode node = mapper.readTree(response.getEntityInputStream());
             assertEquals("1", node.get("Version").asText());
         }
@@ -1327,34 +1124,4 @@ public class TestFilesEndpoint {
         JSONAssert.assertEquals(expected, json, true);
     }
 
-    protected CloseableClientResponse get(String token, String... path) {
-        return get(token, null, path);
-    }
-
-    protected CloseableClientResponse get(String token, Map<String, String> headers, String... path) {
-        WebResource wr = client.resource(getBaseURL() + WOPI_FILES)
-                               .path(String.join("/", path))
-                               .queryParam(ACCESS_TOKEN_PARAMETER, token);
-        WebResource.Builder builder = wr.getRequestBuilder();
-        if (headers != null) {
-            headers.forEach(builder::header);
-        }
-        return CloseableClientResponse.of(builder.get(ClientResponse.class));
-    }
-
-    protected CloseableClientResponse post(String token, Map<String, String> headers, String... path) {
-        return post(token, null, headers, path);
-    }
-
-    protected CloseableClientResponse post(String token, String data, Map<String, String> headers, String... path) {
-        WebResource wr = client.resource(getBaseURL() + WOPI_FILES)
-                               .path(String.join("/", path))
-                               .queryParam(ACCESS_TOKEN_PARAMETER, token);
-        WebResource.Builder builder = wr.getRequestBuilder();
-        if (headers != null) {
-            headers.forEach(builder::header);
-        }
-        return CloseableClientResponse.of(
-                data != null ? builder.post(ClientResponse.class, data) : builder.post(ClientResponse.class));
-    }
 }

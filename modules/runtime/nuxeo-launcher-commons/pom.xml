@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-launcher-commons</artifactId>
@@ -53,6 +53,7 @@
     <dependency>
       <groupId>com.sun.xml.bind</groupId>
       <artifactId>jaxb-impl</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sun.activation</groupId>

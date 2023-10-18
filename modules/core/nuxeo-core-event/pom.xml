@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
   <artifactId>nuxeo-core-event</artifactId>
   <name>Nuxeo Core Event</name>
@@ -85,10 +85,6 @@
       <groupId>io.opencensus</groupId>
       <artifactId>opencensus-api</artifactId>
     </dependency>
-    <dependency>
-      <groupId>io.opencensus</groupId>
-      <artifactId>opencensus-impl</artifactId>
-    </dependency>
     <!-- needed by ScriptingEventListener and ScriptingPostCommitEventListener -->
     <dependency>
       <groupId>org.openjdk.nashorn</groupId>
@@ -118,22 +114,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>javax.script</groupId>
-      <artifactId>groovy-engine</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.codehaus.groovy</groupId>
       <artifactId>groovy-all</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.dataformat</groupId>
-      <artifactId>jackson-dataformat-properties</artifactId>
     </dependency>
   </dependencies>
 

@@ -300,7 +300,7 @@ public class S3BlobStore extends AbstractBlobStore {
             log.debug("Writing s3://" + bucketName + "/" + bucketKey);
         }
 
-        if (getKeyStrategy().useDeDuplication() && exists(bucketKey)) {
+        if (getKeyStrategy().useDeDuplication() && bucketKeyExists(bucketKey)) {
             return null; // no key version used with deduplication
         }
 
@@ -383,23 +383,22 @@ public class S3BlobStore extends AbstractBlobStore {
         return OptionalOrUnknown.unknown();
     }
 
-    protected boolean exists(String bucketKey) {
-        try {
-            logTrace("-->", "getObjectMetadata");
-            logTrace("hnote right: " + bucketKey);
-            ObjectMetadata metadata = amazonS3.getObjectMetadata(bucketName, bucketKey);
-            if (log.isDebugEnabled()) {
-                log.debug("Blob s3://" + bucketName + "/" + bucketKey + " already exists");
-            }
-            logTrace("<--", "exists (" + metadata.getContentLength() + " bytes)");
-            return true;
-        } catch (AmazonServiceException e) {
-            if (isMissingKey(e)) {
-                logTrace("<--", "missing");
-                return false;
-            }
-            throw e;
+    @Override
+    public boolean exists(String key) {
+        return bucketKeyExists(bucketKey(key));
+    }
+
+    protected boolean bucketKeyExists(String bucketKey) {
+        logTrace("-->", "doesObjectExist");
+        logTrace("hnote right: " + bucketKey);
+        boolean exists = amazonS3.doesObjectExist(bucketName, bucketKey);
+        if (exists) {
+            log.debug("Blob s3://{}/{} already exists", bucketName, bucketKey);
+            logTrace("<--", "exists");
+        } else {
+            logTrace("<--", "missing");
         }
+        return exists;
     }
 
     /** @return object length, or -1 if missing */
@@ -415,7 +414,7 @@ public class S3BlobStore extends AbstractBlobStore {
         } catch (AmazonServiceException e) {
             if (isMissingKey(e)) {
                 logTrace("<--", "missing");
-            } else  {
+            } else {
                 log.warn("Cannot get length of: s3://" + bucketName + "/" + bucketKey, e);
             }
             return -1;
@@ -617,13 +616,14 @@ public class S3BlobStore extends AbstractBlobStore {
                     + bucketKey);
         }
 
-        if (getKeyStrategy().useDeDuplication() && exists(bucketKey)) {
+        if (getKeyStrategy().useDeDuplication() && bucketKeyExists(bucketKey)) {
             return key;
         }
 
         // copy the blob
         try {
-            String versionId = copyOrMoveBlob(sourceBlobStore.config, sourceBucketKey, sourceVersionId, config, bucketKey, move);
+            String versionId = copyOrMoveBlob(sourceBlobStore.config, sourceBucketKey, sourceVersionId, config,
+                    bucketKey, move);
             if (log.isDebugEnabled()) {
                 long dtms = System.currentTimeMillis() - t0;
                 log.debug("Copied s3://" + sourceBucketName + "/" + sourceBucketKey + " to s3://" + bucketName + "/"
@@ -808,7 +808,8 @@ public class S3BlobStore extends AbstractBlobStore {
                         throw new IOException("Cannot set legal hold on non-versioned blob");
                     }
                     boolean hold = blobUpdateContext.updateLegalHold.hold;
-                    ObjectLockLegalHoldStatus status = hold ? ObjectLockLegalHoldStatus.ON : ObjectLockLegalHoldStatus.OFF;
+                    ObjectLockLegalHoldStatus status = hold ? ObjectLockLegalHoldStatus.ON
+                            : ObjectLockLegalHoldStatus.OFF;
                     ObjectLockLegalHold legalHold = new ObjectLockLegalHold().withStatus(status);
                     SetObjectLegalHoldRequest request = new SetObjectLegalHoldRequest();
                     request.withBucketName(bucketName) //
@@ -936,7 +937,7 @@ public class S3BlobStore extends AbstractBlobStore {
                     status.sizeBinaries += length;
                     status.numBinaries++;
                     toDelete.add(key);
-                     if (toDelete.size() % WARN_OBJECTS_THRESHOLD == 0) {
+                    if (toDelete.size() % WARN_OBJECTS_THRESHOLD == 0) {
                         log.warn("Listing {} in progress, {} objects ...", getId(), toDelete.size());
                     }
                 }

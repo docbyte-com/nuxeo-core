@@ -30,7 +30,9 @@ import static org.nuxeo.wopi.Constants.ACTION_VIEW;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -43,6 +45,7 @@ import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
@@ -144,6 +147,9 @@ public class TestWOPIService {
         blob.setFilename("file.docx");
         assertEquals("https://word-view.officeapps-df.live.com/wv/wordviewerframe.aspx?IsLicensedUser=1&",
                 wopiService.getActionURL(blob, ACTION_VIEW));
+        blob.setFilename("file.DOCX");
+        assertEquals("https://word-view.officeapps-df.live.com/wv/wordviewerframe.aspx?IsLicensedUser=1&",
+                wopiService.getActionURL(blob, ACTION_VIEW));
     }
 
     @Test
@@ -154,6 +160,8 @@ public class TestWOPIService {
         // extension not supported by Nuxeo
         Blob blobTwo = createBlob("two", "two.pdf");
         Blob blobThree = createBlob("three", "three.rtf");
+        // uppercase extension
+        Blob blobFour = createBlob("four", "four.DOCX");
 
         WOPIBlobInfo info = wopiService.getWOPIBlobInfo(blob);
         assertEquals("Excel", info.appName);
@@ -168,6 +176,23 @@ public class TestWOPIService {
         assertEquals("Word", info.appName);
         assertEquals(1, info.actions.size());
         assertTrue(info.actions.contains(ACTION_EDIT));
+
+        info = wopiService.getWOPIBlobInfo(blobFour);
+        assertEquals("Word", info.appName);
+        assertEquals(1, info.actions.size());
+        assertTrue(info.actions.contains(ACTION_VIEW));
+    }
+
+    // NXP-31852
+    @Test
+    @Deploy("org.nuxeo.wopi:OSGI-INF/test-checkfileinfo-updater-contrib.xml")
+    public void testCheckFileInfoUpdater() {
+        Map<String, Serializable> checkFileInfo = Map.of( //
+                "BaseFileName", "filename", //
+                "OwnerId", "foo", //
+                "Size", 456);
+        checkFileInfo = wopiService.updateCheckFileInfoProperties(checkFileInfo);
+        assertTrue(checkFileInfo.values().stream().allMatch("foobar"::equals));
     }
 
     // creates a blob that's actually backed by a blob provider, as wopi service requires it

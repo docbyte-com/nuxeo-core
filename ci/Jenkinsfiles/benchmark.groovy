@@ -146,13 +146,14 @@ pipeline {
           ----------------------------------------
           """
           nxWithHelmfileDeployment(namespace: "${BENCHMARK_NAMESPACE}", environment: 'benchmark',
-              secrets: [[name: 'platform-cluster-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
+              secrets: [[name: 'platform-tls', namespace: 'platform'], [name: 'instance-clid', namespace: 'platform']],
               envVars: ["BUCKET_PREFIX=benchmark-tests-${BRANCH_NAME}-BUILD-${BUILD_NUMBER}/"]) {
             script {
               try {
                 dir("${GATLING_TESTS_PATH}") {
                   gatling('org.nuxeo.cap.bench.Sim00Setup')
                   gatling("org.nuxeo.cap.bench.Sim10MassStreamImport -DnbNodes=${BENCHMARK_NB_DOCS}")
+                  gatling("org.nuxeo.cap.bench.Sim15Move")
                   gatling("org.nuxeo.cap.bench.Sim20CSVExport")
                   gatling("org.nuxeo.cap.bench.Sim15BulkUpdateDocuments")
                   gatling("org.nuxeo.cap.bench.Sim10CreateFolders")
@@ -167,6 +168,8 @@ pipeline {
                   gatling("org.nuxeo.cap.bench.Sim50CRUD -Dusers=32 -Dduration=120")
                   gatling("org.nuxeo.cap.bench.Sim55WaitForAsync")
                   gatling("org.nuxeo.cap.bench.Sim80ReindexAll")
+                  gatling("org.nuxeo.cap.bench.Sim90Cleanup")
+                  gatling("org.nuxeo.cap.bench.Sim90FullGC")
                 }
               } finally {
                 // archiveArtifacts doesn't support absolute path so do not use GATLING_TESTS_PATH
@@ -177,7 +180,8 @@ pipeline {
                   DEBUG mode sleeping 1h for manual intervention ....
                   ----------------------------------------
                   """
-                  sleep time: 1, unit: "HOURS"
+                  // Can be resumed by killing manually the sleep process on maven container
+                  sh 'sleep 3600 || exit 0'
                 }
               }
             }
@@ -188,9 +192,15 @@ pipeline {
 
     stage("Compute reports") {
       environment {
-        GAT_REPORT_VERSION = '6.1'
-        GAT_REPORT_URL = "https://maven-eu.nuxeo.org/nexus/service/local/repositories/vendor-releases/content/org/nuxeo/tools/gatling-report/${GAT_REPORT_VERSION}/gatling-report-${GAT_REPORT_VERSION}-capsule-fat.jar"
-        GAT_REPORT_JAR = "${GATLING_TESTS_PATH}/target/gatling-report-capsule-fat.jar"
+        GAT_REPORT_ARTIFACT_GROUP = 'org.nuxeo.tools'
+        GAT_REPORT_ARTIFACT_ID = 'gatling-report'
+        GAT_REPORT_ARTIFACT_VERSION = '6.1'
+        GAT_REPORT_ARTIFACT_TYPE = 'jar'
+        GAT_REPORT_ARTIFACT_CLASSIFIER = 'capsule-fat'
+        GAT_REPORT_ARTIFACT = "${GAT_REPORT_ARTIFACT_ID}-${GAT_REPORT_ARTIFACT_VERSION}-${GAT_REPORT_ARTIFACT_CLASSIFIER}.${GAT_REPORT_ARTIFACT_TYPE}"
+        GAT_REPORT_ARTIFACT_DIR = "${GATLING_TESTS_PATH}/target"
+        GAT_REPORT_ARTIFACT_FULL_NAME = "${GAT_REPORT_ARTIFACT_GROUP}:${GAT_REPORT_ARTIFACT_ID}:${GAT_REPORT_ARTIFACT_VERSION}:${GAT_REPORT_ARTIFACT_TYPE}:${GAT_REPORT_ARTIFACT_CLASSIFIER}"
+
         JAVA_MODULES_ARGLINE = '--add-exports=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED --add-opens=java.management/com.sun.jmx.mbeanserver=ALL-UNNAMED'
         MUSTACHE_TEMPLATE = "${GATLING_TESTS_PATH}/target/report-template.mustache"
       }
@@ -199,7 +209,7 @@ pipeline {
           dir("${GATLING_TESTS_PATH}") {
             script {
               // download gatling tools
-              sh "curl -o ${GAT_REPORT_JAR} ${GAT_REPORT_URL}"
+              nxMvn.copy(artifact: GAT_REPORT_ARTIFACT_FULL_NAME, outputDirectory: GAT_REPORT_ARTIFACT_DIR)
               // download mustache template
               sh "curl -o ${MUSTACHE_TEMPLATE} https://raw.githubusercontent.com/nuxeo/nuxeo-bench/master/report-templates/data.mustache"
               // prepare the report
@@ -215,9 +225,10 @@ pipeline {
               sh 'mkdir -p ${REPORT_PATH}'
               sh 'mv target/gatling/* ${REPORT_PATH}'
               // build stats
-              sh 'java ${JAVA_MODULES_ARGLINE} -jar ${GAT_REPORT_JAR} -f -o ${REPORT_PATH} -n data.yml -t ${MUSTACHE_TEMPLATE} ' +
-                  '-m import,bulk,mbulk,exportcsv,create,createasync,nav,search,update,updateasync,bench,crud,crudasync,reindex ' +
+              sh 'java ${JAVA_MODULES_ARGLINE} -jar ${GAT_REPORT_ARTIFACT_DIR}/${GAT_REPORT_ARTIFACT} -f -o ${REPORT_PATH} -n data.yml -t ${MUSTACHE_TEMPLATE} ' +
+                  '-m import,move,bulk,mbulk,exportcsv,create,createasync,nav,search,update,updateasync,bench,crud,crudasync,reindex,cleanup,fullgc ' +
                   '${REPORT_PATH}/sim10massstreamimport/detail/simulation.log.gz ' +
+                  '${REPORT_PATH}/sim15move/detail/simulation.log.gz ' +
                   '${REPORT_PATH}/sim15bulkupdatedocuments/detail/simulation.log.gz ' +
                   '${REPORT_PATH}/sim25bulkupdatefolders/detail/simulation.log.gz ' +
                   '${REPORT_PATH}/sim20csvexport/detail/simulation.log.gz ' +
@@ -230,7 +241,9 @@ pipeline {
                   '${REPORT_PATH}/sim50bench/detail/simulation.log.gz ' +
                   '${REPORT_PATH}/sim50crud/detail/simulation.log.gz ' +
                   '${REPORT_PATH}/sim55waitforasync/detail/simulation.log.gz ' +
-                  '${REPORT_PATH}/sim80reindexall/detail/simulation.log.gz'
+                  '${REPORT_PATH}/sim80reindexall/detail/simulation.log.gz ' +
+                  '${REPORT_PATH}/sim90cleanup/detail/simulation.log.gz ' +
+                  '${REPORT_PATH}/sim90fullgc/detail/simulation.log.gz'
 
               sh "echo >> ${REPORT_PATH}/data.yml"
               sh "echo 'build_number: ${BENCHMARK_BUILD_NUMBER}' >> ${REPORT_PATH}/data.yml"
@@ -247,11 +260,11 @@ pipeline {
               sh "echo 'default_category: \"${BENCHMARK_CATEGORY}\"' >> ${REPORT_PATH}/data.yml"
               sh "echo 'kafka: true' >> ${REPORT_PATH}/data.yml"
               sh "echo 'import_docs: ${BENCHMARK_NB_DOCS}' >> ${REPORT_PATH}/data.yml"
-              // Calculate benchmark duration between import and reindex
+              // Calculate benchmark duration between import and fullgc
               sh """
                 d1=\$(grep import_date ${REPORT_PATH}/data.yml| sed -e 's,^[a-z\\_]*\\:\\s,,g');
-                d2=\$(grep reindex_date ${REPORT_PATH}/data.yml | sed -e 's,^[a-z\\_]*\\:\\s,,g');
-                dd=\$(grep reindex_duration ${REPORT_PATH}/data.yml | sed -e 's,^[a-z\\_]*\\:\\s,,g');
+                d2=\$(grep fullgc_date ${REPORT_PATH}/data.yml | sed -e 's,^[a-z\\_]*\\:\\s,,g');
+                dd=\$(grep fullgc_duration ${REPORT_PATH}/data.yml | sed -e 's,^[a-z\\_]*\\:\\s,,g');
                 t1=\$(date -d \"\$d1\" +%s);
                 t2=\$(date -d \"\$d2\" +%s);
                 benchmark_duration=\$(echo \$(( \$t2 - \$t1 + \${dd%.*} )) );
@@ -261,6 +274,25 @@ pipeline {
               sh """
                 total=\$(echo -e 'get reindexTotal\nquit\n' | nc localhost 6379 | grep -o '^[[:digit:]]*');
                 echo \"reindex_docs: \$total\" >> ${REPORT_PATH}/data.yml
+              """
+              // Get versions GC info from redis
+              sh """
+                versions_total=\$(echo -e 'get versionsTotal\nquit\n' | nc localhost 6379 | grep -o '^[[:digit:]]*');
+                echo \"versions_total: \$versions_total\" >> ${REPORT_PATH}/data.yml
+              """
+              sh """
+                versions_retained=\$(echo -e 'get versionsRetained\nquit\n' | nc localhost 6379 | grep -o '^[[:digit:]]*');
+                echo \"versions_retained: \$versions_retained\" >> ${REPORT_PATH}/data.yml
+              """
+              sh "echo >> ${REPORT_PATH}/data.yml"
+              // Get binary GC info from redis
+              sh """
+                binaries_total=\$(echo -e 'get binariesTotal\nquit\n' | nc localhost 6379 | grep -o '^[[:digit:]]*');
+                echo \"binaries_total: \$binaries_total\" >> ${REPORT_PATH}/data.yml
+              """
+              sh """
+                binaries_retained=\$(echo -e 'get binariesRetained\nquit\n' | nc localhost 6379 | grep -o '^[[:digit:]]*');
+                echo \"binaries_retained: \$binaries_retained\" >> ${REPORT_PATH}/data.yml
               """
               sh "echo >> ${REPORT_PATH}/data.yml"
             }

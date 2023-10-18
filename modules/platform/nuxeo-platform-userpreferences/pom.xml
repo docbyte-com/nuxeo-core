@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-platform-userpreferences</artifactId>
@@ -24,10 +24,5 @@
       <groupId>cloud.docbyte.nuxeo.ecm.localconf</groupId>
       <artifactId>nuxeo-localconf-simple</artifactId>
     </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-usermanager</artifactId>
-    </dependency>
   </dependencies>
-
 </project>

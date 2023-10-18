@@ -3,9 +3,16 @@
 
   <extension target="org.nuxeo.ecm.core.work.service" point="queues">
     <queue id="renditionBuilder">
-      <maxThreads>2</maxThreads>
+      <maxThreads>${nuxeo.work.queue.renditionBuilder.threads:=2}</maxThreads>
       <category>renditionBuilder</category>
     </queue>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.transientstore.TransientStorageComponent" point="store">
+    <store name="RenditionCache">
+      <firstLevelTTL>${nuxeo.transientstore.rendition.cache.ttl:=240}</firstLevelTTL>
+      <secondLevelTTL>${nuxeo.transientstore.rendition.cache.ttl2:=10}</secondLevelTTL>
+    </store>
   </extension>
 
 </component>

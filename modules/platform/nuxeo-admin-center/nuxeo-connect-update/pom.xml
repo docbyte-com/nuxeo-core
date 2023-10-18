@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-admin-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-connect-update</artifactId>
@@ -29,31 +29,13 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-launcher-commons</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-connect-standalone</artifactId>
     </dependency>
     <dependency>
       <groupId>org.osgi</groupId>
       <artifactId>org.osgi.core</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.codehaus.groovy</groupId>
-      <artifactId>groovy-all</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.ant</groupId>
-      <artifactId>ant</artifactId>
-    </dependency>
-    <!-- for command guards -->
-    <dependency>
-      <groupId>commons-jexl</groupId>
-      <artifactId>commons-jexl</artifactId>
-    </dependency>
 
-    <!-- scope test -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-connect-standalone</artifactId>
@@ -96,5 +78,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

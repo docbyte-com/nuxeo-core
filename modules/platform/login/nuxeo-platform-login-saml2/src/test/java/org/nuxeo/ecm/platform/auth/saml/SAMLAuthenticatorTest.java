@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,104 +18,60 @@
  */
 package org.nuxeo.ecm.platform.auth.saml;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.startsWith;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLConfiguration.SKEW_TIME_MS;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.assertSAMLMessage;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.encodeSAMLMessage;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.extractQueryParam;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLUtils.SAML_SESSION_KEY;
+import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_REQUEST;
+import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_RESPONSE;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
+import java.time.Instant;
+import java.util.UUID;
 
 import javax.inject.Inject;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
-import org.nuxeo.ecm.platform.auth.saml.binding.HTTPRedirectBinding;
-import org.nuxeo.ecm.platform.auth.saml.binding.SAMLBinding;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpSession;
-import org.nuxeo.ecm.platform.test.UserManagerFeature;
+import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletRequest;
+import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletResponse;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.opensaml.common.SAMLException;
-import org.opensaml.common.SAMLObject;
-import org.opensaml.common.SAMLVersion;
-import org.opensaml.common.binding.BasicSAMLMessageContext;
-import org.opensaml.common.binding.SAMLMessageContext;
-import org.opensaml.saml2.core.Assertion;
-import org.opensaml.saml2.core.AuthnRequest;
-import org.opensaml.saml2.core.Conditions;
-import org.opensaml.saml2.core.Issuer;
-import org.opensaml.saml2.core.LogoutRequest;
-import org.opensaml.saml2.core.NameIDType;
-import org.opensaml.ws.message.decoder.MessageDecodingException;
-import org.opensaml.xml.Configuration;
-import org.opensaml.xml.io.Unmarshaller;
-import org.opensaml.xml.io.UnmarshallingException;
-import org.opensaml.xml.parse.BasicParserPool;
-import org.opensaml.xml.parse.XMLParserException;
-import org.opensaml.xml.security.BasicSecurityConfiguration;
-import org.opensaml.xml.util.Base64;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
+import org.opensaml.saml.saml2.core.AuthnRequest;
+import org.opensaml.saml.saml2.core.LogoutRequest;
 
+/**
+ * @since 6.0
+ */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class, UserManagerFeature.class })
-@RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.login.saml2")
+@Features(SAMLFeature.class)
 public class SAMLAuthenticatorTest {
+
+    @Inject
+    protected SAMLAuthenticationProvider samlAuth;
 
     @Inject
     protected UserManager userManager;
 
-    private DocumentModel user;
-
-    private SAMLAuthenticationProvider samlAuth;
+    protected DocumentModel user;
 
     @Before
-    public void doBefore() throws URISyntaxException {
-        samlAuth = new SAMLAuthenticationProvider();
-
-        String metadata = getClass().getResource("/idp-meta.xml").toURI().getPath();
-
-        Map<String, String> params = Map.of("metadata", metadata);
-
-        samlAuth.initPlugin(params);
-
+    public void doBefore() {
         user = userManager.getUserModel("user");
 
         if (user == null) {
@@ -126,261 +82,297 @@ public class SAMLAuthenticatorTest {
         }
     }
 
-    private static final String RSA_SHA1 = "http://www.w3.org/2000/09/xmldsig#rsa-sha1";
-
-    private static final String RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
-
-    private static final String RSA_WHIRLPOOL = "http://www.w3.org/2007/05/xmldsig-more#rsa-whirlpool";
-
-    private static final String SHA1 = "http://www.w3.org/2000/09/xmldsig#sha1";
-
-    private static final String SHA256 = "http://www.w3.org/2001/04/xmlenc#sha256";
-
     @Test
-    public void testInitSignatureAlgorithm() {
-        // default config
-        BasicSecurityConfiguration config = (BasicSecurityConfiguration) Configuration.getGlobalSecurityConfiguration();
-        assertEquals(RSA_SHA1, config.getSignatureAlgorithmURI("RSA"));
-        // contribute SHA-256
-        samlAuth.initPlugin(Collections.singletonMap("SignatureAlgorithm", RSA_SHA256));
-        config = (BasicSecurityConfiguration) Configuration.getGlobalSecurityConfiguration();
-        assertEquals(RSA_SHA256, config.getSignatureAlgorithmURI("RSA"));
-        // contribute Whirlpool, not known to OpenSAML 2
-        samlAuth.initPlugin(Collections.singletonMap("SignatureAlgorithm.RSA", RSA_WHIRLPOOL));
-        config = (BasicSecurityConfiguration) Configuration.getGlobalSecurityConfiguration();
-        assertEquals(RSA_WHIRLPOOL, config.getSignatureAlgorithmURI("RSA"));
-    }
+    public void testLoginPrompt() {
+        var requestHandler = MockHttpServletRequest.init();
+        var responseHandler = MockHttpServletResponse.init();
 
-    @Test
-    public void testInitDigestAlgorithm() {
-        // default config
-        BasicSecurityConfiguration config = (BasicSecurityConfiguration) Configuration.getGlobalSecurityConfiguration();
-        assertEquals(SHA1, config.getSignatureReferenceDigestMethod());
-        // contribute SHA-256
-        samlAuth.initPlugin(Collections.singletonMap("DigestAlgorithm", SHA256));
-        config = (BasicSecurityConfiguration) Configuration.getGlobalSecurityConfiguration();
-        assertEquals(SHA256, config.getSignatureReferenceDigestMethod());
-    }
+        samlAuth.handleLoginPrompt(requestHandler.mock(), responseHandler.mock(), "/");
 
-    @Test
-    public void testLoginPrompt() throws Exception {
+        var redirectURL = responseHandler.getRedirect();
+        assertTrue(redirectURL.startsWith("http://dummy/SSORedirect"));
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-        samlAuth.handleLoginPrompt(req, resp, "/");
-
-        verify(resp).sendRedirect(startsWith("http://dummy/SSORedirect"));
+        var expected = new ExpectedSAMLMessage<>(
+                """
+                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="null://null/nuxeo/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
+                          <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://localhost:8080/login</saml2:Issuer>
+                          <saml2p:NameIDPolicy Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"/>
+                        </saml2p:AuthnRequest>
+                        """,
+                AuthnRequest::getID, AuthnRequest::getIssueInstant);
+        var actual = extractQueryParam(redirectURL, SAML_REQUEST);
+        assertSAMLMessage(expected, actual);
     }
 
     @Test
     public void testAuthRequest() {
+        var requestHandler = MockHttpServletRequest.init();
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-
-        String loginURL = samlAuth.getSSOUrl(req, resp);
-        String query = URI.create(loginURL).getQuery();
+        String loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
 
         assertTrue(loginURL.startsWith("http://dummy/SSORedirect"));
-        assertTrue(query.startsWith(HTTPRedirectBinding.SAML_REQUEST));
-
-        String samlRequest = query.replaceFirst(HTTPRedirectBinding.SAML_REQUEST + "=", "");
-
-        SAMLObject message = decodeMessage(samlRequest);
-
-        // Validate type
-        assertTrue(message instanceof AuthnRequest);
-
-        AuthnRequest auth = (AuthnRequest) message;
-        assertEquals(SAMLVersion.VERSION_20, auth.getVersion());
-        assertNotNull(auth.getID());
+        var expected = new ExpectedSAMLMessage<>(
+                """
+                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="null://null/nuxeo/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
+                          <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://localhost:8080/login</saml2:Issuer>
+                          <saml2p:NameIDPolicy Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"/>
+                        </saml2p:AuthnRequest>
+                        """,
+                AuthnRequest::getID, AuthnRequest::getIssueInstant);
+        var actual = extractQueryParam(loginURL, SAML_REQUEST);
+        assertSAMLMessage(expected, actual);
     }
 
     @Test
-    public void testRetrieveIdentity() throws Exception {
+    public void testRetrieveIdentity() {
+        Instant now = Instant.now();
+        var samlResponse = """
+                <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                ID="%s" Destination="http://localhost:8080/login" IssueInstant="%s"
+                                InResponseTo="_a5947jig4cb55ii746a2963a67bf65" Version="2.0">
+                  <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">http://dummy</saml:Issuer>
+                  <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+                    <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                      Value="urn:oasis:names:tc:SAML:2.0:status:Success">
+                    </samlp:StatusCode>
+                  </samlp:Status>
+                  <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                                  ID="%s" IssueInstant="%s"
+                                  Version="2.0">
+                    <saml:Issuer>http://dummy</saml:Issuer>
+                    <saml:Subject>
+                      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+                                   NameQualifier="http://dummy">user@dummy</saml:NameID>
+                      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                        <saml:SubjectConfirmationData InResponseTo="_a5947jig4cb55ii746a2963a67bf65"
+                                                      Recipient="http://localhost:8080/login"/>
+                      </saml:SubjectConfirmation>
+                    </saml:Subject>
+                    <saml:Conditions NotBefore="%s" NotOnOrAfter="%s">
+                      <saml:AudienceRestriction>
+                        <saml:Audience>http://localhost:8080/login</saml:Audience>
+                      </saml:AudienceRestriction>
+                    </saml:Conditions>
+                    <saml:AuthnStatement AuthnInstant=""
+                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                      <saml:AuthnContext>
+                        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+                        </saml:AuthnContextClassRef>
+                      </saml:AuthnContext>
+                    </saml:AuthnStatement>
+                  </saml:Assertion>
+                </samlp:Response>
+                """.formatted("_" + UUID.randomUUID(), now, "_" + UUID.randomUUID(), now, now, now);
+        var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
-        HttpServletRequest req = getMockRequest("/saml-response.xml", "POST", "http://localhost:8080/login",
-                "text/html", "/relay");
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .withAttributes()
+                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
+                                                   .whenGetParameterThenReturn("RelayState", "/relay");
+        var responseHandler = MockHttpServletResponse.init();
 
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
 
-        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(req, resp);
         assertEquals(info.getUserName(), user.getId());
 
-        final ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
-
-        verify(resp).addCookie(captor.capture());
-
-        final List<Cookie> cookies = captor.getAllValues();
-
-        assertFalse(cookies.isEmpty());
-
-        String redirectUri = (String) req.getSession(true).getAttribute(NXAuthConstants.START_PAGE_SAVE_KEY);
+        var redirectUri = requestHandler.getSessionAttributeValue(NXAuthConstants.START_PAGE_SAVE_KEY);
         assertEquals("/relay", redirectUri);
 
-        Cookie cookie = cookies.stream()
-                               .filter(c -> c.getName().equals(SAMLAuthenticationProvider.SAML_SESSION_KEY))
-                               .findFirst()
-                               .orElseThrow(() -> new AssertionError("SAML session cookie not found"));
+        Cookie cookie = responseHandler.getCookie(SAML_SESSION_KEY);
+        assertNotNull(cookie);
         assertTrue(cookie.isHttpOnly());
     }
 
     @Test
-    public void testLogoutRequest() throws Exception {
+    public void testRetrieveIdentityOnSingleLogoutRequest() {
+        var samlRequest = """
+                <saml2p:LogoutRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"
+                                      Destination="http://localhost:8080/login"
+                                      ID="%s" IssueInstant="%s" Version="2.0">
+                                      Version="2.0">
+                  <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://dummy</saml2:Issuer>
+                  <saml2:NameID xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" Format="format">user@dummy</saml2:NameID>
+                  <saml2p:SessionIndex>sessionId</saml2p:SessionIndex>
+                </saml2p:LogoutRequest>
+                """.formatted(
+                "_" + UUID.randomUUID(), Instant.now());
+        var encodedSamlRequest = encodeSAMLMessage(samlRequest);
 
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .whenGetParameterThenReturn(SAML_REQUEST, encodedSamlRequest)
+                                                   .withGetCookieThenReturn(SAML_SESSION_KEY,
+                                                           "sessionId|user@dummy|format");
+        var responseHandler = MockHttpServletResponse.init();
+
+        var info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
+        assertNull(info);
+    }
+
+    @Test
+    public void testRetrieveIdentityOnSingleLogoutResponse() {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
-        Cookie[] cookies = new Cookie[] {
-                new Cookie(SAMLAuthenticationProvider.SAML_SESSION_KEY, "sessionId|user@dummy|format") };
-        when(req.getCookies()).thenReturn(cookies);
-        String logoutURL = samlAuth.getSLOUrl(req, resp);
+
+        // TODO check url
+        String url = "http://localhost:8080/login";
+        var samlResponse = """
+                <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                      xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                                      ID="%s" Destination="%s" IssueInstant="%s"
+                                      InResponseTo="_21df91a89767879fc0f7df6a1490c6000c81644d" Version="2.0">
+                  <saml:Issuer>http://dummy</saml:Issuer>
+                  <samlp:Status>
+                    <samlp:StatusCode Value="urn:oasis:names:tc:SAML:2.0:status:Success"/>
+                  </samlp:Status>
+                </samlp:LogoutResponse>
+                """.formatted("_" + UUID.randomUUID(), url, Instant.now());
+        var encodedSamlResponse = encodeSAMLMessage(samlResponse);
+        when(req.getMethod()).thenReturn("POST");
+        when(req.getRequestURL()).thenReturn(new StringBuffer(url));
+        when(req.getParameter("SAMLResponse")).thenReturn(encodedSamlResponse);
+
+        var info = samlAuth.handleRetrieveIdentity(req, resp);
+        assertNull(info);
+    }
+
+    @Test
+    public void testLogoutRequest() {
+        var requestHandler = MockHttpServletRequest.init()
+                                                   .withGetCookieThenReturn(SAML_SESSION_KEY,
+                                                           "sessionId|user@dummy|format");
+        var responseHandler = MockHttpServletResponse.init();
+
+        String logoutURL = samlAuth.getSLOUrl(requestHandler.mock(), responseHandler.mock());
 
         assertTrue(logoutURL.startsWith("http://dummy/SLORedirect"));
-
-        List<NameValuePair> params = URLEncodedUtils.parse(new URI(logoutURL), UTF_8);
-        assertEquals(HTTPRedirectBinding.SAML_REQUEST, params.get(0).getName());
-        String samlRequest = params.get(0).getValue();
-        SAMLObject message = decodeMessage(samlRequest);
-
-        // Validate type
-        assertTrue(message instanceof LogoutRequest);
-
-        LogoutRequest logout = (LogoutRequest) message;
-        assertEquals("http://dummy/SLORedirect", logout.getDestination());
+        var expected = new ExpectedSAMLMessage<>(
+                """
+                        <saml2p:LogoutRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" Destination="http://dummy/SLORedirect" ID="%s" IssueInstant="%s" Version="2.0">
+                          <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://localhost:8080/login</saml2:Issuer>
+                          <saml2:NameID xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion" Format="format">user@dummy</saml2:NameID>
+                          <saml2p:SessionIndex>sessionId</saml2p:SessionIndex>
+                        </saml2p:LogoutRequest>
+                        """,
+                LogoutRequest::getID, LogoutRequest::getIssueInstant);
+        var actual = extractQueryParam(logoutURL, SAML_REQUEST);
+        assertSAMLMessage(expected, actual);
     }
 
-    // NXP17044: strips scheme to fix validity check with reverse proxies
+    // NXP-24766
+    // skewTime=60s by default, regular skewTime mechanism is tested in retrieveIdentity with notOnOrAfter=now
+    // condition to validate is: now - skewTime < notOnOrAfter
     @Test
-    public void testUriComparator() {
-        assertTrue(SAMLBinding.uriComparator.compare("https://dummy", "http://dummy"));
+    @WithFrameworkProperty(name = SKEW_TIME_MS, value = "1")
+    public void testInvalidNotOnOrAfterTimeSkew() {
+        Instant now = Instant.now();
+        Instant notBefore = now.minusSeconds(30);
+        // setting notOnOrAfter in the past with skewTime=1 makes the condition invalid
+        Instant notOnOrAfter = now.minusSeconds(30);
+        var samlResponse = """
+                <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                ID="%s" Destination="http://localhost:8080/login" IssueInstant="%s"
+                                InResponseTo="_a5947jig4cb55ii746a2963a67bf65" Version="2.0">
+                  <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">http://dummy</saml:Issuer>
+                  <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+                    <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                      Value="urn:oasis:names:tc:SAML:2.0:status:Success">
+                    </samlp:StatusCode>
+                  </samlp:Status>
+                  <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                                  ID="%s" IssueInstant="%s"
+                                  Version="2.0">
+                    <saml:Issuer>http://dummy</saml:Issuer>
+                    <saml:Subject>
+                      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+                                   NameQualifier="http://dummy">user@dummy</saml:NameID>
+                      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                        <saml:SubjectConfirmationData InResponseTo="_a5947jig4cb55ii746a2963a67bf65"
+                                                      Recipient="http://localhost:8080/login"/>
+                      </saml:SubjectConfirmation>
+                    </saml:Subject>
+                    <saml:Conditions NotBefore="%s" NotOnOrAfter="%s">
+                      <saml:AudienceRestriction>
+                        <saml:Audience>http://localhost:8080/login</saml:Audience>
+                      </saml:AudienceRestriction>
+                    </saml:Conditions>
+                    <saml:AuthnStatement AuthnInstant=""
+                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                      <saml:AuthnContext>
+                        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+                        </saml:AuthnContextClassRef>
+                      </saml:AuthnContext>
+                    </saml:AuthnStatement>
+                  </saml:Assertion>
+                </samlp:Response>
+                """.formatted("_" + UUID.randomUUID(), now, "_" + UUID.randomUUID(), now, notBefore, notOnOrAfter);
+        var encodedSamlResponse = encodeSAMLMessage(samlResponse);
+
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .withAttributes()
+                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
+                                                   .whenGetParameterThenReturn("RelayState", "/relay");
+        var responseHandler = MockHttpServletResponse.init();
+
+        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
+        assertNull(info);
     }
 
-    protected HttpServletRequest getMockRequest(String messageFile, String method, String url, String contentType,
-            String relayState) throws Exception {
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        HttpSession session = new MockHttpSession();
-        when(request.getSession(anyBoolean())).thenReturn(session);
-        URL urlP = new URL(url);
-        File file = new File(getClass().getResource(messageFile).toURI());
-        String message = Base64.encodeFromFile(file.getAbsolutePath());
-        when(request.getMethod()).thenReturn(method);
-        when(request.getContentLength()).thenReturn(message.length());
-        when(request.getContentType()).thenReturn(contentType);
-        when(request.getParameter("SAMLart")).thenReturn(null);
-        when(request.getParameter("SAMLRequest")).thenReturn(null);
-        when(request.getParameter("SAMLResponse")).thenReturn(message);
-        when(request.getParameter("RelayState")).thenReturn(relayState);
-        when(request.getParameter("Signature")).thenReturn("");
-        when(request.getRequestURI()).thenReturn(urlP.getPath());
-        when(request.getRequestURL()).thenReturn(new StringBuffer(url));
-        when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
-        when(request.isSecure()).thenReturn(false);
-        return request;
-    }
-
+    // NXP-24766
+    // skewTime=60s by default, regular skewTime mechanism is tested in retrieveIdentity with notBefore=now
+    // condition to validate is: notBefore < now + skewTime
     @Test
-    public void testNotOnOrAfterTimeSkew() {
-        AbstractSAMLProfile profile = new AbstractSAMLProfile(null) {
-            @Override
-            public String getProfileIdentifier() {
-                return "test";
-            }
-        };
+    @WithFrameworkProperty(name = SKEW_TIME_MS, value = "1")
+    public void testInvalidNotBeforeTimeSkew() {
+        Instant now = Instant.now();
+        // setting notBefore in the future with skewTime=1 makes the condition invalid
+        Instant notBefore = now.plusSeconds(30);
+        Instant notOnOrAfter = now.plusSeconds(30);
+        var samlResponse = """
+                <samlp:Response xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                ID="%s" Destination="http://localhost:8080/login" IssueInstant="%s"
+                                InResponseTo="_a5947jig4cb55ii746a2963a67bf65" Version="2.0">
+                  <saml:Issuer xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion">http://dummy</saml:Issuer>
+                  <samlp:Status xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol">
+                    <samlp:StatusCode xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
+                                      Value="urn:oasis:names:tc:SAML:2.0:status:Success">
+                    </samlp:StatusCode>
+                  </samlp:Status>
+                  <saml:Assertion xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion"
+                                  ID="%s" IssueInstant="%s"
+                                  Version="2.0">
+                    <saml:Issuer>http://dummy</saml:Issuer>
+                    <saml:Subject>
+                      <saml:NameID Format="urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
+                                   NameQualifier="http://dummy">user@dummy</saml:NameID>
+                      <saml:SubjectConfirmation Method="urn:oasis:names:tc:SAML:2.0:cm:bearer">
+                        <saml:SubjectConfirmationData InResponseTo="_a5947jig4cb55ii746a2963a67bf65"
+                                                      Recipient="http://localhost:8080/login"/>
+                      </saml:SubjectConfirmation>
+                    </saml:Subject>
+                    <saml:Conditions NotBefore="%s" NotOnOrAfter="%s">
+                      <saml:AudienceRestriction>
+                        <saml:Audience>http://localhost:8080/login</saml:Audience>
+                      </saml:AudienceRestriction>
+                    </saml:Conditions>
+                    <saml:AuthnStatement AuthnInstant=""
+                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                      <saml:AuthnContext>
+                        <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
+                        </saml:AuthnContextClassRef>
+                      </saml:AuthnContext>
+                    </saml:AuthnStatement>
+                  </saml:Assertion>
+                </samlp:Response>
+                """.formatted("_" + UUID.randomUUID(), now, "_" + UUID.randomUUID(), now, notBefore, notOnOrAfter);
+        var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
-        Conditions conditions = mock(Conditions.class);
+        var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
+                                                   .withAttributes()
+                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
+                                                   .whenGetParameterThenReturn("RelayState", "/relay");
+        var responseHandler = MockHttpServletResponse.init();
 
-        Issuer issuer = mock(Issuer.class);
-        when(issuer.getFormat()).thenReturn(NameIDType.ENTITY);
-
-        Assertion assertion = mock(Assertion.class);
-        when(assertion.getIssuer()).thenReturn(issuer);
-        when(assertion.getConditions()).thenReturn(conditions);
-
-        // Set message expiration 30s ago
-        when(conditions.getNotOnOrAfter()).thenReturn(DateTime.now().minusSeconds(30));
-
-        // Validation passes with default 60s time skew
-        @SuppressWarnings("rawtypes")
-        SAMLMessageContext context = new BasicSAMLMessageContext();
-        try {
-            profile.validateAssertion(assertion, context);
-        } catch (SAMLException e) {
-            fail("Validation should have passed");
-        }
-
-        // Disabling time skew makes validation fail
-        profile.setSkewTimeMillis(0);
-
-        try {
-            profile.validateAssertion(assertion, context);
-            fail("Expected validation to fail");
-        } catch (SAMLException e) {
-            assertEquals("Conditions have expired", e.getMessage());
-        }
-
-    }
-
-    @Test
-    public void testNotBeforeTimeSkew() {
-        AbstractSAMLProfile profile = new AbstractSAMLProfile(null) {
-            @Override
-            public String getProfileIdentifier() {
-                return "test";
-            }
-        };
-
-        Conditions conditions = mock(Conditions.class);
-
-        Issuer issuer = mock(Issuer.class);
-        when(issuer.getFormat()).thenReturn(NameIDType.ENTITY);
-
-        Assertion assertion = mock(Assertion.class);
-        when(assertion.getIssuer()).thenReturn(issuer);
-        when(assertion.getConditions()).thenReturn(conditions);
-
-        // Set message active in 30s
-        when(conditions.getNotBefore()).thenReturn(DateTime.now().plusSeconds(30));
-
-        // Validation passes with default 60s time skew
-        @SuppressWarnings("rawtypes")
-        SAMLMessageContext context = new BasicSAMLMessageContext();
-        try {
-            profile.validateAssertion(assertion, context);
-        } catch (SAMLException e) {
-            fail("Validation should have passed");
-        }
-
-        // Disabling time skew makes validation fail
-        profile.setSkewTimeMillis(0);
-
-        try {
-            profile.validateAssertion(assertion, context);
-            fail("Expected validation to fail");
-        } catch (SAMLException e) {
-            assertEquals("Conditions are not yet active", e.getMessage());
-        }
-
-    }
-
-    protected SAMLObject decodeMessage(String message) {
-        try {
-            byte[] decodedBytes = Base64.decode(message);
-            if (decodedBytes == null) {
-                throw new MessageDecodingException("Unable to Base64 decode incoming message");
-            }
-
-            InputStream is = new ByteArrayInputStream(decodedBytes);
-            is = new InflaterInputStream(is, new Inflater(true));
-
-            Document messageDoc = new BasicParserPool().parse(is);
-            Element messageElem = messageDoc.getDocumentElement();
-
-            Unmarshaller unmarshaller = Configuration.getUnmarshallerFactory().getUnmarshaller(messageElem);
-
-            return (SAMLObject) unmarshaller.unmarshall(messageElem);
-        } catch (MessageDecodingException | XMLParserException | UnmarshallingException e) {
-            //
-        }
-        return null;
+        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
+        assertNull(info);
     }
 }

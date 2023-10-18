@@ -18,6 +18,11 @@
  */
 package org.nuxeo.runtime.pubsub;
 
+import static org.nuxeo.lib.stream.computation.log.ComputationRunner.NUXEO_METRICS_REGISTRY_NAME;
+import io.dropwizard.metrics5.Counter;
+import io.dropwizard.metrics5.MetricRegistry;
+import io.dropwizard.metrics5.SharedMetricRegistries;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +31,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.BiConsumer;
 
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -37,6 +43,9 @@ public class PubSubServiceImpl extends DefaultComponent implements PubSubService
 
     public static final String XP_CONFIG = "configuration";
 
+    // @since 2021.35
+    public static final String GLOBAL_PUBLISH_COUNTER = MetricRegistry.name("nuxeo", "pubsub", "publish").getKey();
+
     /** The currently-configured provider. */
     protected PubSubProvider provider;
 
@@ -44,6 +53,8 @@ public class PubSubServiceImpl extends DefaultComponent implements PubSubService
     protected Map<String, List<BiConsumer<String, byte[]>>> subscribers = new ConcurrentHashMap<>();
 
     protected Map<String, String> options;
+
+    protected Counter globalPublishCount;
 
     @Override
     public void deactivate(ComponentContext context) {
@@ -77,6 +88,8 @@ public class PubSubServiceImpl extends DefaultComponent implements PubSubService
                 throw new RuntimeException(e);
             }
         }
+        MetricRegistry registry = SharedMetricRegistries.getOrCreate(NUXEO_METRICS_REGISTRY_NAME);
+        globalPublishCount = registry.counter(GLOBAL_PUBLISH_COUNTER);
         provider.initialize(options, subscribers);
     }
 
@@ -91,8 +104,7 @@ public class PubSubServiceImpl extends DefaultComponent implements PubSubService
 
     @Override
     public int getApplicationStartedOrder() {
-        // let RedisComponent start before us (Redis starts before WorkManager that starts before events)
-        return -500 + 10;
+        return ComponentStartOrders.PUB_SUB;
     }
 
     // ===== delegation to actual implementation =====
@@ -100,6 +112,7 @@ public class PubSubServiceImpl extends DefaultComponent implements PubSubService
     @Override
     public void publish(String topic, byte[] message) {
         provider.publish(topic, message);
+        globalPublishCount.inc();
     }
 
     @Override

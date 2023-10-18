@@ -164,6 +164,9 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     // loaded if isStateLoaded
     protected String checkinComment;
 
+    // loaded if isStateLoaded
+    protected Calendar checkinDate;
+
     // acp is not send between client/server
     // it will be loaded lazy first time it is accessed
     // and discarded when object is serialized
@@ -201,6 +204,8 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     protected boolean isTrashed;
 
     public boolean isRecord;
+
+    public boolean isFlexibleRecord;
 
     public Calendar retainUntil;
 
@@ -749,6 +754,14 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     }
 
     @Override
+    public Calendar getCheckinDate() {
+        if (!isStateLoaded) {
+            refresh(REFRESH_STATE, null);
+        }
+        return checkinDate;
+    }
+
+    @Override
     public boolean isRecord() {
         if (!isStateLoaded && isAttached()) {
             refresh(REFRESH_STATE, null);
@@ -756,9 +769,28 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
         return isRecord;
     }
 
+    @Override
+    public boolean isEnforcedRecord() {
+        return isRecord() && !isFlexibleRecord();
+    }
+
+    @Override
+    public boolean isFlexibleRecord() {
+        if (!isStateLoaded && isAttached()) {
+            refresh(REFRESH_STATE, null);
+        }
+        return isFlexibleRecord;
+    }
+
     // for I/O
     public void makeRecord() {
         isRecord = true;
+    }
+
+    // for I/O
+    public void makeFlexibleRecord() {
+        makeRecord();
+        isFlexibleRecord = true;
     }
 
     @Override
@@ -1418,8 +1450,10 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
             isVersionSeriesCheckedOut = refresh.isVersionSeriesCheckedOut;
             versionSeriesId = refresh.versionSeriesId;
             checkinComment = refresh.checkinComment;
+            checkinDate = refresh.checkinDate;
             isTrashed = refresh.isTrashed;
             isRecord = refresh.isRecord;
+            isFlexibleRecord = refresh.isFlexibleRecord;
             retainUntil = refresh.retainUntil;
             retainedProperties = refresh.retainedProperties;
             hasLegalHold = refresh.hasLegalHold;

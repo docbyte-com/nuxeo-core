@@ -20,6 +20,8 @@
 
 package org.nuxeo.ecm.core.transientstore;
 
+import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -164,7 +166,6 @@ public abstract class AbstractTransientStore implements TransientStoreProvider {
             }
             Path cachedFileRelativePath = Paths.get(cachingDir.getName(), uuid);
             blobInfo.put("file", cachedFileRelativePath.toString());
-            // Redis doesn't support null values
             if (blob.getFilename() != null) {
                 blobInfo.put("filename", blob.getFilename());
             }
@@ -185,6 +186,7 @@ public abstract class AbstractTransientStore implements TransientStoreProvider {
 
     public File getCachingDirectory(String key) {
         String cachingDirName = getCachingDirName(key);
+        checkPathTraversal(cachingDirName);
         try {
             File cachingDir = new File(cacheDir.getCanonicalFile(), cachingDirName);
             if (!cachingDir.getCanonicalPath().startsWith(cacheDir.getCanonicalPath() + File.separator)) {
@@ -207,7 +209,7 @@ public abstract class AbstractTransientStore implements TransientStoreProvider {
     }
 
     protected long getSizeOfBlobs(List<Blob> blobs) {
-        int size = 0;
+        long size = 0;
         if (blobs != null) {
             for (Blob blob : blobs) {
                 long blobLength = blob.getLength();

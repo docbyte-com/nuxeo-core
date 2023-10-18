@@ -26,6 +26,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -491,13 +492,14 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
     }
 
     @Override
-    public boolean deleteBlob(String repositoryName, String key, boolean dryRun) throws IOException {
+    public void checkCanDeleteBlob(String repositoryName) {
         if (StringUtils.isBlank(repositoryName)) {
             // Even with a full GC we should be able to provide the repository name.
             // Else it probably means there must are shared storages.
             throw new IllegalArgumentException("Repository name cannot be null or empty");
         }
-        Repository repository = Framework.getService(RepositoryService.class).getRepository(repositoryName);
+        RepositoryService rs = Framework.getService(RepositoryService.class);
+        Repository repository = rs.getRepository(repositoryName);
         if (repository == null) {
             throw new IllegalArgumentException("Unkonwn repository: " + repositoryName);
         }
@@ -508,6 +510,14 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         if (hasSharedStorage()) {
             throw new UnsupportedOperationException("Cannot perform delete on shared storage.");
         }
+        if (!isUseRepositoryName() && rs.getRepositoryNames().size() > 1) {
+            throw new UnsupportedOperationException("Cannot perform delete on cross-repository shared storage.");
+        }
+    }
+
+    @Override
+    public boolean deleteBlob(String repositoryName, String key, boolean dryRun) throws IOException {
+        checkCanDeleteBlob(repositoryName);
         int colon = key.indexOf(':');
         String providerId;
         if (colon < 0) {
@@ -520,7 +530,8 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         }
         BlobProvider blobProvider = getBlobProvider(providerId);
         if (blobProvider == null) {
-            throw new IllegalArgumentException("Unknown blob provider: " + providerId + " for blob marked for deletion: " + key);
+            throw new IllegalArgumentException(
+                    "Unknown blob provider: " + providerId + " for blob marked for deletion: " + key);
         }
         if (!(blobProvider instanceof BlobStoreBlobProvider blobStoreProvider)) {
             log.debug("Unsupported blob provider class: {} for provider: {} for blob marked for deletion: {}",
@@ -548,8 +559,7 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             String k = colon > 0 ? key.substring(colon + 1) : key;
             BlobStore blobStore = blobStoreProvider.store;
             blobStore.deleteBlob(k);
-            es.fireEvent(new BlobEventContext(repositoryName, managedBlob).newEvent(
-                    BLOBS_DELETED_DOMAIN_EVENT));
+            es.fireEvent(new BlobEventContext(repositoryName, managedBlob).newEvent(BLOBS_DELETED_DOMAIN_EVENT));
         } else {
             log.info("Blob: {} from repository: {}, provider: {} can be deleted", key, repositoryName, providerId);
         }
@@ -559,15 +569,16 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
     @Override
     public boolean hasSharedStorage() {
         List<String> sharedStorages = getGarbageCollectors().stream()
-                .map(BinaryGarbageCollector::getId)
-                .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
-                .entrySet()
-                .stream()
-                .filter(p -> p.getValue() > 1)
-                .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+                                                            .map(BinaryGarbageCollector::getId)
+                                                            .collect(Collectors.groupingBy(Function.identity(),
+                                                                    Collectors.counting()))
+                                                            .entrySet()
+                                                            .stream()
+                                                            .filter(p -> p.getValue() > 1)
+                                                            .map(Map.Entry::getKey)
+                                                            .collect(Collectors.toList());
         if (!sharedStorages.isEmpty()) {
-            log.warn ("Shared storages detected: {}", sharedStorages);
+            log.warn("Shared storages detected: {}", sharedStorages);
             return true;
         }
         return false;
@@ -661,6 +672,16 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             }
         }
         return false;
+    }
+
+    @Override
+    public boolean isUseRepositoryName() {
+        return getBlobDispatcher().isUseRepositoryName();
+    }
+
+    @Override
+    public Collection<String> getProviderIds(String repository) {
+        return isUseRepositoryName() ? List.of(repository) : getBlobDispatcher().getBlobProviderIds();
     }
 
 }

@@ -22,8 +22,10 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
@@ -33,12 +35,18 @@ import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
+import org.nuxeo.runtime.metrics.MetricsService;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import io.dropwizard.metrics5.Gauge;
+import io.dropwizard.metrics5.MetricName;
+import io.dropwizard.metrics5.MetricRegistry;
+import io.dropwizard.metrics5.SharedMetricRegistries;
 
 /**
  * A computation that reads processor and metrics streams to build a representation of stream activities in the cluster.
@@ -68,6 +76,12 @@ public class StreamIntrospectionComputation extends AbstractComputation {
 
     protected String model;
 
+    protected final MetricRegistry registry = SharedMetricRegistries.getOrCreate(MetricsService.class.getName());
+
+    protected int scaleMetric = 0;
+
+    protected int currentWorkerNodes = 1;
+
     public StreamIntrospectionComputation() {
         super(NAME, 2, 0);
     }
@@ -80,6 +94,20 @@ public class StreamIntrospectionComputation extends AbstractComputation {
             log.warn("Instance elected to introspect Nuxeo Stream activity");
         }
         loadModel(getKvStore().getString(INTROSPECTION_KEY));
+        MetricName gaugeName = MetricName.build("nuxeo", "streams", "scale", "metric");
+        registry.remove(gaugeName);
+        registry.register(gaugeName, (Gauge<Integer>) this::getScaleMetric);
+        gaugeName = MetricName.build("nuxeo", "cluster", "worker", "count");
+        registry.remove(gaugeName);
+        registry.register(gaugeName, (Gauge<Integer>) this::getCurrentWorkerNodes);
+    }
+
+    protected int getCurrentWorkerNodes() {
+        return currentWorkerNodes;
+    }
+
+    protected int getScaleMetric() {
+        return scaleMetric;
     }
 
     protected void loadModel(String modelJson) {
@@ -107,7 +135,7 @@ public class StreamIntrospectionComputation extends AbstractComputation {
             node = modelNode.get("metrics");
             if (node.isArray()) {
                 for (JsonNode item : node) {
-                    metrics.put(item.get("ip").asText(), item);
+                    metrics.put(item.get("nodeId").asText(), item);
                 }
             }
             model = modelJson;
@@ -124,8 +152,8 @@ public class StreamIntrospectionComputation extends AbstractComputation {
             if (INPUT_1.equals(inputStreamName)) {
                 updateStreamsAndProcessors(json);
             } else if (INPUT_2.equals(inputStreamName)) {
-                if (json.has("ip")) {
-                    metrics.put(json.get("ip").asText(), json);
+                if (json.has("nodeId")) {
+                    metrics.put(json.get("nodeId").asText(), json);
                 }
             }
         }
@@ -151,12 +179,22 @@ public class StreamIntrospectionComputation extends AbstractComputation {
     }
 
     protected String getProcessorKey(JsonNode json) {
-        return json.at("/metadata/ip").asText() + ":" + json.at("/metadata/processorName").asText();
+        return json.at("/metadata/nodeId").asText() + ":" + json.at("/metadata/processorName").asText();
     }
 
     protected void updateModel() {
         KeyValueStore kv = getKvStore();
         kv.put(INTROSPECTION_KEY, model);
+        StreamIntrospectionConverter convert = new StreamIntrospectionConverter(model);
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            JsonNode activity = mapper.readTree(convert.getActivity());
+            scaleMetric = activity.at("/scale/metric").asInt();
+            currentWorkerNodes = activity.at("/scale/currentNodes").asInt();
+            log.trace("Scale metric: {}, worker nodes: {}, activity: {}", scaleMetric, currentWorkerNodes, activity);
+        } catch (JsonProcessingException e) {
+            log.warn("Invalid json model: {}", e::getMessage);
+        }
     }
 
     protected KeyValueStore getKvStore() {
@@ -188,17 +226,25 @@ public class StreamIntrospectionComputation extends AbstractComputation {
         List<String> toRemove = metrics.values()
                                        .stream()
                                        .filter(json -> (now - json.get("timestamp").asLong()) > TTL_SECONDS)
-                                       .map(json -> json.get("ip").asText())
+                                       .map(json -> json.get("nodeId").asText())
                                        .collect(Collectors.toList());
-        log.debug("Removing nodes: {}", toRemove);
+        log.debug("Removing nodes with old metrics: {}", toRemove);
         toRemove.forEach(metrics::remove);
-        toRemove.forEach(ip -> {
-            List<String> toRemoveProcessors = processors.keySet()
-                                                        .stream()
-                                                        .filter(key -> key.startsWith(ip))
-                                                        .collect(Collectors.toList());
-            toRemoveProcessors.forEach(processors::remove);
-        });
+        Set<String> toKeep = metrics.values().stream().map(json -> json.get("nodeId").asText()).collect(Collectors.toSet());
+        log.debug("List of active nodes: {}", toKeep);
+        // Remove processors with inactive nodes and older than TTL
+        Iterator<Map.Entry<String, JsonNode>> entries = processors.entrySet().iterator();
+        while (entries.hasNext()) {
+            Map.Entry<String, JsonNode> entry = entries.next();
+            JsonNode node = entry.getValue();
+            String nodeId = node.at("/metadata/nodeId").asText();
+            if (!toKeep.contains(nodeId)) {
+                JsonNode created = node.at("/metadata/created");
+                if (created == null || ((now - created.asLong()) > TTL_SECONDS)) {
+                    entries.remove();
+                }
+            }
+        }
     }
 
     protected JsonNode getJson(Record record) {

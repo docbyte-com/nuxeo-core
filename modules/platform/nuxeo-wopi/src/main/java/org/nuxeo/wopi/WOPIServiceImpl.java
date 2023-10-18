@@ -19,6 +19,7 @@
 
 package org.nuxeo.wopi;
 
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 import static org.nuxeo.wopi.Constants.WOPI_DISCOVERY_KEY;
 import static org.nuxeo.wopi.Constants.WOPI_DISCOVERY_REFRESH_EVENT;
 import static org.nuxeo.wopi.Constants.WOPI_DISCOVERY_URL_PROPERTY;
@@ -46,11 +47,13 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.ecm.core.event.impl.EventContextImpl;
+import org.nuxeo.ecm.core.io.download.DownloadService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.kv.KeyValueService;
@@ -69,6 +72,9 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
 
     private static final Logger log = LogManager.getLogger(WOPIServiceImpl.class);
 
+    // @since 2021.40
+    public static final String XP_CHECK_FILE_INFO_UPDATER = "checkFileInfoUpdater";
+
     public static final String PLACEHOLDER_IS_LICENSED_USER = "IsLicensedUser";
 
     public static final String PLACEHOLDER_IS_LICENSED_USER_VALUE = "1";
@@ -76,6 +82,9 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
     public static final String WOPI_PROPERTY_NAMESPACE = "org.nuxeo.wopi";
 
     public static final String SUPPORTED_APP_NAMES_PROPERTY_KEY = "supportedAppNames";
+
+    // @since 2021.37
+    public static final String DOWNLOAD_REASON = "download";
 
     protected static final String WOPI_DISCOVERY_INVAL_PUBSUB_TOPIC = "wopiDiscoveryInval";
 
@@ -93,8 +102,15 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
 
     protected WOPIDiscoveryInvalidator invalidator;
 
+    protected CheckFileInfoUpdater checkFileInfoUpdater;
+
     @Override
     public void start(ComponentContext context) {
+        CheckFileInfoUpdaterDescriptor desc = getDescriptor(XP_CHECK_FILE_INFO_UPDATER, UNIQUE_DESCRIPTOR_ID);
+        if (desc != null) {
+            checkFileInfoUpdater = desc.newInstance();
+        }
+
         discoveryURL = Framework.getProperty(WOPI_DISCOVERY_URL_PROPERTY);
         if (!hasDiscoveryURL()) {
             log.warn("No WOPI discovery URL configured, WOPI disabled. Please configure the '{}' property.",
@@ -104,6 +120,16 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
 
         registerInvalidator();
         loadDiscovery();
+    }
+
+    @Override
+    public void stop(ComponentContext context) {
+        checkFileInfoUpdater = null;
+        discoveryURL = null;
+        proofKey = null;
+        oldProofKey = null;
+
+        unregisterInvalidator();
     }
 
     protected boolean hasDiscoveryURL() {
@@ -123,6 +149,13 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
         }
     }
 
+    protected void unregisterInvalidator() {
+        if (invalidator != null) {
+            invalidator.close();
+            invalidator = null;
+        }
+    }
+
     protected void loadDiscovery() {
         byte[] discoveryBytes = getDiscovery();
         if (ArrayUtils.isEmpty(discoveryBytes)) {
@@ -138,7 +171,7 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
         try {
             discovery = WOPIDiscovery.read(discoveryBytes);
         } catch (NuxeoException e) {
-            log.error("Error while reading WOPI discovery {}", e::getMessage);
+            log.error("Error while reading WOPI discovery: {}", e::getMessage);
             log.debug(e, e);
             return false;
         }
@@ -217,7 +250,7 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
         }
 
         String extension = FilenameUtils.getExtension(filename);
-        return StringUtils.isNotBlank(extension) ? extension : null;
+        return StringUtils.isNotBlank(extension) ? extension.toLowerCase() : null;
     }
 
     @Override
@@ -268,7 +301,7 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
     }
 
     protected byte[] fetchDiscovery() {
-        log.debug("Fetching WOPI discovery from discovery URL {}", discoveryURL);
+        log.debug("Fetching WOPI discovery from discovery URL: {}", discoveryURL);
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         HttpGet request = new HttpGet(discoveryURL);
         try (CloseableHttpClient httpClient = httpClientBuilder.build();
@@ -294,12 +327,25 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
         return Framework.getService(KeyValueService.class).getKeyValueStore(WOPI_KEY_VALUE_STORE_NAME);
     }
 
+    @Override
+    public boolean checkDownloadBlob(DocumentModel doc, String xpath, Blob blob) {
+        return Framework.getService(DownloadService.class).checkPermission(doc, xpath, blob, DOWNLOAD_REASON, Map.of());
+    }
+
+    @Override
+    public Map<String, Serializable> updateCheckFileInfoProperties(Map<String, Serializable> checkFileInfoProperties) {
+        if (checkFileInfoUpdater != null) {
+            return checkFileInfoUpdater.update(checkFileInfoProperties);
+        }
+        return checkFileInfoProperties;
+    }
+
     public static class WOPIDiscoveryInvalidation implements SerializableMessage {
 
         private static final long serialVersionUID = 1L;
 
         @Override
-        public void serialize(OutputStream out) throws IOException {
+        public void serialize(OutputStream out) {
             // nothing to write, sending the message itself is enough
         }
     }
@@ -307,7 +353,7 @@ public class WOPIServiceImpl extends DefaultComponent implements WOPIService {
     public class WOPIDiscoveryInvalidator extends AbstractPubSubBroker<WOPIDiscoveryInvalidation> {
 
         @Override
-        public WOPIDiscoveryInvalidation deserialize(InputStream in) throws IOException {
+        public WOPIDiscoveryInvalidation deserialize(InputStream in) {
             return new WOPIDiscoveryInvalidation();
         }
 

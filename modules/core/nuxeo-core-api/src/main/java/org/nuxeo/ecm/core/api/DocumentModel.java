@@ -405,6 +405,14 @@ public interface DocumentModel extends Serializable {
     String getCheckinComment();
 
     /**
+     * Returns the checkin date (the date the version was created) if the document model is a version.
+     *
+     * @return the checkin date, or {@code null}
+     * @since 2023
+     */
+    Calendar getCheckinDate();
+
+    /**
      * Gets the version series id for this document.
      * <p>
      * All documents and versions derived by a check in or checkout from the same original document share the same
@@ -450,6 +458,26 @@ public interface DocumentModel extends Serializable {
      * @since 11.1
      */
     default boolean isRecord() {
+        return false;
+    }
+
+    /**
+     * Checks if the document is an enforced record.
+     *
+     * @return {@code true} if the document is an enforced record, {@code false} otherwise
+     * @since 2023.1
+     */
+    default boolean isEnforcedRecord() {
+        return false;
+    }
+
+    /**
+     * Checks if the document is a flexible record.
+     *
+     * @return {@code true} if the document is a flexible record, {@code false} otherwise
+     * @since 2023.1
+     */
+    default boolean isFlexibleRecord() {
         return false;
     }
 
@@ -923,6 +951,8 @@ public interface DocumentModel extends Serializable {
 
         public String checkinComment;
 
+        public Calendar checkinDate;
+
         public ACP acp;
 
         public Set<String> instanceFacets;
@@ -932,6 +962,8 @@ public interface DocumentModel extends Serializable {
         public boolean isTrashed;
 
         public boolean isRecord;
+
+        public boolean isFlexibleRecord;
 
         public List<String> retainedProperties;
 

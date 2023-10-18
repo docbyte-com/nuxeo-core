@@ -38,6 +38,8 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
+import org.nuxeo.ecm.core.api.model.Property;
+import org.nuxeo.ecm.core.api.model.impl.primitives.StringProperty;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.query.sql.model.OrderByList;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
@@ -401,7 +403,7 @@ public class MultiDirectorySession extends BaseSession {
             }
             // ok we have the data
             try {
-                return BaseSession.createEntryModel(null, schemaName, entryId, map, isReadOnlyEntry);
+                return BaseSession.createEntryModel(schemaName, entryId, map, isReadOnlyEntry);
             } catch (PropertyException e) {
                 throw new DirectoryException(e);
             }
@@ -499,10 +501,29 @@ public class MultiDirectorySession extends BaseSession {
                 // if entry does not exist, create it
                 dirInfo.getSession().createEntry(map);
             } else {
-                final DocumentModel entry = BaseSession.createEntryModel(null, dirInfo.dirSchemaName, id, null);
-                entry.setProperties(dirInfo.dirSchemaName, map);
+                final DocumentModel entry = BaseSession.createEntryModel(dirInfo.dirSchemaName, id, null);
+
+                // Make sure a null string in the field map is set to an empty string in the entry property, to avoid
+                // non-dirty false detection and guarantee that setting a field to blank is actually saved.
+                // Such a null string field can be sent from the JSF UI.
+                setProperties(entry, dirInfo.dirSchemaName, map);
                 dirInfo.getSession().updateEntry(entry);
             }
+        }
+    }
+
+    /**
+     * Sets the properties of the given {@code doc} and {@code schema} to the values provided by the given {@code map},
+     * ensuring that any {@code null} value gets transformed to an empty string for a string property.
+     */
+    protected static void setProperties(DocumentModel doc, String schema, Map<String, Object> map) {
+        for (Entry<String, Object> e : map.entrySet()) {
+            Property property = doc.getPropertyObject(schema, e.getKey());
+            Object value = e.getValue();
+            if (property instanceof StringProperty && value == null) {
+                value = "";
+            }
+            property.setValue(value);
         }
     }
 
@@ -643,7 +664,7 @@ public class MultiDirectorySession extends BaseSession {
                 }
                 final Map<String, Object> map = e.getValue();
                 seen.put(id, sourceInfo.source.name);
-                final DocumentModel entry = BaseSession.createEntryModel(null, schemaName, id, map,
+                final DocumentModel entry = BaseSession.createEntryModel(schemaName, id, map,
                         readOnlyEntries.contains(id));
                 results.add(entry);
             }

@@ -19,6 +19,8 @@
  */
 package org.nuxeo.common.codec;
 
+import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -67,18 +69,20 @@ public class Crypto {
 
     private static final Logger log = LogManager.getLogger(Crypto.class);
 
-    protected static final Pattern CRYPTO_PATTERN = Pattern.compile("\\{\\$(?<algo>.*)\\$(?<value>.+)\\}");
+    protected static final Pattern CRYPTO_PATTERN = Pattern.compile("\\{\\$(?<algo>[^\\$]*)\\$(?<value>[^\\$]+)\\}");
 
     public static final String AES = "AES";
 
     public static final String AES_ECB_PKCS5PADDING = "AES/ECB/PKCS5Padding";
 
+    // this is already used in production. Changing it would cause data loss.
     public static final String DES = "DES";
 
     public static final String DES_ECB_PKCS5PADDING = "DES/ECB/PKCS5Padding";
 
     public static final String[] IMPLEMENTED_ALGOS = { AES, DES, AES_ECB_PKCS5PADDING, DES_ECB_PKCS5PADDING };
 
+    // this is already used in production. Changing it would cause data loss.
     public static final String DEFAULT_ALGO = AES_ECB_PKCS5PADDING;
 
     private static final String SHA1 = "SHA-1";
@@ -347,6 +351,7 @@ public class Crypto {
      */
     public static Map<String, SecretKey> getKeysFromKeyStore(String keystorePath, char[] keystorePass, String keyAlias,
             char[] keyPass) throws GeneralSecurityException, IOException {
+        checkPathTraversal(keystorePath);
         KeyStore keystore = KeyStore.getInstance("JCEKS");
         try (InputStream keystoreStream = new FileInputStream(keystorePath)) {
             keystore.load(keystoreStream, keystorePass);

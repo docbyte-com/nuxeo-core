@@ -36,7 +36,7 @@ public class FunctionUtils {
      * @param <R> type of returned object to hide
      */
     @SuppressWarnings("unchecked")
-    protected static <T extends Exception, R> R sneakyThrow(Throwable t) throws T {
+    protected static <T extends Throwable, R> R sneakyThrow(Throwable t) throws T {
         throw (T) t;
     }
 }

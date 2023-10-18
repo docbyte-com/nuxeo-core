@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -41,7 +41,6 @@
     <module>nuxeo-core-storage-mem</module>
     <module>nuxeo-core-storage-mongodb</module>
     <module>nuxeo-core-storage-sql</module>
-    <module>nuxeo-core-redis</module>
     <module>nuxeo-core-test</module>
     <module>nuxeo-platform-commandline-executor</module>
   </modules>

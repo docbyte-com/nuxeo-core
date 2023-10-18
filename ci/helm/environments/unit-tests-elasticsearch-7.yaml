@@ -1,0 +1,16 @@
+extra-deploy:
+  enabled: true
+nuxeo:
+  enabled: false
+mongodb:
+  enabled: true
+postgresql:
+  enabled: false
+opensearch:
+  enabled: false
+elasticsearch7:
+  enabled: true
+elasticsearch8:
+  enabled: false
+kafka:
+  enabled: true

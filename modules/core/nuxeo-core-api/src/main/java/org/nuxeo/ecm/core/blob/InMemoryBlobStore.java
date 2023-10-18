@@ -259,9 +259,32 @@ public class InMemoryBlobStore extends AbstractBlobStore {
     }
 
     @Override
+    public boolean exists(String key) {
+        return map.containsKey(key);
+    }
+
+    @Override
     public void clear() {
         map.clear();
         legalHold.clear();
+    }
+
+    /**
+     * Gets an iterator over the blob keys.
+     *
+     * @since 2023
+     */
+    public Iterator<String> getKeyIterator() {
+        return map.keySet().iterator();
+    }
+
+    /**
+     * Gets the blob length.
+     *
+     * @since 2023
+     */
+    public long getLength(String key) {
+        return map.get(key).length;
     }
 
     @Override

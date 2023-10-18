@@ -108,17 +108,20 @@ public class GarbageCollectOrphanVersionsAction implements StreamProcessorTopolo
         protected void compute(CoreSession session, List<String> ids, Map<String, Serializable> properties) {
             for (DocumentModel version : loadDocuments(session, ids)) {
                 if (!version.isVersion()) {
-                    throw new IllegalArgumentException(
-                            String.format("Document: %s is not a version, rework the NXQL query: ", version.getId()));
+                    log.debug("Document: {} is not a version", version::getId);
+                    delta.incrementSkipCount();
+                    continue;
                 }
                 if (canRemove(session, version)) {
                     try {
                         log.debug("Remove orphan version: {}", version::getRef);
                         session.removeDocument(version.getRef());
+                        continue;
                     } catch (DocumentNotFoundException e) {
                         log.trace("Remove orphan version: {} already deleted", version::getRef);
                     }
                 }
+                delta.incrementSkipCount();
             }
         }
 

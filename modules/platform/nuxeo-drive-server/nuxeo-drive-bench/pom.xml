@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm</groupId>
     <artifactId>nuxeo-drive-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-drive-bench</artifactId>
@@ -34,17 +34,6 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm</groupId>
       <artifactId>nuxeo-drive-elasticsearch</artifactId>
-      <exclusions>
-        <!-- exclude netty client from elasticsearch because it conflicts with gatling (4.0.x vs 4.1.y) -->
-        <exclusion>
-          <groupId>org.elasticsearch.plugin</groupId>
-          <artifactId>transport-netty3-client</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.elasticsearch.plugin</groupId>
-          <artifactId>transport-netty4-client</artifactId>
-        </exclusion>
-      </exclusions>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>

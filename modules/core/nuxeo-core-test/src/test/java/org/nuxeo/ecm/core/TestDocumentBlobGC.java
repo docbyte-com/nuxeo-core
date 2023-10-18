@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.core;
 
-import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -34,7 +33,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
@@ -47,11 +45,13 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2023
@@ -61,8 +61,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/disable-schedulers.xml")
 public class TestDocumentBlobGC {
 
-    protected static final Duration AWAIT_DURATION = Duration.TWO_SECONDS;
-
     @Inject
     protected CoreFeature coreFeature;
 
@@ -71,6 +69,24 @@ public class TestDocumentBlobGC {
 
     @Inject
     protected DocumentBlobManager documentBlobManager;
+
+    @Test
+    @WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
+    public void testDisableBlobDelete() {
+        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+        DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
+        doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
+        doc = session.createDocument(doc);
+        session.save();
+        DocumentRef ref = doc.getRef();
+        ManagedBlob blob = (ManagedBlob) session.getDocument(ref).getPropertyValue("file:content");
+        BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blob.getProviderId());
+        assertNotNull(blobProvider.getFile(blob));
+        session.removeDocument(ref);
+        coreFeature.waitForAsyncCompletion();
+        assertFalse(session.exists(ref));
+        assertNotNull(blobProvider.getFile(blob));
+    }
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
@@ -100,12 +116,11 @@ public class TestDocumentBlobGC {
 
         session.removeDocument(doc2.getRef());
         assertTrue(documentBlobManager.deleteBlob(doc2.getRepositoryName(), key, false));
+        coreFeature.waitForAsyncCompletion();
 
         // Assert blob does not exist anymore
         BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blob1.getProviderId());
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider.getFile(blob1));
-        });
+        assertNull(blobProvider.getFile(blob1));
     }
 
     @Test
@@ -140,18 +155,15 @@ public class TestDocumentBlobGC {
         // Remove 1st doc
         session.removeDocument(doc1.getRef());
         coreFeature.waitForAsyncCompletion();
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider1.getFile(blob1));
-        });
+        assertNull(blobProvider1.getFile(blob1));
+
         // 2nd blob has not been deleted
         assertNotNull(blobProvider2.getFile(blob2));
 
         // Remove 2nd doc
         session2.removeDocument(doc2.getRef());
         coreFeature.waitForAsyncCompletion();
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider2.getFile(blob2));
-        });
+        assertNull(blobProvider2.getFile(blob2));
     }
 
     @Test
@@ -175,9 +187,7 @@ public class TestDocumentBlobGC {
         coreFeature.waitForAsyncCompletion();
 
         // Assert blob does not exist anymore
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider.getFile(blob));
-        });
+        assertNull(blobProvider.getFile(blob));
     }
 
     @Test
@@ -242,9 +252,7 @@ public class TestDocumentBlobGC {
 
         assertFalse(session.exists(ref));
 
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider.getFile(blob));
-        });
+        assertNull(blobProvider.getFile(blob));
     }
 
     @Test
@@ -269,9 +277,7 @@ public class TestDocumentBlobGC {
         coreFeature.waitForAsyncCompletion();
         blobs.forEach(blob -> {
             BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blob.getProviderId());
-            await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-                assertNull(blobProvider.getFile(blob));
-            });
+            assertNull(blobProvider.getFile(blob));
         });
     }
 
@@ -287,18 +293,14 @@ public class TestDocumentBlobGC {
         DocumentRef ref = doc.getRef();
         ManagedBlob blob = (ManagedBlob) session.getDocument(ref).getPropertyValue("file:content");
         BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blob.getProviderId());
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNotNull(blobProvider.getFile(blob));
-        });
+        assertNotNull(blobProvider.getFile(blob));
 
         // Replace blob
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("after"));
         doc = session.saveDocument(doc);
         coreFeature.waitForAsyncCompletion();
 
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider.getFile(blob));
-        });
+        assertNull(blobProvider.getFile(blob));
     }
 
     @Test
@@ -358,9 +360,58 @@ public class TestDocumentBlobGC {
         coreFeature.waitForAsyncCompletion();
 
         // Assert blob does not exist anymore
-        await().atMost(AWAIT_DURATION).untilAsserted(() -> {
-            assertNull(blobProvider.getFile(blob));
-        });
+        assertNull(blobProvider.getFile(blob));
+    }
+
+    // NXP-31833
+    @Test
+    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
+    public void testBlobDeleteCrossRepositoryProvider() throws IOException {
+        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+        final String CONTENT = "multiRepo";
+        // Create 2 docs in 2 different repos but referencing the same blob as main content
+        DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
+        doc1.setPropertyValue("file:content", (Serializable) Blobs.createBlob(CONTENT));
+        doc1 = session.createDocument(doc1);
+        final String repoName2 = "test2";
+        CoreSession session2 = CoreInstance.getCoreSession(repoName2);
+        DocumentModel doc2 = session2.createDocumentModel("/", "doc2", "File");
+        doc2.setPropertyValue("file:content", (Serializable) Blobs.createBlob(CONTENT));
+        doc2 = session2.createDocument(doc2);
+        session2.save();
+
+        // check that the doc shares the 2 blobs
+        ManagedBlob blob1 = (ManagedBlob) doc1.getPropertyValue("file:content");
+        ManagedBlob blob2 = (ManagedBlob) doc2.getPropertyValue("file:content");
+        assertEquals(blob1.getKey(), blob2.getKey());
+
+        assertThrows(UnsupportedOperationException.class,
+                () -> documentBlobManager.deleteBlob(repoName2, blob2.getKey(), false));
+
+        BlobProvider blobProvider1 = Framework.getService(BlobManager.class).getBlobProvider(blob1.getProviderId());
+        BlobProvider blobProvider2 = Framework.getService(BlobManager.class).getBlobProvider(blob2.getProviderId());
+        assertNotNull(blobProvider1.getFile(blob1));
+        assertNotNull(blobProvider2.getFile(blob2));
+
+        // Force 1st blob to move to another blob store (with blob dispatcher rule)
+        doc1.setPropertyValue("dc:source", "foo");
+        doc1 = session.saveDocument(doc1);
+        coreFeature.waitForAsyncCompletion();
+        // Assert blob2 still exists
+        assertNotNull(blobProvider2.getFile(blob2));
+
+        // Remove reference to the blob from doc1
+        doc1.setPropertyValue("file:content", null);
+        doc1 = session.saveDocument(doc1);
+        coreFeature.waitForAsyncCompletion();
+        // Assert blob2 still exists
+        assertNotNull(blobProvider2.getFile(blob2));
+
+        // Remove doc1
+        session.removeDocument(doc1.getRef());
+        coreFeature.waitForAsyncCompletion();
+        // Assert blob2 still exists
+        assertNotNull(blobProvider2.getFile(blob2));
     }
 
 }

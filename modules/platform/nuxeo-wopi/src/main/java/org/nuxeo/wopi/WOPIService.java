@@ -19,7 +19,11 @@
 
 package org.nuxeo.wopi;
 
+import java.io.Serializable;
+import java.util.Map;
+
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.DocumentModel;
 
 /**
  * WOPI Service.
@@ -58,5 +62,22 @@ public interface WOPIService {
      * @since 10.10
      */
     boolean refreshDiscovery();
+
+    /**
+     * Checks whether the download of the blob is allowed.
+     *
+     * @return {@code true} if download is allowed
+     * @since 2021.37
+     */
+    default boolean checkDownloadBlob(DocumentModel doc, String xpath, Blob blob) {
+        return false;
+    }
+
+    /**
+     * @since 2021.40
+     */
+    default Map<String, Serializable> updateCheckFileInfoProperties(Map<String, Serializable> checkFileInfoProperties) {
+        return checkFileInfoProperties;
+    }
 
 }

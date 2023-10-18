@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,13 @@ import org.nuxeo.runtime.api.Framework;
  * @author Florent Guillaume
  */
 public class DialectH2 extends Dialect {
+
+    protected static final List<String> RESERVED_KEYWORDS = List.of("check_constraints", "collations", "columns",
+            "column_privileges", "constants", "constraint_column_usage", "domains", "domain_constraints",
+            "element_types", "enum_values", "fields", "indexes", "index_columns", "information_schema_catalog_name",
+            "in_doubt", "key_column_usage", "locks", "parameters", "query_statistics", "referential_constraints",
+            "rights", "roles", "routines", "schemata", "sequences", "sessions", "session_state", "settings", "synonyms",
+            "tables", "table_constraints", "table_privileges", "triggers", "users", "views");
 
     protected static final String DEFAULT_USERS_SEPARATOR = ",";
 
@@ -200,6 +207,19 @@ public class DialectH2 extends Dialect {
             return rs.getBytes(index);
         }
         throw new SQLException("Unhandled JDBC type: " + column.getJdbcType());
+    }
+
+    @Override
+    public String toBooleanValueString(boolean bool) {
+        return bool ? "true" : "false";
+    }
+
+    @Override
+    public String getTableName(String name) {
+        if (RESERVED_KEYWORDS.stream().anyMatch(name::equalsIgnoreCase)) {
+            name = "nx_" + name;
+        }
+        return super.getTableName(name);
     }
 
     @Override

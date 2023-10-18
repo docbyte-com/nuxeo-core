@@ -1761,7 +1761,7 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
-    public void testRemoveDocumentsTree() {
+    public void testCannotRemoveDocumentsTree() {
         DocumentModel rootFolder = session.createDocumentModel("/", "folder", "Folder");
         rootFolder = session.createDocument(rootFolder);
         String firstUser = "mickey";
@@ -1793,16 +1793,7 @@ public class TestSQLRepositoryAPI {
 
         CoreSession firstUserSession = CoreInstance.getCoreSession(session.getRepositoryName(), firstUser);
         // remove tree
-        firstUserSession.removeDocument(docs[0].getRef());
-
-        // wait for asynchronous stuff to finish
-        coreFeature.waitForAsyncCompletion();
-
-        // Make sure the deepest document was removed despite permission was blocked
-        assertTrue(session
-                          .query(String.format("Select * From Document Where ecm:uuid = '%s'",
-                                  docs[nbLevels - 1].getRef()))
-                          .isEmpty());
+        assertThrows(DocumentSecurityException.class, () -> firstUserSession.removeDocument(docs[0].getRef()));
     }
 
     /*
@@ -4768,15 +4759,50 @@ public class TestSQLRepositoryAPI {
 
         assertFalse(session.isRecord(docRef));
         assertFalse(doc.isRecord());
+        assertFalse(session.isFlexibleRecord(docRef));
+        assertFalse(session.isEnforcedRecord(docRef));
         session.makeRecord(docRef);
         assertTrue(session.isRecord(docRef));
+        assertFalse(session.isFlexibleRecord(docRef));
+        assertTrue(session.isEnforcedRecord(docRef));
         doc.refresh();
         assertTrue(doc.isRecord());
+        assertFalse(session.isFlexibleRecord(docRef));
+        assertTrue(session.isEnforcedRecord(docRef));
 
         // still available when freshly detached
         doc = session.getDocument(doc.getRef());
         doc.detach(true);
         assertTrue(doc.isRecord());
+        assertFalse(session.isFlexibleRecord(docRef));
+        assertTrue(session.isEnforcedRecord(docRef));
+    }
+
+    @Test
+    public void testFlexibleRecord() {
+        DocumentModel doc = session.createDocumentModel("/", "doc", "File");
+        doc = session.createDocument(doc);
+        DocumentRef docRef = doc.getRef();
+
+        assertFalse(session.isRecord(docRef));
+        assertFalse(session.isFlexibleRecord(docRef));
+        assertFalse(session.isEnforcedRecord(docRef));
+        assertFalse(doc.isRecord());
+        session.makeFlexibleRecord(docRef);
+        assertTrue(session.isRecord(docRef));
+        assertTrue(session.isFlexibleRecord(docRef));
+        assertFalse(session.isEnforcedRecord(docRef));
+        doc.refresh();
+        assertTrue(doc.isRecord());
+        assertTrue(session.isFlexibleRecord(docRef));
+        assertFalse(session.isEnforcedRecord(docRef));
+
+        // still available when freshly detached
+        doc = session.getDocument(doc.getRef());
+        doc.detach(true);
+        assertTrue(doc.isRecord());
+        assertTrue(session.isFlexibleRecord(docRef));
+        assertFalse(session.isEnforcedRecord(docRef));
     }
 
     @Test
@@ -4836,7 +4862,16 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
-    public void testRetainUntil() {
+    public void testEnforcedRetainUntil() {
+        testRetainUntil(false);
+    }
+
+    @Test
+    public void testFlexibleRetainUntil() {
+        testRetainUntil(true);
+    }
+
+    protected void testRetainUntil(boolean flexible) {
         DocumentModel folder = session.createDocumentModel("/", "fold", "Folder");
         folder = session.createDocument(folder);
         ACP acp = new ACPImpl();
@@ -4858,7 +4893,13 @@ public class TestSQLRepositoryAPI {
         }
 
         // make it a record
-        session.makeRecord(doc.getRef());
+        if (flexible) {
+            session.makeFlexibleRecord(doc.getRef());
+        } else {
+            session.makeRecord(doc.getRef());
+        }
+        doc.refresh();
+        assertEquals(flexible, doc.isFlexibleRecord());
         // bob can delete it
         CoreSession bobSession = openSessionAs("bob");
         assertTrue(bobSession.hasPermission(doc.getRef(), SecurityConstants.REMOVE));
@@ -4904,6 +4945,58 @@ public class TestSQLRepositoryAPI {
         } catch (PropertyException e) {
             assertTrue(e.getMessage(), e.getMessage().startsWith("Cannot reduce retention time"));
         }
+
+        DocumentRef ref = doc.getRef();
+        if (flexible) {
+            assertThrows(DocumentSecurityException.class, () -> bobSession.unsetRetainUntil(ref));
+            doc.refresh();
+            assertEquals(retainUntil, doc.getRetainUntil());
+            assertTrue(doc.isUnderRetentionOrLegalHold());
+            session.unsetRetainUntil(ref);
+            doc.refresh();
+            assertNull(doc.getRetainUntil());
+            assertFalse(doc.isUnderRetentionOrLegalHold());
+        } else {
+            // enforced record
+            assertThrows(DocumentSecurityException.class, () -> bobSession.unsetRetainUntil(ref));
+            doc.refresh();
+            assertEquals(retainUntil, doc.getRetainUntil());
+            assertTrue(doc.isUnderRetentionOrLegalHold());
+            assertThrows(PropertyException.class, () -> session.unsetRetainUntil(ref));
+            doc.refresh();
+            assertEquals(retainUntil, doc.getRetainUntil());
+            assertTrue(doc.isUnderRetentionOrLegalHold());
+        }
+    }
+
+    @Test
+    public void testCannotTurnEnforcedRecordIntoFlexible() {
+        DocumentModel doc = session.createDocumentModel("/", "doc", "File");
+        doc = session.createDocument(doc);
+
+        // make enforced record
+        session.makeRecord(doc.getRef());
+        doc.refresh();
+        DocumentRef ref = doc.getRef();
+
+        // cannot turn enforced record into flexible
+        assertThrows(IllegalStateException.class, () -> session.makeFlexibleRecord(ref));
+    }
+
+    @Test
+    public void testLegalHoldOnFlexibleRecord() {
+        DocumentModel doc = session.createDocumentModel("/", "doc", "File");
+        doc = session.createDocument(doc);
+
+        session.makeFlexibleRecord(doc.getRef());
+        doc.refresh();
+        assertTrue(doc.isFlexibleRecord());
+        session.setLegalHold(doc.getRef(), true, null);
+        doc.refresh();
+        assertFalse(doc.isFlexibleRecord());
+        session.setLegalHold(doc.getRef(), false, null);
+        doc.refresh();
+        assertFalse(doc.isFlexibleRecord());
     }
 
     @Test
@@ -5045,14 +5138,8 @@ public class TestSQLRepositoryAPI {
 
         // check that the document cannot be deleted through a parent
         assertTrue(session.getPrincipal().isAdministrator());
-        try {
-            session.removeDocument(folder.getRef());
-            fail("remove should fail");
-        } catch (DocumentExistsException e) {
-            assertEquals(
-                    "Cannot remove " + folder.getId() + ", subdocument " + doc.getId() + " is under retention / hold",
-                    e.getMessage());
-        }
+        assertThrows("remove should fail", DocumentExistsException.class,
+                () -> session.removeDocument(folder.getRef()));
     }
 
     @SuppressWarnings("deprecation")

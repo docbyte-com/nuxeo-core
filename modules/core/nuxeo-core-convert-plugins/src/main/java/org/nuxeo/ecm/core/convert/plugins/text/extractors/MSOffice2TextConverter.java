@@ -26,12 +26,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Map;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.poi.extractor.ExtractorFactory;
 import org.apache.poi.extractor.POITextExtractor;
-import org.apache.poi.ooxml.extractor.ExtractorFactory;
-import org.apache.poi.openxml4j.exceptions.OpenXML4JException;
-import org.apache.xmlbeans.XmlException;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
@@ -42,6 +44,8 @@ import org.nuxeo.ecm.core.convert.extension.ConverterDescriptor;
 import org.nuxeo.runtime.api.Framework;
 
 public class MSOffice2TextConverter implements Converter {
+
+    private static final Logger log = LogManager.getLogger(MSOffice2TextConverter.class);
 
     @Override
     public BlobHolder convert(BlobHolder blobHolder, Map<String, Serializable> parameters) throws ConversionException {
@@ -55,7 +59,7 @@ public class MSOffice2TextConverter implements Converter {
             // Get extracted text with Unix end of line characters
             String extractedText = extractor.getText().replace("\r\n", "\n");
 
-            byte[] bytes = extractedText.getBytes("UTF-8");
+            byte[] bytes = extractedText.getBytes(StandardCharsets.UTF_8);
             f = Framework.createTempFile("po-msoffice2text", ".txt");
             try (OutputStream fas = new FileOutputStream(f)) {
                 fas.write(bytes);
@@ -65,17 +69,22 @@ public class MSOffice2TextConverter implements Converter {
                 Blob blob = Blobs.createBlob(is, "text/plain", "UTF-8");
                 return new SimpleCachableBlobHolder(blob);
             }
-        } catch (IOException | OpenXML4JException | XmlException e) {
+        } catch (IOException e) {
             throw new ConversionException("Error during MSOffice2Text conversion", blobHolder, e);
         } finally {
             if (f != null) {
-                f.delete();
+                try {
+                    Files.delete(f.toPath());
+                } catch (IOException e) {
+                    log.error(e, e);
+                }
             }
         }
     }
 
     @Override
     public void init(ConverterDescriptor descriptor) {
+        // nothing to do
     }
 
 }

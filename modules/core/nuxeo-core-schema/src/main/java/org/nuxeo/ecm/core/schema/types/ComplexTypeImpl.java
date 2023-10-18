@@ -116,7 +116,6 @@ public class ComplexTypeImpl extends AbstractType implements ComplexType {
         return true;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public boolean validate(Object object) throws TypeException {
         throw new UnsupportedOperationException("Unimplemented, use DocumentValidationService");
@@ -188,7 +187,7 @@ public class ComplexTypeImpl extends AbstractType implements ComplexType {
         if (xpath.indexOf('[') == -1) {
             return xpath;
         } else {
-            return xpath.replaceAll("[^/\\[\\]]+\\[(\\d+|\\*)\\]", "$1");
+            return xpath.replaceAll("(?<=\\/|^)[^/\\[\\]]+\\[(\\d+|\\*)\\]", "$1");
         }
     }
 

@@ -21,8 +21,10 @@ package org.nuxeo.ecm.core.blob;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Set;
 
+import org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
@@ -34,6 +36,18 @@ import org.nuxeo.ecm.core.model.Document;
  * @since 9.2
  */
 public interface DocumentBlobManager {
+
+    /**
+     * Checks that blobs can be safely deleted for the given repository. If the call returns without throwing an
+     * Exception, blobs can be safely deleted calling {@link #deleteBlob(String, String, boolean)}.
+     *
+     * @throws UnsupportedOperationException if the repository does not have the
+     *             {@link org.nuxeo.ecm.core.model.Repository#CAPABILITY_QUERY_BLOB_KEYS} capability or there is a
+     *             shared storage detected (by bad blob provider configurations)
+     * @param repositoryName the repositoryName
+     * @since 2023
+     */
+    void checkCanDeleteBlob(String repositoryName);
 
     /**
      * Deletes the blob associated to the given key. The method checks that the blob key is not referenced by any
@@ -176,7 +190,10 @@ public interface DocumentBlobManager {
      *            about them), if {@code true} delete them
      * @return a status about the number of garbage collected binaries
      * @since 7.4
+     * @deprecated since 2023, this FullGC implementation does not scale on large repositories, use
+     *             {@link GarbageCollectOrphanBlobsAction} instead
      */
+    @Deprecated
     BinaryManagerStatus garbageCollectBinaries(boolean delete);
 
     /**
@@ -186,5 +203,22 @@ public interface DocumentBlobManager {
      * @since 7.4
      */
     boolean isBinariesGarbageCollectionInProgress();
+
+    /**
+     * Are the blobs from a repository stored in a provider with the same name.
+     *
+     * @return true if the blobs are dispatched to the provider with the same name than the repository
+     * @since 2023
+     */
+    boolean isUseRepositoryName();
+
+    /**
+     * Gets the list of the provider ids that are used by the given repository.
+     *
+     * @param repository the repository name
+     * @return the list of provider ids where blob can be dispatched for the given repository
+     * @since 2023
+     */
+    Collection<String> getProviderIds(String repository);
 
 }

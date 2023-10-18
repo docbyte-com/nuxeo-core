@@ -26,10 +26,12 @@ object Constants {
   val AUTOMATION_PATH = "/site/automation"
   val ROOT_WORKSPACE_PATH = "/default-domain/workspaces"
   val NX_PATH = "/nxpath/default"
-
+  val API_MANAGEMENT = "/api/v1/management"
 
   val GAT_WS_NAME = "Bench_Gatling"
   val GAT_WS_PATH = ROOT_WORKSPACE_PATH + "/Bench_Gatling"
+  val GAT_FOLDER_IMPORT_NAME = "import"
+  val GAT_FOLDER_IMPORT_PATH = GAT_WS_PATH + "/" + GAT_FOLDER_IMPORT_NAME
   val GAT_FOLDER_NAME = "Common"
   val GAT_USER_FOLDER_NAME = "Folder_${user}"
   val GAT_GROUP_NAME = "gatling"

@@ -31,7 +31,9 @@ import org.nuxeo.runtime.pubsub.SerializableMessage;
  * An action that needs to be propagated to all nodes in the cluster.
  *
  * @since 2021.25
+ * @deprecated since 2023.0, use {@link org.nuxeo.runtime.pubsub.ClusterActionService} instead
  */
+@Deprecated
 public class ClusterAction implements SerializableMessage {
     private static final long serialVersionUID = 20220719L;
 

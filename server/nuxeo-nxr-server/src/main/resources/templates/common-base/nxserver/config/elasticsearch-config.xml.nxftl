@@ -25,6 +25,7 @@
       <option name="keyStorePath">${elasticsearch.restClient.keystore.path}</option>
       <option name="keyStorePassword">${elasticsearch.restClient.keystore.password}</option>
       <option name="keyStoreType">${elasticsearch.restClient.keystore.type}</option>
+      <option name="sslCertificateVerification">${elasticsearch.restClient.ssl.certificate.verification}</option>
       <option name="authenticationType">${elasticsearch.restClient.authenticationType}</option>
       <option name="region">${elasticsearch.restClient.region}</option>
       <!-- deprecated since 10.3, and actually referring to the trustStore -->

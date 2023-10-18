@@ -20,7 +20,9 @@ package org.nuxeo.ecm.restapi.server;
 
 /**
  * @since 2021.25
+ * @deprecated since 2023.0, use {@link org.nuxeo.runtime.pubsub.ClusterActionService} instead
  */
+@Deprecated
 public interface RestAPIService {
 
     /**

@@ -78,9 +78,11 @@ mail.user=nobody
 mail.debug=false
 mail.from=noreply@nuxeo.com
 
-nuxeo.core.binarymanager=org.nuxeo.ecm.core.blob.binary.DefaultBinaryManager
+nuxeo.core.binarymanager=org.nuxeo.ecm.core.blob.LocalBlobProvider
 nuxeo.core.binarymanager_key=
 nuxeo.quartz.enable=false
+
+org.nuxeo.rest.exception.message.enabled=true
 
 ###
 # WorkManager
@@ -171,6 +173,7 @@ elasticsearch.restClient.truststore.type=
 elasticsearch.restClient.keystore.path=
 elasticsearch.restClient.keystore.password=
 elasticsearch.restClient.keystore.type=
+elasticsearch.restClient.ssl.certificate.verification=true
 
 elasticsearch.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{common,core-api,elasticsearch-core}*.jar
 elasticsearch.check.class=org.nuxeo.elasticsearch.ElasticSearchChecker
@@ -219,6 +222,14 @@ kafka.keystore.type=JKS
 kafka.keystore.path=
 kafka.keystore.password=
 
+# Legacy rendition are performed on front nodes
+nuxeo.rendition.legacy.enabled=false
+# thread pool per worker node for the new rendition
+nuxeo.work.queue.renditionBuilder.threads=2
+# new rendition cache in minutes (not used by legacy implementation)
+nuxeo.transientstore.rendition.cache.ttl=240
+nuxeo.transientstore.rendition.cache.ttl2=10
+
 # deprecated we don't use anymore zookeeper
 kafka.zkServers=localhost:2181
 # Confluent Avro Schema Registry
@@ -226,7 +237,7 @@ confluent.schema_registry.enabled=false
 confluent.schema_registry.urls=http://localhost:8081
 
 # Stream WorkManager
-nuxeo.stream.work.enabled=false
+nuxeo.stream.work.enabled=${kafka.enabled}
 nuxeo.stream.work.log.codec=avro
 nuxeo.stream.work.over.provisioning.factor=3
 
@@ -342,15 +353,16 @@ nuxeo.cors.pattern=/.*
 nuxeo.bulk.action.attachRetentionRule.defaultConcurrency=2
 nuxeo.bulk.action.attachRetentionRule.defaultPartitions=4
 nuxeo.bulk.action.automation.defaultConcurrency=2
-nuxeo.bulk.action.automation.defaultPartitions=2
+nuxeo.bulk.action.automation.defaultPartitions=4
 nuxeo.bulk.action.automationUi.defaultConcurrency=2
-nuxeo.bulk.action.automationUi.defaultPartitions=2
+nuxeo.bulk.action.automationUi.defaultPartitions=4
 nuxeo.bulk.action.blobGC.defaultConcurrency=1
 nuxeo.bulk.action.blobGC.defaultPartitions=1
+nuxeo.bulk.action.blobGC.enabled=true
 nuxeo.bulk.action.csvExport.defaultConcurrency=2
-nuxeo.bulk.action.csvExport.defaultPartitions=2
+nuxeo.bulk.action.csvExport.defaultPartitions=4
 nuxeo.bulk.action.deletion.defaultConcurrency=2
-nuxeo.bulk.action.deletion.defaultPartitions=2
+nuxeo.bulk.action.deletion.defaultPartitions=4
 nuxeo.bulk.action.documentRoutingEscalation.defaultConcurrency=2
 nuxeo.bulk.action.documentRoutingEscalation.defaultPartitions=4
 nuxeo.bulk.action.driveFireGroupUpdatedEvent.defaultConcurrency=2
@@ -361,6 +373,8 @@ nuxeo.bulk.action.extractBinaryFulltext.defaultConcurrency=2
 nuxeo.bulk.action.extractBinaryFulltext.defaultPartitions=4
 nuxeo.bulk.action.holdDocumentsAction.defaultConcurrency=2
 nuxeo.bulk.action.holdDocumentsAction.defaultPartitions=4
+nuxeo.bulk.action.migration.defaultConcurrency=2
+nuxeo.bulk.action.migration.defaultPartitions=4
 nuxeo.bulk.action.processRetentionEvent.defaultConcurrency=2
 nuxeo.bulk.action.processRetentionEvent.defaultPartitions=4
 nuxeo.bulk.action.recomputeThumbnails.defaultConcurrency=2
@@ -376,16 +390,20 @@ nuxeo.bulk.action.reindex.bulkIndex.concurrency=${elasticsearch.bulk.index.submi
 nuxeo.bulk.action.reindex.bulkIndex.partitions=${elasticsearch.bulk.index.submit.partitions}
 nuxeo.bulk.action.reindex.index.concurrency=${elasticsearch.bulk.index.fetch.concurrency}
 nuxeo.bulk.action.reindex.index.partitions=${elasticsearch.bulk.index.fetch.partitions}
+nuxeo.bulk.action.garbageCollectWokflows.defaultConcurrency=2
+nuxeo.bulk.action.garbageCollectWokflows.defaultPartitions=4
+nuxeo.bulk.action.garbageCollectOrphanBlobs.defaultConcurrency=2
+nuxeo.bulk.action.garbageCollectOrphanBlobs.defaultPartitions=4
 nuxeo.bulk.action.garbageCollectOrphanVersions.defaultConcurrency=2
-nuxeo.bulk.action.garbageCollectOrphanVersions.defaultPartitions=2
+nuxeo.bulk.action.garbageCollectOrphanVersions.defaultPartitions=4
 nuxeo.bulk.action.removeProxy.defaultConcurrency=2
-nuxeo.bulk.action.removeProxy.defaultPartitions=2
+nuxeo.bulk.action.removeProxy.defaultPartitions=4
 nuxeo.bulk.action.retentionExpired.defaultConcurrency=1
 nuxeo.bulk.action.retentionExpired.defaultPartitions=1
 nuxeo.bulk.action.setProperties.defaultConcurrency=2
-nuxeo.bulk.action.setProperties.defaultPartitions=2
+nuxeo.bulk.action.setProperties.defaultPartitions=4
 nuxeo.bulk.action.setSystemProperties.defaultConcurrency=2
-nuxeo.bulk.action.setSystemProperties.defaultPartitions=2
+nuxeo.bulk.action.setSystemProperties.defaultPartitions=4
 nuxeo.bulk.action.trash.defaultConcurrency=1
 nuxeo.bulk.action.trash.defaultPartitions=1
 nuxeo.bulk.action.unholdDocumentsAction.defaultConcurrency=2

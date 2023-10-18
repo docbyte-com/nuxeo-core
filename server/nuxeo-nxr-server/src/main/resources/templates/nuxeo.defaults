@@ -20,7 +20,7 @@ nuxeo.url=http://localhost:8080/core
 org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Docbyte
-org.nuxeo.ecm.product.version=2023.01.11-SNAPSHOT
+org.nuxeo.ecm.product.version=2023.10.81-SNAPSHOT
 
 
 # Various other default values
@@ -30,7 +30,7 @@ org.nuxeo.ecm.product.version=2023.01.11-SNAPSHOT
 #nuxeo.db.user=
 #nuxeo.db.password=
 
-nuxeo.pubsub.provider=
+nuxeo.pubsub.provider=stream
 nuxeo.keyvalue.provider=
 nuxeo.work.queuing=
 nuxeo.lock.manager=

@@ -41,7 +41,6 @@ import java.util.Random;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
@@ -52,6 +51,8 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bouncycastle.jcajce.io.CipherInputStream;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.api.Framework;
 
@@ -100,10 +101,12 @@ public class AESBinaryManager extends LocalBinaryManager {
     protected static final String AES = "AES";
 
     // insecure, see https://find-sec-bugs.github.io/bugs.htm#PADDING_ORACLE
+    // disabled by default but here for people to use at their own discretion
     protected static final String AES_CBC_PKCS5_PADDING = "AES/CBC/PKCS5Padding";
 
     protected static final String AES_GCM_NOPADDING = "AES/GCM/NoPadding";
 
+    // this is already used in production. Changing it would cause data loss.
     protected static final String PBKDF2_WITH_HMAC_SHA1 = "PBKDF2WithHmacSHA1";
 
     protected static final int PBKDF2_ITERATIONS = 10000;
@@ -506,7 +509,7 @@ public class AESBinaryManager extends LocalBinaryManager {
         if (useInsecureCipher) {
             return Cipher.getInstance(AES_CBC_PKCS5_PADDING); // NOSONAR
         } else {
-            return Cipher.getInstance(AES_GCM_NOPADDING);
+            return Cipher.getInstance(AES_GCM_NOPADDING, new BouncyCastleProvider());
         }
     }
 

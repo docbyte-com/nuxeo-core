@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm</groupId>
     <artifactId>nuxeo-drive-parent</artifactId>
-    <version>2023.0-SNAPSHOT</version>
+    <version>2023.1-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm</groupId>
@@ -14,7 +14,6 @@
   </description>
 
   <dependencies>
-    <!-- Nuxeo -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
@@ -80,14 +79,13 @@
       <artifactId>nuxeo-drive-core</artifactId>
     </dependency>
 
-    <!-- Third parties -->
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.persistence</groupId>
-      <artifactId>persistence-api</artifactId>
+      <artifactId>javax.persistence-api</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.mail</groupId>
@@ -98,7 +96,6 @@
       <artifactId>javax.servlet-api</artifactId>
     </dependency>
 
-    <!-- Tests -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
@@ -139,11 +136,6 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-collections4</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -201,5 +193,4 @@
       </plugin>
     </plugins>
   </build>
-
 </project>

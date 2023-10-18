@@ -31,6 +31,7 @@ import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.utils.ExceptionUtils;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.elasticsearch.api.ESClient;
@@ -88,6 +89,11 @@ public class ESRestClient implements ESClient {
 
     protected RestHighLevelClient client;
 
+    protected RequestOptions COMPAT_ES_OPTIONS = RequestOptions.DEFAULT.toBuilder()
+            .addHeader("Accept", "application/json; compatible-with=7; charset=UTF-8")
+            .addHeader("Content-Type", "application/json; compatible-with=7; charset=UTF-8")
+            .build();
+
     public ESRestClient(RestClient lowLevelRestClient, RestHighLevelClient client) {
         this.lowLevelClient = lowLevelRestClient;
         this.client = client;
@@ -140,7 +146,17 @@ public class ESRestClient implements ESClient {
 
     @Override
     public void refresh(String indexName) {
-        performRequestWithTracing(new Request("POST", "/" + indexName + "/_refresh"));
+        try {
+            performRequestWithTracing(new Request("POST", "/" + indexName + "/_refresh"));
+        } catch (NuxeoException e) {
+            Throwable cause = ExceptionUtils.getRootCause(e);
+            if (cause != null && cause instanceof SocketTimeoutException) {
+                // We don't want to throw failure on refresh timeout because previous indexing commands are processed
+                log.warn("Ignoring refresh timeouts: {}", e::getMessage);
+            } else {
+                throw e;
+            }
+        }
     }
 
     @Override
@@ -237,6 +253,7 @@ public class ESRestClient implements ESClient {
 
     protected Response performRequest(Request request) {
         try {
+            request.setOptions(COMPAT_ES_OPTIONS);
             return lowLevelClient.performRequest(request);
         } catch (IOException e) {
             throw new NuxeoException(e);
@@ -316,11 +333,17 @@ public class ESRestClient implements ESClient {
     }
 
     protected void deleteAlias(String aliasName) {
+        String indexName = getFirstIndexForAlias(aliasName);
+        if (indexName == null) {
+            // there is no alias to delete
+            return;
+        }
         Response response = performRequestWithTracing(
-                new Request("DELETE", String.format("/_all/_alias/%s", aliasName)));
+                new Request("DELETE", String.format("/%s/_alias/%s", indexName, aliasName)));
         int code = response.getStatusLine().getStatusCode();
         if (code != HttpStatus.SC_OK) {
-            throw new IllegalStateException(String.format("Deleting %s alias: %s", aliasName, response));
+            throw new IllegalStateException(
+                    String.format("Fail to delete alias %s -> %s: %s", aliasName, indexName, response));
         }
     }
 
@@ -357,7 +380,7 @@ public class ESRestClient implements ESClient {
                 // use a longer timeout than the default one
                 request.timeout(LONG_TIMEOUT);
             }
-            BulkResponse response = client.bulk(request, RequestOptions.DEFAULT);
+            BulkResponse response = client.bulk(request, COMPAT_ES_OPTIONS);
             if (response.hasFailures()) {
                 for (BulkItemResponse item : response.getItems()) {
                     if (item.isFailed() && RestStatus.TOO_MANY_REQUESTS == item.getFailure().getStatus()) {
@@ -390,21 +413,46 @@ public class ESRestClient implements ESClient {
 
     @Override
     public DeleteResponse delete(DeleteRequest request) {
+        if (ReplicationRequest.DEFAULT_TIMEOUT == request.timeout()) {
+            // use a longer timeout than the default one
+            request.timeout(LONG_TIMEOUT);
+        }
+        // 3 retries with backoff of 20s jitter 0.5:
+        // retry 1: 20s +/-10 [t+10, t+30]
+        // retry 2: 40s +/-20 [t+30 t+90]
+        // retry 3: 80S +/-40 [t+70, t+210]
+        RetryPolicy policy = new RetryPolicy().withMaxRetries(3)
+                                              .withBackoff(20, 200, TimeUnit.SECONDS)
+                                              .withJitter(0.5)
+                                              .retryOn(TooManyRequestsRetryableException.class);
+        AtomicReference<DeleteResponse> response = new AtomicReference<>();
+        Failsafe.with(policy)
+                .onRetry(failure -> log.warn("Retrying delete ... " + request.getDescription()))
+                .onRetriesExceeded(failure -> log.warn(
+                        "Give up delete after " + policy.getMaxRetries() + " retries: " + request.getDescription()))
+                .run(() -> response.set(doDelete(request)));
+        return response.get();
+    }
+
+    protected DeleteResponse doDelete(DeleteRequest request) throws TooManyRequestsRetryableException {
         try {
-            if (ReplicationRequest.DEFAULT_TIMEOUT == request.timeout()) {
-                // use a longer timeout than the default one
-                request.timeout(LONG_TIMEOUT);
+            return client.delete(request, COMPAT_ES_OPTIONS);
+        } catch (OpenSearchStatusException e) {
+            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
+                log.warn("Detecting overloaded Elastic delete response: " + e.getMessage());
+                throw new TooManyRequestsRetryableException(e.getMessage());
             }
-            return client.delete(request, RequestOptions.DEFAULT);
-        } catch (IOException e) {
             throw new NuxeoException(e);
+        } catch (IOException e) {
+            log.warn("Elastic delete timeout, might be overloaded", e);
+            throw new TooManyRequestsRetryableException(e.getMessage());
         }
     }
 
     @Override
     public SearchResponse search(SearchRequest request) {
         try (Scope ignored = getScopedSpan("elastic/_search", request.toString())) {
-            return client.search(request, RequestOptions.DEFAULT);
+            return client.search(request, COMPAT_ES_OPTIONS);
         } catch (IOException | OpenSearchStatusException e) {
             // OpenSearchStatusException is raised when using phrase prefix on keyword type
             throw new NuxeoException(e);
@@ -414,7 +462,7 @@ public class ESRestClient implements ESClient {
     @Override
     public SearchResponse searchScroll(SearchScrollRequest request) {
         try (Scope ignored = getScopedSpan("elastic/_scroll", request.toString())) {
-            return client.scroll(request, RequestOptions.DEFAULT);
+            return client.scroll(request, COMPAT_ES_OPTIONS);
         } catch (IOException e) {
             throw new NuxeoException(e);
         }
@@ -423,7 +471,7 @@ public class ESRestClient implements ESClient {
     @Override
     public GetResponse get(GetRequest request) {
         try (Scope ignored = getScopedSpan("elastic/_get", request.toString())) {
-            return client.get(request, RequestOptions.DEFAULT);
+            return client.get(request, COMPAT_ES_OPTIONS);
         } catch (IOException e) {
             throw new NuxeoException(e);
         }
@@ -454,7 +502,7 @@ public class ESRestClient implements ESClient {
                 // use a longer timeout than the default one
                 request.timeout(LONG_TIMEOUT);
             }
-            return client.index(request, RequestOptions.DEFAULT);
+            return client.index(request, COMPAT_ES_OPTIONS);
         } catch (OpenSearchStatusException e) {
             if (RestStatus.CONFLICT.equals(e.status())) {
                 throw new ConcurrentUpdateException(e);
@@ -484,7 +532,7 @@ public class ESRestClient implements ESClient {
     public ClearScrollResponse clearScroll(ClearScrollRequest request) {
         try {
             log.debug("Clearing scroll ids: {}", () -> Arrays.toString(request.getScrollIds().toArray()));
-            return client.clearScroll(request, RequestOptions.DEFAULT);
+            return client.clearScroll(request, COMPAT_ES_OPTIONS);
         } catch (OpenSearchStatusException e) {
             if (RestStatus.NOT_FOUND.equals(e.status())) {
                 log.debug("Scroll ids not found, they have certainly been already closed: {}",
@@ -499,7 +547,7 @@ public class ESRestClient implements ESClient {
 
     @Override
     public BulkProcessor.Builder bulkProcessorBuilder(BulkProcessor.Listener bulkListener) {
-        return BulkProcessor.builder((request, listener) -> client.bulkAsync(request, RequestOptions.DEFAULT, listener),
+        return BulkProcessor.builder((request, listener) -> client.bulkAsync(request, COMPAT_ES_OPTIONS, listener),
                 bulkListener);
     }
 

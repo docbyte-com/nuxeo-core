@@ -37,6 +37,10 @@
     },
     "id": {
       "type": "long"
+    },
+    "extended.params": {
+      "type": "object",
+      "enabled": false
     }
   }
 }
