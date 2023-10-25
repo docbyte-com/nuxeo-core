@@ -52,6 +52,7 @@ RUN rpm --import http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems \
 # Copy downloaded rpms
 COPY --from=rpm-download /rpms /tmp/rpms
 
+RUN dnf -y clean all
 RUN dnf -y update \
   && dnf -y --setopt=skip_missing_names_on_install=False install \
     epel-release \
