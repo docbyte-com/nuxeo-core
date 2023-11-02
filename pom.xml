@@ -71,7 +71,7 @@
     <jaxb.version>2.3.8</jaxb.version>
     <tomcat.version>9.0.78</tomcat.version>
     <opensearch.version>1.3.11</opensearch.version>
-    <netty.version>4.1.94.Final</netty.version>
+    <netty.version>4.1.96.Final</netty.version>
     <netty.boringssl.version>2.0.61.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
@@ -83,7 +83,7 @@
     <apache.poi.version>5.2.3</apache.poi.version>
     <jodreport.version>2.4.0</jodreport.version>
     <jxls.version>1.0.6-NX02</jxls.version>
-    <jxls2.version>2.12.0</jxls2.version>
+    <jxls2.version>2.13.0</jxls2.version>
     <keycloak.version>19.0.3</keycloak.version>
     <xdocreport.version>1.0.6</xdocreport.version>
     <google.http.client.version>1.43.3</google.http.client.version>
@@ -148,7 +148,7 @@
     <mongo.java.driver.version>4.10.2</mongo.java.driver.version>
     <quartz.mongodb.version>2.2.0-rc2</quartz.mongodb.version>
 
-    <kafka.version>3.5.0</kafka.version>
+    <kafka.version>3.5.1</kafka.version>
     <confluent.version>6.2.11</confluent.version>
     <metrics.version>5.0.0-rc3</metrics.version>
     <maven.surefire.version>2.22.2</maven.surefire.version>
@@ -3564,7 +3564,7 @@
       <dependency>
         <groupId>org.apache.jackrabbit</groupId>
         <artifactId>jackrabbit-webdav</artifactId>
-        <version>2.21.16</version>
+        <version>2.21.18</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -4838,7 +4838,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>properties-maven-plugin</artifactId>
-          <version>1.1.0</version>
+          <version>1.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.owasp</groupId>
@@ -5081,7 +5081,7 @@
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.43.0</version>
+          <version>0.43.2</version>
           <extensions>true</extensions>
         </plugin>
       </plugins>
