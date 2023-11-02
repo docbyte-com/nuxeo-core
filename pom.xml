@@ -4308,7 +4308,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Xmx1g -Dfile.encoding=UTF-8 -XX:-OmitStackTraceInFastThrow ${it.failsafe.argLine} ${it.modules.argLine}</argLine>
+          <argLine>-Xmx1g -Dfile.encoding=UTF-8 -XX:-OmitStackTraceInFastThrow  -Djdk.util.zip.disableZip64ExtraFieldValidation=true ${it.failsafe.argLine} ${it.modules.argLine}</argLine>
           <skipTests>${skip.surefire.tests}</skipTests>
           <systemPropertyVariables>
             <net.sourceforge.cobertura.datafile>
