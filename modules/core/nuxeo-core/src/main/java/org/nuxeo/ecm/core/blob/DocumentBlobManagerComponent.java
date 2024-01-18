@@ -228,7 +228,11 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             ManagedBlob managedBlob = (ManagedBlob) blob;
             String currentProviderId = managedBlob.getProviderId();
             // is the blob non-transient, so that reusing the key is an option?
-            if (!getBlobProvider(currentProviderId).isTransient()) {
+            BlobProvider currentProvider = getBlobProvider(currentProviderId);
+            if (currentProvider.isRecordMode() && doc.isRetained(xpath)) {
+                throw new DocumentSecurityException(
+                        "Cannot change blob from document " + doc.getUUID() + ", it is under retention / hold");
+            } else if (!currentProvider.isTransient()) {
                 // is it something we don't have to dispatch?
                 if (!blobDispatcher.getBlobProviderIds().contains(currentProviderId)) {
                     // not something we have to dispatch, reuse the key
@@ -247,10 +251,6 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         BlobProvider blobProvider = getBlobProvider(dispatch.providerId);
         if (blobProvider == null) {
             throw new NuxeoException("No registered blob provider with id: " + dispatch.providerId);
-        }
-        if (blobProvider.isRecordMode() && doc.isRetained(xpath)) {
-            throw new DocumentSecurityException(
-                    "Cannot change blob from document " + doc.getUUID() + ", it is under retention / hold");
         }
         String key = blobProvider.writeBlob(new BlobContext(blob, doc, xpath));
         if (dispatch.addPrefix) {
@@ -507,11 +507,14 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             throw new UnsupportedOperationException(
                     "Repository does not have QUERY_BLOB_KEYS capability: " + repositoryName);
         }
-        if (hasSharedStorage()) {
-            throw new UnsupportedOperationException("Cannot perform delete on shared storage.");
-        }
-        if (!isUseRepositoryName() && rs.getRepositoryNames().size() > 1) {
-            throw new UnsupportedOperationException("Cannot perform delete on cross-repository shared storage.");
+        boolean multiRepos = rs.getRepositoryNames().size() > 1;
+        if (multiRepos) {
+            if (hasSharedStorage()) {
+                throw new UnsupportedOperationException("Cannot perform delete on shared storage.");
+            }
+            if (!isUseRepositoryName()) {
+                throw new UnsupportedOperationException("Cannot perform delete on cross-repository shared storage.");
+            }
         }
     }
 

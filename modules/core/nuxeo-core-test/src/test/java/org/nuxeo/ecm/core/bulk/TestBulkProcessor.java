@@ -24,6 +24,7 @@ import static org.awaitility.Duration.ONE_MINUTE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.DONE_STREAM_NAME;
@@ -242,7 +243,7 @@ public class TestBulkProcessor {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/bulk-sequential-contrib.xml")
-    public void testSequentialCommand() throws Exception {
+    public void testSequentialAndExclusiveExecutions() throws Exception {
         final int nbDocs = 10;
         final int nbCommands = 10;
         // create some docs
@@ -263,12 +264,47 @@ public class TestBulkProcessor {
         // get the results
         assertTrue("Bulk action didn't finish", service.await(Duration.ofSeconds(60)));
         List<BulkStatus> results = commands.stream().map(service::getStatus).collect(Collectors.toList());
-        // sequential commands should not overlap
-        assertFalse(overlapCommands(
-                results.stream().filter(r -> "dummySequential".equals(r.getAction())).collect(Collectors.toList()),
-                true));
-        // concurrent commands should overlap but not every time, so it cannot be tested in a reliable way, see
-        // NXP-29233
+
+        // sequential scroll should not overlap
+        assertTrue(sequentialScroll(
+                results.stream().filter(r -> "dummySequential".equals(r.getAction())).collect(Collectors.toList())));
+        // sequential processing should not be concurrent
+        assertTrue(sequentialProcessing(
+                results.stream().filter(r -> "dummySequential".equals(r.getAction())).collect(Collectors.toList())));
+
+        // sort by processing latencies
+        results.sort(Comparator.comparing(r -> r.getProcessingEndTime().toEpochMilli() - r.getProcessingStartTime().toEpochMilli()));
+        // the lowest latency must be a concurrent processing
+        assertEquals("dummyConcurrent", results.get(0).getAction());
+        // the slowest latency should be a sequential processing,
+        // but depending on the random partitioning and concurrent execution a jam is still possible
+
+        // check exclusive command
+        String commandId = service.submit(
+                new BulkCommand.Builder("dummyExclusive", "SELECT * FROM File", "Administrator").build());
+        assertThrows("Should not be able to submit another exclusive bulk command.", IllegalStateException.class,
+                () -> service.submit(
+                        new BulkCommand.Builder("dummyExclusive", "SELECT * FROM File", "Administrator").build()));
+        service.await(commandId, Duration.ofMinutes(1));
+        // once completed it's possible to submit a new one
+        commandId = service.submit(
+                new BulkCommand.Builder("dummyExclusive", "SELECT * FROM File", "Administrator").build());
+        service.await(commandId, Duration.ofMinutes(1));
+    }
+
+    @Test
+    public void testExclusiveCommand() throws InterruptedException {
+        String nxql = "SELECT * FROM Document";
+        String commandId = service.submit(
+                new BulkCommand.Builder(SetPropertiesAction.ACTION_NAME, nxql, "user").setExclusive(true)
+                                                                                      .setSequentialScroll(true)
+                                                                                      .setSequentialProcessing(true)
+                                                                                      .build());
+        assertThrows("Should not be able to submit another exclusive bulk command.", IllegalStateException.class,
+                () -> service.submit(
+                        new BulkCommand.Builder(SetPropertiesAction.ACTION_NAME, nxql, "user").setExclusive(true)
+                                                                                              .build()));
+        service.await(commandId, Duration.ofMinutes(1));
     }
 
     @Test
@@ -410,8 +446,7 @@ public class TestBulkProcessor {
         assertFalse(status.hasError());
     }
 
-    protected boolean overlapCommands(List<BulkStatus> results, boolean logOverlap) {
-        // Check for overlap on scrolling
+    protected boolean sequentialScroll(List<BulkStatus> results) {
         results.sort(Comparator.comparing(BulkStatus::getScrollStartTime));
         BulkStatus previous = null;
         for (BulkStatus current : results) {
@@ -421,33 +456,32 @@ public class TestBulkProcessor {
             }
             if (overlapInstant(previous.getScrollStartTime(), previous.getScrollEndTime(), current.getScrollStartTime(),
                     current.getScrollEndTime())) {
-                if (logOverlap) {
-                    logOverlap("scroll", previous, current);
-                }
-                return true;
+                logOverlap(previous, current);
+                return false;
             }
         }
-        // Check for overlap on processing
-        results.sort(Comparator.comparing(BulkStatus::getProcessingStartTime));
-        previous = null;
-        for (BulkStatus current : results) {
-            if (previous == null) {
-                previous = current;
-                continue;
-            }
-            if (overlapInstant(previous.getProcessingStartTime(), previous.getProcessingEndTime(),
-                    current.getProcessingStartTime(), current.getProcessingEndTime())) {
-                if (logOverlap) {
-                    logOverlap("processing", previous, current);
-                }
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
-    protected void logOverlap(String msg, BulkStatus previous, BulkStatus current) {
-        log.warn(String.format("Overlap detected in %s:\n- %s\n- %s", msg, previous, current));
+    protected boolean sequentialProcessing(List<BulkStatus> results) {
+        // When processing duration is greater than the elapsed time concurrency happens
+        results.sort(Comparator.comparing(BulkStatus::getProcessingStartTime));
+        for (BulkStatus current : results) {
+            long elapsed = current.getProcessingEndTime().toEpochMilli()
+                    - current.getProcessingStartTime().toEpochMilli();
+            if (current.getProcessingDurationMillis() > elapsed) {
+                log.warn(String.format("Not sequential processing: %s", current));
+                log.warn(String.format("%s start: %s, end: %s duration: %s > elapsed: %s", current.getId(),
+                        current.getProcessingStartTime(), current.getProcessingEndTime(),
+                        current.getProcessingDurationMillis(), elapsed));
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected void logOverlap(BulkStatus previous, BulkStatus current) {
+        log.warn(String.format("Overlap detected:\n- %s\n- %s", previous, current));
         log.warn(String.format("%s %s %s %s %s %s", previous.getId(), previous.getSubmitTime(),
                 previous.getScrollStartTime(), previous.getScrollEndTime(), previous.getProcessingStartTime(),
                 previous.getCompletedTime()));

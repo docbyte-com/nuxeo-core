@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.1-SNAPSHOT</version>
+    <version>2023.4-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -34,6 +34,7 @@
     <module>nuxeo-liveconnect</module>
     <module>nuxeo-localconf-simple</module>
     <module>nuxeo-mail</module>
+    <module>nuxeo-mail-amazon-ses</module>
     <module>nuxeo-multi-tenant-core</module>
     <module>nuxeo-permissions</module>
     <module>nuxeo-platform-3d</module>
@@ -137,10 +138,10 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
             <ignoredUnusedDeclaredDependencies combine.children="append">
-              <artifact>org.nuxeo.common:nuxeo-common</artifact>
+              <artifact>cloud.docbyte.nuxeo.common:nuxeo-common</artifact>
               <artifact>cloud.docbyte.nuxeo.runtime:nuxeo-runtime</artifact>
               <artifact>cloud.docbyte.nuxeo.runtime:nuxeo-runtime-test</artifact>
-              <artifact>org.nuxeo.ecm.core:nuxeo-core-test</artifact>
+              <artifact>cloud.docbyte.nuxeo.ecm.core:nuxeo-core-test</artifact>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>

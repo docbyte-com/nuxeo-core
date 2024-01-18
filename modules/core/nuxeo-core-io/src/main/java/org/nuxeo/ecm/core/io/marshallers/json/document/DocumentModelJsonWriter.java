@@ -120,7 +120,7 @@ public class DocumentModelJsonWriter extends ExtensibleEntityJsonWriter<Document
     protected static boolean fetchHeavy() {
         if (FETCH_HEAVY_VALUES == null) {
             try {
-                FETCH_HEAVY_VALUES = Framework.isBooleanPropertyTrue("nuxeo.document.json.fetch.heavy");
+                FETCH_HEAVY_VALUES = Framework.isBooleanPropertyTrue(DOCUMENT_JSON_FETCH_HEAVY_KEY);
             } catch (Exception e) {
                 FETCH_HEAVY_VALUES = false;
             }
@@ -179,6 +179,10 @@ public class DocumentModelJsonWriter extends ExtensibleEntityJsonWriter<Document
             String versionLabel = doc.getVersionLabel();
             jg.writeStringField("versionLabel", versionLabel != null ? versionLabel : "");
         }
+        if (isVersion) {
+            jg.writeBooleanField("isLatestVersion", doc.isLatestVersion());
+            jg.writeBooleanField("isLatestMajorVersion", doc.isLatestMajorVersion());
+        }
         if (mustFetch("lock")) {
             Lock lock = doc.getLockInfo();
             if (lock != null) {
@@ -193,10 +197,10 @@ public class DocumentModelJsonWriter extends ExtensibleEntityJsonWriter<Document
             }
         }
 
-        String[] docSchemas  = doc.getSchemas();
+        String[] docSchemas = doc.getSchemas();
         try (Closeable resource = ctx.wrap().controlDepth().open()) {
             Set<String> schemas = ctx.getProperties();
-            if (schemas.size() > 0) {
+            if (!schemas.isEmpty()) {
                 jg.writeObjectFieldStart("properties");
                 if (schemas.contains(WILDCARD_VALUE)) {
                     // full document
@@ -224,7 +228,6 @@ public class DocumentModelJsonWriter extends ExtensibleEntityJsonWriter<Document
 
         jg.writeArrayFieldStart("schemas");
         if (docSchemas.length > 0) {
-            SchemaManager schemaManager = Framework.getService(SchemaManager.class);
             for (String schemaName : docSchemas) {
                 Schema schema = schemaManager.getSchema(schemaName);
                 if (schema != null) {

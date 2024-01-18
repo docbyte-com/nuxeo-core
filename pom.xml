@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
-  <version>2023.1-SNAPSHOT</version>
+  <version>2023.4-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Nuxeo ECM Projects</name>
   <description>Nuxeo ECM Platform and related components.</description>
@@ -55,8 +55,9 @@
     <!-- <license.useMissingFile>true</license.useMissingFile> -->
     <!-- <license.missingFile>src/main/license/THIRD-PARTY.properties</license.missingFile> -->
 
-    <nuxeo.platform.version>2023.1-SNAPSHOT</nuxeo.platform.version>
+    <nuxeo.platform.version>2023.4-SNAPSHOT</nuxeo.platform.version>
     <nuxeo.distribution.name>lts</nuxeo.distribution.name>
+    <nuxeo.platform.javadoc.version>${project.version}</nuxeo.platform.javadoc.version>
 
     <nuxeo.connect.client.version>1.8.6</nuxeo.connect.client.version>
     <!-- nuxeo-distribution-tools is still used as a dependency -->
@@ -69,10 +70,10 @@
     <servlet-api.version>4.0.1</servlet-api.version>
     <jaxb-api.version>2.3.3</jaxb-api.version>
     <jaxb.version>2.3.8</jaxb.version>
-    <tomcat.version>9.0.78</tomcat.version>
-    <opensearch.version>1.3.11</opensearch.version>
-    <netty.version>4.1.96.Final</netty.version>
-    <netty.boringssl.version>2.0.61.Final</netty.boringssl.version>
+    <tomcat.version>9.0.82</tomcat.version>
+    <opensearch.version>1.3.13</opensearch.version>
+    <netty.version>4.1.100.Final</netty.version>
+    <netty.boringssl.version>2.0.62.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>3.0</guice.version>
@@ -100,7 +101,7 @@
     <jackson.version>2.12.7</jackson.version>
     <jackson.bom.version>2.12.7.20221012</jackson.bom.version>
     <bouncycastle.version>1.69</bouncycastle.version>
-    <avro.version>1.11.2</avro.version>
+    <avro.version>1.11.3</avro.version>
     <restlet.version>2.4.3</restlet.version>
     <jmock.version>2.12.0</jmock.version>
     <wro4j.version>1.10.1</wro4j.version>
@@ -108,8 +109,8 @@
 
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
-    <org.ops4j.pax.version>4.13.1</org.ops4j.pax.version>
-    <org.apache.log4j.version>2.20.0</org.apache.log4j.version>
+    <org.ops4j.pax.version>4.13.5</org.ops4j.pax.version>
+    <org.apache.log4j.version>2.21.0</org.apache.log4j.version>
     <org.slf4j.version>1.7.36</org.slf4j.version>
     <gatling.version>3.3.1</gatling.version>
     <gatling-plugin.version>3.1.2</gatling-plugin.version>
@@ -131,6 +132,8 @@
     <skip.surefire.tests>${skipTests}</skip.surefire.tests>
 
     <!-- for use in maven-surefire-plugin, maven-failsafe-plugin -->
+    <it.memory.argLine>-Xmx1g</it.memory.argLine>
+    <!-- for use in maven-surefire-plugin, maven-failsafe-plugin -->
     <it.failsafe.argLine></it.failsafe.argLine>
     <it.modules.argLine>
       --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED
@@ -145,16 +148,16 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>4.10.2</mongo.java.driver.version>
+    <mongo.java.driver.version>4.11.0</mongo.java.driver.version>
     <quartz.mongodb.version>2.2.0-rc2</quartz.mongodb.version>
 
-    <kafka.version>3.5.1</kafka.version>
-    <confluent.version>6.2.11</confluent.version>
+    <kafka.version>3.6.0</kafka.version>
+    <confluent.version>6.2.12</confluent.version>
     <metrics.version>5.0.0-rc3</metrics.version>
     <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
-    <okhttp.version>4.11.0</okhttp.version>
-    <protobuf.java.version>3.23.4</protobuf.java.version>
+    <okhttp.version>4.12.0</okhttp.version>
+    <protobuf.java.version>3.24.4</protobuf.java.version>
     <opensaml.version>4.3.0</opensaml.version>
   </properties>
 
@@ -578,6 +581,11 @@
         <artifactId>nuxeo-mail</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-mail-amazon-ses</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1175,6 +1183,12 @@
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-notification</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-notification</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -2093,7 +2107,7 @@
       <dependency>
         <groupId>org.codehaus.woodstox</groupId>
         <artifactId>stax2-api</artifactId>
-        <version>4.2.1</version>
+        <version>4.2.2</version>
       </dependency>
       <dependency>
         <groupId>javax.annotation</groupId>
@@ -2162,7 +2176,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.12.0</version>
+        <version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2232,7 +2246,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.23.0</version>
+        <version>1.24.0</version>
       </dependency>
       <dependency>
         <groupId>commons-jexl</groupId>
@@ -2247,12 +2261,12 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-pool2</artifactId>
-        <version>2.11.1</version>
+        <version>2.12.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
-        <version>2.9.0</version>
+        <version>2.10.0</version>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -2799,7 +2813,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>2.0</version>
+        <version>2.2</version>
       </dependency>
       <!-- jsp library for login and error pages -->
       <dependency>
@@ -2825,7 +2839,7 @@
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>2.7.9</version>
+        <version>2.7.10</version>
       </dependency>
       <!-- Informative declarations, Oracle drivers are not publicly available. -->
       <dependency>
@@ -3148,7 +3162,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.10.13</version>
+        <version>1.10.14</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jdt</groupId>
@@ -3564,7 +3578,7 @@
       <dependency>
         <groupId>org.apache.jackrabbit</groupId>
         <artifactId>jackrabbit-webdav</artifactId>
-        <version>2.21.18</version>
+        <version>2.21.20</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3670,7 +3684,7 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>9.5</version>
+        <version>9.6</version>
       </dependency>
 
       <dependency>
@@ -3811,7 +3825,7 @@
       <dependency>
         <groupId>org.apache.xbean</groupId>
         <artifactId>xbean-naming</artifactId>
-        <version>4.23</version>
+        <version>4.24</version>
       </dependency>
 
       <dependency>
@@ -3832,6 +3846,11 @@
       <dependency>
         <groupId>com.amazonaws</groupId>
         <artifactId>aws-java-sdk-sts</artifactId>
+        <version>${aws.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-ses</artifactId>
         <version>${aws.version}</version>
       </dependency>
       <dependency>
@@ -3905,7 +3924,7 @@
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.161</version>
+        <version>4.8.163</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -4141,7 +4160,7 @@
       <dependency>
         <groupId>net.jodah</groupId>
         <artifactId>expiringmap</artifactId>
-        <version>0.5.10</version>
+        <version>0.5.11</version>
       </dependency>
       <dependency>
         <groupId>com.github.mike10004</groupId>
@@ -4308,7 +4327,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-Xmx1g -Dfile.encoding=UTF-8 -XX:-OmitStackTraceInFastThrow  -Djdk.util.zip.disableZip64ExtraFieldValidation=true ${it.failsafe.argLine} ${it.modules.argLine}</argLine>
+          <argLine>${it.memory.argLine} -Dfile.encoding=UTF-8 -XX:-OmitStackTraceInFastThrow ${it.failsafe.argLine} ${it.modules.argLine}</argLine>
           <skipTests>${skip.surefire.tests}</skipTests>
           <systemPropertyVariables>
             <net.sourceforge.cobertura.datafile>
@@ -4462,7 +4481,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.5.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -4497,11 +4516,10 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.6.0</version>
           <configuration>
             <doclint>all,-missing</doclint>
             <show>protected</show>
-            <linksource>true</linksource>
             <tags>
               <!-- took from https://bugs.openjdk.java.net/browse/JDK-8068562 -->
               <tag>
@@ -4575,7 +4593,7 @@
             </dependency>
           </dependencies>
           <configuration>
-            <argLine>${it.failsafe.argLine} ${it.modules.argLine}</argLine>
+            <argLine>${it.memory.argLine} ${it.failsafe.argLine} ${it.modules.argLine}</argLine>
             <trimStackTrace>false</trimStackTrace>
           </configuration>
         </plugin>
@@ -4623,7 +4641,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.16.0</version>
+          <version>2.16.1</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -5081,7 +5099,7 @@
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.43.2</version>
+          <version>0.43.4</version>
           <extensions>true</extensions>
         </plugin>
       </plugins>
@@ -5212,6 +5230,17 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-site-plugin</artifactId>
+            <dependencies>
+              <dependency>
+                <groupId>org.apache.maven.wagon</groupId>
+                <artifactId>wagon-webdav-jackrabbit</artifactId>
+                <version>3.5.3</version>
+              </dependency>
+            </dependencies>
+          </plugin>
         </plugins>
       </build>
       <reporting>
@@ -5277,6 +5306,12 @@
           </plugin>
         </plugins>
       </reporting>
+      <distributionManagement>
+        <site>
+          <id>nuxeo-platform-javadoc</id>
+          <url>dav:https://packages.nuxeo.com/repository/nuxeo-platform-javadoc/${nuxeo.platform.javadoc.version}/</url>
+        </site>
+      </distributionManagement>
     </profile>
 
     <profile>

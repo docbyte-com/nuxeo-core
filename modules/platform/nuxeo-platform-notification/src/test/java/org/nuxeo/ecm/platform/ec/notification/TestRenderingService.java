@@ -39,8 +39,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.notification")
+@Features({ CoreFeature.class, NotificationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.notification.tests:notification-contrib.xml")
 public class TestRenderingService {
 
@@ -63,7 +62,7 @@ public class TestRenderingService {
         Collection<RenderingResult> results = rs.process(context);
 
         for (RenderingResult result : results) {
-            assertTrue(((String)result.getOutcome()).contains(MYDESCRIPTION));
+            assertTrue(((String) result.getOutcome()).contains(MYDESCRIPTION));
         }
     }
 

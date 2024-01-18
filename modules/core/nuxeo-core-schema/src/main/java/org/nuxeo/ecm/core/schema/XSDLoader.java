@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ import com.sun.xml.xsom.ForeignAttributes;
 import com.sun.xml.xsom.XSAttributeDecl;
 import com.sun.xml.xsom.XSAttributeUse;
 import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSComponent;
 import com.sun.xml.xsom.XSContentType;
 import com.sun.xml.xsom.XSElementDecl;
 import com.sun.xml.xsom.XSFacet;
@@ -136,6 +137,7 @@ public class XSDLoader {
     }
 
     // used by Studio, do not remove
+    @SuppressWarnings("unused")
     public XSDLoader(SchemaManagerImpl schemaManager, boolean collectReferencedXSD) {
         this.schemaManager = schemaManager;
         this.collectReferencedXSD = collectReferencedXSD;
@@ -215,6 +217,7 @@ public class XSDLoader {
     }
 
     // called by SchemaManagerImpl
+    @SuppressWarnings("unused")
     public Schema loadSchema(String name, String prefix, File file) throws SAXException, IOException, TypeException {
         return loadSchema(name, prefix, file, null);
     }
@@ -441,9 +444,9 @@ public class XSDLoader {
             content = xsct.getContentType();
         }
         Type ret = createComplexType(schema, superType, name, content, xsct.isAbstract());
-        if (ret != null && ret instanceof ComplexType) {
+        if (ret instanceof ComplexType complexType) {
             // load attributes if any
-            loadAttributes(schema, xsct, (ComplexType) ret);
+            loadAttributes(schema, xsct, complexType);
         }
 
         return ret;
@@ -472,8 +475,7 @@ public class XSDLoader {
         SimpleTypeImpl simpleType = new SimpleTypeImpl(superType, schema.getName(), name);
 
         // add constraints/restrictions to the simple type
-        if (type instanceof RestrictionSimpleTypeImpl) {
-            RestrictionSimpleTypeImpl restrictionType = (RestrictionSimpleTypeImpl) type;
+        if (type instanceof RestrictionSimpleTypeImpl restrictionType) {
 
             List<Constraint> constraints = new ArrayList<>();
 
@@ -650,7 +652,19 @@ public class XSDLoader {
             log.error("list item type was not defined -> you should define first the item type");
             return null;
         }
-        return new ListTypeImpl(schema.getName(), name, itemType);
+        boolean computedNillable = isNillable(type);
+
+        int flags = 0;
+        if (computedNillable) {
+            flags |= Field.NILLABLE;
+        }
+
+        Set<Constraint> constraints = new HashSet<>();
+        if (!computedNillable) {
+            constraints.add(NotNullConstraint.get());
+        }
+        // construct an array ListType
+        return new ListTypeImpl(schema.getName(), name, itemType, null, null, flags, constraints, 0, -1);
     }
 
     protected Type createComplexType(Schema schema, ComplexType superType, String name, XSContentType content,
@@ -795,8 +809,7 @@ public class XSDLoader {
         if (!computedNillable) {
             constraints.add(NotNullConstraint.get());
         }
-        if (type instanceof SimpleType) {
-            SimpleType st = (SimpleType) type;
+        if (type instanceof SimpleType st) {
             constraints.addAll(st.getConstraints());
         }
 
@@ -897,6 +910,7 @@ public class XSDLoader {
     }
 
     // used by Studio, do not remove
+    @SuppressWarnings("unused")
     public List<String> getReferencedXSD() {
         return referencedXSD;
     }
@@ -909,8 +923,12 @@ public class XSDLoader {
      * @since 7.1
      */
     protected static boolean isNillable(XSElementDecl element) {
-        String value = element.getForeignAttribute(NAMESPACE_CORE_VALIDATION, "nillable");
-        return element.isNillable() || value == null || Boolean.parseBoolean(value);
+        return element.isNillable() || isNillable((XSComponent) element);
+    }
+
+    protected static boolean isNillable(XSComponent component) {
+        String value = component.getForeignAttribute(NAMESPACE_CORE_VALIDATION, "nillable");
+        return value == null || Boolean.parseBoolean(value);
     }
 
 }

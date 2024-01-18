@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
@@ -54,13 +55,13 @@ public class ListTypeImpl extends AbstractType implements ListType {
     public ListTypeImpl(String schema, String name, Type type, String fieldName, String defaultValue, int flags,
             Set<Constraint> constraints, int minOccurs, int maxOccurs) {
         super(null, schema, name);
+        Set<Constraint> computedConstraints = new HashSet<>(constraints);
         if (fieldName == null) {
             isArray = true;
             fieldName = "item";
+            computedConstraints.addAll(type.getConstraints());
         }
         this.type = type;
-        // if the list is an array, there's no field constraint (notnull)
-        Collection<Constraint> computedConstraints = isArray ? type.getConstraints() : constraints;
         field = new FieldImpl(QName.valueOf(fieldName), this, type, defaultValue, flags, computedConstraints);
         this.minOccurs = minOccurs;
         this.maxOccurs = maxOccurs;
@@ -150,7 +151,6 @@ public class ListTypeImpl extends AbstractType implements ListType {
     }
 
     @Override
-    @SuppressWarnings("rawtypes")
     public boolean validate(Object object) throws TypeException {
         throw new UnsupportedOperationException("Unimplemented, use DocumentValidationService");
     }
@@ -158,12 +158,8 @@ public class ListTypeImpl extends AbstractType implements ListType {
     @Override
     public Object newInstance() {
         Object defaultValue = this.defaultValue;
-        if (defaultValue != null) {
-            return defaultValue;
-        } else {
-            // XXX AT: maybe use the type to be more specific on list elements
-            return new ArrayList<>();
-        }
+        // XXX AT: maybe use the type to be more specific on list elements
+        return Objects.requireNonNullElseGet(defaultValue, ArrayList::new);
     }
 
     @Override

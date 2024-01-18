@@ -126,7 +126,22 @@ public class BulkAdminServiceImpl implements BulkAdminService {
 
     @Override
     public boolean isSequentialCommands(String actionId) {
-        return descriptors.get(actionId).sequentialCommands;
+        return isSequentialScroll(actionId);
+    }
+
+    @Override
+    public boolean isSequentialScroll(String actionId) {
+        return descriptors.get(actionId).sequentialScroll || descriptors.get(actionId).sequentialCommands;
+    }
+
+    @Override
+    public boolean isSequentialProcessing(String actionId) {
+        return descriptors.get(actionId).sequentialProcessing;
+    }
+
+    @Override
+    public boolean isExclusive(String actionId) {
+        return descriptors.get(actionId).exclusive;
     }
 
     @Override

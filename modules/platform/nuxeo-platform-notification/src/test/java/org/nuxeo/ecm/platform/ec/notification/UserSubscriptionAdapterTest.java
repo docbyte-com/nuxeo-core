@@ -35,15 +35,13 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 import com.google.inject.Inject;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.notification")
+@Features({ CoreFeature.class, NotificationFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class UserSubscriptionAdapterTest {
 
@@ -139,8 +137,8 @@ public class UserSubscriptionAdapterTest {
         assertThat(us.getUserSubscriptions("Administration")).hasSize(0);
 
         session.createDocument(session.createDocumentModel("/", "workspace", "Workspace"));
-        DocumentModel doc = session.createDocument(session.createDocumentModel("/workspace", "subscribablenote",
-                "Workspace"));
+        DocumentModel doc = session.createDocument(
+                session.createDocumentModel("/workspace", "subscribablenote", "Workspace"));
 
         us = doc.getAdapter(SubscriptionAdapter.class);
         us.addSubscriptionsToAll("Administrator");
