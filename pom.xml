@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
-  <version>2023.4-SNAPSHOT</version>
+  <version>2023.5-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Nuxeo ECM Projects</name>
   <description>Nuxeo ECM Platform and related components.</description>
@@ -55,7 +55,7 @@
     <!-- <license.useMissingFile>true</license.useMissingFile> -->
     <!-- <license.missingFile>src/main/license/THIRD-PARTY.properties</license.missingFile> -->
 
-    <nuxeo.platform.version>2023.4-SNAPSHOT</nuxeo.platform.version>
+    <nuxeo.platform.version>2023.5-SNAPSHOT</nuxeo.platform.version>
     <nuxeo.distribution.name>lts</nuxeo.distribution.name>
     <nuxeo.platform.javadoc.version>${project.version}</nuxeo.platform.javadoc.version>
 
@@ -69,10 +69,11 @@
 
     <servlet-api.version>4.0.1</servlet-api.version>
     <jaxb-api.version>2.3.3</jaxb-api.version>
-    <jaxb.version>2.3.8</jaxb.version>
-    <tomcat.version>9.0.82</tomcat.version>
+    <jaxb.version>2.3.9</jaxb.version>
+    <tomcat.version>9.0.83</tomcat.version>
+    <lucene.version>8.10.1</lucene.version>
     <opensearch.version>1.3.13</opensearch.version>
-    <netty.version>4.1.100.Final</netty.version>
+    <netty.version>4.1.101.Final</netty.version>
     <netty.boringssl.version>2.0.62.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
@@ -93,7 +94,7 @@
     <google.api.drive.version>v2-rev20201130-1.31.0</google.api.drive.version>
     <box.api.version>1.1.0</box.api.version>
     <selenium.version>2.53.0</selenium.version>
-    <pdfbox.version>2.0.29</pdfbox.version>
+    <pdfbox.version>2.0.30</pdfbox.version>
     <pdfbox.jbig2.version>2.99.0-NX1</pdfbox.jbig2.version>
     <aws.version>1.12.261</aws.version>
     <gcp.version>1.118.1</gcp.version>
@@ -110,7 +111,7 @@
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
     <org.ops4j.pax.version>4.13.5</org.ops4j.pax.version>
-    <org.apache.log4j.version>2.21.0</org.apache.log4j.version>
+    <org.apache.log4j.version>2.22.0</org.apache.log4j.version>
     <org.slf4j.version>1.7.36</org.slf4j.version>
     <gatling.version>3.3.1</gatling.version>
     <gatling-plugin.version>3.1.2</gatling-plugin.version>
@@ -148,17 +149,18 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>4.11.0</mongo.java.driver.version>
+    <mongo.java.driver.version>4.11.1</mongo.java.driver.version>
     <quartz.mongodb.version>2.2.0-rc2</quartz.mongodb.version>
 
-    <kafka.version>3.6.0</kafka.version>
-    <confluent.version>6.2.12</confluent.version>
+    <kafka.version>3.6.1</kafka.version>
+    <confluent.version>6.2.13</confluent.version>
     <metrics.version>5.0.0-rc3</metrics.version>
     <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
     <okhttp.version>4.12.0</okhttp.version>
-    <protobuf.java.version>3.24.4</protobuf.java.version>
+    <protobuf.java.version>3.25.1</protobuf.java.version>
     <opensaml.version>4.3.0</opensaml.version>
+    <quartz.version>2.4.0-rc2</quartz.version>
   </properties>
 
   <dependencyManagement>
@@ -1946,6 +1948,12 @@
         <type>zip</type>
       </dependency>
       <dependency>
+        <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-mail-amazon-ses-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-microsoft-azure-package</artifactId>
         <version>${nuxeo.platform.version}</version>
@@ -2176,7 +2184,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.13.0</version>
+        <version>3.14.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2186,7 +2194,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.10.0</version>
+        <version>1.11.0</version>
       </dependency>
       <!-- Keep the dependency for external libraries -->
       <dependency>
@@ -2217,7 +2225,7 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.2</version>
+        <version>1.3.0</version>
         <exclusions>
           <!-- we use official javax.servlet:javax.servlet-api instead -->
           <exclusion>
@@ -2246,7 +2254,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.24.0</version>
+        <version>1.25.0</version>
       </dependency>
       <dependency>
         <groupId>commons-jexl</groupId>
@@ -2256,7 +2264,7 @@
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.5.0</version>
+        <version>1.6.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2266,7 +2274,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
-        <version>2.10.0</version>
+        <version>2.11.0</version>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -2413,6 +2421,13 @@
       </dependency>
 
       <!-- apache -->
+      <!-- fix version of lucene-core to avoid outdated transitive dependency of com.hp.hpl.jena:arq -->
+      <dependency>
+        <groupId>org.apache.lucene</groupId>
+        <artifactId>lucene-core</artifactId>
+        <version>${lucene.version}</version>
+      </dependency>
+
       <dependency>
         <groupId>org.apache.directory.shared</groupId>
         <artifactId>shared-asn1</artifactId>
@@ -2653,7 +2668,7 @@
       <dependency>
         <groupId>com.github.librepdf</groupId>
         <artifactId>openpdf</artifactId>
-        <version>1.3.30</version>
+        <version>1.3.33</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
@@ -2692,7 +2707,7 @@
       <dependency>
         <groupId>org.quartz-scheduler</groupId>
         <artifactId>quartz</artifactId>
-        <version>2.3.2</version>
+        <version>${quartz.version}</version>
       </dependency>
       <dependency>
         <groupId>com.novemberain</groupId>
@@ -2829,7 +2844,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.6.0</version>
+        <version>42.7.1</version>
       </dependency>
       <dependency>
         <groupId>mysql</groupId>
@@ -2839,7 +2854,7 @@
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>2.7.10</version>
+        <version>2.7.11</version>
       </dependency>
       <!-- Informative declarations, Oracle drivers are not publicly available. -->
       <dependency>
@@ -2966,7 +2981,7 @@
       <dependency>
         <groupId>org.mvel</groupId>
         <artifactId>mvel2</artifactId>
-        <version>2.5.0.Final</version>
+        <version>2.5.1.Final</version>
       </dependency>
 
       <dependency>
@@ -3065,7 +3080,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>31.1-jre</version>
+        <version>32.1.3-jre</version>
       </dependency>
 
       <dependency>
@@ -3182,7 +3197,7 @@
       <dependency>
         <groupId>org.json</groupId>
         <artifactId>json</artifactId>
-        <version>20200518</version>
+        <version>20231013</version>
       </dependency>
 
       <dependency>
@@ -3468,12 +3483,12 @@
       <dependency>
         <groupId>org.apache.santuario</groupId>
         <artifactId>xmlsec</artifactId>
-        <version>2.3.3</version>
+        <version>2.3.4</version>
       </dependency>
       <dependency>
         <groupId>org.owasp.esapi</groupId>
         <artifactId>esapi</artifactId>
-        <version>2.5.2.0</version>
+        <version>2.5.3.1</version>
         <exclusions>
           <exclusion>
             <groupId>xml-apis</groupId>
@@ -3560,7 +3575,7 @@
         <!-- not used by the platform, keep it if third party leveraged it -->
         <groupId>commons-validator</groupId>
         <artifactId>commons-validator</artifactId>
-        <version>1.7</version>
+        <version>1.8.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -3924,7 +3939,7 @@
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.163</version>
+        <version>4.8.165</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -4144,6 +4159,17 @@
         <groupId>io.prometheus</groupId>
         <artifactId>simpleclient_httpserver</artifactId>
         <version>0.16.0</version>
+      </dependency>
+      <!-- transitive dependencies of opencensus-exporter-trace-jaeger to upgrade -->
+      <dependency>
+        <groupId>io.jaegertracing</groupId>
+        <artifactId>jaeger-thrift</artifactId>
+        <version>1.8.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.thrift</groupId>
+        <artifactId>libthrift</artifactId>
+        <version>0.19.0</version>
       </dependency>
 
       <dependency>
@@ -4516,7 +4542,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.3</version>
           <configuration>
             <doclint>all,-missing</doclint>
             <show>protected</show>
@@ -4548,7 +4574,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
               <artifact>org.apache.logging.log4j:log4j-api</artifact>
@@ -4641,7 +4667,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.16.1</version>
+          <version>2.16.2</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -4856,7 +4882,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>properties-maven-plugin</artifactId>
-          <version>1.2.0</version>
+          <version>1.2.1</version>
         </plugin>
         <plugin>
           <groupId>org.owasp</groupId>
@@ -5112,7 +5138,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.0</version>
         <reportSets>
           <reportSet>
             <configuration>

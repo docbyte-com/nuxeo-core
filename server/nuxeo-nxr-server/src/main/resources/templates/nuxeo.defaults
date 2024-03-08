@@ -20,7 +20,7 @@ nuxeo.url=http://localhost:8080/core
 org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Docbyte
-org.nuxeo.ecm.product.version=2023.1-SNAPSHOT
+org.nuxeo.ecm.product.version=2023.5-SNAPSHOT
 
 # Various other default values
 #nuxeo.db.host=

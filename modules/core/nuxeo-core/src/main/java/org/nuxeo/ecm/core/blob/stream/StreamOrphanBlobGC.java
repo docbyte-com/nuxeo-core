@@ -92,10 +92,6 @@ public class StreamOrphanBlobGC implements StreamProcessorTopology {
                 if (hasCrossRepositoryStorage) {
                     log.warn("Cannot delete blobs on cross-repository shared storage.");
                 }
-                boolean hasSharedStorage = getDocumentBlobManager().hasSharedStorage();
-                if (hasSharedStorage) {
-                    log.warn("Shared storage must be avoided, review your blob providers configuration.");
-                }
                 boolean disabled = Framework.isBooleanPropertyFalse(ENABLED_PROPERTY_NAME);
                 if (disabled) {
                     log.trace("Computation is disabled.");

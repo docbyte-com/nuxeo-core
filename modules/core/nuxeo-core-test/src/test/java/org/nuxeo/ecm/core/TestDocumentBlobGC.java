@@ -306,10 +306,10 @@ public class TestDocumentBlobGC {
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-shared-storage-delete.xml")
     public void testDeleteBlobOnSharedStorageAndMonoRepository() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
 
         // Create 3 docs
-        // 2 referencing the same blob as main content but dispatched in 2 different provider
+        // 2 referencing the same blob as main content but dispatched in 2 different providers
         Blob b = Blobs.createBlob("dispatch");
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
         doc1.setPropertyValue("file:content", (Serializable) b);
@@ -317,26 +317,30 @@ public class TestDocumentBlobGC {
         DocumentRef ref1 = doc1.getRef();
         DocumentModel doc2 = session.createDocumentModel("/", "doc2", "File");
         doc2.setPropertyValue("file:content", (Serializable) b);
-        doc2 = session.createDocument(doc1);
+        doc2.setPropertyValue("dc:source", "foo");
+        doc2 = session.createDocument(doc2);
         DocumentRef ref2 = doc2.getRef();
         session.save();
         // A third unrelated in 2st provider
         Blob b3 = Blobs.createBlob("otherDispatch");
         DocumentModel doc3 = session.createDocumentModel("/", "doc3", "File");
         doc3.setPropertyValue("file:content", (Serializable) b3);
+        doc3.setPropertyValue("dc:source", "foo");
         doc3 = session.createDocument(doc3);
         DocumentRef ref3 = doc3.getRef();
         session.save();
-        coreFeature.waitForAsyncCompletion();
         ManagedBlob blob1 = (ManagedBlob) session.getDocument(ref1).getPropertyValue("file:content");
+        assertEquals("first", blob1.getProviderId());
         BlobProvider blobProvider1 = Framework.getService(BlobManager.class).getBlobProvider(blob1.getProviderId());
         assertNotNull(blobProvider1.getFile(blob1));
         ManagedBlob blob2 = (ManagedBlob) session.getDocument(ref2).getPropertyValue("file:content");
+        assertEquals("second", blob2.getProviderId());
         BlobProvider blobProvider2 = Framework.getService(BlobManager.class).getBlobProvider(blob2.getProviderId());
         assertNotNull(blobProvider2.getFile(blob2));
         ManagedBlob blob3 = (ManagedBlob) session.getDocument(ref3).getPropertyValue("file:content");
+        assertEquals("second", blob3.getProviderId());
         BlobProvider blobProvider3 = Framework.getService(BlobManager.class).getBlobProvider(blob3.getProviderId());
-        assertNotNull(blobProvider3.getFile(blob2));
+        assertNotNull(blobProvider3.getFile(blob3));
 
         // Remove 1st doc
         session.removeDocument(ref1);
@@ -348,7 +352,7 @@ public class TestDocumentBlobGC {
         assertNotNull(blobProvider2.getFile(blob2));
         assertNotNull(blobProvider3.getFile(blob3));
 
-        // Remove 2st doc
+        // Remove 2nd doc
         session.removeDocument(ref2);
         coreFeature.waitForAsyncCompletion();
 
