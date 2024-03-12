@@ -26,6 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
+import static org.nuxeo.lib.stream.tests.TestUtils.getBuildDirectory;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class TestLibChronicle implements StoreFileListener {
     public final static boolean IS_WIN = ChronicleLogManager.IS_WIN;
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(getBuildDirectory()));
 
     @Before
     public void skipWindowsThatDoNotCleanTempFolder() {

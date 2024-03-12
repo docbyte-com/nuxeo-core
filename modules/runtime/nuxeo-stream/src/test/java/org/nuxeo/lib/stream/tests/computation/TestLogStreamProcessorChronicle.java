@@ -21,6 +21,7 @@ package org.nuxeo.lib.stream.tests.computation;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.lib.stream.tests.TestLibChronicle.IS_WIN;
+import static org.nuxeo.lib.stream.tests.TestUtils.getBuildDirectory;
 
 import java.io.File;
 import java.time.Duration;
@@ -51,7 +52,7 @@ import net.jodah.failsafe.RetryPolicy;
 public class TestLogStreamProcessorChronicle extends TestStreamProcessor {
 
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(getBuildDirectory()));
 
     protected File basePath;
 

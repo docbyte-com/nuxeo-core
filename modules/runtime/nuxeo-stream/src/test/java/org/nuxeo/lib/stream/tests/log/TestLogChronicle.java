@@ -22,13 +22,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.lib.stream.tests.TestLibChronicle.IS_WIN;
+import static org.nuxeo.lib.stream.tests.TestUtils.getBuildDirectory;
 
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -52,7 +52,7 @@ import org.nuxeo.lib.stream.tests.KeyValueMessage;
 @SuppressWarnings("squid:S2925")
 public class TestLogChronicle extends TestLog {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(getBuildDirectory()));
 
     protected Path basePath;
 

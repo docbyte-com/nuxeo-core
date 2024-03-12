@@ -23,6 +23,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.lib.stream.tests.TestLibChronicle.IS_WIN;
+import static org.nuxeo.lib.stream.tests.TestUtils.getBuildDirectory;
 
 import java.io.File;
 import java.time.Duration;
@@ -51,7 +52,7 @@ import org.nuxeo.lib.stream.log.chronicle.ChronicleLogManager;
  */
 public class TestRecordFilter {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File("target"));
+    public TemporaryFolder folder = new TemporaryFolder(new File(getBuildDirectory()));
 
     protected File basePath;
 
