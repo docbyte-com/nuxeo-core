@@ -8,7 +8,7 @@ docker pull <DOCKER_REGISTRY>/nuxeo/nuxeo:<TAG>
 
 ## Image Content
 
-Based on CentOS 7, it includes:
+Based on Oracle Linux 7, it includes:
 
 - OpenJDK.
 - A bare Nuxeo server without any package installed.
