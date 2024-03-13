@@ -132,7 +132,7 @@ public class TestEmailNotification {
         assertEquals(1, emailsResult.getMails().size());
         SmtpMailServerFeature.MailMessage mailMessage = emailsResult.getMails().get(0);
         // check the subject
-        assertEquals(String.format("[Nuxeo]Notification on the document '%s'", documentModel.getTitle()),
+        assertEquals(String.format("[Docbyte]Notification on the document '%s'", documentModel.getTitle()),
                 mailMessage.getSubject());
 
         // check the text content
