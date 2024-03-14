@@ -151,7 +151,7 @@ public class TestRegisterNotificationService {
         hotDeployer.deploy("org.nuxeo.ecm.platform.notification.tests:notification-contrib-overridden.xml");
 
         // these should be expanded
-        assertEquals("http://testServerPrefix/nuxeo", getService().getServerUrlPrefix());
+        assertEquals("http://testServerPrefix/core", getService().getServerUrlPrefix());
         assertEquals("testSubjectPrefix", getService().getEMailSubjectPrefix());
 
         // this one should not be expanded
