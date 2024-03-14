@@ -68,8 +68,8 @@
     <nuxeo.java.client.version>3.13.0</nuxeo.java.client.version>
 
     <servlet-api.version>4.0.1</servlet-api.version>
-    <jaxb-api.version>4.0.2</jaxb-api.version>
-    <jaxb.version>4.0.5</jaxb.version>
+    <jaxb-api.version>2.3.3</jaxb-api.version>
+    <jaxb.version>2.3.9</jaxb.version>
     <tomcat.version>9.0.84</tomcat.version>
     <lucene.version>8.10.1</lucene.version>
     <opensearch.version>1.3.13</opensearch.version>
