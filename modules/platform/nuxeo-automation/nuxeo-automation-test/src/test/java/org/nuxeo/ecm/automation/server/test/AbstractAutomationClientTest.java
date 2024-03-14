@@ -31,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_DOCUMENT;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_EXCEPTION;
+import static org.nuxeo.ecm.core.api.pathsegment.PathSegmentService.NUXEO_MAX_SEGMENT_SIZE_PROPERTY;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,6 +75,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.services.config.ConfigurationService;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -755,4 +757,24 @@ public abstract class AbstractAutomationClientTest {
         assertNull(node);
     }
 
+    @Test
+    public void testCreateDocumentWithSegmentLimitViolationInName() throws Exception {
+        String longLongName = "123456789_123456789_123456789";
+        session.newRequest(CreateDocument.ID)
+               .setInput(automationTestFolder)
+               .set("type", "File")
+               .set("name", longLongName)
+               .set("properties", "dc:title=" + longLongName)
+               .executeReturningDocument();
+
+        var max = Framework.getService(ConfigurationService.class)
+                           .getInteger(NUXEO_MAX_SEGMENT_SIZE_PROPERTY)
+                           .orElse(24);
+
+        var jsonDoc = session.newRequest(FetchDocument.ID)
+                             .set("value", "/automation-test-folder/" + longLongName.substring(0, max))
+                             .executeReturningDocument();
+
+        assertEquals(longLongName, getTitle(jsonDoc));
+    }
 }
