@@ -61,6 +61,7 @@
                   <BUILD_TAG>local-nuxeo-nuxeo</BUILD_TAG>
                   <SCM_REF>local</SCM_REF>
                   <VERSION>2023.x</VERSION>
+                  <BUILD_DIR>target-${custom.environment}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
                 <buildx>
