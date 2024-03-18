@@ -47,17 +47,19 @@ phases:
 
   build:
     commands:
-      - mvn clean compile test install deploy $MAVEN_ARGS -fae
+      - mvn clean deploy $MAVEN_ARGS -fae
       - mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_ARGS
       - . ~/tools/codebuild-dependencytrack-results.sh
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
-      - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:latest
-      - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:latest
+      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:$IMAGE_TAG
       - echo Build finished on `date`
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Deployment done `date`
+    finally:
+      - docker images
 reports:
   SurefireReports:
     files:
