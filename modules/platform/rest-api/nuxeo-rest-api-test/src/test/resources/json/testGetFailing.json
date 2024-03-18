@@ -1,0 +1,27 @@
+{
+  "entity-type": "migration",
+  "id": "dummy-failing-bulk-migration",
+  "description": "Dummy Bulk Migration",
+  "descriptionLabel": "migration.dummy.failing.bulk",
+  "status": {
+    "state": "before",
+    "step": null,
+    "startTime": 0,
+    "pingTime": 0,
+    "progressMessage": null,
+    "progressNum": 0,
+    "progressTotal": 0,
+    "errorMessage": null,
+    "errorCode": 0,
+    "running": false
+  },
+  "steps": [
+    {
+      "id": "before-to-after",
+      "fromState": "before",
+      "toState": "after",
+      "description": "Migrate dummy failing state from before to after",
+      "descriptionLabel": "migration.dummy.before-to-after"
+    }
+  ]
+}

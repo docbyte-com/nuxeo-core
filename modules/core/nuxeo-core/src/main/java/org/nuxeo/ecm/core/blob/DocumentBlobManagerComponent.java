@@ -96,6 +96,9 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
     protected static final String DOC_WITH_BLOB_KEYS_QUERY = "SELECT " + NXQL.ECM_UUID + " FROM Document WHERE "
             + NXQL.ECM_BLOBKEYS + " = '%s'";
 
+    protected static final String DOC_WITH_BLOB_KEYS_IN_QUERY = "SELECT " + NXQL.ECM_UUID + " FROM Document WHERE "
+            + NXQL.ECM_BLOBKEYS + " IN (%s)";
+
     // in these low-level APIs we deal with unprefixed xpaths, so not file:content
     public static final String MAIN_BLOB_XPATH = "content";
 
@@ -228,7 +231,11 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             ManagedBlob managedBlob = (ManagedBlob) blob;
             String currentProviderId = managedBlob.getProviderId();
             // is the blob non-transient, so that reusing the key is an option?
-            if (!getBlobProvider(currentProviderId).isTransient()) {
+            BlobProvider currentProvider = getBlobProvider(currentProviderId);
+            if (currentProvider.isRecordMode() && doc.isRetained(xpath)) {
+                throw new DocumentSecurityException(
+                        "Cannot change blob from document " + doc.getUUID() + ", it is under retention / hold");
+            } else if (!currentProvider.isTransient()) {
                 // is it something we don't have to dispatch?
                 if (!blobDispatcher.getBlobProviderIds().contains(currentProviderId)) {
                     // not something we have to dispatch, reuse the key
@@ -247,10 +254,6 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         BlobProvider blobProvider = getBlobProvider(dispatch.providerId);
         if (blobProvider == null) {
             throw new NuxeoException("No registered blob provider with id: " + dispatch.providerId);
-        }
-        if (blobProvider.isRecordMode() && doc.isRetained(xpath)) {
-            throw new DocumentSecurityException(
-                    "Cannot change blob from document " + doc.getUUID() + ", it is under retention / hold");
         }
         String key = blobProvider.writeBlob(new BlobContext(blob, doc, xpath));
         if (dispatch.addPrefix) {
@@ -507,9 +510,6 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
             throw new UnsupportedOperationException(
                     "Repository does not have QUERY_BLOB_KEYS capability: " + repositoryName);
         }
-        if (hasSharedStorage()) {
-            throw new UnsupportedOperationException("Cannot perform delete on shared storage.");
-        }
         if (!isUseRepositoryName() && rs.getRepositoryNames().size() > 1) {
             throw new UnsupportedOperationException("Cannot perform delete on cross-repository shared storage.");
         }
@@ -542,8 +542,21 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
         boolean canBeDeleted = TransactionHelper.runInTransaction(
                 () -> CoreInstance.doPrivileged(repositoryName, (CoreSession session) -> {
                     // We need READ on all the repo to do not miss a reference
-                    String docWithBlobKey = String.format(DOC_WITH_BLOB_KEYS_QUERY, key);
-                    PartialList<Map<String, Serializable>> res = session.queryProjection(docWithBlobKey, 1, 0);
+                    String query;
+                    if (!hasSharedStorage()) {
+                        query = String.format(DOC_WITH_BLOB_KEYS_QUERY, key);
+                    } else {
+                        // we must ensure that the blob is not referenced by any provider
+                        final String blobId = colon < 0 ? key : key.substring(colon + 1, key.length());
+                        List<String> keys = getBlobDispatcher().getBlobProviderIds().stream()
+                                                          .map(storage -> storage + ":" + blobId)
+                                                          .collect(Collectors.toList());
+                        keys.add(blobId);
+                        query = String.format(DOC_WITH_BLOB_KEYS_IN_QUERY, keys.stream()
+                                .map(k -> "'" + k + "'")
+                                .collect(Collectors.joining(", ")));
+                    }
+                    PartialList<Map<String, Serializable>> res = session.queryProjection(query, 1, 0);
                     return res.isEmpty();
                 }));
         if (!canBeDeleted) {
@@ -568,20 +581,24 @@ public class DocumentBlobManagerComponent extends DefaultComponent implements Do
 
     @Override
     public boolean hasSharedStorage() {
-        List<String> sharedStorages = getGarbageCollectors().stream()
-                                                            .map(BinaryGarbageCollector::getId)
-                                                            .collect(Collectors.groupingBy(Function.identity(),
-                                                                    Collectors.counting()))
-                                                            .entrySet()
-                                                            .stream()
-                                                            .filter(p -> p.getValue() > 1)
-                                                            .map(Map.Entry::getKey)
-                                                            .collect(Collectors.toList());
+        List<String> sharedStorages = getSharedStorage();
         if (!sharedStorages.isEmpty()) {
-            log.warn("Shared storages detected: {}", sharedStorages);
+            log.warn("Shared storages detected: {}, this must be avoided, review your blob providers configuration.",
+                    sharedStorages);
             return true;
         }
         return false;
+    }
+
+    protected List<String> getSharedStorage() {
+        return getGarbageCollectors().stream()
+                                     .map(BinaryGarbageCollector::getId)
+                                     .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()))
+                                     .entrySet()
+                                     .stream()
+                                     .filter(p -> p.getValue() > 1)
+                                     .map(Map.Entry::getKey)
+                                     .collect(Collectors.toList());
     }
 
     @Override

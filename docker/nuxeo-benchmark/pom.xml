@@ -6,7 +6,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.docker</groupId>
     <artifactId>nuxeo-docker-images</artifactId>
-    <version>2023.1-SNAPSHOT</version>
+    <version>2023.5-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-benchmark-docker-image</artifactId>
@@ -14,7 +14,7 @@
   <packaging>pom</packaging>
 
   <properties>
-    <docker.base.image>nuxeo/nuxeo:latest-lts</docker.base.image>
+    <docker.base.image>nuxeo/nuxeo:2023.x</docker.base.image>
   </properties>
 
   <dependencies>
@@ -63,16 +63,21 @@
         <configuration>
           <images>
             <image>
-              <name>nuxeo/nuxeo-benchmark:latest-lts</name>
+              <name>nuxeo/nuxeo-benchmark:2023.x</name>
               <build>
                 <args>
                   <BASE_IMAGE>${docker.base.image}</BASE_IMAGE>
                   <BUILD_TAG>local-nuxeo-nuxeo-benchmark</BUILD_TAG>
-                  <SCM_REF>built-locally</SCM_REF>
-                  <VERSION>latest-lts</VERSION>
+                  <SCM_REF>local</SCM_REF>
+                  <VERSION>2023.x</VERSION>
                   <BUILD_DIR>target-${custom.environment}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
+                <buildx>
+                  <platforms>
+                    <platform>${docker.platforms}</platform>
+                  </platforms>
+                </buildx>
               </build>
             </image>
           </images>

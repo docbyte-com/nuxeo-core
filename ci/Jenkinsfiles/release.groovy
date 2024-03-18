@@ -33,7 +33,7 @@ void promoteDockerImage(String dockerRegistry, String imageName, String buildVer
 pipeline {
 
   agent {
-    label 'jenkins-nuxeo-platform-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2023'
   }
 
   environment {
@@ -44,7 +44,6 @@ pipeline {
     LATEST_VERSION = nxUtils.getMajorVersion(version: env.RELEASE_VERSION)
     MAVEN_ARGS = '-B -nsu -Dnuxeo.skip.enforcer=true -P-nexus,nexus-private'
     DOCKER_NAMESPACE = 'nuxeo'
-    BASE_IMAGE_NAME = 'nuxeo-base'
     NUXEO_IMAGE_NAME = 'nuxeo'
   }
 
@@ -140,8 +139,6 @@ pipeline {
           Tag Docker images with version ${RELEASE_VERSION} and ${LATEST_VERSION}
           -----------------------------------------------
           """
-          promoteDockerImage("${PRIVATE_DOCKER_REGISTRY}", "${BASE_IMAGE_NAME}", "${NUXEO_BUILD_VERSION}",
-                  "${RELEASE_VERSION}", "${LATEST_VERSION}")
           promoteDockerImage("${PRIVATE_DOCKER_REGISTRY}", "${NUXEO_IMAGE_NAME}", "${NUXEO_BUILD_VERSION}",
             "${RELEASE_VERSION}", "${LATEST_VERSION}")
         }

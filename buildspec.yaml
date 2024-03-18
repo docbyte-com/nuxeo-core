@@ -29,6 +29,7 @@ phases:
       - . ci/codebuild/setupTestEnv.sh
   pre_build:
     commands:
+      - REGISTRY_URI=518241560725.dkr.ecr.eu-west-1.amazonaws.com
       - REPOSITORY_URI=518241560725.dkr.ecr.eu-west-1.amazonaws.com/docbyte-nuxeo
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - if [ "$CODEBUILD_GIT_BRANCH" == "development" ];
@@ -37,7 +38,7 @@ phases:
         fi
       - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)$CHANGELIST
       - IMAGE_TAG=${VERSION:=latest}
-      - MAVEN_ARGS="-Prelease,distrib,docker,kafka -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Dnuxeo.test.redis.host=localhost -Pkafka -Dkafka.bootstrap.servers=localhost:9092 -Ddocker.verbose=true"
+      - MAVEN_ARGS=" -DskipTests=true -Prelease,distrib,docker,kafka -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Dnuxeo.test.redis.host=localhost -Pkafka -Dkafka.bootstrap.servers=localhost:9092 -Ddocker.verbose=true"
       - mvn versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false $MAVEN_ARGS
       - sed -i -E "s/<nuxeo.platform.version>.*?<\/nuxeo.platform.version>/<nuxeo.platform.version>$VERSION<\/nuxeo.platform.version>/" pom.xml
       - sed -i -E "s/<version>\\$\{nuxeo.platform.version\}<\/version>/<version>$VERSION<\/version>/" pom.xml
@@ -47,17 +48,19 @@ phases:
 
   build:
     commands:
-      - mvn clean compile test install deploy $MAVEN_ARGS -fae
+      - mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy $MAVEN_ARGS -fae
       - mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_ARGS
       - . ~/tools/codebuild-dependencytrack-results.sh
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
-      - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:latest
-      - docker tag nuxeo/nuxeo:latest-lts $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:latest
+      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:$IMAGE_TAG
       - echo Build finished on `date`
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest
       - docker push $REPOSITORY_URI:$IMAGE_TAG
       - echo Deployment done `date`
+    finally:
+      - docker images
 reports:
   SurefireReports:
     files:

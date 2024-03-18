@@ -86,6 +86,10 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
 
     public static final String PING_TIME = ":pingtime";
 
+    public static final String ERROR_MESSAGE = ":errorMessage";
+
+    public static final String ERROR_CODE = ":errorCode";
+
     public static final String PROGRESS_MESSAGE = ":message";
 
     public static final String PROGRESS_NUM = ":num";
@@ -232,6 +236,15 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
             keyValueStore.put(id + PROGRESS_TOTAL, total == -2 ? null : String.valueOf(total));
             keyValueStore.put(id + PING_TIME, ping ? String.valueOf(System.currentTimeMillis()) : null);
         }
+
+        /**
+         * @since 2023.3
+         */
+        public void reportError(String message, Integer code) {
+            KeyValueStore keyValueStore = getKeyValueStore();
+            keyValueStore.put(id + ERROR_MESSAGE, message);
+            keyValueStore.put(id + ERROR_CODE, String.valueOf(code));
+        }
     }
 
     /**
@@ -252,6 +265,11 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
         @Override
         public void reportProgress(String message, long num, long total) {
             progressReporter.reportProgress(message, num, total, true);
+        }
+
+        @Override
+        public void reportError(String message, int code) {
+            progressReporter.reportError(message, code);
         }
 
         @Override
@@ -380,23 +398,32 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
         }
         KeyValueStore kv = getKeyValueStore();
         String state = kv.getString(id);
+        String errorMessage = kv.getString(id + ERROR_MESSAGE);
+        var ec = kv.getString(id + ERROR_CODE);
+        int errorCode = ec != null ? Integer.parseInt(ec) : 0;
         if (state != null) {
-            return new MigrationStatus(state);
+            return new MigrationStatus(state, errorMessage, errorCode);
         }
         String step = kv.getString(id + STEP);
         if (step == null) {
             state = descr.defaultState;
             return new MigrationStatus(state);
         }
-        long startTime = Long.parseLong(kv.getString(id + START_TIME));
-        long pingTime = Long.parseLong(kv.getString(id + PING_TIME));
+        long startTime = parseLong(kv, id + START_TIME);
+        long pingTime = parseLong(kv, id + PING_TIME);
         String progressMessage = kv.getString(id + PROGRESS_MESSAGE);
-        long progressNum = Long.parseLong(kv.getString(id + PROGRESS_NUM));
-        long progressTotal = Long.parseLong(kv.getString(id + PROGRESS_TOTAL));
+        long progressNum = parseLong(kv, id + PROGRESS_NUM);
+        long progressTotal = parseLong(kv, id + PROGRESS_TOTAL);
         if (progressMessage == null) {
             progressMessage = "";
         }
-        return new MigrationStatus(step, startTime, pingTime, progressMessage, progressNum, progressTotal);
+        return new MigrationStatus(step, startTime, pingTime, progressMessage, progressNum, progressTotal, errorMessage,
+                errorCode);
+    }
+
+    protected long parseLong(KeyValueStore kv, String key) {
+        Long ret = kv.getLong(key);
+        return ret == null ? 0 : ret.longValue();
     }
 
     @Override
@@ -423,6 +450,7 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
     }
 
     protected void setState(String id, String state, ProgressReporter progressReporter, KeyValueStore kv) {
+        log.debug("setState, id: {}, state: {}", id, state);
         kv.put(id, state);
         kv.put(id + STEP, (String) null);
         kv.put(id + START_TIME, (String) null);
@@ -431,6 +459,10 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
 
     @Override
     public void runStep(String id, String step) {
+        runStep(id, step, false);
+    }
+
+    protected void runStep(String id, String step, boolean resume) {
         Migrator migrator = getMigrator(id);
         MigrationDescriptor descr = getDescriptor(XP_CONFIG, id);
         MigrationStepDescriptor stepDescr = descr.steps.get(step);
@@ -441,30 +473,32 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
         ProgressReporter progressReporter = new ProgressReporter(id);
 
         // switch to running
-        atomic(id, kv -> {
-            String state = kv.getString(id);
-            String currentStep = kv.getString(id + STEP);
-            if (state == null && currentStep == null) {
-                state = descr.defaultState;
-                if (!descr.states.containsKey(state)) {
-                    throw new IllegalArgumentException("Invalid default state: " + state + " for migration: " + id);
+        if (!resume) {
+            atomic(id, kv -> {
+                String state = kv.getString(id);
+                String currentStep = kv.getString(id + STEP);
+                if (state == null && currentStep == null) {
+                    state = descr.defaultState;
+                    if (!descr.states.containsKey(state)) {
+                        throw new IllegalArgumentException("Invalid default state: " + state + " for migration: " + id);
+                    }
+                } else if (state == null) {
+                    throw new IllegalArgumentException("Migration: " + id + " already running step: " + currentStep);
                 }
-            } else if (state == null) {
-                throw new IllegalArgumentException("Migration: " + id + " already running step: " + currentStep);
-            }
-            if (!descr.states.containsKey(state)) {
-                throw new IllegalArgumentException("Invalid current state: " + state + " for migration: " + id);
-            }
-            if (!stepDescr.fromState.equals(state)) {
-                throw new IllegalArgumentException(
-                        "Invalid step: " + step + " for migration: " + id + " in state: " + state);
-            }
-            String time = String.valueOf(System.currentTimeMillis());
-            kv.put(id + STEP, step);
-            kv.put(id + START_TIME, time);
-            progressReporter.reportProgress("", 0, -1, true);
-            kv.put(id, (String) null);
-        });
+                if (!descr.states.containsKey(state)) {
+                    throw new IllegalArgumentException("Invalid current state: " + state + " for migration: " + id);
+                }
+                if (!stepDescr.fromState.equals(state)) {
+                    throw new IllegalArgumentException(
+                            "Invalid step: " + step + " for migration: " + id + " in state: " + state);
+                }
+                String time = String.valueOf(System.currentTimeMillis());
+                kv.put(id + STEP, step);
+                kv.put(id + START_TIME, time);
+                progressReporter.reportProgress("", 0, -1, true);
+                kv.put(id, (String) null);
+            });
+        }
 
         // allow notification of running step
         migrator.notifyStatusChange();
@@ -563,9 +597,17 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
      */
     @Override
     public void probeAndRun(String id) {
-        probeAndSetState(id);
         MigrationStatus status = getStatus(id);
-        var steps = Migration.from(getDescriptor(XP_CONFIG, id), status).getSteps();
+        if (status != null && status.getState() == null && status.getStep() != null && status.getPingTime() > 0
+                && System.currentTimeMillis() - status.getPingTime() > 300_000) {
+            // Running step without activity for 5 minutes, try to resume
+            log.warn("Try to resume migration: {}, step: {}, status: {}", id, status.getStep(), status);
+            runStep(id, status.getStep(), true);
+            return;
+        }
+        probeAndSetState(id);
+        status = getStatus(id);
+        List<MigrationStep> steps = Migration.from(getDescriptor(XP_CONFIG, id), status).getSteps();
         if (steps.size() != 1) {
             throw new IllegalArgumentException(String.format(
                     "Migration: %s must have only one runnable step from state: %s", id, status.getState())); // NOSONAR
@@ -573,4 +615,18 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
         runStep(id, steps.get(0).getId());
     }
 
+    /**
+     * Restart the executor thread, only for testing purpose.
+     *
+     * @since 2023.5
+     */
+    public void restartExecutor() throws InterruptedException {
+        log.warn("Restarting executor for testing purpose");
+        if (executor != null) {
+            executor.requestShutdown();
+            executor.shutdownNow();
+            executor.awaitTermination(10, TimeUnit.SECONDS);
+        }
+        executor = new MigrationThreadPoolExecutor();
+    }
 }

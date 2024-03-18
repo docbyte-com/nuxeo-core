@@ -6,11 +6,7 @@ Nuxeo provides a ready to use Docker image that is pushed to our Docker registry
 docker pull <DOCKER_REGISTRY>/nuxeo/nuxeo:<TAG>
 ```
 
-## Disclaimer
-
-This Docker image doesn't aim to replace the [Nuxeo Docker official image](https://hub.docker.com/_/nuxeo/). It implements a different approach to try having an immutable image configured at build time instead of runtime.
-
-## Nuxeo Image
+## Image Content
 
 Based on Rocky Linux 9, it includes:
 
@@ -31,79 +27,99 @@ As it contains some non-free codecs, FFmpeg isn't part of the Nuxeo image. Howev
 ```Dockerfile
 FROM <DOCKER_REGISTRY>/nuxeo/nuxeo:<TAG>
 
-# we need to be root to run yum commands
+# we need to be root to run dnf commands
 USER 0
-# install RPM Fusion free repository
-RUN yum -y localinstall --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-7.noarch.rpm
+# install EPEL, PowerTools and RPM Fusion free repositories
+RUN dnf -y install epel-release \
+  && dnf config-manager --set-enabled crb \
+  && dnf -y install --nogpgcheck https://mirrors.rpmfusion.org/free/el/rpmfusion-free-release-9.noarch.rpm
 # install ffmpeg package
-RUN yum -y install ffmpeg
+RUN dnf -y install ffmpeg
 # set back original user
 USER 900
 ```
 
 ## Build the Image
 
-It requires to install [Docker](https://docs.docker.com/install/).
+It requires to install:
 
-There are several ways to build the image, depending on the context:
+- [Docker](https://docs.docker.com/install/) 19.03 or newer.
+- [Docker Buildx](https://docs.docker.com/build/architecture/#buildx).
 
-- For a local build, use [Maven](#with-maven).
-- For a pipeline running in Jenkins on Kubernetes, use [Skaffold](#with-skaffold).
-- In any case, you can use [Docker](#with-docker).
+Note that [BuildKit](https://docs.docker.com/build/buildkit/) is the default builder for users on Docker Desktop and Docker Engine v23.0 and later.
+
+> INFO
+You might need to run `docker logout` if you get errors such as:
+
+```bash
+[INFO] DOCKER> #2 [internal] load metadata for docker.io/azul/zulu-openjdk:17
+[INFO] DOCKER> #2 ERROR: failed to do request: Head "https://registry-1.docker.io/v2/azul/zulu-openjdk/manifests/17": dial tcp: lookup registry-1.docker.io on 192.168.0.1:53: read udp 172.17.0.2:53228->192.168.0.1:53: i/o timeout
+```
+
+There are two ways to build the image:
+
+- With [Maven](#with-maven): suitable for local use.
+- With [Skaffold](#with-skaffold): used by the [nuxeo](https://jenkins.platform.dev.nuxeo.com/job/nuxeo/job/lts/job/nuxeo/) CI pipeline, can also be used locally.
+
+In both cases, the build relies on the following Maven dependency for the Nuxeo server ZIP:
+
+```xml
+<dependency>
+  <groupId>org.nuxeo.ecm.distribution</groupId>
+  <artifactId>nuxeo-server-tomcat</artifactId>
+  <type>zip</type>
+</dependency>
+```
+
+If you want the Docker image to be built from the latest changes in the current repository, including the `server` Maven module, you need to start by building the Nuxeo sources with the `distrib` profile. At the root of the repository, run:
+
+```bash
+mvn -nsu install -Pdistrib -DskipTests
+```
 
 ### With Maven
 
-To build the `nuxeo/nuxeo` image locally, you need to have built the `nuxeo/nuxeo-base:latest-lts` image first, see its [README](../nuxeo-base/README.md), then run:
+We use the [docker-maven-plugin](https://github.com/fabric8io/docker-maven-plugin).
+
+To build the `nuxeo/nuxeo` image with Maven, just run:
 
 ```bash
 mvn -nsu install
 ```
 
-To build the `nuxeo/nuxeo` image locally by leveraging the `nuxeo/nuxeo-base:<TAG>` from another registry, run:
-
-```bash
-mvn -nsu -Ddocker.base.image=<DOCKER_REGISTRY>/nuxeo/nuxeo-base:<TAG> install
-```
+The image is built for the host's architecture, e.g. `linux/amd64` or `linux/arm64`.
 
 ### With Skaffold
 
-We use Skaffold to build the image as part of the [nuxeo](https://jenkins.platform.dev.nuxeo.com/job/nuxeo/job/lts/job/nuxeo/) pipeline in our Jenkins CI/CD platform.
+To build the `nuxeo/nuxeo` image with Skaffold, you need to have:
 
-This requires to:
+- [Skaffold](https://skaffold.dev/docs/install/) installed, v2 is recommended, otherwise v1.39 is the minimum.
+- The [docker-buildx](https://github.com/nuxeo/platform-builder-base/blob/main/_common/rootfs/usr/local/bin/docker-buildx) script present in your `PATH` environment variable.
 
-- Install [Skaffold](https://skaffold.dev/docs/getting-started/#installing-skaffold).
-- Install [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/).
-- Configure `kubectl` to connect to a Kubernetes cluster.
+Then, you need to tell Skaffold that you're building locally, otherwise it might try to push the image to a Docker registry such as docker.io if it detects a Kubernetes context:
 
-It also requires the following environment variables:
+```bash
+skaffold config set --global local-cluster true
+```
 
-- `DOCKER_REGISTRY`: the Docker registry to push the image to.
-- `VERSION`: the image tag, for instance `latest-lts`.
-
-To build the `nuxeo/nuxeo` image with Skaffold, you first need to fetch the Nuxeo server ZIP file and make it available for the Docker build with Maven:
+Fetch the Nuxeo server ZIP file with Maven and make it available for the Docker build:
 
 ```bash
 mvn -nsu process-resources
 ```
 
-Then, from the module directory, run:
+Finally, run:
 
 ```bash
-skaffold build -f skaffold.yaml
+skaffold build
 ```
 
-### With Docker
+This builds the image described in the [skaffold.yaml](./skaffold.yaml) file and loads it inside your Docker daemon.
 
-To build the `nuxeo/nuxeo` image with Docker, you first need to fetch the Nuxeo server ZIP file and make it available for the Docker build with Maven:
-
-```bash
-mvn -nsu process-resources
-```
-
-Then, run:
+By default, this builds a multi-platform image supporting both `linux/amd64` and `linux/arm64` architectures, which is relevant in the CI. Yet, such a multi-platform build requires pushing images to a valid container registry. When building locally, you need to override the built platform with the host's architecture, e.g. `linux/amd64` or `linux/arm64`:
 
 ```bash
-docker build --build-arg BASE_IMAGE=<DOCKER_REGISTRY>/nuxeo/nuxeo-base:<TAG> -t nuxeo/nuxeo:latest-lts .
+skaffold build --platform=linux/amd64
 ```
 
 ## Run the Image
@@ -111,7 +127,7 @@ docker build --build-arg BASE_IMAGE=<DOCKER_REGISTRY>/nuxeo/nuxeo-base:<TAG> -t 
 To run a container from the `nuxeo/nuxeo` image built locally, run:
 
 ```bash
-docker run -it -p 8080:8080 nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 nuxeo/nuxeo:2023.x
 ```
 
 To pull the `nuxeo/nuxeo` image from our Docker registry and run a container from it, run:
@@ -125,13 +141,13 @@ docker run -it -p 8080:8080 <DOCKER_REGISTRY>/nuxeo/nuxeo:<TAG>
 To inspect the different layers included in the image, you can run:
 
 ```bash
-docker history nuxeo/nuxeo:latest-lts
+docker history nuxeo/nuxeo:2023.x
 ```
 
 The [dive](https://github.com/wagoodman/dive) tool is also very good for exploring an image, its layer contents and discovering ways to shrink the image size:
 
 ```bash
-dive nuxeo/nuxeo:latest-lts
+dive nuxeo/nuxeo:2023.x
 ```
 
 ## Build a Custom Image From Nuxeo
@@ -176,7 +192,7 @@ nuxeo.db.port=5432
 you can run:
 
 ```bash
-docker run -it -p 8080:8080 -v /path/to/postgresql.conf:/etc/nuxeo/conf.d/postgresql.conf nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 -v /path/to/postgresql.conf:/etc/nuxeo/conf.d/postgresql.conf nuxeo/nuxeo:2023.x
 ```
 
 ### Environment Variables
@@ -197,7 +213,7 @@ The value of `JAVA_OPTS` is appended to the `JAVA_OPTS` property defined in `nux
 For instance, to make the Nuxeo Launcher display the JVM settings in the console, run:
 
 ```bash
-docker run -it -p 8080:8080 -e JAVA_OPTS=-XshowSettings:vm nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 -e JAVA_OPTS=-XshowSettings:vm nuxeo/nuxeo:2023.x
 ```
 
 #### NUXEO_CLID
@@ -207,7 +223,7 @@ The value of `NUXEO_CLID` is copied to `/var/lib/nuxeo/instance.clid` at startup
 For instance, to run a container with a registered Nuxeo instance:
 
 ```bash
-docker run -it -p 8080:8080 -e NUXEO_CLID=<NUXEO_CLID> nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 -e NUXEO_CLID=<NUXEO_CLID> nuxeo/nuxeo:2023.x
 ```
 
 #### NUXEO_CONNECT_URL
@@ -217,7 +233,7 @@ docker run -it -p 8080:8080 -e NUXEO_CLID=<NUXEO_CLID> nuxeo/nuxeo:latest-lts
 For instance, to run a container with another Connect URL than the default one:
 
 ```bash
-docker run -it -p 8080:8080 -e NUXEO_CONNECT_URL=<NUXEO_CONNECT_URL> nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 -e NUXEO_CONNECT_URL=<NUXEO_CONNECT_URL> nuxeo/nuxeo:2023.x
 ```
 
 #### NUXEO_PACKAGES
@@ -227,7 +243,7 @@ docker run -it -p 8080:8080 -e NUXEO_CONNECT_URL=<NUXEO_CONNECT_URL> nuxeo/nuxeo
 For instance, to run a container with the `nuxeo-web-ui` and `nuxeo-drive` packages installed:
 
 ```bash
-docker run -it -p 8080:8080 -e NUXEO_CLID=<NUXEO_CLID> -e NUXEO_PACKAGES="nuxeo-web-ui nuxeo-drive" nuxeo/nuxeo:latest-lts
+docker run -it -p 8080:8080 -e NUXEO_CLID=<NUXEO_CLID> -e NUXEO_PACKAGES="nuxeo-web-ui nuxeo-drive" nuxeo/nuxeo:2023.x
 ```
 
 ### Shell Scripts

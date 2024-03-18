@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.api.validation;
 
 import static java.util.Collections.singletonMap;
@@ -495,6 +494,19 @@ public class TestDocumentValidationService {
         assertTrue(violations.hasError());
         assertEquals(1, violations.numberOfErrors());
         assertTrue(((ConstraintViolation) violations.asList().get(0)).getConstraint() instanceof PatternConstraint);
+    }
+
+    @Test
+    public void testValidateSimpleArrayNonNillableElementField() {
+        DocumentValidationReport violations;
+        violations = validator.validate("vs:simpleListNonNillableElement", new String[] {});
+        assertFalse(violations.hasError());
+        violations = validator.validate("vs:simpleListNonNillableElement", new String[] { "", "123" });
+        assertFalse(violations.hasError());
+        violations = validator.validate("vs:simpleListNonNillableElement", new String[] { "", "123", null });
+        assertTrue(violations.hasError());
+        assertEquals(1, violations.numberOfErrors());
+        assertTrue(((ConstraintViolation) violations.asList().get(0)).getConstraint() instanceof NotNullConstraint);
     }
 
     @Test

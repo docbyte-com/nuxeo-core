@@ -30,4 +30,11 @@ public interface FileEventHandler {
 
     void onFile(File file, Object marker);
 
+    /**
+     * @since 2023.5
+     */
+    default void onDirectory(File file, Object marker) {
+        onFile(file, marker);
+    }
+
 }

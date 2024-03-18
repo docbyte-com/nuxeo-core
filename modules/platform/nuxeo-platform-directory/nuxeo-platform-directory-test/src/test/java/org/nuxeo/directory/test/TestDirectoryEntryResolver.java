@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2023 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Funsho David
  *
  */
-
 package org.nuxeo.directory.test;
 
 import static org.junit.Assert.assertEquals;
@@ -78,6 +77,8 @@ public class TestDirectoryEntryResolver {
     private static final String REF2_XPATH = "dr:directory2Ref";
 
     private static final String HIERARCHICAL_REF_XPATH = "dr:hierarchicalDirectoryRef";
+
+    private static final String REF1_LIST_XPATH = "dr:directory1ListRefNonNillable";
 
     private static final String ENTRY_ID = "123";
 
@@ -320,6 +321,12 @@ public class TestDirectoryEntryResolver {
         assertNull(doc.getProperty(REF2_XPATH).getObjectResolver().fetch());
         assertFalse(doc.getProperty(REF2_XPATH).getObjectResolver().validate());
         assertEquals(2, validator.validate(doc).numberOfErrors());
+    }
+
+    @Test
+    public void testNullListEntryValuesValidationFailed() {
+        doc.setPropertyValue(REF1_LIST_XPATH, new String[] { null });
+        assertEquals(1, validator.validate(doc).numberOfErrors());
     }
 
     @Test

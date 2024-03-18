@@ -103,6 +103,8 @@ public class BulkScrollerComputation extends AbstractComputation {
 
     protected String actionStream;
 
+    protected boolean sequentialProcessing;
+
     public static Builder builder(String name, int nbOutputStreams) {
         return new Builder(name, nbOutputStreams);
     }
@@ -253,6 +255,7 @@ public class BulkScrollerComputation extends AbstractComputation {
             request = GenericScrollRequest.builder(command.getScroller(), query)
                                           .options(command.getParams())
                                           .size(scrollSize)
+                                          .reference(command.getId())
                                           .build();
 
         } else {
@@ -262,6 +265,7 @@ public class BulkScrollerComputation extends AbstractComputation {
                                            .size(scrollSize)
                                            .timeout(Duration.ofSeconds(scrollKeepAliveSeconds))
                                            .name(command.getScroller())
+                                           .reference(command.getId())
                                            .build();
         }
         ScrollService service = Framework.getService(ScrollService.class);
@@ -283,6 +287,8 @@ public class BulkScrollerComputation extends AbstractComputation {
             }
         }
         actionStream = actionService.getInputStream(command.getAction());
+        sequentialProcessing = command.getSequentialProcessing() != null ? command.getSequentialProcessing()
+                : actionService.isSequentialProcessing(command.getAction());
     }
 
     protected boolean isAbortedCommand(String commandId) {
@@ -335,8 +341,15 @@ public class BulkScrollerComputation extends AbstractComputation {
             long documentCount) {
         List<String> ids = documentIds.subList(0, min(bucketSize, documentIds.size()));
         BulkBucket bucket = new BulkBucket(commandId, ids);
-        String key = commandId + ":" + Long.toString(bucketNumber);
-        Record record = Record.of(key, BulkCodecs.getBucketCodec().encode(bucket));
+        String shardKey;
+        if (sequentialProcessing) {
+            // All records for a bulk command go to the same partition to be processed sequentially
+            shardKey = commandId;
+        } else {
+            // Records are dispatched randomly on all partitions to be processed concurrently
+            shardKey = commandId + ":" + bucketNumber;
+        }
+        Record record = Record.of(shardKey, BulkCodecs.getBucketCodec().encode(bucket));
         if (produceImmediate || (produceImmediateThreshold > 0 && documentCount > produceImmediateThreshold)) {
             ComputationContextImpl contextImpl = (ComputationContextImpl) context;
             if (!contextImpl.getRecords(actionStream).isEmpty()) {

@@ -14,6 +14,7 @@ nuxeo.server.ajp.secretRequired=true
 nuxeo.server.ajp.secret=changeme
 nuxeo.server.https.port=0
 nuxeo.server.cookies.sameSite=lax
+nuxeo.server.tomcat_access_log.pattern=combined
 nuxeo.server.tomcat_admin.host=localhost
 nuxeo.server.tomcat_admin.port=8005
 nuxeo.server.tomcat_error.show_report=false
@@ -125,9 +126,6 @@ elasticsearch.nodeName=nuxeoNode
 elasticsearch.httpEnabled=false
 # Network binding. Policy is to accept request from local machine only.
 elasticsearch.networkHost=127.0.0.1
-# Load document model from Elasticsearch result (experimental)
-# if false load from document from VCS
-elasticsearch.fetchDocFromEs=false
 # Comma separated list of CorePageProvider names to supersede by Elasticsearch
 elasticsearch.override.pageproviders=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,document_picker
 # Reindexing option, number of documents to process per worker @since 6.0-HF02
@@ -224,6 +222,8 @@ kafka.keystore.password=
 
 # Legacy rendition are performed on front nodes
 nuxeo.rendition.legacy.enabled=false
+# Thumbnail renditions are pre calculated and can be returned in sync
+nuxeo.rendition.thumbnail.sync=true
 # Legacy preview are performed on front nodes
 nuxeo.preview.legacy.enabled=false
 # Thread pool for the new rendition and preview Works (when not in legacy mode)
@@ -266,6 +266,7 @@ nuxeo.stream.pubsub.log.codec=avroBinary
 
 # Bulk
 nuxeo.core.bulk.scroller.concurrencyMax=2
+nuxeo.core.bulk.scroller.scroll.keepAliveSeconds=300
 nuxeo.core.bulk.status.concurrencyMax=2
 nuxeo.core.bulk.done.concurrencyMax=1
 nuxeo.core.bulk.csvExport.scroller=elastic
@@ -361,6 +362,9 @@ nuxeo.bulk.action.automationUi.defaultPartitions=4
 nuxeo.bulk.action.blobGC.defaultConcurrency=1
 nuxeo.bulk.action.blobGC.defaultPartitions=1
 nuxeo.bulk.action.blobGC.enabled=true
+nuxeo.bulk.action.documentGC.enabled=true
+nuxeo.bulk.action.documentGC.defaultConcurrency=1
+nuxeo.bulk.action.documentGC.defaultPartitions=1
 nuxeo.bulk.action.csvExport.defaultConcurrency=2
 nuxeo.bulk.action.csvExport.defaultPartitions=4
 nuxeo.bulk.action.deletion.defaultConcurrency=2
