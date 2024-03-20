@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DIR=`pwd`
+
 yum install -y ghostscript
 yum install -y \
   ImageMagick \
@@ -37,3 +39,5 @@ perl Makefile.PL
 sudo make install
 
 docker-compose --version
+
+cd $DIR
