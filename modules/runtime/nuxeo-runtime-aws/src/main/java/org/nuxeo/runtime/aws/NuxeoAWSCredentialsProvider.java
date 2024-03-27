@@ -20,27 +20,27 @@ package org.nuxeo.runtime.aws;
 
 import org.nuxeo.runtime.api.Framework;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 
 /**
  * AWS Credentials Provider that uses Nuxeo configuration, or uses the default AWS chain as a fallback.
  *
  * @since 10.3
  */
-public class NuxeoAWSCredentialsProvider implements AWSCredentialsProvider {
+public class NuxeoAWSCredentialsProvider implements AwsCredentialsProvider {
 
-    protected static final AWSCredentialsProvider INSTANCE = new NuxeoAWSCredentialsProvider();
+    protected static final AwsCredentialsProvider INSTANCE = new NuxeoAWSCredentialsProvider();
 
-    protected static final AWSCredentialsProvider DEFAULT = new DefaultAWSCredentialsProviderChain();
+    protected static final AwsCredentialsProvider DEFAULT = DefaultCredentialsProvider.create();
 
     protected final String id;
 
     /**
      * Gets a Nuxeo AWS Credentials Provider for the default configuration.
      */
-    public static AWSCredentialsProvider getInstance() {
+    public static AwsCredentialsProvider getInstance() {
         return INSTANCE;
     }
 
@@ -62,20 +62,15 @@ public class NuxeoAWSCredentialsProvider implements AWSCredentialsProvider {
     }
 
     @Override
-    public AWSCredentials getCredentials() {
+    public AwsCredentials resolveCredentials() {
         AWSConfigurationService service = Framework.getService(AWSConfigurationService.class);
         if (service != null) {
-            AWSCredentials credentials = service.getAWSCredentials(id);
+            AwsCredentials credentials = service.getAwsCredentials(id);
             if (credentials != null) {
                 return credentials;
             }
         }
-        return DEFAULT.getCredentials();
-    }
-
-    @Override
-    public void refresh() {
-        DEFAULT.refresh();
+        return DefaultCredentialsProvider.create().resolveCredentials();
     }
 
 }

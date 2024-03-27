@@ -218,6 +218,11 @@ public abstract class TestAbstractBlobStore {
     }
 
     @Test
+    public void testDoesNotExist() {
+        assertFalse(bs.exists(getBlobKey(ID1)));
+    }
+
+    @Test
     public void testDeleteIsIdempotent() throws IOException {
         BlobContext blobContext = blobContext(ID1, FOO);
         String key1 = bp.writeBlob(blobContext);

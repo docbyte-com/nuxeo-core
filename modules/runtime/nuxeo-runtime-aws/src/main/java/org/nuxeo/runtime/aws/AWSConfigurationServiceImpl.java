@@ -26,6 +26,7 @@ import static org.nuxeo.runtime.aws.AWSConfigurationDescriptor.DEFAULT_CONFIG_ID
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
@@ -40,10 +41,11 @@ import org.nuxeo.common.Environment;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.DefaultComponent;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * Implementation of the service providing AWS configuration.
@@ -61,7 +63,7 @@ public class AWSConfigurationServiceImpl extends DefaultComponent implements AWS
     public static final String XP_CONFIGURATION = "configuration";
 
     @Override
-    public AWSCredentials getAWSCredentials(String id) {
+    public AwsCredentials getAwsCredentials(String id) {
         AWSConfigurationDescriptor descriptor = getDescriptor(XP_CONFIGURATION, defaultIfBlank(id, DEFAULT_CONFIG_ID));
         if (descriptor != null) {
             String accessKeyId = descriptor.getAccessKeyId();
@@ -69,9 +71,9 @@ public class AWSConfigurationServiceImpl extends DefaultComponent implements AWS
             String sessionToken = descriptor.getSessionToken();
             if (isNotBlank(accessKeyId) && isNotBlank(secretKey)) {
                 if (isNotBlank(sessionToken)) {
-                    return new BasicSessionCredentials(accessKeyId, secretKey, sessionToken);
+                    return AwsSessionCredentials.create(accessKeyId, secretKey, sessionToken);
                 } else {
-                    return new BasicAWSCredentials(accessKeyId, secretKey);
+                    return AwsBasicCredentials.create(accessKeyId, secretKey);
                 }
             }
         }
@@ -79,50 +81,43 @@ public class AWSConfigurationServiceImpl extends DefaultComponent implements AWS
     }
 
     @Override
-    public String getAWSRegion(String id) {
+    public Region getAwsRegion(String id) {
         AWSConfigurationDescriptor descriptor = getDescriptor(XP_CONFIGURATION, defaultIfBlank(id, DEFAULT_CONFIG_ID));
         if (descriptor != null) {
             String region = descriptor.getRegion();
             if (isNotBlank(region)) {
-                return region;
+                return Region.of(region);
             }
         }
         return null;
     }
 
-    /**
-     * Configures a client configuration with a custom socket factory.
-     *
-     * @since 2021.10
-     */
     @Override
-    public void configureSSL(String id, ClientConfiguration config) {
+    public void configureSSL(String id, ApacheHttpClient.Builder builder) {
         SSLContext sslContext = getSSLContext(getDescriptor(XP_CONFIGURATION, defaultIfBlank(id, DEFAULT_CONFIG_ID)));
         if (sslContext != null) {
             SSLConnectionSocketFactory factory = new SSLConnectionSocketFactory(sslContext);
-            config.getApacheHttpClientConfig().setSslSocketFactory(factory);
+            builder.socketFactory(factory);
         }
     }
 
     @Override
-    public void configureProxy(ClientConfiguration config) {
-        String proxyHost = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_HOST);
+    public void configureProxy(ApacheHttpClient.Builder builder) {
+        String proxyHost = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_HOST).toLowerCase();
         String proxyPort = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PORT);
         String proxyLogin = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_LOGIN);
         String proxyPassword = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PASSWORD);
-
-        if (isNotBlank(proxyHost)) {
-            config.setProxyHost(proxyHost);
-        }
-        if (isNotBlank(proxyPort)) {
-            config.setProxyPort(Integer.parseInt(proxyPort));
+        var config = software.amazon.awssdk.http.apache.ProxyConfiguration.builder();
+        if (isNotBlank(proxyHost) && isNotBlank(proxyPort)) {
+            config.endpoint(URI.create("http://" + proxyHost + ":" + proxyPort));
         }
         if (isNotBlank(proxyLogin)) {
-            config.setProxyUsername(proxyLogin);
+            config.username(proxyLogin);
         }
         if (proxyPassword != null) { // could be blank
-            config.setProxyPassword(proxyPassword);
+            config.password(proxyPassword);
         }
+        builder.proxyConfiguration(config.build());
     }
 
     protected SSLContext getSSLContext(AWSConfigurationDescriptor descriptor) {

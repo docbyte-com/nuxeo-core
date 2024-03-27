@@ -19,20 +19,12 @@
 package org.nuxeo.ecm.blob.s3;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 import org.nuxeo.runtime.api.Framework;
-
-import com.amazonaws.auth.PEM;
-import com.amazonaws.auth.RSA;
-import com.amazonaws.services.cloudfront.util.SignerUtils.Protocol;
-import com.amazonaws.util.IOUtils;
 
 /**
  * CloudFront configuration.
@@ -58,9 +50,9 @@ public class CloudFrontConfiguration extends CloudBlobStoreConfiguration {
 
     public final String distributionDomain;
 
-    public final Protocol protocol;
+    public final String protocol;
 
-    public final PrivateKey privateKey;
+    public final Path privateKeyPath;
 
     public final String keyPairId;
 
@@ -70,35 +62,19 @@ public class CloudFrontConfiguration extends CloudBlobStoreConfiguration {
         super(systemPropertyPrefix, properties);
         enabled = getBooleanProperty(CLOUDFRONT_ENABLED_PROPERTY);
         if (enabled) {
-            protocol = Protocol.valueOf(getProperty(CLOUDFRONT_PROTOCOL_PROPERTY, "https"));
+            protocol = getProperty(CLOUDFRONT_PROTOCOL_PROPERTY, "https");
             distributionDomain = getProperty(CLOUDFRONT_DISTRIBUTION_DOMAIN_PROPERTY);
-            privateKey = getPrivateKey(getProperty(CLOUDFRONT_PRIVATE_KEY_PROPERTY));
+            var privateKey = getProperty(CLOUDFRONT_PRIVATE_KEY_PROPERTY);
+            privateKeyPath = privateKey == null ? null : Paths.get(privateKey);
             keyPairId = getProperty(CLOUDFRONT_PRIVATE_KEY_ID_PROPERTY);
             // framework property for CloudFront bug workaround
             fixEncoding = Framework.isBooleanPropertyTrue(CLOUDFRONT_ENABLE_ENCODING_FIX);
         } else {
             protocol = null;
             distributionDomain = null;
-            privateKey = null;
+            privateKeyPath = null;
             keyPairId = null;
             fixEncoding = false;
-        }
-    }
-
-    protected PrivateKey getPrivateKey(String path) throws IOException {
-        if (path == null) {
-            return null;
-        }
-        try (InputStream in = Files.newInputStream(Paths.get(path))) {
-            if (path.toLowerCase().endsWith(".pem")) {
-                return PEM.readPrivateKey(in);
-            }
-            if (path.toLowerCase().endsWith(".der")) {
-                return RSA.privateKeyFromPKCS8(IOUtils.toByteArray(in));
-            }
-            throw new IllegalArgumentException("Unsupported file type");
-        } catch (InvalidKeySpecException | IllegalArgumentException e) {
-            throw new IOException("Invalid CloudFront private key: " + path, e);
         }
     }
 

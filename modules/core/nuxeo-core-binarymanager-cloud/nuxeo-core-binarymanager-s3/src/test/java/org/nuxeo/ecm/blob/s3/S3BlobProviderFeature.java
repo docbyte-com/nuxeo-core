@@ -18,14 +18,11 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static com.amazonaws.SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.ALTERNATE_ACCESS_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.ALTERNATE_SECRET_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.AWS_REGION_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.AWS_SESSION_TOKEN_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.SECRET_KEY_ENV_VAR;
 import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.junit.Assume.assumeTrue;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_ACCESS_KEY_ID;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_REGION;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_SECRET_ACCESS_KEY;
 
 import java.io.IOException;
 import java.net.URL;
@@ -121,13 +118,16 @@ public class S3BlobProviderFeature extends AbstractCloudBlobProviderFeature {
     @SuppressWarnings("unchecked")
     public void start(FeaturesRunner runner) {
         // configure global blob provider properties
-        var awsId = configureProperty(AWS_ID, sysEnv(ACCESS_KEY_ENV_VAR), sysEnv(ALTERNATE_ACCESS_KEY_ENV_VAR),
+        var awsId = configureProperty(AWS_ID, sysEnv(AWS_ACCESS_KEY_ID.environmentVariable()), sysEnv("AWS_ACCESS_KEY"),
                 sysProp(AWS_ID));
-        var awsSecret = configureProperty(AWS_SECRET, sysEnv(SECRET_KEY_ENV_VAR), sysEnv(ALTERNATE_SECRET_KEY_ENV_VAR),
-                sysProp(AWS_SECRET));
+        var awsSecret = configureProperty(AWS_SECRET, sysEnv(AWS_SECRET_ACCESS_KEY.environmentVariable()),
+                sysEnv("AWS_SECRET_KEY"), sysProp(AWS_SECRET));
         // fall back on empty string to allow AWS credentials provider to generate credentials without session token
-        configureProperty(AWS_SESSION_TOKEN, sysEnv(AWS_SESSION_TOKEN_ENV_VAR), sysProp(AWS_SESSION_TOKEN), () -> "");
-        var awsRegion = configureProperty(BUCKET_REGION, sysEnv(AWS_REGION_ENV_VAR), sysProp(BUCKET_REGION));
+        configureProperty(AWS_SESSION_TOKEN,
+                sysEnv(software.amazon.awssdk.core.SdkSystemSetting.AWS_SESSION_TOKEN.environmentVariable()),
+                sysProp(AWS_SESSION_TOKEN), () -> "");
+        var awsRegion = configureProperty(BUCKET_REGION, sysEnv(AWS_REGION.environmentVariable()),
+                sysProp(BUCKET_REGION));
         // configure specific blob provider properties
         var testBucket = configureProperty(PROVIDER_TEST_BUCKET, sysProp(PROVIDER_TEST_BUCKET), sysProp(BUCKET));
         configureProperty(PROVIDER_TEST_BUCKET_PREFIX, unique(sysProp(PROVIDER_TEST_BUCKET_PREFIX).get()),

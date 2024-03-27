@@ -98,4 +98,15 @@ public class ByteRange {
         return getClass().getSimpleName() + '(' + start + '-' + end + ')';
     }
 
+    /**
+     * Gets the byte range usable as HTTP Range header.
+     * <p>
+     * See https://www.rfc-editor.org/rfc/rfc9110.html#name-byte-ranges
+     *
+     * @since 2025.0
+     */
+    public String toHtmlHeader() {
+        return "bytes=" + getStart() + "-" + getEnd();
+    }
+
 }

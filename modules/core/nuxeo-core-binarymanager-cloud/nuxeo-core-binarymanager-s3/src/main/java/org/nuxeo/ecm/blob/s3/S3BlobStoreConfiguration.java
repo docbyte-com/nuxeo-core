@@ -18,19 +18,19 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static com.amazonaws.regions.Region.getRegion;
-import static com.amazonaws.services.s3.model.ObjectLockEnabled.ENABLED;
-import static com.amazonaws.services.s3.model.ObjectLockRetentionMode.COMPLIANCE;
-import static com.amazonaws.services.s3.model.ObjectLockRetentionMode.GOVERNANCE;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.nuxeo.common.concurrent.ThreadFactories.newThreadFactory;
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.RECORD;
 import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStricMode;
+import static software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode.COMPLIANCE;
+import static software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode.GOVERNANCE;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,13 +41,16 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.time.Duration;
-import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.PathStrategy;
@@ -59,31 +62,28 @@ import org.nuxeo.runtime.aws.AWSConfigurationService;
 import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3Builder;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3EncryptionClientV2Builder;
-import com.amazonaws.services.s3.model.CryptoConfigurationV2;
-import com.amazonaws.services.s3.model.CryptoMode;
-import com.amazonaws.services.s3.model.CryptoRangeGetMode;
-import com.amazonaws.services.s3.model.DefaultRetention;
-import com.amazonaws.services.s3.model.EncryptionMaterials;
-import com.amazonaws.services.s3.model.EncryptionMaterialsProvider;
-import com.amazonaws.services.s3.model.GetObjectLockConfigurationRequest;
-import com.amazonaws.services.s3.model.GetObjectLockConfigurationResult;
-import com.amazonaws.services.s3.model.KMSEncryptionMaterialsProvider;
-import com.amazonaws.services.s3.model.ObjectLockConfiguration;
-import com.amazonaws.services.s3.model.ObjectLockRetentionMode;
-import com.amazonaws.services.s3.model.ObjectLockRule;
-import com.amazonaws.services.s3.model.StaticEncryptionMaterialsProvider;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.kms.KmsClient;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.model.DefaultRetention;
+import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationResponse;
+import software.amazon.awssdk.services.s3.model.ObjectLockConfiguration;
+import software.amazon.awssdk.services.s3.model.ObjectLockEnabled;
+import software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode;
+import software.amazon.awssdk.services.s3.model.ObjectLockRule;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
+import software.amazon.encryption.s3.S3AsyncEncryptionClient;
+import software.amazon.encryption.s3.S3EncryptionClient;
+import software.amazon.encryption.s3.materials.KmsKeyring;
 
 /**
  * Blob storage configuration in S3.
@@ -110,6 +110,10 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public static final String AWS_SESSION_TOKEN_PROPERTY = "awstoken";
 
+    public static final String CONCURRENCY_MAX_PROPERTY = "concurrency.max";
+
+    public static final String TARGET_THROUGHPUT_IN_GBPS_PROPERTY = "targetThroughputInGbps";
+
     /** AWS ClientConfiguration default 50 */
     public static final String CONNECTION_MAX_PROPERTY = "connection.max";
 
@@ -130,6 +134,11 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * @since 2023.18
      */
     public static final String KEYSTORE_LEGACY_MODE_PROPERTY = "crypt.keystore.legacymode";
+
+    /**
+     * @since 2025.0
+     */
+    public static final String KMS_LEGACY_MODE_PROPERTY = "crypt.kms.legacymode";
 
     public static final String SERVERSIDE_ENCRYPTION_PROPERTY = "crypt.serverside";
 
@@ -165,7 +174,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * Disable automatic abort of old multipart uploads at startup time.
      *
      * @since 11.1
+     * @deprecated since 2025.0, unused
      */
+    @Deprecated(since = "2025.0")
     public static final String MULTIPART_CLEANUP_DISABLED_PROPERTY = "multipart.cleanup.disabled";
 
     public static final String DELIMITER = "/";
@@ -174,33 +185,44 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * The deprecated configuration property to define the multipart copy part size, for backward compatibility.
      *
      * @since 2021.11
+     * @deprecated since 2025.0, merged with {@link #MINIMUM_UPLOAD_PART_SIZE_PROPERTY}
      */
+    @Deprecated(since = "2025.0")
     public static final String MULTIPART_COPY_PART_SIZE_CONFIGURATION_PROPERTY = "nuxeo.s3.multipart.copy.part.size";
 
     /**
      * The Framework property to define the multipart copy part size.
+     *
+     * @deprecated since 2025.0, merged with {@link #MINIMUM_UPLOAD_PART_SIZE_PROPERTY}
      */
+    @Deprecated(since = "2025.0")
     public static final String MULTIPART_COPY_PART_SIZE_PROPERTY = "nuxeo.s3storage.multipart.copy.part.size";
 
     /**
      * The default value for the multipart copy part size.
      *
      * @since 2021.11
+     * @deprecated since 2025.0, merged with {@link #MINIMUM_UPLOAD_PART_SIZE_DEFAULT}
      */
+    @Deprecated(since = "2025.0")
     public static final long MULTIPART_COPY_PART_SIZE_DEFAULT = 5L * 1024 * 1024; // 5 MB;
 
     /**
      * The Framework property to define the multipart copy threshold.
      *
      * @since 2021.11
+     * @deprecated since 2025.0, merged with {@link #MULTIPART_UPLOAD_THRESHOLD_PROPERTY}
      */
+    @Deprecated(since = "2025.0")
     public static final String MULTIPART_COPY_THRESHOLD_PROPERTY = "nuxeo.s3storage.multipart.copy.threshold";
 
     /**
      * The default value for the multipart copy threshold.
      *
      * @since 2021.11
+     * @deprecated since 2025.0, merged with {@link #MULTIPART_UPLOAD_THRESHOLD_DEFAULT}
      */
+    @Deprecated(since = "2025.0")
     public static final long MULTIPART_COPY_THRESHOLD_DEFAULT = 5L * 1024 * 1024 * 1024; // AWS SDK default = 5 GB
 
     /**
@@ -263,9 +285,11 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public final CloudFrontConfiguration cloudFront;
 
-    public final AmazonS3 amazonS3;
+    protected S3Client amazonS3;
 
-    public final TransferManager transferManager;
+    protected S3AsyncClient amazonS3Async;
+
+    public final S3TransferManager transferManager;
 
     public final String bucketName;
 
@@ -275,7 +299,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public final String serverSideKMSKeyID;
 
-    public final boolean useClientSideEncryption;
+    protected boolean useClientSideEncryption;
 
     public final boolean metadataAddUsername;
 
@@ -305,6 +329,43 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      */
     protected final boolean pathSeparatorIsBackslash;
 
+    /**
+     * @since 2025.0
+     */
+    protected AwsCredentialsProvider awsCredentialsProvider;
+
+    /**
+     * @since 2025.0
+     */
+    protected Region region;
+
+    /**
+     * @since 2025.0
+     */
+    protected URI endpointOverride;
+
+    protected long minimumPartSizeInBytes;
+
+    protected long multipartUploadThreshold;
+
+    protected KeyPair clientSideEncryptionKeyPair;
+
+    protected int maxConnections;
+
+    protected int maxConcurrency;
+
+    protected double targetThroughputInGbps;
+
+    protected int connectionTimeout;
+
+    protected int socketTimeout;
+
+    protected int maxErrorRetry;
+
+    protected String userAgentPrefix;
+
+    protected String userAgentSuffix;
+
     public S3BlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         cloudFront = new CloudFrontConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
@@ -312,7 +373,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         bucketName = getBucketName();
         bucketPrefix = getBucketPrefix();
 
-        String sseprop = getProperty(SERVERSIDE_ENCRYPTION_PROPERTY);
+        var sseprop = getProperty(SERVERSIDE_ENCRYPTION_PROPERTY);
         if (isNotBlank(sseprop)) {
             useServerSideEncryption = Boolean.parseBoolean(sseprop);
             serverSideKMSKeyID = getProperty(SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
@@ -320,14 +381,21 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             useServerSideEncryption = false;
             serverSideKMSKeyID = null;
         }
-
-        AWSCredentialsProvider awsCredentialsProvider = getAWSCredentialsProvider();
-        ClientConfiguration clientConfiguration = getClientConfiguration();
-        EncryptionMaterials encryptionMaterials = getEncryptionMaterials();
-        boolean useKeyStoreClientSideEncryption = encryptionMaterials != null;
-        var clientSideKMSKeyId = getProperty(CLIENTSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
-        boolean useKMSClientSideEncryption = isNotBlank(clientSideKMSKeyId);
-        useClientSideEncryption = useKeyStoreClientSideEncryption || useKMSClientSideEncryption;
+        minimumPartSizeInBytes = getLongProperty(MINIMUM_UPLOAD_PART_SIZE_PROPERTY, MINIMUM_UPLOAD_PART_SIZE_DEFAULT);
+        multipartUploadThreshold = getLongProperty(MULTIPART_UPLOAD_THRESHOLD_PROPERTY,
+                MULTIPART_UPLOAD_THRESHOLD_DEFAULT);
+        maxConcurrency = getIntProperty(CONCURRENCY_MAX_PROPERTY);
+        targetThroughputInGbps = getLongProperty(TARGET_THROUGHPUT_IN_GBPS_PROPERTY);
+        maxConnections = getIntProperty(CONNECTION_MAX_PROPERTY);
+        connectionTimeout = getIntProperty(CONNECTION_TIMEOUT_PROPERTY);
+        socketTimeout = getIntProperty(SOCKET_TIMEOUT_PROPERTY);
+        awsCredentialsProvider = initAwsCredentialsProvider();
+        region = getBucketRegion();
+        endpointOverride = initEnpoint();
+        metadataAddUsername = getBooleanProperty(METADATA_ADD_USERNAME_PROPERTY);
+        maxErrorRetry = getIntProperty(CONNECTION_RETRY_PROPERTY);
+        userAgentPrefix = getProperty(USER_AGENT_PREFIX_PROPERTY);
+        userAgentSuffix = getProperty(USER_AGENT_SUFFIX_PROPERTY);
         Path p = Paths.get(bucketPrefix);
         int subDirsDepth = getSubDirsDepth();
         if (subDirsDepth == 0) {
@@ -337,53 +405,10 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             pathStrategy = new PathStrategySubDirs(p, subDirsDepth);
         }
         pathSeparatorIsBackslash = FileSystems.getDefault().getSeparator().equals("\\");
-        AmazonS3Builder<?, ?> s3Builder;
-        if (useClientSideEncryption) {
-            // we need the deprecated CryptoRangeGetMode.ALL to support copy/move
-            // of large objects (>5GB) with transfer manager
-            @SuppressWarnings("deprecation")
-            var cryptoConfig = new CryptoConfigurationV2().withRangeGetMode(CryptoRangeGetMode.ALL);
-            EncryptionMaterialsProvider emp;
-            if (useKeyStoreClientSideEncryption) {
-                log.info("Client-side encryption enabled with local key store");
-                if (getBooleanProperty(KEYSTORE_LEGACY_MODE_PROPERTY)) {
-                    // The following setting allows the client to read V1 encrypted objects
-                    cryptoConfig.withCryptoMode(CryptoMode.AuthenticatedEncryption);
-                }
-                emp = new StaticEncryptionMaterialsProvider(encryptionMaterials);
-            } else {
-                // KMS client-side encryption
-                log.info("Client-side encryption enabled with KMS key id: {}", clientSideKMSKeyId);
-                Region kmsRegion;
-                var customKMSRegion = getProperty(CLIENTSIDE_ENCRYPTION_KMS_REGION_PROPERTY);
-                if (isNotBlank(customKMSRegion)) {
-                    kmsRegion = getRegion(Regions.fromName(customKMSRegion));
-                } else {
-                    // If crypt.kms.clientside.region not specified, fallback on the bucket region
-                    kmsRegion = getRegion(Regions.fromName(getBucketRegion()));
-                }
-                cryptoConfig.withAwsKmsRegion(kmsRegion);
-                emp = new KMSEncryptionMaterialsProvider(clientSideKMSKeyId);
-            }
-            s3Builder = AmazonS3EncryptionClientV2Builder.standard()
-                                                         .withCredentials(awsCredentialsProvider)
-                                                         .withClientConfiguration(clientConfiguration)
-                                                         .withCryptoConfiguration(cryptoConfig)
-                                                         .withEncryptionMaterialsProvider(emp);
-        } else {
-            s3Builder = AmazonS3ClientBuilder.standard()
-                                             .withCredentials(awsCredentialsProvider)
-                                             .withClientConfiguration(clientConfiguration);
-        }
 
-        configurePathStyleAccess(s3Builder);
-        configureRegionOrEndpoint(s3Builder);
-        configureAccelerateMode(s3Builder);
-
-        amazonS3 = getAmazonS3(s3Builder);
-
-        metadataAddUsername = getBooleanProperty(METADATA_ADD_USERNAME_PROPERTY);
-
+        amazonS3 = createSyncClient();
+        amazonS3Async = createASyncClient();
+        encryptClients();
         retentionMode = computeBucketRetentionMode();
         s3RetentionEnabled = retentionMode != null;
         if (Boolean.parseBoolean(properties.get(RECORD))) {
@@ -396,8 +421,163 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         }
 
         transferManager = createTransferManager();
+    }
 
-        abortOldUploads();
+    protected S3Client createSyncClient() {
+        ApacheHttpClient.Builder apacheBuilder = ApacheHttpClient.builder();
+        if (maxConnections > 0) {
+            apacheBuilder.maxConnections(maxConnections);
+        }
+        if (connectionTimeout >= 0) { // 0 is allowed
+            var timeout = Duration.ofMillis(connectionTimeout);
+            apacheBuilder.connectionTimeout(timeout);
+        }
+        if (socketTimeout >= 0) { // 0 is allowed
+            apacheBuilder.socketTimeout(Duration.ofMillis(socketTimeout));
+        }
+        AWSConfigurationService service = Framework.getService(AWSConfigurationService.class);
+        if (service != null) {
+            if (Framework.isBooleanPropertyFalse(DISABLE_PROXY_PROPERTY)) {
+                service.configureProxy(apacheBuilder);
+            }
+            service.configureSSL(apacheBuilder);
+        }
+        return S3Client.builder()
+                       .region(region)
+                       .credentialsProvider(awsCredentialsProvider)
+                       .forcePathStyle(getBooleanProperty(PATHSTYLEACCESS_PROPERTY))
+                       .accelerate(getBooleanProperty(ACCELERATE_MODE_PROPERTY))
+                       .httpClient(apacheBuilder.build())
+                       .endpointOverride(endpointOverride)
+                       .overrideConfiguration(ocb -> {
+                           if (isNotBlank(userAgentPrefix)) {
+                               ocb.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_PREFIX, userAgentPrefix);
+                           }
+                           if (isNotBlank(userAgentSuffix)) {
+                               ocb.putAdvancedOption(SdkAdvancedClientOption.USER_AGENT_SUFFIX, userAgentSuffix);
+                           }
+                           if (maxErrorRetry >= 0) { // 0 is allowed
+                               ocb.retryStrategy(b -> b.maxAttempts(maxErrorRetry));
+                           }
+                       })
+                       .build();
+    }
+
+    protected S3AsyncClient createASyncClient() {
+        S3CrtAsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.crtBuilder(); // NOSONAR
+        s3AsyncClientBuilder.region(region)
+                            .credentialsProvider(awsCredentialsProvider)
+                            .minimumPartSizeInBytes(minimumPartSizeInBytes)
+                            .thresholdInBytes(multipartUploadThreshold)
+                            .forcePathStyle(getBooleanProperty(PATHSTYLEACCESS_PROPERTY))
+                            .accelerate(getBooleanProperty(ACCELERATE_MODE_PROPERTY))
+                            .endpointOverride(endpointOverride)
+                            .httpConfiguration(b -> {
+                                if (connectionTimeout >= 0) { // 0 is allowed
+                                    var timeout = Duration.ofMillis(connectionTimeout);
+                                    b.connectionTimeout(timeout);
+                                }
+                                AWSConfigurationService service = Framework.getService(AWSConfigurationService.class);
+                                if (service != null && Framework.isBooleanPropertyFalse(DISABLE_PROXY_PROPERTY)) {
+                                    configureProxy(b);
+                                }
+                            });
+        if (maxConcurrency > 0) {
+            s3AsyncClientBuilder.maxConcurrency(maxConcurrency);
+        }
+        if (targetThroughputInGbps > 0) {
+            s3AsyncClientBuilder.targetThroughputInGbps(targetThroughputInGbps);
+        }
+        return s3AsyncClientBuilder.build();
+    }
+
+    /**
+     * Enriches the given {@link S3CrtHttpConfiguration.Builder} with default proxy configuration.
+     *
+     * @param builder the http client builder
+     * @since 2025.0
+     */
+    protected void configureProxy(S3CrtHttpConfiguration.Builder builder) {
+        String proxyHost = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_HOST).toLowerCase();
+        String proxyPort = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PORT);
+        String proxyLogin = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_LOGIN);
+        String proxyPassword = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PASSWORD);
+        builder.proxyConfiguration(b -> {
+            if (isNotBlank(proxyHost)) {
+                b.host(proxyHost);
+            }
+            if (isNotBlank(proxyPort)) {
+                b.port(Integer.parseInt(proxyPort));
+            }
+            if (isNotBlank(proxyLogin)) {
+                b.username(proxyLogin);
+            }
+            if (proxyPassword != null) { // could be blank
+                b.password(proxyPassword);
+            }
+        });
+    }
+
+    protected void encryptClients() {
+        clientSideEncryptionKeyPair = getKeyPair();
+        boolean useKeyStoreClientSideEncryption = clientSideEncryptionKeyPair != null;
+        var clientSideKMSKeyId = getProperty(CLIENTSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
+        boolean useKMSClientSideEncryption = isNotBlank(clientSideKMSKeyId);
+        useClientSideEncryption = useKeyStoreClientSideEncryption || useKMSClientSideEncryption;
+        if (useClientSideEncryption) {
+            var allowByteRange = getBooleanProperty(ALLOW_BYTE_RANGE);
+            S3EncryptionClient.Builder syncb = S3EncryptionClient.builder() // NOSONAR
+                                                                 .wrappedClient(amazonS3)
+                                                                 .wrappedAsyncClient(amazonS3Async)
+                                                                 // to download more than 64MB object
+                                                                 .enableDelayedAuthenticationMode(true);
+            S3AsyncEncryptionClient.Builder asyncb = S3AsyncEncryptionClient.builder()
+                                                                            .wrappedClient(amazonS3Async)
+                                                                            // to download more than 64MB object
+                                                                            .enableDelayedAuthenticationMode(true);
+            if (useKeyStoreClientSideEncryption) {
+                var legacyMode = getBooleanProperty(KEYSTORE_LEGACY_MODE_PROPERTY);
+                log.info("Client-side encryption enabled with local key store, legacy mode enabled: {}", legacyMode);
+                syncb.rsaKeyPair(clientSideEncryptionKeyPair)
+                     // for enabling legacy key wrapping modes
+                     .enableLegacyWrappingAlgorithms(legacyMode)
+                     // for enabling legacy content decryption modes
+                     .enableLegacyUnauthenticatedModes(allowByteRange || legacyMode);
+                asyncb.rsaKeyPair(clientSideEncryptionKeyPair)
+                      // for enabling legacy key wrapping modes
+                      .enableLegacyWrappingAlgorithms(legacyMode)
+                      // for enabling legacy content decryption modes
+                      .enableLegacyUnauthenticatedModes(allowByteRange || legacyMode);
+            } else { // KMS client-side encryption
+                var legacyMode = getBooleanProperty(KMS_LEGACY_MODE_PROPERTY);
+                log.info("Client-side encryption enabled with KMS key id: {}, legacy mode enabled: {}",
+                        clientSideKMSKeyId, legacyMode);
+                Region kmsRegion;
+                var customKMSRegion = getProperty(CLIENTSIDE_ENCRYPTION_KMS_REGION_PROPERTY);
+                if (isNotBlank(customKMSRegion)) {
+                    kmsRegion = Region.of(customKMSRegion);
+                } else {
+                    // If crypt.kms.clientside.region not specified, fallback on the bucket region
+                    kmsRegion = region;
+                }
+                final KmsKeyring kmsKeyring = KmsKeyring.builder()
+                                                        .wrappingKeyId(clientSideKMSKeyId)
+                                                        .kmsClient(KmsClient.builder().region(kmsRegion).build()) // NOSONAR
+                                                        .build();
+                syncb.keyring(kmsKeyring)
+                     // for enabling legacy key wrapping modes
+                     .enableLegacyWrappingAlgorithms(legacyMode)
+                     // for enabling legacy content decryption modes
+                     .enableLegacyUnauthenticatedModes(allowByteRange || legacyMode);
+                asyncb.keyring(kmsKeyring)
+                      // for enabling legacy key wrapping modes
+                      .enableLegacyWrappingAlgorithms(legacyMode)
+                      // for enabling legacy content decryption modes
+                      .enableLegacyUnauthenticatedModes(allowByteRange || legacyMode);
+            }
+            amazonS3 = syncb.build();
+            amazonS3Async = asyncb.build();
+        }
     }
 
     /**
@@ -411,25 +591,27 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * @since 2023.0
      */
     protected ObjectLockRetentionMode computeBucketRetentionMode() {
-        GetObjectLockConfigurationRequest request = new GetObjectLockConfigurationRequest().withBucketName(bucketName);
-        GetObjectLockConfigurationResult result;
+        GetObjectLockConfigurationRequest request = GetObjectLockConfigurationRequest.builder()
+                                                                                     .bucket(bucketName)
+                                                                                     .build();
+        GetObjectLockConfigurationResponse response;
         ObjectLockConfiguration olc;
         try {
-            result = amazonS3.getObjectLockConfiguration(request);
-            olc = result.getObjectLockConfiguration();
-            if (olc == null || !ENABLED.toString().equals(olc.getObjectLockEnabled())) {
+            response = amazonS3.getObjectLockConfiguration(request);
+            olc = response.objectLockConfiguration();
+            if (olc == null || !ObjectLockEnabled.ENABLED.toString().equals(olc.objectLockEnabledAsString())) {
                 return null;
             }
-        } catch (AmazonServiceException e) {
-            // amazonS3.getObjectLockConfiguration produces such exception if object lock is not defined s3 side
-            log.debug("Failed to get ObjectLockConfiguration for bucket: {}", bucketName, e);
-            return null;
+            return Optional.ofNullable(olc.rule())
+                           .map(ObjectLockRule::defaultRetention)
+                           .map(DefaultRetention::mode)
+                           .orElse(isRetentionStricMode() ? COMPLIANCE : GOVERNANCE);
+        } catch (S3Exception e) {
+            if (e.statusCode() == HttpStatus.SC_NOT_FOUND) {
+                return null;
+            }
+            throw new NuxeoException(e);
         }
-        return Optional.ofNullable(olc.getRule())
-                       .map(ObjectLockRule::getDefaultRetention)
-                       .map(DefaultRetention::getMode)
-                       .map(ObjectLockRetentionMode::valueOf)
-                       .orElse(isRetentionStricMode() ? COMPLIANCE : GOVERNANCE);
     }
 
     /**
@@ -440,12 +622,16 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     }
 
     public void close() {
-        transferManager.shutdownNow();
+        amazonS3.close();
+        amazonS3Async.close();
+        transferManager.close();
     }
 
     /**
      * @since 2021.11
+     * @deprecated since 2025.0, unused
      */
+    @Deprecated(since = "2025.0")
     public static long getMultipartCopyPartSize() {
         // backward compatibility with configuration service property
         ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
@@ -552,50 +738,20 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         return d;
     }
 
-    protected AWSCredentialsProvider getAWSCredentialsProvider() {
+    protected AwsCredentialsProvider initAwsCredentialsProvider() {
         String awsID = getProperty(AWS_ID_PROPERTY);
         String awsSecret = getProperty(AWS_SECRET_PROPERTY);
         String awsToken = getProperty(AWS_SESSION_TOKEN_PROPERTY);
-        return S3Utils.getAWSCredentialsProvider(awsID, awsSecret, awsToken);
+        return S3Utils.getAwsCredentialsProvider(awsID, awsSecret, awsToken);
     }
 
-    protected ClientConfiguration getClientConfiguration() {
-        int maxConnections = getIntProperty(CONNECTION_MAX_PROPERTY);
-        int maxErrorRetry = getIntProperty(CONNECTION_RETRY_PROPERTY);
-        int connectionTimeout = getIntProperty(CONNECTION_TIMEOUT_PROPERTY);
-        int socketTimeout = getIntProperty(SOCKET_TIMEOUT_PROPERTY);
-        String userAgentPrefix = getProperty(USER_AGENT_PREFIX_PROPERTY);
-        String userAgentSuffix = getProperty(USER_AGENT_SUFFIX_PROPERTY);
-        ClientConfiguration clientConfiguration = new ClientConfiguration();
-        if (maxConnections > 0) {
-            clientConfiguration.setMaxConnections(maxConnections);
-        }
-        if (maxErrorRetry >= 0) { // 0 is allowed
-            clientConfiguration.setMaxErrorRetry(maxErrorRetry);
-        }
-        if (connectionTimeout >= 0) { // 0 is allowed
-            clientConfiguration.setConnectionTimeout(connectionTimeout);
-        }
-        if (socketTimeout >= 0) { // 0 is allowed
-            clientConfiguration.setSocketTimeout(socketTimeout);
-        }
-        if (isNotBlank(userAgentPrefix)) {
-            clientConfiguration.setUserAgentPrefix(userAgentPrefix);
-        }
-        if (isNotBlank(userAgentSuffix)) {
-            clientConfiguration.setUserAgentSuffix(userAgentSuffix);
-        }
-        AWSConfigurationService service = Framework.getService(AWSConfigurationService.class);
-        if (service != null) {
-            if (Framework.isBooleanPropertyFalse(DISABLE_PROXY_PROPERTY)) {
-                service.configureProxy(clientConfiguration);
-            }
-            service.configureSSL(clientConfiguration);
-        }
-        return clientConfiguration;
+    protected S3CrtHttpConfiguration getHttpConfiguration() {
+        S3CrtHttpConfiguration.Builder builder = S3CrtHttpConfiguration.builder();
+        builder.connectionTimeout(null);
+        return builder.build();
     }
 
-    protected EncryptionMaterials getEncryptionMaterials() {
+    protected KeyPair getKeyPair() {
         String keystoreFile = getProperty(KEYSTORE_FILE_PROPERTY);
         String keystorePass = getProperty(KEYSTORE_PASS_PROPERTY);
         String privkeyAlias = getProperty(PRIVKEY_ALIAS_PROPERTY);
@@ -634,111 +790,55 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             PrivateKey privKey = (PrivateKey) keystore.getKey(privkeyAlias, privkeyPass.toCharArray());
             Certificate cert = keystore.getCertificate(privkeyAlias);
             PublicKey pubKey = cert.getPublicKey();
-            KeyPair keypair = new KeyPair(pubKey, privKey);
-            return new EncryptionMaterials(keypair);
+            return new KeyPair(pubKey, privKey);
         } catch (IOException | GeneralSecurityException e) {
             throw new NuxeoException("Could not read keystore: " + keystoreFile + ", alias: " + privkeyAlias, e);
         }
     }
 
-    protected void configurePathStyleAccess(AmazonS3Builder<?, ?> s3Builder) {
-        boolean pathStyleAccessEnabled = getBooleanProperty(PATHSTYLEACCESS_PROPERTY);
-        if (pathStyleAccessEnabled) {
-            log.debug("Path-style access enabled");
-            s3Builder.enablePathStyleAccess();
+    protected Region getBucketRegion() {
+        String bucketRegionProperty = getProperty(BUCKET_REGION_PROPERTY);
+        if (isNotBlank(bucketRegionProperty)) {
+            return Region.of(bucketRegionProperty);
+        } else {
+            return NuxeoAWSRegionProvider.getInstance().getRegion();
         }
     }
 
-    protected void configureRegionOrEndpoint(AmazonS3Builder<?, ?> s3Builder) {
-        var bucketRegion = getBucketRegion();
+    protected URI initEnpoint() {
         String endpoint = getProperty(ENDPOINT_PROPERTY);
         if (isNotBlank(endpoint)) {
-            s3Builder.withEndpointConfiguration(new EndpointConfiguration(endpoint, bucketRegion));
-        } else {
-            s3Builder.withRegion(bucketRegion);
+            try {
+                return new URI(endpoint);
+            } catch (URISyntaxException e) {
+                throw new NuxeoException(e);
+            }
         }
+        return null;
     }
 
-    protected String getBucketRegion() {
-        var bucketRegion = getProperty(BUCKET_REGION_PROPERTY);
-        if (isBlank(bucketRegion)) {
-            bucketRegion = NuxeoAWSRegionProvider.getInstance().getRegion();
-        }
-        return bucketRegion;
-    }
-
-    protected void configureAccelerateMode(AmazonS3Builder<?, ?> s3Builder) {
-        boolean accelerateModeEnabled = getBooleanProperty(ACCELERATE_MODE_PROPERTY);
-        if (accelerateModeEnabled) {
-            log.debug("Accelerate mode enabled");
-            s3Builder.enableAccelerateMode();
-        }
-    }
-
-    protected AmazonS3 getAmazonS3(AmazonS3Builder<?, ?> s3Builder) {
-        return s3Builder.build();
-    }
-
-    protected TransferManager createTransferManager() {
-        // when the bucket has Object Lock active, uploads need to provide an MD5
-        boolean alwaysCalculateMultipartMd5 = s3RetentionEnabled;
-        return TransferManagerBuilder.standard()
-                                     .withS3Client(amazonS3)
-                                     .withMinimumUploadPartSize(Long.valueOf(getLongProperty(
-                                             MINIMUM_UPLOAD_PART_SIZE_PROPERTY, MINIMUM_UPLOAD_PART_SIZE_DEFAULT)))
-                                     .withMultipartUploadThreshold(Long.valueOf(getLongProperty(
-                                             MULTIPART_UPLOAD_THRESHOLD_PROPERTY, MULTIPART_UPLOAD_THRESHOLD_DEFAULT)))
-                                     .withMultipartCopyThreshold(Long.valueOf(getLongProperty(
-                                             MULTIPART_COPY_THRESHOLD_PROPERTY, MULTIPART_COPY_THRESHOLD_DEFAULT)))
-                                     .withMultipartCopyPartSize(Long.valueOf(getMultipartCopyPartSize()))
-                                     .withAlwaysCalculateMultipartMd5(alwaysCalculateMultipartMd5)
-                                     .withExecutorFactory(() -> Executors.newFixedThreadPool(
-                                             (int) getLongProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY,
-                                                     TRANSFER_MANAGER_THREAD_POOL_SIZE_DEFAULT),
-                                             newThreadFactory("s3-transfer-manager-worker")))
-                                     .build();
+    protected S3TransferManager createTransferManager() {
+        int threadPoolSize = getIntProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY,
+                TRANSFER_MANAGER_THREAD_POOL_SIZE_DEFAULT);
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(0, threadPoolSize, 60, TimeUnit.SECONDS,
+                new LinkedBlockingQueue<>(1_000),
+                new ThreadFactoryBuilder().threadNamePrefix("s3-transfer-manager-worker").build());
+        executor.allowCoreThreadTimeOut(true);
+        S3TransferManager.Builder tmBuilder = S3TransferManager.builder().s3Client(amazonS3Async);
+        tmBuilder.executor(executor);
+        return tmBuilder.build();
     }
 
     /** @deprecated since 11.4, unused */
-    @Deprecated
+    @Deprecated(since = "11.4")
     protected ObjectLockRetentionMode getRetentionMode() {
         return retentionMode;
     }
 
     /** @deprecated since 2023.0, unused */
-    @Deprecated
+    @Deprecated(since = "2023.0")
     protected boolean isS3RetentionEnabled() {
         return s3RetentionEnabled;
-    }
-
-    /**
-     * Aborts uploads that crashed and are older than 1 day.
-     */
-    protected void abortOldUploads() {
-        if (getBooleanProperty(MULTIPART_CLEANUP_DISABLED_PROPERTY)) {
-            log.debug("Cleanup of old multipart uploads is disabled");
-            return;
-        }
-        // Async to avoid issues with transferManager.abortMultipartUploads taking a very long time.
-        // See NXP-28571.
-        new Thread(this::abortOldMultipartUploadsInternal, "Nuxeo-S3-abortOldMultipartUploads-" + bucketName).start();
-    }
-
-    // executed in a separate thread
-    protected void abortOldMultipartUploadsInternal() {
-        long oneDay = Duration.ofDays(1).toMillis();
-        try {
-            log.debug("Starting cleanup of old multipart uploads for bucket: {}", bucketName);
-            Date oneDayAgo = new Date(System.currentTimeMillis() - oneDay);
-            transferManager.abortMultipartUploads(bucketName, oneDayAgo);
-            log.debug("Cleanup done for bucket: {}", bucketName);
-        } catch (AmazonServiceException e) {
-            if (e.getStatusCode() == 400 || e.getStatusCode() == 404) {
-                log.warn("Aborting old uploads is not supported by this provider", e);
-                return;
-            }
-            throw new NuxeoException("Failed to abort old uploads", e);
-        }
     }
 
 }

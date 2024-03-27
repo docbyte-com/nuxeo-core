@@ -20,7 +20,6 @@
  */
 package org.nuxeo.ecm.core.storage.sql;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -39,9 +38,12 @@ import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SERVERSIDE_ENCRYPTI
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HeaderElement;
@@ -64,25 +66,27 @@ import org.nuxeo.ecm.core.io.upload.batch.impl.AbstractBatchHandler;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
-import com.amazonaws.services.s3.transfer.Copy;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenService;
-import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
-import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
-import com.amazonaws.services.securitytoken.model.Credentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+import software.amazon.awssdk.services.sts.StsClient;
+import software.amazon.awssdk.services.sts.StsClientBuilder;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+import software.amazon.awssdk.services.sts.model.Credentials;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.Copy;
+import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 
 /**
- * Batch Handler allowing direct S3 upload.
+ * Batch Handler allowing direct S3 upload. Should we move it to org.nuxeo.ecm.blob.s3 package?
  *
  * @since 10.1
  */
@@ -91,10 +95,6 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
     private static final Logger log = LogManager.getLogger(S3DirectBatchHandler.class);
 
     // properties passed at initialization time from extension point
-
-    /** @deprecated since 11.1, use {@link org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration#ACCELERATE_MODE_PROPERTY} */
-    @Deprecated
-    public static final String ACCELERATE_MODE_ENABLED_PROPERTY = "accelerateMode";
 
     public static final String POLICY_TEMPLATE_PROPERTY = "policyTemplate";
 
@@ -132,15 +132,15 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
     public static final String INFO_USE_S3_ACCELERATE = "useS3Accelerate";
 
-    protected AWSSecurityTokenService stsClient;
+    protected StsClient stsClient;
 
-    protected AmazonS3 amazonS3;
+    protected S3Client amazonS3;
 
-    protected String endpoint;
+    protected URI endpointOverride;
 
     protected boolean pathStyleAccessEnabled;
 
-    protected String region;
+    protected Region region;
 
     protected String bucket;
 
@@ -192,10 +192,19 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
     @Override
     protected void initialize(Map<String, String> properties) {
         super.initialize(properties);
-        endpoint = properties.get(ENDPOINT_PROPERTY);
+        String endpoint = properties.get(ENDPOINT_PROPERTY);
+        if (isNotBlank(endpoint)) {
+            try {
+                endpointOverride = new URI(endpoint);
+            } catch (URISyntaxException e) {
+                throw new NuxeoException(e);
+            }
+        }
         pathStyleAccessEnabled = Boolean.parseBoolean(properties.get(PATHSTYLEACCESS_PROPERTY));
-        region = properties.get(BUCKET_REGION_PROPERTY);
-        if (isBlank(region)) {
+        String bucketRegionProperty = properties.get(BUCKET_REGION_PROPERTY);
+        if (isNotBlank(bucketRegionProperty)) {
+            region = Region.of(bucketRegionProperty);
+        } else {
             region = NuxeoAWSRegionProvider.getInstance().getRegion();
         }
         bucket = properties.get(BUCKET_NAME_PROPERTY);
@@ -217,7 +226,7 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         useServerSideEncryption = Boolean.parseBoolean(properties.get(SERVERSIDE_ENCRYPTION_PROPERTY));
         serverSideKMSKeyID = properties.get(SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
 
-        AWSCredentialsProvider credentials = S3Utils.getAWSCredentialsProvider(awsSecretKeyId, awsSecretAccessKey,
+        AwsCredentialsProvider credentials = S3Utils.getAwsCredentialsProvider(awsSecretKeyId, awsSecretAccessKey,
                 awsSessionToken);
         stsClient = initializeSTSClient(credentials);
         amazonS3 = initializeS3Client(credentials);
@@ -228,30 +237,34 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
             bucketPrefix += "/";
         }
 
-        blobProviderId = defaultString(properties.get(BLOB_PROVIDER_ID_PROPERTY), transientStoreName);
+        blobProviderId = Objects.toString(properties.get(BLOB_PROVIDER_ID_PROPERTY), transientStoreName);
     }
 
-    protected AWSSecurityTokenService initializeSTSClient(AWSCredentialsProvider credentials) {
-        AWSSecurityTokenServiceClientBuilder builder = AWSSecurityTokenServiceClientBuilder.standard();
-        initializeBuilder(builder, credentials);
-        return builder.build();
-    }
-
-    protected AmazonS3 initializeS3Client(AWSCredentialsProvider credentials) {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-        initializeBuilder(builder, credentials);
-        builder.setPathStyleAccessEnabled(pathStyleAccessEnabled);
-        builder.setAccelerateModeEnabled(accelerateModeEnabled);
-        return builder.build();
-    }
-
-    protected void initializeBuilder(AwsClientBuilder<?, ?> builder, AWSCredentialsProvider credentials) {
-        if (isBlank(endpoint)) {
-            builder.setRegion(region);
-        } else {
-            builder.setEndpointConfiguration(new EndpointConfiguration(endpoint, region));
+    protected StsClient initializeSTSClient(AwsCredentialsProvider credentials) {
+        StsClientBuilder stsClientBuilder = StsClient.builder().region(region).credentialsProvider(credentials);
+        if (endpointOverride != null) {
+            stsClientBuilder.endpointOverride(endpointOverride);
         }
-        builder.setCredentials(credentials);
+        return stsClientBuilder.build();
+    }
+
+    protected S3Client initializeS3Client(AwsCredentialsProvider credentials) {
+        ApacheHttpClient.Builder apacheHttpClientBuilder = ApacheHttpClient.builder();
+        S3ClientBuilder s3ClientBuilder = S3Client.builder()
+                                                  .region(region)
+                                                  .credentialsProvider(credentials)
+                                                  .httpClientBuilder(apacheHttpClientBuilder);
+        if (endpointOverride != null) {
+            s3ClientBuilder.endpointOverride(endpointOverride);
+        }
+
+        if (pathStyleAccessEnabled) {
+            s3ClientBuilder.forcePathStyle(true);
+        }
+        if (accelerateModeEnabled) {
+            s3ClientBuilder.accelerate(true);
+        }
+        return s3ClientBuilder.build();
     }
 
     @Override
@@ -267,13 +280,13 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         Credentials credentials = getAwsCredentials(batchId);
 
         Map<String, Object> properties = batch.getProperties();
-        properties.put(INFO_AWS_SECRET_KEY_ID, credentials.getAccessKeyId());
-        properties.put(INFO_AWS_SECRET_ACCESS_KEY, credentials.getSecretAccessKey());
-        properties.put(INFO_AWS_SESSION_TOKEN, credentials.getSessionToken());
+        properties.put(INFO_AWS_SECRET_KEY_ID, credentials.accessKeyId());
+        properties.put(INFO_AWS_SECRET_ACCESS_KEY, credentials.secretAccessKey());
+        properties.put(INFO_AWS_SESSION_TOKEN, credentials.sessionToken());
         properties.put(INFO_BUCKET, bucket);
         properties.put(INFO_BASE_KEY, bucketPrefix);
-        properties.put(INFO_EXPIRATION, credentials.getExpiration().toInstant().toEpochMilli());
-        properties.put(INFO_AWS_ENDPOINT, defaultIfBlank(endpoint, null));
+        properties.put(INFO_EXPIRATION, credentials.expiration().toEpochMilli());
+        properties.put(INFO_AWS_ENDPOINT, endpointOverride != null ? endpointOverride.toString() : null);
         properties.put(INFO_AWS_PATH_STYLE_ACCESS, pathStyleAccessEnabled);
         properties.put(INFO_AWS_REGION, region);
         properties.put(INFO_USE_S3_ACCELERATE, accelerateModeEnabled);
@@ -282,14 +295,15 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
     }
 
     protected Credentials assumeRole(AssumeRoleRequest request) {
-        return stsClient.assumeRole(request).getCredentials();
+        return stsClient.assumeRole(request).credentials();
     }
 
     @Override
     public boolean completeUpload(String batchId, String fileIndex, BatchFileInfo fileInfo) {
         String fileKey = fileInfo.getKey();
         String key = StringUtils.removeStart(fileKey, bucketPrefix);
-        ObjectMetadata metadata = amazonS3.getObjectMetadata(bucket, fileKey);
+        HeadObjectResponse response = amazonS3.headObject(
+                HeadObjectRequest.builder().bucket(bucket).key(fileKey).build());
 
         // Deduplicating blob providers have as invariant that if a key looks like a digest then it is one.
         // (see AbstractBlobStore.writeBlobUsingOptimizedCopy in particular)
@@ -297,7 +311,7 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
         if (isValidDigest(key)) {
             // the key looks like a digest, move it to a non-digest key
-            key = metadata.getETag();
+            key = response.eTag().replace("\"", "");
             if (isValidDigest(key)) {
                 key += "-0"; // cannot be confused with a digest
             }
@@ -307,11 +321,11 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         // materialize the direct upload blob as a Nuxeo Blob
 
         BlobInfo blobInfo = new BlobInfo();
-        String contentType = metadata.getContentType();
+        String contentType = response.contentType();
         blobInfo.mimeType = getMimeType(contentType);
         blobInfo.encoding = getCharset(contentType);
         blobInfo.filename = fileInfo.getFilename();
-        blobInfo.length = metadata.getContentLength();
+        blobInfo.length = response.contentLength();
         blobInfo.key = key;
         // (no digest needed)
 
@@ -329,8 +343,8 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
             batch.addFile(fileIndex, blob, blob.getFilename(), blob.getMimeType());
         } catch (NuxeoException e) {
             try {
-                amazonS3.deleteObject(bucket, bucketPrefix + key);
-            } catch (AmazonS3Exception s3E) {
+                amazonS3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(bucketPrefix + key).build());
+            } catch (AwsServiceException s3E) {
                 e.addSuppressed(s3E);
             }
             throw e;
@@ -340,31 +354,32 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
     }
 
     protected void move(String sourceKey, String destinationKey) {
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucket, sourceKey, bucket, destinationKey);
+        CopyObjectRequest.Builder copyObjectRequestBuilder = CopyObjectRequest.builder()
+                                                                              .sourceBucket(bucket)
+                                                                              .sourceKey(sourceKey)
+                                                                              .destinationBucket(bucket)
+                                                                              .destinationKey(destinationKey);
         // server-side encryption
         if (useServerSideEncryption) {
+            // server-side encryption
             if (isNotBlank(serverSideKMSKeyID)) {
                 // SSE-KMS
-                SSEAwsKeyManagementParams params = new SSEAwsKeyManagementParams(serverSideKMSKeyID);
-                copyObjectRequest.setSSEAwsKeyManagementParams(params);
+                copyObjectRequestBuilder.ssekmsKeyId(serverSideKMSKeyID);
             } else {
                 // SSE-S3
-                ObjectMetadata newObjectMetadata = new ObjectMetadata();
-                newObjectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-                copyObjectRequest.setNewObjectMetadata(newObjectMetadata);
+                copyObjectRequestBuilder.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString());
             }
-            // TODO SSE-C
         }
-        Copy copy = getTransferManager().copy(copyObjectRequest);
+        CopyRequest copyRequest = CopyRequest.builder().copyObjectRequest(copyObjectRequestBuilder.build()).build();
+        Copy copy = getTransferManager().copy(copyRequest);
         try {
-            copy.waitForCompletion();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+            copy.completionFuture().join();
+        } catch (CompletionException e) {
             throw new NuxeoException(e);
         } finally {
             try {
-                amazonS3.deleteObject(bucket, sourceKey);
-            } catch (AmazonServiceException e) {
+                amazonS3.deleteObject(DeleteObjectRequest.builder().bucket(bucket).key(sourceKey).build());
+            } catch (AwsServiceException e) {
                 log.debug("Unable to cleanup object, move has already been done", e);
             }
         }
@@ -372,10 +387,10 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
     protected boolean isValidDigest(String key) {
         BlobProvider blobProvider = getBlobProvider();
-        if (blobProvider instanceof BlobStoreBlobProvider) {
-            KeyStrategy keyStrategy = ((BlobStoreBlobProvider) blobProvider).store.getKeyStrategy();
-            if (keyStrategy instanceof KeyStrategyDigest) {
-                return ((KeyStrategyDigest) keyStrategy).isValidDigest(key);
+        if (blobProvider instanceof BlobStoreBlobProvider bsbb) {
+            KeyStrategy keyStrategy = bsbb.store.getKeyStrategy();
+            if (keyStrategy instanceof KeyStrategyDigest ksd) {
+                return ksd.isValidDigest(key);
             }
         }
         return false;
@@ -385,22 +400,23 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         return Framework.getService(BlobManager.class).getBlobProvider(blobProviderId);
     }
 
-    protected TransferManager getTransferManager() {
+    protected S3TransferManager getTransferManager() {
         BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blobProviderId);
-        if (!(blobProvider instanceof S3ManagedTransfer)) {
+        if (!(blobProvider instanceof S3ManagedTransfer s3ManagedTransfer)) {
             throw new NuxeoException("BlobProvider does not implement S3ManagedTransfer");
         }
-        return ((S3ManagedTransfer) blobProvider).getTransferManager();
+        return s3ManagedTransfer.getTransferManager();
     }
 
     protected Credentials getAwsCredentials(String batchId) {
-        AssumeRoleRequest request = new AssumeRoleRequest().withRoleArn(roleArn)
-                                                           .withPolicy(policy)
-                                                           .withRoleSessionName(batchId);
+        AssumeRoleRequest.Builder requestBuilder = AssumeRoleRequest.builder()
+                                                                    .roleArn(roleArn)
+                                                                    .policy(policy)
+                                                                    .roleSessionName(batchId);
         if (expiration > 0) {
-            request.setDurationSeconds(expiration);
+            requestBuilder.durationSeconds(expiration);
         }
-        return assumeRole(request);
+        return assumeRole(requestBuilder.build());
     }
 
     /** @since 11.1 */
@@ -410,10 +426,10 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
         Credentials credentials = getAwsCredentials(batchId);
         Map<String, Object> result = new HashMap<>();
-        result.put(INFO_AWS_SECRET_KEY_ID, credentials.getAccessKeyId());
-        result.put(INFO_AWS_SECRET_ACCESS_KEY, credentials.getSecretAccessKey());
-        result.put(INFO_AWS_SESSION_TOKEN, credentials.getSessionToken());
-        result.put(INFO_EXPIRATION, credentials.getExpiration().toInstant().toEpochMilli());
+        result.put(INFO_AWS_SECRET_KEY_ID, credentials.accessKeyId());
+        result.put(INFO_AWS_SECRET_ACCESS_KEY, credentials.secretAccessKey());
+        result.put(INFO_AWS_SESSION_TOKEN, credentials.sessionToken());
+        result.put(INFO_EXPIRATION, credentials.expiration().toEpochMilli());
         return result;
     }
 

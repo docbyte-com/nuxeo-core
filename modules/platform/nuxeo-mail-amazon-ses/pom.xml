@@ -22,8 +22,8 @@
       <artifactId>nuxeo-runtime-aws</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-ses</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>ses</artifactId>
     </dependency>
   </dependencies>
 

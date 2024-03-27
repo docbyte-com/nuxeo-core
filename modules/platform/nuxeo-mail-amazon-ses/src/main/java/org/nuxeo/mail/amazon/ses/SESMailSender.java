@@ -37,12 +37,12 @@ import org.nuxeo.runtime.aws.AWSConfigurationService;
 import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
 import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailService;
-import com.amazonaws.services.simpleemail.AmazonSimpleEmailServiceClientBuilder;
-import com.amazonaws.services.simpleemail.model.AmazonSimpleEmailServiceException;
-import com.amazonaws.services.simpleemail.model.RawMessage;
-import com.amazonaws.services.simpleemail.model.SendRawEmailRequest;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.services.ses.SesClient;
+import software.amazon.awssdk.services.ses.model.RawMessage;
+import software.amazon.awssdk.services.ses.model.SendRawEmailRequest;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 /**
  * Implementation of {@link MailSender} building {@link RawMessage}s and sending them via Amazon SES.
@@ -57,24 +57,22 @@ public class SESMailSender implements MailSender {
 
     protected final String defaultMailFrom;
 
-    protected final AmazonSimpleEmailService client;
+    protected final SesClient client;
 
     public SESMailSender(MailSenderDescriptor descriptor) {
         var configurationId = descriptor.getProperties().get(AWS_CONFIGURATION_ID_KEY);
         defaultMailFrom = descriptor.getProperties().get(CONFIGURATION_MAIL_FROM);
         var credentialsProvider = new NuxeoAWSCredentialsProvider(configurationId);
         var regionProvider = new NuxeoAWSRegionProvider(configurationId);
-
-        var clientConfiguration = new ClientConfiguration();
+        ApacheHttpClient.Builder httpClientBuilder = ApacheHttpClient.builder();
         var awsConfigurationService = Framework.getService(AWSConfigurationService.class);
-        awsConfigurationService.configureSSL(clientConfiguration);
-        awsConfigurationService.configureProxy(clientConfiguration);
-
-        client = AmazonSimpleEmailServiceClientBuilder.standard()
-                                                      .withClientConfiguration(clientConfiguration)
-                                                      .withCredentials(credentialsProvider)
-                                                      .withRegion(regionProvider.getRegion())
-                                                      .build();
+        awsConfigurationService.configureSSL(httpClientBuilder);
+        awsConfigurationService.configureProxy(httpClientBuilder);
+        client = SesClient.builder()
+                          .httpClient(httpClientBuilder.build())
+                          .credentialsProvider(credentialsProvider)
+                          .region(regionProvider.getRegion())
+                          .build();
     }
 
     @Override
@@ -84,12 +82,13 @@ public class SESMailSender implements MailSender {
 
             var outputStream = new ByteArrayOutputStream();
             mimeMessage.writeTo(outputStream);
-            var rawMessage = new RawMessage(ByteBuffer.wrap(outputStream.toByteArray()));
-            var sendRawEmailRequest = new SendRawEmailRequest(rawMessage);
-
+            var rawMessage = RawMessage.builder()
+                                       .data(SdkBytes.fromByteBuffer(ByteBuffer.wrap(outputStream.toByteArray())))
+                                       .build();
+            var sendRawEmailRequest = SendRawEmailRequest.builder().rawMessage(rawMessage).build();
             var response = client.sendRawEmail(sendRawEmailRequest);
-            log.debug("Successfully sent mail with Amazon SES, messageId: {}", response.getMessageId());
-        } catch (MessagingException | IOException | AmazonSimpleEmailServiceException e) {
+            log.debug("Successfully sent mail with Amazon SES, messageId: {}", response.messageId());
+        } catch (MessagingException | IOException | SesException e) {
             throw new MailException("An error occurred while sending a mail with Amazon SES", e);
         }
     }

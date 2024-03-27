@@ -25,19 +25,11 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration;
 import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
 
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.BasicSessionCredentials;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.CompleteMultipartUploadRequest;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.CopyPartRequest;
-import com.amazonaws.services.s3.model.CopyPartResult;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadRequest;
-import com.amazonaws.services.s3.model.InitiateMultipartUploadResult;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PartETag;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 
 /**
  * AWS S3 utilities.
@@ -120,16 +112,18 @@ public class S3Utils {
      * @param sessionToken the session token (optional)
      * @since 10.10
      */
-    public static AWSCredentialsProvider getAWSCredentialsProvider(String accessKeyId, String secretKey,
+    public static AwsCredentialsProvider getAwsCredentialsProvider(String accessKeyId, String secretKey,
             String sessionToken) {
         if (isNotBlank(accessKeyId) && isNotBlank(secretKey)) {
             // explicit values from service-specific Nuxeo configuration
+            AwsCredentials awsCreds;
             if (isNotBlank(sessionToken)) {
-                return new AWSStaticCredentialsProvider(
-                        new BasicSessionCredentials(accessKeyId, secretKey, sessionToken));
+                awsCreds = AwsSessionCredentials.create(accessKeyId, secretKey, sessionToken);
+
             } else {
-                return new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKeyId, secretKey));
+                awsCreds = AwsBasicCredentials.create(accessKeyId, secretKey);
             }
+            return StaticCredentialsProvider.create(awsCreds);
         }
         return NuxeoAWSCredentialsProvider.getInstance();
     }

@@ -15,20 +15,20 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import com.amazonaws.services.s3.transfer.TransferManager;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
- * S3 transfers relying on {@link TransferManager}.
+ * S3 transfers relying on {@link S3TransferManager}.
  *
  * @since 11.2
  */
 public interface S3ManagedTransfer {
 
     /**
-     * Returns the {@link TransferManager}.
+     * Returns the {@link S3TransferManager}.
      *
      * @since 11.2
      */
-    TransferManager getTransferManager();
+    S3TransferManager getTransferManager();
 
 }

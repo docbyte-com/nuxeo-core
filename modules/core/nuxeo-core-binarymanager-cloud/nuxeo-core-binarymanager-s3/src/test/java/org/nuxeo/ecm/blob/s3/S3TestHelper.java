@@ -18,12 +18,6 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static com.amazonaws.SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.ALTERNATE_ACCESS_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.ALTERNATE_SECRET_KEY_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.AWS_REGION_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.AWS_SESSION_TOKEN_ENV_VAR;
-import static com.amazonaws.SDKGlobalConfiguration.SECRET_KEY_ENV_VAR;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNoneBlank;
 import static org.junit.Assume.assumeTrue;
@@ -35,6 +29,10 @@ import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_NAME_PROPERT
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_PREFIX_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_REGION_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SYSTEM_PROPERTY_PREFIX;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_ACCESS_KEY_ID;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_REGION;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_SECRET_ACCESS_KEY;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_SESSION_TOKEN;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -55,12 +53,13 @@ public class S3TestHelper {
     public static Map<String, String> getProperties() {
         Map<String, String> properties = new HashMap<>();
 
-        String envId = defaultIfBlank(System.getenv(ACCESS_KEY_ENV_VAR), System.getenv(ALTERNATE_ACCESS_KEY_ENV_VAR));
-        String envSecret = defaultIfBlank(System.getenv(SECRET_KEY_ENV_VAR),
-                System.getenv(ALTERNATE_SECRET_KEY_ENV_VAR));
+        String envId = defaultIfBlank(System.getenv(AWS_ACCESS_KEY_ID.environmentVariable()),
+                System.getenv("AWS_ACCESS_KEY"));
+        String envSecret = defaultIfBlank(System.getenv(AWS_SECRET_ACCESS_KEY.environmentVariable()),
+                System.getenv("AWS_SECRET_KEY"));
         // fall back on empty string to allow AWS credentials provider to generate credentials without session token
-        String envSessionToken = defaultIfBlank(System.getenv(AWS_SESSION_TOKEN_ENV_VAR), "");
-        String envRegion = System.getenv(AWS_REGION_ENV_VAR);
+        String envSessionToken = defaultIfBlank(System.getenv(AWS_SESSION_TOKEN.environmentVariable()), "");
+        String envRegion = System.getenv(AWS_REGION.environmentVariable());
         String bucketName = System.getProperty(PREFIX_TEST + BUCKET_NAME_PROPERTY);
         assumeTrue("AWS credentials, region and bucket not set in the environment variables",
                 isNoneBlank(envId, envSecret, envRegion, bucketName));
