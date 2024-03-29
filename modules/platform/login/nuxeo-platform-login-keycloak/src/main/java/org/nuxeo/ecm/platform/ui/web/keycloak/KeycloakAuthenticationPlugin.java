@@ -118,7 +118,7 @@ public class KeycloakAuthenticationPlugin implements NuxeoAuthenticationPlugin,
                     challenge.challenge(authenticator.getFacade());
                 }
             }
-            return Boolean.FALSE;
+            return Boolean.TRUE;
         } finally {
             localKeycloakAuthenticator.remove();
         }
