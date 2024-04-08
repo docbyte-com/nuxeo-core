@@ -26,6 +26,7 @@ import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 import org.nuxeo.ecm.webengine.session.UserSession;
@@ -42,7 +43,7 @@ import org.nuxeo.ecm.webengine.ui.tree.document.DocumentTree;
 public class Test extends ModuleRoot {
 
     @GET
-    public Object getView() {
+    public Template getView() {
         return getTemplate("tree.ftl");
     }
 

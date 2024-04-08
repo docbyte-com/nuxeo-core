@@ -67,8 +67,8 @@ public class DocumentObject extends DefaultObject {
     }
 
     @GET
-    public Object doGet() {
-        return getView("index");
+    public Response doGet() {
+        return Response.ok(getView("index")).build();
     }
 
     // simulate a DELETE using GET

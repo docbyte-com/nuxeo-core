@@ -83,7 +83,12 @@ public class WebEngine implements ResourceLocator {
     public static WebContext getActiveContext() {
         RequestContext ctx = RequestContext.getActiveContext();
         if (ctx != null) {
-            return (WebContext) ctx.getRequest().getAttribute(WebContext.class.getName());
+            var webContext = (WebContext) ctx.getRequest().getAttribute(WebContext.class.getName());
+            if (webContext == null) {
+                log.warn(
+                        "No active WebContext found. You might need to set up WebContextProvider as a singleton of your application");
+            }
+            return webContext;
         }
         return null;
     }
@@ -244,10 +249,10 @@ public class WebEngine implements ResourceLocator {
         return moduleMgr;
     }
 
-    public Module getModule(String name, WebContext context) {
+    public Module getModule(String name) {
         ModuleConfiguration md = getModuleManager().getModule(name);
         if (md != null) {
-            return md.get(context);
+            return md.get();
         }
         return null;
     }

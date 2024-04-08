@@ -144,10 +144,10 @@ public class ConvertAdapter extends DefaultAdapter {
     }
 
     @POST
-    public Object convert(@FormParam("converter") String converter, @FormParam("type") String type,
+    public Response convert(@FormParam("converter") String converter, @FormParam("type") String type,
             @FormParam("format") String format, @FormParam("async") boolean async, @Context UriInfo uriInfo) {
         if (!async) {
-            return convert(converter, type, format, uriInfo);
+            return Response.ok(convert(converter, type, format, uriInfo)).build();
         }
 
         String conversionId;

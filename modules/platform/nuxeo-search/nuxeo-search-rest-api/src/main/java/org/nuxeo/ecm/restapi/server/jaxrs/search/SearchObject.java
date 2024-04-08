@@ -88,7 +88,7 @@ public class SearchObject extends QueryExecutor {
     @GET
     @Path("lang/{queryLanguage}/execute")
     @Deprecated
-    public Object doQueryByLang(@Context UriInfo uriInfo, @PathParam("queryLanguage") String queryLanguage) {
+    public DocumentModelList doQueryByLang(@Context UriInfo uriInfo, @PathParam("queryLanguage") String queryLanguage) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         return queryByLang(queryLanguage, queryParams);
     }
@@ -98,7 +98,7 @@ public class SearchObject extends QueryExecutor {
      */
     @GET
     @Path("execute")
-    public Object doQueryByLang(@Context UriInfo uriInfo) {
+    public DocumentModelList doQueryByLang(@Context UriInfo uriInfo) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         return queryByLang(queryParams);
     }
@@ -131,7 +131,7 @@ public class SearchObject extends QueryExecutor {
 
     @GET
     @Path("pp/{pageProviderName}/execute")
-    public Object doQueryByPageProvider(@Context UriInfo uriInfo,
+    public DocumentModelList doQueryByPageProvider(@Context UriInfo uriInfo,
             @PathParam("pageProviderName") String pageProviderName) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         return queryByPageProvider(pageProviderName, queryParams);
@@ -139,7 +139,7 @@ public class SearchObject extends QueryExecutor {
 
     @GET
     @Path("pp/{pageProviderName}")
-    public Object doGetPageProviderDefinition(@PathParam("pageProviderName") String pageProviderName)
+    public Response doGetPageProviderDefinition(@PathParam("pageProviderName") String pageProviderName)
             throws IOException {
         return buildResponse(Response.Status.OK, MediaType.APPLICATION_JSON,
                 getPageProviderDefinition(pageProviderName));
@@ -253,13 +253,13 @@ public class SearchObject extends QueryExecutor {
 
     @GET
     @Path("saved/{id}/execute")
-    public Object doExecuteSavedSearch(@PathParam("id") String id, @Context UriInfo uriInfo) {
+    public Response doExecuteSavedSearch(@PathParam("id") String id, @Context UriInfo uriInfo) {
         MultivaluedMap<String, String> params = uriInfo.getQueryParameters();
         SavedSearch search = savedSearchService.getSavedSearch(ctx.getCoreSession(), id);
         if (search == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
-        return executeSavedSearch(search, params);
+        return Response.ok(executeSavedSearch(search, params)).build();
     }
 
     protected void setSaveSearchParams(Map<String, String> params, SavedSearch search) throws IOException {

@@ -40,6 +40,7 @@ import org.nuxeo.connect.update.Package;
 import org.nuxeo.connect.update.PackageState;
 import org.nuxeo.connect.update.PackageType;
 import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -59,7 +60,8 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "list")
-    public Object doList(@QueryParam("type") String pkgType, @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
+    public Template doList(@QueryParam("type") String pkgType,
+            @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageManager pm = Framework.getService(PackageManager.class);
         PlatformId targetPlatform = getTargetPlatform(filterOnPlatform);
         List<DownloadablePackage> pkgs;
@@ -77,7 +79,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "updates")
-    public Object getUpdates(@QueryParam("type") String pkgType,
+    public Template getUpdates(@QueryParam("type") String pkgType,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageManager pm = Framework.getService(PackageManager.class);
         if (pkgType == null) {
@@ -102,7 +104,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "private")
-    public Object getPrivate(@QueryParam("type") String pkgType,
+    public Template getPrivate(@QueryParam("type") String pkgType,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageManager pm = Framework.getService(PackageManager.class);
         if (pkgType == null) {
@@ -127,7 +129,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "local")
-    public Object getLocal(@QueryParam("type") String pkgType) {
+    public Template getLocal(@QueryParam("type") String pkgType) {
         PackageManager pm = Framework.getService(PackageManager.class);
         if (pkgType == null) {
             pkgType = SharedPackageListingsSettings.instance().get("local").getPackageTypeFilter();
@@ -146,7 +148,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "remote")
-    public Object getRemote(@QueryParam("type") String pkgType, @QueryParam("onlyRemote") Boolean onlyRemote,
+    public Template getRemote(@QueryParam("type") String pkgType, @QueryParam("onlyRemote") Boolean onlyRemote,
             @QueryParam("searchString") String searchString, @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageManager pm = Framework.getService(PackageManager.class);
         if (pkgType == null) {
@@ -197,7 +199,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "studio")
-    public Object getStudio() {
+    public Template getStudio() {
         PackageManager pm = Framework.getService(PackageManager.class);
         List<DownloadablePackage> pkgs = pm.listAllStudioRemoteOrLocalPackages();
         List<DownloadablePackage> pkgsWithoutSnapshot = StudioSnapshotHelper.removeSnapshot(pkgs);
@@ -273,7 +275,7 @@ public class PackageListingProvider extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "details/{pkgId}")
-    public Object getDetails(@PathParam("pkgId") String pkgId) {
+    public Template getDetails(@PathParam("pkgId") String pkgId) {
         PackageManager pm = Framework.getService(PackageManager.class);
         DownloadablePackage pkg = pm.getPackage(pkgId);
         if (pkg != null) {

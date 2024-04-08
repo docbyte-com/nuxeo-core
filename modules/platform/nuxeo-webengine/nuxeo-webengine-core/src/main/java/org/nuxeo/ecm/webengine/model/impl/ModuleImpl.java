@@ -49,8 +49,6 @@ import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
-
 /**
  * The default implementation for a web configuration.
  *
@@ -69,8 +67,6 @@ public class ModuleImpl implements Module {
 
     protected final ModuleConfiguration configuration;
 
-    protected final ServerInjectableProviderContext sic;
-
     protected final ModuleImpl superModule;
 
     protected LinkRegistry linkReg;
@@ -84,11 +80,9 @@ public class ModuleImpl implements Module {
     // cache used for resolved files
     protected ConcurrentMap<String, ScriptFile> fileCache;
 
-    public ModuleImpl(WebEngine engine, ModuleImpl superModule, ModuleConfiguration config,
-            ServerInjectableProviderContext sic) {
+    public ModuleImpl(WebEngine engine, ModuleImpl superModule, ModuleConfiguration config) {
         this.engine = engine;
         this.superModule = superModule;
-        this.sic = sic;
         configuration = config;
         skinPathPrefix = engine.getSkinPathPrefix() + '/' + config.name;
         fileCache = new ConcurrentHashMap<>();

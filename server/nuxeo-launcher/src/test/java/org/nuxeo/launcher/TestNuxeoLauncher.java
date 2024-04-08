@@ -37,15 +37,12 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.After;
 import org.junit.AssumptionViolatedException;
 import org.junit.Before;
@@ -193,11 +190,14 @@ public class TestNuxeoLauncher {
     public void testShowconf() throws Exception {
         NuxeoLauncher launcher = NuxeoLauncher.createLauncher(new String[] { "showconf", "--json" });
         InstanceInfo info = launcher.getInfo();
+        // remove clid - it could be present, see testClidOption
+        info.clid = null;
+        // remove System properties from allkeyvals as they are system dependent
+        info.config.allkeyvals.removeIf(kv -> (!kv.key.startsWith("nuxeo") || kv.key.startsWith("nuxeo.test")
+                || "nuxeo.skip.enforcer".equalsIgnoreCase(kv.key)) && System.getProperties().containsKey(kv.key));
         try (OutputStream os = new ByteArrayOutputStream()) {
             launcher.techPrinter.print(info, os);
             String json = os.toString();
-
-            json = cleanupShowconf(json);
 
             Map<String, String> toReplace = new HashMap<>();
             toReplace.put("NUXEO_HOME", rule.getNuxeoHome().toString());
@@ -206,31 +206,12 @@ public class TestNuxeoLauncher {
         }
     }
 
-    protected String cleanupShowconf(String json) throws JSONException {
-        JSONObject jsonObject = new JSONObject(json);
-        // remove clid - it could be present, see testClidOption
-        jsonObject.remove("clid");
-        // remove System properties from allkeyvals as they are system dependent
-        JSONObject allkeyvals = jsonObject.getJSONObject("configuration").getJSONObject("allkeyvals");
-        Iterator<Object> it = allkeyvals.getJSONArray("allkeyval").iterator();
-        while (it.hasNext()) {
-            JSONObject obj = (JSONObject) it.next();
-            String key = obj.getString("key");
-            if ((!key.startsWith("nuxeo") || key.startsWith("nuxeo.test")
-                    || "nuxeo.skip.enforcer".equalsIgnoreCase(key)) && System.getProperties().containsKey(key)) {
-                it.remove();
-            }
-        }
-        json = jsonObject.toString();
-        return json;
-    }
-
-    protected void checkJSON(String expectedJSONFile, String actualJSON) throws IOException, JSONException {
+    protected void checkJSON(String expectedJSONFile, String actualJSON) throws IOException {
         checkJSON(expectedJSONFile, actualJSON, Map.of());
     }
 
     protected void checkJSON(String expectedJSONFile, String actualJSON, Map<String, String> toReplace)
-            throws IOException, JSONException {
+            throws IOException {
         File file = org.nuxeo.common.utils.FileUtils.getResourceFileFromContext(expectedJSONFile);
         String expected = FileUtils.readFileToString(file, UTF_8);
         expected = StringUtils.expandVars(expected, toReplace);

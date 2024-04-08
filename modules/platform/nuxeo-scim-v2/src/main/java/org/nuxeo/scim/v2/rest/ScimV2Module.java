@@ -23,6 +23,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.nuxeo.ecm.webengine.app.JsonNuxeoExceptionWriter;
+import org.nuxeo.ecm.webengine.app.WebContextProvider;
 import org.nuxeo.ecm.webengine.app.WebEngineExceptionMapper;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
 import org.nuxeo.ecm.webengine.jaxrs.coreiodelegate.CoreIODelegate;
@@ -35,6 +36,7 @@ public class ScimV2Module extends WebEngineModule {
     @Override
     public Set<Object> getSingletons() {
         Set<Object> result = new HashSet<>();
+        result.add(new WebContextProvider());
         result.add(new CoreIODelegate());
         result.add(new JsonNuxeoExceptionWriter());
         result.add(new WebEngineExceptionMapper());

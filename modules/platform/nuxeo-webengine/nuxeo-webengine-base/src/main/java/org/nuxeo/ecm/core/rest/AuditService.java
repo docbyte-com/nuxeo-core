@@ -47,7 +47,7 @@ import org.nuxeo.runtime.api.Framework;
 public class AuditService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public View doGet() {
         return new View(getTarget(), "audits").resolve();
     }
 

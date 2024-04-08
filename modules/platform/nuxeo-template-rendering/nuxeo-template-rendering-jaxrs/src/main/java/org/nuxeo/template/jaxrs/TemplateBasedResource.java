@@ -64,7 +64,7 @@ public class TemplateBasedResource extends DefaultObject {
     }
 
     @GET
-    public Object get() {
+    public String get() {
         TemplateBasedDocument tmpl = resolve();
         if (tmpl == null) {
             return "";

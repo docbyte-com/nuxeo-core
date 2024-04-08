@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,16 +31,12 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.jaxrs.ApplicationFactory;
 import org.nuxeo.ecm.webengine.jaxrs.scan.Scanner;
@@ -55,20 +50,12 @@ import org.nuxeo.ecm.webengine.model.impl.ModuleConfiguration;
 import org.nuxeo.ecm.webengine.model.impl.ModuleManager;
 import org.osgi.framework.Bundle;
 
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class WebEngineModule extends Application implements ApplicationFactory {
 
     private static final Logger log = LogManager.getLogger(WebEngineModule.class);
-
-    protected ServerInjectableProviderContext context;
 
     protected Bundle bundle;
 
@@ -206,7 +193,7 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     }
 
     public Module getModule(WebContext context) {
-        return cfg.get(context);
+        return cfg.get();
     }
 
     public Bundle getBundle() {
@@ -226,8 +213,7 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     @Override
     public Set<Object> getSingletons() {
         Set<Object> set = new HashSet<>();
-        set.add(new HttpServletRequestProvider());
-        set.add(new HttpServletResponseProvider());
+        set.add(new WebContextProvider());
         return set;
     }
 
@@ -248,51 +234,5 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     @Override
     public String toString() {
         return "WebEngineModule{cfg=" + cfg + ", bundle=" + bundle + '}';
-    }
-
-    public static class HttpServletRequestProvider
-            implements InjectableProvider<Context, Type>, Injectable<HttpServletRequest> {
-        @Override
-        public HttpServletRequest getValue() {
-            RequestContext ctx = RequestContext.getActiveContext();
-            return ctx != null ? ctx.getRequest() : null;
-        }
-
-        @Override
-        public ComponentScope getScope() {
-            return ComponentScope.PerRequest;
-        }
-
-        @Override
-        public Injectable<HttpServletRequest> getInjectable(ComponentContext ic, Context a, Type c) {
-            if (!c.equals(HttpServletRequest.class)) {
-                return null;
-            }
-            return this;
-        }
-
-    }
-
-    public static class HttpServletResponseProvider
-            implements InjectableProvider<Context, Type>, Injectable<HttpServletResponse> {
-        @Override
-        public HttpServletResponse getValue() {
-            RequestContext ctx = RequestContext.getActiveContext();
-            return ctx != null ? ctx.getResponse() : null;
-        }
-
-        @Override
-        public ComponentScope getScope() {
-            return ComponentScope.PerRequest;
-        }
-
-        @Override
-        public Injectable<HttpServletResponse> getInjectable(ComponentContext ic, Context a, Type c) {
-            if (!c.equals(HttpServletResponse.class)) {
-                return null;
-            }
-            return this;
-        }
-
     }
 }

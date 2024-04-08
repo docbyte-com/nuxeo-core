@@ -58,6 +58,7 @@ public class MeTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
                                                                    .url(() -> restServerFeature.getRestApiUrl())
                                                                    .credentials("user1", PASSWORD)
+                                                                   .accept("application/json")
                                                                    .build();
 
     @Test

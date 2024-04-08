@@ -22,6 +22,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 
+import org.nuxeo.ecm.automation.OperationDocumentation;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.core.impl.ChainTypeImpl;
@@ -42,14 +43,14 @@ public class OperationResource extends ExecutableResource {
     }
 
     @GET
-    public Object doGet() throws OperationException {
+    public OperationDocumentation doGet() throws OperationException {
         return type.getDocumentation();
     }
 
     @GET
     @Path("yaml")
     @Produces("application/yaml")
-    public Object doGetYaml() throws OperationException {
+    public OperationDocumentation doGetYaml() throws OperationException {
         return type.getDocumentation();
     }
 

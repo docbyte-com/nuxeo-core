@@ -52,6 +52,7 @@ import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.webengine.forms.FormData;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -92,7 +93,7 @@ public class InstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "showTermsAndConditions/{pkgId}")
-    public Object showTermsAndConditions(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template showTermsAndConditions(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("depCheck") Boolean depCheck) {
         if (depCheck == null) {
             depCheck = true;
@@ -114,7 +115,7 @@ public class InstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "start/{pkgId}")
-    public Object startInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template startInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("tacAccepted") Boolean acceptedTAC, @QueryParam("depCheck") Boolean depCheck,
             @QueryParam("autoMode") Boolean autoMode) {
         try {
@@ -186,7 +187,7 @@ public class InstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "form/{pkgId}/{formId}")
-    public Object showInstallForm(@PathParam("pkgId") String pkgId, @PathParam("formId") int formId,
+    public Template showInstallForm(@PathParam("pkgId") String pkgId, @PathParam("formId") int formId,
             @QueryParam("source") String source) {
         PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
         try {
@@ -214,7 +215,7 @@ public class InstallHandler extends DefaultObject {
     @POST
     @Produces("text/html")
     @Path(value = "form/{pkgId}/{formId}")
-    public Object processInstallForm(@PathParam("pkgId") String pkgId, @PathParam("formId") int formId,
+    public Template processInstallForm(@PathParam("pkgId") String pkgId, @PathParam("formId") int formId,
             @QueryParam("source") String source) {
         PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
         try {
@@ -255,7 +256,7 @@ public class InstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "bulkRun/{pkgId}")
-    public Object doBulkInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template doBulkInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("confirm") Boolean confirm) {
         if (!RequestHelper.isInternalLink(getContext())) {
             return getView("installError")
@@ -331,7 +332,7 @@ public class InstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "run/{pkgId}")
-    public Object doInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
+    public Template doInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
         if (!RequestHelper.isInternalLink(getContext())) {
             return getView("installError")
                                           .arg("e", new NuxeoException(

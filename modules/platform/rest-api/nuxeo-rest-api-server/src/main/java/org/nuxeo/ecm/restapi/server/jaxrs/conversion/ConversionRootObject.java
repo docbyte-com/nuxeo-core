@@ -24,6 +24,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Response;
 
+import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.api.ConversionStatus;
@@ -41,7 +42,7 @@ public class ConversionRootObject extends DefaultObject {
 
     @GET
     @Path("{id}/poll")
-    public Object doGetConversionStatus(@PathParam("id") String id) {
+    public Response doGetConversionStatus(@PathParam("id") String id) {
         ConversionService conversionService = Framework.getService(ConversionService.class);
         ConversionStatus conversionStatus = conversionService.getConversionStatus(id);
         if (conversionStatus == null) {
@@ -56,7 +57,7 @@ public class ConversionRootObject extends DefaultObject {
 
     @GET
     @Path("{id}/result")
-    public Object doGetConversionResult(@PathParam("id") String id) {
+    public Blob doGetConversionResult(@PathParam("id") String id) {
         ConversionService conversionService = Framework.getService(ConversionService.class);
         BlobHolder result = conversionService.getConversionResult(id, false);
         if (result == null || result.getBlob() == null) {

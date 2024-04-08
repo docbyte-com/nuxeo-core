@@ -37,14 +37,11 @@ import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.TypeVisibility;
-import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.security.Guard;
 import org.nuxeo.ecm.webengine.security.PermissionService;
 import org.nuxeo.runtime.annotations.AnnotationManager;
-
-import com.sun.jersey.server.spi.component.ResourceComponentConstructor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -54,8 +51,6 @@ public abstract class AbstractResourceType implements ResourceType {
     protected final WebEngine engine;
 
     protected final Module owner;
-
-    protected final ResourceComponentConstructor constructor;
 
     protected final String name;
 
@@ -72,13 +67,12 @@ public abstract class AbstractResourceType implements ResourceType {
     protected volatile ConcurrentMap<String, ScriptFile> templateCache;
 
     protected AbstractResourceType(WebEngine engine, Module module, AbstractResourceType superType, String name,
-            ClassProxy clazz, ResourceComponentConstructor constructor, int visibility) {
+            ClassProxy clazz, int visibility) {
         this.engine = engine;
         owner = module;
         this.superType = superType;
         this.name = name;
         this.clazz = clazz;
-        this.constructor = constructor;
         this.visibility = visibility;
         templateCache = new ConcurrentHashMap<>();
         AnnotationManager mgr = engine.getAnnotationManager();
@@ -122,14 +116,14 @@ public abstract class AbstractResourceType implements ResourceType {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Class<Resource> getResourceClass() {
-        return (Class<Resource>) clazz.get();
+    public <R extends Resource> Class<R> getResourceClass() {
+        return (Class<R>) clazz.get();
     }
 
     @Override
-    public <T extends Resource> T newInstance(Class<T> typeof, WebContext context) {
+    public <R extends Resource> R newInstance() {
         try {
-            return typeof.cast(constructor.construct(context.getServerHttpContext()));
+            return this.<R> getResourceClass().getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new NuxeoException("Failed to instantiate web object: " + clazz, e);
         }
@@ -156,7 +150,7 @@ public abstract class AbstractResourceType implements ResourceType {
         templateCache = new ConcurrentHashMap<>();
     }
 
-    protected void loadGuardFromAnnoation(Class<?> c) {
+    protected void loadGuardFromAnnotation(Class<?> c) {
         org.nuxeo.ecm.webengine.model.Guard ag = c.getAnnotation(org.nuxeo.ecm.webengine.model.Guard.class);
         if (ag != null) {
             String g = ag.value();

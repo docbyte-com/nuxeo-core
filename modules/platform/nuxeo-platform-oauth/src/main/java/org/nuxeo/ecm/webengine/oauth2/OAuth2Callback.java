@@ -63,7 +63,7 @@ public class OAuth2Callback extends ModuleRoot {
      */
     @GET
     @Path("{serviceProviderName}/callback")
-    public Object doGet(@PathParam("serviceProviderName") String serviceProviderName) throws IOException {
+    public Response doGet(@PathParam("serviceProviderName") String serviceProviderName) throws IOException {
 
         OAuth2ServiceProviderRegistry registry = Framework.getService(OAuth2ServiceProviderRegistry.class);
         OAuth2ServiceProvider provider = registry.getProvider(serviceProviderName);
@@ -87,6 +87,6 @@ public class OAuth2Callback extends ModuleRoot {
 
         String token = (credential == null) ? "" : credential.getAccessToken();
         args.put("token", token);
-        return getView("index").args(args);
+        return Response.ok(getView("index").args(args)).build();
     }
 }

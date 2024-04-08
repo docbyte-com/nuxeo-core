@@ -74,7 +74,7 @@
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>3.0</guice.version>
-    <jersey.version>1.19.4</jersey.version>
+    <jersey.version>2.43</jersey.version>
     <chemistry.opencmis.version>1.1.1-NX01</chemistry.opencmis.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
@@ -2178,8 +2178,8 @@
       </dependency>
       <dependency>
         <groupId>javax.ws.rs</groupId>
-        <artifactId>jsr311-api</artifactId>
-        <version>1.1.1</version>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>2.1.1</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
@@ -2850,6 +2850,18 @@
         <scope>import</scope>
       </dependency>
       <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>${jackson.version}</version>
+        <!-- Exclude dependency causing conflict with Tomcat -->
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <groupId>com.fasterxml.jackson.jaxrs</groupId>
         <artifactId>jackson-jaxrs-json-provider</artifactId>
         <version>${jackson.version}</version>
@@ -3084,23 +3096,89 @@
       </dependency>
 
       <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-core</artifactId>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-common</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-json</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
+        <groupId>org.glassfish.jersey.core</groupId>
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+          <!-- Same as javax.inject:javax.inject but repackaged for OSGi -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.validation</groupId>
+            <artifactId>jakarta.validation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-servlet</artifactId>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.annotation</groupId>
+            <artifactId>jakarta.annotation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet-core</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-multipart</artifactId>
         <version>${jersey.version}</version>
       </dependency>
 
@@ -4152,10 +4230,6 @@
         <version>${confluent.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
-          </exclusion>
-          <exclusion>
             <groupId>jakarta.ws.rs</groupId>
             <artifactId>jakarta.ws.rs-api</artifactId>
           </exclusion>
@@ -4973,6 +5047,24 @@
                   <exclude>jakarta.ws.rs:jakarta.ws.rs-api</exclude>
                 </excludes>
                 <message>jakarta artifacts must not be used, use their javax equivalent</message>
+              </bannedDependencies>
+              <bannedDependencies>
+                <excludes>
+                  <exclude>javax.ws.rs:jsr311-api</exclude>
+                </excludes>
+                <message>jax rs 1.x must not be used since the upgrade to jax rs 2.x</message>
+              </bannedDependencies>
+              <bannedDependencies>
+                <excludes>
+                  <exclude>com.sun.jersey:jersey-client</exclude>
+                  <exclude>com.sun.jersey:jersey-core</exclude>
+                  <exclude>com.sun.jersey:jersey-json</exclude>
+                  <exclude>com.sun.jersey:jersey-server</exclude>
+                  <exclude>com.sun.jersey:jersey-servlet</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-apache-client4</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-multipart</exclude>
+                </excludes>
+                <message>jersey 1.x must not be used since the upgrade to jersey 2.x</message>
               </bannedDependencies>
               <!-- logging exclusions -->
               <bannedDependencies>

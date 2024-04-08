@@ -22,6 +22,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
@@ -33,13 +34,13 @@ import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
 public class DocObject extends AbstractResource<ResourceTypeImpl> {
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         return getView("index");
     }
 
     @GET
     @Path("{resource}.json")
-    public Object doGetResource(@PathParam("resource") String resource) {
+    public Template doGetResource(@PathParam("resource") String resource) {
         return getView(resource).arg("resource", resource);
     }
 

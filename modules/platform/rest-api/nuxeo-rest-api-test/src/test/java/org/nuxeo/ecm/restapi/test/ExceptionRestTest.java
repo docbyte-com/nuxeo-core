@@ -112,8 +112,7 @@ public class ExceptionRestTest {
     public void testNotFoundEndpoint() {
         httpClient.buildGetRequest("/foo/notFound").executeAndConsume(new JsonNodeHandler(SC_NOT_FOUND), node -> {
             assertEquals(SC_NOT_FOUND, node.get("status").numberValue());
-            assertEquals("com.sun.jersey.api.NotFoundException: null for uri: " + restServerFeature.getRestApiUrl()
-                    + "/foo/notFound", node.get("message").textValue());
+            assertEquals("javax.ws.rs.NotFoundException: HTTP 404 Not Found", node.get("message").textValue());
         });
 
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();

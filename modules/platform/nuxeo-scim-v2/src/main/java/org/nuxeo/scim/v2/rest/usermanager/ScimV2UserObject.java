@@ -29,6 +29,7 @@ import java.beans.IntrospectionException;
 
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.PATCH;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -41,7 +42,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
-import org.nuxeo.scim.v2.rest.PATCH;
 import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;

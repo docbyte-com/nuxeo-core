@@ -37,6 +37,7 @@ public class TestWorkManagerObject extends ManagementBaseTest {
     @Test
     public void testRunWorksInFailure() {
         httpClient.buildPostRequest("/management/work-manager/run-works-in-failure")
+                  .contentType("application/x-www-form-urlencoded")
                   .executeAndConsume(new JsonNodeHandler(), result -> {
                       assertEquals(0, result.get("total").asInt());
                       assertEquals(0, result.get("success").asInt());

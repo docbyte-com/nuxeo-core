@@ -14,29 +14,25 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.scim.v2.rest;
+package org.nuxeo.launcher.io.config;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
 
-import javax.ws.rs.HttpMethod;
+import org.nuxeo.launcher.info.CommandInfo;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * Indicates that the annotated method responds to HTTP PATCH requests.
- * <p>
- * This interface will be removed in LTS 2025, because this annotation is provided by Javax RS/Jakarta RS since 2.1, so
- * it shouldn't be used.
- * </p>
- *
- * @since 2023.14
+ * @since 2025.0
  */
-@Target({ ElementType.METHOD })
-@Retention(RetentionPolicy.RUNTIME)
-@HttpMethod("PATCH")
-public @interface PATCH {
+@JacksonXmlRootElement(localName = "commands")
+public abstract class CommandSetInfoMixIn {
 
+    @JacksonXmlElementWrapper(useWrapping = false)
+    @JsonProperty("command")
+    public List<CommandInfo> commands;
 }

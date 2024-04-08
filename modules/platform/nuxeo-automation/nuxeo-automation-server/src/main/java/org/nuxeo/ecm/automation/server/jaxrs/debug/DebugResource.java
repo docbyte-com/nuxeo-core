@@ -45,6 +45,7 @@ import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.webengine.model.Access;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
@@ -82,14 +83,14 @@ public class DebugResource extends AbstractResource<ResourceTypeImpl> {
 
     @GET
     @Produces("text/html")
-    public Object doGet() {
+    public Template doGet() {
         return getView("index");
     }
 
     @GET
     @Produces("text/plain")
     @Path("/doc")
-    public Object doGetText() throws OperationException, IOException {
+    public String doGetText() throws OperationException, IOException {
         return getOperationsListAsJson();
     }
 
@@ -99,13 +100,13 @@ public class DebugResource extends AbstractResource<ResourceTypeImpl> {
     @GET
     @Produces("text/plain")
     @Path("/studioDoc")
-    public Object doGetStudioDoc() throws OperationException, IOException {
+    public String doGetStudioDoc() throws OperationException, IOException {
         return JsonWriter.exportOperations(true);
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Object doGetJSON() throws OperationException, IOException {
+    public String doGetJSON() throws OperationException, IOException {
         return getOperationsListAsJson();
     }
 

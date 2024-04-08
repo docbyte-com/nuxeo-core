@@ -79,18 +79,6 @@
     </filter-mapping>
 
     <filter>
-      <display-name>WebContextFilter</display-name>
-      <filter-name>WebContextFilter</filter-name>
-      <filter-class>org.nuxeo.ecm.webengine.app.WebContextFilter</filter-class>
-    </filter>
-    <filter-mapping>
-      <filter-name>WebContextFilter</filter-name>
-      <url-pattern>/site/*</url-pattern>
-      <dispatcher>REQUEST</dispatcher>
-      <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-
-    <filter>
       <display-name>SessionCleanupFilter</display-name>
       <filter-name>SessionCleanupFilter</filter-name>
       <filter-class>
@@ -103,7 +91,6 @@
       <dispatcher>REQUEST</dispatcher>
       <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
-
 
   </extension>
 

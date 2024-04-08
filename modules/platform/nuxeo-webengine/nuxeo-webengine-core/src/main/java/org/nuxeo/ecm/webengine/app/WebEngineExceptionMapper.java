@@ -35,7 +35,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.validation.DocumentValidationException;
-import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.ModuleResource;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.runtime.api.Framework;
@@ -47,10 +46,13 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @Provider
 public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
 
-    @Context
-    HttpHeaders headers;
-
     private static final Logger log = LogManager.getLogger(WebEngineExceptionMapper.class);
+
+    @Context
+    protected HttpHeaders headers;
+
+    @Context
+    protected WebContext webContext;
 
     @Override
     public Response toResponse(Throwable cause) {
@@ -105,9 +107,8 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
         return getStatusCode(cause);
     }
 
-    protected static Object handleErrorOnWebModule(Throwable t) {
-        WebContext ctx = WebEngine.getActiveContext();
-        if (ctx != null && ctx.head() instanceof ModuleResource mr) {
+    protected Object handleErrorOnWebModule(Throwable t) {
+        if (webContext != null && webContext.head() instanceof ModuleResource mr) {
             return mr.handleError(t);
         }
         return null;

@@ -389,7 +389,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{batchId}/execute/{operationId}")
-    public Object execute(@PathParam(REQUEST_BATCH_ID) String batchId, @PathParam(OPERATION_ID) String operationId,
+    public Response execute(@PathParam(REQUEST_BATCH_ID) String batchId, @PathParam(OPERATION_ID) String operationId,
             ExecutionRequest xreq) {
         return executeBatch(batchId, null, operationId, request, xreq);
     }
@@ -397,7 +397,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Path("{batchId}/{fileIdx}/execute/{operationId}")
-    public Object execute(@PathParam(REQUEST_BATCH_ID) String batchId, @PathParam(REQUEST_FILE_IDX) String fileIdx,
+    public Response execute(@PathParam(REQUEST_BATCH_ID) String batchId, @PathParam(REQUEST_FILE_IDX) String fileIdx,
             @PathParam(OPERATION_ID) String operationId, ExecutionRequest xreq) {
         return executeBatch(batchId, fileIdx, operationId, request, xreq);
     }
@@ -492,7 +492,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
     }
 
     @SuppressWarnings("resource") // ExecutionRequest's OperationContext not owned by us, don't close it
-    protected Object executeBatch(String batchId, String fileIdx, String operationId, HttpServletRequest request,
+    protected Response executeBatch(String batchId, String fileIdx, String operationId, HttpServletRequest request,
             ExecutionRequest xreq) {
         BatchManager bm = Framework.getService(BatchManager.class);
 

@@ -205,4 +205,12 @@ public class ApplicationHost extends Application {
         return result;
     }
 
+    @Override
+    public synchronized Map<String, Object> getProperties() {
+        Map<String, Object> result = new HashMap<>();
+        for (ApplicationFragment app : getApplications()) {
+            result.putAll(app.getProperties());
+        }
+        return result;
+    }
 }

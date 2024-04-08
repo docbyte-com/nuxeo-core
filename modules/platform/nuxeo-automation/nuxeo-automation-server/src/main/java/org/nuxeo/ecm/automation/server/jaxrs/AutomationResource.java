@@ -83,7 +83,7 @@ public class AutomationResource extends ModuleRoot {
     @SuppressWarnings("unchecked")
     @GET
     @Path("/files/{uid}")
-    public Object getFile(@Context HttpServletRequest request, @PathParam("uid") String uid,
+    public Response getFile(@Context HttpServletRequest request, @PathParam("uid") String uid,
             @QueryParam("path") String path) {
         try {
             CoreSession session = SessionFactory.getSession(request);
@@ -99,7 +99,7 @@ public class AutomationResource extends ModuleRoot {
                 case List<?> list when !list.isEmpty() && list.getFirst() instanceof Blob ->
                     ResponseHelper.blobs((List<Blob>) list);
                 // BlobWriter will do all the processing and call the DownloadService
-                case Blob blob -> blob;
+                case Blob blob -> Response.ok(blob).build();
                 case null, default -> ResponseHelper.notFound();
             };
         } catch (MessagingException | IOException e) {
@@ -114,12 +114,12 @@ public class AutomationResource extends ModuleRoot {
 
     @POST
     @Path("/login")
-    public Object login(@Context HttpServletRequest request) {
+    public Response login(@Context HttpServletRequest request) {
         Principal p = request.getUserPrincipal();
         if (p instanceof NuxeoPrincipal np) {
             List<String> groups = np.getAllGroups();
             HashSet<String> set = new HashSet<>(groups);
-            return new LoginInfo(np.getName(), set, np.isAdministrator());
+            return Response.ok(new LoginInfo(np.getName(), set, np.isAdministrator())).build();
         } else {
             return Response.status(401).build();
         }

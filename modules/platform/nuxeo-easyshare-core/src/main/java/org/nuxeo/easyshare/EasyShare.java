@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -49,6 +50,7 @@ import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.ec.notification.email.EmailHelper;
 import org.nuxeo.ecm.platform.ec.notification.service.NotificationServiceHelper;
 import org.nuxeo.ecm.platform.notification.api.Notification;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 import org.nuxeo.mail.MailException;
@@ -73,7 +75,7 @@ public class EasyShare extends ModuleRoot {
     private static final String SHARE_DOC_TYPE = "EasyShareFolder";
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         return getView("index");
     }
 
@@ -81,7 +83,7 @@ public class EasyShare extends ModuleRoot {
 
         return new EasyShareUnrestrictedRunner() {
             @Override
-            public Object run(CoreSession session, IdRef docRef) throws NuxeoException {
+            public Response run(CoreSession session, IdRef docRef) throws NuxeoException {
                 if (session.exists(docRef)) {
                     DocumentModel docShare = session.getDocument(docRef);
 
@@ -90,7 +92,7 @@ public class EasyShare extends ModuleRoot {
                     }
 
                     if (!checkIfShareIsValid(docShare)) {
-                        return getView("expired").arg("docShare", docShare);
+                        return Response.ok(getView("expired").arg("docShare", docShare)).build();
                     }
 
                     DocumentModel document = session.getDocument(new IdRef(docId));
@@ -98,7 +100,7 @@ public class EasyShare extends ModuleRoot {
                     String query = buildQuery(document);
 
                     if (query == null) {
-                        return getView("denied");
+                        return Response.ok(getView("denied")).build();
                     }
 
                     try (OperationContext opCtx = new OperationContext(session)) {
@@ -123,7 +125,7 @@ public class EasyShare extends ModuleRoot {
                             automationService.run(ctx, "Audit.Log", params);
                         }
 
-                        return getView("folderList")
+                        return Response.ok(getView("folderList")
                                                     .arg("isFolder",
                                                             document.isFolder()
                                                                     && !SHARE_DOC_TYPE.equals(document.getType())) // Backward
@@ -137,15 +139,15 @@ public class EasyShare extends ModuleRoot {
                                                     .arg("previousPageAvailable", paginable.isPreviousPageAvailable())
                                                     .arg("nextPageAvailable", paginable.isNextPageAvailable())
                                                     .arg("currentPageStatus",
-                                                            paginable.getProvider().getCurrentPageStatus());
+                                                            paginable.getProvider().getCurrentPageStatus())).build();
 
                     } catch (Exception ex) {
                         log.error(ex.getMessage());
-                        return getView("denied");
+                        return Response.ok(getView("denied")).build();
                     }
 
                 } else {
-                    return getView("denied");
+                    return Response.ok(getView("denied")).build();
                 }
             }
         };
@@ -189,14 +191,14 @@ public class EasyShare extends ModuleRoot {
 
     @Path("{shareId}/{folderId}")
     @GET
-    public Object getFolderListing(@PathParam("shareId") String shareId, @PathParam("folderId") final String folderId,
+    public Response getFolderListing(@PathParam("shareId") String shareId, @PathParam("folderId") final String folderId,
             @DefaultValue(DEFAULT_PAGE_INDEX) @QueryParam("p") final Long pageIndex) {
         return buildUnrestrictedRunner(folderId, pageIndex).runUnrestricted(shareId);
     }
 
     @Path("{shareId}")
     @GET
-    public Object getShareListing(@PathParam("shareId") String shareId,
+    public Response getShareListing(@PathParam("shareId") String shareId,
             @DefaultValue(DEFAULT_PAGE_INDEX) @QueryParam("p") Long pageIndex) {
         return buildUnrestrictedRunner(shareId, pageIndex).runUnrestricted(shareId);
     }
@@ -214,9 +216,9 @@ public class EasyShare extends ModuleRoot {
     public Response getFileStream(@PathParam("shareId") final String shareId, @PathParam("fileId") String fileId)
             throws NuxeoException {
 
-        return (Response) new EasyShareUnrestrictedRunner() {
+        return new EasyShareUnrestrictedRunner() {
             @Override
-            public Object run(CoreSession session, IdRef docRef) throws NuxeoException {
+            public Response run(CoreSession session, IdRef docRef) throws NuxeoException {
                 if (session.exists(docRef)) {
                     DocumentModel doc = session.getDocument(docRef);
                     try (OperationContext ctx = new OperationContext(session)) {
@@ -314,6 +316,7 @@ public class EasyShare extends ModuleRoot {
     }
 
     protected String getIpAddr() {
+        HttpServletRequest request = getContext().getRequest();
         String ip = request.getHeader("X-FORWARDED-FOR");
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

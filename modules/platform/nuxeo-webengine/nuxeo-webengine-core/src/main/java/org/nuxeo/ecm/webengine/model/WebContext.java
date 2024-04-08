@@ -27,6 +27,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.UriInfo;
 
@@ -39,9 +40,6 @@ import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.session.UserSession;
 import org.nuxeo.runtime.model.Adaptable;
-
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -61,23 +59,16 @@ public interface WebContext extends Adaptable {
     /**
      * Gets the current web application.
      *
-     * @return the web root. Cannot return null.
+     * @return the web root.
      */
     Module getModule();
 
     /**
-     * Gets the jersey server injection context
+     * Sets the module of this context
      *
-     * @since 9.1
+     * @since 2025.0
      */
-    ServerInjectableProviderContext getServerInjectableProviderContext();
-
-    /**
-     * Gets the jersey server http context
-     *
-     * @since 9.1
-     */
-    HttpContext getServerHttpContext();
+    void setModule(Module module);
 
     /**
      * Gets the root resource if any resource was defined as being the root
@@ -180,6 +171,21 @@ public interface WebContext extends Adaptable {
     NuxeoPrincipal getPrincipal();
 
     /**
+     * Gets the underlying HTTP servlet request object.
+     *
+     * @return the HTTP Request object. Cannot return null
+     */
+    HttpServletRequest getRequest();
+
+    /**
+     * Gets the underlying HTTP servlet response object.
+     *
+     * @return the HTTP Response object. Cannot return null
+     * @since 2025.0
+     */
+    HttpServletResponse getResponse();
+
+    /**
      * Gets the JAX-RS UriInfo.
      *
      * @return the uri info
@@ -192,13 +198,6 @@ public interface WebContext extends Adaptable {
      * @return HTTP headers object
      */
     HttpHeaders getHttpHeaders();
-
-    /**
-     * Gets the underlying HTTP servlet request object.
-     *
-     * @return the HTTP Request object. Cannot return null
-     */
-    HttpServletRequest getRequest();
 
     /**
      * Get HTTP Method.
@@ -346,11 +345,11 @@ public interface WebContext extends Adaptable {
      */
     Logger getLog();
 
-    Resource newObject(String typeName, Object... args);
+    <R extends Resource> R newObject(String typeName, Object... args);
 
-    Resource newObject(ResourceType type, Object... args);
+    <R extends Resource> R newObject(ResourceType type, Object... args);
 
-    AdapterResource newAdapter(Resource ctx, String adapterName, Object... args);
+    <A extends AdapterResource> A newAdapter(Resource ctx, String adapterName, Object... args);
 
     /* object stack API */
 

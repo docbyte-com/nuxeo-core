@@ -42,6 +42,7 @@ import org.nuxeo.ecm.core.api.security.impl.ACLImpl;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.webengine.model.Resource;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.View;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
@@ -64,7 +65,7 @@ import org.nuxeo.runtime.api.Framework;
 public class PermissionService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         return new View(getTarget(), "permissions").resolve();
     }
 

@@ -106,13 +106,10 @@ public abstract class AbstractResource<T extends ResourceType> implements Resour
 
     @Override
     public void setRoot(boolean isRoot) {
-        AbstractWebContext ctx = (AbstractWebContext) this.ctx;
         if (isRoot) {
-            ctx.root = this;
-        } else {
-            if (ctx.root == this) {
-                ctx.root = null;
-            }
+            ctx.setRoot(this);
+        } else if (ctx.getRoot() == this) {
+            ctx.setRoot(null);
         }
     }
 

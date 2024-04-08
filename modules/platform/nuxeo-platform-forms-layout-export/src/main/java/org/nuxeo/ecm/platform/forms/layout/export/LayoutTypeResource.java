@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.platform.forms.layout.export;
 
-import java.util.Collections;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,11 +27,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.nuxeo.ecm.platform.forms.layout.api.LayoutTypeDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.LayoutTypeDefinitionComparator;
 import org.nuxeo.ecm.platform.forms.layout.api.service.LayoutStore;
+import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.view.TemplateView;
 import org.nuxeo.runtime.api.Framework;
@@ -53,36 +52,37 @@ public class LayoutTypeResource {
         service = Framework.getService(LayoutStore.class);
         layoutTypes = service.getLayoutTypeDefinitions(category);
         // sort so that order is deterministic
-        Collections.sort(layoutTypes, new LayoutTypeDefinitionComparator());
+        layoutTypes.sort(new LayoutTypeDefinitionComparator());
     }
 
     @GET
     @Path("layoutTypes")
-    public Object getLayoutTypeDefinitions(@Context HttpServletRequest request, @QueryParam("all") Boolean all) {
+    public LayoutTypeDefinitions getLayoutTypeDefinitions(@Context HttpServletRequest request, @QueryParam("all") Boolean all) {
         return new LayoutTypeDefinitions(layoutTypes);
     }
 
     @GET
     @Path("layoutType/{name}")
-    public Object getLayoutTypeDefinition(@Context HttpServletRequest request, @PathParam("name") String name) {
+    public Response getLayoutTypeDefinition(@Context HttpServletRequest request, @PathParam("name") String name) {
         LayoutTypeDefinition def = service.getLayoutTypeDefinition(category, name);
         if (def != null) {
-            return def;
+            return Response.ok(def).build();
         } else {
             return Response.status(401).build();
         }
     }
 
-    public TemplateView getTemplate(@Context UriInfo uriInfo) {
-        return getTemplate("layout-types.ftl", uriInfo);
+    public TemplateView getTemplate(WebContext webContext) {
+        return getTemplate("layout-types.ftl", webContext);
     }
 
-    protected TemplateView getTemplate(String name, UriInfo uriInfo) {
+    protected TemplateView getTemplate(String name, WebContext webContext) {
+        var uriInfo = webContext.getUriInfo();
         String baseURL = uriInfo.getAbsolutePath().toString();
         if (!baseURL.endsWith("/")) {
             baseURL += "/";
         }
-        TemplateView tv = new TemplateView(this, name);
+        TemplateView tv = new TemplateView(webContext, this, name);
         tv.arg("layoutTypeCategory", category);
         tv.arg("layoutTypes", layoutTypes);
         tv.arg("baseURL", baseURL);
@@ -90,15 +90,15 @@ public class LayoutTypeResource {
     }
 
     @GET
-    public Object doGet(@QueryParam("layoutType") String layoutTypeName, @Context UriInfo uriInfo) {
+    public TemplateView doGet(@QueryParam("layoutType") String layoutTypeName, @Context WebContext webContext) {
         if (layoutTypeName == null) {
-            return getTemplate(uriInfo);
+            return getTemplate(webContext);
         } else {
             LayoutTypeDefinition wType = service.getLayoutTypeDefinition(category, layoutTypeName);
             if (wType == null) {
                 throw new WebResourceNotFoundException("No layout type found with name: " + layoutTypeName);
             }
-            TemplateView tpl = getTemplate(uriInfo);
+            TemplateView tpl = getTemplate(webContext);
             tpl.arg("layoutType", wType);
             return tpl;
         }

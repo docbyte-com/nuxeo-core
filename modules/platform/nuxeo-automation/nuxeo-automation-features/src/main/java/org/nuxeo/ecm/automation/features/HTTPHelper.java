@@ -32,6 +32,7 @@ import java.util.Optional;
 
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.http.HttpMessage;
@@ -54,8 +55,6 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.io.registry.MarshallerRegistry;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.runtime.api.Framework;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * @since 7.3
@@ -221,8 +220,7 @@ public class HTTPHelper implements ContextHelper {
         if (options != null) {
             Map<String, List<String>> params = (Map<String, List<String>>) options.get("params");
             if (params != null) {
-                // TODO change it to MultivaluedHashMap from JAX RS when upgrading to 2.x
-                MultivaluedMap<String, String> queryParams = new MultivaluedMapImpl();
+                MultivaluedMap<String, String> queryParams = new MultivaluedHashMap<>();
                 for (String key : params.keySet()) {
                     queryParams.put(key, params.get(key));
                 }

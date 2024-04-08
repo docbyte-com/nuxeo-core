@@ -42,6 +42,7 @@ import static org.nuxeo.launcher.config.ConfigurationConstants.TOMCAT_STARTUP_CL
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;

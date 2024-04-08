@@ -61,6 +61,10 @@ public class TemplateView {
         return url;
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TemplateView#TemplateView(WebContext, Object, String)} instead
+     */
+    @Deprecated(since = "2025.0")
     public TemplateView(Object owner, String name) {
         this(WebEngine.getActiveContext(), owner, name);
     }
@@ -69,6 +73,10 @@ public class TemplateView {
         this(ctx, owner, findTemplate(owner, name));
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TemplateView#TemplateView(WebContext, Object, URL)} instead
+     */
+    @Deprecated(since = "2025.0")
     public TemplateView(Object owner, URL url) {
         this(WebEngine.getActiveContext(), owner, url);
     }

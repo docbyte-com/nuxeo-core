@@ -123,4 +123,8 @@ public class ApplicationFragment extends Application {
         return get().getSingletons();
     }
 
+    @Override
+    public Map<String, Object> getProperties() {
+        return get().getProperties();
+    }
 }

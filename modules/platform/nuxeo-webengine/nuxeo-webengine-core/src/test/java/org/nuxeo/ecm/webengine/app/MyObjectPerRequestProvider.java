@@ -18,37 +18,34 @@
  */
 package org.nuxeo.ecm.webengine.app;
 
-import java.lang.reflect.Type;
+import java.util.function.Supplier;
 
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Feature;
+import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
 
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.process.internal.RequestScoped;
 
 /**
  * @since 2025.0
  */
 @Provider
-public class MyObjectPerRequestProvider implements InjectableProvider<Context, Type>, Injectable<MyObject> {
+public class MyObjectPerRequestProvider implements Supplier<MyObject>, Feature {
 
     @Override
-    public MyObject getValue() {
+    public MyObject get() {
         return new MyObject(getClass().getSimpleName(), hashCode());
     }
 
     @Override
-    public ComponentScope getScope() {
-        return ComponentScope.PerRequest;
-    }
-
-    @Override
-    public Injectable<MyObject> getInjectable(ComponentContext ic, Context context, Type type) {
-        if (type.equals(MyObject.class)) {
-            return this;
-        }
-        return null;
+    public boolean configure(FeatureContext context) {
+        context.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bindFactory(MyObjectPerRequestProvider.this).to(MyObject.class).in(RequestScoped.class);
+            }
+        });
+        return true;
     }
 }

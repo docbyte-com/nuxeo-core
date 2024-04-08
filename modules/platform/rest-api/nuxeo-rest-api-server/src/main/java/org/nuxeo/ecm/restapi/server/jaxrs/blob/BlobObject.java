@@ -156,10 +156,10 @@ public class BlobObject extends DefaultObject {
     }
 
     @GET
-    public Object doGet(@Context Request request) {
+    public Response doGet(@Context Request request) {
         if (blobHolder instanceof DocumentBlobHolder) {
             // managed by DocumentBlobHolderWriter
-            return blobHolder;
+            return Response.ok(blobHolder).build();
         } else {
             // managed by BlobWriter
             Blob blob;
@@ -168,7 +168,7 @@ public class BlobObject extends DefaultObject {
             } catch (PropertyNotFoundException e) {
                 throw new WebResourceNotFoundException("Invalid xpath");
             }
-            return blob;
+            return Response.ok(blob).build();
         }
     }
 

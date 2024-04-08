@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
 
 import org.junit.Before;
@@ -56,8 +57,6 @@ import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-
-import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 /**
  * @since 11.5
@@ -147,7 +146,7 @@ public class TestVideosObject extends ManagementBaseTest {
         assertTrue(transcodedVideos.isEmpty());
 
         // generating new video renditions
-        MultivaluedMap<String, String> formData = new MultivaluedMapImpl();
+        MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
         if (query != null) {
             formData.add("query", query);
         }

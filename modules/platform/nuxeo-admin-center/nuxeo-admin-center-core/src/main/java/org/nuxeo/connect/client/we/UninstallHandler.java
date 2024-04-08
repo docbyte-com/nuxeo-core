@@ -44,6 +44,7 @@ import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.connect.update.task.standalone.UninstallTask;
 import org.nuxeo.ecm.admin.NuxeoCtlManager;
 import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -61,7 +62,7 @@ public class UninstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "start/{pkgId}")
-    public Object startUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template startUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         try {
             PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
@@ -99,7 +100,7 @@ public class UninstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "run/{pkgId}")
-    public Object doUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template doUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
         try {
@@ -160,7 +161,7 @@ public class UninstallHandler extends DefaultObject {
 
     @POST
     @Path("restart")
-    public Object restartServer() {
+    public Response restartServer() {
         NuxeoCtlManager.restart();
         // TODO create a page that waits for the server to restart
         return Response.ok().build();

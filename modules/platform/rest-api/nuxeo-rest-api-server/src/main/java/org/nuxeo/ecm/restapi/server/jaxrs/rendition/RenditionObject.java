@@ -35,6 +35,7 @@ import javax.ws.rs.core.Request;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
+import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.DownloadContextBlobHolder;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionService;
@@ -99,7 +100,7 @@ public class RenditionObject extends DefaultObject {
     }
 
     @GET
-    public Object doGet(@Context Request request, @QueryParam("sync") boolean sync) {
+    public BlobHolder doGet(@Context Request request, @QueryParam("sync") boolean sync) {
         Blob blob;
         if (sync || Framework.isBooleanPropertyTrue(LEGACY_RENDERING_PROP)) {
             blob = getLegacyRenditionBlob();

@@ -33,13 +33,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetTypeConfiguration;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetTypeDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.WidgetTypeDefinitionComparator;
 import org.nuxeo.ecm.platform.forms.layout.api.service.LayoutStore;
+import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.view.TemplateView;
 import org.nuxeo.runtime.api.Framework;
@@ -65,7 +65,7 @@ public class WidgetTypeResource {
         service = Framework.getService(LayoutStore.class);
         widgetTypes = service.getWidgetTypeDefinitions(category);
         // sort so that order is deterministic
-        Collections.sort(widgetTypes, new WidgetTypeDefinitionComparator(true));
+        widgetTypes.sort(new WidgetTypeDefinitionComparator(true));
         widgetTypesByCat = getWidgetTypesByCategory();
     }
 
@@ -118,15 +118,13 @@ public class WidgetTypeResource {
      */
     @GET
     @Path("widgetTypes")
-    public Object getWidgetTypeDefinitions(@Context HttpServletRequest request,
+    public WidgetTypeDefinitions getWidgetTypeDefinitions(@Context HttpServletRequest request,
             @QueryParam("categories") String categories, @QueryParam("version") String version,
             @QueryParam("all") Boolean all) {
         // TODO: refactor so that's cached
         List<String> catsList = new ArrayList<>();
         if (categories != null) {
-            for (String cat : categories.split(" ")) {
-                catsList.add(cat);
-            }
+            Collections.addAll(catsList, categories.split(" "));
         }
         WidgetTypeDefinitions res = new WidgetTypeDefinitions();
         for (WidgetTypeDefinition def : widgetTypes) {
@@ -140,7 +138,7 @@ public class WidgetTypeResource {
                     continue;
                 }
             }
-            if (catsList != null && !catsList.isEmpty()) {
+            if (!catsList.isEmpty()) {
                 boolean hasCats = false;
                 if (conf != null) {
                     // filter on category
@@ -195,7 +193,7 @@ public class WidgetTypeResource {
      */
     @GET
     @Path("widgetTypes/{category}")
-    public Object getWidgetTypeDefinitionsForCategory(@Context HttpServletRequest request,
+    public WidgetTypeDefinitions getWidgetTypeDefinitionsForCategory(@Context HttpServletRequest request,
             @PathParam("category") String category, @QueryParam("version") String version,
             @QueryParam("all") Boolean all) {
         return getWidgetTypeDefinitions(request, category, version, all);
@@ -203,23 +201,23 @@ public class WidgetTypeResource {
 
     @GET
     @Path("widgetType/{name}")
-    public Object getWidgetTypeDefinition(@Context HttpServletRequest request, @PathParam("name") String name) {
+    public Response getWidgetTypeDefinition(@Context HttpServletRequest request, @PathParam("name") String name) {
         WidgetTypeDefinition def = service.getWidgetTypeDefinition(category, name);
         if (def != null) {
-            return def;
+            return Response.ok(def).build();
         } else {
             return Response.status(401).build();
         }
     }
 
-    public TemplateView getTemplate(@Context UriInfo uriInfo) {
-        return getTemplate("widget-types.ftl", uriInfo);
+    public TemplateView getTemplate(@Context WebContext webContext) {
+        return getTemplate("widget-types.ftl", webContext);
     }
 
     @GET
     @Path("wiki")
-    public Object getWikiDocumentation(@Context UriInfo uriInfo) {
-        return getTemplate("widget-types-wiki.ftl", uriInfo);
+    public TemplateView getWikiDocumentation(@Context WebContext webContext) {
+        return getTemplate("widget-types-wiki.ftl", webContext);
     }
 
     protected List<String> getNuxeoVersions() {
@@ -234,12 +232,13 @@ public class WidgetTypeResource {
                 "summary", "tab_designer");
     }
 
-    protected TemplateView getTemplate(String name, UriInfo uriInfo) {
+    protected TemplateView getTemplate(String name, WebContext webContext) {
+        var uriInfo = webContext.getUriInfo();
         String baseURL = uriInfo.getAbsolutePath().toString();
         if (!baseURL.endsWith("/")) {
             baseURL += "/";
         }
-        TemplateView tv = new TemplateView(this, name);
+        TemplateView tv = new TemplateView(webContext, this, name);
         tv.arg("categories", widgetTypesByCat);
         tv.arg("nuxeoVersions", getNuxeoVersions());
         tv.arg("widgetTypeCategory", category);
@@ -250,15 +249,15 @@ public class WidgetTypeResource {
     }
 
     @GET
-    public Object doGet(@QueryParam("widgetType") String widgetTypeName, @Context UriInfo uriInfo) {
+    public TemplateView doGet(@QueryParam("widgetType") String widgetTypeName, @Context WebContext webContext) {
         if (widgetTypeName == null) {
-            return getTemplate(uriInfo);
+            return getTemplate(webContext);
         } else {
             WidgetTypeDefinition wType = service.getWidgetTypeDefinition(category, widgetTypeName);
             if (wType == null) {
                 throw new WebResourceNotFoundException("No widget type found with name: " + widgetTypeName);
             }
-            TemplateView tpl = getTemplate(uriInfo);
+            TemplateView tpl = getTemplate(webContext);
             tpl.arg("widgetType", wType);
             return tpl;
         }

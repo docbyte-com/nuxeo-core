@@ -55,15 +55,15 @@ import org.nuxeo.runtime.api.Framework;
  */
 
 @WebObject(type = "Document")
-@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON + "+esentity" })
+@Produces(MediaType.APPLICATION_JSON)
 public class JSONDocumentObject extends DocumentObject {
 
     private boolean isVersioning;
 
     @Override
     @GET
-    public DocumentModel doGet() {
-        return doc;
+    public Response doGet() {
+        return Response.ok(doc).build();
     }
 
     /**

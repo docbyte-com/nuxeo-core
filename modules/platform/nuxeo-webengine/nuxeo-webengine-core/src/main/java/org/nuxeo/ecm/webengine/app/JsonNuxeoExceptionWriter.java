@@ -24,8 +24,10 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
@@ -39,6 +41,9 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonNuxeoExceptionWriter implements MessageBodyWriter<NuxeoException> {
+
+    @Context
+    protected HttpServletResponse response;
 
     @Override
     public long getSize(NuxeoException arg0, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType arg4) {
@@ -54,6 +59,11 @@ public class JsonNuxeoExceptionWriter implements MessageBodyWriter<NuxeoExceptio
     public void writeTo(NuxeoException nuxeoException, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType mediaType,
             MultivaluedMap<String, Object> arg5, OutputStream outputStream)
             throws IOException, WebApplicationException {
+        // the ContentType header is not set when errors occurred during routing resolution since Jersey 2.x upgrade
+        // this occurs if Jersey doesn't find a route or if a method returning a sub resource throws an exception
+        if (response.getContentType() == null) {
+            response.setContentType(MediaType.APPLICATION_JSON);
+        }
         JsonWebengineWriter.writeException(outputStream, nuxeoException, mediaType);
     }
 

@@ -33,6 +33,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
+import org.nuxeo.ecm.platform.rendering.api.ResourceLocator;
+import org.nuxeo.ecm.platform.rendering.fm.FreemarkerEngine;
 import org.nuxeo.ecm.webengine.jaxrs.ApplicationHost;
 import org.nuxeo.ecm.webengine.jaxrs.ApplicationManager;
 import org.nuxeo.ecm.webengine.jaxrs.BundleNotFoundException;
@@ -40,14 +46,7 @@ import org.nuxeo.ecm.webengine.jaxrs.Reloadable;
 import org.nuxeo.ecm.webengine.jaxrs.Utils;
 import org.nuxeo.ecm.webengine.jaxrs.servlet.config.ServletDescriptor;
 import org.nuxeo.ecm.webengine.jaxrs.views.ResourceContext;
-import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
-import org.nuxeo.ecm.platform.rendering.api.ResourceLocator;
-import org.nuxeo.ecm.platform.rendering.fm.FreemarkerEngine;
 import org.osgi.framework.Bundle;
-
-import com.sun.jersey.api.core.ApplicationAdapter;
-import com.sun.jersey.api.core.ResourceConfig;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
 
 /**
  * A hot re-loadable JAX-RS servlet. This servlet is building a Jersey JAX-RS Application. If you need to support other
@@ -142,8 +141,8 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
         }
     }
 
-    protected void containerService(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void containerService(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         if (isDirty) {
             reloadContainer();
         }
@@ -238,12 +237,11 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
     }
 
     protected ServletContainer createServletContainer(ApplicationHost app) {
-        ApplicationAdapter adapter = new ApplicationAdapter(app);
+        ResourceConfig config = ResourceConfig.forApplication(app);
         // disable wadl since we got class loader pb in JAXB under equinox
-        adapter.getFeatures().put(ResourceConfig.FEATURE_DISABLE_WADL, Boolean.TRUE);
-        // copy all features recorded in app
-        adapter.getFeatures().putAll(app.getFeatures());
-        return new ServletContainer(adapter);
+        config.property(ServerProperties.WADL_FEATURE_DISABLE, true);
+        config.property(ServerProperties.RESPONSE_SET_STATUS_OVER_SEND_ERROR, true);
+        return new ServletContainer(config);
     }
 
     @Override

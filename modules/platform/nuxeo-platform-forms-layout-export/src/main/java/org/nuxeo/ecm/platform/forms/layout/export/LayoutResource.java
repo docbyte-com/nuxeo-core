@@ -27,7 +27,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
@@ -40,6 +39,7 @@ import org.nuxeo.ecm.platform.forms.layout.api.converters.LayoutDefinitionConver
 import org.nuxeo.ecm.platform.forms.layout.api.converters.WidgetDefinitionConverter;
 import org.nuxeo.ecm.platform.forms.layout.api.service.LayoutStore;
 import org.nuxeo.ecm.platform.types.TypeManager;
+import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.view.TemplateView;
 import org.nuxeo.runtime.api.Framework;
 
@@ -71,17 +71,19 @@ public class LayoutResource {
         Collections.sort(registeredLayoutNames);
     }
 
-    protected TemplateView getTemplate(String name, UriInfo uriInfo) {
+    protected TemplateView getTemplate(String name, WebContext webContext) {
+        var uriInfo = webContext.getUriInfo();
         String baseURL = uriInfo.getAbsolutePath().toString();
         if (!baseURL.endsWith("/")) {
             baseURL += "/";
         }
-        return new TemplateView(this, name).arg("baseURL", baseURL).arg("layoutNames", registeredLayoutNames);
+        return new TemplateView(webContext, this, name).arg("baseURL", baseURL)
+                                                       .arg("layoutNames", registeredLayoutNames);
     }
 
     @GET
-    public Object doGet(@QueryParam("layoutName") String layoutName, @Context UriInfo uriInfo) {
-        TemplateView tpl = getTemplate("layouts.ftl", uriInfo);
+    public TemplateView doGet(@QueryParam("layoutName") String layoutName, @Context WebContext webContext) {
+        TemplateView tpl = getTemplate("layouts.ftl", webContext);
         if (layoutName != null) {
             LayoutDefinition layoutDef = service.getLayoutDefinition(category, layoutName);
             tpl.arg("layoutDefinition", layoutDef);

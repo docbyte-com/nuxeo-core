@@ -51,7 +51,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -152,11 +151,7 @@ public class HttpClientTestRule implements TestRule {
                                          .setConnectionRequestTimeout((int) timeout.toMillis())
                                          .setRedirectsEnabled(redirectsEnabled)
                                          .build();
-        var headers = this.headers.entrySet()
-                                  .stream()
-                                  .map(entry -> new BasicHeader(entry.getKey(), entry.getValue()))
-                                  .toList();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).setDefaultHeaders(headers).build();
+        client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
     public void finished() {
@@ -318,10 +313,12 @@ public class HttpClientTestRule implements TestRule {
 
         protected RequestBuilder(String method, String url) {
             this.internalBuilder = org.apache.http.client.methods.RequestBuilder.create(method).setUri(url);
+            HttpClientTestRule.this.headers.forEach(this.internalBuilder::addHeader);
         }
 
         public RequestBuilder credentials(String username, String password) {
-            return addHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthorizationValue(username, password));
+            internalBuilder.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthorizationValue(username, password));
+            return this;
         }
 
         public RequestBuilder accept(String accept) {
@@ -465,10 +462,10 @@ public class HttpClientTestRule implements TestRule {
                 try {
                     return responseHandler.handleResponse(execution.response());
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {
@@ -482,10 +479,10 @@ public class HttpClientTestRule implements TestRule {
                     var handledResponse = responseHandler.handleResponse(execution.response());
                     return finisher.apply(handledResponse);
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {
@@ -499,10 +496,10 @@ public class HttpClientTestRule implements TestRule {
                     var handledResponse = responseHandler.handleResponse(execution.response());
                     consumer.accept(handledResponse);
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {

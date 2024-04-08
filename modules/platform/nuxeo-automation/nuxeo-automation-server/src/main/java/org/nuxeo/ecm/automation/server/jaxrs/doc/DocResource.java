@@ -59,6 +59,8 @@ import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
 import org.nuxeo.runtime.api.Framework;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
@@ -104,7 +106,7 @@ public class DocResource extends AbstractResource<ResourceTypeImpl> {
     }
 
     @GET
-    public Object doGet(@QueryParam("id") String id, @QueryParam("browse") String browse) {
+    public Template doGet(@QueryParam("id") String id, @QueryParam("browse") String browse) {
         if (id == null) {
             return getTemplateFor(browse);
         } else {
@@ -137,12 +139,12 @@ public class DocResource extends AbstractResource<ResourceTypeImpl> {
     }
 
     protected boolean canManageTraces() {
-        return WebEngine.getActiveContext().getPrincipal().isAdministrator();
+        return ctx.getPrincipal().isAdministrator();
     }
 
     @GET
     @Path("/wiki")
-    public Object doGetWiki() {
+    public Template doGetWiki() {
         return getTemplateView("wiki");
     }
 
@@ -153,9 +155,9 @@ public class DocResource extends AbstractResource<ResourceTypeImpl> {
 
     @GET
     @Path("/toggleTraces")
-    public Object toggleTraces() {
+    public Response toggleTraces() {
         if (!canManageTraces()) {
-            return "You can not manage traces";
+            return Response.status(SC_BAD_REQUEST).entity("You can not manage traces").build();
         }
         TracerFactory tracerFactory = Framework.getService(TracerFactory.class);
         tracerFactory.toggleRecording();
@@ -171,7 +173,7 @@ public class DocResource extends AbstractResource<ResourceTypeImpl> {
     @GET
     @Path("/toggleStackDisplay")
     @Produces("text/plain")
-    public Object toggleStackDisplay() {
+    public String toggleStackDisplay() {
         if (!canManageTraces()) {
             return "You can not manage json exception stack display";
         }

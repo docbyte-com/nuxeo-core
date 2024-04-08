@@ -50,7 +50,7 @@ public class MeObject extends DefaultObject {
 
     @PUT
     @Path("changepassword")
-    public Object changePassword(String payload) throws JSONException {
+    public Response changePassword(String payload) throws JSONException {
         NuxeoPrincipal currentUser = getContext().getCoreSession().getPrincipal();
         JSONObject payloadJson = new JSONObject(payload);
         String oldPassword = payloadJson.getString("oldPassword");
@@ -59,7 +59,7 @@ public class MeObject extends DefaultObject {
         if (userManager.checkUsernamePassword(currentUser.getName(), oldPassword)) {
             currentUser.setPassword(newPassword);
             Framework.doPrivileged(() -> userManager.updateUser(currentUser.getModel()));
-            return currentUser;
+            return Response.ok(currentUser).build();
         } else {
             return Response.status(Status.UNAUTHORIZED).build();
         }

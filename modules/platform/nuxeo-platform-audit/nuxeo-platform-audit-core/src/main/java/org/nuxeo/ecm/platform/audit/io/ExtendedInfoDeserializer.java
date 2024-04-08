@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,7 +39,6 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.core.util.Base64;
 
 /**
  * Deserializer class for extended info from a JSON object
@@ -73,7 +73,7 @@ public class ExtendedInfoDeserializer extends JsonDeserializer<ExtendedInfo> {
             }
             break;
         case BINARY:
-            value = SerializationUtils.deserialize(Base64.decode(node.binaryValue()));
+            value = SerializationUtils.deserialize(Base64.getDecoder().decode(node.binaryValue()));
             break;
         case ARRAY:
             value = (Serializable) mapper.convertValue(node, List.class);

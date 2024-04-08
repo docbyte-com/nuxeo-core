@@ -20,6 +20,7 @@
 package org.nuxeo.easyshare;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -33,7 +34,7 @@ public abstract class EasyShareUnrestrictedRunner {
 
     protected CoreSession session;
 
-    public Object runUnrestricted(String docId) {
+    public Response runUnrestricted(String docId) {
         NuxeoLoginContext loginContext = Framework.loginSystem();
         try {
             CoreSession coreSession = CoreInstance.getCoreSession(null);
@@ -55,5 +56,5 @@ public abstract class EasyShareUnrestrictedRunner {
 
     }
 
-    public abstract Object run(CoreSession coreSession, IdRef docId);
+    public abstract Response run(CoreSession coreSession, IdRef docId);
 }

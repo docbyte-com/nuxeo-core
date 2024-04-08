@@ -27,11 +27,13 @@ import javax.servlet.http.HttpSession;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
+import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.webengine.forms.validation.Form;
 import org.nuxeo.ecm.webengine.forms.validation.ValidationException;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 
 /**
@@ -166,11 +168,11 @@ public abstract class Wizard extends DefaultObject {
         return false;
     }
 
-    protected Object redirectOnOk() {
+    protected Response redirectOnOk() {
         return redirect(getPrevious().getPath());
     }
 
-    protected Object redirectOnCancel() {
+    protected Response redirectOnCancel() {
         return redirect(getPrevious().getPath());
     }
 
@@ -184,13 +186,13 @@ public abstract class Wizard extends DefaultObject {
         destroySession();
     }
 
-    protected Object handleValidationError(ValidationException e) {
+    protected Response handleValidationError(ValidationException e) {
         // set the error and redisplay the current page
         session.setError(e);
         return redirect(getPath());
     }
 
-    protected Object handleError(Throwable e) {
+    protected Response handleError(Throwable e) {
         // set the error and redisplay the current page
         log.error("Processing failed in wizard page: {}", session.getPage().getId(), e);
         session.setError(new ValidationException("Processing failed: " + e.getMessage(), e));
@@ -211,7 +213,7 @@ public abstract class Wizard extends DefaultObject {
 
     @POST
     @Path("next")
-    public Object handleNext() {
+    public Response handleNext() {
         String pageId = null;
         try {
             // process page
@@ -236,21 +238,21 @@ public abstract class Wizard extends DefaultObject {
 
     @POST
     @Path("back")
-    public Object handleBack() {
+    public Response handleBack() {
         session.popPage(); // go to previous page
         return redirect(getPath());
     }
 
     @POST
     @Path("cancel")
-    public Object handleCancel() {
+    public Response handleCancel() {
         performCancel();
         return redirectOnCancel();
     }
 
     @POST
     @Path("ok")
-    public Object handleOk() {
+    public Response handleOk() {
         try {
             validate(page);// don't matter if there is a next page
             performOk();
@@ -267,7 +269,7 @@ public abstract class Wizard extends DefaultObject {
      * Get the content of the current wizard page.
      */
     @GET
-    public Object doGet() {
+    public Template doGet() {
         error = session.removeError();
         return getView(page.getId());
     }

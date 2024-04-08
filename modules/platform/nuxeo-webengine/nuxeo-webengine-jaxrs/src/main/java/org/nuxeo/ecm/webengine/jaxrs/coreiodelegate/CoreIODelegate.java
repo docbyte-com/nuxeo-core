@@ -26,21 +26,19 @@ import java.lang.reflect.Type;
 import java.util.Optional;
 
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Feature;
+import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.process.internal.RequestScoped;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.io.registry.Reader;
 import org.nuxeo.ecm.core.io.registry.Writer;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
-
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
 
 /**
  * A JAX-RS {@link MessageBodyWriter} that try to delegate the marshalling to all nuxeo-core-io {@link Writer} and
@@ -50,32 +48,29 @@ import com.sun.jersey.spi.inject.InjectableProvider;
  */
 @Provider
 @Produces({ APPLICATION_JSON, "text/csv" })
-public class CoreIODelegate extends PartialCoreIODelegate
-        implements InjectableProvider<Context, Type>, Injectable<RenderingContext> {
+public class CoreIODelegate extends PartialCoreIODelegate implements Feature {
 
     @Override
     protected boolean accept(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
         return true;
     }
 
-    @Override
-    public RenderingContext getValue() {
+    protected RenderingContext getRenderingContextOrFail() {
         return Optional.ofNullable(RequestContext.getActiveContext())
                        .map(RequestContext::getRequest)
                        .map(RenderingContextWebUtils::getContext)
-                       .orElseThrow(() -> new NuxeoException("No RenderingContext in the request")); // shouldn't happen
+                       .orElseThrow(() -> new NuxeoException("No RenderingContext in the request"));
     }
 
     @Override
-    public ComponentScope getScope() {
-        return ComponentScope.PerRequest;
-    }
-
-    @Override
-    public Injectable<RenderingContext> getInjectable(ComponentContext ic, Context a, Type c) {
-        if (!c.equals(RenderingContext.class)) {
-            return null;
-        }
-        return this;
+    public boolean configure(FeatureContext context) {
+        context.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bindFactory(CoreIODelegate.this::getRenderingContextOrFail).to(RenderingContext.class)
+                                                                           .in(RequestScoped.class);
+            }
+        });
+        return true;
     }
 }

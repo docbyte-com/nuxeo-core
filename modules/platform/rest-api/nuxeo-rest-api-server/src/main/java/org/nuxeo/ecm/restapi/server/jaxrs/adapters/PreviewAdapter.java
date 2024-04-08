@@ -73,7 +73,7 @@ public class PreviewAdapter extends DefaultAdapter {
     public static final String LEGACY_PEVIEW_PROP = "nuxeo.preview.legacy.enabled";
 
     @GET
-    public Object preview(@QueryParam("blobPostProcessing") boolean postProcessing, @Context HttpServletRequest request,
+    public Response preview(@QueryParam("blobPostProcessing") boolean postProcessing, @Context HttpServletRequest request,
             @Context HttpServletResponse response) {
 
         DocumentBlobHolder bh = getBlobHolderToPreview();
@@ -114,7 +114,7 @@ public class PreviewAdapter extends DefaultAdapter {
         return Response.ok().build();
     }
 
-    protected Object buildPreviewNotAvailable() {
+    protected Response buildPreviewNotAvailable() {
         return Response.status(NOT_FOUND)
                        .entity(getTemplate("preview/preview_not_available.ftl"))
                        .type("text/html")
@@ -123,7 +123,7 @@ public class PreviewAdapter extends DefaultAdapter {
 
     @GET
     @Path("{subPath}")
-    public Object subPath(@PathParam("subPath") String subPath,
+    public Response subPath(@PathParam("subPath") String subPath,
             @QueryParam("blobPostProcessing") boolean postProcessing, @Context HttpServletRequest request,
             @Context HttpServletResponse response) {
 

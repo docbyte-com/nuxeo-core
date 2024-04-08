@@ -57,7 +57,7 @@ public class SendMailTest {
     @Test
     public void shouldPlaceTokenWhenUrlHasNoFragment() {
         final String docUrl = "http://www.nuxeo.com";
-        assertEquals(docUrl + "?token=" + TOKEN, sendMail.createDocUrlWithToken(docUrl, TOKEN));
+        assertEquals(docUrl + "/?token=" + TOKEN, sendMail.createDocUrlWithToken(docUrl, TOKEN));
     }
 
     @Test

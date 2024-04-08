@@ -34,7 +34,7 @@ public class ResourceBundleEndpoint extends DefaultObject {
 
     @GET
     @Path("bundle/{var:.*}")
-    public Object redirect() {
+    public ResourceBundleDispatcher redirect() {
         return new ResourceBundleDispatcher();
     }
 

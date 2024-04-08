@@ -140,7 +140,7 @@ public class AsyncOperationAdapter extends DefaultAdapter {
 
     @SuppressWarnings("resource") // ExecutionRequest's OperationContext not owned by us, don't close it
     @POST
-    public Object doPost(ExecutionRequest xreq) {
+    public Response doPost(ExecutionRequest xreq) {
         OperationResource op = (OperationResource) getTarget();
         String opId = op.getId();
 
@@ -225,7 +225,7 @@ public class AsyncOperationAdapter extends DefaultAdapter {
 
     @GET
     @Path("{executionId}/status")
-    public Object status(@PathParam("executionId") String executionId) throws IOException, MessagingException {
+    public Response status(@PathParam("executionId") String executionId) throws IOException, MessagingException {
         if (isCompleted(executionId)) {
             String resURL = String.format("%s/%s", getPath(), executionId);
             return redirect(resURL);
@@ -243,7 +243,7 @@ public class AsyncOperationAdapter extends DefaultAdapter {
 
     @GET
     @Path("{executionId}")
-    public Object result(@PathParam("executionId") String executionId) throws IOException, MessagingException {
+    public Response result(@PathParam("executionId") String executionId) throws IOException, MessagingException {
 
         if (isCompleted(executionId)) {
             Object output = getResult(executionId);
@@ -284,12 +284,13 @@ public class AsyncOperationAdapter extends DefaultAdapter {
 
     @DELETE
     @Path("{executionId}")
-    public Object abort(@PathParam("executionId") String executionId) throws IOException, MessagingException {
+    public Response abort(@PathParam("executionId") String executionId) throws IOException, MessagingException {
         if (exists(executionId) && !isCompleted(executionId)) {
             // TODO NXP-26304: support aborting any execution
             Serializable taskId = getAsyncTaskId(executionId);
             if (taskId != null) {
-                return getAsyncService(executionId).abort(taskId);
+                return ResponseHelper.getResponse(getAsyncService(executionId).abort(taskId), request,
+                        HttpServletResponse.SC_OK);
             }
             return ResponseHelper.getResponse(RUNNING_STATUS, request, HttpServletResponse.SC_OK);
         }

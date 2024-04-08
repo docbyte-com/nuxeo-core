@@ -27,6 +27,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
@@ -47,7 +48,7 @@ import org.nuxeo.ecm.webengine.model.impl.ModuleShortcut;
 public class Main extends ModuleRoot {
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         List<ModuleShortcut> list = new ArrayList<>();
         for (ModuleConfiguration mc : ctx.getEngine().getModuleManager().getModules()) {
             List<ModuleShortcut> items = mc.getShortcuts();

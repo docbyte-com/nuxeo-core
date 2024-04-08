@@ -66,7 +66,7 @@ public class TemplateResource extends DefaultObject {
     }
 
     @GET
-    public Object get() {
+    public String get() {
         TemplateSourceDocument source = resolve();
         if (source == null) {
             return getList();

@@ -33,10 +33,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.LinkDescriptor;
 import org.nuxeo.ecm.webengine.model.Module;
-import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
-
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -140,12 +137,10 @@ public class ModuleConfiguration {
         return base;
     }
 
-    public Module get(WebContext context) {
-        ModuleImpl mod = module;
-        if (mod == null) {
+    public Module get() {
+        if (module == null) {
             synchronized (this) {
-                mod = module;
-                if (mod == null) {
+                if (module == null) {
                     Module superModule = null;
                     if (base != null) { // make sure super modules are resolved
                         ModuleConfiguration superM = engine.getModuleManager().getModule(base);
@@ -154,18 +149,13 @@ public class ModuleConfiguration {
                                     + "' cannot be loaded since its super module '" + base + "' cannot be found");
                         }
                         // force super module loading
-                        superModule = superM.get(context);
+                        superModule = superM.get();
                     }
-                    ServerInjectableProviderContext sic = context.getServerInjectableProviderContext();
-                    mod = new ModuleImpl(engine, (ModuleImpl) superModule, this, sic);
-                    if (sic != null) {
-                        // cache the module only if it has a ServerInjectableProviderContext
-                        module = mod;
-                    }
+                    module = new ModuleImpl(engine, (ModuleImpl) superModule, this);
                 }
             }
         }
-        return mod;
+        return module;
     }
 
     public void flushCache() {

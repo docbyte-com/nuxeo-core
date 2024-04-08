@@ -18,32 +18,19 @@
  */
 package org.nuxeo.launcher.io;
 
+import static com.fasterxml.jackson.databind.SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED;
+import static com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator.Feature.WRITE_XML_DECLARATION;
 import static org.nuxeo.launcher.NuxeoLauncher.EXIT_CODE_NOT_RUNNING;
 
+import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.nuxeo.launcher.NuxeoLauncherException;
-import org.nuxeo.launcher.info.CommandInfo;
-import org.nuxeo.launcher.info.CommandSetInfo;
-import org.nuxeo.launcher.info.ConfigurationInfo;
-import org.nuxeo.launcher.info.DistributionInfo;
-import org.nuxeo.launcher.info.InstanceInfo;
-import org.nuxeo.launcher.info.KeyValueInfo;
-import org.nuxeo.launcher.info.MessageInfo;
-import org.nuxeo.launcher.info.PackageInfo;
+import org.nuxeo.launcher.io.config.NuxeoLauncherModule;
 
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.json.impl.writer.JsonXmlStreamWriter;
-import com.sun.xml.bind.marshaller.MinimumEscapeHandler;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * @since 2025.0
@@ -58,50 +45,18 @@ public class NuxeoLauncherTechPrinter {
 
     public void print(Object object, OutputStream out) {
         try {
-            var jaxbContext = JAXBContext.newInstance( //
-                    CommandInfo.class, //
-                    CommandSetInfo.class, //
-                    ConfigurationInfo.class, //
-                    DistributionInfo.class, //
-                    InstanceInfo.class, //
-                    KeyValueInfo.class, //
-                    PackageInfo.class, //
-                    MessageInfo.class //
-            );
-            printXMLOutput(jaxbContext, object, out);
-        } catch (JAXBException | XMLStreamException | FactoryConfigurationError e) {
+            var mapper = switch (format) {
+                case JSON -> new ObjectMapper();
+                case XML -> XmlMapper.builder().enable(WRITE_XML_DECLARATION).build();
+            };
+            mapper.registerModule(new NuxeoLauncherModule());
+            mapper.enable(WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED);
+            mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+            mapper.writeValue(out, object);
+        } catch (IOException e) {
             throw new NuxeoLauncherException("Output serialization failed: " + e.getMessage(), EXIT_CODE_NOT_RUNNING,
                     e);
         }
-    }
-
-    /**
-     * @since 8.3
-     */
-    protected void printXMLOutput(JAXBContext context, Object object, OutputStream out)
-            throws XMLStreamException, FactoryConfigurationError, JAXBException {
-        XMLStreamWriter writer = format == Format.JSON ? jsonWriter(context, out) : xmlWriter(context, out);
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        if (format == Format.JSON) {
-            // replace the character escape handler as the one for XML doesn't correctly print newline in JSON
-            marshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", MinimumEscapeHandler.theInstance);
-        }
-        marshaller.marshal(object, writer);
-    }
-
-    protected XMLStreamWriter jsonWriter(JAXBContext context, OutputStream out) {
-        JSONConfiguration config = JSONConfiguration.mapped()
-                                                    .rootUnwrapping(true)
-                                                    .attributeAsElement("key", "value")
-                                                    .build();
-        config = JSONConfiguration.createJSONConfigurationWithFormatted(config, true);
-        return JsonXmlStreamWriter.createWriter(new OutputStreamWriter(out), config, "");
-    }
-
-    protected XMLStreamWriter xmlWriter(JAXBContext context, OutputStream out)
-            throws XMLStreamException, FactoryConfigurationError {
-        return XMLOutputFactory.newInstance().createXMLStreamWriter(out);
     }
 
     public enum Format {

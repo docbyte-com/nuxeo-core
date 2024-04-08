@@ -218,7 +218,7 @@ public class FilesEndpoint extends DefaultObject {
      */
     @GET
     @Path("contents")
-    public Object getFile(@HeaderParam(MAX_EXPECTED_SIZE) String maxExpectedSizeHeader) {
+    public Blob getFile(@HeaderParam(MAX_EXPECTED_SIZE) String maxExpectedSizeHeader) {
         int maxExpectedSize = getMaxExpectedSize(maxExpectedSizeHeader);
         logRequest(OPERATION_GET_FILE, MAX_EXPECTED_SIZE, maxExpectedSizeHeader);
 
@@ -235,25 +235,17 @@ public class FilesEndpoint extends DefaultObject {
     }
 
     @POST
-    public Object doPost(@HeaderParam(OVERRIDE) Operation operation) {
-        switch (operation) {
-        case GET_LOCK:
-            return getLock();
-        case GET_SHARE_URL:
-            return getShareUrl();
-        case LOCK:
-            return lockOrUnlockAndRelock();
-        case PUT_RELATIVE:
-            return putRelativeFile();
-        case REFRESH_LOCK:
-            return refreshLock();
-        case RENAME_FILE:
-            return renameFile();
-        case UNLOCK:
-            return unlock();
-        default:
-            throw new BadRequestException();
-        }
+    public Response doPost(@HeaderParam(OVERRIDE) Operation operation) {
+        return switch (operation) {
+            case GET_LOCK -> getLock();
+            case GET_SHARE_URL -> getShareUrl();
+            case LOCK -> lockOrUnlockAndRelock();
+            case PUT_RELATIVE -> putRelativeFile();
+            case REFRESH_LOCK -> refreshLock();
+            case RENAME_FILE -> renameFile();
+            case UNLOCK -> unlock();
+            default -> throw new BadRequestException();
+        };
     }
 
     /**
@@ -262,13 +254,13 @@ public class FilesEndpoint extends DefaultObject {
      * See <a href="https://wopirest.readthedocs.io/en/latest/files/Lock.html">Lock</a> and
      * <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/UnlockAndRelock.html">UnlockAndRelock</a>.
      */
-    protected Object lockOrUnlockAndRelock() {
+    protected Response lockOrUnlockAndRelock() {
         String lock = getHeader(OPERATION_LOCK, LOCK);
         String oldLock = getHeader(OPERATION_LOCK, OLD_LOCK, true);
         return StringUtils.isEmpty(oldLock) ? lock(lock) : unlockAndRelock(lock, oldLock);
     }
 
-    protected Object lock(String lock) {
+    protected Response lock(String lock) {
         logRequest(OPERATION_LOCK, LOCK, lock);
         boolean isLocked = doc.isLocked();
         // document not locked or no WOPI lock for this file id
@@ -305,14 +297,14 @@ public class FilesEndpoint extends DefaultObject {
         return Response.ok().build();
     }
 
-    protected Object unlockAndRelock(String lock, String oldLock) {
+    protected Response unlockAndRelock(String lock, String oldLock) {
         logRequest(OPERATION_UNLOCK_AND_RELOCK, LOCK, lock, OLD_LOCK, oldLock);
         boolean isLocked = doc.isLocked();
         // document not locked
         if (!isLocked) {
             logCondition("Document isn't locked");
             // cannot unlock and relock
-            buildConflictResponse(OPERATION_UNLOCK_AND_RELOCK, "");
+            return buildConflictResponse(OPERATION_UNLOCK_AND_RELOCK, "");
         }
 
         logCondition("Document is locked");
@@ -361,7 +353,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetLock.html">GetLock</a>.
      */
-    protected Object getLock() {
+    protected Response getLock() {
         logRequest(OPERATION_GET_LOCK);
 
         if (!doc.isLocked()) {
@@ -378,11 +370,11 @@ public class FilesEndpoint extends DefaultObject {
         return Response.ok().build();
     }
 
-    protected Object unlockOrRefresh(String operation, String lock, boolean unlock) {
+    protected Response unlockOrRefresh(String operation, String lock, boolean unlock) {
         if (!doc.isLocked()) {
             logCondition("Document isn't locked");
             // not locked
-            buildConflictResponse(operation, "");
+            return buildConflictResponse(operation, "");
         }
 
         String currentLock = getCurrentLock(operation);
@@ -422,7 +414,7 @@ public class FilesEndpoint extends DefaultObject {
      * See
      * <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/PutRelativeFile.html">PutRelativeFile</a>.
      */
-    public Object putRelativeFile() {
+    public Response putRelativeFile() {
         String suggestedTarget = getHeader(OPERATION_PUT_RELATIVE_FILE, SUGGESTED_TARGET, true);
         if (suggestedTarget != null) {
             suggestedTarget = Helpers.readUTF7String(suggestedTarget);
@@ -494,7 +486,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/RenameFile.html">RenameFile</a>.
      */
-    public Object renameFile() {
+    public Response renameFile() {
         checkWritePropertiesPermission(OPERATION_RENAME_FILE);
 
         String requestedName = Helpers.readUTF7String(getHeader(OPERATION_RENAME_FILE, REQUESTED_NAME));
@@ -540,7 +532,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/GetShareUrl.html">GetShareUrl</a>.
      */
-    public Object getShareUrl() {
+    public Response getShareUrl() {
         String urlType = getHeader(OPERATION_GET_SHARE_URL, URL_TYPE, true);
         logRequest(OPERATION_GET_SHARE_URL, URL_TYPE, urlType);
 
@@ -562,7 +554,7 @@ public class FilesEndpoint extends DefaultObject {
 
     @POST
     @Path("contents")
-    public Object doPostContents(@HeaderParam(OVERRIDE) Operation operation) {
+    public Response doPostContents(@HeaderParam(OVERRIDE) Operation operation) {
         if (PUT.equals(operation)) {
             return putFile();
         }
@@ -575,7 +567,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopi.readthedocs.io/projects/wopirest/en/latest/files/PutFile.html">PutFile</a>.
      */
-    public Object putFile() {
+    public Response putFile() {
         checkWritePropertiesPermission(OPERATION_PUT_FILE);
 
         if (!doc.isLocked()) {
@@ -638,7 +630,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopirest.readthedocs.io/en/latest/files/Unlock.html">Unlock</a>.
      */
-    protected Object unlock() {
+    protected Response unlock() {
         String lock = getHeader(OPERATION_UNLOCK, LOCK);
         logRequest(OPERATION_UNLOCK, LOCK, lock);
         return unlockOrRefresh(OPERATION_UNLOCK, lock, true);
@@ -649,7 +641,7 @@ public class FilesEndpoint extends DefaultObject {
      * <p>
      * See <a href="https://wopirest.readthedocs.io/en/latest/files/RefreshLock.html">RefreshLock</a>.
      */
-    protected Object refreshLock() {
+    protected Response refreshLock() {
         String lock = getHeader(OPERATION_REFRESH_LOCK, LOCK);
         logRequest(OPERATION_REFRESH_LOCK, LOCK, lock);
         return unlockOrRefresh(OPERATION_REFRESH_LOCK, lock, false);

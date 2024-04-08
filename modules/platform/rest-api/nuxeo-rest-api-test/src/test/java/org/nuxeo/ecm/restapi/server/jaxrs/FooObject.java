@@ -25,9 +25,11 @@ import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 
+import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -42,38 +44,38 @@ public class FooObject extends DefaultObject {
 
     @GET
     @Path("unauthenticated")
-    public Object doGetUnauthenticated() {
+    public Blob doGetUnauthenticated() {
         return Blobs.createJSONBlob("{ \"foo\": \"bar\" }");
     }
 
     @GET
     @Path("rollback")
-    public Object doGetRollback() {
+    public Blob doGetRollback() {
         TransactionHelper.setTransactionRollbackOnly();
         return Blobs.createJSONBlob("{ \"foo\": \"bar\" }");
     }
 
     @GET
     @Path("exception")
-    public Object doException() {
+    public Void doException() {
         throw new NuxeoException("foo");
     }
 
     @GET
     @Path("bad-request")
-    public Object doBadRequestException() {
+    public Void doBadRequestException() {
         throw new NuxeoException("bad request", SC_BAD_REQUEST);
     }
 
     @GET
     @Path("internal-error")
-    public Object doInternalServerErrorException() {
+    public Void doInternalServerErrorException() {
         throw new NuxeoException("a secret message", SC_INTERNAL_SERVER_ERROR);
     }
 
     @GET
     @Path("unauthenticated/doc")
-    public Object doGetDocUnauthenticated() {
+    public DocumentModel doGetDocUnauthenticated() {
         CoreSession session = CoreInstance.getCoreSessionSystem(null);
         return Framework.doPrivileged(session::getRootDocument);
     }

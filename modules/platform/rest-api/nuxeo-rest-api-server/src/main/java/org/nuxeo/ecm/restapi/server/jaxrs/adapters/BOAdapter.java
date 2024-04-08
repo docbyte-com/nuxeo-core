@@ -32,6 +32,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.GenericEntity;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.automation.core.operations.business.adapter.BusinessAdapter;
 import org.nuxeo.ecm.automation.core.util.Paginable;
@@ -55,23 +56,23 @@ import org.nuxeo.runtime.api.Framework;
  * @since 5.7.2
  */
 @WebAdapter(name = BOAdapter.NAME, type = "BOService", targetType = "Document")
-@Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON + "+esentity" })
+@Produces(MediaType.APPLICATION_JSON)
 public class BOAdapter extends DefaultAdapter {
 
     public static final String NAME = "bo";
 
     @GET
     @Path("{adapterName}")
-    public Object doGetAdapter(@PathParam("adapterName") String adapterName) {
+    public Response doGetAdapter(@PathParam("adapterName") String adapterName) {
         DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
         if (doc != null) {
             BusinessAdapter adapter = getAdapter(adapterName, doc);
-            return new DefaultJsonAdapter(adapter);
+            return Response.ok(new DefaultJsonAdapter(adapter)).build();
         }
 
         DocumentModelList list = getTarget().getAdapter(DocumentModelList.class);
         if (list != null) {
-            return doGetAdapterOnList(list, adapterName);
+            return Response.ok(doGetAdapterOnList(list, adapterName)).build();
         }
 
         throw new NuxeoException("Adapter can only be executed on Document or DocumentList", SC_BAD_REQUEST);
@@ -101,7 +102,7 @@ public class BOAdapter extends DefaultAdapter {
     @PUT
     @Path("{adapterName}")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Object doPostAdapter(@PathParam("adapterName") String adapterName, BusinessAdapter input) {
+    public DefaultJsonAdapter doPostAdapter(@PathParam("adapterName") String adapterName, BusinessAdapter input) {
         ctx.getCoreSession().saveDocument(input.getDocument());
 
         ctx.getCoreSession().save();
@@ -111,8 +112,8 @@ public class BOAdapter extends DefaultAdapter {
 
     @POST
     @Path("{adapterName}/{docName}")
-    public Object doPutAdapter(@PathParam("adapterName") String adapterName, @PathParam("docName") String docName,
-            BusinessAdapter input) {
+    public DefaultJsonAdapter doPutAdapter(@PathParam("adapterName") String adapterName,
+            @PathParam("docName") String docName, BusinessAdapter input) {
         DocumentModel document = input.getDocument();
 
         DocumentObject dobj = (DocumentObject) getTarget();

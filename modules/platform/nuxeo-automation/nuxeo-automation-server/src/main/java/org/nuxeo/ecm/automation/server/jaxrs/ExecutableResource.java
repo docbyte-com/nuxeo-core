@@ -25,6 +25,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.POST;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
 
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
@@ -61,7 +62,7 @@ public abstract class ExecutableResource extends DefaultObject {
     }
 
     @POST
-    public Object doPost(ExecutionRequest xreq) {
+    public Response doPost(ExecutionRequest xreq) {
         try {
             AutomationServer srv = Framework.getService(AutomationServer.class);
             if (!srv.accept(getId(), isChain(), request)) {

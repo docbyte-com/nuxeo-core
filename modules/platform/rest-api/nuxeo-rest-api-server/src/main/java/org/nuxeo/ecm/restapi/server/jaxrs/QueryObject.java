@@ -264,7 +264,7 @@ public class QueryObject extends AbstractResource<ResourceTypeImpl> {
      * @return Document Listing
      */
     @GET
-    public Object doQuery(@Context UriInfo uriInfo) {
+    public DocumentModelList doQuery(@Context UriInfo uriInfo) {
         return getQuery(uriInfo, NXQL);
     }
 
@@ -277,7 +277,7 @@ public class QueryObject extends AbstractResource<ResourceTypeImpl> {
      */
     @GET
     @Path("{langOrProviderName}")
-    public Object doSpecificQuery(@Context UriInfo uriInfo,
+    public DocumentModelList doSpecificQuery(@Context UriInfo uriInfo,
             @PathParam("langOrProviderName") String langOrProviderName) {
         return getQuery(uriInfo, langOrProviderName);
     }

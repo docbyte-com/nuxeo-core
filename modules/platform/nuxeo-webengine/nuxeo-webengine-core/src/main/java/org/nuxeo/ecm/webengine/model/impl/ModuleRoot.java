@@ -26,7 +26,6 @@ import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import java.io.IOException;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -36,16 +35,14 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.webengine.app.DefaultContext;
+import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.ModuleResource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
-
-import com.sun.jersey.api.core.HttpContext;
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -53,43 +50,34 @@ import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
 public class ModuleRoot extends DefaultObject implements ModuleResource {
 
     @Context
-    protected HttpServletRequest request;
-
-    @Context
-    protected ServerInjectableProviderContext sic;
-
-    @Context
-    public void setContext(HttpContext hc) {
-        DefaultContext ctx = (DefaultContext) request.getAttribute(WebContext.class.getName());
-        if (ctx == null) {
-            throw new java.lang.IllegalStateException(
-                    "No WebContext found in http request! You should install the WebContextFilter");
-        }
-        if (ctx.getModule() != null) { // just a resource, not a module root
+    public void setContext(WebContext context) {
+        // check if context has already been initialized
+        if (context.getModule() != null) {
             return;
         }
         try {
-            ctx.setJerseyContext(sic, hc);
-            Module module = findModule(ctx);
+            Module module = findModule();
             ResourceType type = module.getType(getClass().getAnnotation(WebObject.class).type());
-            ctx.setModule(module);
-            initialize(ctx, type);
+            context.setModule(module);
+            initialize(context, type);
             setRoot(true);
         } finally {
-            ctx.push(this);
+            context.push(this);
         }
     }
 
-    private Module findModule(DefaultContext ctx) {
+    private Module findModule() {
         Path path = getClass().getAnnotation(Path.class);
         if (path == null) {
             throw new java.lang.IllegalStateException("ModuleRoot not annotated with @Path: " + getClass());
         }
-        ModuleConfiguration mc = ctx.getEngine().getModuleManager().getModuleByRootClass(getClass());
+        ModuleConfiguration mc = Framework.getService(WebEngine.class)
+                                          .getModuleManager()
+                                          .getModuleByRootClass(getClass());
         if (mc == null) {
             throw new java.lang.IllegalStateException("No module found for root resource: " + getClass());
         }
-        return mc.get(ctx);
+        return mc.get();
     }
 
     @GET

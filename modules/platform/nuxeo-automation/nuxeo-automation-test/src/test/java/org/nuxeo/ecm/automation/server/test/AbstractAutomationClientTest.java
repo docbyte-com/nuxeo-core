@@ -189,7 +189,7 @@ public abstract class AbstractAutomationClientTest {
         JsonNode node = new ObjectMapper().readTree(res);
         assertEquals(ENTITY_TYPE_EXCEPTION, HttpAutomationRequest.getEntityType(node));
         String message = node.get("message").asText();
-        assertTrue(message, message.contains("Unexpected character"));
+        assertEquals("javax.ws.rs.WebApplicationException: HTTP 400 Bad Request", message);
     }
 
     @Test

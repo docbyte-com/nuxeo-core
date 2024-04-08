@@ -36,6 +36,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.ui.web.auth.service.LoginScreenConfig;
@@ -49,8 +50,6 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-
-import com.sun.jersey.api.uri.UriComponent;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
@@ -380,7 +379,8 @@ public class TestLoginScreenConfig {
         assertTrue(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
-        hotDeployer.deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner.xml");
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner.xml");
 
         config = authService.getLoginScreenConfig();
 
@@ -389,14 +389,16 @@ public class TestLoginScreenConfig {
         assertFalse(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
-        hotDeployer.deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner2.xml");
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner2.xml");
 
         config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertFalse(config.getDisplayNews());
         assertFalse(config.getDisplayMobileBanner());
-        assertEquals("aNewURLWhichShouldntCauseNewsActivationAsRemoveNewsIsTrueInPreviousContrib", config.getNewsIframeUrl());
+        assertEquals("aNewURLWhichShouldntCauseNewsActivationAsRemoveNewsIsTrueInPreviousContrib",
+                config.getNewsIframeUrl());
     }
 
     // this test should be the last one because it un-deploys a contribution deployed by annotation on the class

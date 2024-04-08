@@ -41,13 +41,13 @@ public class TargetPlatformObject extends DefaultObject {
             });
 
     @GET
-    public Object doGet() {
+    public Response doGet() {
         return Response.status(Response.Status.NOT_FOUND).build();
     }
 
     @GET
     @Path("public")
-    public Object doGetPublic() throws Exception {
+    public Response doGetPublic() throws Exception {
         String platforms = PUBLIC_CACHE.get(PUBLIC_TP_CACHE_KEY, () -> {
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 TargetPlatformService tps = Framework.getService(TargetPlatformService.class);

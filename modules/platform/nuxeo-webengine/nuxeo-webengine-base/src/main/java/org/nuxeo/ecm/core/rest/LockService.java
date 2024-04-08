@@ -49,7 +49,7 @@ import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
 public class LockService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public String doGet() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             Lock lock = ctx.getCoreSession().getLockInfo(doc.getRef());
@@ -61,7 +61,7 @@ public class LockService extends DefaultAdapter {
     }
 
     @DELETE
-    public Object removeLock() {
+    public Void removeLock() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             ctx.getCoreSession().removeLock(doc.getRef());
@@ -74,7 +74,7 @@ public class LockService extends DefaultAdapter {
     }
 
     @POST
-    public Object doPost() {
+    public Void doPost() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             ctx.getCoreSession().setLock(doc.getRef());

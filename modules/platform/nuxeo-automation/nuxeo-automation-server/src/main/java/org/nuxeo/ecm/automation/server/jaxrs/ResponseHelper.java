@@ -32,6 +32,9 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.glassfish.jersey.media.multipart.MultiPart;
 import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.core.util.Paginable;
@@ -49,10 +52,6 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
 import org.nuxeo.runtime.api.Framework;
-
-import com.sun.jersey.core.header.ContentDisposition;
-import com.sun.jersey.multipart.BodyPart;
-import com.sun.jersey.multipart.MultiPart;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -114,7 +113,7 @@ public class ResponseHelper {
     /**
      * @since 5.7.2
      */
-    public static Object getResponse(Object result, HttpServletRequest request) throws MessagingException, IOException {
+    public static Response getResponse(Object result, HttpServletRequest request) throws MessagingException, IOException {
         return getResponse(result, request, HttpServletResponse.SC_OK);
     }
 
@@ -123,13 +122,14 @@ public class ResponseHelper {
      *
      * @since 7.1
      */
-    public static Object getResponse(Object result, HttpServletRequest request, int httpStatus)
+    public static Response getResponse(Object result, HttpServletRequest request, int httpStatus)
             throws IOException, MessagingException {
         if (result == null || "true".equals(request.getHeader("X-NXVoidOperation"))) {
             return emptyContent();
         }
         if (result instanceof Blob) {
-            return result; // BlobWriter will do all the processing and call the DownloadService
+            // BlobWriter will do all the processing and call the DownloadService
+            return Response.status(httpStatus).entity(result).build();
         } else if (result instanceof BlobList blobList) {
             return blobs(blobList);
         } else if (result instanceof DocumentRef docRef) {

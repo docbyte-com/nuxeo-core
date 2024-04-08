@@ -16,42 +16,28 @@
  */
 package org.nuxeo.ecm.automation.server.jaxrs;
 
-import java.lang.reflect.Type;
+import javax.ws.rs.core.Feature;
+import javax.ws.rs.core.FeatureContext;
 
-import javax.ws.rs.core.Context;
-
+import org.glassfish.jersey.internal.inject.AbstractBinder;
+import org.glassfish.jersey.process.internal.RequestScoped;
 import org.nuxeo.ecm.automation.server.AutomationServer;
 import org.nuxeo.runtime.api.Framework;
 
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
 /**
- *
- *
  * @since 8.10
  */
-public class AutomationServerProvider implements InjectableProvider<Context, Type>, Injectable<AutomationServer>{
+public class AutomationServerProvider implements Feature {
 
     @Override
-    public AutomationServer getValue() {
-        return Framework.getService(AutomationServer.class);
+    public boolean configure(FeatureContext context) {
+        context.register(new AbstractBinder() {
+            @Override
+            protected void configure() {
+                bindFactory(() -> Framework.getService(AutomationServer.class)).to(AutomationServer.class)
+                                                                               .in(RequestScoped.class);
+            }
+        });
+        return true;
     }
-
-    @Override
-    public ComponentScope getScope() {
-        return ComponentScope.PerRequest;
-    }
-
-    @Override
-    public Injectable<AutomationServer> getInjectable(ComponentContext ic, Context a, Type c) {
-        if (!c.equals(AutomationServer.class)) {
-            return null;
-        }
-        return this;
-    }
-
-
-
 }

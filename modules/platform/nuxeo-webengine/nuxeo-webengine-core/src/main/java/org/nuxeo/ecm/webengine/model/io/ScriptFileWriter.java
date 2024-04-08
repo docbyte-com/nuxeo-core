@@ -27,13 +27,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
-import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.Template;
+import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 
 /**
@@ -43,11 +44,14 @@ import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 @Produces({ "text/html", "*/*" })
 public class ScriptFileWriter implements MessageBodyWriter<ScriptFile> {
 
+    @Context
+    protected WebContext context;
+
     @Override
     public void writeTo(ScriptFile t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
             MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException {
 
-        new Template(WebEngine.getActiveContext(), t).render(entityStream);
+        new Template(context, t).render(entityStream);
         entityStream.flush();
     }
 

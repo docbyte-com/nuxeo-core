@@ -26,6 +26,7 @@ import static org.nuxeo.wopi.Headers.TIMESTAMP;
 
 import java.util.function.Supplier;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
@@ -58,6 +59,9 @@ import org.nuxeo.wopi.lock.LockHelper;
 public class WOPIRoot extends ModuleRoot {
 
     protected static final String THREAD_NAME_PREFIX = "WOPI_";
+
+    @Context
+    protected HttpServletRequest request;
 
     @Context
     protected HttpHeaders httpHeaders;

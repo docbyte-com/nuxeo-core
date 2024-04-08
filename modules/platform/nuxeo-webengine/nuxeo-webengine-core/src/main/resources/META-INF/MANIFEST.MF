@@ -45,10 +45,7 @@ Nuxeo-Component: OSGI-INF/webengine-framework.xml,
  OSGI-INF/authentication-contrib.xml,
  OSGI-INF/json-service.xml
 Bundle-ManifestVersion: 2
-Import-Package: com.sun.jersey.core.spi.component,
- com.sun.jersey.spi.container.servlet,
- com.sun.jersey.spi.inject,
- freemarker.core,
+Import-Package: freemarker.core,
  freemarker.ext.jsp,
  freemarker.ext.servlet,
  freemarker.template,

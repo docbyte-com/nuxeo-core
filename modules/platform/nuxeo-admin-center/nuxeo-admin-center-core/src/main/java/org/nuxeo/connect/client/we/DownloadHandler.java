@@ -28,6 +28,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -37,6 +38,7 @@ import org.nuxeo.connect.data.DownloadingPackage;
 import org.nuxeo.connect.downloads.ConnectDownloadManager;
 import org.nuxeo.connect.packages.PackageManager;
 import org.nuxeo.connect.update.PackageState;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -89,7 +91,7 @@ public class DownloadHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "progressPage/{pkgId}")
-    public Object getDownloadProgressPage(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template getDownloadProgressPage(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("install") Boolean install, @QueryParam("depCheck") Boolean depCheck,
             @QueryParam("type") String pkgType, @QueryParam("onlyRemote") Boolean onlyRemote,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
@@ -133,7 +135,7 @@ public class DownloadHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "start/{pkgId}")
-    public Object startDownload(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template startDownload(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("install") Boolean install, @QueryParam("depCheck") Boolean depCheck,
             @QueryParam("type") String pkgType, @QueryParam("onlyRemote") Boolean onlyRemote,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
@@ -201,7 +203,7 @@ public class DownloadHandler extends DefaultObject {
      */
     @GET
     @Path(value = "cancel/{pkgId}")
-    public Object cancelDownload(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
+    public Response cancelDownload(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
         PackageManager pm = Framework.getService(PackageManager.class);
         pm.cancelDownload(pkgId);
         return redirect(getPrevious().getPath() + "/packages/" + source);

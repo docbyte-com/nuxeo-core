@@ -100,7 +100,8 @@ public class TestThumbnailsObject extends ManagementBaseTest {
 
     protected void doTestRecomputeThumbnails(String query, boolean success) {
         // generating new thumbnails
-        var requestBuilder = httpClient.buildPostRequest("/management/thumbnails/recompute");
+        var requestBuilder = httpClient.buildPostRequest("/management/thumbnails/recompute")
+                                       .contentType("application/x-www-form-urlencoded");
         if (query != null) {
             requestBuilder.entity(Map.of("query", query));
         }
