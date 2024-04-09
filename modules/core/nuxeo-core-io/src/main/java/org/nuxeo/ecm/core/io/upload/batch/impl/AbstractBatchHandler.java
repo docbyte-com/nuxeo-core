@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
  *     Luís Duarte
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch.handler;
+package org.nuxeo.ecm.core.io.upload.batch.impl;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManagerComponent.CLIENT_BATCH_ID_FLAG;
+import static org.nuxeo.ecm.core.io.upload.batch.BatchManagerComponent.CLIENT_BATCH_ID_FLAG;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -29,9 +29,9 @@ import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.Batch;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchHandler;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.io.upload.batch.Batch;
+import org.nuxeo.ecm.core.io.upload.batch.BatchHandler;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.runtime.api.Framework;

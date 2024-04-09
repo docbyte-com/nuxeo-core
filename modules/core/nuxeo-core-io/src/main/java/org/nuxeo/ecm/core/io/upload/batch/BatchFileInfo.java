@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  *     Luís Duarte
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch.handler;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 /**
  * Structure that holds metadata about an uploaded file through a batch.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,14 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
 
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 
 /**
@@ -139,36 +137,6 @@ public interface BatchManager {
      * @since 10.1
      */
     Batch initBatch(String handlerName);
-
-    /**
-     * Executes the chain or operation on the {@code Blobs} from the given {@code batchId}.
-     * <p>
-     * This method does not clean the temporary storage associated to the {@code batchId}.
-     *
-     * @since 5.7
-     */
-    Object execute(String batchId, String chainOrOperationId, CoreSession session, Map<String, Object> contextParams,
-            Map<String, Object> operationParams);
-
-    /**
-     * Executes the chain or operation on the {@code Blob} from the given {@code batchId} and {@code fileIndex}.
-     * <p>
-     * This method does not clean the temporary storage associated to the {@code batchId}.
-     *
-     * @since 5.7.2
-     */
-    Object execute(String batchId, String fileIndex, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams);
-
-    /**
-     * Executes the chain or operation on the {@code Blobs} from the given {@code batchId}.
-     * <p>
-     * This method cleans the temporary storage associated to the {@code batchId} after the execution.
-     *
-     * @since 5.7
-     */
-    Object executeAndClean(String batchId, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams);
 
     /**
      * Removes a file from a batch.

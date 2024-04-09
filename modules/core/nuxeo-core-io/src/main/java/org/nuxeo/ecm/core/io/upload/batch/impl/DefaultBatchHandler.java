@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,15 @@
  *     Florent Guillaume
  *     Mickaël Schoentgen
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch.handler.impl;
+package org.nuxeo.ecm.core.io.upload.batch.impl;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Objects;
 
-import org.nuxeo.ecm.automation.server.jaxrs.batch.Batch;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchFileEntry;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.AbstractBatchHandler;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchFileInfo;
+import org.nuxeo.ecm.core.io.upload.batch.Batch;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileEntry;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
 
 /**
  * Default batch handler,

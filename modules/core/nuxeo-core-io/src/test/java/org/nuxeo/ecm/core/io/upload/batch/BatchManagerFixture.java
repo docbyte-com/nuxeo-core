@@ -18,17 +18,17 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.core.io.upload.batch.BatchManagerComponent.DEFAULT_BATCH_HANDLER;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -45,10 +45,9 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -59,20 +58,18 @@ import org.nuxeo.transientstore.test.TransientStoreFeature;
  * @since 7.10
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, TransientStoreFeature.class, NuxeoLoginFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.webengine.core")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.automation.server")
+@Features({ TransientStoreFeature.class })
+@Deploy("org.nuxeo.ecm.core.io:OSGI-INF/batchmanager-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.io:OSGI-INF/batchmanager-framework.xml")
 public class BatchManagerFixture {
 
     protected TransientStore getTransientStore() {
         BatchManager bm = Framework.getService(BatchManager.class);
-        return bm.getHandler(BatchManagerComponent.DEFAULT_BATCH_HANDLER).getTransientStore();
+        return bm.getHandler(DEFAULT_BATCH_HANDLER).getTransientStore();
     }
 
     @Test
-    public void testServiceRegistred() {
+    public void testServiceRegistered() {
         BatchManager bm = Framework.getService(BatchManager.class);
         assertNotNull(bm);
     }
@@ -100,14 +97,17 @@ public class BatchManagerFixture {
 
     @Test(expected = NuxeoException.class)
     public void testBatchInitClientGeneratedIdNotAllowed() {
-        ((BatchManagerComponent) Framework.getService(BatchManager.class)).initBatchInternal("testBatchId");
+        BatchManager bm = Framework.getService(BatchManager.class);
+        BatchHandler handler = bm.getHandler(DEFAULT_BATCH_HANDLER);
+        handler.newBatch("testBatchId").getKey();
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.automation.test.test:test-batchmanager-client-generated-id-allowed-contrib.xml")
+    @Deploy("org.nuxeo.ecm.core.io.test:OSGI-INF/test-batchmanager-client-generated-id-allowed-contrib.xml")
     public void testBatchInitClientGeneratedIdAllowed() {
         BatchManager bm = Framework.getService(BatchManager.class);
-        String batchId = ((BatchManagerComponent) bm).initBatchInternal("testBatchId").getKey();
+        BatchHandler handler = bm.getHandler(DEFAULT_BATCH_HANDLER);
+        String batchId = handler.newBatch("testBatchId").getKey();
         assertEquals("testBatchId", batchId);
         assertTrue(bm.hasBatch("testBatchId"));
         Batch batch = bm.getBatch("testBatchId");

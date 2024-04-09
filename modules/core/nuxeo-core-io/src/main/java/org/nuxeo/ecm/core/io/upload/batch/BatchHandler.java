@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@
  *     Florent Guillaume
  *     Mickaël Schoentgen
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import java.util.Map;
 
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchFileInfo;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 
 /**
@@ -64,12 +63,11 @@ public interface BatchHandler {
     Batch getBatch(String batchId);
 
     /**
-     * Attempts to renew the credentials associated to this batch handler.
-     * This is only typically used in third-party batch handlers.
+     * Attempts to renew the credentials associated to this batch handler. This is only typically used in third-party
+     * batch handlers.
      *
      * @param batchId the batch id
      * @return the new credentials
-     *
      * @since 11.1
      */
     Map<String, Object> refreshToken(String batchId);

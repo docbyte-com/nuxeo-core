@@ -10,7 +10,7 @@
   </extension>
 
   <!-- the transient bucket and prefix are used to retrieve the file uploaded by the client -->
-  <extension target="org.nuxeo.ecm.automation.server.BatchManager" point="handlers">
+  <extension target="org.nuxeo.ecm.core.io.BatchManager" point="handlers">
     <batchHandler>
       <name>s3fail</name>
       <class>org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler</class>

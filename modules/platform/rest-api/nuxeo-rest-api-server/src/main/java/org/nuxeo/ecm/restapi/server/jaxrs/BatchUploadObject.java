@@ -22,6 +22,7 @@
 package org.nuxeo.ecm.restapi.server.jaxrs;
 
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
 
@@ -58,24 +59,31 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.jaxrs.io.operations.ExecutionRequest;
+import org.nuxeo.ecm.automation.server.AutomationServer;
+import org.nuxeo.ecm.automation.server.RestBinding;
 import org.nuxeo.ecm.automation.server.jaxrs.ResponseHelper;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.Batch;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchFileEntry;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchHandler;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManager;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManagerConstants;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchFileInfo;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.core.io.NginxConstants;
+import org.nuxeo.ecm.core.io.upload.batch.Batch;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileEntry;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
+import org.nuxeo.ecm.core.io.upload.batch.BatchHandler;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManagerConstants;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.exceptions.IllegalParameterException;
+import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
 import org.nuxeo.runtime.api.Framework;
@@ -498,18 +506,78 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
         }
 
         try {
+            int uploadWaitTimeout = getUploadWaitTimeout();
             CoreSession session = ctx.getCoreSession();
             // ExecutionRequest's OperationContext not owned by us, don't close it
             OperationContext ctx = xreq.createContext(request, response, session); // NOSONAR
             Map<String, Object> params = xreq.getParams();
             Object result;
             if (StringUtils.isBlank(fileIdx)) {
-                result = bm.execute(batchId, operationId, session, ctx, params);
+                List<Blob> blobs = bm.getBlobs(batchId, uploadWaitTimeout);
+                if (blobs == null) {
+                    String message = String.format("Unable to find batch associated with id '%s'", batchId);
+                    log.error(message);
+                    throw new NuxeoException(message, SC_NOT_FOUND);
+                }
+                result = execute(new BlobList(blobs), operationId, session, ctx, params);
             } else {
-                result = bm.execute(batchId, fileIdx, operationId, session, ctx, params);
+                Blob blob = bm.getBlob(batchId, fileIdx, uploadWaitTimeout);
+                if (blob == null) {
+                    String message = String.format(
+                            "Unable to find batch associated with id '%s' or file associated with index '%s'", batchId,
+                            fileIdx);
+                    log.error(message);
+                    throw new NuxeoException(message, SC_NOT_FOUND);
+                }
+                result = execute(blob, operationId, session, ctx, params);
             }
             return ResponseHelper.getResponse(result, request);
         } catch (MessagingException | IOException e) {
+            log.error("Error while executing automation batch ", e);
+            throw new NuxeoException(e);
+        }
+    }
+
+    protected int getUploadWaitTimeout() {
+        String t = Framework.getProperty("org.nuxeo.batch.upload.wait.timeout", "5");
+        try {
+            return Integer.parseInt(t);
+        } catch (NumberFormatException e) {
+            log.error("Wrong number format for upload wait timeout property", e);
+            return 5;
+        }
+    }
+
+    protected Object execute(Object blobInput, String chainOrOperationId, CoreSession session,
+            Map<String, Object> contextParams, Map<String, Object> operationParams) {
+        if (contextParams == null) {
+            contextParams = new HashMap<>();
+        }
+        if (operationParams == null) {
+            operationParams = new HashMap<>();
+        }
+
+        try (OperationContext ctx = new OperationContext(session)) {
+
+            AutomationServer server = Framework.getService(AutomationServer.class);
+            RestBinding binding = server.getOperationBinding(chainOrOperationId);
+
+            if (binding != null && binding.isAdministrator) {
+                NuxeoPrincipal principal = ctx.getPrincipal();
+                if (!principal.isAdministrator()) {
+                    String message = "Not allowed. You must be administrator to use this operation";
+                    log.error(message);
+                    throw new WebSecurityException(message);
+                }
+            }
+
+            ctx.setInput(blobInput);
+            ctx.putAll(contextParams);
+
+            AutomationService as = Framework.getService(AutomationService.class);
+            // Drag and Drop action category is accessible from the chain sub context as chain parameters
+            return as.run(ctx, chainOrOperationId, operationParams);
+        } catch (OperationException e) {
             log.error("Error while executing automation batch ", e);
             throw new NuxeoException(e);
         }

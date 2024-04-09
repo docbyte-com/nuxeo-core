@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  *     Gabriel Barata <gbarata@nuxeo.com>
  *
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import java.io.IOException;
 import java.io.InputStream;

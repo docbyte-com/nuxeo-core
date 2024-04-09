@@ -16,7 +16,7 @@
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;

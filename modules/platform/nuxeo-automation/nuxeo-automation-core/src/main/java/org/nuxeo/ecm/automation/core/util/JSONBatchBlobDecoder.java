@@ -18,12 +18,14 @@
  *
  */
 
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.automation.core.util;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.nuxeo.ecm.automation.core.util.JSONBlobDecoder;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.io.upload.batch.Batch;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManagerConstants;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.runtime.api.Framework;
 

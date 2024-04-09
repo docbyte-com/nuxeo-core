@@ -52,18 +52,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.Batch;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchHandler;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManager;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchFileInfo;
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
+import org.nuxeo.ecm.core.io.upload.batch.Batch;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
+import org.nuxeo.ecm.core.io.upload.batch.BatchHandler;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
 import org.nuxeo.ecm.core.storage.sql.S3BinaryManager;
 import org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -89,7 +89,7 @@ import com.amazonaws.services.s3.transfer.Upload;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ TestS3DirectUploadAbstract.SetPropertiesFeature.class, AutomationServerFeature.class })
+@Features({ TestS3DirectUploadAbstract.SetPropertiesFeature.class, CoreFeature.class })
 @Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3")
 public abstract class TestS3DirectUploadAbstract {
 

@@ -58,6 +58,7 @@ public class ComplexTypeJSONDecoder {
         blobDecoders.add(new JSONStringBlobDecoder());
         blobDecoders.add(new JSONObjectBlobDecoder());
         blobDecoders.add(new JSONManagedBlobDecoder());
+        blobDecoders.add(new JSONBatchBlobDecoder());
     }
 
     public static void registerBlobDecoder(JSONBlobDecoder blobDecoder) {

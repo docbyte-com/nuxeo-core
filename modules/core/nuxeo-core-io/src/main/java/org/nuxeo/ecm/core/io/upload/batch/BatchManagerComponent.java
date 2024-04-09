@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  *     Mickaël Schoentgen
  *
  */
-package org.nuxeo.ecm.automation.server.jaxrs.batch;
+package org.nuxeo.ecm.core.io.upload.batch;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -33,26 +33,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.automation.AutomationService;
-import org.nuxeo.ecm.automation.OperationContext;
-import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.core.util.BlobList;
-import org.nuxeo.ecm.automation.core.util.ComplexTypeJSONDecoder;
-import org.nuxeo.ecm.automation.server.AutomationServer;
-import org.nuxeo.ecm.automation.server.RestBinding;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchHandlerDescriptor;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
-import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
 
@@ -80,10 +65,6 @@ public class BatchManagerComponent extends DefaultComponent implements BatchMana
     protected Map<String, BatchHandler> handlers = new HashMap<>();
 
     protected final AtomicInteger uploadInProgress = new AtomicInteger(0);
-
-    static {
-        ComplexTypeJSONDecoder.registerBlobDecoder(new JSONBatchBlobDecoder());
-    }
 
     @Override
     public void start(ComponentContext context) {
@@ -291,87 +272,6 @@ public class BatchManagerComponent extends DefaultComponent implements BatchMana
         Batch batch = getBatch(batchId);
         if (batch != null) {
             batch.clean();
-        }
-    }
-
-    @Override
-    public Object execute(String batchId, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams) {
-        List<Blob> blobs = getBlobs(batchId, getUploadWaitTimeout());
-        if (blobs == null) {
-            String message = String.format("Unable to find batch associated with id '%s'", batchId);
-            log.error(message);
-            throw new NuxeoException(message);
-        }
-        return execute(new BlobList(blobs), chainOrOperationId, session, contextParams, operationParams);
-    }
-
-    @Override
-    public Object execute(String batchId, String fileIndex, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams) {
-        Blob blob = getBlob(batchId, fileIndex, getUploadWaitTimeout());
-        if (blob == null) {
-            String message = String.format(
-                    "Unable to find batch associated with id '%s' or file associated with index '%s'", batchId,
-                    fileIndex);
-            log.error(message);
-            throw new NuxeoException(message, SC_NOT_FOUND);
-        }
-        return execute(blob, chainOrOperationId, session, contextParams, operationParams);
-    }
-
-    protected Object execute(Object blobInput, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams) {
-        if (contextParams == null) {
-            contextParams = new HashMap<>();
-        }
-        if (operationParams == null) {
-            operationParams = new HashMap<>();
-        }
-
-        try (OperationContext ctx = new OperationContext(session)) {
-
-            AutomationServer server = Framework.getService(AutomationServer.class);
-            RestBinding binding = server.getOperationBinding(chainOrOperationId);
-
-            if (binding != null && binding.isAdministrator) {
-                NuxeoPrincipal principal = ctx.getPrincipal();
-                if (!principal.isAdministrator()) {
-                    String message = "Not allowed. You must be administrator to use this operation";
-                    log.error(message);
-                    throw new WebSecurityException(message);
-                }
-            }
-
-            ctx.setInput(blobInput);
-            ctx.putAll(contextParams);
-
-            AutomationService as = Framework.getService(AutomationService.class);
-            // Drag and Drop action category is accessible from the chain sub context as chain parameters
-            return as.run(ctx, chainOrOperationId, operationParams);
-        } catch (OperationException e) {
-            log.error("Error while executing automation batch ", e);
-            throw new NuxeoException(e);
-        }
-    }
-
-    protected int getUploadWaitTimeout() {
-        String t = Framework.getProperty("org.nuxeo.batch.upload.wait.timeout", "5");
-        try {
-            return Integer.parseInt(t);
-        } catch (NumberFormatException e) {
-            log.error("Wrong number format for upload wait timeout property", e);
-            return 5;
-        }
-    }
-
-    @Override
-    public Object executeAndClean(String batchId, String chainOrOperationId, CoreSession session,
-            Map<String, Object> contextParams, Map<String, Object> operationParams) {
-        try {
-            return execute(batchId, chainOrOperationId, session, contextParams, operationParams);
-        } finally {
-            clean(batchId);
         }
     }
 

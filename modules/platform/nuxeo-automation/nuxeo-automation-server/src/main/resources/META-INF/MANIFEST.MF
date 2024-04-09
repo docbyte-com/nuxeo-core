@@ -10,10 +10,8 @@ Bundle-ActivationPolicy: lazy
 Nuxeo-WebModule: org.nuxeo.ecm.automation.server.jaxrs.AutomationModule;name=automation;extends=base;package=org/nuxeo/ecm/automation/server/jaxrs
 Nuxeo-Component: OSGI-INF/AutomationServer.xml,
  OSGI-INF/auth-contrib.xml,
- OSGI-INF/batchmanager-framework.xml,
  OSGI-INF/binding-contrib.xml,
- OSGI-INF/pageprovider-contrib.xml,
- OSGI-INF/batchmanager-contrib.xml
+ OSGI-INF/pageprovider-contrib.xml
 Nuxeo-AllowOverride: true
 Import-Package: javax.mail,
  javax.mail.internet,

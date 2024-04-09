@@ -33,7 +33,6 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.util.BlobList;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManager;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -57,9 +56,6 @@ public class DnDOperationsTest {
 
     @Inject
     CoreSession session;
-
-    @Inject
-    BatchManager batchManager;
 
     protected OperationContext ctx;
 
