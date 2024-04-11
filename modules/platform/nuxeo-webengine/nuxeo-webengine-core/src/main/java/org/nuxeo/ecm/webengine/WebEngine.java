@@ -34,7 +34,6 @@ import javax.ws.rs.core.Application;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
 import org.nuxeo.ecm.platform.rendering.api.ResourceLocator;
 import org.nuxeo.ecm.platform.rendering.fm.FreemarkerEngine;
@@ -105,11 +104,7 @@ public class WebEngine implements ResourceLocator {
 
     protected final Map<String, Object> env;
 
-    protected boolean devMode;
-
     protected final AnnotationManager annoMgr;
-
-    protected final ResourceRegistry registry;
 
     protected String skinPathPrefix;
 
@@ -118,11 +113,6 @@ public class WebEngine implements ResourceLocator {
     protected volatile boolean isDirty;
 
     public WebEngine(File root) {
-        this(new EmptyRegistry(), root);
-    }
-
-    public WebEngine(ResourceRegistry registry, File root) {
-        this.registry = registry;
         this.root = root;
         webLoader = new WebLoader(this);
         apps = new HashMap<>();
@@ -204,11 +194,6 @@ public class WebEngine implements ResourceLocator {
 
     public String getSkinPathPrefix() {
         return skinPathPrefix;
-    }
-
-    @Deprecated
-    public ResourceRegistry getRegistry() {
-        return registry;
     }
 
     public Class<?> loadClass(String className) throws ClassNotFoundException {
@@ -306,37 +291,6 @@ public class WebEngine implements ResourceLocator {
         return rendering;
     }
 
-    /**
-     * Manage jax-rs root resource bindings
-     *
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public void addResourceBinding(ResourceBinding binding) {
-        try {
-            binding.resolve(this);
-            registry.addBinding(binding);
-        } catch (ClassNotFoundException e) {
-            throw new NuxeoException("Failed o register binding: " + binding, e);
-        }
-    }
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public void removeResourceBinding(ResourceBinding binding) {
-        registry.removeBinding(binding);
-    }
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public ResourceBinding[] getBindings() {
-        return registry.getBindings();
-    }
-
     public synchronized void setDirty(boolean dirty) {
         isDirty = dirty;
     }
@@ -405,7 +359,6 @@ public class WebEngine implements ResourceLocator {
     }
 
     public void stop() {
-        registry.clear();
         moduleMgr = null;
     }
 

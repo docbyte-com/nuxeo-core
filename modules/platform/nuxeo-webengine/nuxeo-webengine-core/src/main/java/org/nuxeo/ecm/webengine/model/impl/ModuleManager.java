@@ -24,7 +24,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.Context;
 import org.nuxeo.common.xmap.XMap;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.webengine.ResourceBinding;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.runtime.api.Framework;
 
@@ -46,8 +44,6 @@ public class ModuleManager {
 
     protected final Map<String, ModuleConfiguration> modules;
 
-    protected final Map<String, ModuleConfiguration> paths;
-
     protected final Map<String, ModuleConfiguration> roots;
 
     protected WebEngine engine;
@@ -55,7 +51,6 @@ public class ModuleManager {
     public ModuleManager(WebEngine engine) {
         this.engine = engine;
         modules = new ConcurrentHashMap<>();
-        paths = new ConcurrentHashMap<>();
         roots = new ConcurrentHashMap<>();
     }
 
@@ -66,17 +61,6 @@ public class ModuleManager {
      */
     public ModuleConfiguration getModule(String key) {
         return modules.get(key);
-    }
-
-    public ModuleConfiguration getModuleByPath(String path) {
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-        return paths.get(path);
-    }
-
-    public ModuleConfiguration getRootModule() {
-        return paths.get("/");
     }
 
     public ModuleConfiguration[] getModules() {
@@ -96,16 +80,6 @@ public class ModuleManager {
     public synchronized void registerModule(ModuleConfiguration descriptor) {
         log.info("Registering web module: {}", descriptor.name);
         modules.put(descriptor.name, descriptor);
-        String path = descriptor.path;
-        if (path != null) {
-            // TODO remove this
-            // compat. method now modules should be declared through
-            // WebApplication class
-            if (!path.startsWith("/")) {
-                path = "/" + path;
-            }
-            paths.put(path, descriptor);
-        }
         if (descriptor.roots != null) {
             for (Class<?> cl : descriptor.roots) {
                 roots.put(cl.getName(), descriptor);
@@ -119,13 +93,6 @@ public class ModuleManager {
         if (md == null) {
             return null;
         }
-        Iterator<ModuleConfiguration> it = paths.values().iterator();
-        while (it.hasNext()) { // remove all module occurrence in paths map
-            ModuleConfiguration p = it.next();
-            if (p.name.equals(md.name)) {
-                it.remove();
-            }
-        }
         if (md.roots != null) {
             for (Class<?> cl : md.roots) {
                 roots.remove(cl.getName());
@@ -136,13 +103,6 @@ public class ModuleManager {
 
     public ModuleConfiguration getModuleByRootClass(Class<?> clazz) {
         return roots.get(clazz.getName());
-    }
-
-    public synchronized void bind(String name, String path) {
-        ModuleConfiguration md = modules.get(name);
-        if (md != null) {
-            paths.put(path, md);
-        }
     }
 
     public void loadModules(File root) {
@@ -157,7 +117,6 @@ public class ModuleManager {
 
     public void loadModule(ModuleConfiguration mc) {
         // this should be called after the class path is updated ...
-        loadModuleRootResources(mc);
         mc.setEngine(engine);
         registerModule(mc);
     }
@@ -165,7 +124,6 @@ public class ModuleManager {
     public void loadModule(File file) {
         ModuleConfiguration md = loadConfiguration(file);
         // this should be called after the class path is updated ...
-        loadModuleRootResources(md);
         md.setEngine(engine);
         registerModule(md);
     }
@@ -198,7 +156,6 @@ public class ModuleManager {
         }
         try {
             ModuleConfiguration mc = readConfiguration(engine, file);
-            mc.file = file;
             if (mc.directory == null) {
                 mc.directory = file.getParentFile().getCanonicalFile();
             }
@@ -213,19 +170,6 @@ public class ModuleManager {
         xmap.register(ModuleConfiguration.class);
         try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
             return (ModuleConfiguration) xmap.load(createXMapContext(engine), in);
-        }
-    }
-
-    public void loadModuleRootResources(ModuleConfiguration mc) {
-        if (mc.resources != null) {
-            for (ResourceBinding rb : mc.resources) {
-                try {
-                    rb.resolve(engine);
-                    engine.addResourceBinding(rb);
-                } catch (ClassNotFoundException e) {
-                    throw new NuxeoException("Failed to load module root resource: " + rb, e);
-                }
-            }
         }
     }
 

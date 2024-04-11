@@ -28,4 +28,4 @@ Import-Package: javax.annotation;version="1.0",
  org.nuxeo.ecm.webengine.forms,
  org.nuxeo.ecm.webengine.model,
  org.nuxeo.runtime.api
-Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=ui;extends=base;package=org/nuxeo/ecm/webengine/ui

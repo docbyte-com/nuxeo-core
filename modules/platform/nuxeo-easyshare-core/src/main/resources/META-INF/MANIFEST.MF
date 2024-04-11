@@ -1,6 +1,5 @@
 Manifest-Version: 1.0
-Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=easy
- share;package=org/nuxeo/easyshare
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=easyshare;package=org/nuxeo/easyshare
 Bundle-Vendor: Nuxeo
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .

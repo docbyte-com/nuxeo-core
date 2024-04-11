@@ -10,6 +10,6 @@ Bundle-Vendor: Nuxeo
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.nuxeo.elasticsearch.http.readonly;singleton:=true
-Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=es;package=org/nuxeo/elasticsearch/http/readonly;headless=true
 Nuxeo-Component: OSGI-INF/request-filter-service.xml,
  OSGI-INF/es-audit-http-readonly-filter.xml

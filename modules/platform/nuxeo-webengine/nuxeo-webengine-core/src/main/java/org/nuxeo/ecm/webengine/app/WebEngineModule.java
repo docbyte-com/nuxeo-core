@@ -37,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.ext.Provider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,6 +47,7 @@ import org.nuxeo.ecm.webengine.jaxrs.ApplicationFactory;
 import org.nuxeo.ecm.webengine.jaxrs.scan.Scanner;
 import org.nuxeo.ecm.webengine.loader.WebLoader;
 import org.nuxeo.ecm.webengine.model.Module;
+import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultTypeLoader;
@@ -194,23 +196,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         for (Class<?> cl : cfg.types) {
             if (cl.isAnnotationPresent(Path.class)) {
                 roots.add(cl);
-            } else if (cfg.rootType != null) {
-                // compat mode - should be removed later
-                WebObject wo = cl.getAnnotation(WebObject.class);
-                if (wo != null && wo.type().equals(cfg.rootType)) {
-                    log.warn(
-                            "Invalid web module: {} from bundle: {}. The root-type {} in module.xml is deprecated. "
-                                    + "Consider using @Path annotation on you root web objects.",
-                            cfg.name, bundle.getSymbolicName(), cl);
-                }
             }
         }
         if (roots.isEmpty()) {
             log.error("No root web objects found in web module: {} from bundle: {}", cfg.name,
                     bundle.getSymbolicName());
-            // throw new
-            // IllegalStateException("No root web objects found in web module "+cfg.name+" from bundle
-            // "+bundle.getSymbolicName());
         }
         cfg.roots = roots.toArray(Class<?>[]::new);
     }
@@ -270,6 +260,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         return WebEngineModuleFactory.getApplication(this, bundle, args);
     }
 
+    @Override
+    public String toString() {
+        return "WebEngineModule{cfg=" + cfg + ", bundle=" + bundle + '}';
+    }
+
     public static class HttpServletRequestProvider
             implements InjectableProvider<Context, Type>, Injectable<HttpServletRequest> {
         @Override
@@ -315,5 +310,4 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         }
 
     }
-
 }

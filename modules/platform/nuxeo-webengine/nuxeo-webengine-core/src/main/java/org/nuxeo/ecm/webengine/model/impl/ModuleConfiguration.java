@@ -30,9 +30,7 @@ import java.util.Set;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
-import org.nuxeo.ecm.webengine.ResourceBinding;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.app.WebEngineModule;
 import org.nuxeo.ecm.webengine.model.LinkDescriptor;
 import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.WebContext;
@@ -47,23 +45,7 @@ import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
 public class ModuleConfiguration {
 
     /**
-     * A web module may have multiple roots
-     *
-     * @deprecated you should use new module definition - through {@link WebEngineModule}
-     */
-    @Deprecated
-    @XNode("@path")
-    public String path;
-
-    /**
-     * @deprecated you should use new module definition - through {@link WebEngineModule}
-     */
-    @Deprecated
-    @XNode("@root-type")
-    public String rootType;
-
-    /**
-     * Paths of root resources in the module. This is replacing the deprecated root-type.
+     * Paths of root resources in the module.
      */
     public Class<?>[] roots;
 
@@ -73,11 +55,7 @@ public class ModuleConfiguration {
     @XNode("@name")
     public String name;
 
-    /**
-     * Use module links instead. If a module doesn't declare a module item it will be headless by default. Still used
-     * for compatibility mode - for those modules not yet using moduleItems.
-     */
-    @Deprecated
+    /** Don't publish module on the WebEngine main page. */
     @XNode("@headless")
     public boolean isHeadless;
 
@@ -113,13 +91,6 @@ public class ModuleConfiguration {
 
     @XNodeList(value = "links/link", type = ArrayList.class, componentType = LinkDescriptor.class, nullByDefault = true)
     public List<LinkDescriptor> links;
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    @XNodeList(value = "resources/resource", type = ArrayList.class, componentType = ResourceBinding.class, nullByDefault = true)
-    public List<ResourceBinding> resources;
 
     @XNode("templateFileExt")
     public String templateFileExt = "ftl";
@@ -215,4 +186,8 @@ public class ModuleConfiguration {
         return isHeadless;
     }
 
+    @Override
+    public String toString() {
+        return "ModuleConfiguration{name=" + name + ", base=" + base + '}';
+    }
 }

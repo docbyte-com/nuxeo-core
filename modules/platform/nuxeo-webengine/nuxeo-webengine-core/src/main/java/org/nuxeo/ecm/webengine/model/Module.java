@@ -28,7 +28,6 @@ import java.util.Map;
 
 import javax.ws.rs.core.MediaType;
 
-import org.nuxeo.ecm.webengine.ResourceBinding;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
@@ -42,8 +41,6 @@ public interface Module extends MessagesProvider {
     String getName();
 
     File getRoot();
-
-    Resource getRootObject(WebContext ctx);
 
     WebEngine getEngine();
 
@@ -59,8 +56,6 @@ public interface Module extends MessagesProvider {
     Map<String, String> getMessages(String language);
 
     Messages getMessages();
-
-    List<ResourceBinding> getResourceBindings();
 
     /**
      * Gets a file using the configured directory stack. Each directory in the stack is asked for the file until a file

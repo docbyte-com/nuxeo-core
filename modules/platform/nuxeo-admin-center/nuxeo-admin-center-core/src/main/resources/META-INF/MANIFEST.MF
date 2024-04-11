@@ -10,4 +10,4 @@ Nuxeo-Component: OSGI-INF/core-types-contrib.xml,
  OSGI-INF/workmanager-contrib.xml,
  OSGI-INF/operation-contrib.xml
 Export-Package: i18n
-Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;headless=true
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=connectClientRoot;extends=base;package=org/nuxeo/connect/client;headless=true
