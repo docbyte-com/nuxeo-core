@@ -143,7 +143,7 @@ public class ServletDescriptor {
             }
         }
         if (listeners != null) {
-            buf.append("\n  Listeners: ").append(listeners.toString());
+            buf.append("\n  Listeners: ").append(listeners);
         }
         buf.append("\n}\n");
         return buf.toString();

@@ -76,8 +76,6 @@ public class ServletHolder extends HttpServlet {
             }
             super.init(config);
             // lazy chain.init(descriptor, config);
-        } catch (ServletException e) {
-            throw e;
         } catch (ReflectiveOperationException | BundleNotFoundException e) {
             throw new ServletException("Initialization exception for servlet " + config.getServletName(), e);
         }

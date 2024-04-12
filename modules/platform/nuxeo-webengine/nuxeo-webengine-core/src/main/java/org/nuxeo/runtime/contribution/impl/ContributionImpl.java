@@ -281,9 +281,7 @@ public class ContributionImpl<K, T> implements Contribution<K, T> {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof ContributionImpl) {
-            @SuppressWarnings("rawtypes")
-            ContributionImpl other = (ContributionImpl) obj;
+        if (obj instanceof @SuppressWarnings("rawtypes") ContributionImpl other) {
             return primaryKey.equals(other.primaryKey);
         }
         return false;

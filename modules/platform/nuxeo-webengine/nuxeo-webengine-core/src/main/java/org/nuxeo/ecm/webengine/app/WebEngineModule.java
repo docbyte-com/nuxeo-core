@@ -68,10 +68,6 @@ public class WebEngineModule extends Application implements ApplicationFactory {
 
     private static final Logger log = LogManager.getLogger(WebEngineModule.class);
 
-    public final static String WEBOBJECT_ANNO = "Lorg/nuxeo/ecm/webengine/model/WebObject;";
-
-    public final static String WEBADAPTER_ANNO = "Lorg/nuxeo/ecm/webengine/model/WebAdapter;";
-
     protected ServerInjectableProviderContext context;
 
     protected Bundle bundle;
@@ -116,10 +112,10 @@ public class WebEngineModule extends Application implements ApplicationFactory {
                             + bundle.getSymbolicName());
                 }
             } else {
-                initRoots(engine);
+                initRoots();
             }
         } else {
-            initRoots(engine);
+            initRoots();
         }
     }
 
@@ -127,11 +123,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         if (packageBase == null) {
             packageBase = "/";
         }
-        Scanner scanner = new Scanner(bundle, packageBase, Scanner.PATH_ANNO, Scanner.PROVIDER_ANNO, WEBOBJECT_ANNO,
-                WEBADAPTER_ANNO);
+        Scanner scanner = new Scanner(bundle, packageBase, Path.class, Provider.class, WebObject.class,
+                WebAdapter.class);
         scanner.scan();
-        Collection<Class<?>> paths = scanner.getCollector(Scanner.PATH_ANNO);
-        Collection<Class<?>> providers = scanner.getCollector(Scanner.PROVIDER_ANNO);
+        Collection<Class<Path>> paths = scanner.getClasses(Path.class);
+        Collection<Class<Provider>> providers = scanner.getClasses(Provider.class);
         cfg.roots = new Class<?>[paths.size() + providers.size()];
         int i = 0;
         for (Class<?> cl : paths) {
@@ -140,8 +136,8 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         for (Class<?> cl : providers) {
             cfg.roots[i++] = cl;
         }
-        Collection<Class<?>> objs = scanner.getCollector(WEBOBJECT_ANNO);
-        Collection<Class<?>> adapters = scanner.getCollector(WEBADAPTER_ANNO);
+        Collection<Class<WebObject>> objs = scanner.getClasses(WebObject.class);
+        Collection<Class<WebAdapter>> adapters = scanner.getClasses(WebAdapter.class);
         cfg.types = new Class<?>[objs.size() + adapters.size()];
         i = 0;
         for (Class<?> cl : objs) {
@@ -164,13 +160,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     private static Class<?>[] readWebTypes(WebLoader loader, InputStream in)
             throws ReflectiveOperationException, IOException {
         HashSet<Class<?>> types = new HashSet<>();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(in));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                if (line.length() == 0 || line.startsWith("#")) {
+                if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
                 int p = line.indexOf('|');
@@ -180,18 +174,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
                 Class<?> cl = loader.loadClass(line);
                 types.add(cl);
             }
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                }
-            }
         }
-        return types.toArray(new Class<?>[types.size()]);
+        return types.toArray(Class<?>[]::new);
     }
 
-    private void initRoots(WebEngine engine) {
+    private void initRoots() {
         ArrayList<Class<?>> roots = new ArrayList<>();
         for (Class<?> cl : cfg.types) {
             if (cl.isAnnotationPresent(Path.class)) {
@@ -209,10 +196,8 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         if (file != null && file.isFile()) {
             cfg = ModuleManager.readConfiguration(engine, file);
         } else {
-            cfg = new ModuleConfiguration();
+            cfg = new ModuleConfiguration(engine);
         }
-        cfg.engine = engine;
-        cfg.file = file;
         return cfg;
     }
 

@@ -54,7 +54,7 @@ public class ResourceServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String pathInfo = req.getPathInfo();
         checkPathTraversal(pathInfo);
-        if (pathInfo == null || pathInfo.equals("/") || pathInfo.length() == 0) {
+        if (pathInfo == null || pathInfo.equals("/") || pathInfo.isEmpty()) {
             pathInfo = index;
         } else if (pathInfo.endsWith("/")) {
             pathInfo += index;
@@ -66,7 +66,7 @@ public class ResourceServlet extends HttpServlet {
                 resp.addHeader("Content-Type", ctype);
             }
             try {
-                @SuppressWarnings("resource") // not ours to close
+                // not ours to close
                 OutputStream out = resp.getOutputStream();
                 byte[] bytes = new byte[1024 * 64];
                 int r = in.read(bytes);

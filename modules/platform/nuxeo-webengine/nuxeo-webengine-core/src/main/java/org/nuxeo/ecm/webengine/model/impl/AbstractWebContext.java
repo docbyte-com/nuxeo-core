@@ -544,7 +544,7 @@ public abstract class AbstractWebContext implements WebContext {
 
     @Override
     public ScriptFile getFile(String path) {
-        if (path == null || path.length() == 0) {
+        if (path == null || path.isEmpty()) {
             return null;
         }
         char c = path.charAt(0);
@@ -643,8 +643,7 @@ public abstract class AbstractWebContext implements WebContext {
                 log.debug("Output socket closed: failed to write response", e);
                 return;
             }
-            throw new NuxeoException(
-                    "Failed to render template: " + (script == null ? script : script.getAbsolutePath()), e);
+            throw new NuxeoException("Failed to render template: " + script.getAbsolutePath(), e);
         } finally {
             if (!scriptExecutionStack.isEmpty()) {
                 popScriptFile();

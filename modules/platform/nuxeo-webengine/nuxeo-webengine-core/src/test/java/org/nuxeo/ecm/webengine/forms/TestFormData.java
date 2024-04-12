@@ -34,7 +34,7 @@ import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 
 /**
  * @since 11.3
@@ -50,8 +50,8 @@ public class TestFormData {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getMethod()).thenReturn("GET");
         when(request.getParameterMap()).thenReturn(REQUEST_MAP);
-        when(request.getParameterValues(Matchers.<String> any())).thenAnswer(
-                invocation -> REQUEST_MAP.get(invocation.getArguments()[0]));
+        when(request.getParameterValues(ArgumentMatchers.anyString())).thenAnswer(
+                invocation -> REQUEST_MAP.get(invocation.<String> getArgument(0)));
         return request;
     }
 
@@ -103,14 +103,14 @@ public class TestFormData {
         when(request.getContentType()).thenReturn("multipart/form-data; boundary=" + boundary);
 
         try (InputStream stream = new ByteArrayInputStream(requestContent.getBytes());
-                StringServletInputStream sstream = new StringServletInputStream(stream);) {
+                StringServletInputStream sstream = new StringServletInputStream(stream)) {
             when(request.getInputStream()).thenReturn(sstream);
 
             checkFormFields(new FormData(request));
         }
     }
 
-    private class StringServletInputStream extends ServletInputStream {
+    private static class StringServletInputStream extends ServletInputStream {
 
         private final InputStream sourceStream;
 

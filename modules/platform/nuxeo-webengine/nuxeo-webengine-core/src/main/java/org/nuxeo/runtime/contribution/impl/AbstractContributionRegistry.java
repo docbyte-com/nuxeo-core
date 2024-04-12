@@ -69,7 +69,7 @@ public abstract class AbstractContributionRegistry<K, T> implements Contribution
         }
         for (AbstractContributionRegistry<K, T> p : parents.reversed()) {
             p.listeners.add(this);
-            for (Contribution<K, T> contrib : p.registry.values().toArray(Contribution[]::new)) {
+            for (Contribution<K, T> contrib : p.registry.values()) {
                 importContribution(contrib);
             }
             p = p.parent;

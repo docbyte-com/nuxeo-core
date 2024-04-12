@@ -72,7 +72,7 @@ public class CoreIODelegate extends PartialCoreIODelegate
     }
 
     @Override
-    public Injectable getInjectable(ComponentContext ic, Context a, Type c) {
+    public Injectable<RenderingContext> getInjectable(ComponentContext ic, Context a, Type c) {
         if (!c.equals(RenderingContext.class)) {
             return null;
         }

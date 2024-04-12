@@ -20,14 +20,19 @@ package org.nuxeo.ecm.webengine.jaxrs.scan;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.Path;
+import javax.ws.rs.ext.Provider;
 
 import org.objectweb.asm.ClassReader;
 import org.osgi.framework.Bundle;
@@ -37,43 +42,24 @@ import org.osgi.framework.Bundle;
  */
 public class Scanner {
 
-    public final static String PATH_ANNO = "Ljavax/ws/rs/Path;";
+    protected final Bundle bundle;
 
-    public final static String PROVIDER_ANNO = "Ljavax/ws/rs/ext/Provider;";
+    protected final String packageBase;
 
-    protected Bundle bundle;
-
-    protected String packageBase;
-
-    protected Map<String, Collection<Class<?>>> collectors;
+    protected final Map<String, Collection<Class<? extends Annotation>>> collectors;
 
     public Scanner(Bundle bundle, String packageBase) {
-        this(bundle, packageBase, PATH_ANNO, PROVIDER_ANNO);
+        this(bundle, packageBase, Path.class, Provider.class);
     }
 
-    public Scanner(Bundle bundle, String packageBase, String... annotations) {
+    @SafeVarargs
+    public Scanner(Bundle bundle, String packageBase, Class<? extends Annotation>... annotations) {
         this.bundle = bundle;
-        this.packageBase = packageBase == null ? "/" : packageBase;
+        this.packageBase = Objects.requireNonNullElse(packageBase, "/");
         this.collectors = new HashMap<>();
-        for (String annotation : annotations) {
-            addCollector(annotation);
+        for (Class<?> annotation : annotations) {
+            this.collectors.put(getDescriptorName(annotation), new HashSet<>());
         }
-    }
-
-    public void addCollector(String annotation) {
-        collectors.put(annotation, new ArrayList<Class<?>>());
-    }
-
-    public void addCollector(String annotation, Collection<Class<?>> collector) {
-        collectors.put(annotation, collector);
-    }
-
-    public Collection<Class<?>> getCollector(String annotation) {
-        return collectors.get(annotation);
-    }
-
-    public Map<String, Collection<Class<?>>> getCollectors() {
-        return collectors;
     }
 
     @SuppressWarnings("unchecked")
@@ -85,8 +71,7 @@ public class Scanner {
         Set<String> annotations = collectors.keySet();
         while (urls.hasMoreElements()) {
             URL url = urls.nextElement();
-            InputStream in = url.openStream();
-            try {
+            try (InputStream in = url.openStream()) {
                 ClassReader cr = new ClassReader(in);
                 AnnotationReader reader = new AnnotationReader(annotations);
                 cr.accept(reader, null, ClassReader.SKIP_DEBUG | ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES);
@@ -96,21 +81,27 @@ public class Scanner {
                         collectors.get(anno).add(bundle.loadClass(cname));
                     }
                 }
-            } finally {
-                in.close();
             }
         }
     }
 
     public Set<Class<?>> getClasses() {
-        HashSet<Class<?>> result = new HashSet<>();
-        for (Collection<Class<?>> c : collectors.values()) {
+        Set<Class<?>> result = new HashSet<>();
+        for (Collection<Class<? extends Annotation>> c : collectors.values()) {
             result.addAll(c);
         }
         return result;
     }
 
-    public Set<Class<?>> getClasses(String anno) {
-        return new HashSet<>(collectors.get(anno));
+    @SuppressWarnings("unchecked")
+    public <A extends Annotation> Set<Class<A>> getClasses(Class<A> annotation) {
+        return collectors.get(getDescriptorName(annotation))
+                         .stream()
+                         .map(a -> (Class<A>) a)
+                         .collect(Collectors.toSet());
+    }
+
+    private String getDescriptorName(Class<?> annotation) {
+        return 'L' + annotation.getName().replaceAll("\\.", "/") + ';';
     }
 }

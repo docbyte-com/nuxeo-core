@@ -33,11 +33,6 @@ import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
  */
 public class DefaultContext extends AbstractWebContext {
 
-    // FIXME: these  members must be removed - they are redundant and buggy
-    protected UriInfo info;
-
-    protected HttpHeaders headers;
-
     protected ServerInjectableProviderContext sic;
 
     protected HttpContext hc;

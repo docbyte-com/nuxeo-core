@@ -77,12 +77,12 @@ public class RequestChain {
     }
 
     public void execute(ServletRequest request, ServletResponse response) throws IOException, ServletException {
-        if (filters.length == 0 || (request instanceof HttpServletRequest == false)) {
+        if (filters.length == 0 || !(request instanceof HttpServletRequest)) {
             servlet.service(request, response);
             return;
         }
         String pathInfo = ((HttpServletRequest) request).getPathInfo();
-        Path path = pathInfo == null || pathInfo.length() == 0 ? Path.ROOT : Path.parse(pathInfo);
+        Path path = pathInfo == null || pathInfo.isEmpty() ? Path.ROOT : Path.parse(pathInfo);
         for (FilterSet filterSet : filters) {
             if (filterSet.matches(path)) {
                 new ServletFilterChain(servlet, filterSet.getFilters()).doFilter(request, response);

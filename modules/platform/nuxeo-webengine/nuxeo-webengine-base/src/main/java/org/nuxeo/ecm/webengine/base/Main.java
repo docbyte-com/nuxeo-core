@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.webengine.base;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -68,12 +67,7 @@ public class Main extends ModuleRoot {
                 }
             }
         }
-        Collections.sort(list, new Comparator<ModuleShortcut>() {
-            @Override
-            public int compare(ModuleShortcut o1, ModuleShortcut o2) {
-                return o1.title.compareTo(o2.title);
-            }
-        });
+        list.sort(Comparator.comparing(ModuleShortcut::getTitle));
         return getView("index").arg("moduleLinks", list);
     }
 

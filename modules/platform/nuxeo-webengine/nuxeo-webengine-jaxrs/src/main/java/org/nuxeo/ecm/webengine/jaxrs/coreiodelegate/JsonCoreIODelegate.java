@@ -84,7 +84,7 @@ public final class JsonCoreIODelegate extends PartialCoreIODelegate
      * @since 11.1
      */
     @Override
-    public Injectable getInjectable(ComponentContext ic, Context a, Type c) {
+    public Injectable<RenderingContext> getInjectable(ComponentContext ic, Context a, Type c) {
         if (!c.equals(RenderingContext.class)) {
             return null;
         }

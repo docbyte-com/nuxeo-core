@@ -45,7 +45,7 @@ public abstract class CoreSessionProvider<REF extends SessionRef> {
     protected abstract REF createSessionRef(CoreSession session);
 
     public SessionRef[] getSessions() {
-        return sessions.values().toArray(new SessionRef[sessions.size()]);
+        return sessions.values().toArray(SessionRef[]::new);
     }
 
     public SessionRef getSessionRef(HttpServletRequest request, String repoName) {

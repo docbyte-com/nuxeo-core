@@ -107,7 +107,7 @@ public class PathParser {
         return result;
     }
 
-    private final void add(String segment) {
+    private void add(String segment) {
         if (count + 1 == array.length) {
             String[] result = new String[count + 16];
             System.arraycopy(array, 0, result, 0, count);
@@ -116,7 +116,7 @@ public class PathParser {
         array[count++] = segment;
     }
 
-    private final void append(char c) {
+    private void append(char c) {
         if (bufCount + 1 == buf.length) {
             char[] result = new char[bufCount + 16];
             System.arraycopy(buf, 0, result, 0, bufCount);
@@ -125,15 +125,15 @@ public class PathParser {
         buf[bufCount++] = c;
     }
 
-    private final String currentSegment() {
+    private String currentSegment() {
         return new String(buf, 0, bufCount);
     }
 
-    private final boolean hasSegment() {
+    private boolean hasSegment() {
         return bufCount > 0;
     }
 
-    private final void resetBuf() {
+    private void resetBuf() {
         bufCount = 0;
     }
 

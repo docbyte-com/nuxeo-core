@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.webengine.model.impl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -104,10 +106,10 @@ public class DefaultTypeLoader {
      * Old method to load types from a web-types file generated at build time
      */
     protected void loadTypesFile(File file) throws IOException, ClassNotFoundException {
-        List<String> lines = FileUtils.readLines(file);
+        List<String> lines = FileUtils.readLines(file, UTF_8);
         for (String line : lines) {
             line = line.trim();
-            if (line.length() == 0 || line.startsWith("#")) {
+            if (line.isEmpty() || line.startsWith("#")) {
                 continue;
             }
             int p = line.indexOf('|');

@@ -78,7 +78,7 @@ public abstract class JSonTree {
                 if (result != null) {
                     return result;
                 } else {
-                    ctx.getLog().warn("TreeItem: " + selection + " not found");
+                    ctx.getLog().warn("TreeItem: {} not found", selection);
                 }
             }
         } finally {

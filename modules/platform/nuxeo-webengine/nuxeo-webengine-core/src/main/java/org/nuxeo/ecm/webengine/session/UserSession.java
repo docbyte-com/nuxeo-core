@@ -159,13 +159,12 @@ public final class UserSession extends HashMap<String, Object> {
      * <p>
      * The ID is of the form <code>type#name</code> for non-null names and <code>type</code> for null names.
      */
-    @SuppressWarnings("unchecked")
     public <T extends Component> T getComponent(String id) throws SessionException {
         int p = id.lastIndexOf('#');
         if (p > -1) {
-            return (T) getComponent(id.substring(0, p), id.substring(p + 1));
+            return getComponent(id.substring(0, p), id.substring(p + 1));
         } else {
-            return (T) getComponent(id, null);
+            return getComponent(id, null);
         }
     }
 

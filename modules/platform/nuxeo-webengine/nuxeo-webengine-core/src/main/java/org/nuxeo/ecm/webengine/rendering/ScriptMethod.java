@@ -62,10 +62,7 @@ public class ScriptMethod implements TemplateMethodModelEx {
             if (o instanceof SimpleScalar) {
                 String arg = ((SimpleScalar) o).getAsString();
                 args.put("_args", new String[] { arg });
-            } else if (!(o instanceof TemplateHashModelEx)) {
-                throw new TemplateModelException("second argument should be a map");
-            } else {
-                TemplateHashModelEx t = (TemplateHashModelEx) o;
+            } else if (o instanceof TemplateHashModelEx t) {
                 TemplateCollectionModel keys = t.keys();
                 TemplateModelIterator it = keys.iterator();
 
@@ -73,14 +70,16 @@ public class ScriptMethod implements TemplateMethodModelEx {
                     TemplateModel k = it.next();
                     String kk = k.toString();
                     TemplateModel v = t.get(kk);
-                    Object vv = null;
-                    if (v instanceof AdapterTemplateModel) {
-                        vv = ((AdapterTemplateModel) v).getAdaptedObject(null);
+                    Object vv;
+                    if (v instanceof AdapterTemplateModel adapter) {
+                        vv = adapter.getAdaptedObject(null);
                     } else {
                         vv = v.toString();
                     }
                     args.put(kk, vv);
                 }
+            } else {
+                throw new TemplateModelException("second argument should be a map");
             }
         }
 

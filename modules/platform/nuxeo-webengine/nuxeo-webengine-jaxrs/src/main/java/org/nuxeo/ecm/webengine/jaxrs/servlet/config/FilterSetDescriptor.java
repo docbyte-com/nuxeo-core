@@ -73,7 +73,7 @@ public class FilterSetDescriptor {
         if (path == null) {
             return true;
         }
-        if (pathInfo == null || pathInfo.length() == 0) {
+        if (pathInfo == null || pathInfo.isEmpty()) {
             pathInfo = "/";
         }
         return path.matches(pathInfo);

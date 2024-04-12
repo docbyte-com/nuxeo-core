@@ -116,7 +116,7 @@ public class ApplicationHost extends Application {
     }
 
     public synchronized ResourceExtension[] getExtensions(ResourceExtension xt) {
-        return extensions.values().toArray(new ResourceExtension[extensions.size()]);
+        return extensions.values().toArray(ResourceExtension[]::new);
     }
 
     public String getName() {
@@ -136,7 +136,7 @@ public class ApplicationHost extends Application {
     }
 
     public synchronized ApplicationFragment[] getApplications() {
-        return apps.toArray(new ApplicationFragment[apps.size()]);
+        return apps.toArray(ApplicationFragment[]::new);
     }
 
     public synchronized void addReloadListener(Reloadable listener) {

@@ -141,8 +141,7 @@ public class WebEngine implements ResourceLocator {
      * JSP taglib support
      */
     public void loadJspTaglib(GenericServlet servlet) {
-        if (rendering instanceof FreemarkerEngine) {
-            FreemarkerEngine fm = (FreemarkerEngine) rendering;
+        if (rendering instanceof FreemarkerEngine fm) {
             ServletContextHashModel servletContextModel = new ServletContextHashModel(servlet, fm.getObjectWrapper());
             fm.setSharedVariable("Application", servletContextModel);
             fm.setSharedVariable("__FreeMarkerServlet.Application__", servletContextModel);
@@ -154,33 +153,11 @@ public class WebEngine implements ResourceLocator {
 
     public void initJspRequestSupport(GenericServlet servlet, HttpServletRequest request,
             HttpServletResponse response) {
-        if (rendering instanceof FreemarkerEngine) {
-            FreemarkerEngine fm = (FreemarkerEngine) rendering;
+        if (rendering instanceof FreemarkerEngine fm) {
             HttpRequestHashModel requestModel = new HttpRequestHashModel(request, response, fm.getObjectWrapper());
             fm.setSharedVariable("__FreeMarkerServlet.Request__", requestModel);
             fm.setSharedVariable("Request", requestModel);
             fm.setSharedVariable("RequestParameters", new HttpRequestParametersHashModel(request));
-
-            // HttpSessionHashModel sessionModel = null;
-            // HttpSession session = request.getSession(false);
-            // if(session != null) {
-            // sessionModel = (HttpSessionHashModel)
-            // session.getAttribute(ATTR_SESSION_MODEL);
-            // if (sessionModel == null || sessionModel.isZombie()) {
-            // sessionModel = new HttpSessionHashModel(session, wrapper);
-            // session.setAttribute(ATTR_SESSION_MODEL, sessionModel);
-            // if(!sessionModel.isZombie()) {
-            // initializeSession(request, response);
-            // }
-            // }
-            // }
-            // else {
-            // sessionModel = new HttpSessionHashModel(servlet, request,
-            // response, fm.getObjectWrapper());
-            // }
-            // sessionModel = new HttpSessionHashModel(request, response,
-            // fm.getObjectWrapper());
-            // fm.setSharedVariable("Session", sessionModel);
         }
     }
 
@@ -225,7 +202,7 @@ public class WebEngine implements ResourceLocator {
     }
 
     public synchronized WebEngineModule[] getApplications() {
-        return apps.values().toArray(new WebEngineModule[apps.size()]);
+        return apps.values().toArray(WebEngineModule[]::new);
     }
 
     public synchronized void addApplication(WebEngineModule app) {

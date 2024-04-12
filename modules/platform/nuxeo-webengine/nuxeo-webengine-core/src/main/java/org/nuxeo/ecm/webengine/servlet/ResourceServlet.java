@@ -118,7 +118,6 @@ public class ResourceServlet extends HttpServlet {
     }
 
     protected static void sendTextContent(ScriptFile file, HttpServletResponse resp) throws IOException {
-        // Writer out = resp.getWriter();
         @SuppressWarnings("resource") // not ours to close
         OutputStream out = resp.getOutputStream();
         try (InputStream in = file.getInputStream()) {

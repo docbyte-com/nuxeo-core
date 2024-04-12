@@ -55,7 +55,7 @@ public class ResourceTypeImpl extends AbstractResourceType {
             return;
         }
         String g = wo.guard();
-        if (g != null && g.length() > 0) {
+        if (g != null && !g.isEmpty()) {
             try {
                 guard = PermissionService.parse(g);
             } catch (ParseException e) {

@@ -27,6 +27,7 @@ import java.util.Comparator;
 
 import org.nuxeo.ecm.core.schema.DocumentType;
 import org.nuxeo.ecm.core.schema.SchemaManager;
+import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.RegistrationInfo;
@@ -39,12 +40,7 @@ public class APIHelper implements RenderingExtensionFactory {
 
     public static final APIHelper INSTANCE = new APIHelper();
 
-    public static final Comparator<DocumentType> DOCTYPE_COMPARATOR = new Comparator<DocumentType>() {
-        @Override
-        public int compare(DocumentType o1, DocumentType o2) {
-            return o1.getName().compareTo(o2.getName());
-        }
-    };
+    public static final Comparator<DocumentType> DOCTYPE_COMPARATOR = Comparator.comparing(Type::getName);
 
     @Override
     public Object createTemplate() {

@@ -65,12 +65,10 @@ public class WizardSession extends HashMap<String, Object> {
         if (page == null) {
             throw new WebResourceNotFoundException("No such wizard page: " + pageId);
         }
-        if (lastPage == null) {
-            lastPage = page;
-        } else {
+        if (lastPage != null) {
             page.prev = lastPage;
-            lastPage = page;
         }
+        lastPage = page;
         return page;
     }
 

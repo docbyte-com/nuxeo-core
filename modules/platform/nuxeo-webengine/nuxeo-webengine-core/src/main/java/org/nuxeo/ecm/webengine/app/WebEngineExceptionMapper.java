@@ -56,8 +56,7 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
     public Response toResponse(Throwable cause) {
         TransactionHelper.setTransactionRollbackOnly();
         if (headers.getAcceptableMediaTypes().contains(APPLICATION_JSON_TYPE)) {
-            if (cause instanceof DocumentValidationException) {
-                DocumentValidationException dve = (DocumentValidationException) cause;
+            if (cause instanceof DocumentValidationException dve) {
                 return Response.status(dve.getStatusCode()).entity(dve.getReport()).build();
             }
         }
@@ -66,8 +65,8 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
         Object result = handleErrorOnWebModule(cause);
         if (result instanceof Throwable) {
             cause = (Throwable) result;
-        } else if (result instanceof Response) {
-            return (Response) result;
+        } else if (result instanceof Response response) {
+            return response;
         } else if (result != null) {
             return Response.status(SC_INTERNAL_SERVER_ERROR).entity(result).build();
         }
@@ -87,11 +86,9 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
     }
 
     protected static int getStatusCode(Throwable t) {
-        if (t instanceof WebApplicationException) {
-            WebApplicationException e = (WebApplicationException) t;
+        if (t instanceof WebApplicationException e) {
             return e.getResponse().getStatus();
-        } else if (t instanceof NuxeoException) {
-            NuxeoException e = (NuxeoException) t;
+        } else if (t instanceof NuxeoException e) {
             return e.getStatusCode();
         } else if (t instanceof SecurityException) {
             return SC_FORBIDDEN;
@@ -110,8 +107,7 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
 
     protected static Object handleErrorOnWebModule(Throwable t) {
         WebContext ctx = WebEngine.getActiveContext();
-        if (ctx != null && ctx.head() instanceof ModuleResource) {
-            ModuleResource mr = (ModuleResource) ctx.head();
+        if (ctx != null && ctx.head() instanceof ModuleResource mr) {
             return mr.handleError(t);
         }
         return null;

@@ -26,7 +26,7 @@ import java.util.List;
  */
 public class PathMatcher {
 
-    public static final PathMatcher ANY = new PathMatcher(new SegmentMatcher[0]);
+    public static final PathMatcher ANY = new PathMatcher();
 
     protected final SegmentMatcher[] matchers;
 
@@ -39,9 +39,6 @@ public class PathMatcher {
     }
 
     public boolean matches(Path path) {
-        // if (path.hasTrailingSpace()) {
-        // path.append("**");
-        // }
         if (matchers.length == 0) {
             return true;
         }
@@ -99,7 +96,7 @@ public class PathMatcher {
         // TODO handle / case
         ArrayList<SegmentMatcher> matchers = new ArrayList<>();
         for (String segment : path.segments) {
-            if (segment.length() == 0) {
+            if (segment.isEmpty()) {
                 continue;
             }
             if ("**".equals(segment)) {
@@ -112,7 +109,7 @@ public class PathMatcher {
                 matchers.add(createSegmentMatcher(segment));
             }
         }
-        return new PathMatcher(matchers.toArray(new SegmentMatcher[matchers.size()]));
+        return new PathMatcher(matchers.toArray(SegmentMatcher[]::new));
     }
 
     private static void addAnyMatcher(List<SegmentMatcher> matchers, SegmentMatcher matcher) {
@@ -135,8 +132,8 @@ public class PathMatcher {
             return "/**";
         }
         StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < matchers.length; i++) {
-            buf.append("/").append(matchers[i]);
+        for (SegmentMatcher matcher : matchers) {
+            buf.append("/").append(matcher);
         }
         return buf.toString();
     }

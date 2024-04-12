@@ -90,10 +90,7 @@ public class ModuleImpl implements Module {
         this.superModule = superModule;
         this.sic = sic;
         configuration = config;
-        skinPathPrefix = new StringBuilder().append(engine.getSkinPathPrefix())
-                                            .append('/')
-                                            .append(config.name)
-                                            .toString();
+        skinPathPrefix = engine.getSkinPathPrefix() + '/' + config.name;
         fileCache = new ConcurrentHashMap<>();
         loadConfiguration();
         reloadMessages();
@@ -320,9 +317,8 @@ public class ModuleImpl implements Module {
         char c = path.charAt(0);
         if (c == '.') { // avoid getting files outside the web root
             path = new Path(path).makeAbsolute().toString();
-        } else if (c != '/') {// avoid doing duplicate entries in document stack
-                              // cache
-            path = new StringBuilder(len + 1).append("/").append(path).toString();
+        } else if (c != '/') { // avoid doing duplicate entries in document stack cache
+            path = "/" + path;
         }
         try {
             return findFile(new Path(path).makeAbsolute().toString());
@@ -395,8 +391,7 @@ public class ModuleImpl implements Module {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Map<String, String> getMessages(String language) {
         log.info("Loading i18n files for module: {}", configuration.name);
-        File file = new File(configuration.directory,
-                new StringBuilder().append("/i18n/messages_").append(language).append(".properties").toString());
+        File file = new File(configuration.directory, "/i18n/messages_" + language + ".properties");
         InputStream in = null;
         try {
             in = new FileInputStream(file);

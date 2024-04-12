@@ -131,7 +131,6 @@ public class FormData implements FormInstance {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Map<String, String[]> getFormFields() {
         if (isMultipart) {
             return getMultiPartFormFields();
@@ -161,7 +160,6 @@ public class FormData implements FormInstance {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
     public Map<String, List<FileItem>> getMultiPartItems() {
         if (items == null) {
             if (!isMultipart) {
@@ -173,11 +171,7 @@ public class FormData implements FormInstance {
                 List<FileItem> fileItems = new ServletFileUpload(new DiskFileItemFactory()).parseRequest(ctx);
                 for (FileItem item : fileItems) {
                     String key = item.getFieldName();
-                    List<FileItem> list = items.get(key);
-                    if (list == null) {
-                        list = new ArrayList<>();
-                        items.put(key, list);
-                    }
+                    List<FileItem> list = items.computeIfAbsent(key, k -> new ArrayList<>());
                     list.add(item);
                 }
             } catch (FileUploadException e) {
@@ -188,7 +182,6 @@ public class FormData implements FormInstance {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public Collection<String> getKeys() {
         if (isMultipart) {
             return getMultiPartItems().keySet();
@@ -320,7 +313,7 @@ public class FormData implements FormInstance {
                         blobs.add(getBlob(item));
                     }
                 }
-                ar = blobs.toArray(new Blob[blobs.size()]);
+                ar = blobs.toArray(Blob[]::new);
             }
         }
         return ar;
@@ -387,7 +380,6 @@ public class FormData implements FormInstance {
         }
     }
 
-    @SuppressWarnings("unchecked")
     public void fillDocumentFromForm(DocumentModel doc) throws PropertyException {
         Map<String, String[]> map = request.getParameterMap();
         for (Map.Entry<String, String[]> entry : map.entrySet()) {
@@ -457,8 +449,6 @@ public class FormData implements FormInstance {
                     p.setValue(blobs);
                 } else {
                     // complex properties will be ignored
-                    // throw new
-                    // WebException("Cannot create complex lists properties from HTML forms");
                 }
             }
         } else if (p.isComplex()) {

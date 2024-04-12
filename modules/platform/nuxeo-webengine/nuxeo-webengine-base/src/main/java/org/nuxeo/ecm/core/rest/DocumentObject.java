@@ -142,11 +142,6 @@ public class DocumentObject extends DefaultObject {
         return doPut();
     }
 
-    // TODO implement HEAD
-    public Object doHead() {
-        return null; // TODO
-    }
-
     @Path("{path}")
     public Resource traverse(@PathParam("path") String path) {
         return newDocument(path);

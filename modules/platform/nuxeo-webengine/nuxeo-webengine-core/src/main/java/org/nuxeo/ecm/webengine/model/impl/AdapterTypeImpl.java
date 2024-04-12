@@ -100,7 +100,7 @@ public class AdapterTypeImpl extends AbstractResourceType implements AdapterType
             return;
         }
         String g = ws.guard();
-        if (g != null && g.length() > 0) {
+        if (g != null && !g.isEmpty()) {
             try {
                 guard = PermissionService.parse(g);
             } catch (ParseException e) {

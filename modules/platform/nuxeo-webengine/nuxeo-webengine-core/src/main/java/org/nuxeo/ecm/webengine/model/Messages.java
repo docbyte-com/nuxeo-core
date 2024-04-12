@@ -49,9 +49,9 @@ public class Messages {
         String serverDefaultLang = Locale.getDefault().getLanguage();
         defaultMessages = getMessagesBundle(serverDefaultLang);
         if (defaultMessages == null) {
-            defaultMessages = new MessagesBundle(null, new HashMap<String, String>());
+            defaultMessages = new MessagesBundle(null, new HashMap<>());
         }
-        if (defaultMessages.messages.size() == 0 && !BUILT_IN_DEFAULT_LANG.equals(serverDefaultLang)) {
+        if (defaultMessages.messages.isEmpty() && !BUILT_IN_DEFAULT_LANG.equals(serverDefaultLang)) {
             defaultMessages = getMessagesBundle(BUILT_IN_DEFAULT_LANG);
         }
     }

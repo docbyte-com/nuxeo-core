@@ -192,9 +192,9 @@ public final class Path {
     private int computeHashCode() {
         int hash = 17;
         int segmentCount = segments.length;
-        for (int i = 0; i < segmentCount; i++) {
-            // this function tends to given a fairly even distribution
-            hash = hash * 37 + segments[i].hashCode();
+        for (String segment : segments) {
+            // this function tends to give a fairly even distribution
+            hash = hash * 37 + segment.hashCode();
         }
         return hash;
     }

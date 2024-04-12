@@ -74,11 +74,11 @@ public class UserInvitationObject extends ModuleRoot {
         }
 
         // Check if both entered passwords are correct
-        if (password == null || "".equals(password.trim())) {
+        if (password == null || password.trim().isEmpty()) {
             return redisplayFormWithErrorMessage("EnterPassword",
                     ctx.getMessage("label.registerForm.validation.password"), formData);
         }
-        if (passwordConfirmation == null || "".equals(passwordConfirmation.trim())) {
+        if (passwordConfirmation == null || passwordConfirmation.trim().isEmpty()) {
             return redisplayFormWithErrorMessage("EnterPassword",
                     ctx.getMessage("label.registerForm.validation.passwordconfirmation"), formData);
         }
@@ -116,8 +116,7 @@ public class UserInvitationObject extends ModuleRoot {
     }
 
     protected UserInvitationService fetchService() {
-        UserInvitationService usr = Framework.getService(UserInvitationService.class);
-        return usr;
+        return Framework.getService(UserInvitationService.class);
     }
 
     @GET

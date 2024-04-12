@@ -160,7 +160,7 @@ public abstract class AbstractResourceType implements ResourceType {
         org.nuxeo.ecm.webengine.model.Guard ag = c.getAnnotation(org.nuxeo.ecm.webengine.model.Guard.class);
         if (ag != null) {
             String g = ag.value();
-            if (g != null && g.length() > 0) {
+            if (g != null && !g.isEmpty()) {
                 try {
                     guard = PermissionService.parse(g);
                 } catch (ParseException e) {
@@ -217,12 +217,7 @@ public abstract class AbstractResourceType implements ResourceType {
     }
 
     protected ScriptFile findSkinTemplate(Module module, String name) {
-        return module.getFile(new StringBuilder().append("views")
-                                                 .append(File.separatorChar)
-                                                 .append(this.name)
-                                                 .append(File.separatorChar)
-                                                 .append(name)
-                                                 .toString());
+        return module.getFile("views" + File.separatorChar + this.name + File.separatorChar + name);
     }
 
     protected ScriptFile findTypeTemplate(Module module, String name) {
@@ -249,9 +244,9 @@ public abstract class AbstractResourceType implements ResourceType {
         if (p > -1) {
             path = path.substring(0, p);
             path = path.replace('.', '/');
-            return new StringBuilder().append('/').append(path).append('/').append(fileName).toString();
+            return '/' + path + '/' + fileName;
         }
-        return new StringBuilder().append('/').append(fileName).toString();
+        return '/' + fileName;
     }
 
 }

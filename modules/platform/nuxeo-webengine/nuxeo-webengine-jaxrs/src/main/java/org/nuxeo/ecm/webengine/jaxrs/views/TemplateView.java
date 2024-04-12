@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.webengine.jaxrs.views;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -143,7 +145,7 @@ public class TemplateView {
     }
 
     public void render(OutputStream out) throws RenderingException, IOException {
-        render(new OutputStreamWriter(out, "UTF-8"));
+        render(new OutputStreamWriter(out, UTF_8));
     }
 
     private static synchronized String addLocator(TemplateView view) {

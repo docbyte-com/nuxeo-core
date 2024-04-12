@@ -28,12 +28,7 @@ import org.nuxeo.runtime.model.Adaptable;
  */
 public interface Guard {
 
-    Guard DEFAULT = new Guard() {
-        @Override
-        public boolean check(Adaptable adaptable) {
-            return true;
-        }
-    };
+    Guard DEFAULT = adaptable -> true;
 
     boolean check(Adaptable context);
 

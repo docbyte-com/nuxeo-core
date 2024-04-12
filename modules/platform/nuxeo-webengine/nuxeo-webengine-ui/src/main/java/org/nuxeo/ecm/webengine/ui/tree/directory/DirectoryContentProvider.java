@@ -69,7 +69,7 @@ public class DirectoryContentProvider implements ContentProvider {
             Map<String, Serializable> args = new HashMap<>();
             createQuery(parent, args);
             DocumentModelList list = session.query(args);
-            return list.toArray(new DocumentModel[list.size()]);
+            return list.toArray(DocumentModel[]::new);
         }
         return null;
     }

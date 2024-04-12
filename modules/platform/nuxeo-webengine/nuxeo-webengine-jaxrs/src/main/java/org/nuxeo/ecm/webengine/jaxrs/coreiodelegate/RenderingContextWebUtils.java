@@ -106,8 +106,7 @@ public final class RenderingContextWebUtils {
         // create a context builder and put base url, session and request
         builder.param(REQUEST_KEY, request);
         // for web context, put the base url, the session and the headers
-        if (request instanceof HttpServletRequest) {
-            HttpServletRequest webRequest = (HttpServletRequest) request;
+        if (request instanceof HttpServletRequest webRequest) {
             // base url
             String baseURL = VirtualHostHelper.getBaseURL(request);
             builder.base(baseURL);

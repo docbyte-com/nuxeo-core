@@ -35,14 +35,14 @@ import javax.servlet.http.HttpServletResponse;
  */
 public abstract class HttpFilter implements Filter {
 
-    public static final boolean getBoolean(ServletRequest request, String key) {
+    public static boolean getBoolean(ServletRequest request, String key) {
         return Boolean.parseBoolean((String) request.getAttribute(key));
     }
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException,
             ServletException {
-        if (request instanceof HttpServletRequest == false) {
+        if (!(request instanceof HttpServletRequest)) {
             chain.doFilter(request, response);
             return;
         }

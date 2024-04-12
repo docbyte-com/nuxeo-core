@@ -64,7 +64,7 @@ public class ModuleManager {
     }
 
     public ModuleConfiguration[] getModules() {
-        return modules.values().toArray(new ModuleConfiguration[modules.size()]);
+        return modules.values().toArray(ModuleConfiguration[]::new);
     }
 
     public ModuleConfiguration getModuleByConfigFile(File file) {
@@ -169,7 +169,10 @@ public class ModuleManager {
         XMap xmap = new XMap();
         xmap.register(ModuleConfiguration.class);
         try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            return (ModuleConfiguration) xmap.load(createXMapContext(engine), in);
+            var moduleConfig = (ModuleConfiguration) xmap.load(createXMapContext(engine), in);
+            moduleConfig.setEngine(engine);
+            moduleConfig.file = file;
+            return moduleConfig;
         }
     }
 

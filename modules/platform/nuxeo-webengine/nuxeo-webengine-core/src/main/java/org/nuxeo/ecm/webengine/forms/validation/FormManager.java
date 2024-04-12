@@ -75,7 +75,7 @@ public class FormManager implements InvocationHandler, Form {
             if (values != null) {
                 int k = 0;
                 for (String v : values) {
-                    if (v.length() == 0) {
+                    if (v.isEmpty()) {
                         k++;
                     }
                 }
@@ -97,7 +97,7 @@ public class FormManager implements InvocationHandler, Form {
                         }
                     } else {
                         String v = values != null && values.length > 0 ? values[0] : null;
-                        if (v != null && v.length() > 0) {
+                        if (v != null && !v.isEmpty()) {
 
                             o = f.validate(v);
                         }

@@ -126,7 +126,7 @@ public class ModuleRoot extends DefaultObject implements ModuleResource {
      */
     @Override
     public String getLink(DocumentModel doc) {
-        return new StringBuilder().append(getPath()).append("/@nxdoc/").append(doc.getId()).toString();
+        return getPath() + "/@nxdoc/" + doc.getId();
     }
 
     @Override

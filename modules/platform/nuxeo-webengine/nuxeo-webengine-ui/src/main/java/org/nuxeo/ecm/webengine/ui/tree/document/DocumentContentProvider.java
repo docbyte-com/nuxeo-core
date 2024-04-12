@@ -62,7 +62,7 @@ public class DocumentContentProvider implements ContentProvider {
     public Object[] getChildren(Object obj) {
         if (obj instanceof DocumentModel) {
             DocumentModelList list = session.getChildren(((DocumentModel) obj).getRef());
-            return list.toArray(new DocumentModel[list.size()]);
+            return list.toArray(DocumentModel[]::new);
         }
         return null;
     }

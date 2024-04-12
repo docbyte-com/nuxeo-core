@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
@@ -54,22 +53,12 @@ public class HeaderFixFilter extends HttpFilter {
 
         String ctype = request.getHeader(HttpHeaders.CONTENT_TYPE);
         String mtype = request.getHeader(MIME_TYPE);
-        boolean patchCType = ctype == null || ctype.length() == 0 || !ctype.contains("/");
+        boolean patchCType = ctype == null || !ctype.contains("/");
         boolean patchMMType = mtype != null && !mtype.contains("/");
         if (patchCType || patchMMType) {
             newRequest = new DefaultContentTypeRequestWrapper(request, patchCType, patchMMType);
         }
         chain.doFilter(newRequest, response);
-    }
-
-    @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-
-    }
-
-    @Override
-    public void destroy() {
-
     }
 
     protected class DefaultContentTypeRequestWrapper extends HttpServletRequestWrapper {
@@ -97,7 +86,7 @@ public class HeaderFixFilter extends HttpFilter {
                 while (eachValues.hasMoreElements()) {
                     values.add(eachValues.nextElement());
                 }
-                headers.put(name, values.toArray(new String[values.size()]));
+                headers.put(name, values.toArray(String[]::new));
             }
             if (patchCType) {
                 // patch content type
@@ -146,7 +135,7 @@ public class HeaderFixFilter extends HttpFilter {
             if (!headers.containsKey(lname)) {
                 return Collections.emptyEnumeration();
             }
-            return new Enumeration<String>() {
+            return new Enumeration<>() {
                 String[] values = headers.get(lname);
 
                 int index = 0;

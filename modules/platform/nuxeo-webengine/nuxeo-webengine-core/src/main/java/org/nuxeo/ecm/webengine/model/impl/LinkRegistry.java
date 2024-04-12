@@ -54,7 +54,7 @@ public class LinkRegistry extends AbstractContributionRegistry<String, LinkDescr
     public List<LinkDescriptor> getActiveLinks(Resource context, String category) {
         List<LinkDescriptor> result = new ArrayList<>();
         LinkDescriptor[] descriptors = links.get(category);
-        if (descriptors != null && descriptors.length > 0) {
+        if (descriptors != null) {
             for (LinkDescriptor descriptor : descriptors) {
                 if (descriptor.isEnabled(context)) {
                     result.add(descriptor);

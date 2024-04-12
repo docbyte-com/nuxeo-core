@@ -51,7 +51,7 @@ public class JsonWebengineWriter {
     }
 
     private static JsonGenerator createGenerator(OutputStream out) throws IOException {
-        return getFactory().createJsonGenerator(out, JsonEncoding.UTF8);
+        return getFactory().createGenerator(out, JsonEncoding.UTF8);
     }
 
     /**

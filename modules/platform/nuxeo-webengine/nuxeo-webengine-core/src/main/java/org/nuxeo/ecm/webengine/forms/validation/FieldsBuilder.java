@@ -51,7 +51,7 @@ public class FieldsBuilder {
     }
 
     public FieldsBuilder put(String key, Collection<String> value) {
-        map.put(key, value.toArray(new String[value.size()]));
+        map.put(key, value.toArray(String[]::new));
         return this;
     }
 

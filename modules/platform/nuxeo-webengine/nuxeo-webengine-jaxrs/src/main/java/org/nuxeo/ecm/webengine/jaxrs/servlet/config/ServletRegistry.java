@@ -100,11 +100,11 @@ public class ServletRegistry {
     }
 
     public synchronized ServletDescriptor[] getServletDescriptors() {
-        return servlets.toArray(new ServletDescriptor[servlets.size()]);
+        return servlets.toArray(ServletDescriptor[]::new);
     }
 
     public synchronized FilterSetDescriptor[] getFilterSetDescriptors() {
-        return filters.toArray(new FilterSetDescriptor[filters.size()]);
+        return filters.toArray(FilterSetDescriptor[]::new);
     }
 
     public ServletDescriptor getServletDescriptor(String name) {
@@ -181,7 +181,7 @@ public class ServletRegistry {
         // update context
         BundleHttpContext ctx = contexts.get(rd.getServlet());
         if (ctx != null) {
-            ctx.setResources(list.toArray(new ResourcesDescriptor[list.size()]));
+            ctx.setResources(list.toArray(ResourcesDescriptor[]::new));
         }
     }
 
@@ -195,7 +195,7 @@ public class ServletRegistry {
                 // update context
                 BundleHttpContext ctx = contexts.get(rd.getServlet());
                 if (ctx != null) {
-                    ctx.setResources(list.toArray(new ResourcesDescriptor[list.size()]));
+                    ctx.setResources(list.toArray(ResourcesDescriptor[]::new));
                 }
             }
         }
@@ -216,7 +216,7 @@ public class ServletRegistry {
             List<ResourcesDescriptor> rd = resources.get(sd.path);
             // register resources contributed so far
             if (rd != null) {
-                ctx.setResources(rd.toArray(new ResourcesDescriptor[rd.size()]));
+                ctx.setResources(rd.toArray(ResourcesDescriptor[]::new));
             }
             Hashtable<String, String> params = new Hashtable<>();
             if (sd.name != null) {
@@ -227,25 +227,4 @@ public class ServletRegistry {
             contexts.put(sd.path, ctx);
         }
     }
-
-    // static class BundleHttpContext implements HttpContext {
-    // protected Bundle bundle;
-    // public BundleHttpContext(Bundle bundle) {
-    // this.bundle = bundle;
-    // }
-    // @Override
-    // public String getMimeType(String name) {
-    // return null;
-    // }
-    // @Override
-    // public URL getResource(String name) {
-    // return null;
-    // }
-    // @Override
-    // public boolean handleSecurity(HttpServletRequest request,
-    // HttpServletResponse response) throws IOException {
-    // // default behaviour assumes the container has already performed authentication
-    // return true;
-    // }
-    // }
 }
