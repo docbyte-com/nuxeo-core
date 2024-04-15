@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: nuxeo-webengine-core-test
+Bundle-SymbolicName: org.nuxeo.ecm.webengine.core.test;singleton:=true
+Bundle-Version: 1.0.0
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineTestModule;name=webengine-test;package=org/nuxeo/ecm/webengine/app;headless=true
+Nuxeo-Component: OSGI-INF/test-webengine-core-server-contrib.xml
