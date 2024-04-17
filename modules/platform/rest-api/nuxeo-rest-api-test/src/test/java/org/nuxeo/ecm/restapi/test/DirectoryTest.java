@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Iterator;
+import java.util.Map;
 
 import javax.inject.Inject;
 
@@ -207,7 +207,7 @@ public class DirectoryTest {
     @Test
     public void itCanQueryDirectoryEntries() {
         // Given a directory
-        DocumentModelList entries = dirSession.query(Collections.emptyMap());
+        DocumentModelList entries = dirSession.query(Map.of());
 
         // When i do a request on the directory endpoint
         httpClient.buildGetRequest("/directory/" + TESTDIRNAME).executeAndConsume(new JsonNodeHandler(), node -> {
@@ -278,7 +278,7 @@ public class DirectoryTest {
     @Test
     public void itCanUpdateADirectoryEntryWithAnIntId() throws IOException {
         try (Session dirSession = ds.open(INT_ID_TEST_DIR_NAME)) {
-            DocumentModel docEntry = dirSession.createEntry(Collections.singletonMap("label", "test label"));
+            DocumentModel docEntry = dirSession.createEntry(Map.of("label", "test label"));
             nextTransaction(); // see committed changes
 
             docEntry.setPropertyValue("intIdSchema:label", "new label");
@@ -318,7 +318,7 @@ public class DirectoryTest {
     }
 
     @Test
-    public void itCanDeleteADirectoryEntry() throws Exception {
+    public void itCanDeleteADirectoryEntry() {
         // Given an existent entry
         DocumentModel docEntry = dirSession.getEntry("test2");
         assertNotNull(docEntry);

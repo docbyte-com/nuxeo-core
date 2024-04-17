@@ -290,15 +290,19 @@ public class BatchUploadFixture {
                   });
 
         // Create a doc which references the uploaded blobs using the Document path endpoint
-        String json = "{";
-        json += "\"entity-type\":\"document\" ,";
-        json += "\"name\":\"testBatchUploadDoc\" ,";
-        json += "\"type\":\"MultiBlobDoc\" ,";
-        json += "\"properties\" : {";
-        json += "\"mb:blobs\" : [ ";
-        json += "{ \"content\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" } },";
-        json += "{ \"content\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"1\" } }";
-        json += "]}}";
+        String json = """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "MultiBlobDoc",
+                  "properties": {
+                    "mb:blobs": [
+                      { "content": { "upload-batch": "%s", "upload-fileId": "0" } },
+                      { "content": { "upload-batch": "%s", "upload-fileId": "1" } }
+                    ]
+                  }
+                }
+                """.formatted(batchId, batchId);
 
         httpClient.buildPostRequest("/path/")
                   .entity(json)
@@ -1211,15 +1215,19 @@ public class BatchUploadFixture {
                       assertEquals("0", node.get("fileIdx").asText());
                   });
 
-        String json = "{";
-        json += "\"entity-type\":\"document\" ,";
-        json += "\"name\":\"testBatchUploadDoc\" ,";
-        json += "\"type\":\"File\" ,";
-        json += "\"properties\" : {";
-        json += "\"files:files\" : [ ";
-        json += "{ \"file\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" }},";
-        json += "{ \"file\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"1\" }}";
-        json += "]}}";
+        String json = """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "File",
+                  "properties": {
+                    "files:files": [
+                      { "file": { "upload-batch": "%s", "upload-fileId": "0" } },
+                      { "file": { "upload-batch": "%s", "upload-fileId": "1" } }
+                    ]
+                  }
+                }
+                """.formatted(batchId, batchId);
 
         // Assert second batch won't make the upload fail because the file does not exist
         httpClient.buildPostRequest("/path/")
@@ -1394,17 +1402,19 @@ public class BatchUploadFixture {
     }
 
     protected String getCreateDocumentJSON(String type, String batchId) {
-        return "{" + //
-                "  \"entity-type\":\"document\"," + //
-                "  \"name\":\"testBatchUploadDoc\"," + //
-                "  \"type\":\"" + type + "\"," + //
-                "  \"properties\" : {" + //
-                "    \"file:content\" : {" + //
-                "      \"upload-batch\": \"" + batchId + "\"," + //
-                "      \"upload-fileId\": \"0\"" + //
-                "    }" + //
-                "  }" + //
-                "}";
+        return """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "%s",
+                  "properties": {
+                    "file:content": {
+                      "upload-batch": "%s",
+                      "upload-fileId": "0"
+                    }
+                  }
+                }
+                """.formatted(type, batchId);
     }
 
 }

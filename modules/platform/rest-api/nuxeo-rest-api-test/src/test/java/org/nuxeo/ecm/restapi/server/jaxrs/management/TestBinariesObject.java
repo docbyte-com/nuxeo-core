@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,6 +87,7 @@ public class TestBinariesObject extends ManagementBaseTest {
         document = session.createDocument(document);
         transactionalFeature.nextTransaction();
 
+        @SuppressWarnings("unchecked")
         List<Map<String, Blob>> createdFiles = (List<Map<String, Blob>>) document.getPropertyValue("files:files");
         long sizeOfBinaries = createdFiles.stream().flatMap(m -> m.values().stream()).mapToLong(Blob::getLength).sum();
 

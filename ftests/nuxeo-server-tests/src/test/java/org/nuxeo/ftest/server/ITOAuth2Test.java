@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,16 +65,7 @@ import org.nuxeo.http.test.handler.JsonNodeHandler;
  */
 public class ITOAuth2Test extends AbstractTest {
 
-    public static class OAuth2Token {
-
-        public final String accessToken;
-
-        public final String refreshToken;
-
-        public OAuth2Token(String accessToken, String refreshToken) {
-            this.accessToken = accessToken;
-            this.refreshToken = refreshToken;
-        }
+    public record OAuth2Token(String accessToken, String refreshToken) {
     }
 
     public static final String DOC_PATH = "/api/v1/path/";

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -336,8 +336,14 @@ public class DocumentListTest {
         DocumentModel note1 = RestServerInit.getNote(1, session);
         DocumentModel note2 = RestServerInit.getNote(2, session);
 
-        String data = "{\"entity-type\":\"document\"," + "\"type\":\"Note\"," + "\"properties\":{"
-                + "    \"dc:description\":\"bulk description\"" + "  }" + "}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "Note",
+                  "properties": {
+                    "dc:description": "bulk description"
+                  }
+                }""";
 
         // When i call a bulk update
         httpClient.buildPutRequest("/bulk")

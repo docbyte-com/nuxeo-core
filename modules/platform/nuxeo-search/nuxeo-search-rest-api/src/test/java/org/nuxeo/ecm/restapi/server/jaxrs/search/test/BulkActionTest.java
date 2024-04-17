@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Funsho David
  */
-
 package org.nuxeo.ecm.restapi.server.jaxrs.search.test;
 
 import static org.apache.http.HttpStatus.SC_ACCEPTED;
@@ -218,7 +217,7 @@ public class BulkActionTest {
                 "queryLimit", "1");
         BulkStatus status = executeBulkAction("search", queryParams);
         assertEquals(1, status.getTotal());
-        assertEquals(true, status.isQueryLimitReached());
+        assertTrue(status.isQueryLimitReached());
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -249,7 +249,7 @@ public class BaseTest {
      * @since 5.8
      */
     protected JsonNode getResponseAsJson(RequestType responseType, String url,
-            MultivaluedMap<String, String> queryParams) throws JsonProcessingException, IOException {
+            MultivaluedMap<String, String> queryParams) throws IOException {
         try (CloseableClientResponse response = getResponse(responseType, url, queryParams)) {
             assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
             return mapper.readTree(response.getEntityInputStream());

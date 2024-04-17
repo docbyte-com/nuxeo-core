@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ public class OperationBindingTest {
     }
 
     @Test
-    public void itCanRunAChainOnMutlipleDocuments() {
+    public void itCanRunAChainOnMultipleDocuments() {
         // Given a folder
         DocumentModel folder = RestServerInit.getFolder(1, session);
 

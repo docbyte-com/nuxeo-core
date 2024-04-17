@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -556,7 +556,17 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"dc:description\":\" \"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "dc:description": " "
+                  }
+                }
+                """;
 
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
                               .entity(data)
@@ -585,7 +595,17 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"note:note\":\"File does not have note\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "note:note": "File does not have note"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -599,7 +619,16 @@ public class DocumentBrowsingTest {
     public void iCantCreateADocumentWithAWrongPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"MyDocType\",\"name\":\"newName\",\"properties\": {\"my:integer\":\"Some string\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "MyDocType",
+                  "name": "newName",
+                  "properties": {
+                    "my:integer": "Some string"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -612,7 +641,16 @@ public class DocumentBrowsingTest {
     public void iCantCreateADocumentWithNonExistingType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"Foo\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"Foo\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "Foo",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "Foo"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)

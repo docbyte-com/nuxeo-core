@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,15 +65,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Deploy("org.nuxeo.ecm.platform.restapi.test:elasticsearch-test-contrib.xml")
 public class TestPageProviders {
 
-    protected String testWorkspacePath;
-
-    protected String testWorkspaceId;
-
     @Inject
     protected CoreSession session;
-
-    @Inject
-    protected TransactionalFeature tf;
 
     @Inject
     protected ElasticSearchAdmin esa;
@@ -81,9 +74,16 @@ public class TestPageProviders {
     @Inject
     protected RestServerFeature restServerFeature;
 
+    @Inject
+    protected TransactionalFeature transactionalFeature;
+
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
             () -> restServerFeature.getRestApiUrl());
+
+    protected String testWorkspacePath;
+
+    protected String testWorkspaceId;
 
     @Before
     public void before() {
@@ -164,7 +164,7 @@ public class TestPageProviders {
 
     protected void testPageProvider(String ppName, Consumer<List<JsonNode>> consumer, Map<String, String> qarams,
             String... parameters) {
-        tf.nextTransaction();
+        transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/search/pp/" + ppName + "/execute")
                   .addQueryParameter(ORDERED_PARAMS, parameters)
