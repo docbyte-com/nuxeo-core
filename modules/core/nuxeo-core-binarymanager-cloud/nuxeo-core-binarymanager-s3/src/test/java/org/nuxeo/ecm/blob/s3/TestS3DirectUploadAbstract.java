@@ -29,13 +29,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.blob.s3.S3BlobProviderFeature.PREFIX_TEST;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_ID_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_SECRET_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_SESSION_TOKEN_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_NAME_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_PREFIX_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_REGION_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.SYSTEM_PROPERTY_PREFIX;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_ID_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_SECRET_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_SESSION_TOKEN_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_NAME_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_PREFIX_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_REGION_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SYSTEM_PROPERTY_PREFIX;
 import static org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler.ROLE_ARN_PROPERTY;
 
 import java.io.ByteArrayInputStream;
@@ -61,7 +61,6 @@ import org.nuxeo.ecm.core.io.upload.batch.Batch;
 import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
 import org.nuxeo.ecm.core.io.upload.batch.BatchHandler;
 import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
-import org.nuxeo.ecm.core.storage.sql.S3BinaryManager;
 import org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStore;
@@ -161,11 +160,7 @@ public abstract class TestS3DirectUploadAbstract {
     }
 
     protected void clearBlobProvider(BlobProvider blobProvider) {
-        if (blobProvider instanceof S3BinaryManager) {
-            ((S3BinaryManager) blobProvider).clear();
-        } else {
-            ((BlobStoreBlobProvider) blobProvider).store.clear();
-        }
+        ((BlobStoreBlobProvider) blobProvider).store.clear();
     }
 
     @Test

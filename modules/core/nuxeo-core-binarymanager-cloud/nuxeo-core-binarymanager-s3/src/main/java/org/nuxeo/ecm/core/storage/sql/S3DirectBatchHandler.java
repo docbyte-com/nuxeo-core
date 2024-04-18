@@ -25,15 +25,17 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.ACCELERATE_MODE_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_ID_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_SECRET_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.AWS_SESSION_TOKEN_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_NAME_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_PREFIX_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.BUCKET_REGION_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.ENDPOINT_PROPERTY;
-import static org.nuxeo.ecm.core.storage.sql.S3BinaryManager.PATHSTYLEACCESS_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.ACCELERATE_MODE_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_ID_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_SECRET_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_SESSION_TOKEN_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_NAME_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_PREFIX_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_REGION_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.ENDPOINT_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.PATHSTYLEACCESS_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SERVERSIDE_ENCRYPTION_PROPERTY;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -90,7 +92,7 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
     // properties passed at initialization time from extension point
 
-    /** @deprecated since 11.1, use {@link S3BinaryManager#ACCELERATE_MODE_PROPERTY} */
+    /** @deprecated since 11.1, use {@link org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration#ACCELERATE_MODE_PROPERTY} */
     @Deprecated
     public static final String ACCELERATE_MODE_ENABLED_PROPERTY = "accelerateMode";
 
@@ -212,8 +214,8 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         expiration = Integer.parseInt(defaultIfEmpty(properties.get(INFO_EXPIRATION), "0"));
         policy = properties.get(POLICY_TEMPLATE_PROPERTY);
 
-        useServerSideEncryption = Boolean.parseBoolean(properties.get(S3BinaryManager.SERVERSIDE_ENCRYPTION_PROPERTY));
-        serverSideKMSKeyID = properties.get(S3BinaryManager.SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
+        useServerSideEncryption = Boolean.parseBoolean(properties.get(SERVERSIDE_ENCRYPTION_PROPERTY));
+        serverSideKMSKeyID = properties.get(SERVERSIDE_ENCRYPTION_KMS_KEY_PROPERTY);
 
         AWSCredentialsProvider credentials = S3Utils.getAWSCredentialsProvider(awsSecretKeyId, awsSecretAccessKey,
                 awsSessionToken);
@@ -370,9 +372,6 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
     protected boolean isValidDigest(String key) {
         BlobProvider blobProvider = getBlobProvider();
-        if (blobProvider instanceof S3BinaryManager) {
-            return ((S3BinaryManager) blobProvider).isValidDigest(key);
-        }
         if (blobProvider instanceof BlobStoreBlobProvider) {
             KeyStrategy keyStrategy = ((BlobStoreBlobProvider) blobProvider).store.getKeyStrategy();
             if (keyStrategy instanceof KeyStrategyDigest) {

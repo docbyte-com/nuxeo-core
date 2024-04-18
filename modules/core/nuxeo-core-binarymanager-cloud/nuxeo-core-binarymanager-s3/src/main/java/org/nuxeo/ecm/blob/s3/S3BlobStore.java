@@ -150,10 +150,6 @@ public class S3BlobStore extends AbstractBlobStore {
         gc = new S3BlobGarbageCollector();
     }
 
-    public S3BlobStore getS3BinaryManager() {
-        return S3BlobStore.this;
-    }
-
     protected static boolean isMissingKey(AmazonServiceException e) {
         return e.getStatusCode() == 404 || "NoSuchKey".equals(e.getErrorCode()) || "Not Found".equals(e.getMessage());
     }
