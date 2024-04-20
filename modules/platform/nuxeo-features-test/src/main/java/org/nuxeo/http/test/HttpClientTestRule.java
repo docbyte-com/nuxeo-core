@@ -103,6 +103,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * @see HttpClientTestRule#defaultClient(Supplier)
  * @see HttpClientTestRule#defaultJsonClient(Supplier)
  * @see org.nuxeo.http.test.handler
+ * @apiNote Formerly in {@code org.nuxeo.jaxrs.test} package, it was moved for 2025.0 to remove jaxrs word
  */
 public class HttpClientTestRule implements TestRule {
 

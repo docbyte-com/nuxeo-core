@@ -43,8 +43,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @since 11.3
  */
@@ -66,8 +64,6 @@ public class TestJWTAuthentication extends ManagementBaseTest {
     protected HttpClientTestRule authorizedHttpClient;
 
     protected HttpClientTestRule unauthorizedHttpClient;
-
-    protected ObjectMapper mapper = new ObjectMapper();
 
     @Before
     public void before() {
