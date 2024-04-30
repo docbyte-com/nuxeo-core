@@ -193,9 +193,15 @@ public class KafkaLogTailer<M extends Externalizable> implements LogTailer<M>, C
         }
         ConsumerRecord<String, Bytes> record = records.poll();
         lastOffsets.put(new TopicPartition(record.topic(), record.partition()), record.offset());
-        M value = decodeCodec.decode(record.value().get());
         LogPartition partition = LogPartition.of(resolver.getName(record.topic()), record.partition());
         LogOffset offset = new LogOffsetImpl(partition, record.offset());
+        M value;
+        try {
+            value = decodeCodec.decode(record.value().get());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException(
+                    "Unable to decode Record: " + offset + " with codec: " + decodeCodec.getName(), e);
+        }
         consumerMoved = false;
         if (log.isDebugEnabled()) {
             log.debug(String.format("Read from %s/%s, key: %s, value: %s", offset, group, record.key(), value));
