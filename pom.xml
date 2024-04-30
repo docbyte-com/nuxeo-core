@@ -110,7 +110,7 @@
     <jackson.version>2.12.7</jackson.version>
     <jackson.bom.version>2.12.7.20221012</jackson.bom.version>
     <bouncycastle.version>1.69</bouncycastle.version>
-    <avro.version>1.9.2</avro.version>
+    <avro.version>1.11.3</avro.version>
     <xz.version>1.8</xz.version>
     <restlet.version>2.4.2</restlet.version>
     <batik.version>1.16</batik.version>
@@ -167,7 +167,7 @@
 
     <kafka.version>2.8.1</kafka.version>
     <snappy.java.version>1.1.10.5</snappy.java.version>
-    <confluent.version>6.0.0</confluent.version>
+    <confluent.version>6.2.15</confluent.version>
     <chronicle.bom.version>2.20.40</chronicle.bom.version>
     <chronicle.threads.version>2.17.25</chronicle.threads.version>
     <metrics.version>5.0.0-rc3</metrics.version>
