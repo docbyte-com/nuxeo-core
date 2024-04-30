@@ -6,6 +6,12 @@
   <!-- ======================================================================================= -->
   <!-- Ensure backward/forward compatibility by registering schema evolution -->
   <extension point="schema" target="org.nuxeo.runtime.avro">
+    <!-- Avro v1.11 Schema after 2021.54 -->
+    <schema name="Record-2021.54,Record-2023.0" file="avro/Record-0x5D82F1387F01C58B.avsc" />
+    <schema name="BulkCommand-2021.54" file="avro/BulkCommand-0xDF8D62C9EE6F08F9.avsc" />
+    <schema name="BulkStatus-2021.54,BulkStatus-2023.0" file="avro/BulkStatus-0xDA29E947B01E64AA.avsc" />
+    <schema name="DataBucket-2021.54,DataBucket-2023.0" file="avro/DataBucket-0xEB04211B6C6C3B5F.avsc" />
+    <!-- Avro v1.9 Schema before 2021.54 -->
     <schema name="Record-2021.0" file="avro/Record-0xEE727BE73E8D498.avsc" />
     <schema name="BulkCommand-2021.6" file="avro/BulkCommand-0x5F64BA8BF77C9B7D.avsc" />
     <schema name="BulkCommand-2021.46" file="avro/BulkCommand-0x66217E9613482336.avsc" />
