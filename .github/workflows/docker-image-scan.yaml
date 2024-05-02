@@ -44,8 +44,6 @@ jobs:
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: critical
-          # don't report vulnerabilities marked as "won't fix", mostly CentOS 7 RPM packages
-          only-fixed: true
           output-format: table
 
       - name: Scan Docker image with Grype - JSON output
@@ -55,8 +53,6 @@ jobs:
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: critical
-          # don't report vulnerabilities marked as "won't fix", mostly CentOS 7 RPM packages
-          only-fixed: true
           output-format: json
 
       - name: Print Grype JSON output
@@ -71,8 +67,6 @@ jobs:
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: critical
-          # don't report vulnerabilities marked as "won't fix", mostly CentOS 7 RPM packages
-          only-fixed: true
 
       - name: Upload SARIF file
         if: always() # necessary as using a failure threshold in the scan step
