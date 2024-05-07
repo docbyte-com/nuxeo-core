@@ -23,7 +23,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.common.Environment.NUXEO_HOME;
@@ -184,7 +183,7 @@ public class TestNuxeoLauncher {
         instanceInfo.packages.add(packageInfo);
 
         try (OutputStream os = new ByteArrayOutputStream()) {
-            launcher.printInstanceXMLOutput(instanceInfo, os);
+            launcher.techPrinter.print(instanceInfo, os);
             String json = os.toString();
             checkJSON("json/instance-info-new-line.json", json);
         }
@@ -195,7 +194,7 @@ public class TestNuxeoLauncher {
         NuxeoLauncher launcher = NuxeoLauncher.createLauncher(new String[] { "showconf", "--json" });
         InstanceInfo info = launcher.getInfo();
         try (OutputStream os = new ByteArrayOutputStream()) {
-            launcher.printInstanceXMLOutput(info, os);
+            launcher.techPrinter.print(info, os);
             String json = os.toString();
 
             json = cleanupShowconf(json);

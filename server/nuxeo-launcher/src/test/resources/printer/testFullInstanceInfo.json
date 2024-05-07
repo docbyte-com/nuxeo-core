@@ -1,0 +1,50 @@
+{
+  "NUXEO_CONF": "/some/path/bin/nuxeo.conf",
+  "NUXEO_HOME": "/some/path",
+  "clid": "some-clid",
+  "distribution": {
+    "name": "lts",
+    "server": "tomcat",
+    "version": "2025.0",
+    "date": "20240407",
+    "packaging": "docker"
+  },
+  "packages": {
+    "package": {
+      "id": "nuxeo-web-ui-3.1.7",
+      "state": "STARTED",
+      "version": "3.1.7",
+      "name": "nuxeo-web-ui",
+      "type": "ADDON",
+      "supportsHotReload": "false",
+      "title": "Nuxeo Web UI",
+      "description": "Web UI is the primary UI for the Nuxeo Platform. It is an ideal starting point for any Digital Asset Management, Case Management or Document Management project.",
+      "licenseType": "Apache License, Version 2.0",
+      "licenseUrl": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "configuration": {
+    "dbtemplate": "default",
+    "basetemplates": {
+      "template": [
+        "common-base",
+        "common"
+      ]
+    },
+    "pkgtemplates": null,
+    "usertemplates": null,
+    "profiles": null,
+    "keyvals": {
+      "keyval": {
+        "key": "nuxeo.force.generation",
+        "value": "true"
+      }
+    },
+    "allkeyvals": {
+      "allkeyval": {
+        "key": "file.separator",
+        "value": "/"
+      }
+    }
+  }
+}

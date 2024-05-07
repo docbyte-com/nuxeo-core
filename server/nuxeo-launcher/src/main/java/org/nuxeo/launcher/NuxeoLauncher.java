@@ -42,8 +42,6 @@ import static org.nuxeo.launcher.config.ConfigurationConstants.TOMCAT_STARTUP_CL
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -67,13 +65,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import javax.validation.constraints.NotNull;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.stream.FactoryConfigurationError;
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -113,21 +104,14 @@ import org.nuxeo.launcher.connect.ConnectBroker;
 import org.nuxeo.launcher.connect.ConnectRegistrationBroker;
 import org.nuxeo.launcher.connect.LauncherRestartException;
 import org.nuxeo.launcher.gui.NuxeoLauncherGUI;
-import org.nuxeo.launcher.info.CommandInfo;
 import org.nuxeo.launcher.info.CommandSetInfo;
-import org.nuxeo.launcher.info.ConfigurationInfo;
-import org.nuxeo.launcher.info.DistributionInfo;
 import org.nuxeo.launcher.info.InstanceInfo;
 import org.nuxeo.launcher.info.KeyValueInfo;
-import org.nuxeo.launcher.info.MessageInfo;
 import org.nuxeo.launcher.info.PackageInfo;
+import org.nuxeo.launcher.io.NuxeoLauncherTechPrinter;
 import org.nuxeo.launcher.monitoring.StatusServletClient;
 import org.nuxeo.launcher.process.ProcessManager;
 import org.nuxeo.log4j.Log4JHelper;
-
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.json.impl.writer.JsonXmlStreamWriter;
-import com.sun.xml.bind.marshaller.MinimumEscapeHandler;
 
 /**
  * @author jcarsique
@@ -584,9 +568,7 @@ public class NuxeoLauncher {
 
     private static boolean strict = true;
 
-    private boolean xmlOutput = false;
-
-    private boolean jsonOutput = false;
+    protected NuxeoLauncherTechPrinter techPrinter = null;
 
     private ConnectBroker connectBroker = null;
 
@@ -1087,8 +1069,8 @@ public class NuxeoLauncher {
                     EXIT_CODE_INVALID);
         }
         CommandSetInfo cset = launcher.connectBroker.getCommandSet();
-        if (launcher.xmlOutput && launcher.command.startsWith("mp-")) {
-            launcher.printXMLOutput(cset);
+        if (launcher.techPrinter != null && launcher.command.startsWith("mp-")) {
+            launcher.techPrinter.print(cset, System.out);
         }
         if (!commandSucceeded && !quiet || debug) {
             cset.log(commandSucceeded);
@@ -1827,49 +1809,6 @@ public class NuxeoLauncher {
         }
     }
 
-    /**
-     * @since 5.6
-     */
-    protected void printXMLOutput(CommandSetInfo cset) {
-        try {
-            JAXBContext jaxbContext = JAXBContext.newInstance(CommandSetInfo.class, CommandInfo.class,
-                    PackageInfo.class, MessageInfo.class);
-            printXMLOutput(jaxbContext, cset, System.out);
-        } catch (JAXBException | XMLStreamException | FactoryConfigurationError e) {
-            throw new NuxeoLauncherException("Output serialization failed: " + e.getMessage(), EXIT_CODE_NOT_RUNNING,
-                    e);
-        }
-    }
-
-    /**
-     * @since 8.3
-     */
-    protected void printXMLOutput(JAXBContext context, Object object, OutputStream out)
-            throws XMLStreamException, FactoryConfigurationError, JAXBException {
-        XMLStreamWriter writer = jsonOutput ? jsonWriter(context, out) : xmlWriter(context, out);
-        Marshaller marshaller = context.createMarshaller();
-        marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-        if (jsonOutput) {
-            // replace the character escape handler as the one for XML doesn't correctly print newline in JSON
-            marshaller.setProperty("com.sun.xml.bind.characterEscapeHandler", MinimumEscapeHandler.theInstance);
-        }
-        marshaller.marshal(object, writer);
-    }
-
-    protected XMLStreamWriter jsonWriter(JAXBContext context, OutputStream out) {
-        JSONConfiguration config = JSONConfiguration.mapped()
-                                                    .rootUnwrapping(true)
-                                                    .attributeAsElement("key", "value")
-                                                    .build();
-        config = JSONConfiguration.createJSONConfigurationWithFormatted(config, true);
-        return JsonXmlStreamWriter.createWriter(new OutputStreamWriter(out), config, "");
-    }
-
-    protected XMLStreamWriter xmlWriter(JAXBContext context, OutputStream out)
-            throws XMLStreamException, FactoryConfigurationError {
-        return XMLOutputFactory.newInstance().createXMLStreamWriter(out);
-    }
-
     protected static class ShutdownHook extends Thread implements AutoCloseable {
 
         private final NuxeoLauncher launcher;
@@ -2068,10 +2007,9 @@ public class NuxeoLauncher {
         }
         // Output format
         if (cmdLine.hasOption(OPTION_XML)) {
-            setXMLOutput();
-        }
-        if (cmdLine.hasOption(OPTION_JSON)) {
-            setJSONOutput();
+            techPrinter = new NuxeoLauncherTechPrinter(NuxeoLauncherTechPrinter.Format.XML);
+        } else if (cmdLine.hasOption(OPTION_JSON)) {
+            techPrinter = new NuxeoLauncherTechPrinter(NuxeoLauncherTechPrinter.Format.JSON);
         }
         if (cmdLine.hasOption(OPTION_CLID)) {
             try {
@@ -2130,15 +2068,6 @@ public class NuxeoLauncher {
      */
     protected static void relaxStrict() {
         NuxeoLauncher.strict = false;
-    }
-
-    protected void setXMLOutput() {
-        xmlOutput = true;
-    }
-
-    protected void setJSONOutput() {
-        jsonOutput = true;
-        setXMLOutput();
     }
 
     public static void printShortHelp() {
@@ -2284,25 +2213,6 @@ public class NuxeoLauncher {
     /**
      * @since 5.6
      */
-    protected void printInstanceXMLOutput(InstanceInfo instance) {
-        try {
-            printInstanceXMLOutput(instance, System.out);
-        } catch (JAXBException | XMLStreamException | FactoryConfigurationError e) {
-            throw new NuxeoLauncherException("Output serialization failed: " + e.getMessage(), EXIT_CODE_NOT_RUNNING,
-                    e);
-        }
-    }
-
-    protected void printInstanceXMLOutput(InstanceInfo instance, OutputStream out)
-            throws JAXBException, XMLStreamException, FactoryConfigurationError {
-        JAXBContext jaxbContext = JAXBContext.newInstance(InstanceInfo.class, DistributionInfo.class, PackageInfo.class,
-                ConfigurationInfo.class, KeyValueInfo.class);
-        printXMLOutput(jaxbContext, instance, out);
-    }
-
-    /**
-     * @since 5.6
-     */
     protected void showConfig() {
         log.info("***** Nuxeo instance configuration *****");
         log.info("NUXEO_CONF: {}", info.NUXEO_CONF);
@@ -2349,8 +2259,8 @@ public class NuxeoLauncher {
             log.info("{}={}", keyval.key, keyval.value);
         }
         log.info("****************************************");
-        if (xmlOutput) {
-            printInstanceXMLOutput(info);
+        if (techPrinter != null) {
+            techPrinter.print(info, System.out);
         }
     }
 
