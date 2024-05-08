@@ -43,6 +43,22 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.sun.xml.xsom.ForeignAttributes;
+import com.sun.xml.xsom.XSAttributeDecl;
+import com.sun.xml.xsom.XSAttributeUse;
+import com.sun.xml.xsom.XSComplexType;
+import com.sun.xml.xsom.XSComponent;
+import com.sun.xml.xsom.XSContentType;
+import com.sun.xml.xsom.XSElementDecl;
+import com.sun.xml.xsom.XSFacet;
+import com.sun.xml.xsom.XSListSimpleType;
+import com.sun.xml.xsom.XSModelGroup;
+import com.sun.xml.xsom.XSParticle;
+import com.sun.xml.xsom.XSSchema;
+import com.sun.xml.xsom.XSSchemaSet;
+import com.sun.xml.xsom.XSTerm;
+import com.sun.xml.xsom.XSType;
+import com.sun.xml.xsom.XmlString;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.schema.types.ComplexType;
@@ -75,22 +91,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.sun.xml.xsom.ForeignAttributes;
-import com.sun.xml.xsom.XSAttributeDecl;
-import com.sun.xml.xsom.XSAttributeUse;
-import com.sun.xml.xsom.XSComplexType;
-import com.sun.xml.xsom.XSComponent;
-import com.sun.xml.xsom.XSContentType;
-import com.sun.xml.xsom.XSElementDecl;
-import com.sun.xml.xsom.XSFacet;
-import com.sun.xml.xsom.XSListSimpleType;
-import com.sun.xml.xsom.XSModelGroup;
-import com.sun.xml.xsom.XSParticle;
-import com.sun.xml.xsom.XSSchema;
-import com.sun.xml.xsom.XSSchemaSet;
-import com.sun.xml.xsom.XSTerm;
-import com.sun.xml.xsom.XSType;
-import com.sun.xml.xsom.XmlString;
 import com.sun.xml.xsom.impl.RestrictionSimpleTypeImpl;
 import com.sun.xml.xsom.parser.XSOMParser;
 
@@ -445,11 +445,23 @@ public class XSDLoader {
         }
         Type ret = createComplexType(schema, superType, name, content, xsct.isAbstract());
         if (ret instanceof ComplexType complexType) {
+            addValueField(schema, complexType, content);
+
             // load attributes if any
             loadAttributes(schema, xsct, complexType);
         }
 
         return ret;
+    }
+
+    private void addValueField(Schema schema, ComplexType type, XSContentType content) throws TypeBindingException {
+
+        if(content instanceof com.sun.xml.xsom.impl.SimpleTypeImpl simpleType) {
+            Type fieldType = loadType(schema, simpleType.getBaseType(), "value");
+            if (fieldType != null) {
+                type.addField("value", fieldType, null, 0, null);
+            }
+        }
     }
 
     protected void loadAttributes(Schema schema, XSComplexType xsct, ComplexType ct) throws TypeBindingException {
