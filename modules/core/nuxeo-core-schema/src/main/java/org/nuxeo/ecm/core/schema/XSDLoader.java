@@ -445,6 +445,7 @@ public class XSDLoader {
         }
         Type ret = createComplexType(schema, superType, name, content, xsct.isAbstract());
         if (ret instanceof ComplexType complexType) {
+            // For the case where completype element has simpleContent, we add value field
             addValueField(schema, complexType, content);
 
             // load attributes if any
