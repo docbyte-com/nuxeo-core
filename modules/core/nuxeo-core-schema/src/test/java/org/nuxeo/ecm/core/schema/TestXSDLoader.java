@@ -599,6 +599,30 @@ public class TestXSDLoader {
         checkComplexWithListAndFieldTypes(schema, "t_complexWithInteger", LongType.class);
     }
 
+    @Test
+    public void testSimpleContent() throws Exception {
+        URL url = Thread.currentThread().getContextClassLoader().getResource("schema/simpleContent.xsd");
+        assertNotNull(url);
+        Schema schema = reader.loadSchema("testSimpleContent", "", url);
+        Field field = schema.getField("ToPX");
+        ComplexType type = (ComplexType) field.getType();
+        Field aggregatieField = type.getField("aggregatie");
+        ComplexType aggregatieType = (ComplexType) aggregatieField.getType();
+        Field aggregatieniveauField = aggregatieType.getField("aggregatieniveau");
+        ComplexType aggregatieniveauType = (ComplexType) aggregatieniveauField.getType();
+        Field taalField = aggregatieType.getField("taal");
+        ListType taalListType = (ListType) taalField.getType();
+        ComplexType taalType = (ComplexType) taalListType.getFieldType();
+        assertTrue(aggregatieniveauType.hasField("value"));
+        assertTrue(aggregatieniveauType.hasField("bronElement"));
+        assertTrue(aggregatieniveauType.hasField("lokaal"));
+        assertTrue(aggregatieniveauType.hasField("type"));
+        assertTrue(taalType.hasField("value"));
+        assertTrue(taalType.hasField("bronElement"));
+        assertTrue(taalType.hasField("lokaal"));
+        assertTrue(taalType.hasField("type"));
+    }
+
     private void checkComplexWithListAndFieldTypes(Schema schema, String typeName,
             Class<? extends Type> expectedInnerType) {
         Type type = schema.getType(typeName);
@@ -625,5 +649,7 @@ public class TestXSDLoader {
         assertTrue(typeName + " inner value is a " + valueType.getSuperType().getClass(),
                 expectedInnerType.isInstance(valueType.getSuperType()));
     }
+
+
 
 }
