@@ -19,7 +19,6 @@
 
 package org.nuxeo.ecm.restapi.server.jaxrs.management;
 
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -29,7 +28,6 @@ import static org.nuxeo.ecm.core.api.impl.blob.AbstractBlob.UTF_8;
 import static org.nuxeo.ecm.core.blob.binary.LocalBinaryManager.DefaultBinaryGarbageCollector.TIME_RESOLUTION;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.ENTITY_FIELD_NAME;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,13 +44,11 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.restapi.jaxrs.io.management.BinaryManagerStatusJsonWriter;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
-import org.nuxeo.jaxrs.test.CloseableClientResponse;
+import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.management.ManagementFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-
-import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @since 11.3
@@ -70,7 +66,7 @@ public class TestBinariesObject extends ManagementBaseTest {
     protected CoreSession session;
 
     @Test
-    public void testDeleteOrphanedBinaries() throws IOException {
+    public void testDeleteOrphanedBinaries() {
         // Create a file document with some blobs
         DocumentModel document = session.createDocumentModel("/", "myFile", "File");
 
@@ -109,16 +105,14 @@ public class TestBinariesObject extends ManagementBaseTest {
     }
 
     protected void garbageCollectBinariesAndAssert(long expectedNumBinaries, long expectedSizeBinaries,
-            long expectedNumBinariesGC, long expectedSizeBinariesGC) throws IOException {
-        try (CloseableClientResponse response = httpClientRule.delete("/management/binaries/orphaned")) {
-            assertEquals(SC_OK, response.getStatus());
-            JsonNode jsonNode = mapper.readTree(response.getEntityInputStream());
-
-            assertEquals(BinaryManagerStatusJsonWriter.ENTITY_TYPE, jsonNode.get(ENTITY_FIELD_NAME).asText());
-            assertEquals(expectedNumBinaries, jsonNode.get("numBinaries").asLong());
-            assertEquals(expectedSizeBinaries, jsonNode.get("sizeBinaries").asLong());
-            assertEquals(expectedNumBinariesGC, jsonNode.get("numBinariesGC").asLong());
-            assertEquals(expectedSizeBinariesGC, jsonNode.get("sizeBinariesGC").asLong());
-        }
+            long expectedNumBinariesGC, long expectedSizeBinariesGC) {
+        httpClient.buildDeleteRequest("/management/binaries/orphaned")
+                  .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
+                      assertEquals(BinaryManagerStatusJsonWriter.ENTITY_TYPE, jsonNode.get(ENTITY_FIELD_NAME).asText());
+                      assertEquals(expectedNumBinaries, jsonNode.get("numBinaries").asLong());
+                      assertEquals(expectedSizeBinaries, jsonNode.get("sizeBinaries").asLong());
+                      assertEquals(expectedNumBinariesGC, jsonNode.get("numBinariesGC").asLong());
+                      assertEquals(expectedSizeBinariesGC, jsonNode.get("sizeBinariesGC").asLong());
+                  });
     }
 }

@@ -45,7 +45,9 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 /**
  * @since 8.3
  */
+@Deprecated(since = "2023.13", forRemoval = true)
 public class RoutingRestBaseTest extends BaseTest {
+
 
     protected String assertActorIsAdministrator(ClientResponse response) throws IOException {
         JsonNode node = mapper.readTree(response.getEntityInputStream());

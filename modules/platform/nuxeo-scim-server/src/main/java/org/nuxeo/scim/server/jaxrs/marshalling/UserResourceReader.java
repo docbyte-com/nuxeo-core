@@ -46,7 +46,7 @@ import com.unboundid.scim.sdk.InvalidResourceException;
  * @since 7.4
  */
 @Provider
-@Consumes({ "application/xml", "application/json" })
+@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
 public class UserResourceReader implements MessageBodyReader<UserResource> {
 
     private static final Log log = LogFactory.getLog(UserResourceReader.class);
