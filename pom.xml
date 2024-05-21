@@ -5141,6 +5141,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <argLine>${it.memory.argLine} -Dfile.encoding=UTF-8 -XX:-OmitStackTraceInFastThrow ${it.failsafe.argLine}</argLine>
+          <runOrder>alphabetical</runOrder>
           <skipTests>${skip.surefire.tests}</skipTests>
           <systemPropertyVariables>
             <net.sourceforge.cobertura.datafile>
