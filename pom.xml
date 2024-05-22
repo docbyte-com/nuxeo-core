@@ -2177,9 +2177,9 @@
         <version>1.1.0.Final</version>
       </dependency>
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.1.1</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>2.1.6</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
@@ -3108,10 +3108,6 @@
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>jakarta.inject</artifactId>
           </exclusion>
-          <exclusion>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
-          </exclusion>
         </exclusions>
       </dependency>
       <dependency>
@@ -3131,10 +3127,6 @@
           <exclusion>
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -3169,10 +3161,6 @@
           <exclusion>
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -4228,12 +4216,6 @@
         <groupId>io.confluent</groupId>
         <artifactId>kafka-schema-registry-client</artifactId>
         <version>${confluent.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -5044,9 +5026,14 @@
                   <exclude>jakarta.xml.soap:jakarta.xml.soap-api</exclude>
                   <exclude>jakarta.transaction:jakarta.transaction-api</exclude>
                   <exclude>jakarta.validation:jakarta.validation-api</exclude>
-                  <exclude>jakarta.ws.rs:jakarta.ws.rs-api</exclude>
                 </excludes>
                 <message>jakarta artifacts must not be used, use their javax equivalent</message>
+              </bannedDependencies>
+              <bannedDependencies>
+                <excludes>
+                  <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
+                </excludes>
+                <message>javax artifacts must not be used, use their jakarta equivalent</message>
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>
