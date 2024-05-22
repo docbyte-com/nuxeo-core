@@ -45,9 +45,9 @@ Contribute a template processor for XLS files based on JXLS project. See: http:/
 
 Contribute JOD Report based template processor for ODT files. This renderer is historical and replaced by xdocreport that is more powerful.
 
-**nuxeo-template-rendering-jaxrs**
+**nuxeo-template-rendering-rest**
 
-Contribute a JAXRS simple API as well as a new WebTemplate doc type that is based on a Note rather than a file.
+Contribute a Rest simple API as well as a new WebTemplate doc type that is based on a Note rather than a file.
 
 **nuxeo-template-rendering-sandbox**
 

@@ -12,7 +12,7 @@
 
   <modules>
     <module>nuxeo-importer-core</module>
-    <module>nuxeo-importer-jaxrs</module>
+    <module>nuxeo-importer-rest</module>
     <module>nuxeo-importer-scan</module>
     <module>nuxeo-importer-xml-parser</module>
     <module>nuxeo-importer-scan-xml-parser</module>

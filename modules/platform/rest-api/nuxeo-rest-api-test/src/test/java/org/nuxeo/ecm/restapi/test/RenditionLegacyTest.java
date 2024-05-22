@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
-import org.nuxeo.ecm.restapi.server.jaxrs.rendition.RenditionObject;
+import org.nuxeo.ecm.restapi.server.rendition.RenditionObject;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @WithFrameworkProperty(name = RenditionObject.LEGACY_RENDERING_PROP, value = "true")

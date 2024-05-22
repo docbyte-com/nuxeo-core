@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo Target Platforms REST
+Bundle-SymbolicName: org.nuxeo.targetplatforms.rest;singleton:=true
+Bundle-Version: 0.1.0
+Bundle-Vendor: Nuxeo
+Fragment-Host: org.nuxeo.ecm.platform.restapi.server
+Nuxeo-WebModule: org.nuxeo.targetplatforms.rest.Application
+Nuxeo-Component: OSGI-INF/openurl-contrib.xml

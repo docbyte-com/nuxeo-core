@@ -54,7 +54,7 @@ import com.fasterxml.jackson.dataformat.xml.XmlFactory;
 @RunWith(FeaturesRunner.class)
 @Features({ ServletContainerTransactionalFeature.class, CoreIOFeature.class, ClusterFeature.class, LogFeature.class })
 @Deploy("org.nuxeo.ecm.platform.web.common")
-@Deploy("org.nuxeo.ecm.webengine.jaxrs")
+@Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.webengine.core.test")
 @SuppressWarnings("unchecked")

@@ -70,7 +70,7 @@ public class DownloadContextBlobHolderWriter implements MessageBodyWriter<Downlo
             throws IOException {
         // ensure transaction is committed before writing blob to response
         commitAndReopenTransaction();
-        // we don't want JAX-RS default headers
+        // we don't want REST default headers
         httpHeaders.clear();
         DownloadContext context = DownloadContext.builder(request, response)
                                                  .doc(blobHolder.getDocument())

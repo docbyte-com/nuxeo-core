@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.ecm.automation.server.jaxrs.ResponseHelper.MULTIPART_FILENAME_UTF_8;
+import static org.nuxeo.ecm.automation.server.rest.ResponseHelper.MULTIPART_FILENAME_UTF_8;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_DOCUMENT;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_EXCEPTION;

@@ -101,7 +101,7 @@ Title: <input type="text" name="title" value="${This.session.data.title}">
 The buttons will be showed only if the page style enable them.
 To be able to use "lib/wizard.ftl" your module must extends the "base" module.
 
-4. To call the wizard you need to add a JAX-RS method that will create your wizard and bind it to a path. Example:
+4. To call the wizard you need to add a REST method that will create your wizard and bind it to a path. Example:
 
 @WebObject(type="mysite")
 public class WizardParent extends DefaultObject {

@@ -115,7 +115,7 @@ public interface DefaultImporterService {
     void setEnablePerfLogging(boolean enablePerfLogging);
 
     /**
-     * Gets the enablePerfLogging value used by the GenericMultiThreadImporter. Only used by Scan Importer and JAXRS
+     * Gets the enablePerfLogging value used by the GenericMultiThreadImporter. Only used by Scan Importer and REST
      * Importer.
      *
      * @since 9.3

@@ -20,7 +20,7 @@ package org.nuxeo.adobe.cc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.nuxeo.ecm.platform.picture.api.ImagingDocumentConstants.PICTURE_TYPE_NAME;
-import static org.nuxeo.ecm.restapi.server.jaxrs.QueryObject.ORDERED_PARAMS;
+import static org.nuxeo.ecm.restapi.server.QueryObject.ORDERED_PARAMS;
 
 import java.util.HashMap;
 import java.util.List;

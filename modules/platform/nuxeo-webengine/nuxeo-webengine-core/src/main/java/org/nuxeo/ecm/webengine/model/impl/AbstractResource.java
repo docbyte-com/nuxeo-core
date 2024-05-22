@@ -75,8 +75,6 @@ public abstract class AbstractResource<T extends ResourceType> implements Resour
         if (path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
-        // resteasy doesn't return correct paths - that should be relative as
-        // is JAX-RS specs on resteasy paths begin with a /
         StringBuilder buf = new StringBuilder(64).append(ctx.getBasePath());
         if (!path.startsWith("/")) {
             buf.append('/');

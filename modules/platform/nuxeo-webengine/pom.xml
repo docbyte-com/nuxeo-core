@@ -15,7 +15,7 @@
   </description>
 
   <modules>
-    <module>nuxeo-webengine-jaxrs</module>
+    <module>nuxeo-webengine-rest</module>
     <module>nuxeo-webengine-core</module>
     <module>nuxeo-webengine-base</module>
     <module>nuxeo-webengine-ui</module>

@@ -48,7 +48,7 @@ import org.nuxeo.template.deckjs.DeckJSConverterConstants;
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.template.manager.api")
 @Deploy("org.nuxeo.template.manager")
-@Deploy("org.nuxeo.template.manager.jaxrs")
+@Deploy("org.nuxeo.template.manager.rest")
 @Deploy("org.nuxeo.template.deckjs")
 @Deploy("org.nuxeo.ecm.platform.convert")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")

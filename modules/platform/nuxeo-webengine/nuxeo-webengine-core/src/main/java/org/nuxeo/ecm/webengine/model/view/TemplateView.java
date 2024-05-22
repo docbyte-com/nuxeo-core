@@ -36,7 +36,7 @@ import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * A view to be used by regular JAX-RS resources to be able to use freemarker templates.
+ * A view to be used by regular REST resources to be able to use freemarker templates.
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */

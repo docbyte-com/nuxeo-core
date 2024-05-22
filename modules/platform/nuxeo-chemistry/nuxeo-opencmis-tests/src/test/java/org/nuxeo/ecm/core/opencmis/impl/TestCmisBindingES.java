@@ -27,7 +27,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
  * <p>
  * Uses Elasticsearch audit.
  */
-@Deploy("org.nuxeo.ecm.webengine.jaxrs")
+@Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.platform.uidgen.core")

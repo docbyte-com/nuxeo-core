@@ -3,19 +3,19 @@
   <require>org.nuxeo.ecm.platform.contentview.json.marshallers</require>
   <extension point="marshallers" target="org.nuxeo.ecm.automation.server.AutomationServer">
     <marshaller>
-      <reader>org.nuxeo.ecm.automation.jaxrs.io.operations.JsonRequestReader</reader>
-      <reader>org.nuxeo.ecm.automation.jaxrs.io.operations.UrlEncodedFormRequestReader</reader>
-      <reader>org.nuxeo.ecm.automation.jaxrs.io.documents.BusinessAdapterReader</reader>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.operations.JsonAutomationInfoWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.documents.BlobsWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.JsonLoginInfoWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.operations.JsonOperationWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.operations.JsonHtmlOperationWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.JsonTreeWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.JsonAdapterWriter</writer>
-      <writer>org.nuxeo.ecm.automation.jaxrs.io.JsonRecordSetWriter</writer>
+      <reader>org.nuxeo.ecm.automation.io.rest.operations.JsonRequestReader</reader>
+      <reader>org.nuxeo.ecm.automation.io.rest.operations.UrlEncodedFormRequestReader</reader>
+      <reader>org.nuxeo.ecm.automation.io.rest.documents.BusinessAdapterReader</reader>
+      <writer>org.nuxeo.ecm.automation.io.rest.operations.JsonAutomationInfoWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.documents.BlobsWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.JsonLoginInfoWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.operations.JsonOperationWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.operations.JsonHtmlOperationWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.JsonTreeWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.JsonAdapterWriter</writer>
+      <writer>org.nuxeo.ecm.automation.io.rest.JsonRecordSetWriter</writer>
       <!-- delegates marshalling to nuxeo-core-io MarshallerRegistry service -->
-      <writer>org.nuxeo.ecm.webengine.jaxrs.coreiodelegate.CoreIODelegate</writer>
+      <writer>org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate</writer>
     </marshaller>
   </extension>
 </component>

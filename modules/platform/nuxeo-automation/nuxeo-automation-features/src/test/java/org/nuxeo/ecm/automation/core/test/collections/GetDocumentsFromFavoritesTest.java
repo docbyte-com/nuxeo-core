@@ -29,11 +29,10 @@ import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.nuxeo.ecm.automation.OperationChain;
-import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.operations.collections.FetchFavorites;
 import org.nuxeo.ecm.automation.core.operations.collections.GetDocumentsFromFavoritesOperation;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.collections.api.FavoritesManager;
 import org.nuxeo.ecm.core.api.DocumentModel;
 

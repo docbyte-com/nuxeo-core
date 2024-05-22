@@ -30,7 +30,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.template.rendering</groupId>
-      <artifactId>nuxeo-template-rendering-jaxrs</artifactId>
+      <artifactId>nuxeo-template-rendering-rest</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>

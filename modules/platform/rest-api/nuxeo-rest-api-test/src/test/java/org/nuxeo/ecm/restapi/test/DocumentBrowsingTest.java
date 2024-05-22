@@ -73,7 +73,7 @@ import org.nuxeo.ecm.platform.preview.io.PreviewJsonEnricher;
 import org.nuxeo.ecm.platform.tag.TagService;
 import org.nuxeo.ecm.platform.tag.io.TagsJsonEnricher;
 import org.nuxeo.ecm.platform.thumbnail.io.ThumbnailJsonEnricher;
-import org.nuxeo.ecm.restapi.jaxrs.io.RestConstants;
+import org.nuxeo.ecm.restapi.io.RestConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;

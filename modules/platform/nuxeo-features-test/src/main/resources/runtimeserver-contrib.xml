@@ -84,7 +84,7 @@
 
     <filter context="/">
       <filter-name>SessionCleanupFilter</filter-name>
-      <filter-class>org.nuxeo.ecm.webengine.jaxrs.session.SessionCleanupFilter</filter-class>
+      <filter-class>org.nuxeo.ecm.webengine.rest.session.SessionCleanupFilter</filter-class>
       <display-name>SessionCleanupFilter</display-name>
       <filter-mapping>
         <url-pattern>/*</url-pattern>

@@ -43,7 +43,7 @@ import org.nuxeo.ecm.automation.core.operations.services.DocumentPageProviderOpe
 import org.nuxeo.ecm.automation.core.operations.services.query.DocumentPaginatedQuery;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.core.util.StringList;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -336,8 +336,10 @@ public class CoreProviderTest {
                 fail("Should have raised an OperationException");
             } catch (OperationException e) {
                 assertNotNull(e.getMessage());
-                assertTrue(e.getMessage().contains(
-                        "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
+                assertTrue(
+                        e.getMessage()
+                         .contains(
+                                 "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
             }
         }
     }
@@ -371,8 +373,10 @@ public class CoreProviderTest {
                 fail("Should have raised an OperationException");
             } catch (OperationException e) {
                 assertNotNull(e.getMessage());
-                assertTrue(e.getMessage().contains(
-                        "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
+                assertTrue(
+                        e.getMessage()
+                         .contains(
+                                 "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
             }
         }
     }

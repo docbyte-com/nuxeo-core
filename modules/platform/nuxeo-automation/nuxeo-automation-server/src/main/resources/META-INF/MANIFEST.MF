@@ -7,7 +7,7 @@ Bundle-SymbolicName: org.nuxeo.ecm.automation.server
 Bundle-Vendor: Nuxeo
 Export-Package: org.nuxeo.ecm.automation.server
 Bundle-ActivationPolicy: lazy
-Nuxeo-WebModule: org.nuxeo.ecm.automation.server.jaxrs.AutomationModule;name=automation;extends=base;package=org/nuxeo/ecm/automation/server/jaxrs
+Nuxeo-WebModule: org.nuxeo.ecm.automation.server.rest.AutomationModule;name=automation;extends=base;package=org/nuxeo/ecm/automation/server/rest
 Nuxeo-Component: OSGI-INF/AutomationServer.xml,
  OSGI-INF/auth-contrib.xml,
  OSGI-INF/binding-contrib.xml,
@@ -42,9 +42,6 @@ Import-Package: javax.mail,
  org.nuxeo.ecm.core.schema,
  org.nuxeo.ecm.core.schema.types,
  org.nuxeo.ecm.core.schema.utils,
- org.nuxeo.ecm.webengine.jaxrs.context,
- org.nuxeo.ecm.webengine.jaxrs.session,
- org.nuxeo.ecm.webengine.jaxrs.views,
  org.nuxeo.runtime,
  org.nuxeo.runtime.api,
  org.nuxeo.runtime.model,

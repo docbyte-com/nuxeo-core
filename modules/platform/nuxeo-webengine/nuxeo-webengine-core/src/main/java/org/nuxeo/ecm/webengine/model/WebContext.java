@@ -186,14 +186,14 @@ public interface WebContext extends Adaptable {
     HttpServletResponse getResponse();
 
     /**
-     * Gets the JAX-RS UriInfo.
+     * Gets the UriInfo.
      *
      * @return the uri info
      */
     UriInfo getUriInfo();
 
     /**
-     * Gets HTTP Headers as defined by JAX-RS.
+     * Gets HTTP Headers.
      *
      * @return HTTP headers object
      */

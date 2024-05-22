@@ -60,7 +60,7 @@
     <echo level="info">Add importer</echo>
     <copy todir="${nuxeo.nxserver}/bundles/">
       <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-core:${maven.project.version}:jar" />
-      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-jaxrs:${maven.project.version}:jar" />
+      <artifact:resolveFile key="org.nuxeo.ecm.platform:nuxeo-importer-rest:${maven.project.version}:jar" />
     </copy>
  </target>
 

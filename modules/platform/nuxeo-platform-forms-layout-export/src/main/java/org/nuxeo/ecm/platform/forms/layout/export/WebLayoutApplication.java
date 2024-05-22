@@ -24,10 +24,10 @@ import java.util.Set;
 import javax.ws.rs.core.Application;
 
 import org.nuxeo.ecm.platform.forms.layout.api.service.LayoutStore;
-import org.nuxeo.ecm.webengine.jaxrs.coreiodelegate.CoreIODelegate;
+import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
 
 /**
- * Entry point for jax-rs calls to the {@link LayoutStore} service.
+ * Entry point for REST calls to the {@link LayoutStore} service.
  *
  * @author Anahide Tchertchian
  * @since 5.4

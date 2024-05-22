@@ -4,7 +4,7 @@
     target="org.nuxeo.ecm.platform.url.service.DocumentViewCodecService"
     point="codecs">
     <documentViewCodec name="restdocid" enabled="true"
-      default="false" class="org.nuxeo.ecm.restapi.server.jaxrs.RestDocumentViewCodec" />
+      default="false" class="org.nuxeo.ecm.restapi.server.RestDocumentViewCodec" />
   </extension>
 
 </component>

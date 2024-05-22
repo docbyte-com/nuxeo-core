@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo ECM REST Importer
+Bundle-SymbolicName: org.nuxeo.ecm.platform.importer.rest;singleton:=true
+Bundle-Version: 1.0.0
+Require-Bundle: org.nuxeo.ecm.webengine.core
+Nuxeo-WebModule: org.nuxeo.ecm.platform.importer.executor.rest.ImporterApp
+Nuxeo-Component: OSGI-INF/importer-service-contrib.xml

@@ -1,0 +1,20 @@
+<component
+  name="org.nuxeo.template.service.rest.contrib">
+
+  <require>org.nuxeo.template.service.defaultContrib</require>
+
+  <extension target="org.nuxeo.template.service.TemplateProcessorComponent" point="contextExtension">
+
+    <documentation>Adds helper function to manage REST resources urls
+      <ul>
+        <li>rest.getResourceUrl(resourceName)</li>
+      </ul>
+    </documentation>
+
+    <contextFactory name="rest" class="org.nuxeo.template.rest.context.ExtensionFactory">
+    </contextFactory>
+
+  </extension>
+
+
+ </component>

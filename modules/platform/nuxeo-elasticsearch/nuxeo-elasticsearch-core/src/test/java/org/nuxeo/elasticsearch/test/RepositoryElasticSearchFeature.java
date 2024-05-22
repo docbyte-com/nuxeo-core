@@ -33,7 +33,7 @@ import org.nuxeo.runtime.test.runner.LogFeature;
 @Deploy("org.nuxeo.ecm.automation.io")
 @Deploy("org.nuxeo.ecm.platform.forms.layout.export")
 @Deploy("org.nuxeo.ecm.webengine.core")
-@Deploy("org.nuxeo.ecm.webengine.jaxrs")
+@Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.elasticsearch.core")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.core.management")

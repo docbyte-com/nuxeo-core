@@ -19,7 +19,7 @@
     <module>nuxeo-template-rendering-jxls</module>
     <module>nuxeo-template-rendering-jod</module>
     <module>nuxeo-template-rendering-sandbox</module>
-    <module>nuxeo-template-rendering-jaxrs</module>
+    <module>nuxeo-template-rendering-rest</module>
     <module>nuxeo-template-rendering-deckjs</module>
     <module>nuxeo-template-rendering-core-dependencies</module>
   </modules>

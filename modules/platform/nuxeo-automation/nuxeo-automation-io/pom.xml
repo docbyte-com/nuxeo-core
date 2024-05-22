@@ -8,7 +8,7 @@
 
   <artifactId>nuxeo-automation-io</artifactId>
   <name>Nuxeo Automation IO</name>
-  <description>Automation IO provides Message body reader/writer for JAX-RS marshalling.</description>
+  <description>Automation IO provides Message body reader/writer for REST marshalling.</description>
 
   <dependencies>
     <dependency>
@@ -25,7 +25,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.webengine</groupId>
-      <artifactId>nuxeo-webengine-jaxrs</artifactId>
+      <artifactId>nuxeo-webengine-rest</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.webengine</groupId>

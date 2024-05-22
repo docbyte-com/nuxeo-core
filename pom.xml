@@ -970,7 +970,7 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.webengine</groupId>
-        <artifactId>nuxeo-webengine-jaxrs</artifactId>
+        <artifactId>nuxeo-webengine-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1407,7 +1407,7 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-importer-jaxrs</artifactId>
+        <artifactId>nuxeo-importer-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1601,7 +1601,7 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.template.rendering</groupId>
-        <artifactId>nuxeo-template-rendering-jaxrs</artifactId>
+        <artifactId>nuxeo-template-rendering-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1750,7 +1750,7 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.utils</groupId>
-        <artifactId>nuxeo-target-platforms-jaxrs</artifactId>
+        <artifactId>nuxeo-target-platforms-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>

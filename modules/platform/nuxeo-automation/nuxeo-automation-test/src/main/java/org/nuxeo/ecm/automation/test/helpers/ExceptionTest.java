@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.automation.test.helpers;
 
-import org.nuxeo.ecm.automation.server.jaxrs.RestOperationException;
+import org.nuxeo.ecm.automation.server.rest.RestOperationException;
 
 public class ExceptionTest extends RestOperationException {
 

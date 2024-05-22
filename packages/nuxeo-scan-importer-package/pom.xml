@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-importer-jaxrs</artifactId>
+      <artifactId>nuxeo-importer-rest</artifactId>
     </dependency>
   </dependencies>
 </project>

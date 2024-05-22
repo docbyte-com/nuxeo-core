@@ -20,7 +20,7 @@
     </servlet-mapping>
 
     <servlet>
-      <servlet-name>Nuxeo WOPI JAXRS Servlet</servlet-name>
+      <servlet-name>Nuxeo WOPI REST Servlet</servlet-name>
       <servlet-class>
         org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet
       </servlet-class>
@@ -30,7 +30,7 @@
       </init-param>
     </servlet>
     <servlet-mapping>
-      <servlet-name>Nuxeo WOPI JAXRS Servlet</servlet-name>
+      <servlet-name>Nuxeo WOPI REST Servlet</servlet-name>
       <url-pattern>/site/wopi/*</url-pattern>
     </servlet-mapping>
   </extension>

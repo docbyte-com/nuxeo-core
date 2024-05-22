@@ -2,17 +2,17 @@
 <component name="org.nuxeo.ecm.platform.restapi.io.marshallers">
 
   <extension target="org.nuxeo.ecm.core.io.MarshallerRegistry" point="marshallers">
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.capabilities.CapabilitiesJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.BinaryManagerStatusJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ConfigurationPropertiesJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.MigrationJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.MigrationListJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ProbeInfoJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ProbeInfoListJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ProbeStatusJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ScheduleJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.ScheduleListJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.restapi.jaxrs.io.management.SimplifiedServerInfoJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.capabilities.CapabilitiesJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.BinaryManagerStatusJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ConfigurationPropertiesJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.MigrationJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.MigrationListJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ProbeInfoJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ProbeInfoListJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ProbeStatusJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ScheduleJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.ScheduleListJsonWriter" enable="true" />
+    <register class="org.nuxeo.ecm.restapi.io.management.SimplifiedServerInfoJsonWriter" enable="true" />
   </extension>
 
 </component>

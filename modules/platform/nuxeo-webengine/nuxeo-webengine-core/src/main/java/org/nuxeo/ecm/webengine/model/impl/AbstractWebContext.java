@@ -62,7 +62,6 @@ import org.nuxeo.ecm.platform.web.common.locale.LocaleProvider;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.forms.FormData;
-import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
 import org.nuxeo.ecm.webengine.login.WebEngineFormAuthenticator;
 import org.nuxeo.ecm.webengine.model.AdapterResource;
 import org.nuxeo.ecm.webengine.model.Messages;
@@ -72,6 +71,7 @@ import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
+import org.nuxeo.ecm.webengine.rest.session.SessionFactory;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.security.PermissionService;
 import org.nuxeo.ecm.webengine.session.UserSession;
@@ -98,7 +98,7 @@ public abstract class AbstractWebContext implements WebContext {
     protected final HttpHeaders headers;
 
     protected final UriInfo uriInfo;
-    
+
     protected final ResourceContext resourceContext;
 
     protected final WebEngine engine;

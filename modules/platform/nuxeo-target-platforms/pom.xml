@@ -15,7 +15,7 @@
     <module>nuxeo-target-platforms-api</module>
     <module>nuxeo-target-platforms-core</module>
     <module>nuxeo-target-platforms-io</module>
-    <module>nuxeo-target-platforms-jaxrs</module>
+    <module>nuxeo-target-platforms-rest</module>
     <module>nuxeo-target-platforms-sample</module>
   </modules>
 

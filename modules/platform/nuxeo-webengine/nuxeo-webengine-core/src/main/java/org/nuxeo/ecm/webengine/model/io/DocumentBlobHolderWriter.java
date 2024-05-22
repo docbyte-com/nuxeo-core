@@ -76,7 +76,7 @@ public class DocumentBlobHolderWriter implements MessageBodyWriter<DocumentBlobH
         // ensure transaction is committed before writing blob to response
         commitAndReopenTransaction();
         Blob blob = blobHolder.getBlob();
-        // we don't want JAX-RS default headers (like Content-Type: text/plain)
+        // we don't want REST default headers (like Content-Type: text/plain)
         // to be written, we control everything from the DownloadService
         httpHeaders.clear();
         if (Framework.isTestModeSet()) {

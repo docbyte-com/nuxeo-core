@@ -28,6 +28,7 @@ bin
 
 # build artifacts
 target*/
+!targetplatforms/
 nashorn_code_cache/
 chromedriver.log
 *.log

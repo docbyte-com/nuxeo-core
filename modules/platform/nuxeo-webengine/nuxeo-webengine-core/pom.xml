@@ -62,7 +62,7 @@
 
     <dependency>
       <groupId>org.nuxeo.ecm.webengine</groupId>
-      <artifactId>nuxeo-webengine-jaxrs</artifactId>
+      <artifactId>nuxeo-webengine-rest</artifactId>
     </dependency>
 
     <!-- this dependency is needed to integrate with nuxeo webapp: UserIdentificationInfo -->

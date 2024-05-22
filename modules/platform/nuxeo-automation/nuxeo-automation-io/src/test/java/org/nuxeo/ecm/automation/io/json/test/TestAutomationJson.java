@@ -26,7 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationType;
-import org.nuxeo.ecm.automation.jaxrs.io.JsonWriter;
+import org.nuxeo.ecm.automation.io.rest.JsonWriter;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
 import org.nuxeo.runtime.test.runner.Deploy;

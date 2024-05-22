@@ -38,8 +38,6 @@ import javax.ws.rs.ext.Provider;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.jaxrs.ApplicationFactory;
-import org.nuxeo.ecm.webengine.jaxrs.scan.Scanner;
 import org.nuxeo.ecm.webengine.loader.WebLoader;
 import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
@@ -48,6 +46,8 @@ import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultTypeLoader;
 import org.nuxeo.ecm.webengine.model.impl.ModuleConfiguration;
 import org.nuxeo.ecm.webengine.model.impl.ModuleManager;
+import org.nuxeo.ecm.webengine.rest.ApplicationFactory;
+import org.nuxeo.ecm.webengine.rest.scan.Scanner;
 import org.osgi.framework.Bundle;
 
 /**

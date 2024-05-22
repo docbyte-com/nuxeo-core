@@ -38,7 +38,7 @@ import org.nuxeo.ecm.webengine.model.impl.ModuleShortcut;
 /**
  * The web entry point of WebEngine.
  * <p>
- * This is a mix between an webengine module and a JAX-RS root resource
+ * This is a mix between an webengine module and a Jakarta RS root resource
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */

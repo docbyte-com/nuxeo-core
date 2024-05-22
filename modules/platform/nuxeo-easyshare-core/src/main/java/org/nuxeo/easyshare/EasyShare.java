@@ -23,7 +23,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -39,7 +38,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -126,20 +125,23 @@ public class EasyShare extends ModuleRoot {
                         }
 
                         return Response.ok(getView("folderList")
-                                                    .arg("isFolder",
-                                                            document.isFolder()
-                                                                    && !SHARE_DOC_TYPE.equals(document.getType())) // Backward
-                                                                                                                   // compatibility
-                                                                                                                   // to
-                                                                                                                   // non-collection
-                                                    .arg("currentPageIndex", paginable.getCurrentPageIndex())
-                                                    .arg("numberOfPages", paginable.getNumberOfPages())
-                                                    .arg("docShare", docShare)
-                                                    .arg("docList", paginable)
-                                                    .arg("previousPageAvailable", paginable.isPreviousPageAvailable())
-                                                    .arg("nextPageAvailable", paginable.isNextPageAvailable())
-                                                    .arg("currentPageStatus",
-                                                            paginable.getProvider().getCurrentPageStatus())).build();
+                                                                .arg("isFolder", document.isFolder()
+                                                                        && !SHARE_DOC_TYPE.equals(document.getType())) // Backward
+                                                                                                                       // compatibility
+                                                                                                                       // to
+                                                                                                                       // non-collection
+                                                                .arg("currentPageIndex",
+                                                                        paginable.getCurrentPageIndex())
+                                                                .arg("numberOfPages", paginable.getNumberOfPages())
+                                                                .arg("docShare", docShare)
+                                                                .arg("docList", paginable)
+                                                                .arg("previousPageAvailable",
+                                                                        paginable.isPreviousPageAvailable())
+                                                                .arg("nextPageAvailable",
+                                                                        paginable.isNextPageAvailable())
+                                                                .arg("currentPageStatus",
+                                                                        paginable.getProvider().getCurrentPageStatus()))
+                                       .build();
 
                     } catch (Exception ex) {
                         log.error(ex.getMessage());

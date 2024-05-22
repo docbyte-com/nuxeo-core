@@ -23,7 +23,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
-import org.nuxeo.ecm.restapi.server.jaxrs.BatchUploadObject;
+import org.nuxeo.ecm.restapi.server.BatchUploadObject;
 import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
 import org.nuxeo.runtime.test.runner.Features;
 

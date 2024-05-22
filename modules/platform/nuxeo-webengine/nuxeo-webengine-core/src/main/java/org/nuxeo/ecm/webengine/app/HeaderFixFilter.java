@@ -33,7 +33,7 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 
-import org.nuxeo.ecm.webengine.jaxrs.HttpFilter;
+import org.nuxeo.ecm.webengine.rest.HttpFilter;
 
 /**
  * This filter is used to fix the http headers sent to Nuxeo. Sometimes Nuxeo Drive send content type or mime type
