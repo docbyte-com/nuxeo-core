@@ -28,8 +28,8 @@
       <artifactId>nuxeo-automation-scripting</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
@@ -52,8 +52,8 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

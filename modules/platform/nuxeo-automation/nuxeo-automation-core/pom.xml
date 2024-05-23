@@ -50,8 +50,8 @@
       <artifactId>nuxeo-mail</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
     </dependency>
     <dependency>
       <groupId>org.freemarker</groupId>
@@ -117,7 +117,7 @@
     </dependency>
     <dependency>
       <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
+      <artifactId>jakarta.activation</artifactId>
     </dependency>
     <!-- only for tests -->
     <dependency>

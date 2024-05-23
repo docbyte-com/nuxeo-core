@@ -40,20 +40,13 @@
     </dependency>
 
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-catalina</artifactId>
-      <exclusions>
-        <!-- we use official javax.servlet:javax.servlet-api instead -->
-        <exclusion>
-          <groupId>org.apache.tomcat</groupId>
-          <artifactId>tomcat-servlet-api</artifactId>
-        </exclusion>
-      </exclusions>
       <scope>provided</scope>
     </dependency>
     <dependency>

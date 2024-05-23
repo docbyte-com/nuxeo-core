@@ -77,7 +77,12 @@
     </dependency>
     <dependency>
       <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
+      <artifactId>jakarta.activation</artifactId>
+    </dependency>
+    <!-- needed by nuxeo-java-client as we exclude javax.mail:mail -->
+    <dependency>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
     </dependency>
   </dependencies>
 

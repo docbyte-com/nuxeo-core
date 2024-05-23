@@ -2102,39 +2102,33 @@
       <!-- specifications -->
       <dependency>
         <groupId>com.sun.activation</groupId>
-        <artifactId>javax.activation</artifactId>
-        <version>1.2.0</version>
+        <artifactId>jakarta.activation</artifactId>
+        <version>1.2.2</version>
       </dependency>
       <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId> <!-- provided by Tomcat -->
-        <version>1.3.2</version>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>1.2.2</version>
       </dependency>
       <dependency>
-        <groupId>javax.inject</groupId>
-        <artifactId>javax.inject</artifactId>
-        <version>1</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId> <!-- provided by Tomcat -->
+        <version>1.3.5</version>
       </dependency>
       <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>1.4.7</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.activation</groupId> <!-- use com.sun.activation:javax.activation instead -->
-            <artifactId>activation</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>jakarta.inject</groupId>
+        <artifactId>jakarta.inject-api</artifactId>
+        <version>1.0.5</version>
       </dependency>
       <dependency>
-        <groupId>javax.persistence</groupId>
-        <artifactId>javax.persistence-api</artifactId>
-        <version>2.2</version>
+        <groupId>com.sun.mail</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>1.6.7</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet.jsp</groupId>
-        <artifactId>jsp-api</artifactId>
-        <version>2.2</version>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>2.2.3</version>
       </dependency>
       <dependency>
         <groupId>javax.script</groupId>
@@ -2157,24 +2151,34 @@
         <version>1.0</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId> <!-- provided by Tomcat -->
-        <version>4.0.1</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId> <!-- provided by Tomcat -->
+        <version>4.0.4</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>jstl</artifactId>
-        <version>1.2</version>
+        <groupId>jakarta.servlet.jsp</groupId>
+        <artifactId>jakarta.servlet.jsp-api</artifactId> <!-- provided by Tomcat -->
+        <version>2.3.6</version>
       </dependency>
       <dependency>
-        <groupId>javax.transaction</groupId>
-        <artifactId>javax.transaction-api</artifactId>
-        <version>1.3</version>
+        <groupId>jakarta.servlet.jsp.jstl</groupId>
+        <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+        <version>1.2.7</version>
       </dependency>
       <dependency>
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>1.1.0.Final</version>
+        <groupId>org.glassfish.web</groupId>
+        <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+        <version>1.2.6</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.transaction</groupId>
+        <artifactId>jakarta.transaction-api</artifactId>
+        <version>1.3.3</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>2.0.2</version>
       </dependency>
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
@@ -2185,36 +2189,16 @@
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
         <version>2.3.3</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
         <version>2.3.9</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation instead -->
-            <groupId>com.sun.activation</groupId>
-            <artifactId>jakarta.activation</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
-        <groupId>javax.xml.ws</groupId>
-        <artifactId>jaxws-api</artifactId>
-        <version>2.3.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>jakarta.xml.ws</groupId>
+        <artifactId>jakarta.xml.ws-api</artifactId>
+        <version>2.3.3</version>
       </dependency>
 
       <!-- commons -->
@@ -2285,7 +2269,7 @@
         <artifactId>commons-logging</artifactId>
         <version>1.3.3</version>
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId> <!-- without javax. -->
@@ -2333,13 +2317,6 @@
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
         <version>2.12.0</version>
-        <exclusions>
-          <!-- exclude jakarta artifacts which conflict with their javax equivalent -->
-          <exclusion>
-            <groupId>jakarta.transaction</groupId>
-            <artifactId>jakarta.transaction-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -2631,6 +2608,20 @@
         <groupId>org.hibernate</groupId>
         <artifactId>hibernate-core</artifactId>
         <version>5.6.15.Final</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.activation</groupId>
+            <artifactId>javax.activation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.persistence</groupId>
+            <artifactId>javax.persistence-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
@@ -2853,25 +2844,11 @@
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
         <version>${jackson.version}</version>
-        <!-- Exclude dependency causing conflict with Tomcat -->
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.fasterxml.jackson.jaxrs</groupId>
         <artifactId>jackson-jaxrs-json-provider</artifactId>
         <version>${jackson.version}</version>
-        <!-- Exclude dependency causing conflict with Tomcat -->
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>net.sf.ezmorph</groupId>
@@ -2909,12 +2886,6 @@
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
         <version>2.2</version>
-      </dependency>
-      <!-- jsp library for login and error pages -->
-      <dependency>
-        <groupId>org.apache.taglibs</groupId>
-        <artifactId>taglibs-standard-impl</artifactId>
-        <version>1.2.5</version>
       </dependency>
       <dependency>
         <groupId>antlr</groupId>
@@ -3084,13 +3055,16 @@
         <scope>test</scope>
         <exclusions>
           <exclusion>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>mailapi</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-          </exclusion>
-          <!-- jakarta artifacts are not allowed, mockserver-netty/mockserver-core/swagger-parser/swagger-core depends on it -->
-          <exclusion>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -3101,10 +3075,7 @@
         <version>${jersey.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-          </exclusion>
-          <exclusion>
+            <!-- Same as the original but repackaged for OSGi -->
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>jakarta.inject</artifactId>
           </exclusion>
@@ -3115,18 +3086,10 @@
         <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
         <exclusions>
-          <exclusion>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-          </exclusion>
-          <!-- Same as javax.inject:javax.inject but repackaged for OSGi -->
+          <!-- Same as the original but repackaged for OSGi -->
           <exclusion>
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>jakarta.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -3135,10 +3098,7 @@
         <artifactId>jersey-hk2</artifactId>
         <version>${jersey.version}</version>
         <exclusions>
-          <exclusion>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-          </exclusion>
+          <!-- Same as the original but repackaged for OSGi -->
           <exclusion>
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>jakarta.inject</artifactId>
@@ -3151,16 +3111,9 @@
         <version>${jersey.version}</version>
         <exclusions>
           <exclusion>
+            <!-- Same as the original but repackaged for OSGi -->
             <groupId>org.glassfish.hk2.external</groupId>
             <artifactId>jakarta.inject</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.persistence</groupId>
-            <artifactId>jakarta.persistence-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -3327,6 +3280,12 @@
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.inject</groupId>
+            <artifactId>javax.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.json</groupId>
@@ -3414,7 +3373,7 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-io</artifactId>
           </exclusion>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId> <!-- without javax. -->
@@ -3502,7 +3461,7 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat as catalina.jar, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -3519,7 +3478,7 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -3532,7 +3491,7 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat as jasper.jar, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -3984,6 +3943,12 @@
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-storage</artifactId>
         <version>${gcp.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <!-- fix protobuf-java-* version for Google Storage package -->
       <dependency>
@@ -4022,13 +3987,6 @@
         <groupId>com.azure</groupId>
         <artifactId>azure-storage-blob</artifactId>
         <version>12.26.1</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
 
       <dependency>
@@ -4037,7 +3995,6 @@
         <version>1.7.1</version>
         <exclusions>
          <exclusion>
-            <!-- use com.sun.activation:javax.activation instead -->
             <groupId>javax.activation</groupId>
             <artifactId>activation</artifactId>
           </exclusion>
@@ -4185,6 +4142,16 @@
         <artifactId>nuxeo-java-client</artifactId>
         <version>${nuxeo.java.client.version}</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>com.sun.activation</groupId>
+            <artifactId>javax.activation</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.pdfbox</groupId>
@@ -4227,13 +4194,6 @@
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-common</artifactId>
         <version>${keycloak.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
@@ -4275,6 +4235,12 @@
         <groupId>io.opencensus</groupId>
         <artifactId>opencensus-contrib-http-servlet</artifactId>
         <version>${opencensus.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.opencensus</groupId>
@@ -4321,17 +4287,6 @@
         <groupId>org.apache.thrift</groupId>
         <artifactId>libthrift</artifactId>
         <version>0.20.0</version>
-        <exclusions>
-          <!-- exclude jakarta artifacts which conflict with their javax equivalent -->
-          <exclusion>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <!-- transitive dependency of opencensus-exporter-trace-datadog to upgrade -->
       <dependency>
@@ -4976,20 +4931,13 @@
                 <message>do not use org.bouncycastle:-jdk15on artifacts, use jdk18on ones instead</message>
               </bannedDependencies>
               <bannedDependencies>
-                <!-- use official javax.servlet:javax.servlet-api instead -->
+                <!-- use official jakarta.servlet:jakarta.servlet-api instead -->
                 <excludes>
                   <exclude>org.apache.tomcat:tomcat-servlet-api</exclude>
                   <exclude>org.mortbay.jetty:servlet-api-2.5</exclude>
                   <exclude>org.mortbay.jetty:servlet-api</exclude>
-                  <exclude>javax.servet:servlet-api</exclude>
                 </excludes>
-                <message>use javax.servlet:javax.servlet-api instead</message>
-              </bannedDependencies>
-              <bannedDependencies>
-                <excludes>
-                  <exclude>javax.annotations:jsr250-api</exclude>
-                </excludes>
-                <message>use javax.annotation:javax.annotation-api instead</message>
+                <message>use jakarta.servlet:jakarta.servlet-api instead</message>
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>
@@ -5017,29 +4965,32 @@
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>
-                  <exclude>jakarta.activation:jakarta.activation-api</exclude>
-                  <exclude>jakarta.annotation:jakarta.annotation-api</exclude>
-                  <exclude>jakarta.inject:jakarta.inject-api</exclude>
-                  <exclude>jakarta.mail:jakarta.mail-api</exclude>
-                  <exclude>jakarta.persistence:jakarta.persistence-api</exclude>
-                  <exclude>jakarta.servlet:jakarta.servlet-api</exclude>
-                  <exclude>jakarta.xml.soap:jakarta.xml.soap-api</exclude>
-                  <exclude>jakarta.transaction:jakarta.transaction-api</exclude>
-                  <exclude>jakarta.validation:jakarta.validation-api</exclude>
-                </excludes>
-                <message>jakarta artifacts must not be used, use their javax equivalent</message>
-              </bannedDependencies>
-              <bannedDependencies>
-                <excludes>
+                  <exclude>com.sun.activation:javax.activation</exclude>
+                  <exclude>javax.activation:javax.activation-api</exclude>
+                  <exclude>javax.annotation:javax.annotation-api</exclude>
+                  <exclude>javax.annotations:jsr250-api</exclude>
+                  <exclude>javax.inject:javax.inject</exclude>
+                  <exclude>com.sun.mail:javax.mail</exclude>
+                  <exclude>com.sun.mail:mailapi</exclude>
+                  <exclude>javax.mail:javax.mail-api</exclude>
+                  <exclude>javax.mail:mail</exclude>
+                  <exclude>javax.persistence:javax.persistence-api</exclude>
+                  <exclude>javax.persistence:persistence-api</exclude>
+                  <exclude>javax.servlet:javax.servlet-api</exclude>
+                  <exclude>javax.servlet:servlet-api</exclude>
+                  <exclude>javax.servlet.jsp:javax.servlet.jsp-api</exclude>
+                  <exclude>javax.servlet.jsp:jsp-api</exclude>
+                  <exclude>javax.servlet.jsp.jstl:jstl</exclude>
+                  <exclude>javax.servlet:jstl</exclude>
+                  <exclude>javax.transaction:javax.transaction-api</exclude>
+                  <exclude>javax.transaction:transaction-api</exclude>
+                  <exclude>javax.validation:validation-api</exclude>
                   <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
+                  <exclude>javax.ws.rs:jsr311-api</exclude>
+                  <exclude>javax.xml.bind:jaxb-api</exclude>
+                  <exclude>javax.xml.ws:jaxws-api</exclude>
                 </excludes>
                 <message>javax artifacts must not be used, use their jakarta equivalent</message>
-              </bannedDependencies>
-              <bannedDependencies>
-                <excludes>
-                  <exclude>javax.ws.rs:jsr311-api</exclude>
-                </excludes>
-                <message>jax rs 1.x must not be used since the upgrade to jax rs 2.x</message>
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>

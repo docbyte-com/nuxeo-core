@@ -114,8 +114,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>javax.persistence</groupId>
-      <artifactId>javax.persistence-api</artifactId>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -147,8 +147,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
       <scope>test</scope>
     </dependency>
 

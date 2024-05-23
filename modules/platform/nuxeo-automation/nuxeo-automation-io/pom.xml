@@ -20,8 +20,8 @@
       <artifactId>jersey-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.webengine</groupId>
@@ -68,8 +68,8 @@
       <artifactId>httpcore</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.mail</groupId>
-      <artifactId>mail</artifactId>
+      <groupId>com.sun.mail</groupId>
+      <artifactId>jakarta.mail</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -77,7 +77,7 @@
     </dependency>
     <dependency>
       <groupId>com.sun.activation</groupId>
-      <artifactId>javax.activation</artifactId>
+      <artifactId>jakarta.activation</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>

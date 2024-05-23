@@ -70,7 +70,7 @@ public class TestMailSessionBuilder {
         List<String> logs = logCaptureResult.getCaughtEventMessages();
         assertEquals(1, logs.size());
         String log = logs.get(0);
-        assertTrue(log, log.startsWith("setDebug: JavaMail version "));
+        assertTrue(log, log.startsWith("setDebug: Jakarta Mail version "));
     }
 
     /*
@@ -84,6 +84,6 @@ public class TestMailSessionBuilder {
         logCaptureResult.assertHasEvent();
         List<String> logs = logCaptureResult.getCaughtEventMessages();
         String log = logs.get(0);
-        assertTrue(log, log.startsWith("setDebug: JavaMail version "));
+        assertTrue(log, log.startsWith("setDebug: Jakarta Mail version "));
     }
 }

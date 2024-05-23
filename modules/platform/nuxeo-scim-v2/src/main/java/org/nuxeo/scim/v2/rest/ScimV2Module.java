@@ -26,7 +26,7 @@ import org.nuxeo.ecm.webengine.app.JsonNuxeoExceptionWriter;
 import org.nuxeo.ecm.webengine.app.WebContextProvider;
 import org.nuxeo.ecm.webengine.app.WebEngineExceptionMapper;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
-import org.nuxeo.ecm.webengine.jaxrs.coreiodelegate.CoreIODelegate;
+import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
 
 /**
  * @since 2023.14
