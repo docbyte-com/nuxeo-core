@@ -36,6 +36,7 @@ import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.StreamManager;
+import org.nuxeo.lib.stream.log.LogOffset;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -111,7 +112,11 @@ public class DomainEventProducerListener implements EventListener, Synchronizati
             log.debug("Writing domain events");
             StreamManager streamManager = streamService.getStreamManager();
             String stream = producer.getStream();
-            records.forEach(record -> streamManager.append(stream, record));
+            List<LogOffset> offsets = records.stream().map(record -> streamManager.append(stream, record)).toList();
+            log.debug("Calling postCommitHook on DEP: {} record key: {}, offsets {}", producer::getName,
+                    () -> records.getFirst().getKey(), () -> offsets);
+            producer.postCommitHook(offsets);
+            log.debug("postCommitHook completed");
         }
     }
 
