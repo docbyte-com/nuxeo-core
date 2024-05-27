@@ -19,8 +19,16 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.util.HashMap;
+
+import jakarta.inject.Inject;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
@@ -37,9 +45,9 @@ import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.pdf.PDFEncryption;
 import org.nuxeo.ecm.platform.pdf.operations.PDFEncryptOperation;
 import org.nuxeo.ecm.platform.pdf.operations.PDFEncryptReadOnlyOperation;
@@ -47,12 +55,6 @@ import org.nuxeo.ecm.platform.pdf.operations.PDFRemoveEncryptionOperation;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import javax.inject.Inject;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
@@ -84,8 +86,8 @@ public class PDFEncryptionTest {
         assertNotNull(pdfFileBlob);
         pdfFileBlob.setMimeType("application/pdf");
         pdfFileBlob.setFilename(pdfFile.getName());
-        DocumentModel pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(),
-            pdfFile.getName(), "File");
+        DocumentModel pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(), pdfFile.getName(),
+                "File");
         pdfDocModel.setPropertyValue("dc:title", pdfFile.getName());
         pdfDocModel.setPropertyValue("file:content", pdfFileBlob);
         pdfDocModel = coreSession.createDocument(pdfDocModel);
@@ -98,7 +100,7 @@ public class PDFEncryptionTest {
         pdfEncryptedFileBlob.setMimeType("application/pdf");
         pdfEncryptedFileBlob.setFilename(pdfEncryptedFile.getName());
         DocumentModel pdfEncryptedDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(),
-            pdfEncryptedFile.getName(), "File");
+                pdfEncryptedFile.getName(), "File");
         pdfEncryptedDocModel.setPropertyValue("dc:title", pdfEncryptedFile.getName());
         pdfEncryptedDocModel.setPropertyValue("file:content", pdfEncryptedFileBlob);
         pdfEncryptedDocModel = coreSession.createDocument(pdfEncryptedDocModel);
@@ -188,9 +190,9 @@ public class PDFEncryptionTest {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFEncryptOperation.ID)
-            .set("originalOwnerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
+             .set("originalOwnerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         PDDocument originalPDF = PDDocument.load(pdfFileBlob.getFile());
@@ -221,11 +223,11 @@ public class PDFEncryptionTest {
         properties.put("copy", "true");
         properties.put("extractforaccessibility", "true");
         chain.add(PDFEncryptOperation.ID)
-            .set("originalOwnerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD)
-            .set("keyLength", "40")
-            .set("permissions", new Properties(properties));
+             .set("originalOwnerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD)
+             .set("keyLength", "40")
+             .set("permissions", new Properties(properties));
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         PDDocument originalPDF = PDDocument.load(pdfFileBlob.getFile());
@@ -248,8 +250,7 @@ public class PDFEncryptionTest {
     public void testRemoveEncryptionOperation() throws Exception {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfEncryptedFileBlob);
-        chain.add(PDFRemoveEncryptionOperation.ID)
-            .set("ownerPwd", TestUtils.PDF_ENCRYPTED_PASSWORD);
+        chain.add(PDFRemoveEncryptionOperation.ID).set("ownerPwd", TestUtils.PDF_ENCRYPTED_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         try {
@@ -268,8 +269,8 @@ public class PDFEncryptionTest {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFEncryptReadOnlyOperation.ID)
-            .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
+             .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         checkIsReadOnly(result, TestUtils.PDF_PROTECTED_OWNER_PASSWORD, TestUtils.PDF_PROTECTED_USER_PASSWORD);
     }
@@ -283,12 +284,12 @@ public class PDFEncryptionTest {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(bl);
         chain.add(PDFEncryptReadOnlyOperation.ID)
-            .set("originalOwnerPwd", TestUtils.PDF_ENCRYPTED_PASSWORD)
-            .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
-            .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
+             .set("originalOwnerPwd", TestUtils.PDF_ENCRYPTED_PASSWORD)
+             .set("ownerPwd", TestUtils.PDF_PROTECTED_OWNER_PASSWORD)
+             .set("userPwd", TestUtils.PDF_PROTECTED_USER_PASSWORD);
         BlobList result = (BlobList) automationService.run(ctx, chain);
         assertEquals(2, result.size());
-        for(Blob b : result) {
+        for (Blob b : result) {
             checkIsReadOnly(b, TestUtils.PDF_PROTECTED_OWNER_PASSWORD, TestUtils.PDF_PROTECTED_USER_PASSWORD);
         }
     }

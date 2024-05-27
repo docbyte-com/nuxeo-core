@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.json.JSONException;
 import org.junit.Test;

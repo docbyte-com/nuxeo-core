@@ -24,8 +24,9 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;

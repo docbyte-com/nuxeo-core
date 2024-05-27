@@ -24,7 +24,7 @@ import static org.nuxeo.ecm.platform.filemanager.RepositoryInit.PATH_FOLDER;
 import static org.nuxeo.ecm.platform.filemanager.RepositoryInit.PATH_WORKSPACE;
 import static org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfigurationConstants.UI_TYPES_CONFIGURATION_DEFAULT_TYPE;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

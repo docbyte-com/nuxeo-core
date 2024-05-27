@@ -32,7 +32,7 @@ import static org.nuxeo.ecm.platform.comment.api.CommentEvents.COMMENT_UPDATED;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

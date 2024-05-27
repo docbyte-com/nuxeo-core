@@ -29,8 +29,9 @@ import static org.nuxeo.wopi.TestConstants.FILE_CONTENT_PROPERTY;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
+
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

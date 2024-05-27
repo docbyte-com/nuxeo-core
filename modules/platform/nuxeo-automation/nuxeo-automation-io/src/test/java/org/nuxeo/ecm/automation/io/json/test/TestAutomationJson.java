@@ -20,7 +20,7 @@ package org.nuxeo.ecm.automation.io.json.test;
 
 import java.io.ByteArrayOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

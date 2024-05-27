@@ -19,25 +19,28 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import java.io.File;
+
+import jakarta.inject.Inject;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.pdf.PDFUtils;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import javax.inject.Inject;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class })
@@ -58,8 +61,8 @@ public class PDFUtilsTest {
         testDocsFolder = coreSession.createDocument(testDocsFolder);
         testDocsFolder = coreSession.saveDocument(testDocsFolder);
         pdfFile = FileUtils.getResourceFileFromContext(TestUtils.PDF_PATH);
-        DocumentModel pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(),
-            pdfFile.getName(), "File");
+        DocumentModel pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(), pdfFile.getName(),
+                "File");
         pdfDocModel.setPropertyValue("dc:title", pdfFile.getName());
         pdfDocModel.setPropertyValue("file:content", new FileBlob(pdfFile));
         pdfDocModel = coreSession.createDocument(pdfDocModel);

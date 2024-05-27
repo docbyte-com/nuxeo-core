@@ -33,8 +33,9 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.Response;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Rule;

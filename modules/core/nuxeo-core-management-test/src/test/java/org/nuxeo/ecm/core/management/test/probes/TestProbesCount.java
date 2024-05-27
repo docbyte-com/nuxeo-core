@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.management.probes.ProbeManagerImpl.DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS_PROPERTY;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.AfterClass;
 import org.junit.Test;

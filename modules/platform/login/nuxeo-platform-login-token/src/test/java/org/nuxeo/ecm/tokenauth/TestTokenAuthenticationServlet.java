@@ -30,7 +30,7 @@ import static org.nuxeo.ecm.tokenauth.servlet.TokenAuthenticationServlet.REVOKE_
 import java.io.IOException;
 import java.net.URI;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.http.HttpStatus;

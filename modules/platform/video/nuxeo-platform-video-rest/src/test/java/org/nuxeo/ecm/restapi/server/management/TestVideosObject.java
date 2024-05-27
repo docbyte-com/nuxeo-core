@@ -36,9 +36,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MultivaluedHashMap;
 import javax.ws.rs.core.MultivaluedMap;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

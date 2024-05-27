@@ -25,7 +25,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.TimeZone;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

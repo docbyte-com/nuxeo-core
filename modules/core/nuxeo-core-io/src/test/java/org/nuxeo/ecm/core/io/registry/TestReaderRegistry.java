@@ -38,8 +38,9 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

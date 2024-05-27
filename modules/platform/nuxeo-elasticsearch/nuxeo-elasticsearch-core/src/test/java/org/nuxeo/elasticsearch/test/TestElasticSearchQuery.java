@@ -24,7 +24,7 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.lucene.search.join.ScoreMode;
 import org.opensearch.index.query.MoreLikeThisQueryBuilder;

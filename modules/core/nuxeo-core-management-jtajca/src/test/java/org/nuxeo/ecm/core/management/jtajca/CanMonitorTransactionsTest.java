@@ -30,9 +30,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.transaction.TransactionManager;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;

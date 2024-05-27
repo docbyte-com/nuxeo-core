@@ -23,7 +23,7 @@ package org.nuxeo.ecm.core.io.impl;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

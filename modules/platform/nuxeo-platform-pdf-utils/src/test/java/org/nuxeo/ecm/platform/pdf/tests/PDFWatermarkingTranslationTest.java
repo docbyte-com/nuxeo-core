@@ -20,6 +20,11 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import java.awt.geom.Point2D;
+import java.io.IOException;
+
+import jakarta.inject.Inject;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,18 +35,17 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import javax.inject.Inject;
-import java.awt.geom.Point2D;
-import java.io.IOException;
-
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingTranslationTest {
 
     private static long PAGE_WIDTH = 400;
+
     private static long PAGE_HEIGHT = 800;
+
     private static long WATERMARK_WIDTH = 200;
+
     private static long WATERMARK_HEIGHT = 100;
 
     @Inject
@@ -50,22 +54,20 @@ public class PDFWatermarkingTranslationTest {
     @Test
     public void testBottomLeftCorner() throws IOException {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(0,vector.getX(),1L);
-        Assert.assertEquals(0,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(0, vector.getX(), 1L);
+        Assert.assertEquals(0, vector.getY(), 1L);
     }
 
     @Test
     public void testBottomRightCorner() throws IOException {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH-WATERMARK_WIDTH,vector.getX(),1L);
-        Assert.assertEquals(0,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH - WATERMARK_WIDTH, vector.getX(), 1L);
+        Assert.assertEquals(0, vector.getY(), 1L);
     }
 
     @Test
@@ -73,11 +75,10 @@ public class PDFWatermarkingTranslationTest {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         properties.setInvertY(true);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH-WATERMARK_WIDTH,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT-WATERMARK_HEIGHT,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH - WATERMARK_WIDTH, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT - WATERMARK_HEIGHT, vector.getY(), 1L);
     }
 
     @Test
@@ -87,22 +88,20 @@ public class PDFWatermarkingTranslationTest {
         properties.setyPosition(50);
         properties.setInvertX(true);
         properties.setInvertY(true);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH-WATERMARK_WIDTH-50,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT-WATERMARK_HEIGHT-50,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH - WATERMARK_WIDTH - 50, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT - WATERMARK_HEIGHT - 50, vector.getY(), 1L);
     }
 
     @Test
     public void testTopLeftCorner() throws IOException {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertY(true);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(0,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT-WATERMARK_HEIGHT,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(0, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT - WATERMARK_HEIGHT, vector.getY(), 1L);
     }
 
     @Test
@@ -111,22 +110,20 @@ public class PDFWatermarkingTranslationTest {
         properties.setRelativeCoordinates(true);
         properties.setxPosition(0.5);
         properties.setyPosition(0.5);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals((PAGE_WIDTH-WATERMARK_WIDTH)/2,vector.getX(),1L);
-        Assert.assertEquals((PAGE_HEIGHT-WATERMARK_HEIGHT)/2,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals((PAGE_WIDTH - WATERMARK_WIDTH) / 2, vector.getX(), 1L);
+        Assert.assertEquals((PAGE_HEIGHT - WATERMARK_HEIGHT) / 2, vector.getY(), 1L);
     }
 
     @Test
     public void testBottomLeftCornerRotationDown() throws IOException {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(-90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(0,vector.getX(),1L);
-        Assert.assertEquals(WATERMARK_WIDTH,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(0, vector.getX(), 1L);
+        Assert.assertEquals(WATERMARK_WIDTH, vector.getY(), 1L);
     }
 
     @Test
@@ -135,22 +132,20 @@ public class PDFWatermarkingTranslationTest {
         properties.setRotation(-90);
         properties.setxPosition(50);
         properties.setyPosition(50);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(50,vector.getX(),1L);
-        Assert.assertEquals(WATERMARK_WIDTH+50,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(50, vector.getX(), 1L);
+        Assert.assertEquals(WATERMARK_WIDTH + 50, vector.getY(), 1L);
     }
 
     @Test
     public void testBottomLeftCornerRotationUp() throws IOException {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(WATERMARK_HEIGHT,vector.getX(),1L);
-        Assert.assertEquals(0,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(WATERMARK_HEIGHT, vector.getX(), 1L);
+        Assert.assertEquals(0, vector.getY(), 1L);
     }
 
     @Test
@@ -159,11 +154,10 @@ public class PDFWatermarkingTranslationTest {
         properties.setInvertX(true);
         properties.setInvertY(true);
         properties.setRotation(-90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH-WATERMARK_HEIGHT,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH - WATERMARK_HEIGHT, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT, vector.getY(), 1L);
     }
 
     @Test
@@ -172,11 +166,10 @@ public class PDFWatermarkingTranslationTest {
         properties.setInvertX(true);
         properties.setInvertY(true);
         properties.setRotation(90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT-WATERMARK_WIDTH,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT - WATERMARK_WIDTH, vector.getY(), 1L);
     }
 
     @Test
@@ -187,11 +180,10 @@ public class PDFWatermarkingTranslationTest {
         properties.setxPosition(50);
         properties.setyPosition(50);
         properties.setRotation(90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals(PAGE_WIDTH-50,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT-WATERMARK_WIDTH-50,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals(PAGE_WIDTH - 50, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT - WATERMARK_WIDTH - 50, vector.getY(), 1L);
     }
 
     @Test
@@ -201,11 +193,10 @@ public class PDFWatermarkingTranslationTest {
         properties.setxPosition(0.5);
         properties.setyPosition(0.5);
         properties.setRotation(90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals((PAGE_WIDTH+WATERMARK_HEIGHT)/2,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT/2-WATERMARK_WIDTH/2,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals((PAGE_WIDTH + WATERMARK_HEIGHT) / 2, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT / 2 - WATERMARK_WIDTH / 2, vector.getY(), 1L);
     }
 
     @Test
@@ -215,11 +206,10 @@ public class PDFWatermarkingTranslationTest {
         properties.setxPosition(0.5);
         properties.setyPosition(0.5);
         properties.setRotation(-90);
-        Point2D vector = pdfTransformationService.computeTranslationVector(
-                PAGE_WIDTH,WATERMARK_WIDTH,PAGE_HEIGHT,WATERMARK_HEIGHT,
-                properties);
-        Assert.assertEquals((PAGE_WIDTH-WATERMARK_HEIGHT)/2,vector.getX(),1L);
-        Assert.assertEquals(PAGE_HEIGHT/2+WATERMARK_WIDTH/2,vector.getY(),1L);
+        Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
+                WATERMARK_HEIGHT, properties);
+        Assert.assertEquals((PAGE_WIDTH - WATERMARK_HEIGHT) / 2, vector.getX(), 1L);
+        Assert.assertEquals(PAGE_HEIGHT / 2 + WATERMARK_WIDTH / 2, vector.getY(), 1L);
     }
 
 }

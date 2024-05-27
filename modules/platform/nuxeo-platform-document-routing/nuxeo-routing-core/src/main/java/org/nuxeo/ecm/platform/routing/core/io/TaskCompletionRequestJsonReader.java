@@ -32,8 +32,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.nuxeo.ecm.core.api.CoreSession;

@@ -19,19 +19,28 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TimeZone;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import javax.inject.Inject;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+
+import jakarta.inject.Inject;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -42,10 +51,10 @@ import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.pdf.PDFInfo;
 import org.nuxeo.ecm.platform.pdf.operations.PDFExtractInfoOperation;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -54,11 +63,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
@@ -159,8 +163,8 @@ public class PDFInfoTest {
         assertEquals("Mac OS X 10.9.5 Quartz PDFContext", values.get("PDF producer"));
         assertEquals("TextEdit", values.get("Content creator"));
         // The values of both Creation and Modification dates are relative to the local timezone.
-        //assertTrue(values.get("Creation date").matches("2014-10-23 2[0-1]:49:29"));
-        //assertTrue(values.get("Modification date").matches("2014-10-23 2[0-1]:49:29"));
+        // assertTrue(values.get("Creation date").matches("2014-10-23 2[0-1]:49:29"));
+        // assertTrue(values.get("Modification date").matches("2014-10-23 2[0-1]:49:29"));
         assertEquals("false", values.get("Encrypted"));
         assertEquals("", values.get("Keywords"));
         assertEquals("612.0", values.get("Media box width"));
@@ -326,8 +330,7 @@ public class PDFInfoTest {
         OperationChain chain = new OperationChain("testChain");
         try (OperationContext ctx = new OperationContext(coreSession)) {
             ctx.setInput(pdfDocModel);
-            chain.add(PDFExtractInfoOperation.ID)
-                .set("properties", new Properties(mapping));
+            chain.add(PDFExtractInfoOperation.ID).set("properties", new Properties(mapping));
             DocumentModel result = (DocumentModel) automationService.run(ctx, chain);
             assertNotNull(result);
             // PDF Version

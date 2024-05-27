@@ -21,7 +21,7 @@ package org.nuxeo.ecm.core.trash.test;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.trash.PropertyTrashService.SYSPROP_IS_TRASHED;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

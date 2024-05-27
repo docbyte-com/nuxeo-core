@@ -27,7 +27,7 @@ import static org.nuxeo.ecm.webengine.app.JsonWebengineWriter.SHOW_EXCEPTION_MES
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -33,7 +33,7 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;

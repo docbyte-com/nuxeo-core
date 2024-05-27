@@ -20,7 +20,7 @@ package org.nuxeo.ecm.platform.thumbnail.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

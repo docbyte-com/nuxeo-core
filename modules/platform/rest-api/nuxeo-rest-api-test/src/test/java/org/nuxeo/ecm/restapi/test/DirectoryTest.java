@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;

@@ -36,7 +36,7 @@ import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
 import java.util.GregorianCalendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;

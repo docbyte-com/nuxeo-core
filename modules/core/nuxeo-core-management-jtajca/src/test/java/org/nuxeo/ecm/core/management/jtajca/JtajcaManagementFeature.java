@@ -21,13 +21,14 @@ package org.nuxeo.ecm.core.management.jtajca;
 
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Named;
 import javax.management.JMX;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
 import javax.management.ObjectName;
 import javax.transaction.TransactionManager;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

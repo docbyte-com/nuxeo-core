@@ -32,7 +32,7 @@ import static org.nuxeo.ecm.core.migrator.AbstractBulkMigrator.PARAM_MIGRATION_S
 import java.time.Duration;
 import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

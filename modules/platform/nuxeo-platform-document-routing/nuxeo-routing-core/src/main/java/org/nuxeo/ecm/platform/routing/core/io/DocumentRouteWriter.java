@@ -28,7 +28,7 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.IdRef;

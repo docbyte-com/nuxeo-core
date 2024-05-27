@@ -39,8 +39,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+
+import jakarta.inject.Inject;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -79,7 +80,6 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.blob.BlobManager;
@@ -119,7 +119,6 @@ public class CmisSuiteSession2 {
 
     @Inject
     protected TransactionalFeature txFeature;
-
 
     @Inject
     protected CmisFeatureSession cmisFeatureSession;
@@ -206,12 +205,13 @@ public class CmisSuiteSession2 {
         FormBodyPart contentPart = FormBodyPartBuilder.create("content",
                 new FileBody(file, ContentType.TEXT_PLAIN, "testfile.txt")).build();
         HttpEntity entity = MultipartEntityBuilder.create()
-                .addPart(cmisactionPart)
-                .addTextBody("propertyId[0]", "cmis:name")
-                .addTextBody("propertyValue[0]", "testfile01")
-                .addTextBody("propertyId[1]", "cmis:objectTypeId")
-                .addTextBody("propertyValue[1]", "File")
-                .addPart(contentPart).build();
+                                                  .addPart(cmisactionPart)
+                                                  .addTextBody("propertyId[0]", "cmis:name")
+                                                  .addTextBody("propertyValue[0]", "testfile01")
+                                                  .addTextBody("propertyId[1]", "cmis:objectTypeId")
+                                                  .addTextBody("propertyValue[1]", "File")
+                                                  .addPart(contentPart)
+                                                  .build();
         return entity;
     }
 
@@ -230,9 +230,10 @@ public class CmisSuiteSession2 {
         FormBodyPart contentPart = FormBodyPartBuilder.create("content",
                 new FileBody(file, ContentType.TEXT_PLAIN, "testfile.txt")).build();
         HttpEntity entity = MultipartEntityBuilder.create()
-                .addPart(cmisactionPart)
-                .addTextBody("changeToken", changeToken)
-                .addPart(contentPart).build();
+                                                  .addPart(cmisactionPart)
+                                                  .addTextBody("changeToken", changeToken)
+                                                  .addPart(contentPart)
+                                                  .build();
         return entity;
     }
 
@@ -374,8 +375,8 @@ public class CmisSuiteSession2 {
         }
         assertEquals(content, HttpServletResponse.SC_CREATED, response.getStatusLine().getStatusCode());
         JsonNode root = mapper.readTree(content);
-        String expectedContentStreamHash = new ContentStreamHashImpl(
-                ContentStreamHashImpl.ALGORITHM_MD5, contentMD5Hex).toString();
+        String expectedContentStreamHash = new ContentStreamHashImpl(ContentStreamHashImpl.ALGORITHM_MD5,
+                contentMD5Hex).toString();
         Iterator<JsonNode> iter = root.path("succinctProperties").path("cmis:contentStreamHash").elements();
         boolean found = false;
         while (iter.hasNext()) {
@@ -430,7 +431,8 @@ public class CmisSuiteSession2 {
         HttpClientBuilder httpClientBuilder = HttpClientBuilder.create();
         httpClientBuilder.setRedirectStrategy(NeverRedirectStrategy.INSTANCE); // to check Location header manually
         try (CloseableHttpClient httpClient = httpClientBuilder.build()) {
-            String uri = getURI("/testfolder1/testfile1") + "&testredirect=true"; // to provoke a redirect in our dummy blob provider
+            String uri = getURI("/testfolder1/testfile1") + "&testredirect=true"; // to provoke a redirect in our dummy
+                                                                                  // blob provider
             HttpGet request = new HttpGet(uri);
             request.setHeader("Authorization", BASIC_AUTH);
             try (CloseableHttpResponse response = httpClient.execute(request)) {

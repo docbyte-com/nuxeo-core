@@ -28,7 +28,7 @@ import static org.junit.Assert.assertSame;
 import java.io.File;
 import java.util.zip.ZipFile;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

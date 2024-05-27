@@ -31,10 +31,11 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collections;
 
-import javax.inject.Inject;
 import javax.servlet.FilterConfig;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.AfterClass;

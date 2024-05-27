@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.automation.core;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Assert;

@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.automation.test.AutomationServerFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;

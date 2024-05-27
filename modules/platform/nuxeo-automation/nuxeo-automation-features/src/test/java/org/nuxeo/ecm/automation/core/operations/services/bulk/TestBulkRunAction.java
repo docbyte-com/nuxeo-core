@@ -26,15 +26,15 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -256,7 +256,9 @@ public class TestBulkRunAction {
             service.run(ctx, BulkRunAction.ID, params);
             fail("Expected exception");
         } catch (NuxeoException e) {
-            assertEquals("Failed to invoke operation Bulk.RunAction, Could not get Provider Definition from either query or provider name", e.getMessage());
+            assertEquals(
+                    "Failed to invoke operation Bulk.RunAction, Could not get Provider Definition from either query or provider name",
+                    e.getMessage());
         }
 
         // should work with unparameterized simpleProviderTest1
@@ -303,7 +305,8 @@ public class TestBulkRunAction {
     public void testExcludeDocs() throws Exception {
         // List doc ids that match a query
         DocumentModel model = session.getDocument(new PathRef("/default-domain/workspaces/test"));
-        String nxql = String.format("SELECT * from ComplexDoc WHERE ecm:parentId='%s' AND ecm:isProxy = 0", model.getId());
+        String nxql = String.format("SELECT * from ComplexDoc WHERE ecm:parentId='%s' AND ecm:isProxy = 0",
+                model.getId());
         List<String> ids = session.query(nxql).stream().map(DocumentModel::getId).collect(Collectors.toList());
         assertTrue(ids.size() > 2);
 

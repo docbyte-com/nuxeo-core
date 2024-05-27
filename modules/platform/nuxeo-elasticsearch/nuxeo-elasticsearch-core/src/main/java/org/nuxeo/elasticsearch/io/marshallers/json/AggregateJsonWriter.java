@@ -31,8 +31,9 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

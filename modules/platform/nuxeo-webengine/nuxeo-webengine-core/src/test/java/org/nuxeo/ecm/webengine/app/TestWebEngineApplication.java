@@ -30,7 +30,7 @@ import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

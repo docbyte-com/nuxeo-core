@@ -35,7 +35,7 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Assume;
 import org.junit.Before;

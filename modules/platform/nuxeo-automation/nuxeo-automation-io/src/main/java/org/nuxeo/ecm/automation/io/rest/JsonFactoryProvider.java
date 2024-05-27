@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.automation.io.rest;
 
-import javax.inject.Singleton;
 import javax.ws.rs.core.Feature;
 import javax.ws.rs.core.FeatureContext;
 import javax.ws.rs.ext.Provider;
+
+import jakarta.inject.Singleton;
 
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.nuxeo.ecm.webengine.JsonFactoryManager;

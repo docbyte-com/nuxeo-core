@@ -22,7 +22,7 @@ package org.nuxeo.ecm.admin.permissions;
 import java.io.Serializable;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;

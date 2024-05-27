@@ -25,8 +25,8 @@ import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

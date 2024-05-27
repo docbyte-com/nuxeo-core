@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;

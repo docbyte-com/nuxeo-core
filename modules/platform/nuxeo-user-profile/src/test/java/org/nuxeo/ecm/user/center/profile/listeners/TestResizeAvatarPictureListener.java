@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.user.center.profile.listeners.ResizeAvatarPictureLis
 import java.io.Serializable;
 import java.net.URL;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;

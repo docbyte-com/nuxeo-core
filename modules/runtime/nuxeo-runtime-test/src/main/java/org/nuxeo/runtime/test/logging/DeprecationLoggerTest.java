@@ -25,7 +25,7 @@ import static org.nuxeo.runtime.api.Framework.NUXEO_TESTING_SYSTEM_PROP;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;

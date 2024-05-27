@@ -18,7 +18,7 @@ package org.nuxeo.ecm.user.center.profile;
 import java.io.File;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.nuxeo.ecm.core.api.CoreSession;

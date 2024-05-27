@@ -22,7 +22,7 @@ package org.nuxeo.ecm.core.io.marshallers.json.enrichers;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;

@@ -33,7 +33,7 @@ import static org.nuxeo.ecm.directory.BaseDirectoryDescriptor.DATA_LOADING_POLIC
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

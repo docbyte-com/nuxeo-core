@@ -49,7 +49,7 @@ import org.junit.runners.model.FrameworkMethod;
  * {@link LogCaptureFeature.FilterOn} or a custom one implementing {@link LogCaptureFeature.Filter} class can be
  * provided with the annotation {@link LogCaptureFeature.FilterWith} to select the log events to capture.
  * <p>
- * A {@link LogCaptureFeature.Result} instance is to be injected with {@link javax.inject.Inject} as an attribute of the
+ * A {@link LogCaptureFeature.Result} instance is to be injected with {@link jakarta.inject.Inject} as an attribute of the
  * test.
  * <p>
  * The method {@link LogCaptureFeature.Result#assertHasEvent()} can then be called from test methods to check that

@@ -25,8 +25,9 @@ import java.lang.reflect.Type;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;

@@ -19,7 +19,7 @@
 
 package org.nuxeo.elasticsearch.test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Assert;
 import org.junit.Test;

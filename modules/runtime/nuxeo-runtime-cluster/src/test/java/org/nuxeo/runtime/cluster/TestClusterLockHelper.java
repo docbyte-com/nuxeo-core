@@ -26,7 +26,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.core.LogEvent;

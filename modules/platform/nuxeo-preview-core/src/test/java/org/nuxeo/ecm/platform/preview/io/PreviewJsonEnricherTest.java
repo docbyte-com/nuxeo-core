@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.preview.io;
 
 import java.net.URL;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;

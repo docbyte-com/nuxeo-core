@@ -20,6 +20,10 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import java.io.IOException;
+
+import jakarta.inject.Inject;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -40,15 +44,13 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import javax.inject.Inject;
-import java.io.IOException;
-
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingTextTest {
 
     private static final String TEXT_WATERMARK = "(c) Test Text Watermark";
+
     private static final String PDF_PATH = "/files/test-watermark.pdf";
 
     @Inject
@@ -76,9 +78,8 @@ public class PDFWatermarkingTextTest {
     public void testServiceDefault() throws IOException {
         Blob blob = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
-        Blob result = pdfTransformationService.applyTextWatermark(
-                blob,TEXT_WATERMARK,properties);
-        TestUtils.hasTextOnAllPages(result,TEXT_WATERMARK);
+        Blob result = pdfTransformationService.applyTextWatermark(blob, TEXT_WATERMARK, properties);
+        TestUtils.hasTextOnAllPages(result, TEXT_WATERMARK);
     }
 
     @Test
@@ -88,9 +89,8 @@ public class PDFWatermarkingTextTest {
         properties.setRelativeCoordinates(true);
         properties.setxPosition(0.5f);
         properties.setyPosition(0.5f);
-        Blob result = pdfTransformationService.applyTextWatermark(
-                blob,TEXT_WATERMARK,properties);
-        TestUtils.hasTextOnAllPages(result,TEXT_WATERMARK);
+        Blob result = pdfTransformationService.applyTextWatermark(blob, TEXT_WATERMARK, properties);
+        TestUtils.hasTextOnAllPages(result, TEXT_WATERMARK);
     }
 
     @Test
@@ -98,9 +98,8 @@ public class PDFWatermarkingTextTest {
         Blob blob = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(45);
-        Blob result = pdfTransformationService.applyTextWatermark(
-                blob,TEXT_WATERMARK,properties);
-        TestUtils.hasTextOnAllPages(result,TEXT_WATERMARK);
+        Blob result = pdfTransformationService.applyTextWatermark(blob, TEXT_WATERMARK, properties);
+        TestUtils.hasTextOnAllPages(result, TEXT_WATERMARK);
     }
 
     @Test
@@ -109,10 +108,10 @@ public class PDFWatermarkingTextTest {
         OperationChain chain;
         ctx.setInput(input);
         chain = new OperationChain("testWithDefault");
-        chain.add(PDFWatermarkTextOperation.ID).set("text",TEXT_WATERMARK);
+        chain.add(PDFWatermarkTextOperation.ID).set("text", TEXT_WATERMARK);
         Blob result = (Blob) automationService.run(ctx, chain);
         Assert.assertNotNull(result);
-        TestUtils.hasTextOnAllPages(result,TEXT_WATERMARK);
+        TestUtils.hasTextOnAllPages(result, TEXT_WATERMARK);
     }
 
     @Test
@@ -121,12 +120,10 @@ public class PDFWatermarkingTextTest {
         OperationChain chain;
         ctx.setInput(input);
         chain = new OperationChain("testWithDefault");
-        chain.add(PDFWatermarkTextOperation.ID).
-                set("text",TEXT_WATERMARK).
-                set("properties","alphaColor=1.0");
+        chain.add(PDFWatermarkTextOperation.ID).set("text", TEXT_WATERMARK).set("properties", "alphaColor=1.0");
         Blob result = (Blob) automationService.run(ctx, chain);
         Assert.assertNotNull(result);
-        TestUtils.hasTextOnAllPages(result,TEXT_WATERMARK);
+        TestUtils.hasTextOnAllPages(result, TEXT_WATERMARK);
     }
 
 }

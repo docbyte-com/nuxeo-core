@@ -30,7 +30,7 @@ import static org.nuxeo.ecm.restapi.server.management.ElasticsearchObject.GET_AL
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

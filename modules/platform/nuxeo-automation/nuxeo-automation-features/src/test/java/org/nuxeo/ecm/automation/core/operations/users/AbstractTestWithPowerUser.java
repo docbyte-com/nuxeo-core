@@ -22,7 +22,7 @@ package org.nuxeo.ecm.automation.core.operations.users;
 import java.io.Serializable;
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;

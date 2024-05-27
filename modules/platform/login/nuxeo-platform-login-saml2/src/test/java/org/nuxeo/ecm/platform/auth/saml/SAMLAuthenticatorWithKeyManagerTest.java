@@ -34,8 +34,9 @@ import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBind
 import java.time.Instant;
 import java.util.UUID;
 
-import javax.inject.Inject;
 import javax.servlet.http.Cookie;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

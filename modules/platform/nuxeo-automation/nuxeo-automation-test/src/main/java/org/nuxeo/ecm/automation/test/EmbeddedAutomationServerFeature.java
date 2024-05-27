@@ -23,7 +23,7 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.ADMINISTRATOR;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.core.test.DetectThreadDeadlocksFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;

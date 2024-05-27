@@ -22,8 +22,8 @@ package org.nuxeo.ecm.platform.comment;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_ID;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

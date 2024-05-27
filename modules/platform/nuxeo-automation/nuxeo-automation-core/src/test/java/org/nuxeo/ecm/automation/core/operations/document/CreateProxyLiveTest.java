@@ -20,7 +20,7 @@ package org.nuxeo.ecm.automation.core.operations.document;
 
 import static junit.framework.Assert.*;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

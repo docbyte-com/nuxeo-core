@@ -30,7 +30,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -27,7 +27,7 @@ import static org.nuxeo.ecm.tokenauth.servlet.TokenAuthenticationServlet.PERMISS
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;

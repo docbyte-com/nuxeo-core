@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

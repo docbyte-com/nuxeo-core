@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;

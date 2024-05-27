@@ -32,7 +32,7 @@ import java.io.OutputStream;
 import java.util.Calendar;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;

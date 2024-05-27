@@ -30,7 +30,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

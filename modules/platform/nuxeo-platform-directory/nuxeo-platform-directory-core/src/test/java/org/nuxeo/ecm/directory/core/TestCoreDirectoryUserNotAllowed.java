@@ -21,8 +21,8 @@ package org.nuxeo.ecm.directory.core;
 
 import static org.junit.Assert.assertNull;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;

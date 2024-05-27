@@ -25,7 +25,7 @@ import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_REMOVED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.PROXY_REMOVED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.VERSION_REMOVED;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

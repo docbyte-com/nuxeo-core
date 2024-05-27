@@ -47,8 +47,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Rule;

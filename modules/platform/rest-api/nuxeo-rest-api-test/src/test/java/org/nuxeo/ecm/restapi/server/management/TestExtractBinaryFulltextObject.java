@@ -25,7 +25,7 @@ import static org.nuxeo.ecm.core.bulk.io.BulkConstants.STATUS_HAS_ERROR;
 
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

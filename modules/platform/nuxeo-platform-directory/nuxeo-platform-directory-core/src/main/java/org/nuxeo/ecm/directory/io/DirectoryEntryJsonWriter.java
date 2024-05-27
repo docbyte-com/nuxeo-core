@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;

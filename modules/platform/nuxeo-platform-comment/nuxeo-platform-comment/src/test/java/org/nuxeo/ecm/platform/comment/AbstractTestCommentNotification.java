@@ -36,7 +36,7 @@ import static org.nuxeo.ecm.platform.ec.notification.NotificationConstants.DISAB
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

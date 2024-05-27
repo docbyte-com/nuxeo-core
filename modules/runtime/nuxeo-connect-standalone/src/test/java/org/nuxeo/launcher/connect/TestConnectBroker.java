@@ -36,11 +36,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -1168,12 +1169,12 @@ public class TestConnectBroker {
         // check logs
         String expectedLogs = """
                 Added %s/NXP-31613-2023.0.0-PR-926-BUILD-1
-                
+
                 Dependency resolution:
                   Installation order (1):        NXP-31613-2023.0.0-PR-926-BUILD-1
                   Unchanged packages (10):       A:1.0.0, B:1.0.1-SNAPSHOT, hfA:1.0.0, C:1.0.0, D:1.0.2-SNAPSHOT, studioA:1.0.0, G:1.0.1-SNAPSHOT, H:1.0.1-SNAPSHOT, J:1.0.1, K:1.0.0-SNAPSHOT
                   Local packages to install (1): NXP-31613:2023.0.0-PR-926-BUILD-1
-                
+
                 Installing NXP-31613-2023.0.0-PR-926-BUILD-1""".formatted(
                 TEST_LOCAL_ONLY_PATH);
         assertThat(logOf(logCaptureResult)).isEqualTo(expectedLogs);

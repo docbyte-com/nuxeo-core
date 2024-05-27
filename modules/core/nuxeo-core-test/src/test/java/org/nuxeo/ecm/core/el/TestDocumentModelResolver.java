@@ -33,7 +33,8 @@ import javax.el.ELContext;
 import javax.el.ExpressionFactory;
 import javax.el.PropertyNotWritableException;
 import javax.el.ValueExpression;
-import javax.inject.Inject;
+
+import jakarta.inject.Inject;
 
 import org.jboss.el.ExpressionFactoryImpl;
 import org.junit.Before;
@@ -246,6 +247,5 @@ public class TestDocumentModelResolver {
         fileList = (List<Map<String, Serializable>>) doc.getPropertyValue("files:files");
         assertEquals(9, fileList.size());
     }
-
 
 }

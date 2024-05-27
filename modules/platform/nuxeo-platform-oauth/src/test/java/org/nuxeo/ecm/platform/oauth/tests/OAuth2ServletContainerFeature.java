@@ -38,7 +38,7 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 /**
  * @since 9.2

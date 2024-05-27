@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;

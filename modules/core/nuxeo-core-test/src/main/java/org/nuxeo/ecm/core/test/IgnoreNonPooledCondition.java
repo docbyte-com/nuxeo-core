@@ -15,7 +15,7 @@
  */
 package org.nuxeo.ecm.core.test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 

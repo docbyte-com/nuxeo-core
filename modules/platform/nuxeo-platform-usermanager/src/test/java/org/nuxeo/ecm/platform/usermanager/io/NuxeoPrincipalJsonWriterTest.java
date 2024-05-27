@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.platform.usermanager.io;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.directory.test.DirectoryFeature;

@@ -23,7 +23,7 @@ import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.COUNTER_FIELD
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.COUNTER_NAME_UUID;
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.MONGODB_ID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;

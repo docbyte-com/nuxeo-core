@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.scheduler;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

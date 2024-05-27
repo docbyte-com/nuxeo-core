@@ -29,8 +29,9 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.ws.rs.core.MediaType;
+
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;

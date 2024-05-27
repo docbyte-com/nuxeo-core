@@ -24,7 +24,7 @@ import static org.nuxeo.ecm.blob.s3.S3BlobProviderFeature.S3_DOC_TYPE;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

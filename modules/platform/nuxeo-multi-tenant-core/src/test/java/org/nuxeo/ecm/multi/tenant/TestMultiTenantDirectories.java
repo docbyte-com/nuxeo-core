@@ -21,13 +21,14 @@ package org.nuxeo.ecm.multi.tenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.nuxeo.ecm.multi.tenant.Constants.POWER_USERS_GROUP;
 
-import javax.inject.Inject;
-import javax.security.auth.login.LoginException;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.security.auth.login.LoginException;
+
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,7 +147,8 @@ public class TestMultiTenantDirectories {
             try {
                 sessionDir.createEntry(newEntry);
             } catch (DirectoryException e) {
-                assertThat(e.getMessage()).isEqualTo("Entry with id tenant_domain0_key0 already exists in directory testDirectory");
+                assertThat(e.getMessage()).isEqualTo(
+                        "Entry with id tenant_domain0_key0 already exists in directory testDirectory");
             }
         }
     }

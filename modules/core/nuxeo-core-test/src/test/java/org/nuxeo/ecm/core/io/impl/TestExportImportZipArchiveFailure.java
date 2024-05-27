@@ -25,7 +25,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Test;

@@ -21,7 +21,7 @@ package org.nuxeo.ecm.core.trash.test;
 import static org.nuxeo.ecm.core.trash.TrashServiceImpl.MIGRATION_ID;
 import static org.nuxeo.ecm.core.trash.TrashServiceImpl.MIGRATION_STEP_LIFECYCLE_TO_PROPERTY;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.core.test.MigrationFeature;
 import org.nuxeo.ecm.core.trash.TrashServiceImpl;

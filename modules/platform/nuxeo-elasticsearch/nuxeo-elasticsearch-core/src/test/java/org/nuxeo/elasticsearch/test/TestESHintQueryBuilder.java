@@ -29,7 +29,7 @@ import static org.junit.Assert.fail;
 import java.util.Arrays;
 import java.util.Optional;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.opensearch.common.geo.ShapeRelation;
 import org.opensearch.index.query.AbstractQueryBuilder;

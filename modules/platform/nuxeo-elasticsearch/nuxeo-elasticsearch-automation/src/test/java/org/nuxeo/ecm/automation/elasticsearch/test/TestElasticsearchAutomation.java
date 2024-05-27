@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;

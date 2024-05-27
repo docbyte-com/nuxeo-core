@@ -28,7 +28,7 @@ import static org.nuxeo.ecm.core.management.probes.ProbeManagerImpl.DEFAULT_HEAL
 
 import java.util.Collection;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;

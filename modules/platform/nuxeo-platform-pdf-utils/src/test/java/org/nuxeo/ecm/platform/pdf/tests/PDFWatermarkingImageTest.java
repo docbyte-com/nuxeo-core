@@ -20,6 +20,14 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
+import jakarta.inject.Inject;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,19 +49,15 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import javax.imageio.ImageIO;
-import javax.inject.Inject;
-import java.io.IOException;
-
-import static org.junit.Assert.assertTrue;
-
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingImageTest {
 
     private static final String PDF_PATH = "/files/test-watermark.pdf";
+
     private static final String JPEG_IMAGE_PATH = "/files/nuxeo-logo-gray.jpg";
+
     private static final String PNG_IMAGE_PATH = "/files/logo.png";
 
     @Inject
@@ -88,7 +92,7 @@ public class PDFWatermarkingImageTest {
         Blob blob = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         Blob image = new FileBlob(getClass().getResourceAsStream(JPEG_IMAGE_PATH));
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
-        Blob result = pdfTransformationService.applyImageWatermark(blob,image,properties);
+        Blob result = pdfTransformationService.applyImageWatermark(blob, image, properties);
         assertTrue(TestUtils.hasImageOnAllPages(result));
     }
 
@@ -97,7 +101,7 @@ public class PDFWatermarkingImageTest {
         Blob blob = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         Blob image = new FileBlob(getClass().getResourceAsStream(PNG_IMAGE_PATH));
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
-        Blob result = pdfTransformationService.applyImageWatermark(blob,image,properties);
+        Blob result = pdfTransformationService.applyImageWatermark(blob, image, properties);
         assertTrue(TestUtils.hasImageOnAllPages(result));
     }
 
@@ -110,7 +114,7 @@ public class PDFWatermarkingImageTest {
         properties.setxPosition(0.5);
         properties.setyPosition(0.5);
         properties.setScale(2.0);
-        Blob result = pdfTransformationService.applyImageWatermark(blob,image,properties);
+        Blob result = pdfTransformationService.applyImageWatermark(blob, image, properties);
         assertTrue(TestUtils.hasImageOnAllPages(result));
     }
 
@@ -119,7 +123,7 @@ public class PDFWatermarkingImageTest {
         Blob blob = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         Blob image = new FileBlob(getClass().getResourceAsStream(JPEG_IMAGE_PATH));
         OperationChain chain = new OperationChain("testWithDefault");
-        chain.add(PDFWatermarkImageOperation.ID).set("image",image);
+        chain.add(PDFWatermarkImageOperation.ID).set("image", image);
         ctx.setInput(blob);
         Blob result = (Blob) automationService.run(ctx, chain);
         Assert.assertNotNull(result);
@@ -132,9 +136,7 @@ public class PDFWatermarkingImageTest {
         Blob image = new FileBlob(getClass().getResourceAsStream(JPEG_IMAGE_PATH));
         ctx.setInput(blob);
         OperationChain chain = new OperationChain("testWithDefault");
-        chain.add(PDFWatermarkImageOperation.ID).
-                set("image",image).
-                set("properties","scale=2.0");
+        chain.add(PDFWatermarkImageOperation.ID).set("image", image).set("properties", "scale=2.0");
         Blob result = (Blob) automationService.run(ctx, chain);
         Assert.assertNotNull(result);
         assertTrue(TestUtils.hasImageOnAllPages(result));

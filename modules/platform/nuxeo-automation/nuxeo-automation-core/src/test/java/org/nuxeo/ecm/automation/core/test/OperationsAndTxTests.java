@@ -27,8 +27,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.transaction.Transaction;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;

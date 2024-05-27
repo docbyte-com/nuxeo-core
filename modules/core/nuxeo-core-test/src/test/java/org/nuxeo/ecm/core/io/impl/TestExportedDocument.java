@@ -29,7 +29,7 @@ import java.io.InputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.dom4j.io.XMLWriter;
 import org.junit.Test;

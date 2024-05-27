@@ -33,7 +33,7 @@ import static org.nuxeo.ecm.core.model.Repository.CAPABILITY_REPOSITORY;
 import static org.nuxeo.runtime.capabilities.CapabilitiesServiceImpl.CAPABILITY_SERVER;
 import static org.nuxeo.runtime.cluster.ClusterServiceImpl.CAPABILITY_CLUSTER;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
