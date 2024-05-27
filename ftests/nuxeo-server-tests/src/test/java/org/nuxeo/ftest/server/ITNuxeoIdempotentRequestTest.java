@@ -18,22 +18,29 @@
  */
 package org.nuxeo.ftest.server;
 
+import static org.apache.http.HttpStatus.SC_CREATED;
+import static org.apache.http.HttpStatus.SC_NO_CONTENT;
+import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.nuxeo.ecm.platform.web.common.idempotency.NuxeoIdempotentFilter.HEADER_KEY;
 import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
-import static org.nuxeo.functionaltests.Constants.ADMINISTRATOR;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.ws.rs.core.MediaType;
+
+import org.junit.Rule;
 import org.junit.Test;
-import org.nuxeo.client.NuxeoClient;
-import org.nuxeo.client.objects.Document;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.dublincore.constants.DublinCoreConstants;
-import org.nuxeo.functionaltests.RestHelper.NuxeoClientForNuxeo;
+import org.nuxeo.http.test.HttpClientTestRule;
+import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
+import org.nuxeo.http.test.handler.JsonNodeHandler;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Tests for idempotent request mechanism.
@@ -42,14 +49,9 @@ import org.nuxeo.functionaltests.RestHelper.NuxeoClientForNuxeo;
  */
 public class ITNuxeoIdempotentRequestTest {
 
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
     private static final String TEST_KEY = "idempotenttestkey" + new Date().getTime();
-
-    private static final NuxeoClient.Builder CLIENT_BUILDER = new NuxeoClientForNuxeo.BuilderForNuxeo().url(
-            NUXEO_URL).authentication(ADMINISTRATOR, ADMINISTRATOR).schemas("*");
-
-    private static final NuxeoClient CLIENT = CLIENT_BUILDER.connect();
-
-    private static final NuxeoClient IDEMPOTENT_CLIENT = CLIENT_BUILDER.header(HEADER_KEY, TEST_KEY).connect();
 
     private static final String PARENT_PATH = "/default-domain/workspaces/";
 
@@ -58,60 +60,80 @@ public class ITNuxeoIdempotentRequestTest {
 
     private static final String TEST_TITLE = "testdoc";
 
-    private static final String TEST_TYPE = "File";
+    @Rule
+    public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
+                                                                   .url(NUXEO_URL + "/api/v1")
+                                                                   .adminCredentials()
+                                                                   .accept(MediaType.APPLICATION_JSON)
+                                                                   .contentType(MediaType.APPLICATION_JSON)
+                                                                   .header("X-NXproperties", "*")
+                                                                   .build();
 
-    protected String createDocument(NuxeoClient client) {
-        Document document = Document.createWithName(TEST_TITLE, TEST_TYPE);
-        document.setProperties(Map.of(DublinCoreConstants.DUBLINCORE_TITLE_PROPERTY, TEST_TITLE));
-        Document created = client.repository().createDocumentByPath(PARENT_PATH, document);
+    protected String createDocument(boolean idempotent) throws IOException {
+        var document = new HashMap<String, Object>();
+        document.put("entity-type", "document");
+        document.put("type", "File");
+        document.put("name", "testdoc");
+        document.put("properties", Map.of("dc:title", "testdoc"));
+        var requestBuilder = httpClient.buildPostRequest("/path" + PARENT_PATH)
+                                       .entity(MAPPER.writeValueAsString(document));
+        if (idempotent) {
+            requestBuilder.addHeader(HEADER_KEY, TEST_KEY);
+        }
+        var docId = requestBuilder.executeAndThen(new JsonNodeHandler(SC_CREATED), node -> node.get("uid").textValue());
         waitForAsyncWork();
-        return created.getId();
+        return docId;
     }
 
     /**
      * Prevents from random failures when counting children.
      */
-    protected void waitForAsyncWork() {
-        Map<String, Object> parameters = new HashMap<>();
-        parameters.put("timeoutSecond", Integer.valueOf(110));
-        parameters.put("refresh", Boolean.TRUE);
-        parameters.put("waitForAudit", Boolean.TRUE);
-        CLIENT.operation("Elasticsearch.WaitForIndexing").parameters(parameters).execute();
+    protected void waitForAsyncWork() throws IOException {
+        var entity = new HashMap<String, Object>();
+        entity.put("params", Map.of("timeoutSecond", 110, "refresh", true, "waitForAudit", true));
+        httpClient.buildPostRequest("/automation/Elasticsearch.WaitForIndexing")
+                  .entity(MAPPER.writeValueAsString(entity))
+                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
     }
 
     protected int getNumberOfChildren() {
-        return CLIENT.repository().query(QUERY_CHILDREN).size() - 1;
+        return httpClient.buildGetRequest("/search/execute")
+                         .addQueryParameter("query", QUERY_CHILDREN)
+                         .executeAndThen(new JsonNodeHandler(), node -> node.get("entries").size() - 1);
     }
 
-    protected Document fetch(String id) {
-        return CLIENT.repository().fetchDocumentById(id);
+    protected String fetchDocumentTile(String id) {
+        return httpClient.buildGetRequest("/id/" + id)
+                         .executeAndThen(new JsonNodeHandler(), node -> node.get("title").textValue());
     }
 
     protected void delete(String id) {
-        CLIENT.repository().deleteDocument(id);
+        httpClient.buildDeleteRequest("/id/" + id)
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_NO_CONTENT, status.intValue()));
     }
 
     @Test
-    public void testIdempotentRequest() {
+    public void testIdempotentRequest() throws IOException {
         String id = null;
         String dupeId = null;
         try {
             assertEquals(0, getNumberOfChildren());
 
             // create child document
-            id = createDocument(IDEMPOTENT_CLIENT);
-            assertEquals(TEST_TITLE, fetch(id).getTitle());
+            id = createDocument(true);
+            assertEquals(TEST_TITLE, fetchDocumentTile(id));
             // doc created
             assertEquals(1, getNumberOfChildren());
 
             // try creating it again
-            dupeId = createDocument(IDEMPOTENT_CLIENT);
+            dupeId = createDocument(true);
             assertEquals(id, dupeId);
             // dupe not created
             assertEquals(1, getNumberOfChildren());
 
             // create again without idempotency key
-            dupeId = createDocument(CLIENT);
+            dupeId = createDocument(false);
             assertNotEquals(id, dupeId);
             // dupe created
             assertEquals(2, getNumberOfChildren());

@@ -59,7 +59,9 @@ import okhttp3.Response;
 
 /**
  * @since 8.3
+ * @deprecated since 2023.13, use {@link RestTestRule} instead
  */
+@Deprecated(since = "2023.13", forRemoval = true)
 public class RestHelper {
 
     // by default timeout is 10s, hot reload needs a bit more
