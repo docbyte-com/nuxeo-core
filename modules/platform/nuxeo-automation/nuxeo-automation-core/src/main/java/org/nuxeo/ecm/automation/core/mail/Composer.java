@@ -33,11 +33,11 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.activation.DataHandler;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMultipart;
 
+import jakarta.activation.DataHandler;
 import jakarta.validation.constraints.NotNull;
 
 import org.apache.logging.log4j.LogManager;

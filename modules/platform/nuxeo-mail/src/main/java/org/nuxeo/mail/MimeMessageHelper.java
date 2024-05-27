@@ -19,7 +19,6 @@ package org.nuxeo.mail;
 
 import java.util.List;
 
-import javax.activation.DataHandler;
 import javax.mail.Address;
 import javax.mail.MessagingException;
 import javax.mail.Session;
@@ -28,6 +27,8 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
+
+import jakarta.activation.DataHandler;
 
 import org.nuxeo.ecm.core.api.Blob;
 
