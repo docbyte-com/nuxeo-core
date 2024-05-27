@@ -42,7 +42,6 @@ import static org.nuxeo.launcher.config.ConfigurationConstants.TOMCAT_STARTUP_CL
 import java.io.Console;
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.SocketTimeoutException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,7 +64,7 @@ import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

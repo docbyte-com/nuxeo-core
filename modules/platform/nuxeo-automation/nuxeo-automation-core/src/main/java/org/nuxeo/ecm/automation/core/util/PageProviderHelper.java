@@ -33,7 +33,8 @@ import java.util.stream.StreamSupport;
 
 import javax.el.ELContext;
 import javax.el.ValueExpression;
-import javax.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;

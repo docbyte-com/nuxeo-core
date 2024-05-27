@@ -18,7 +18,7 @@
  */
 package org.nuxeo.elasticsearch.http.readonly;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 

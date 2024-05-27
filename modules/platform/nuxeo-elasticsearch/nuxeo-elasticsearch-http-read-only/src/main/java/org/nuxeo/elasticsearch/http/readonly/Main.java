@@ -20,7 +20,6 @@ package org.nuxeo.elasticsearch.http.readonly;
 
 import java.io.IOException;
 
-import javax.validation.constraints.NotNull;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,11 +31,11 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriInfo;
 
+import jakarta.validation.constraints.NotNull;
+
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.opensearch.client.Request;
-import org.opensearch.client.Response;
 import org.json.JSONException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -50,6 +49,8 @@ import org.nuxeo.elasticsearch.http.readonly.filter.RequestValidator;
 import org.nuxeo.elasticsearch.http.readonly.filter.SearchRequestFilter;
 import org.nuxeo.elasticsearch.http.readonly.service.RequestFilterService;
 import org.nuxeo.runtime.api.Framework;
+import org.opensearch.client.Request;
+import org.opensearch.client.Response;
 
 /**
  * Exposes a limited set of Read Only Elasticsearch REST API.

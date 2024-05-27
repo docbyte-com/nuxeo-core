@@ -23,7 +23,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.json.JSONException;
 import org.nuxeo.ecm.core.api.CoreSession;

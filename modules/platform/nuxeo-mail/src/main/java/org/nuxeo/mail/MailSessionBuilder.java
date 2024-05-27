@@ -41,7 +41,8 @@ import javax.mail.Session;
 import javax.mail.Store;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
