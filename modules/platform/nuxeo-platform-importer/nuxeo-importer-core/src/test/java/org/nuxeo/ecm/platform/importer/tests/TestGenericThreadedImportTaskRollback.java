@@ -23,9 +23,8 @@ import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
 
-import javax.transaction.Status;
-
 import jakarta.inject.Inject;
+import jakarta.transaction.Status;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

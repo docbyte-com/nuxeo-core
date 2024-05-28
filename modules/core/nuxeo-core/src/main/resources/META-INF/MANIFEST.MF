@@ -53,7 +53,6 @@ Nuxeo-Component: OSGI-INF/CoreService.xml,
   OSGI-INF/bulk-migration-action-contrib.xml
 Bundle-ManifestVersion: 2
 Import-Package: javax.naming,
- javax.transaction;version="1.1",
  javax.transaction.xa;version="1.1",
  javax.xml.parsers,
  org.apache.commons.lang,

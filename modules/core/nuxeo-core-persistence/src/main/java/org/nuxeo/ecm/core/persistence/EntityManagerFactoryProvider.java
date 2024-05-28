@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.persistence;
 
-import javax.persistence.EntityManagerFactory;
+import jakarta.persistence.EntityManagerFactory;
 
 public interface EntityManagerFactoryProvider {
 

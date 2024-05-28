@@ -19,8 +19,8 @@
  */
 package org.nuxeo.ecm.core.repository;
 
-import static javax.transaction.Status.STATUS_COMMITTED;
-import static javax.transaction.Status.STATUS_ROLLEDBACK;
+import static jakarta.transaction.Status.STATUS_COMMITTED;
+import static jakarta.transaction.Status.STATUS_ROLLEDBACK;
 import static org.nuxeo.ecm.core.model.Repository.CAPABILITY_QUERY_BLOB_KEYS;
 
 import java.time.Duration;
@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.transaction.Synchronization;
+import jakarta.transaction.Synchronization;
 
 import org.apache.commons.pool2.BaseKeyedPooledObjectFactory;
 import org.apache.commons.pool2.KeyedObjectPool;

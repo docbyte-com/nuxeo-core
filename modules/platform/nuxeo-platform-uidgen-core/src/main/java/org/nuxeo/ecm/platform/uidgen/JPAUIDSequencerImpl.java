@@ -26,8 +26,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.persistence.PersistenceProvider;
@@ -47,8 +47,11 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 public class JPAUIDSequencerImpl extends AbstractUIDSequencer {
 
     public static final int POOL_SIZE = 1;
+
     public static final int MAX_POOL_SIZE = 2;
+
     public static final long KEEP_ALIVE_TIME = 10L;
+
     public static final int QUEUE_SIZE = 1000;
 
     private static volatile PersistenceProvider persistenceProvider;
@@ -92,7 +95,8 @@ public class JPAUIDSequencerImpl extends AbstractUIDSequencer {
         ClassLoader last = thread.getContextClassLoader();
         try {
             thread.setContextClassLoader(PersistenceProvider.class.getClassLoader());
-            PersistenceProviderFactory persistenceProviderFactory = Framework.getService(PersistenceProviderFactory.class);
+            PersistenceProviderFactory persistenceProviderFactory = Framework.getService(
+                    PersistenceProviderFactory.class);
             persistenceProvider = persistenceProviderFactory.newProvider("NXUIDSequencer");
             persistenceProvider.openPersistenceUnit();
         } finally {
@@ -185,7 +189,9 @@ public class JPAUIDSequencerImpl extends AbstractUIDSequencer {
     protected int getNext(EntityManager em, String key) {
         UIDSequenceBean seq;
         try {
-            seq = (UIDSequenceBean) em.createNamedQuery("UIDSequence.findByKey").setParameter("key", key).getSingleResult();
+            seq = (UIDSequenceBean) em.createNamedQuery("UIDSequence.findByKey")
+                                      .setParameter("key", key)
+                                      .getSingleResult();
             // createQuery("FROM UIDSequenceBean seq WHERE seq.key = :key")
         } catch (NoResultException e) {
             seq = new UIDSequenceBean(key);

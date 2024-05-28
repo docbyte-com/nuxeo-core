@@ -39,11 +39,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.apache.logging.log4j.Logger;
@@ -275,18 +276,18 @@ public class BulkServiceImpl implements BulkService, Synchronization {
         KeyValueStore kvStore = getKvStore();
         byte[] statusAsBytes = BulkCodecs.getStatusCodec().encode(status);
         switch (status.getState()) {
-        case ABORTED:
-            kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes, ABORTED_TTL_SECONDS);
-            // we remove the command from the kv store, so computation have to handle abort
-            kvStore.put(COMMAND_PREFIX + status.getId(), (String) null);
-            break;
-        case COMPLETED:
-            long ttl = status.hasError() ? COMPLETED_IN_ERROR_TTL_SECONDS : COMPLETED_TTL_SECONDS;
-            kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes, ttl);
-            kvStore.setTTL(COMMAND_PREFIX + status.getId(), ttl);
-            break;
-        default:
-            kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes);
+            case ABORTED:
+                kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes, ABORTED_TTL_SECONDS);
+                // we remove the command from the kv store, so computation have to handle abort
+                kvStore.put(COMMAND_PREFIX + status.getId(), (String) null);
+                break;
+            case COMPLETED:
+                long ttl = status.hasError() ? COMPLETED_IN_ERROR_TTL_SECONDS : COMPLETED_TTL_SECONDS;
+                kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes, ttl);
+                kvStore.setTTL(COMMAND_PREFIX + status.getId(), ttl);
+                break;
+            default:
+                kvStore.put(STATUS_PREFIX + status.getId(), statusAsBytes);
         }
         return statusAsBytes;
     }
@@ -351,14 +352,14 @@ public class BulkServiceImpl implements BulkService, Synchronization {
         do {
             status = getStatus(commandId);
             switch (status.getState()) {
-            case COMPLETED:
-            case ABORTED:
-                return true;
-            case UNKNOWN:
-                log.error("Unknown status for command: {}", commandId);
-                return false;
-            default:
-                // continue
+                case COMPLETED:
+                case ABORTED:
+                    return true;
+                case UNKNOWN:
+                    log.error("Unknown status for command: {}", commandId);
+                    return false;
+                default:
+                    // continue
             }
             Thread.sleep(100);
         } while (deadline > System.currentTimeMillis());

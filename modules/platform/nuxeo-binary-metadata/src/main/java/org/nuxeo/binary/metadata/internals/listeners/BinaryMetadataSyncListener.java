@@ -18,11 +18,11 @@
  */
 package org.nuxeo.binary.metadata.internals.listeners;
 
+import static jakarta.transaction.Status.STATUS_MARKED_ROLLBACK;
+import static jakarta.transaction.Status.STATUS_ROLLEDBACK;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.partitioningBy;
-import static javax.transaction.Status.STATUS_MARKED_ROLLBACK;
-import static javax.transaction.Status.STATUS_ROLLEDBACK;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.nuxeo.binary.metadata.api.BinaryMetadataConstants.DISABLE_BINARY_METADATA_LISTENER;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CREATE;
@@ -33,10 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

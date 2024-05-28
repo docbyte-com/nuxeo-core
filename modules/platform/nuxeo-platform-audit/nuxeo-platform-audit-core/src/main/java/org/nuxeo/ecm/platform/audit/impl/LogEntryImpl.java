@@ -26,23 +26,23 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.MapKey;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.MapKey;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.NamedQuery;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -216,14 +216,14 @@ public class LogEntryImpl implements LogEntry {
     @Override
     public void setDocUUID(DocumentRef docRef) {
         switch (docRef.type()) {
-        case DocumentRef.ID:
-            docUUID = (String) docRef.reference();
-            break;
-        case DocumentRef.INSTANCE:
-            docUUID = ((DocumentModel) docRef.reference()).getId();
-            break;
-        default:
-            throw new IllegalArgumentException("not an id reference " + docRef);
+            case DocumentRef.ID:
+                docUUID = (String) docRef.reference();
+                break;
+            case DocumentRef.INSTANCE:
+                docUUID = ((DocumentModel) docRef.reference()).getId();
+                break;
+            default:
+                throw new IllegalArgumentException("not an id reference " + docRef);
         }
     }
 

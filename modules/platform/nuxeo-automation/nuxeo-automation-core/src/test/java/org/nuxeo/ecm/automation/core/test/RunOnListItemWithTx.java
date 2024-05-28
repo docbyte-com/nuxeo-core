@@ -21,7 +21,7 @@ package org.nuxeo.ecm.automation.core.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.transaction.Transaction;
+import jakarta.transaction.Transaction;
 
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.annotations.Context;

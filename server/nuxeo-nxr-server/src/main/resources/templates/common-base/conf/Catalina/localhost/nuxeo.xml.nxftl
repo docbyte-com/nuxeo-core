@@ -36,7 +36,7 @@
 </#noparse>
 
   <Resource name="TransactionManager" auth="Container"
-    type="javax.transaction.TransactionManager" factory="org.nuxeo.runtime.jtajca.NuxeoTransactionManagerFactory"
+    type="jakarta.transaction.TransactionManager" factory="org.nuxeo.runtime.jtajca.NuxeoTransactionManagerFactory"
     transactionTimeoutSeconds="${nuxeo.db.transactiontimeout}" />
   <Transaction factory="org.nuxeo.runtime.jtajca.NuxeoUserTransactionFactory" />
 

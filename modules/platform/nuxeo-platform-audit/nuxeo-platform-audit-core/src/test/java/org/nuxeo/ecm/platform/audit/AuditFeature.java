@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.audit;
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.nuxeo.ecm.core.persistence.PersistenceProviderFactory;
 import org.nuxeo.ecm.platform.audit.api.AuditLogger;

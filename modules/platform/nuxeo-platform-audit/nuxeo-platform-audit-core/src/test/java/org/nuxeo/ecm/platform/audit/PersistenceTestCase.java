@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.audit;
 
 import java.net.URL;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 import org.junit.After;
 import org.junit.Before;

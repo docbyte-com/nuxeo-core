@@ -17,7 +17,6 @@ Bundle-ManifestVersion: 2
 Import-Package: javax.annotation;version="1.0",
  javax.ejb,
  javax.naming,
- javax.persistence,
  org.apache.commons.logging,
  org.nuxeo.common.collections,
  org.nuxeo.common.xmap.annotation,

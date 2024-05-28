@@ -10,7 +10,7 @@ To bind the transaction manager and Nuxeo connection manager in JNDI,
 under Tomcat you can use:
 
   <Resource name="TransactionManager" auth="Container"
-      type="javax.transaction.TransactionManager"
+      type="jakarta.transaction.TransactionManager"
       factory="org.nuxeo.runtime.jtajca.NuxeoTransactionManagerFactory"
       transactionTimeoutSeconds="300"/>
 

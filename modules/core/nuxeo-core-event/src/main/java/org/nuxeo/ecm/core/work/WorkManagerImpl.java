@@ -38,12 +38,13 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -805,23 +806,23 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         work.setWorkInstanceState(State.SCHEDULED);
         WorkSchedulePath.newInstance(work);
         switch (scheduling) {
-        case ENQUEUE:
-            break;
-        case CANCEL_SCHEDULED:
-            getExecutor(queueId).removeScheduled(workId);
-            WorkStateHelper.setCanceled(work.getId());
-            break;
-        case IF_NOT_SCHEDULED:
-        case IF_NOT_RUNNING_OR_SCHEDULED:
-            // TODO disabled for now because hasWorkInState uses isScheduled
-            // which is buggy
-            boolean disabled = Boolean.TRUE.booleanValue();
-            if (!disabled && hasWorkInState(workId, scheduling.state)) {
-                log.debug("Canceling schedule because found: {}", scheduling);
-                return;
+            case ENQUEUE:
+                break;
+            case CANCEL_SCHEDULED:
+                getExecutor(queueId).removeScheduled(workId);
+                WorkStateHelper.setCanceled(work.getId());
+                break;
+            case IF_NOT_SCHEDULED:
+            case IF_NOT_RUNNING_OR_SCHEDULED:
+                // TODO disabled for now because hasWorkInState uses isScheduled
+                // which is buggy
+                boolean disabled = Boolean.TRUE.booleanValue();
+                if (!disabled && hasWorkInState(workId, scheduling.state)) {
+                    log.debug("Canceling schedule because found: {}", scheduling);
+                    return;
 
-            }
-            break;
+                }
+                break;
 
         }
         if (work.isGroupJoin()) {
