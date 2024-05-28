@@ -23,9 +23,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 
-import javax.mail.Session;
-
 import jakarta.inject.Inject;
+import jakarta.mail.Session;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -32,8 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.mail.MessagingException;
 import javax.ws.rs.core.UriBuilder;
+
+import jakarta.mail.MessagingException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;

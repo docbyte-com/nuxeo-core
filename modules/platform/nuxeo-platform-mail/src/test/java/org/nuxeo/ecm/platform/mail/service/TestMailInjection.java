@@ -32,11 +32,10 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
 import jakarta.inject.Inject;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 
 import org.junit.Before;
 import org.junit.Test;

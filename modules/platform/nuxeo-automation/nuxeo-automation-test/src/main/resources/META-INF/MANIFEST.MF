@@ -6,10 +6,7 @@ Bundle-SymbolicName: org.nuxeo.ecm.automation.test;singleton:=true
 Export-Package: org.nuxeo.ecm.automation.test;
 Bundle-Vendor: Nuxeo
 Bundle-ActivationPolicy: lazy
-Import-Package: javax.mail,
- javax.mail.internet,
- javax.mail.util,
- javax.servlet;resolution:=optional,
+Import-Package: javax.servlet;resolution:=optional,
  javax.servlet.http;resolution:=optional,
  javax.ws.rs,
  javax.ws.rs.core,

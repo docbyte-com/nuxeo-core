@@ -12,11 +12,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.client</groupId>
-      <artifactId>nuxeo-java-client</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <scope>compile</scope>
@@ -78,11 +73,6 @@
     <dependency>
       <groupId>com.sun.activation</groupId>
       <artifactId>jakarta.activation</artifactId>
-    </dependency>
-    <!-- needed by nuxeo-java-client as we exclude javax.mail:mail -->
-    <dependency>
-      <groupId>com.sun.mail</groupId>
-      <artifactId>jakarta.mail</artifactId>
     </dependency>
   </dependencies>
 

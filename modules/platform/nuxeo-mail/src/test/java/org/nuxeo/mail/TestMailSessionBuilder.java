@@ -27,9 +27,8 @@ import static org.nuxeo.mail.MailConstants.CONFIGURATION_MAIL_DEBUG;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.Session;
-
 import jakarta.inject.Inject;
+import jakarta.mail.Session;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

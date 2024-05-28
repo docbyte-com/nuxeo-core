@@ -31,7 +31,6 @@ import org.junit.internal.runners.statements.RunAfters;
 import org.junit.rules.TestWatchman;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.nuxeo.client.NuxeoClient;
 import org.openqa.selenium.remote.RemoteWebDriver;
 
 /**
@@ -205,20 +204,6 @@ public class LogTestWatchman extends TestWatchman {
         }
         if (lastScreenshot != null && !new File(lastScreenshot).delete()) {
             log.warn("file deletion failed for: {}", lastScreenshot);
-        }
-    }
-
-    /**
-     * We need this class in order to make simple HTTP GET calls to know if we can log or not.
-     * <p>
-     * For some tests, REST API is not available, so basic client didn't succeed to connect.
-     *
-     * @since 9.3
-     */
-    public static class NuxeoClientForWebDriver extends NuxeoClient {
-
-        protected NuxeoClientForWebDriver(Builder builder) {
-            super(builder);
         }
     }
 

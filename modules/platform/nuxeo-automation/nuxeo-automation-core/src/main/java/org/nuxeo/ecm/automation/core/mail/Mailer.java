@@ -31,16 +31,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
-import javax.mail.Address;
-import javax.mail.Authenticator;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Address;
+import jakarta.mail.Authenticator;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.mail.MailException;
 import org.nuxeo.mail.MailMessage;
 import org.nuxeo.mail.MailSender;
@@ -245,17 +244,17 @@ public class Mailer {
         }
 
         public Message addTo(String to) throws MessagingException {
-            addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(to));
+            addRecipient(jakarta.mail.Message.RecipientType.TO, new InternetAddress(to));
             return this;
         }
 
         public Message addCc(String cc) throws MessagingException {
-            addRecipient(javax.mail.Message.RecipientType.CC, new InternetAddress(cc));
+            addRecipient(jakarta.mail.Message.RecipientType.CC, new InternetAddress(cc));
             return this;
         }
 
         public Message addBcc(String bcc) throws MessagingException {
-            addRecipient(javax.mail.Message.RecipientType.BCC, new InternetAddress(bcc));
+            addRecipient(jakarta.mail.Message.RecipientType.BCC, new InternetAddress(bcc));
             return this;
         }
 
@@ -266,34 +265,34 @@ public class Mailer {
 
         public void addInfoInMessageHeader(String address, AS as) throws MessagingException {
             switch (as) {
-            case FROM:
-                addFrom(address);
-                break;
-            case TO:
-                addTo(address);
-                break;
-            case CC:
-                addCc(address);
-                break;
-            case BCC:
-                addBcc(address);
-                break;
-            case REPLYTO:
-                Address[] oldValue = getReplyTo();
-                Address[] replyToValue;
-                if (getReplyTo() == null) {
-                    replyToValue = new Address[1];
-                } else {
-                    replyToValue = new Address[oldValue.length + 1];
-                }
-                for (int i = 0; i < oldValue.length; i++) {
-                    replyToValue[i] = oldValue[i];
-                }
-                replyToValue[oldValue.length] = new InternetAddress(address);
-                setReplyTo(replyToValue);
-                break;
-            default:
-                throw new MessagingException("Unknown header info " + as.toString());
+                case FROM:
+                    addFrom(address);
+                    break;
+                case TO:
+                    addTo(address);
+                    break;
+                case CC:
+                    addCc(address);
+                    break;
+                case BCC:
+                    addBcc(address);
+                    break;
+                case REPLYTO:
+                    Address[] oldValue = getReplyTo();
+                    Address[] replyToValue;
+                    if (getReplyTo() == null) {
+                        replyToValue = new Address[1];
+                    } else {
+                        replyToValue = new Address[oldValue.length + 1];
+                    }
+                    for (int i = 0; i < oldValue.length; i++) {
+                        replyToValue[i] = oldValue[i];
+                    }
+                    replyToValue[oldValue.length] = new InternetAddress(address);
+                    setReplyTo(replyToValue);
+                    break;
+                default:
+                    throw new MessagingException("Unknown header info " + as.toString());
             }
         }
 

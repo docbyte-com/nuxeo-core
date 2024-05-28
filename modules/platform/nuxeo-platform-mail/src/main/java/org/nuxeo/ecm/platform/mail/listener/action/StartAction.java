@@ -21,10 +21,10 @@
 
 package org.nuxeo.ecm.platform.mail.listener.action;
 
-import javax.mail.Flags;
-import javax.mail.Message;
-import javax.mail.Flags.Flag;
-import javax.mail.MessagingException;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 
 import org.nuxeo.ecm.platform.mail.action.ExecutionContext;
 

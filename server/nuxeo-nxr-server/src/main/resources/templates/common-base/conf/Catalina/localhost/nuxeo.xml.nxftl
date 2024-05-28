@@ -40,7 +40,7 @@
     transactionTimeoutSeconds="${nuxeo.db.transactiontimeout}" />
   <Transaction factory="org.nuxeo.runtime.jtajca.NuxeoUserTransactionFactory" />
 
-  <Resource auth="Container" name="Mail" type="javax.mail.Session" factory="org.nuxeo.ecm.platform.ec.notification.email.EmailResourceFactory"
+  <Resource auth="Container" name="Mail" type="jakarta.mail.Session" factory="org.nuxeo.ecm.platform.ec.notification.email.EmailResourceFactory"
     mail.from="${mail.from}"
 <#if "${mail.debug}" == "true">
     mail.debug="${mail.debug}"

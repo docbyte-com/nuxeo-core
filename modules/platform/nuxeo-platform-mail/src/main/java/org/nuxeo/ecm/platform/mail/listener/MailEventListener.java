@@ -24,8 +24,8 @@ package org.nuxeo.ecm.platform.mail.listener;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.mail.AuthenticationFailedException;
-import javax.mail.MessagingException;
+import jakarta.mail.AuthenticationFailedException;
+import jakarta.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

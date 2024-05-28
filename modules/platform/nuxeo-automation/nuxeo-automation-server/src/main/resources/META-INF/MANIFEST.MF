@@ -13,10 +13,7 @@ Nuxeo-Component: OSGI-INF/AutomationServer.xml,
  OSGI-INF/binding-contrib.xml,
  OSGI-INF/pageprovider-contrib.xml
 Nuxeo-AllowOverride: true
-Import-Package: javax.mail,
- javax.mail.internet,
- javax.mail.util,
- javax.servlet;resolution:=optional,
+Import-Package: javax.servlet;resolution:=optional,
  javax.servlet.http;resolution:=optional,
  javax.ws.rs,
  javax.ws.rs.core,

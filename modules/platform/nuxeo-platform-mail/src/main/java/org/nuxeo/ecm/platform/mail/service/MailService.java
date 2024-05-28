@@ -23,11 +23,11 @@ package org.nuxeo.ecm.platform.mail.service;
 
 import java.util.Map;
 
-import javax.mail.Address;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.Transport;
+import jakarta.mail.Address;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.mail.Transport;
 
 import org.nuxeo.ecm.platform.mail.action.MailBoxActions;
 import org.nuxeo.ecm.platform.mail.action.MessageActionPipe;

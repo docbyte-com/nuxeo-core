@@ -20,13 +20,14 @@ package org.nuxeo.ecm.platform.ec.notification.email;
 
 import java.util.Properties;
 
-import javax.mail.PasswordAuthentication;
+import jakarta.mail.Authenticator;
+import jakarta.mail.PasswordAuthentication;
 
 /**
  * @deprecated since 11.1, use {@link org.nuxeo.mail.MailAuthenticator} instead
  */
 @Deprecated(since = "11.1")
-public class EmailAuthenticator extends javax.mail.Authenticator {
+public class EmailAuthenticator extends Authenticator {
 
     protected final Properties properties;
 

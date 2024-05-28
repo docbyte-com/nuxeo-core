@@ -30,10 +30,9 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.List;
 
-import javax.mail.Message;
-import javax.mail.internet.MimeMessage;
-
 import jakarta.inject.Inject;
+import jakarta.mail.Message;
+import jakarta.mail.internet.MimeMessage;
 
 import org.junit.Before;
 import org.junit.Test;
