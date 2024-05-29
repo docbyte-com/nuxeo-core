@@ -19,7 +19,7 @@
 
 package org.nuxeo.elasticsearch.test;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -31,13 +31,6 @@ import java.util.Optional;
 
 import jakarta.inject.Inject;
 
-import org.opensearch.common.geo.ShapeRelation;
-import org.opensearch.index.query.AbstractQueryBuilder;
-import org.opensearch.index.query.GeoBoundingBoxQueryBuilder;
-import org.opensearch.index.query.GeoDistanceQueryBuilder;
-import org.opensearch.index.query.GeoShapeQueryBuilder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -53,6 +46,13 @@ import org.nuxeo.elasticsearch.test.hint.TestTermESHintQueryBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.opensearch.common.geo.ShapeRelation;
+import org.opensearch.index.query.AbstractQueryBuilder;
+import org.opensearch.index.query.GeoBoundingBoxQueryBuilder;
+import org.opensearch.index.query.GeoDistanceQueryBuilder;
+import org.opensearch.index.query.GeoShapeQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
 
 /**
  * The TestESHintQueryBuilder allow :
@@ -220,7 +220,8 @@ public class TestESHintQueryBuilder {
             geoShapeQueryBuilder.get().make(null, ANY_FIELD_NAME, new String[10]);
             fail("Should raise a NuxeoException");
         } catch (NuxeoException ne) {
-            assertEquals("Hints: GeoShapeESHintQueryBuilder requires 4 parameters: shapeId, type (unused), index and path",
+            assertEquals(
+                    "Hints: GeoShapeESHintQueryBuilder requires 4 parameters: shapeId, type (unused), index and path",
                     ne.getMessage());
             assertEquals(SC_BAD_REQUEST, ne.getStatusCode());
         }
@@ -232,7 +233,9 @@ public class TestESHintQueryBuilder {
         assertTrue(nestedFilesQuery.isPresent());
         assertTrue(nestedFilesQuery.get() instanceof NestedFilesESHintQueryBuilder);
         try {
-            nestedFilesQuery.get().make(new EsHint(new EsIdentifierList("files:files.file.name"), null, null), ANY_FIELD_NAME, new String[2]);
+            nestedFilesQuery.get()
+                            .make(new EsHint(new EsIdentifierList("files:files.file.name"), null, null), ANY_FIELD_NAME,
+                                    new String[2]);
             fail("Should raise a NuxeoException");
         } catch (NuxeoException ne) {
             assertEquals("Fields size and values length should be the same", ne.getMessage());
@@ -244,9 +247,8 @@ public class TestESHintQueryBuilder {
      * {@link org.nuxeo.elasticsearch.hint.RegexESHintQueryBuilder} has a dedicated Test and cannot be integrated in
      * {@link #shouldEnsureEqualityBetweenESQueriesAndESHintQueries}.
      * {@link org.nuxeo.elasticsearch.hint.RegexESHintQueryBuilder} is a special case as the operator NXQL
-     * <strong>"regex"</strong> and it's different from {@link org.opensearch.index.query.RegexpQueryBuilder#NAME}.
-     * Most of the time the NXQL ESHint and the Elasticsearch operator have the same name. But sometimes they are
-     * different.
+     * <strong>"regex"</strong> and it's different from {@link org.opensearch.index.query.RegexpQueryBuilder#NAME}. Most
+     * of the time the NXQL ESHint and the Elasticsearch operator have the same name. But sometimes they are different.
      */
     @Test
     public void shouldEnsureEqualityBetweenESRegexQueryAndRegexESHintQueries() {

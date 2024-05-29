@@ -25,10 +25,11 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
+
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.common.utils.i18n.I18NUtils;
 import org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper;
@@ -58,7 +59,7 @@ public final class SAMLUtils {
     public static <T extends SAMLObject> T buildSAMLObject(QName qName) {
         return (T) ConfigurationService.get(XMLObjectProviderRegistry.class)
                                        .getBuilderFactory()
-                                       .getBuilderOrThrow(qName)
+                                       .ensureBuilder(qName)
                                        .buildObject(qName);
     }
 

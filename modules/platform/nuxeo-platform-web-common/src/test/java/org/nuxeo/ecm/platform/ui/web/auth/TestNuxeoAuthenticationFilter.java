@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -66,13 +66,14 @@ import java.util.Map;
 
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.After;

@@ -32,7 +32,7 @@ import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletResponse;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import net.shibboleth.utilities.java.support.codec.Base64Support;
+import net.shibboleth.shared.codec.Base64Support;
 
 /**
  * @since 2023.0

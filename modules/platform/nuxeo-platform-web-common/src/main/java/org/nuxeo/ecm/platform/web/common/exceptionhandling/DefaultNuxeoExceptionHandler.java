@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.web.common.exceptionhandling;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -41,11 +41,11 @@ import java.util.ResourceBundle;
 
 import javax.security.auth.Subject;
 import javax.security.auth.login.LoginContext;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.LogManager;

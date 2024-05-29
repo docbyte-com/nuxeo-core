@@ -20,7 +20,7 @@
 
 package org.nuxeo.ecm.platform.oauth2.openid;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;

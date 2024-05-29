@@ -32,14 +32,26 @@
 
 package edu.yale.its.tp.cas.client.filter;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import edu.yale.its.tp.cas.client.*;
+import java.io.IOException;
+import java.net.URLEncoder;
+import java.util.StringTokenizer;
+
 import javax.xml.parsers.ParserConfigurationException;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+
 import org.xml.sax.SAXException;
+
+import edu.yale.its.tp.cas.client.ProxyTicketValidator;
+import edu.yale.its.tp.cas.client.Util;
 
 /**
  * <p>
@@ -101,15 +113,16 @@ public class CASFilter implements Filter {
         casAuthorizedProxy = config.getInitParameter("edu.yale.its.tp.cas.client.filter.authorizedProxy");
         casRenew = config.getInitParameter("edu.yale.its.tp.cas.client.filter.renew");
         casServerName = config.getInitParameter("edu.yale.its.tp.cas.client.filter.serverName");
-        wrapRequest = Boolean.valueOf(config.getInitParameter("edu.yale.its.tp.cas.client.filter.wrapRequest")).booleanValue();
+        wrapRequest = Boolean.valueOf(config.getInitParameter("edu.yale.its.tp.cas.client.filter.wrapRequest"))
+                             .booleanValue();
     }
 
     // *********************************************************************
     // Filter processing
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain fc) throws ServletException,
-            IOException {
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain fc)
+            throws ServletException, IOException {
 
         // make sure we've got an HTTP request
         if (!(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse))
@@ -137,9 +150,9 @@ public class CASFilter implements Filter {
                 throw new ServletException("When CASFilter protects pages that do not receive a 'ticket' "
                         + "parameter, it needs a edu.yale.its.tp.cas.client.filter.loginUrl " + "filter parameter");
             }
-            ((HttpServletResponse) response).sendRedirect(casLogin + "?service="
-                    + getService((HttpServletRequest) request)
-                    + ((casRenew != null && !casRenew.equals("")) ? "&renew=" + casRenew : ""));
+            ((HttpServletResponse) response).sendRedirect(
+                    casLogin + "?service=" + getService((HttpServletRequest) request)
+                            + ((casRenew != null && !casRenew.equals("")) ? "&renew=" + casRenew : ""));
 
             // abort chain
             return;
@@ -182,8 +195,8 @@ public class CASFilter implements Filter {
             pv.setRenew(Boolean.valueOf(casRenew).booleanValue());
             pv.validate();
             if (!pv.isAuthenticationSuccesful())
-                throw new ServletException("CAS authentication error: " + pv.getErrorCode() + ": "
-                        + pv.getErrorMessage());
+                throw new ServletException(
+                        "CAS authentication error: " + pv.getErrorCode() + ": " + pv.getErrorMessage());
             if (pv.getProxyList().size() != 0) {
                 // ticket was proxied
                 if (casAuthorizedProxy == null) {

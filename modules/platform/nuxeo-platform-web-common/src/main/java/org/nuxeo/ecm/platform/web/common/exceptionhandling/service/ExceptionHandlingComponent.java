@@ -21,9 +21,9 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling.service;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.platform.web.common.exceptionhandling.DefaultNuxeoExceptionHandler;
 import org.nuxeo.ecm.platform.web.common.exceptionhandling.NuxeoExceptionHandler;
@@ -52,31 +52,31 @@ public class ExceptionHandlingComponent extends DefaultComponent implements Exce
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         ExtensionPoint ep = Enum.valueOf(ExtensionPoint.class, extensionPoint);
         switch (ep) {
-        case exceptionhandler:
-            ExceptionHandlerDescriptor ehd = (ExceptionHandlerDescriptor) contribution;
-            exceptionHandler = newInstance(ehd.getKlass());
-            exceptionHandler.setParameters(exceptionHandlerParameters);
-            break;
-        case errorhandlers:
-            ErrorHandlersDescriptor md = (ErrorHandlersDescriptor) contribution;
-            exceptionHandlerParameters.setBundleName(md.getBundle());
-            exceptionHandlerParameters.setHandlers(md.getMessages());
-            exceptionHandlerParameters.setLoggerName(md.getLoggerName());
-            exceptionHandlerParameters.setDefaultErrorPage(md.getDefaultPage());
-            break;
-        case requestdump:
-            RequestDumpDescriptor rdd = (RequestDumpDescriptor) contribution;
-            RequestDumper dumper = newInstance(rdd.getKlass());
-            List<String> attributes = rdd.getAttributes();
-            dumper.setNotListedAttributes(attributes);
-            exceptionHandlerParameters.setRequestDumper(dumper);
-            break;
-        case listener:
-            ListenerDescriptor ld = (ListenerDescriptor) contribution;
-            exceptionHandlerParameters.setListener(newInstance(ld.getKlass()));
-            break;
-        default:
-            throw new RuntimeException("error in exception handling configuration");
+            case exceptionhandler:
+                ExceptionHandlerDescriptor ehd = (ExceptionHandlerDescriptor) contribution;
+                exceptionHandler = newInstance(ehd.getKlass());
+                exceptionHandler.setParameters(exceptionHandlerParameters);
+                break;
+            case errorhandlers:
+                ErrorHandlersDescriptor md = (ErrorHandlersDescriptor) contribution;
+                exceptionHandlerParameters.setBundleName(md.getBundle());
+                exceptionHandlerParameters.setHandlers(md.getMessages());
+                exceptionHandlerParameters.setLoggerName(md.getLoggerName());
+                exceptionHandlerParameters.setDefaultErrorPage(md.getDefaultPage());
+                break;
+            case requestdump:
+                RequestDumpDescriptor rdd = (RequestDumpDescriptor) contribution;
+                RequestDumper dumper = newInstance(rdd.getKlass());
+                List<String> attributes = rdd.getAttributes();
+                dumper.setNotListedAttributes(attributes);
+                exceptionHandlerParameters.setRequestDumper(dumper);
+                break;
+            case listener:
+                ListenerDescriptor ld = (ListenerDescriptor) contribution;
+                exceptionHandlerParameters.setListener(newInstance(ld.getKlass()));
+                break;
+            default:
+                throw new RuntimeException("error in exception handling configuration");
         }
     }
 

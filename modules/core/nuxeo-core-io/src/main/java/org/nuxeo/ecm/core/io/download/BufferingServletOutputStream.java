@@ -29,8 +29,8 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;

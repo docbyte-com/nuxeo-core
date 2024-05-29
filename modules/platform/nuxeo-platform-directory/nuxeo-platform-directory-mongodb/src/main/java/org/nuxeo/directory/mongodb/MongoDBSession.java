@@ -20,7 +20,7 @@
 
 package org.nuxeo.directory.mongodb;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_ID;
 import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_SEQ;
@@ -403,15 +403,15 @@ public class MongoDBSession extends BaseSession {
                 String val = String.valueOf(value);
                 val = val.replaceAll("%+", ".*");
                 switch (substringMatchType) {
-                case subany:
-                    addField(bson, key, Pattern.compile(val, Pattern.CASE_INSENSITIVE));
-                    break;
-                case subinitial:
-                    addField(bson, key, Pattern.compile('^' + val, Pattern.CASE_INSENSITIVE));
-                    break;
-                case subfinal:
-                    addField(bson, key, Pattern.compile(val + '$', Pattern.CASE_INSENSITIVE));
-                    break;
+                    case subany:
+                        addField(bson, key, Pattern.compile(val, Pattern.CASE_INSENSITIVE));
+                        break;
+                    case subinitial:
+                        addField(bson, key, Pattern.compile('^' + val, Pattern.CASE_INSENSITIVE));
+                        break;
+                    case subfinal:
+                        addField(bson, key, Pattern.compile(val + '$', Pattern.CASE_INSENSITIVE));
+                        break;
                 }
             } else {
                 addField(bson, key, value);

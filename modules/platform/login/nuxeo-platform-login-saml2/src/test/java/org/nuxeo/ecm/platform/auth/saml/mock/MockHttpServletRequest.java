@@ -36,8 +36,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

@@ -48,7 +48,7 @@ import org.opensaml.saml.saml2.profile.impl.ValidateAssertions;
 import org.opensaml.saml.security.impl.SAMLSignatureProfileValidator;
 import org.opensaml.xmlsec.context.SecurityParametersContext;
 
-import net.shibboleth.utilities.java.support.net.HttpServletRequestResponseContext;
+import net.shibboleth.shared.servlet.impl.HttpServletRequestResponseContext;
 
 /**
  * @since 2023.0

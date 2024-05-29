@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.platform.web.idempotency;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
@@ -46,13 +46,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;

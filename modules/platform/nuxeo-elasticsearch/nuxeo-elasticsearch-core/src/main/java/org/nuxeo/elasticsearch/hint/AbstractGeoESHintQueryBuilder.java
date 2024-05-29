@@ -19,13 +19,15 @@
 
 package org.nuxeo.elasticsearch.hint;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.opensearch.common.xcontent.DeprecationHandler.THROW_UNSUPPORTED_OPERATION;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.opensearch.OpenSearchParseException;
 import org.opensearch.common.geo.GeoPoint;
 import org.opensearch.common.geo.GeoUtils;
@@ -33,8 +35,6 @@ import org.opensearch.common.xcontent.NamedXContentRegistry;
 import org.opensearch.common.xcontent.XContentBuilder;
 import org.opensearch.common.xcontent.XContentParser;
 import org.opensearch.common.xcontent.json.JsonXContent;
-import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 
 /**
  * Abstract implementation of {@link ESHintQueryBuilder} that manages the geo queries.

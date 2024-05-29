@@ -26,7 +26,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;

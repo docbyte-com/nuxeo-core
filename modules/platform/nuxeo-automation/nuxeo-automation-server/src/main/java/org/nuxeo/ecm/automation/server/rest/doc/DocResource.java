@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.automation.server.rest.doc;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -32,8 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;

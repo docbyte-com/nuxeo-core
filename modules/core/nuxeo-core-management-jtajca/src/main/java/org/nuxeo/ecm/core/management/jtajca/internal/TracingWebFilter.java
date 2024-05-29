@@ -23,13 +23,13 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.logging.log4j.ThreadContext;
 import org.nuxeo.lib.stream.Log4jCorrelation;
@@ -39,7 +39,6 @@ import io.opencensus.implcore.trace.RecordEventsSpanImpl;
 import io.opencensus.trace.AttributeValue;
 import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracing;
-
 
 /**
  * Add some tags to span created by OcHttpServletFilter

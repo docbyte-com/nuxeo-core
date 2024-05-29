@@ -10,14 +10,11 @@ Bundle-Version: 5.4.2.qualifier
 Bundle-ManifestVersion: 2
 Require-Bundle: org.nuxeo.ecm.core,
  org.nuxeo.ecm.core.io,
- javax.servlet;bundle-version="2.5.0"
 Import-Package: META-INF.services,
  freemarker.core;resolution:=optional,
  freemarker.template;resolution:=optional,
  javax.naming,
  javax.security.auth.login,
- javax.servlet,
- javax.servlet.http,
  org.apache.commons.logging,
  org.apache.xerces.jaxp;version="2.9.0",
  org.nuxeo.common.collections,
@@ -34,9 +31,7 @@ Import-Package: META-INF.services,
  org.nuxeo.runtime.model,
  org.nuxeo.runtime.transaction;resolution:=optional,
  org.osgi.framework,
- org.osgi.service.http,
- org.osgi.service.packageadmin,
- org.osgi.util.tracker
+ org.osgi.service.packageadmin
 Eclipse-BuddyPolicy: dependent
 Bundle-SymbolicName: org.nuxeo.ecm.webengine.rest;singleton:=true
 Bundle-Activator: org.nuxeo.ecm.webengine.rest.Activator

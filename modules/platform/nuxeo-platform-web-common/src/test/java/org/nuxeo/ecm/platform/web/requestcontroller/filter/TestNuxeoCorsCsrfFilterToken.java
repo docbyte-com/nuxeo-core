@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.web.requestcontroller.filter;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -67,7 +67,6 @@ public class TestNuxeoCorsCsrfFilterToken extends TestNuxeoCorsCsrfFilter {
         // pass token in request
         when(request.getHeader(eq(CSRF_TOKEN_HEADER))).thenReturn(token);
     }
-
 
     /**
      * Browser sending a header "CSRF-Token: fetch".

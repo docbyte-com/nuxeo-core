@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 /**
  * Exception thrown when a document is not found.

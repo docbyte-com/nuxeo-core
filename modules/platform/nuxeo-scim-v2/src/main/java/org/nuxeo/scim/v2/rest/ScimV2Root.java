@@ -22,8 +22,8 @@ package org.nuxeo.scim.v2.rest;
 import static com.unboundid.scim2.common.utils.ApiConstants.RESOURCE_TYPES_ENDPOINT;
 import static com.unboundid.scim2.common.utils.ApiConstants.SCHEMAS_ENDPOINT;
 import static com.unboundid.scim2.common.utils.ApiConstants.SERVICE_PROVIDER_CONFIG_ENDPOINT;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static org.nuxeo.scim.v2.api.ScimV2QueryContext.LIMIT_QUERY_COUNT;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_GROUP;
 import static org.nuxeo.scim.v2.api.ScimV2ResourceType.SCIM_V2_RESOURCE_TYPE_RESOURCE_TYPE;
@@ -239,9 +239,9 @@ public class ScimV2Root extends ModuleRoot {
         return switch (type) {
             case SCIM_V2_RESOURCE_TYPE_USER -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_USER.toString(),
                     "User Account", getURI(SCIM_V2_ENDPOINT_USERS), getURI(SCIM_V2_SCHEMA_USER));
-            case SCIM_V2_RESOURCE_TYPE_GROUP -> new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP.toString(),
-                    "Group", // NOSONAR
-                    getURI(SCIM_V2_ENDPOINT_GROUPS), getURI(SCIM_V2_SCHEMA_GROUP));
+            case SCIM_V2_RESOURCE_TYPE_GROUP ->
+                new ResourceTypeResource(SCIM_V2_RESOURCE_TYPE_GROUP.toString(), "Group", // NOSONAR
+                        getURI(SCIM_V2_ENDPOINT_GROUPS), getURI(SCIM_V2_SCHEMA_GROUP));
             default -> throw new ResourceNotFoundException("Cannot find resource type:" + type);
         };
     }

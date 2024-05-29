@@ -20,7 +20,7 @@ package org.nuxeo.ecm.core.opencmis.impl;
 import java.math.BigInteger;
 import java.util.GregorianCalendar;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.commons.data.ExtensionsData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderList;
@@ -56,8 +56,8 @@ public class LastModifiedServiceWrapper extends AbstractCmisServiceWrapper {
         lastModified = (GregorianCalendar) doc.getPropertyValue("dc:modified");
 
         ObjectInFolderList children = getWrappedService().getChildren(repositoryId, folderId, filter, orderBy,
-                includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, maxItems,
-                skipCount, extension);
+                includeAllowableActions, includeRelationships, renditionFilter, includePathSegment, maxItems, skipCount,
+                extension);
 
         String lastModifiedResHeader = DateTimeHelper.formatHttpDateTime(lastModified);
         setResponseHeader("Last-Modified", lastModifiedResHeader);

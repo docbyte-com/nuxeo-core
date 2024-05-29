@@ -19,14 +19,16 @@
  */
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
@@ -35,8 +37,6 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.api.Framework;
 
 import com.thetransactioncompany.cors.CORSFilter;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>

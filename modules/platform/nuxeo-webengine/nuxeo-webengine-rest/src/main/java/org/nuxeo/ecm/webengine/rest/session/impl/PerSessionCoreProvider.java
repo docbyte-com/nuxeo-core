@@ -20,10 +20,10 @@ package org.nuxeo.ecm.webengine.rest.session.impl;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionBindingEvent;
-import javax.servlet.http.HttpSessionBindingListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSessionBindingEvent;
+import jakarta.servlet.http.HttpSessionBindingListener;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.webengine.rest.session.CoreSessionProvider;

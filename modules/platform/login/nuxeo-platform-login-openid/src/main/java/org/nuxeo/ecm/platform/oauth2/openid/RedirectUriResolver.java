@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.oauth2.openid;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Helper class to determine the redirect URI based on the current OpenID provider and HTTP request

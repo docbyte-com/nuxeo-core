@@ -20,11 +20,11 @@
 
 package org.nuxeo.wopi.rest;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
 import static jakarta.ws.rs.core.Response.Status.CONFLICT;
 import static jakarta.ws.rs.core.Response.Status.OK;
 import static jakarta.ws.rs.core.Response.Status.PRECONDITION_FAILED;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static org.nuxeo.ecm.core.api.CoreSession.SOURCE;
 import static org.nuxeo.wopi.Constants.ACCESS_TOKEN_PARAMETER;
 import static org.nuxeo.wopi.Constants.ACTION_CONVERT;
@@ -98,9 +98,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.POST;

@@ -66,7 +66,7 @@
     <filter>
       <display-name>OpenCensus Web Filter</display-name>
       <filter-name>OcServletFilter</filter-name>
-      <filter-class>io.opencensus.contrib.http.servlet.OcHttpServletFilter</filter-class>
+      <filter-class>org.nuxeo.ecm.platform.web.common.tracing.OcHttpServletFilter</filter-class>
     </filter>
 
     <filter-mapping>

@@ -20,7 +20,7 @@
 
 package org.nuxeo.ecm.automation.core.util;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.io.upload.batch.Batch;

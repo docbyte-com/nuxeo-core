@@ -18,13 +18,12 @@
  */
 package org.nuxeo.ecm.automation.server.rest;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 import org.nuxeo.ecm.automation.OperationException;
 
-import javax.servlet.http.HttpServletResponse;
-
 /**
- * Automation exception to extend to be thrown during REST calls on
- * Automation operations.
+ * Automation exception to extend to be thrown during REST calls on Automation operations.
  *
  * @since 7.1
  */

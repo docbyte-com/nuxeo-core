@@ -26,8 +26,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;

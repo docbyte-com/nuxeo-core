@@ -23,8 +23,6 @@ Nuxeo-Component: OSGI-INF/querymaker-service.xml,
 Bundle-ManifestVersion: 2
 Import-Package: javax.resource,
  javax.resource.cci,
- javax.servlet;resolution:=optional,
- javax.servlet.http;resolution:=optional,
  javax.sql,
  javax.transaction.xa,
  org.apache.commons.beanutils,

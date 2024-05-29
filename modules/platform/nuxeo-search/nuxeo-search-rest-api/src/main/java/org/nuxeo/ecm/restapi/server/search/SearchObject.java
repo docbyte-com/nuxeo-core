@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.search;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.io.IOException;
 import java.io.Serializable;

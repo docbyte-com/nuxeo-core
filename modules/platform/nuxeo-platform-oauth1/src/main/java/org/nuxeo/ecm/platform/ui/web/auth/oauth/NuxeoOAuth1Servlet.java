@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth.oauth;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static net.oauth.OAuth.OAUTH_CALLBACK;
 import static net.oauth.OAuth.OAUTH_TOKEN;
 import static net.oauth.OAuth.OAUTH_TOKEN_SECRET;
@@ -35,10 +35,10 @@ import java.net.URLEncoder;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

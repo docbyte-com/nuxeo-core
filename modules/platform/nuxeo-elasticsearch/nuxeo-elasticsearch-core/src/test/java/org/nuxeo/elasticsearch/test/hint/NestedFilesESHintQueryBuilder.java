@@ -19,18 +19,18 @@
 
 package org.nuxeo.elasticsearch.test.hint;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.lucene.search.join.ScoreMode;
-import org.opensearch.index.query.BoolQueryBuilder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.query.sql.model.EsHint;
 import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
-
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
 
 /**
  * Allows to make a nested ES queries on {@code "files:files"} of a given document. Note that to be able to query ES

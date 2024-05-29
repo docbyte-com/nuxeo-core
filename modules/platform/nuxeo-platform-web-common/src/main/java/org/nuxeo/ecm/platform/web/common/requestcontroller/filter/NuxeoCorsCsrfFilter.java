@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.web.common.requestcontroller.filter;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.common.http.HttpHeaders.ORIGIN;
 import static org.nuxeo.common.http.HttpHeaders.REFERER;
@@ -38,16 +38,16 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;

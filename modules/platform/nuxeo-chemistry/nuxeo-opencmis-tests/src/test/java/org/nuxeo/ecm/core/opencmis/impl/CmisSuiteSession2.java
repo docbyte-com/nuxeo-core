@@ -39,9 +39,8 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.client.api.Session;

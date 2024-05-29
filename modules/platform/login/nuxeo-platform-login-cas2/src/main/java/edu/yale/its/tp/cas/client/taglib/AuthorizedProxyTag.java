@@ -32,8 +32,8 @@
 
 package edu.yale.its.tp.cas.client.taglib;
 
-import javax.servlet.jsp.JspTagException;
-import javax.servlet.jsp.tagext.BodyTagSupport;
+import jakarta.servlet.jsp.JspTagException;
+import jakarta.servlet.jsp.tagext.BodyTagSupport;
 
 /**
  * <p>

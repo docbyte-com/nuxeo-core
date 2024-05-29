@@ -20,6 +20,7 @@
 
 package org.nuxeo.osgi;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -455,4 +456,25 @@ public class BundleImpl implements Bundle {
         return Version.parseVersion(headers.get(Constants.BUNDLE_VERSION));
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public <A> A adapt(Class<A> type) {
+        if (type == BundleContext.class) {
+            return (A) context;
+        } else {
+            // no other support
+            return null;
+        }
+    }
+
+    @Override
+    public File getDataFile(String filename) {
+        // no support for data file
+        return null;
+    }
+
+    @Override
+    public int compareTo(Bundle o) {
+        return Long.compare(getBundleId(), o.getBundleId());
+    }
 }

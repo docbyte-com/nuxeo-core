@@ -28,7 +28,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.NameValuePair;

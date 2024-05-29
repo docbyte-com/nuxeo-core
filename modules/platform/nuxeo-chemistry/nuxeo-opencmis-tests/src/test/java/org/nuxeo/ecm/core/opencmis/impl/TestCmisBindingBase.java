@@ -22,10 +22,9 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
 import org.apache.chemistry.opencmis.commons.server.CallContext;

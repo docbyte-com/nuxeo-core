@@ -21,7 +21,7 @@
  */
 package org.nuxeo.ecm.directory;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.ecm.directory.BaseDirectoryDescriptor.DATA_LOADING_POLICY_NEVER_LOAD;
 import static org.nuxeo.ecm.directory.localconfiguration.DirectoryConfigurationConstants.DIRECTORY_CONFIGURATION_FACET;

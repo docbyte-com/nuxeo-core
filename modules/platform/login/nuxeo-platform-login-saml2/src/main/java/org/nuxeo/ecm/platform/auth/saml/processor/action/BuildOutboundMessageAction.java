@@ -20,8 +20,8 @@ package org.nuxeo.ecm.platform.auth.saml.processor.action;
 
 import java.util.function.Function;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import org.jetbrains.annotations.NotNull;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;
@@ -31,7 +31,7 @@ import org.opensaml.profile.context.ProfileRequestContext;
 import org.opensaml.saml.common.SAMLObject;
 import org.opensaml.saml.common.binding.SAMLBindingSupport;
 
-import net.shibboleth.utilities.java.support.net.HttpServletRequestResponseContext;
+import net.shibboleth.shared.servlet.impl.HttpServletRequestResponseContext;
 
 /**
  * @since 2023.0

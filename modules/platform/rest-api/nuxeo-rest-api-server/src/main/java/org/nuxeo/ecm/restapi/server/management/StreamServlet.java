@@ -26,10 +26,10 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -271,8 +271,7 @@ public class StreamServlet extends HttpServlet {
             try {
                 timeout = DurationUtils.parse(value).toMillis();
             } catch (DateTimeParseException e) {
-                throw new NuxeoException("Invalid timeout param",
-                        HttpServletResponse.SC_BAD_REQUEST);
+                throw new NuxeoException("Invalid timeout param", HttpServletResponse.SC_BAD_REQUEST);
             }
 
             value = request.getParameter(PARAM_REWIND);

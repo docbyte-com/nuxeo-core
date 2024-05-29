@@ -27,10 +27,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.servlet.GenericServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.GenericServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.Application;
 
 import org.apache.logging.log4j.LogManager;
@@ -54,10 +53,10 @@ import org.nuxeo.ecm.webengine.scripting.Scripting;
 import org.nuxeo.runtime.annotations.AnnotationManager;
 import org.nuxeo.runtime.api.Framework;
 
-import freemarker.ext.jsp.TaglibFactory;
-import freemarker.ext.servlet.HttpRequestHashModel;
-import freemarker.ext.servlet.HttpRequestParametersHashModel;
-import freemarker.ext.servlet.ServletContextHashModel;
+import freemarker.ext.jakarta.jsp.TaglibFactory;
+import freemarker.ext.jakarta.servlet.HttpRequestHashModel;
+import freemarker.ext.jakarta.servlet.HttpRequestParametersHashModel;
+import freemarker.ext.jakarta.servlet.ServletContextHashModel;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>

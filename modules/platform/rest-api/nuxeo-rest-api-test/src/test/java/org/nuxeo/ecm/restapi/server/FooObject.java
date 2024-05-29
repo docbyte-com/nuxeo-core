@@ -19,8 +19,8 @@
 
 package org.nuxeo.ecm.restapi.server;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;

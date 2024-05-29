@@ -21,10 +21,9 @@ package org.nuxeo.ecm.restapi.server.management;
 
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_HTTP_PORT;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;

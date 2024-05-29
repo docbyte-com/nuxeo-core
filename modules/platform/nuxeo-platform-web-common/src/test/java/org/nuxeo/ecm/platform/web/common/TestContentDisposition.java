@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.platform.web.common;
 
-import javax.servlet.http.HttpServletRequest;
-
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 

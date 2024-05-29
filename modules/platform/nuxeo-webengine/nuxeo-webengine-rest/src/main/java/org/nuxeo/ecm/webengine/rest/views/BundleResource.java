@@ -21,8 +21,7 @@ package org.nuxeo.ecm.webengine.rest.views;
 import java.net.URI;
 import java.security.Principal;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.WebApplicationException;

@@ -23,8 +23,8 @@ package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
 
 import java.util.Map;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.thetransactioncompany.cors.CORSFilter;
 

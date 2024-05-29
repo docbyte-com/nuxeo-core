@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.io.marshallers.json.document;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;

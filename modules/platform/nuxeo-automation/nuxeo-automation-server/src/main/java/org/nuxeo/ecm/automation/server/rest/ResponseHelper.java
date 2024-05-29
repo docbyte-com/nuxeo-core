@@ -24,10 +24,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.GenericEntity;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;

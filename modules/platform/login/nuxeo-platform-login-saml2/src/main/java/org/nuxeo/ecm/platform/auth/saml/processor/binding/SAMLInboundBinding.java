@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.auth.saml.processor.binding;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.opensaml.messaging.decoder.servlet.HttpServletRequestMessageDecoder;
 import org.opensaml.saml.common.xml.SAMLConstants;

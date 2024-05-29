@@ -18,8 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.adapters;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 

@@ -23,8 +23,8 @@ import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;

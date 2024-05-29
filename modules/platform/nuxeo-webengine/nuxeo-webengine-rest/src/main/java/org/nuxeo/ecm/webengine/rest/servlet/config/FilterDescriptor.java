@@ -20,7 +20,7 @@ package org.nuxeo.ecm.webengine.rest.servlet.config;
 
 import java.util.HashMap;
 
-import javax.servlet.Filter;
+import jakarta.servlet.Filter;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;

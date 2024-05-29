@@ -22,7 +22,7 @@ package org.nuxeo.drive.operations;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.drive.service.NuxeoDriveManager;

@@ -26,8 +26,7 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;

@@ -38,10 +38,10 @@ import java.util.Map;
 import java.util.MissingResourceException;
 
 import javax.script.ScriptException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.UriInfo;

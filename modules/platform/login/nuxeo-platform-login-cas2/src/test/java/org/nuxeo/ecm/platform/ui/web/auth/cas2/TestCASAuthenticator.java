@@ -31,7 +31,8 @@ import static org.mockito.Mockito.when;
 import java.security.Principal;
 
 import javax.security.auth.login.LoginContext;
-import javax.servlet.ServletException;
+
+import jakarta.servlet.ServletException;
 
 import org.junit.Test;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;

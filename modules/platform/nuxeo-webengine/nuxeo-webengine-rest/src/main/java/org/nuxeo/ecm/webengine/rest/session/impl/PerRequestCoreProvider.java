@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.webengine.rest.session.impl;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.webengine.rest.session.CoreSessionProvider;

@@ -34,9 +34,8 @@ import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBind
 import java.time.Instant;
 import java.util.UUID;
 
-import javax.servlet.http.Cookie;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.Cookie;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -151,8 +150,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
                         <saml:Audience>http://localhost:8080/login</saml:Audience>
                       </saml:AudienceRestriction>
                     </saml:Conditions>
-                    <saml:AuthnStatement AuthnInstant=""
-                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                    <saml:AuthnStatement SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
                       <saml:AuthnContext>
                         <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
                         </saml:AuthnContextClassRef>

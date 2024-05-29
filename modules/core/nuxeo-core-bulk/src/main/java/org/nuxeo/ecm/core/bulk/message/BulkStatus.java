@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.core.bulk.message;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import java.io.Serializable;
 import java.time.Instant;

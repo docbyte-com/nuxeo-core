@@ -19,9 +19,9 @@
 
 package org.nuxeo.ecm.platform.oauth2.tokens;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static java.util.Objects.requireNonNull;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token.KEY_NUXEO_LOGIN;
 import static org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token.KEY_SERVICE_NAME;
 

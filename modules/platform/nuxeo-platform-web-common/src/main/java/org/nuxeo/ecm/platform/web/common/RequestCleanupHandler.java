@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.web.common;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>

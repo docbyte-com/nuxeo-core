@@ -59,9 +59,9 @@ import org.opensaml.saml.common.SAMLObject;
 
 import com.google.inject.Binder;
 
-import net.shibboleth.utilities.java.support.codec.Base64Support;
-import net.shibboleth.utilities.java.support.codec.DecodingException;
-import net.shibboleth.utilities.java.support.codec.EncodingException;
+import net.shibboleth.shared.codec.Base64Support;
+import net.shibboleth.shared.codec.DecodingException;
+import net.shibboleth.shared.codec.EncodingException;
 
 /**
  * @since 2023.0

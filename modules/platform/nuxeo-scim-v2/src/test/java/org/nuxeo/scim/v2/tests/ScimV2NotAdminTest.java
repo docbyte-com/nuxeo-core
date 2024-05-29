@@ -18,7 +18,7 @@
  */
 package org.nuxeo.scim.v2.tests;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 import jakarta.inject.Inject;
 

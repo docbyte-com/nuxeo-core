@@ -18,25 +18,18 @@
  */
 package org.nuxeo.ecm.webengine.rest;
 
-import javax.servlet.ServletException;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.webengine.rest.servlet.config.ServletRegistry;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceReference;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 import org.osgi.service.packageadmin.PackageAdmin;
-import org.osgi.util.tracker.ServiceTracker;
-import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-public class Activator implements BundleActivator, ServiceTrackerCustomizer {
+public class Activator implements BundleActivator {
 
     private static final Logger log = LogManager.getLogger(Activator.class);
 
@@ -45,8 +38,6 @@ public class Activator implements BundleActivator, ServiceTrackerCustomizer {
     public static Activator getInstance() {
         return instance;
     }
-
-    protected ServiceTracker httpServiceTracker;
 
     protected BundleContext context;
 
@@ -57,11 +48,6 @@ public class Activator implements BundleActivator, ServiceTrackerCustomizer {
         instance = this;
         this.context = context;
         pkgAdm = context.getServiceReference(PackageAdmin.class.getName());
-        // TODO workaround to disable service tracker on regular Nuxeo distribs until finding a better solution
-        if (!"Nuxeo".equals(context.getProperty(Constants.FRAMEWORK_VENDOR))) {
-            httpServiceTracker = new ServiceTracker(context, HttpService.class.getName(), this);
-            httpServiceTracker.open();
-        }
 
         ApplicationManager.getInstance().start(context);
     }
@@ -70,10 +56,6 @@ public class Activator implements BundleActivator, ServiceTrackerCustomizer {
     public void stop(BundleContext context) {
         ApplicationManager.getInstance().stop(context);
 
-        if (httpServiceTracker != null) {
-            httpServiceTracker.close();
-            httpServiceTracker = null;
-        }
         ServletRegistry.dispose();
         instance = null;
         context.ungetService(pkgAdm);
@@ -87,43 +69,5 @@ public class Activator implements BundleActivator, ServiceTrackerCustomizer {
 
     public PackageAdmin getPackageAdmin() {
         return (PackageAdmin) context.getService(pkgAdm);
-    }
-
-    @Override
-    public Object addingService(ServiceReference reference) {
-        Object service = context.getService(reference);
-        try {
-            if (service instanceof HttpService) {
-                ServletRegistry.getInstance().initHttpService((HttpService) service);
-            }
-        } catch (ServletException | NamespaceException e) {
-            throw new RuntimeException("Failed to initialize http service", e);
-        }
-        return service;
-    }
-
-    @Override
-    public void removedService(ServiceReference reference, Object service) {
-        try {
-            if (ServletRegistry.getInstance().getHttpService() == service) {
-                ServletRegistry.getInstance().initHttpService(null);
-            }
-        } catch (ServletException | NamespaceException e) {
-            log.error("Failed to remove http service", e);
-        } finally {
-            context.ungetService(reference);
-        }
-    }
-
-    @Override
-    public void modifiedService(ServiceReference reference, Object service) {
-        try {
-            if (ServletRegistry.getInstance().getHttpService() == service) {
-                ServletRegistry.getInstance().initHttpService(null);
-                ServletRegistry.getInstance().initHttpService((HttpService) service);
-            }
-        } catch (ServletException | NamespaceException e) {
-            log.error("Failed to update http service", e);
-        }
     }
 }

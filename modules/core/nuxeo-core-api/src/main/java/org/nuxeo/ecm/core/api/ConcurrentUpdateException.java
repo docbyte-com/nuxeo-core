@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 /**
  * An exception thrown if a concurrent update was detected.

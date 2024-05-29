@@ -21,9 +21,9 @@
 
 package org.nuxeo.ecm.webengine.servlet;
 
-import org.nuxeo.common.http.HttpHeaders;
+import jakarta.servlet.http.HttpServletResponse;
 
-import javax.servlet.http.HttpServletResponse;
+import org.nuxeo.common.http.HttpHeaders;
 
 /**
  * HTTP constants.
@@ -195,8 +195,7 @@ public class WebConst {
     /**
      * VirtualHosting header specific to Nuxeo 5 EP
      *
-     * @deprecated since 2023.14, use {@link HttpHeaders#NUXEO_VIRTUAL_HOST}
-     *             instead
+     * @deprecated since 2023.14, use {@link HttpHeaders#NUXEO_VIRTUAL_HOST} instead
      */
     @Deprecated(since = "2023.14")
     public static final String VH_HEADER = HttpHeaders.NUXEO_VIRTUAL_HOST;

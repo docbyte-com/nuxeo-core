@@ -18,10 +18,10 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_RENDITION;

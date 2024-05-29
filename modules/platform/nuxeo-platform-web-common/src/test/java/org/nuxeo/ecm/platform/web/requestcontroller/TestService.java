@@ -31,9 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

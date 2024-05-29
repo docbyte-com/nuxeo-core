@@ -25,8 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.StringUtils;

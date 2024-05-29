@@ -20,7 +20,7 @@
  */
 package org.nuxeo.ecm.core.api.impl;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.schema.types.ComplexTypeImpl.canonicalXPath;
 
 import java.io.Serializable;

@@ -24,6 +24,7 @@ package org.nuxeo.platform.el;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
@@ -31,7 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.el.ELException;
+
 import org.apache.el.ExpressionFactoryImpl;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
@@ -112,13 +116,15 @@ public class TestExpressionEvaluator {
      */
     @Test
     public void testArrayContainsFunction() {
-        Boolean res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContains(array, 'foo')}",
-                Boolean.class);
-        assertFalse(res);
+        var elException = assertThrows(ELException.class, () -> evaluatorUnderTest.evaluateExpression(context,
+                "${nx:arrayContains(array, 'foo')}", Boolean.class));
+        assertEquals("Problems calling function [nx:arrayContains]", elException.getMessage());
+        assertEquals("ELResolver cannot handle a null base Object with identifier [array]",
+                elException.getCause().getMessage());
 
         String[] arr = new String[] { "bar" };
         evaluatorUnderTest.bindValue(context, "array", arr);
-        res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContains(array, 'foo')}", Boolean.class);
+        var res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContains(array, 'foo')}", Boolean.class);
         assertFalse(res);
 
         res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContains(array, 'bar')}", Boolean.class);
@@ -129,14 +135,17 @@ public class TestExpressionEvaluator {
      * NXP-28918
      */
     @Test
+    @Ignore("NXP-32585: fixed in Tomcat 10.1")
     public void testArrayContainsAllFunction() {
-        Boolean res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAll(array, 'foo')}",
-                Boolean.class);
-        assertFalse(res);
+        var elException = assertThrows(ELException.class, () -> evaluatorUnderTest.evaluateExpression(context,
+                "${nx:arrayContainsAll(array, 'foo')}", Boolean.class));
+        assertEquals("Problems calling function [nx:arrayContainsAll]", elException.getMessage());
+        assertEquals("ELResolver cannot handle a null base Object with identifier [array]",
+                elException.getCause().getMessage());
 
         String[] arr = new String[] { "foo", "bar" };
         evaluatorUnderTest.bindValue(context, "array", arr);
-        res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAll(array, 'foo', 'foobar')}",
+        var res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAll(array, 'foo', 'foobar')}",
                 Boolean.class);
         assertFalse(res);
 
@@ -152,14 +161,17 @@ public class TestExpressionEvaluator {
      * NXP-28918
      */
     @Test
+    @Ignore("NXP-32585: fixed in Tomcat 10.1")
     public void testArrayContainsAnyFunction() {
-        Boolean res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAny(array, 'foo')}",
-                Boolean.class);
-        assertFalse(res);
+        var elException = assertThrows(ELException.class, () -> evaluatorUnderTest.evaluateExpression(context,
+                "${nx:arrayContainsAny(array, 'foo')}", Boolean.class));
+        assertEquals("Problems calling function [nx:arrayContainsAny]", elException.getMessage());
+        assertEquals("ELResolver cannot handle a null base Object with identifier [array]",
+                elException.getCause().getMessage());
 
         String[] arr = new String[] { "foo", "bar" };
         evaluatorUnderTest.bindValue(context, "array", arr);
-        res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAny(array, 'barfoo', 'foobar')}",
+        var res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsAny(array, 'barfoo', 'foobar')}",
                 Boolean.class);
         assertFalse(res);
 
@@ -175,14 +187,17 @@ public class TestExpressionEvaluator {
      * NXP-28918
      */
     @Test
+    @Ignore("NXP-32585: fixed in Tomcat 10.1")
     public void testArrayContainsNoneFunction() {
-        Boolean res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsNone(array, 'foo')}",
-                Boolean.class);
-        assertFalse(res);
+        var elException = assertThrows(ELException.class, () -> evaluatorUnderTest.evaluateExpression(context,
+                "${nx:arrayContainsNone(array, 'foo')}", Boolean.class));
+        assertEquals("Problems calling function [nx:arrayContainsNone]", elException.getMessage());
+        assertEquals("ELResolver cannot handle a null base Object with identifier [array]",
+                elException.getCause().getMessage());
 
         String[] arr = new String[] { "foo", "bar" };
         evaluatorUnderTest.bindValue(context, "array", arr);
-        res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsNone(array, 'foo', 'foobar')}",
+        var res = evaluatorUnderTest.evaluateExpression(context, "${nx:arrayContainsNone(array, 'foo', 'foobar')}",
                 Boolean.class);
         assertFalse(res);
 

@@ -30,8 +30,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;

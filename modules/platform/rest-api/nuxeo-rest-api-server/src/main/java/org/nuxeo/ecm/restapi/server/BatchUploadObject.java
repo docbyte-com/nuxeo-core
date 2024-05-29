@@ -22,9 +22,9 @@
 package org.nuxeo.ecm.restapi.server;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
 
 import java.io.File;
@@ -37,10 +37,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;

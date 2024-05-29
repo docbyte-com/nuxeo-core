@@ -1,8 +1,8 @@
 package org.nuxeo.ecm.platform.comment.api.exceptions;
 
-import org.nuxeo.ecm.core.api.NuxeoException;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import org.nuxeo.ecm.core.api.NuxeoException;
 
 public class CommentNotFoundException extends NuxeoException {
 

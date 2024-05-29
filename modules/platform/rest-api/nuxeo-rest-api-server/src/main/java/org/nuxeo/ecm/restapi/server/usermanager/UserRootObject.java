@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.usermanager;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.util.List;
 

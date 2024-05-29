@@ -31,7 +31,7 @@ import org.osgi.util.tracker.BundleTrackerCustomizer;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-public class ApplicationManager implements BundleTrackerCustomizer {
+public class ApplicationManager implements BundleTrackerCustomizer<ApplicationFragment> {
 
     public final static String HOST_ATTR = "host";
 
@@ -43,7 +43,7 @@ public class ApplicationManager implements BundleTrackerCustomizer {
         return instance;
     }
 
-    protected BundleTracker tracker;
+    protected BundleTracker<ApplicationFragment> tracker;
 
     protected final Map<String, ApplicationHost> apps = new HashMap<>();
 
@@ -51,7 +51,7 @@ public class ApplicationManager implements BundleTrackerCustomizer {
     }
 
     public synchronized void start(BundleContext context) {
-        tracker = new BundleTracker(context, Bundle.ACTIVE | Bundle.STARTING | Bundle.RESOLVED, this);
+        tracker = new BundleTracker<>(context, Bundle.ACTIVE | Bundle.STARTING | Bundle.RESOLVED, this);
         tracker.open();
     }
 
@@ -84,7 +84,7 @@ public class ApplicationManager implements BundleTrackerCustomizer {
     }
 
     @Override
-    public Object addingBundle(Bundle bundle, BundleEvent event) {
+    public ApplicationFragment addingBundle(Bundle bundle, BundleEvent event) {
         String v = (String) bundle.getHeaders().get("Nuxeo-WebModule");
         if (v != null) {
             String classRef;
@@ -110,10 +110,9 @@ public class ApplicationManager implements BundleTrackerCustomizer {
     }
 
     @Override
-    public void modifiedBundle(Bundle bundle, BundleEvent event, Object object) {
+    public void modifiedBundle(Bundle bundle, BundleEvent event, ApplicationFragment fragment) {
         // TODO not yet impl.
         if (event.getType() == BundleEvent.UPDATED) {
-            ApplicationFragment fragment = (ApplicationFragment) object;
             if (fragment != null) {
                 ApplicationHost app = getApplication(fragment);
                 if (app != null) {
@@ -124,8 +123,7 @@ public class ApplicationManager implements BundleTrackerCustomizer {
     }
 
     @Override
-    public void removedBundle(Bundle bundle, BundleEvent event, Object object) {
-        ApplicationFragment fragment = (ApplicationFragment) object;
+    public void removedBundle(Bundle bundle, BundleEvent event, ApplicationFragment fragment) {
         if (fragment != null) {
             ApplicationHost app = getApplication(fragment);
             if (app != null) {

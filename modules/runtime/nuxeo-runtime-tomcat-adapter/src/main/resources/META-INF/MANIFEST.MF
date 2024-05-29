@@ -10,7 +10,6 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Import-Package: javax.naming,
  javax.naming.directory,
- javax.servlet,
  javax.xml.parsers,
  org.apache.catalina,
  org.apache.catalina.core,

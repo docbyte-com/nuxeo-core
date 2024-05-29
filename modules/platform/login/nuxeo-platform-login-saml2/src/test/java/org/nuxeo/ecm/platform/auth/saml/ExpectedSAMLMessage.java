@@ -32,7 +32,7 @@ import org.opensaml.saml.common.SAMLObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import net.shibboleth.utilities.java.support.xml.XMLParserException;
+import net.shibboleth.shared.xml.XMLParserException;
 
 /**
  * @since 2023.0

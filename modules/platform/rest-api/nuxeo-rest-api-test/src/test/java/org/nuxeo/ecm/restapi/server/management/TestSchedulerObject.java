@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;

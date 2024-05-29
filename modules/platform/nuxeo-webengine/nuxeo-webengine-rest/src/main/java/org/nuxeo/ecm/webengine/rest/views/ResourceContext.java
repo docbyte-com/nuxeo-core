@@ -23,8 +23,7 @@ import java.net.URL;
 import java.security.Principal;
 import java.util.LinkedList;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.core.UriInfo;
 
 import org.nuxeo.ecm.core.api.CoreSession;

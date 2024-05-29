@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.directory;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.restapi.server.directory.DirectorySessionRunner.withDirectorySession;
 
 import java.util.List;

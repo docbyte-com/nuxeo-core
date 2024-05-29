@@ -20,17 +20,13 @@ package org.nuxeo.ecm.webengine.rest.servlet.config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import org.nuxeo.ecm.webengine.rest.Activator;
-import org.nuxeo.ecm.webengine.rest.servlet.ServletHolder;
 import org.osgi.framework.Bundle;
-import org.osgi.service.http.HttpService;
-import org.osgi.service.http.NamespaceException;
 
 /**
  * Handle servlet registration from Nuxeo extension points. This class is a singleton shared by the {@link Activator}
@@ -61,8 +57,7 @@ public class ServletRegistry {
     }
 
     /**
-     * Servlets contributed to the extension points. Servlets are contributed to the {@link HttpService} when it becomes
-     * available.
+     * Servlets contributed to the extension points.
      */
     protected List<ServletDescriptor> servlets;
 
@@ -75,19 +70,6 @@ public class ServletRegistry {
     protected Map<String, List<ResourcesDescriptor>> resources;
 
     /**
-     * The registered HttpContext mapped to the servlet path. An HttpContext is created and inserted in this map when
-     * its servlet is registered against the HttpService. The context is removed when the servlet is unregsitered.
-     * <p>
-     * Resource contributions are injected into the context and reinjected each time the context is restarted.
-     */
-    protected Map<String, BundleHttpContext> contexts;
-
-    /**
-     * The HttpService instance is injected when the service becomes available by the Activator.
-     */
-    protected HttpService service;
-
-    /**
      * The bundle owning this class
      */
     protected Bundle bundle;
@@ -96,7 +78,6 @@ public class ServletRegistry {
         this.servlets = new ArrayList<>();
         this.filters = new ArrayList<>();
         this.resources = new HashMap<>();
-        this.contexts = new HashMap<>();
     }
 
     public synchronized ServletDescriptor[] getServletDescriptors() {
@@ -126,40 +107,20 @@ public class ServletRegistry {
         return list;
     }
 
-    /**
-     * Called by the service tracker when HttpService is up to configure it with current contributed servlets
-     */
-    public synchronized void initHttpService(HttpService service) throws ServletException, NamespaceException {
-        if (this.service == null) {
-            this.service = service;
-            installServlets();
-        }
-    }
-
-    public HttpService getHttpService() {
-        return service;
-    }
-
-    public synchronized void addServlet(ServletDescriptor descriptor) throws ServletException, NamespaceException {
+    public synchronized void addServlet(ServletDescriptor descriptor) throws ServletException {
         servlets.add(descriptor);
-        installServlet(descriptor);
     }
 
     public synchronized void removeServlet(ServletDescriptor descriptor) {
         servlets.remove(descriptor);
-        contexts.remove(descriptor.path);
-        if (service != null) {
-            // destroy first the listeners if any was initialized
-            ListenerSetDescriptor lsd = descriptor.getListenerSet();
-            if (lsd != null) {
-                lsd.destroy();
-            }
-            // unregister the servlet
-            service.unregister(descriptor.path);
+        // destroy first the listeners if any was initialized
+        ListenerSetDescriptor lsd = descriptor.getListenerSet();
+        if (lsd != null) {
+            lsd.destroy();
         }
     }
 
-    public synchronized void reloadServlet(ServletDescriptor descriptor) throws ServletException, NamespaceException {
+    public synchronized void reloadServlet(ServletDescriptor descriptor) throws ServletException {
         removeServlet(descriptor);
         addServlet(descriptor);
     }
@@ -178,11 +139,6 @@ public class ServletRegistry {
             list = new ArrayList<>();
         }
         list.add(rd);
-        // update context
-        BundleHttpContext ctx = contexts.get(rd.getServlet());
-        if (ctx != null) {
-            ctx.setResources(list.toArray(ResourcesDescriptor[]::new));
-        }
     }
 
     public synchronized void removeResources(ResourcesDescriptor rd) {
@@ -192,39 +148,7 @@ public class ServletRegistry {
                 if (list.isEmpty()) {
                     resources.remove(rd.getServlet());
                 }
-                // update context
-                BundleHttpContext ctx = contexts.get(rd.getServlet());
-                if (ctx != null) {
-                    ctx.setResources(list.toArray(ResourcesDescriptor[]::new));
-                }
             }
-        }
-    }
-
-    private synchronized void installServlets() throws ServletException, NamespaceException {
-        if (service != null) {
-            for (ServletDescriptor sd : servlets) {
-                installServlet(sd);
-            }
-        }
-    }
-
-    private void installServlet(ServletDescriptor sd) throws ServletException, NamespaceException {
-        if (service != null) {
-            // ClassRef ref = sd.getClassRef();
-            BundleHttpContext ctx = new BundleHttpContext(sd.bundle, sd.resources);
-            List<ResourcesDescriptor> rd = resources.get(sd.path);
-            // register resources contributed so far
-            if (rd != null) {
-                ctx.setResources(rd.toArray(ResourcesDescriptor[]::new));
-            }
-            Hashtable<String, String> params = new Hashtable<>();
-            if (sd.name != null) {
-                params.putAll(sd.getInitParams());
-                params.put(SERVLET_NAME, sd.name);
-            }
-            service.registerServlet(sd.path, new ServletHolder(), params, ctx);
-            contexts.put(sd.path, ctx);
         }
     }
 }

@@ -23,7 +23,7 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.automation.core.util.PaginablePageProvider;

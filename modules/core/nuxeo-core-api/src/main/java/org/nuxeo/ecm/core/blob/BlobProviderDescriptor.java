@@ -94,7 +94,7 @@ public class BlobProviderDescriptor {
 
     /**
      * Flags this blob provider as allowing direct download with {@link URI} returned by
-     * {@link BlobProvider#getURI(ManagedBlob, org.nuxeo.ecm.core.blob.BlobManager.UsageHint, javax.servlet.http.HttpServletRequest)}.
+     * {@link BlobProvider#getURI(ManagedBlob, org.nuxeo.ecm.core.blob.BlobManager.UsageHint, jakarta.servlet.http.HttpServletRequest)}.
      *
      * @since 2023.7
      */

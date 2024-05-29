@@ -21,8 +21,7 @@ package org.nuxeo.ecm.restapi.server.management;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;

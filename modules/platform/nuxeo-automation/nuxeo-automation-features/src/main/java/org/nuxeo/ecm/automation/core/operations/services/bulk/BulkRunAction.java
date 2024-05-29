@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.automation.core.operations.services.bulk;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.nuxeo.ecm.automation.core.operations.services.bulk.AbstractAutomationBulkAction.OPERATION_ID;
 import static org.nuxeo.ecm.automation.core.operations.services.bulk.AutomationBulkActionUi.ACTION_NAME;
 

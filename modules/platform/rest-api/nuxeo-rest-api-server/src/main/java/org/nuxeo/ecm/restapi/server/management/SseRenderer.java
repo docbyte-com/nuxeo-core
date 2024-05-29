@@ -19,13 +19,12 @@
 package org.nuxeo.ecm.restapi.server.management;
 
 import java.io.Closeable;
-import java.io.Flushable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.lib.stream.codec.AvroSchemaStore;
 import org.nuxeo.lib.stream.computation.Record;
@@ -38,7 +37,7 @@ import org.nuxeo.runtime.avro.AvroService;
 /**
  * @since 2021.22
  */
-public class SseRenderer extends Renderer implements Closeable  {
+public class SseRenderer extends Renderer implements Closeable {
 
     protected final PrintWriter writer;
 
@@ -102,7 +101,8 @@ public class SseRenderer extends Renderer implements Closeable  {
     public void footer() {
     }
 
-    @Override public void close() throws IOException {
+    @Override
+    public void close() throws IOException {
         writer.close();
     }
 

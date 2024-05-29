@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.restapi.server.blob;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.io.download.DownloadService.BLOBHOLDER_PREFIX;
 
 import java.io.Serializable;

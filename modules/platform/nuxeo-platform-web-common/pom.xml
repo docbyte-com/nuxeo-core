@@ -102,7 +102,7 @@
     </dependency>
     <dependency>
       <groupId>io.opencensus</groupId>
-      <artifactId>opencensus-contrib-http-servlet</artifactId>
+      <artifactId>opencensus-contrib-http-util</artifactId>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>

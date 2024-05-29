@@ -28,7 +28,7 @@ import org.opensaml.saml.common.messaging.context.SAMLPeerEntityContext;
 import org.opensaml.saml.common.messaging.context.SAMLSelfEntityContext;
 import org.opensaml.saml.common.messaging.context.SAMLSubjectNameIdentifierContext;
 
-import net.shibboleth.utilities.java.support.net.HttpServletRequestResponseContext;
+import net.shibboleth.shared.servlet.impl.HttpServletRequestResponseContext;
 
 /**
  * @since 2023.0

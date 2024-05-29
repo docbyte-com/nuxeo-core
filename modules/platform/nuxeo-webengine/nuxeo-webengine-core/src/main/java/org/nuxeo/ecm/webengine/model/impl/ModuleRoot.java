@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.webengine.model.impl;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import java.io.IOException;
 import java.util.Date;

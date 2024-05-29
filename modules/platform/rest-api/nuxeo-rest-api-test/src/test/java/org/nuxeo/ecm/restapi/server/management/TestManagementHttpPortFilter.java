@@ -20,7 +20,7 @@ package org.nuxeo.ecm.restapi.server.management;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;

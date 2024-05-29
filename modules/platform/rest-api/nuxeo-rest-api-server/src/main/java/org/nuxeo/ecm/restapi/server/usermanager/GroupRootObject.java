@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.restapi.server.usermanager;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 import java.util.HashSet;
 import java.util.LinkedList;

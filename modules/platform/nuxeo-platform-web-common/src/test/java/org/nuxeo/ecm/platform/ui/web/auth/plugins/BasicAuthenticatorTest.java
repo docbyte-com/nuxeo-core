@@ -19,15 +19,15 @@
 package org.nuxeo.ecm.platform.ui.web.auth.plugins;
 
 import static org.mockito.Matchers.anyString;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Matchers.eq;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -40,10 +40,10 @@ import com.google.common.collect.ImmutableMap;
 public class BasicAuthenticatorTest {
 
     static final ImmutableMap<String, String> BA_INIT_NOTOKEN = //
-    new ImmutableMap.Builder<String, String>() //
-    .put("ExcludeBAHeader_Token", "X-Authorization-token") //
-    .put("ExcludeBAHeader_Other", "X-NoBAPrompt")//
-    .build();
+            new ImmutableMap.Builder<String, String>() //
+                                                      .put("ExcludeBAHeader_Token", "X-Authorization-token") //
+                                                      .put("ExcludeBAHeader_Other", "X-NoBAPrompt")//
+                                                      .build();
 
     private BasicAuthenticator ba;
 

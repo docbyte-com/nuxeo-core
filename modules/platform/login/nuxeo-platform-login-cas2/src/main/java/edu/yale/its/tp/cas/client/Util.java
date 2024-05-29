@@ -34,8 +34,8 @@ package edu.yale.its.tp.cas.client;
 
 import java.net.URLEncoder;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Provides utility functions in support of CAS clients.

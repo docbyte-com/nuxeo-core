@@ -78,7 +78,7 @@ public class Scanner {
                 if (reader.hasResults()) {
                     String cname = reader.getClassName();
                     for (String anno : reader.getResults()) {
-                        collectors.get(anno).add(bundle.loadClass(cname));
+                        collectors.get(anno).add((Class<? extends Annotation>) bundle.loadClass(cname));
                     }
                 }
             }

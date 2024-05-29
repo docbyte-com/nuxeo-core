@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.webengine.rest.servlet.config;
 
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextListener;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;

@@ -21,8 +21,8 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.CALLBACK_URL_PARAMETER;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.DISABLE_REDIRECT_REQUEST_KEY;
@@ -68,18 +68,18 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.naming.NamingException;
 import javax.security.auth.login.LoginException;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
-import javax.servlet.http.HttpSession;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.http.HttpSession;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriBuilder;
 

@@ -18,10 +18,10 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_ACCEPTED;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.awaitility.Awaitility.await;
 import static org.awaitility.Duration.ONE_MINUTE;
 import static org.junit.Assert.assertEquals;

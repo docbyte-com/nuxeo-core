@@ -60,6 +60,11 @@
       <groupId>org.opensaml</groupId>
       <artifactId>opensaml-saml-impl</artifactId>
     </dependency>
+    <!-- depend on the bridge because opensaml uses metrics 4.x -->
+    <dependency>
+      <groupId>io.dropwizard.metrics5</groupId>
+      <artifactId>metrics-legacy-adapter</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>org.bouncycastle</groupId>

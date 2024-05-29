@@ -20,8 +20,7 @@ package org.nuxeo.ecm.platform.forms.layout.export;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;

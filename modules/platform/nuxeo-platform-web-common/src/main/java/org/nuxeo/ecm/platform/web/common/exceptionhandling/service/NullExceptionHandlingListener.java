@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.web.common.exceptionhandling.service;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Listener doing nothing.

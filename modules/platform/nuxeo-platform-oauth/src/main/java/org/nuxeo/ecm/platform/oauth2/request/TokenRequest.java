@@ -25,7 +25,7 @@ import static org.nuxeo.ecm.platform.oauth2.Constants.CODE_VERIFIER_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.GRANT_TYPE_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.REFRESH_TOKEN_PARAM;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>

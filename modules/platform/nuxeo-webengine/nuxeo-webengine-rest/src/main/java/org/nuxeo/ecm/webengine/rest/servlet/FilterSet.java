@@ -22,11 +22,11 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import org.nuxeo.ecm.webengine.rest.BundleNotFoundException;
 import org.nuxeo.ecm.webengine.rest.servlet.config.FilterDescriptor;

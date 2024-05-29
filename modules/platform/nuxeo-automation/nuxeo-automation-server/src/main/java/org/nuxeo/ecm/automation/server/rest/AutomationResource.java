@@ -24,9 +24,8 @@ import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;

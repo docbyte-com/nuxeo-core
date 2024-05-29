@@ -56,6 +56,10 @@
     </dependency>
     <dependency>
       <groupId>org.keycloak</groupId>
+      <artifactId>keycloak-jakarta-servlet-filter-adapter</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.keycloak</groupId>
       <artifactId>keycloak-tomcat-adapter</artifactId>
     </dependency>
     <dependency>

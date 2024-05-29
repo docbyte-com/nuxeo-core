@@ -24,8 +24,8 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.Request;
 import org.apache.http.HttpHost;
@@ -44,7 +44,7 @@ import org.apache.logging.log4j.Logger;
 import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.NodesRegistrationManagement;
-import org.keycloak.adapters.tomcat.CatalinaHttpFacade;
+import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
 import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
@@ -100,7 +100,7 @@ public class KeycloakAuthenticatorProvider {
 
         resolvedDeployment = DeploymentResult.getKeycloakDeployment();
         Request request = deploymentResult.getRequest();
-        CatalinaHttpFacade facade = deploymentResult.getFacade();
+        OIDCServletHttpFacade facade = deploymentResult.getFacade();
 
         nodesRegistrationManagement.tryRegister(resolvedDeployment);
 

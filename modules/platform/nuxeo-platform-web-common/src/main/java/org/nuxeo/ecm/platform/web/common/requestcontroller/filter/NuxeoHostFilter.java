@@ -17,7 +17,7 @@
 
 package org.nuxeo.ecm.platform.web.common.requestcontroller.filter;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
 import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_HOST;
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_ALLOWED_HOSTS;
@@ -30,12 +30,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

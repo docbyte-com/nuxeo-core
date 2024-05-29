@@ -45,9 +45,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.servlet.http.HttpServletRequest;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

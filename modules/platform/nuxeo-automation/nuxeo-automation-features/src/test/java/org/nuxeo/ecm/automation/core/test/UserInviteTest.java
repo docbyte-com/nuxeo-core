@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.automation.core.test;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 

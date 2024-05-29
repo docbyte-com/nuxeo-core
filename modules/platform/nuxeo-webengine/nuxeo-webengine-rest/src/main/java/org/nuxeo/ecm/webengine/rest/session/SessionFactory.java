@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.webengine.rest.session;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;

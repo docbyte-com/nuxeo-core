@@ -30,8 +30,8 @@ import org.opensaml.profile.action.ActionSupport;
 import org.opensaml.profile.action.EventIds;
 import org.opensaml.profile.context.ProfileRequestContext;
 
-import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
-import net.shibboleth.utilities.java.support.net.HttpServletRequestResponseContext;
+import net.shibboleth.shared.component.ComponentInitializationException;
+import net.shibboleth.shared.servlet.impl.HttpServletRequestResponseContext;
 
 /**
  * Action that decodes an inbound request from the {@link HttpServletRequestResponseContext} to {@link MessageContext}.

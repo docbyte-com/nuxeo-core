@@ -20,7 +20,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.CHANGED_ACL_NAME;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.NEW_ACE;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.OLD_ACE;

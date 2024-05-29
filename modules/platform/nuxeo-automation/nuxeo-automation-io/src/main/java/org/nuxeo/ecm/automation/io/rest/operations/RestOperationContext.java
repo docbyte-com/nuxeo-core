@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.automation.io.rest.operations;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.platform.web.common.RequestCleanupHandler;
@@ -34,7 +34,6 @@ import org.nuxeo.ecm.platform.web.common.RequestContext;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class RestOperationContext extends OperationContext {
-
 
     /**
      * Specify the http status when no failure occurs.

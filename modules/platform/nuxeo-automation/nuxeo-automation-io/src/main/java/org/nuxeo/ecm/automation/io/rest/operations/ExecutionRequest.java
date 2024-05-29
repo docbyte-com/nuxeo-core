@@ -21,8 +21,8 @@ package org.nuxeo.ecm.automation.io.rest.operations;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.scripting.Scripting;
@@ -88,7 +88,8 @@ public class ExecutionRequest {
     }
 
     /** Sets up and returns the current {@link OperationContext}, which MUST NOT be closed. */
-    public OperationContext createContext(HttpServletRequest request, HttpServletResponse response, CoreSession session) {
+    public OperationContext createContext(HttpServletRequest request, HttpServletResponse response,
+            CoreSession session) {
         restOperationContext.addRequestCleanupHandler(request);
         restOperationContext.setCoreSession(session);
         restOperationContext.setInput(input);

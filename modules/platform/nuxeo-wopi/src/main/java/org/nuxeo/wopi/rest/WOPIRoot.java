@@ -26,8 +26,7 @@ import static org.nuxeo.wopi.Headers.TIMESTAMP;
 
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
-
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Context;

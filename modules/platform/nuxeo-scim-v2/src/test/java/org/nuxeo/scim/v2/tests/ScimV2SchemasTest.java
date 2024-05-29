@@ -18,7 +18,7 @@
  */
 package org.nuxeo.scim.v2.tests;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import jakarta.inject.Inject;
 

@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_ACCEPTED;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.servlet.http.HttpServletResponse.SC_ACCEPTED;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import java.util.List;
 

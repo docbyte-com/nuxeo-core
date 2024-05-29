@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.auth.saml.processor;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * @since 2023.0

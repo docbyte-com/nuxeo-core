@@ -28,8 +28,8 @@ import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PROTO;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.REQUESTED_URL;
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;

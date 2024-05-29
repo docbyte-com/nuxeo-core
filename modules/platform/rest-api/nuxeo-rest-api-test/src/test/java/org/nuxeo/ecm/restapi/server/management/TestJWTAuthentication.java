@@ -23,9 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.jwt.JWTClaims.CLAIM_SUBJECT;
 
-import javax.servlet.http.HttpServletResponse;
-
 import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.core.HttpHeaders;
 
 import org.junit.After;

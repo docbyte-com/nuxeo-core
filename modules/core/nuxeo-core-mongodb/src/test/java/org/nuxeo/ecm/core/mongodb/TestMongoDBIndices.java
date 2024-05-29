@@ -19,8 +19,8 @@
 
 package org.nuxeo.ecm.core.mongodb;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static java.util.stream.Collectors.toList;
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

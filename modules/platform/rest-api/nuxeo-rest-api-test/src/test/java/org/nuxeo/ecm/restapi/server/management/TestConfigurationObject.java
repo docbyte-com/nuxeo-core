@@ -16,7 +16,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.nuxeo.common.function.ThrowableConsumer.asConsumer;
 import static org.nuxeo.ecm.restapi.server.management.ConfigurationObject.OS_TIMEZONE_ID_KEY;

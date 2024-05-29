@@ -20,9 +20,8 @@ package org.nuxeo.ecm.webengine.app;
 
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.container.ResourceContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Feature;

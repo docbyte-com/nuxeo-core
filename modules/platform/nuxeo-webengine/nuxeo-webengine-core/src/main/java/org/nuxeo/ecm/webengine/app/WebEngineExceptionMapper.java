@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.webengine.app;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
 
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;

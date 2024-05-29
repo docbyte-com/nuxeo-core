@@ -19,21 +19,19 @@
 
 package org.nuxeo.ecm.platform.ui.web.keycloak;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletRequestWrapper;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.RequestFacade;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.KeycloakDeployment;
-import org.keycloak.adapters.tomcat.CatalinaHttpFacade;
-import org.keycloak.adapters.tomcat.OIDCCatalinaHttpFacade;
+import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
 
 /**
- *
  * @since 7.4
  */
 
@@ -42,10 +40,13 @@ public class DeploymentResult {
 
     private static KeycloakDeployment keycloakDeployment;
 
-    private HttpServletRequest httpServletRequest;
-    private HttpServletResponse httpServletResponse;
+    private final HttpServletRequest httpServletRequest;
+
+    private final HttpServletResponse httpServletResponse;
+
     private Request request;
-    private CatalinaHttpFacade facade;
+
+    private OIDCServletHttpFacade facade;
 
     public DeploymentResult(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
         this.httpServletRequest = httpServletRequest;
@@ -64,7 +65,7 @@ public class DeploymentResult {
         return request;
     }
 
-    public CatalinaHttpFacade getFacade() {
+    public OIDCServletHttpFacade getFacade() {
         return facade;
     }
 
@@ -72,7 +73,7 @@ public class DeploymentResult {
 
         // In Tomcat, a HttpServletRequest and a HttpServletResponse are wrapped in a Facades or ApplicationHttpRequest
         request = unwrapRequest(httpServletRequest);
-        facade = new OIDCCatalinaHttpFacade(request, httpServletResponse);
+        facade = new OIDCServletHttpFacade(request, httpServletResponse);
 
         if (keycloakDeployment == null) {
             keycloakDeployment = deploymentContext.resolveDeployment(facade);
@@ -88,7 +89,7 @@ public class DeploymentResult {
     /**
      * Get the wrapper {@link Request} hidden in a {@link HttpServletRequest} or in {@link RequestFacade} object
      *
-     * @param httpRequest, the HTTP request
+     * @param servletRequest, the HTTP request
      * @return the wrapper {@link Request} in {@link HttpServletRequest}
      * @since 2021.36
      */

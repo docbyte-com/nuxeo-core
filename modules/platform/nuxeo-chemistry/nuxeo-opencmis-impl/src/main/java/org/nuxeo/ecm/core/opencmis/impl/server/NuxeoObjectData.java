@@ -21,7 +21,6 @@ package org.nuxeo.ecm.core.opencmis.impl.server;
 import static org.apache.chemistry.opencmis.commons.impl.Constants.RENDITION_NONE;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -36,8 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import javax.servlet.ServletContext;
 
 import org.apache.chemistry.opencmis.client.api.OperationContext;
 import org.apache.chemistry.opencmis.commons.BasicPermissions;
@@ -75,7 +72,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IterableQueryResult;
-import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
@@ -444,8 +440,8 @@ public class NuxeoObjectData implements ObjectData {
             return null;
         }
         String statement = "SELECT " + PropertyIds.OBJECT_ID + ", " + PropertyIds.BASE_TYPE_ID + ", "
-                + PropertyIds.SOURCE_ID + ", " + PropertyIds.TARGET_ID + " FROM "
-                + BaseTypeId.CMIS_RELATIONSHIP.value() + " WHERE ";
+                + PropertyIds.SOURCE_ID + ", " + PropertyIds.TARGET_ID + " FROM " + BaseTypeId.CMIS_RELATIONSHIP.value()
+                + " WHERE ";
         String qid = "'" + id.replace("'", "''") + "'";
         if (includeRelationships != IncludeRelationships.TARGET) {
             statement += PropertyIds.SOURCE_ID + " = " + qid;
@@ -496,7 +492,8 @@ public class NuxeoObjectData implements ObjectData {
                 String username = ace.getUsername();
                 String permission = ace.getPermission();
                 if (denied) {
-                    if (SecurityConstants.EVERYONE.equals(username) && SecurityConstants.EVERYTHING.equals(permission)) {
+                    if (SecurityConstants.EVERYONE.equals(username)
+                            && SecurityConstants.EVERYTHING.equals(permission)) {
                         permission = NuxeoCmisService.PERMISSION_NOTHING;
                     } else {
                         // we cannot represent this blocking

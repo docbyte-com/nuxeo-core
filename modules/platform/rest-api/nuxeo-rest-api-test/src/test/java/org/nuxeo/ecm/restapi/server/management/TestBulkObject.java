@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 

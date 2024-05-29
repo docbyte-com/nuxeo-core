@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.automation.io.rest.operations;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import java.io.File;
 import java.io.IOException;

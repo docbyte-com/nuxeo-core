@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServlet;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;

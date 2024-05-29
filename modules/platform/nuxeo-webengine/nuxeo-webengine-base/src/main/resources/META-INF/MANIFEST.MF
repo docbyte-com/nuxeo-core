@@ -14,8 +14,6 @@ Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=base;headless=
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Import-Package: javax.ejb,
- javax.servlet,
- javax.servlet.http,
  org.apache.commons.logging,
  org.nuxeo.common.collections,
  org.nuxeo.common.utils,

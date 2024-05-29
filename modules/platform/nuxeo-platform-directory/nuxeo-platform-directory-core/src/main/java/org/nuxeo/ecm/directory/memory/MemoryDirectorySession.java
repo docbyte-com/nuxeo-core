@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.directory.memory;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 import java.io.Serializable;
 import java.util.ArrayList;

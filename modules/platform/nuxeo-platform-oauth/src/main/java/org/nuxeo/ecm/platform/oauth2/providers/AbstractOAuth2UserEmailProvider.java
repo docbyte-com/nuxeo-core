@@ -16,13 +16,14 @@
 
 package org.nuxeo.ecm.platform.oauth2.providers;
 
-import org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token;
-
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token;
 
 /**
  * {@link org.nuxeo.ecm.platform.oauth2.providers.OAuth2ServiceProvider} that relies on the user's email as key.

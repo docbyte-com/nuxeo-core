@@ -35,7 +35,7 @@ import static org.nuxeo.ecm.platform.web.common.requestcontroller.filter.NuxeoCo
 
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.Before;
 import org.junit.Test;
