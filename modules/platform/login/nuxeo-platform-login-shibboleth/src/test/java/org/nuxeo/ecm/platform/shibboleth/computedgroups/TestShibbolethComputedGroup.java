@@ -30,7 +30,7 @@ import java.util.Map;
 
 import jakarta.inject.Inject;
 
-import org.jboss.el.ExpressionFactoryImpl;
+import org.apache.el.ExpressionFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -151,9 +151,7 @@ public class TestShibbolethComputedGroup {
 
         assertTrue(ELGroupComputerHelper.isValidEL("currentUser.user.email != \"test\""));
         assertFalse(ELGroupComputerHelper.isValidEL("fdsfds ! fdsf^6"));
-        // changed to assertTrue when switching from juel-impl to jboss-el
-        // implementation: can't see why this would not be a valid EL
-        assertTrue(ELGroupComputerHelper.isValidEL("testMethodCall == hello"));
+        assertFalse(ELGroupComputerHelper.isValidEL("testMethodCall == hello"));
         assertTrue(ELGroupComputerHelper.isValidEL("empty currentUser"));
     }
 

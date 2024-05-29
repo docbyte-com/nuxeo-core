@@ -27,7 +27,7 @@ import java.util.Map;
 
 import jakarta.inject.Inject;
 
-import org.jboss.el.ExpressionFactoryImpl;
+import org.apache.el.ExpressionFactoryImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

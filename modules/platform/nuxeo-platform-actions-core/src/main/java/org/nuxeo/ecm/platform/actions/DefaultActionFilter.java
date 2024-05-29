@@ -24,7 +24,7 @@ package org.nuxeo.ecm.platform.actions;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.el.ELException;
+import jakarta.el.ELException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

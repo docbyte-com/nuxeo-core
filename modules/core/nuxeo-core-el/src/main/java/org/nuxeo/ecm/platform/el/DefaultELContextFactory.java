@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.el;
 
-import javax.el.ELContext;
+import jakarta.el.ELContext;
 
 /**
  * Default implementation for an ELContext factory.

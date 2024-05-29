@@ -29,14 +29,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.el.ELContext;
-import javax.el.ExpressionFactory;
-import javax.el.PropertyNotWritableException;
-import javax.el.ValueExpression;
-
+import jakarta.el.ELContext;
+import jakarta.el.ExpressionFactory;
+import jakarta.el.PropertyNotWritableException;
+import jakarta.el.ValueExpression;
 import jakarta.inject.Inject;
 
-import org.jboss.el.ExpressionFactoryImpl;
+import org.apache.el.ExpressionFactoryImpl;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

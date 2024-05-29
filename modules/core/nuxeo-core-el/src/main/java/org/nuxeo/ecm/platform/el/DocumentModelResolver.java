@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.el.BeanELResolver;
-import javax.el.ELContext;
-import javax.el.PropertyNotFoundException;
+import jakarta.el.BeanELResolver;
+import jakarta.el.ELContext;
+import jakarta.el.PropertyNotFoundException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

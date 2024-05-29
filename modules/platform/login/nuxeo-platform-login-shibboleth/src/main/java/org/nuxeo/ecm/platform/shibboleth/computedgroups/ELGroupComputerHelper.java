@@ -19,12 +19,12 @@
 
 package org.nuxeo.ecm.platform.shibboleth.computedgroups;
 
-import javax.el.ELException;
-import javax.el.PropertyNotFoundException;
+import jakarta.el.ELException;
+import jakarta.el.PropertyNotFoundException;
 
+import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jboss.el.ExpressionFactoryImpl;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
 import org.nuxeo.ecm.platform.el.ExpressionContext;

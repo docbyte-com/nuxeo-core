@@ -31,9 +31,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.el.ELContext;
-import javax.el.ValueExpression;
-
+import jakarta.el.ELContext;
+import jakarta.el.ValueExpression;
 import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ArrayUtils;

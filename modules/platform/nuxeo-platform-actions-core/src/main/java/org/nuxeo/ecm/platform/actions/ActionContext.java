@@ -27,7 +27,7 @@ package org.nuxeo.ecm.platform.actions;
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.el.ELException;
+import jakarta.el.ELException;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;

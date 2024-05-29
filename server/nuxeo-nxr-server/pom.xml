@@ -12,10 +12,6 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.jboss.el</groupId>
-      <artifactId>jboss-el</artifactId>
-    </dependency>
-    <dependency>
       <groupId>jakarta.annotation</groupId>
       <artifactId>jakarta.annotation-api</artifactId>
       <scope>provided</scope> <!-- provided by Tomcat -->

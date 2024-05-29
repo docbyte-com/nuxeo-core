@@ -146,7 +146,7 @@
         <include name="tomcat-coyote-*" /> <!-- provided by Tomcat -->
         <include name="tomcat-dbcp-*" /> <!-- provided by Tomcat -->
         <include name="tomcat-el-api-*" /> <!-- provided by Tomcat as el-api.jar -->
-        <include name="tomcat-jasper-*" /> <!-- provided by Tomcat as jasper.jar -->
+        <include name="tomcat-jasper-*" /> <!-- provided by Tomcat as jasper.jar & jasper-el.jar -->
         <include name="tomcat-jdbc-*" /> <!-- provided by Tomcat -->
         <include name="tomcat-jni-*" /> <!-- provided by Tomcat -->
         <include name="tomcat-juli-*" /> <!-- provided by Tomcat as bin/tomcat-juli.jar -->
