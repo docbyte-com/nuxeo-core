@@ -10,8 +10,7 @@ Bundle-Vendor: Nuxeo
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Nuxeo-Component: OSGI-INF/datasource-component.xml
-Import-Package: javax.annotation;version="1.0",
- javax.naming,
+Import-Package: javax.naming,
  javax.naming.spi,
  javax.sql,
  org.apache.commons.beanutils,

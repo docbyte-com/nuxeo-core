@@ -14,8 +14,7 @@ Eclipse-LazyStart: false
 Bundle-Version: 0.0.0.SNAPSHOT
 Nuxeo-Component: OSGI-INF/versioningmanager-service.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.ejb,
+Import-Package: javax.ejb,
  javax.naming,
  org.apache.commons.logging,
  org.nuxeo.common.collections,

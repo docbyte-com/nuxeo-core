@@ -25,8 +25,7 @@ Nuxeo-Component: OSGI-INF/CommentService.xml,
   OSGI-INF/annotation-service.xml,
   OSGI-INF/annotation-marshaller-contrib.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.ejb,
+Import-Package: javax.ejb,
  javax.security.auth.login,
  org.apache.commons.logging,
  org.nuxeo.common.utils,

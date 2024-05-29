@@ -13,8 +13,7 @@ Require-Bundle: org.nuxeo.ecm.webengine.core
 Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=base;headless=true
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation,
- javax.ejb,
+Import-Package: javax.ejb,
  javax.servlet,
  javax.servlet.http,
  org.apache.commons.logging,

@@ -16,8 +16,7 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Nuxeo-Component: OSGI-INF/LDAPDirectoryFactory.xml,
  OSGI-INF/management-contrib.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.naming,
+Import-Package: javax.naming,
  javax.naming.directory,
  org.apache.commons.lang,
  org.apache.commons.logging,
