@@ -23,9 +23,8 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import javax.ws.rs.core.MediaType;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;

@@ -27,9 +27,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.ws.rs.core.MediaType;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.After;
 import org.junit.Before;

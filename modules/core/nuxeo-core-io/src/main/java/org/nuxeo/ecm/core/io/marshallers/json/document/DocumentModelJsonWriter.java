@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.core.io.marshallers.json.document;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 import static org.nuxeo.common.utils.DateUtils.nowIfNull;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.WILDCARD_VALUE;

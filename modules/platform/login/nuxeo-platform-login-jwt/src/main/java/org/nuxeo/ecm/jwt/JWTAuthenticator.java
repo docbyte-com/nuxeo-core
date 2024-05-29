@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.jwt;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.Boolean.FALSE;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.nuxeo.ecm.jwt.JWTClaims.CLAIM_AUDIENCE;
 import static org.nuxeo.ecm.jwt.JWTClaims.CLAIM_SUBJECT;
 

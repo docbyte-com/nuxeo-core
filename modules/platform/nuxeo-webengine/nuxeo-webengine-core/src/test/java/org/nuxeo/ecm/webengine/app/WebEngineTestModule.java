@@ -20,7 +20,7 @@ package org.nuxeo.ecm.webengine.app;
 
 import java.util.Set;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 /**
  * @since 2025.0

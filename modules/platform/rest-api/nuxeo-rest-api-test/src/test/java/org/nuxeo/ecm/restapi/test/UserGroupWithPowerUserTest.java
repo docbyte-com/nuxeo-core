@@ -26,9 +26,8 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Before;
 import org.junit.Rule;

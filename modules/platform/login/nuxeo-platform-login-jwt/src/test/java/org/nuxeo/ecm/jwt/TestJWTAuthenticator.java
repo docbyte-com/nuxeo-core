@@ -18,7 +18,7 @@ t * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
  */
 package org.nuxeo.ecm.jwt;
 
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

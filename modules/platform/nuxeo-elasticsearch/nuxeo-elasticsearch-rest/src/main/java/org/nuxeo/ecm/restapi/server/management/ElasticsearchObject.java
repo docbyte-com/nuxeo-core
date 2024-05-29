@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
 import static org.nuxeo.elasticsearch.bulk.IndexAction.ACTION_NAME;
@@ -31,12 +31,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -144,11 +144,11 @@ public class ElasticsearchObject extends AbstractResource<ResourceTypeImpl> {
         Map<String, Serializable> elasticSearch = extractResultInfo("nxql_elastic_search", nxql, pageSize);
         Map<String, Serializable> ret = new HashMap<>();
         ret.put("query", nxql);
-        ret.put( "order", repoSearch.get("order"));
+        ret.put("order", repoSearch.get("order"));
         repoSearch.remove("order");
         elasticSearch.remove("order");
-        ret.put( "repo", (Serializable) repoSearch);
-        ret.put( "elastic", (Serializable) elasticSearch);
+        ret.put("repo", (Serializable) repoSearch);
+        ret.put("elastic", (Serializable) elasticSearch);
         try {
             return MAPPER.writeValueAsString(ret);
         } catch (JsonProcessingException e) {
@@ -174,7 +174,7 @@ public class ElasticsearchObject extends AbstractResource<ResourceTypeImpl> {
         ret.put("resultsCount", pp.getResultsCount());
         ret.put("resultsCountLimit", pp.getResultsCountLimit());
         ret.put("order", pp.getSortInfo());
-        ret.put( "results", (Serializable) res.stream().map(DocumentModel::getId).collect(Collectors.toList()));
+        ret.put("results", (Serializable) res.stream().map(DocumentModel::getId).collect(Collectors.toList()));
         return ret;
     }
 

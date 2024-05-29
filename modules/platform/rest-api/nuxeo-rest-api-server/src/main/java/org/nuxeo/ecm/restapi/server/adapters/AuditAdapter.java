@@ -26,8 +26,9 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,7 +48,7 @@ import org.nuxeo.runtime.api.Framework;
  * @since 5.7.3
  */
 @WebAdapter(name = AuditAdapter.NAME, type = "AuditService")
-@Produces({ MediaType.APPLICATION_JSON, AbstractCSVWriter.TEXT_CSV})
+@Produces({ MediaType.APPLICATION_JSON, AbstractCSVWriter.TEXT_CSV })
 public class AuditAdapter extends PaginableAdapter<LogEntry> {
 
     private static Logger log = LogManager.getLogger(AuditAdapter.class);

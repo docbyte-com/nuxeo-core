@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.restapi.server.config;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;

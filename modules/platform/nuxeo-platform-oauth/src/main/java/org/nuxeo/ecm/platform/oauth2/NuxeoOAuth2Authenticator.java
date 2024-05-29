@@ -20,8 +20,8 @@
  */
 package org.nuxeo.ecm.platform.oauth2;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.Boolean.FALSE;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.nuxeo.ecm.platform.oauth2.Constants.TOKEN_SERVICE;
 
 import java.util.List;

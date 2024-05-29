@@ -21,7 +21,7 @@ package org.nuxeo.ecm.webengine.app;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.nuxeo.ecm.webengine.model.io.BlobReader;
 import org.nuxeo.ecm.webengine.model.io.BlobWriter;

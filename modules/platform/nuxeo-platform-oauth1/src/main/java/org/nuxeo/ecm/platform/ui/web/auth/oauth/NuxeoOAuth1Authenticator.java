@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth.oauth;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.lang.Boolean.FALSE;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static net.oauth.OAuth.OAUTH_SIGNATURE;
 
 import java.io.IOException;

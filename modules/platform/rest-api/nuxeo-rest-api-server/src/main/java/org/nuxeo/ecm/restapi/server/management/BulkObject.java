@@ -18,13 +18,13 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.bulk.BulkService;

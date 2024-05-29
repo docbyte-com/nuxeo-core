@@ -21,11 +21,11 @@ package org.nuxeo.ecm.restapi.server.adapters;
 
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentPropertyJsonWriter.OMIT_PHANTOM_SECURED_PROPERTY;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.CoreSession;

@@ -23,7 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.osgi.framework.Bundle;
 
@@ -84,8 +84,7 @@ public class ApplicationFragment extends Application {
                 throw new IllegalArgumentException("Expecting an Application or ApplicationFactory class: " + appClass);
             }
         } catch (ReflectiveOperationException | IOException e) {
-            String msg = "Cannot instantiate REST application " + appClass + " from bundle "
-                    + bundle.getSymbolicName();
+            String msg = "Cannot instantiate REST application " + appClass + " from bundle " + bundle.getSymbolicName();
             throw new RuntimeException(msg, e);
         }
     }

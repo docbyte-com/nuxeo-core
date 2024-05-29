@@ -24,7 +24,8 @@ import java.security.Principal;
 import java.util.LinkedList;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
+
+import jakarta.ws.rs.core.UriInfo;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;

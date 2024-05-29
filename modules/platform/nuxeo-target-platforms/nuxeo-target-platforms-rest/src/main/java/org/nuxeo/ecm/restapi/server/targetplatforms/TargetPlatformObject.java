@@ -23,11 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -47,16 +47,18 @@ public class TargetPlatformObject extends DefaultObject {
     private static final String PUBLIC_TP_CACHE_KEY = "PUBLIC_TP";
 
     private static final LoadingCache<String, String> PUBLIC_CACHE = CacheBuilder //
-            .newBuilder() //
-            .expireAfterAccess(5, TimeUnit.MINUTES) //
-            .refreshAfterWrite(10, TimeUnit.MINUTES) //
-            .recordStats() //
-            .maximumSize(5).build(new CacheLoader<>() {
-                @Override
-                public String load(String key) {
-                    return key;
-                }
-            });
+                                                                                 .newBuilder() //
+                                                                                 .expireAfterAccess(5, TimeUnit.MINUTES) //
+                                                                                 .refreshAfterWrite(10,
+                                                                                         TimeUnit.MINUTES) //
+                                                                                 .recordStats() //
+                                                                                 .maximumSize(5)
+                                                                                 .build(new CacheLoader<>() {
+                                                                                     @Override
+                                                                                     public String load(String key) {
+                                                                                         return key;
+                                                                                     }
+                                                                                 });
 
     @GET
     public Response doGet() {

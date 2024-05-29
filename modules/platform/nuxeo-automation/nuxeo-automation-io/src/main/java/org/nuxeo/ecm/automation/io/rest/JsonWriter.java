@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.automation.io.rest;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

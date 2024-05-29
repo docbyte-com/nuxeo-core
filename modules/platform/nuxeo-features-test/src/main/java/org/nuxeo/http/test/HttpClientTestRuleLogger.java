@@ -23,6 +23,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jakarta.ws.rs.core.MediaType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -32,8 +34,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.function.ThrowableConsumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * @since 2023.13

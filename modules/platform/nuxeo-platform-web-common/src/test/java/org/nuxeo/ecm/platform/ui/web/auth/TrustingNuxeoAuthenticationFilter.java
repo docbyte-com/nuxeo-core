@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth;
 
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
 
 import java.io.IOException;
 import java.util.Base64;

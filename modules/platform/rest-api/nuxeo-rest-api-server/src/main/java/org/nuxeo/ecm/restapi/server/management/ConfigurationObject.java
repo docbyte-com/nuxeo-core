@@ -16,7 +16,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,8 +25,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.util.Properties;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
 
 import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.restapi.io.management.ConfigurationProperties;

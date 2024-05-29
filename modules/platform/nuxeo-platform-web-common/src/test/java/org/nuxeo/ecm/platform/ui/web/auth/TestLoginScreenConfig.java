@@ -33,9 +33,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Test;

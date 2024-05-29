@@ -27,9 +27,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.core.MediaType;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

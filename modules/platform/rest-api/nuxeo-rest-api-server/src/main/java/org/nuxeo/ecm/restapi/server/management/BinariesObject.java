@@ -19,12 +19,13 @@
 
 package org.nuxeo.ecm.restapi.server.management;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
@@ -49,8 +50,7 @@ public class BinariesObject extends AbstractResource<ResourceTypeImpl> {
     /**
      * Garbage collect the unused (orphaned) binaries.
      * 
-     * @return {@link BinaryManagerStatus} if no gc is in progress, otherwise a
-     *         {@link javax.ws.rs.core.Response.Status#CONFLICT}
+     * @return {@link BinaryManagerStatus} if no gc is in progress, otherwise a {@link HttpServletResponse#SC_CONFLICT}
      */
     @DELETE
     @Path("orphaned")

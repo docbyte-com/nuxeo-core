@@ -21,8 +21,9 @@ package org.nuxeo.ecm.automation.server;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
+
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 /**
  * A registry of REST bindings. Provides methods for checking if a given operation is allowed to be invoked in a REST

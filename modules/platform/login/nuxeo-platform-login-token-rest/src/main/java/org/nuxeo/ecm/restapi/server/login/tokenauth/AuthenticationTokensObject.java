@@ -18,29 +18,30 @@
  */
 package org.nuxeo.ecm.restapi.server.login.tokenauth;
 
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.tokenauth.io.AuthenticationToken;
-import org.nuxeo.ecm.webengine.model.WebObject;
-import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
-import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
-import org.nuxeo.ecm.tokenauth.service.TokenAuthenticationService;
-import org.nuxeo.runtime.api.Framework;
-
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.tokenauth.io.AuthenticationToken;
+import org.nuxeo.ecm.tokenauth.service.TokenAuthenticationService;
+import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
+import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * Token Object
@@ -88,13 +89,9 @@ public class AuthenticationTokensObject extends AbstractResource<ResourceTypeImp
 
     private AuthenticationToken asAuthenticationToken(DocumentModel entry) {
         Map<String, Object> props = entry.getProperties("authtoken");
-        AuthenticationToken token = new AuthenticationToken(
-                (String) props.get("token"),
-                (String) props.get("userName"),
-                (String) props.get("applicationName"),
-                (String) props.get("deviceId"),
-                (String) props.get("deviceDescription"),
-                (String) props.get("permission"));
+        AuthenticationToken token = new AuthenticationToken((String) props.get("token"), (String) props.get("userName"),
+                (String) props.get("applicationName"), (String) props.get("deviceId"),
+                (String) props.get("deviceDescription"), (String) props.get("permission"));
         token.setCreationDate((Calendar) props.get("creationDate"));
         return token;
     }

@@ -24,11 +24,11 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 
 import org.nuxeo.ecm.core.schema.types.Schema;
 
@@ -39,9 +39,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 public class SchemasWriter extends AbstractTypeDefWriter implements MessageBodyWriter<Schemas> {
 
     @Override
-    public void writeTo(Schemas schemas, Class<?> type, Type genericType, Annotation[] annotations,
-            MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
-            throws IOException {
+    public void writeTo(Schemas schemas, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
+            MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException {
         JsonGenerator jg = getGenerator(entityStream);
         jg.writeStartArray();
         for (Schema schema : schemas.schemas) {

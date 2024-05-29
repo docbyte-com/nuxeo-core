@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.restapi.server.adapters;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -57,8 +57,7 @@ public class PageProviderAdapter extends DocumentModelListPaginableAdapter {
 
     @GET
     @Path("{pageProviderName}")
-    public Paginable<DocumentModel> getProviderDocs(@PathParam("pageProviderName") String providerName)
-            {
+    public Paginable<DocumentModel> getProviderDocs(@PathParam("pageProviderName") String providerName) {
         pageProviderName = providerName;
         return super.getPaginableEntries();
     }

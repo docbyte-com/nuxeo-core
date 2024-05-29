@@ -20,11 +20,11 @@ package org.nuxeo.connect.client.we;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.connect.client.status.ConnectStatusHolder;
@@ -211,20 +211,20 @@ public class PackageListingProvider extends DefaultObject {
     public String getStateLabel(Package pkg) {
         PackageState state = pkg.getPackageState();
         switch (state) {
-        case REMOTE:
-        case DOWNLOADED:
-        case INSTALLED:
-            return state.getLabel();
-        case DOWNLOADING:
-            DownloadingPackage dpkg = (DownloadingPackage) pkg;
-            return state.getLabel() + " (" + dpkg.getDownloadProgress() + "%)";
-        case INSTALLING:
-            return "installation in progress";
-        case STARTED:
-            return "running";
-        case UNKNOWN:
-        default:
-            return "!?!";
+            case REMOTE:
+            case DOWNLOADED:
+            case INSTALLED:
+                return state.getLabel();
+            case DOWNLOADING:
+                DownloadingPackage dpkg = (DownloadingPackage) pkg;
+                return state.getLabel() + " (" + dpkg.getDownloadProgress() + "%)";
+            case INSTALLING:
+                return "installation in progress";
+            case STARTED:
+                return "running";
+            case UNKNOWN:
+            default:
+                return "!?!";
         }
     }
 

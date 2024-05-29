@@ -31,7 +31,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
+
+import jakarta.ws.rs.core.HttpHeaders;
 
 import org.nuxeo.ecm.webengine.rest.HttpFilter;
 

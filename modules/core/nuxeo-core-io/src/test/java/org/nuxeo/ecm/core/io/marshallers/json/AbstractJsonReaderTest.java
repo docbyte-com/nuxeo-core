@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.core.io.marshallers.json;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;

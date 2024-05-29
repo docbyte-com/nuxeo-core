@@ -21,12 +21,13 @@ package org.nuxeo.ecm.platform.forms.layout.export;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.platform.forms.layout.api.LayoutTypeDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.LayoutTypeDefinitionComparator;
@@ -57,7 +58,8 @@ public class LayoutTypeResource {
 
     @GET
     @Path("layoutTypes")
-    public LayoutTypeDefinitions getLayoutTypeDefinitions(@Context HttpServletRequest request, @QueryParam("all") Boolean all) {
+    public LayoutTypeDefinitions getLayoutTypeDefinitions(@Context HttpServletRequest request,
+            @QueryParam("all") Boolean all) {
         return new LayoutTypeDefinitions(layoutTypes);
     }
 

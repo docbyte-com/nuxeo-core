@@ -20,7 +20,8 @@
 package org.nuxeo.easyshare;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.Response;
+
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;

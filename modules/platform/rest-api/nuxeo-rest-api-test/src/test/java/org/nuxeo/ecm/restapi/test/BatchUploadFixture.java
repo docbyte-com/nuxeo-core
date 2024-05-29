@@ -21,8 +21,8 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
+import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static org.apache.http.HttpStatus.SC_ACCEPTED;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
@@ -47,9 +47,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import javax.ws.rs.core.MediaType;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Rule;

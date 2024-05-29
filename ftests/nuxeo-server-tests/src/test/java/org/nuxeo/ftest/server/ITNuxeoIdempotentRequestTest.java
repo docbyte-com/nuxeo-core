@@ -28,7 +28,7 @@ import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
 
 import java.util.Date;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;

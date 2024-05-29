@@ -20,7 +20,7 @@ package org.nuxeo.http.test.handler;
 
 import java.io.IOException;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.http.test.HttpResponse;
 

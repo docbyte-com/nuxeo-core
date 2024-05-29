@@ -21,8 +21,8 @@
 
 package org.nuxeo.ecm.webengine.model.impl;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 import org.nuxeo.ecm.webengine.model.AdapterResource;
 

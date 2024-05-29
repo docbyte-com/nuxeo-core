@@ -19,10 +19,10 @@
 
 package org.nuxeo.ecm.restapi.server.conversion;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
@@ -50,8 +50,10 @@ public class ConversionRootObject extends DefaultObject {
         }
 
         String serverURL = ctx.getServerURL().toString().replaceAll("/$", "");
-        String resultURL = String.format("%s%s/conversions/%s/result", serverURL, ctx.getModulePath(), conversionStatus.id);
-        ConversionStatusWithResult conversionStatusWithResult = new ConversionStatusWithResult(conversionStatus, resultURL);
+        String resultURL = String.format("%s%s/conversions/%s/result", serverURL, ctx.getModulePath(),
+                conversionStatus.id);
+        ConversionStatusWithResult conversionStatusWithResult = new ConversionStatusWithResult(conversionStatus,
+                resultURL);
         return Response.ok(conversionStatusWithResult).build();
     }
 

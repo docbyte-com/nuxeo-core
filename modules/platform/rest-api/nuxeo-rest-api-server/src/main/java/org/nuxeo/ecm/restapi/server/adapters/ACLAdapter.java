@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.adapters;
 
-import javax.ws.rs.GET;
+import jakarta.ws.rs.GET;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.security.ACP;

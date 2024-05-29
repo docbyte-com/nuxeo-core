@@ -27,13 +27,14 @@ import java.lang.reflect.Type;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
+
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 import org.nuxeo.ecm.core.io.registry.MarshallerRegistry;
 import org.nuxeo.ecm.core.io.registry.Reader;
@@ -99,8 +100,8 @@ public abstract class PartialCoreIODelegate implements MessageBodyWriter<Object>
     @Override
     @SuppressWarnings("unchecked")
     public final void writeTo(Object t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-            MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException,
-            WebApplicationException {
+            MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
+            throws IOException, WebApplicationException {
         RenderingContext ctx = RenderingContextWebUtils.getContext(request);
         MarshallerRegistry registry = Framework.getService(MarshallerRegistry.class);
         Writer<?> writer = registry.getWriter(ctx, type, genericType, mediaType);
@@ -113,8 +114,8 @@ public abstract class PartialCoreIODelegate implements MessageBodyWriter<Object>
 
     @Override
     public Object readFrom(Class<Object> type, Type genericType, Annotation[] annotations, MediaType mediaType,
-            MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException,
-            WebApplicationException {
+            MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
+            throws IOException, WebApplicationException {
         RenderingContext ctx = RenderingContextWebUtils.getContext(request);
         MarshallerRegistry registry = Framework.getService(MarshallerRegistry.class);
         Reader<?> reader = registry.getReader(ctx, type, genericType, mediaType);

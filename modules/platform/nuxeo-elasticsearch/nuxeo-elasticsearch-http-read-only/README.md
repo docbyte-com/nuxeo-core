@@ -77,7 +77,7 @@ The Nuxeo proxy accepts POST request, but only if the content type is set proper
 
 If you don't set this header you will get error like:
 
-    {"entity-type":"exception","code":"javax.ws.rs.WebApplicationException","status":500,"message":null}1
+    {"entity-type":"exception","code":"jakarta.ws.rs.WebApplicationException","status":500,"message":null}
 
 ### GET API with HEAD request
 

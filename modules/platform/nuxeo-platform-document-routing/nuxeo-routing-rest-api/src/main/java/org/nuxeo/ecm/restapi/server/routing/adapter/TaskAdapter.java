@@ -20,17 +20,16 @@
 
 package org.nuxeo.ecm.restapi.server.routing.adapter;
 
-
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -56,8 +55,8 @@ public class TaskAdapter extends DefaultAdapter {
             TaskCompletionRequest taskCompletionRequest) {
         Map<String, Object> data = taskCompletionRequest.getDataMap();
         CoreSession session = getContext().getCoreSession();
-        Framework.getService(DocumentRoutingService.class).endTask(session,
-                session.getDocument(new IdRef(taskId)).getAdapter(Task.class), data, action);
+        Framework.getService(DocumentRoutingService.class)
+                 .endTask(session, session.getDocument(new IdRef(taskId)).getAdapter(Task.class), data, action);
         Task completedTask = session.getDocument(new IdRef(taskId)).getAdapter(Task.class);
         return Response.ok(completedTask).status(Status.OK).build();
     }
@@ -67,8 +66,8 @@ public class TaskAdapter extends DefaultAdapter {
             @QueryParam("workflowInstanceId") String workflowInstanceId,
             @QueryParam("workflowModelName") String workflowModelName) {
         DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
-        return Framework.getService(DocumentRoutingService.class).getTasks(doc, userId, workflowInstanceId,
-                workflowModelName, getContext().getCoreSession());
+        return Framework.getService(DocumentRoutingService.class)
+                        .getTasks(doc, userId, workflowInstanceId, workflowModelName, getContext().getCoreSession());
     }
 
 }

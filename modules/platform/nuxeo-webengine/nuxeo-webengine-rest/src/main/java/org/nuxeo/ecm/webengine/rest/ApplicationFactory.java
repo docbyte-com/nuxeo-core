@@ -21,7 +21,7 @@ package org.nuxeo.ecm.webengine.rest;
 import java.io.IOException;
 import java.util.Map;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.osgi.framework.Bundle;
 
@@ -37,7 +37,7 @@ public interface ApplicationFactory {
      * @param bundle the bundle defining the application
      * @param args the arguments parsed from manifest WebModule entry.
      */
-    Application getApplication(Bundle bundle, Map<String, String> args) throws ReflectiveOperationException,
-            IOException;
+    Application getApplication(Bundle bundle, Map<String, String> args)
+            throws ReflectiveOperationException, IOException;
 
 }

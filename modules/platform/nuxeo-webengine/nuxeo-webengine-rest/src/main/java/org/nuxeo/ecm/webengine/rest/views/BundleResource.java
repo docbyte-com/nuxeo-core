@@ -22,10 +22,11 @@ import java.net.URI;
 import java.security.Principal;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.UriInfo;
+
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
@@ -72,8 +73,10 @@ public class BundleResource {
         }
         // we need to prefix with bundle name to avoid template cache collisions (in freemarker for ex.)
         // path=getBundle().getSymbolicName() + ":/" + path;
-        return context.getRenderingEngine().getView(path, this).arg("baseUrl", basePath).arg(VIEW_ROOT,
-                context.getViewRoot());
+        return context.getRenderingEngine()
+                      .getView(path, this)
+                      .arg("baseUrl", basePath)
+                      .arg(VIEW_ROOT, context.getViewRoot());
     }
 
     public final HttpServletRequest getRequest() {

@@ -25,7 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.GET;
+
+import jakarta.ws.rs.GET;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.automation.core.util.Paginable;

@@ -21,7 +21,7 @@ package org.nuxeo.ecm.webengine.rest.scan;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.osgi.framework.Bundle;
 

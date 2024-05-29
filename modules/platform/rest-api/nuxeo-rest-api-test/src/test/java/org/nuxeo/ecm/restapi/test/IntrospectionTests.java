@@ -22,9 +22,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import javax.ws.rs.core.Response;
-
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 
 import org.junit.Rule;
 import org.junit.Test;

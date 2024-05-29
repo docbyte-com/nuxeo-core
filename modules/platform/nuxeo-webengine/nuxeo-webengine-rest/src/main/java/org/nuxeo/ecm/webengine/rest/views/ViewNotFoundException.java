@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.webengine.rest.views;
 
-import javax.ws.rs.WebApplicationException;
+import jakarta.ws.rs.WebApplicationException;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>

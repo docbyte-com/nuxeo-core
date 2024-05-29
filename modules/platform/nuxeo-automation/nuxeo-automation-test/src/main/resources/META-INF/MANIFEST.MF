@@ -8,9 +8,6 @@ Bundle-Vendor: Nuxeo
 Bundle-ActivationPolicy: lazy
 Import-Package: javax.servlet;resolution:=optional,
  javax.servlet.http;resolution:=optional,
- javax.ws.rs,
- javax.ws.rs.core,
- javax.ws.rs.ext,
  net.sf.json,
  org.apache.commons.logging,
  org.joda.time,

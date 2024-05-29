@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.forms.layout.export;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.nuxeo.ecm.platform.forms.layout.api.service.LayoutStore;
 import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;

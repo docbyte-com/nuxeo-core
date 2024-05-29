@@ -23,9 +23,9 @@ package org.nuxeo.ecm.core.rest;
 
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.Lock;

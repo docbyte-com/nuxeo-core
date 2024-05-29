@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
 import org.nuxeo.ecm.webengine.rest.ApplicationFactory;
 import org.osgi.framework.Bundle;

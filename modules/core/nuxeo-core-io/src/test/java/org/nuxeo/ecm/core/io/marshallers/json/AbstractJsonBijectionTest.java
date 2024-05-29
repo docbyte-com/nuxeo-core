@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.io.marshallers.json;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayOutputStream;

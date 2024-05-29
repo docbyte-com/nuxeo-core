@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * @since 5.9.3
  */
-public class Application extends javax.ws.rs.core.Application {
+public class Application extends jakarta.ws.rs.core.Application {
 
     @Override
     public Set<Class<?>> getClasses() {
