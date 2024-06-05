@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="org.nuxeo.ecm.core.search" version="1.0">
+
+  <documentation>
+    The Search Service.
+  </documentation>
+
+  <implementation class="org.nuxeo.ecm.core.search.SearchComponent" />
+
+  <service>
+    <provide interface="org.nuxeo.ecm.core.search.SearchService" />
+  </service>
+
+  <extension-point name="searchClient">
+    <object class="org.nuxeo.ecm.core.search.SearchClientDescriptor" />
+  </extension-point>
+
+</component>

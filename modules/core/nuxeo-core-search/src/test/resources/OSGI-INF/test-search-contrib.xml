@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.test">
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
+    <searchClient name="default" default="true" class="org.nuxeo.ecm.core.search.client.mock.MockSearchClient">
+      <index name="idx" repository="test" create="false" default="true" />
+      <index name="idx-fr" repository="test" create="false" />
+      <index name="idx2" repository="test2" create="false" />
+      <index name="idx-multi" repository="test+test2" create="false" compound="idx-fr,idx2"/>
+    </searchClient>
+    <searchClient name="client2" enabled="true" class="org.nuxeo.ecm.core.search.client.mock.MockSearchClient" />
+    <searchClient name="clientDisabled" enabled="false" />
+  </extension>
+
+</component>

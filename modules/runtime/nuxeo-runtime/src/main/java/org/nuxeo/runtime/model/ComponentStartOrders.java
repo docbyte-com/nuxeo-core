@@ -87,6 +87,11 @@ public class ComponentStartOrders {
 
     public static final int REPOSITORY = 100;
 
+    /**
+     * @since 2025.0
+     */
+    public static final int SEARCH = REPOSITORY + 10;
+
     /** @since 2025.0 */
     public static final int PAGE_PROVIDER = 800;
 
