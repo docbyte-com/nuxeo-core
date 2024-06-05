@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Benoit Delbosc
  */
-package org.nuxeo.elasticsearch.commands;
+package org.nuxeo.ecm.core.search.index.commands;
 
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKIN;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_EXTEND_RETENTION;
@@ -42,6 +42,8 @@ import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_SECURITY_
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_TAG_UPDATED;
 import static org.nuxeo.ecm.core.api.trash.TrashService.DOCUMENT_TRASHED;
 import static org.nuxeo.ecm.core.api.trash.TrashService.DOCUMENT_UNTRASHED;
+import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
+import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.SYNC_INDEXING_FLAG;
 
 import java.util.Map;
 
@@ -55,8 +57,6 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -93,7 +93,7 @@ public abstract class IndexingCommandsStacker {
     }
 
     protected void stackCommand(DocumentModel doc, DocumentEventContext docCtx, String eventId) {
-        Boolean block = (Boolean) docCtx.getProperty(ElasticSearchConstants.DISABLE_AUTO_INDEXING);
+        Boolean block = (Boolean) docCtx.getProperty(DISABLE_AUTO_INDEXING);
         if (block != null && block) {
             log.debug("Indexing is disable, skip indexing command for doc: {}", doc);
             return;
@@ -104,12 +104,12 @@ public abstract class IndexingCommandsStacker {
 
     protected boolean isSynchronous(DocumentEventContext docCtx, DocumentModel doc) {
         // 1. look at event context
-        Boolean sync = (Boolean) docCtx.getProperty(ElasticSearchConstants.ES_SYNC_INDEXING_FLAG);
+        Boolean sync = (Boolean) docCtx.getProperty(SYNC_INDEXING_FLAG);
         if (sync != null) {
             return sync;
         }
         // 2. look at document context
-        sync = (Boolean) doc.getContextData(ElasticSearchConstants.ES_SYNC_INDEXING_FLAG);
+        sync = (Boolean) doc.getContextData(SYNC_INDEXING_FLAG);
         if (sync != null) {
             return sync;
         }
@@ -120,15 +120,15 @@ public abstract class IndexingCommandsStacker {
 
     protected void stackCommand(DocumentModel doc, String eventId, boolean sync) {
         IndexingCommands cmds = getOrCreateCommands(doc);
-        Type type;
+        IndexingCommand.Type type;
         boolean recurse = false;
         switch (eventId) {
             case DOCUMENT_CREATED:
             case DOCUMENT_IMPORTED:
-                type = Type.INSERT;
+                type = IndexingCommand.Type.INSERT;
                 break;
             case DOCUMENT_CREATED_BY_COPY:
-                type = Type.INSERT;
+                type = IndexingCommand.Type.INSERT;
                 recurse = isFolderish(doc);
                 break;
             case BEFORE_DOC_UPDATE:
@@ -152,7 +152,7 @@ public abstract class IndexingCommandsStacker {
                             (CoreSession s) -> stackCommand(s.getDocument(new IdRef(doc.getSourceId())),
                                     BEFORE_DOC_UPDATE, false));
                 }
-                type = Type.UPDATE;
+                type = IndexingCommand.Type.UPDATE;
                 break;
             case ABOUT_TO_CHECKIN:
                 if (indexIsLatestVersion()) {
@@ -164,22 +164,22 @@ public abstract class IndexingCommandsStacker {
                         stackCommand(version, BEFORE_DOC_UPDATE, false);
                     }
                 }
-                type = Type.UPDATE;
+                type = IndexingCommand.Type.UPDATE;
                 break;
             case DOCUMENT_MOVED:
-                type = Type.UPDATE;
+                type = IndexingCommand.Type.UPDATE;
                 recurse = isFolderish(doc);
                 break;
             case DOCUMENT_REMOVED:
-                type = Type.DELETE;
+                type = IndexingCommand.Type.DELETE;
                 recurse = isFolderish(doc);
                 break;
             case DOCUMENT_SECURITY_UPDATED:
-                type = Type.UPDATE_SECURITY;
+                type = IndexingCommand.Type.UPDATE_SECURITY;
                 recurse = isFolderish(doc);
                 break;
             case DOCUMENT_CHILDREN_ORDER_CHANGED:
-                type = Type.UPDATE_DIRECT_CHILDREN;
+                type = IndexingCommand.Type.UPDATE_DIRECT_CHILDREN;
                 recurse = true;
                 break;
             default:

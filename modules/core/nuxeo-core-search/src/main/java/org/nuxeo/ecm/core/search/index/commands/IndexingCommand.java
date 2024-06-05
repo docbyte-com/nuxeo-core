@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@
  *     Thierry Delprat
  *     Benoit Delbosc
  */
-package org.nuxeo.elasticsearch.commands;
+package org.nuxeo.ecm.core.search.index.commands;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.Serial;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.util.ArrayList;
@@ -51,6 +51,7 @@ public class IndexingCommand implements Serializable {
 
     private static final Logger log = LogManager.getLogger(IndexingCommand.class);
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public enum Type {
@@ -77,7 +78,7 @@ public class IndexingCommand implements Serializable {
 
     protected long order;
 
-    protected transient static AtomicLong seq = new AtomicLong(0);
+    protected static final AtomicLong seq = new AtomicLong(0);
 
     protected IndexingCommand() {
     }
@@ -122,14 +123,12 @@ public class IndexingCommand implements Serializable {
         }
         // transient document try to get it from its path
         DocumentRef documentRef = target.getRef();
-        log.warn("Creating indexing command on a document with a null id, ref: {}, trying to get the docId from "
-                + "its path, activate trace level for more info: {}", documentRef, this);
-        if (log.isTraceEnabled()) {
-            Throwable throwable = new Throwable();
-            StringWriter stack = new StringWriter();
-            throwable.printStackTrace(new PrintWriter(stack));
-            log.trace("You should use a document returned by session.createDocument, stack {}", stack);
-        }
+        log.atWarn()
+           .withThrowable(
+                   log.isTraceEnabled() ? new Throwable("You should use a document returned by session.createDocument")
+                           : null)
+           .log("Creating indexing command on a document with a null id, ref: {}, trying to get the docId from "
+                   + "its path, activate trace level for more info: {}", documentRef, this);
         return target.getCoreSession().getDocument(documentRef);
     }
 
@@ -286,8 +285,8 @@ public class IndexingCommand implements Serializable {
 
     public String[] getSchemas() {
         String[] ret = null;
-        if (schemas != null && schemas.size() > 0) {
-            ret = schemas.toArray(new String[schemas.size()]);
+        if (schemas != null && !schemas.isEmpty()) {
+            ret = schemas.toArray(String[]::new);
         }
         return ret;
     }
@@ -299,6 +298,11 @@ public class IndexingCommand implements Serializable {
         if (!schemas.contains(schema)) {
             schemas.add(schema);
         }
+    }
+
+    // @since 2025
+    public String getPath() {
+        return path;
     }
 
     @Override

@@ -38,10 +38,10 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommands;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommandsStacker;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
-import org.nuxeo.elasticsearch.commands.IndexingCommands;
-import org.nuxeo.elasticsearch.commands.IndexingCommandsStacker;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 

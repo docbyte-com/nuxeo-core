@@ -18,16 +18,16 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @since 2025.0
  */
 @Deploy("org.nuxeo.ecm.core.search")
 @Deploy("org.nuxeo.ecm.core.search.test")
-@Features({ RuntimeFeature.class })
+@Features({ CoreEventFeature.class })
 public class BaseCoreSearchFeature implements RunnerFeature {
 }

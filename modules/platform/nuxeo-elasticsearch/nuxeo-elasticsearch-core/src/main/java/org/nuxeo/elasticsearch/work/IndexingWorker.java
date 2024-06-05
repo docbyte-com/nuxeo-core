@@ -28,12 +28,12 @@ import java.util.List;
 
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type;
 import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.Timestamp;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
-import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -55,14 +55,14 @@ public class IndexingWorker extends AbstractIndexingWorker implements Work {
     protected boolean needRecurse(IndexingCommand cmd) {
         if (cmd.isRecurse()) {
             switch (cmd.getType()) {
-            case INSERT:
-            case UPDATE:
-            case UPDATE_SECURITY:
-            case UPDATE_DIRECT_CHILDREN:
-                return true;
-            case DELETE:
-                // recurse deletion is done atomically
-                return false;
+                case INSERT:
+                case UPDATE:
+                case UPDATE_SECURITY:
+                case UPDATE_DIRECT_CHILDREN:
+                    return true;
+                case DELETE:
+                    // recurse deletion is done atomically
+                    return false;
             }
         }
         return false;
@@ -81,7 +81,8 @@ public class IndexingWorker extends AbstractIndexingWorker implements Work {
             if (needRecurse(cmd)) {
                 if (useBulkService) {
                     BulkService bs = Framework.getService(BulkService.class);
-                    BulkCommand command = new BulkCommand.Builder(ACTION_NAME, getNxqlQuery(cmd), session.getPrincipal().getName()).build();
+                    BulkCommand command = new BulkCommand.Builder(ACTION_NAME, getNxqlQuery(cmd),
+                            session.getPrincipal().getName()).build();
                     bs.submitTransactional(command);
                 } else {
                     WorkManager wm = Framework.getService(WorkManager.class);
@@ -92,8 +93,8 @@ public class IndexingWorker extends AbstractIndexingWorker implements Work {
     }
 
     protected Work getWorker(IndexingCommand cmd) {
-        if (cmd.getType() != Type.UPDATE_DIRECT_CHILDREN && Boolean.parseBoolean(
-                Framework.getProperty(REINDEX_USING_CHILDREN_TRAVERSAL_PROPERTY, "false"))) {
+        if (cmd.getType() != Type.UPDATE_DIRECT_CHILDREN
+                && Boolean.parseBoolean(Framework.getProperty(REINDEX_USING_CHILDREN_TRAVERSAL_PROPERTY, "false"))) {
             return new ChildrenIndexingWorker(cmd);
         }
         return new ScrollingIndexingWorker(cmd.getRepositoryName(), getNxqlQuery(cmd));

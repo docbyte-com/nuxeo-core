@@ -16,80 +16,76 @@
  * Contributors:
  *     Benoit Delbosc
  */
-package org.nuxeo.elasticsearch.test.commands;
+package org.nuxeo.ecm.core.search.index.commands;
 
-import org.junit.Assert;
-import org.junit.Rule;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
-import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type;
 
 public class TestIndexingCommand {
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
-    public void testConstructorOk() throws Exception {
+    public void testConstructorOk() {
         DocumentModel doc = new MockDocumentModel("foo");
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, false, false);
         cmd = new IndexingCommand(doc, Type.INSERT, true, false);
-        Assert.assertTrue(cmd.isSync());
-        Assert.assertFalse(cmd.isRecurse());
+        assertTrue(cmd.isSync());
+        assertFalse(cmd.isRecurse());
         cmd = new IndexingCommand(doc, Type.INSERT, false, true);
         // delete recurse and sync is accepted
         cmd = new IndexingCommand(doc, Type.DELETE, true, true);
-        Assert.assertTrue(cmd.isSync());
-        Assert.assertTrue(cmd.isRecurse());
+        assertTrue(cmd.isSync());
+        assertTrue(cmd.isRecurse());
 
     }
 
     @Test
-    public void testConstructorWithRecurseSync() throws Exception {
+    public void testConstructorWithRecurseSync() {
         DocumentModel doc = new MockDocumentModel("foo");
-        exception.expect(IllegalArgumentException.class);
-        new IndexingCommand(doc, Type.INSERT, true, true);
+        assertThrows(IllegalArgumentException.class, () -> new IndexingCommand(doc, Type.INSERT, true, true));
     }
 
     @Test
-    public void testConstructorWithNullDoc() throws Exception {
-        exception.expect(IllegalArgumentException.class);
-        new IndexingCommand(null, Type.INSERT, true, false);
+    public void testConstructorWithNullDoc() {
+        assertThrows(IllegalArgumentException.class, () -> new IndexingCommand(null, Type.INSERT, true, false));
     }
 
     @Test
-    public void testConstructorWithNullDocId() throws Exception {
+    public void testConstructorWithNullDocId() {
         DocumentModel doc = new MockDocumentModel(null);
-        exception.expect(IllegalArgumentException.class);
-        new IndexingCommand(doc, Type.INSERT, true, false);
+        assertThrows(IllegalArgumentException.class, () -> new IndexingCommand(doc, Type.INSERT, true, false));
     }
 
     @Test
-    public void testAddSchemas() throws Exception {
+    public void testAddSchemas() {
         DocumentModel doc = new MockDocumentModel("foo");
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, true, false);
-        Assert.assertNull(cmd.getSchemas());
+        assertNull(cmd.getSchemas());
         cmd.addSchemas("mySchema");
-        Assert.assertEquals(1, cmd.getSchemas().length);
+        assertEquals(1, cmd.getSchemas().length);
     }
 
     @Test
-    public void testMakeSync() throws Exception {
+    public void testMakeSync() {
         DocumentModel doc = new MockDocumentModel("foo");
         // ok for non recursive command
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, false, false);
         cmd.makeSync();
-        Assert.assertTrue(cmd.isSync());
+        assertTrue(cmd.isSync());
         // recursive command cannot be turned into sync
         cmd = new IndexingCommand(doc, Type.INSERT, false, true);
         cmd.makeSync();
-        Assert.assertFalse(cmd.isSync());
+        assertFalse(cmd.isSync());
         // except for deletion
         cmd = new IndexingCommand(doc, Type.DELETE, false, true);
         cmd.makeSync();
-        Assert.assertTrue(cmd.isSync());
+        assertTrue(cmd.isSync());
     }
 
     @Test
@@ -99,44 +95,21 @@ public class TestIndexingCommand {
         String json = cmd.toJSON();
         IndexingCommand cmd2 = IndexingCommand.fromJSON(json);
         String json2 = cmd2.toJSON();
-        Assert.assertEquals(json, json2);
-        Assert.assertTrue(cmd2.isRecurse());
+        assertEquals(json, json2);
+        assertTrue(cmd2.isRecurse());
     }
 
     @Test
     public void testInvalidJson() throws Exception {
         DocumentModel doc = new MockDocumentModel("foo");
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, false, true);
-        exception.expect(IllegalArgumentException.class);
         String json = "{" + cmd.toJSON();
-        IndexingCommand.fromJSON(json);
+        assertThrows(IllegalArgumentException.class, () -> IndexingCommand.fromJSON(json));
     }
 
     @Test
-    public void testInvalidJsonDocIdNull() throws Exception {
+    public void testInvalidJsonDocIdNull() {
         String json = "{\"id\": \"124\", \"type\": \"INSERT\"}";
-        exception.expect(IllegalArgumentException.class);
-        IndexingCommand.fromJSON(json);
+        assertThrows(IllegalArgumentException.class, () -> IndexingCommand.fromJSON(json));
     }
-
-    public final class MockDocumentModel extends DocumentModelImpl {
-        private static final long serialVersionUID = 1L;
-
-        protected String uid;
-
-        public MockDocumentModel(String uid) {
-            this.uid = uid;
-        }
-
-        @Override
-        public String getId() {
-            return uid;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("MockDoc(uid=%s)", uid);
-        }
-    }
-
 }

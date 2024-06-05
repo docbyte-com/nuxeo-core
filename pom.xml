@@ -3230,6 +3230,12 @@
       </dependency>
 
       <dependency>
+        <groupId>com.fasterxml.uuid</groupId>
+        <artifactId>java-uuid-generator</artifactId>
+        <version>5.0.0</version>
+      </dependency>
+
+      <dependency>
         <groupId>org.apache.geronimo.components</groupId>
         <artifactId>geronimo-transaction</artifactId>
         <version>4.0.0-NX1</version>

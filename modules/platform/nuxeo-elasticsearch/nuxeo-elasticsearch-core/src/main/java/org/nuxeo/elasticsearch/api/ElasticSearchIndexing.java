@@ -23,9 +23,9 @@ package org.nuxeo.elasticsearch.api;
 import java.io.IOException;
 import java.util.List;
 
-import org.opensearch.common.bytes.BytesReference;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
+import org.opensearch.common.bytes.BytesReference;
 
 /**
  * Interface to process indexing of documents
@@ -88,8 +88,8 @@ public interface ElasticSearchIndexing {
     void indexNonRecursive(IndexingCommand cmd);
 
     /**
-     * Same as {@link ElasticSearchIndexing#indexNonRecursive(org.nuxeo.elasticsearch.commands.IndexingCommand)} but
-     * process the list command using a bulk request.
+     * Same as {@link ElasticSearchIndexing#indexNonRecursive(org.nuxeo.ecm.core.search.index.commands.IndexingCommand)}
+     * but process the list command using a bulk request.
      * <p>
      *
      * @since 7.1

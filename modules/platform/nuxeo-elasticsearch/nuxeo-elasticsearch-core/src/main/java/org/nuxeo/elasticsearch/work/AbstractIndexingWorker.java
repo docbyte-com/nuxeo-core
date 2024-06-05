@@ -22,8 +22,8 @@ package org.nuxeo.elasticsearch.work;
 import java.util.Collections;
 import java.util.List;
 
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
 import org.nuxeo.runtime.api.Framework;
 
 /**

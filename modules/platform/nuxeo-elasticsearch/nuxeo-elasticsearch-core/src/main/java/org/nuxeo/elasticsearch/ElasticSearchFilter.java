@@ -29,6 +29,7 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.nuxeo.ecm.core.search.index.commands.ThreadLocalIndexingCommandsStacker;
 import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 
 /**
@@ -60,10 +61,12 @@ public class ElasticSearchFilter implements Filter {
             return;
         }
         ElasticSearchInlineListener.useSyncIndexing.set(true);
+        ThreadLocalIndexingCommandsStacker.useSyncIndexing.set(true);
         try {
             chain.doFilter(request, response);
         } finally {
             ElasticSearchInlineListener.useSyncIndexing.set(false);
+            ThreadLocalIndexingCommandsStacker.useSyncIndexing.set(false);
         }
     }
 

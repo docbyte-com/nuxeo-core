@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  *     Thierry Delprat
  *     Benoit Delbosc
  */
-package org.nuxeo.elasticsearch.commands;
+package org.nuxeo.ecm.core.search.index.commands;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Set;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
 
 /*
  * This class holds a list of indexing commands and manages de-duplication
@@ -34,7 +33,7 @@ public class IndexingCommands {
 
     protected final List<IndexingCommand> commands = new ArrayList<>();
 
-    protected final Set<Type> commandTypes = new HashSet<>();
+    protected final Set<IndexingCommand.Type> commandTypes = new HashSet<>();
 
     protected DocumentModel targetDocument;
 
@@ -46,12 +45,12 @@ public class IndexingCommands {
         this.targetDocument = targetDocument;
     }
 
-    public void add(Type type, boolean sync, boolean recurse) {
+    public void add(IndexingCommand.Type type, boolean sync, boolean recurse) {
         IndexingCommand cmd = new IndexingCommand(targetDocument, type, sync, recurse);
         add(cmd);
     }
 
-    protected IndexingCommand find(Type command) {
+    protected IndexingCommand find(IndexingCommand.Type command) {
         for (IndexingCommand cmd : commands) {
             if (cmd.type == command) {
                 return cmd;
@@ -69,18 +68,18 @@ public class IndexingCommands {
             if (existing.merge(command)) {
                 return;
             }
-        } else if (commandTypes.contains(Type.INSERT)) {
-            if (command.type == Type.DELETE) {
+        } else if (commandTypes.contains(IndexingCommand.Type.INSERT)) {
+            if (command.type == IndexingCommand.Type.DELETE) {
                 // index and delete in the same tx
                 clear();
             } else if (command.isSync()) {
                 // switch to sync if possible
-                find(Type.INSERT).makeSync();
+                find(IndexingCommand.Type.INSERT).makeSync();
             }
             // we already have an index command, don't care about the new command
             return;
         }
-        if (command.type == Type.DELETE) {
+        if (command.type == IndexingCommand.Type.DELETE) {
             // no need to keep event before delete.
             clear();
         }
@@ -97,7 +96,7 @@ public class IndexingCommands {
         return targetDocument;
     }
 
-    public boolean contains(Type command) {
+    public boolean contains(IndexingCommand.Type command) {
         return commandTypes.contains(command);
     }
 

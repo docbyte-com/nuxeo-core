@@ -118,8 +118,6 @@ public final class ElasticSearchConstants {
 
     public static final String DISABLE_AUTO_INDEXING = "disableAutoIndexing";
 
-    public static final String ES_SYNC_INDEXING_FLAG = "ESSyncIndexing";
-
     public static final String REINDEX_USING_CHILDREN_TRAVERSAL_PROPERTY = "elasticsearch.reindex.useChildrenTraversal";
 
     /** @since 2021.21 */

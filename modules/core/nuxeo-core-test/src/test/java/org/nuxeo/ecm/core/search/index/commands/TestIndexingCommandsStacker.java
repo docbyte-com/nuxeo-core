@@ -16,7 +16,7 @@
  * Contributors:
  *     Thierry Delprat
  */
-package org.nuxeo.elasticsearch.test.commands;
+package org.nuxeo.ecm.core.search.index.commands;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -36,16 +36,12 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
-import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
-import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
-import org.nuxeo.elasticsearch.commands.IndexingCommands;
-import org.nuxeo.elasticsearch.commands.IndexingCommandsStacker;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -108,16 +104,16 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
         }
         getAllCommands().clear();
 
-        if (syncCommands.size() > 0) {
+        if (!syncCommands.isEmpty()) {
             fireSyncIndexing(syncCommands);
         }
-        if (asyncCommands.size() > 0) {
+        if (!asyncCommands.isEmpty()) {
             fireAsyncIndexing(asyncCommands);
         }
     }
 
     @Test
-    public void shouldRemoveDuplicatedEvents() throws Exception {
+    public void shouldRemoveDuplicatedEvents() {
 
         DocumentModel doc1 = new MockDocumentModel("1");
         DocumentModel doc2 = new MockDocumentModel("2");
@@ -156,7 +152,7 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
     }
 
     @Test
-    public void shouldMergeDuplicatedEventsAndSwitchToSync() throws Exception {
+    public void shouldMergeDuplicatedEventsAndSwitchToSync() {
 
         DocumentModel doc1 = new MockDocumentModel("1");
         DocumentModel doc2 = new MockDocumentModel("2");
@@ -189,7 +185,7 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
     }
 
     @Test
-    public void shouldRecurseReindex() throws Exception {
+    public void shouldRecurseReindex() {
 
         DocumentModel doc1 = new MockDocumentModel("1", true);
         DocumentModel doc2 = new MockDocumentModel("2", true);
@@ -217,7 +213,7 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
     }
 
     @Test
-    public void shouldRecurseReindexInSync() throws Exception {
+    public void shouldRecurseReindexInSync() {
         DocumentModel doc1 = new MockDocumentModel("1", true);
 
         stackCommand(doc1, DocumentEventTypes.DOCUMENT_MOVED, true);
@@ -233,36 +229,6 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
         flushCommands();
         assertEquals(1, flushedSyncCommands.size());
         assertEquals(1, flushedAsyncCommands.size());
-    }
-
-    public final class MockDocumentModel extends DocumentModelImpl {
-
-        private static final long serialVersionUID = 1L;
-
-        protected String uid;
-
-        protected boolean folder = false;
-
-        public MockDocumentModel(String uid) {
-            this(uid, false);
-        }
-
-        public MockDocumentModel(String uid, boolean folder) {
-            super();
-            this.uid = uid;
-            this.folder = folder;
-        }
-
-        @Override
-        public String getId() {
-            return uid;
-        }
-
-        @Override
-        public boolean isFolder() {
-            return folder;
-        }
-
     }
 
     @Test
