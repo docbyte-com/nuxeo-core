@@ -19,7 +19,6 @@
     <module>nuxeo-platform-login-kerberos</module>
     <module>nuxeo-platform-login-keycloak</module>
     <module>nuxeo-platform-login-mod_sso</module>
-    <module>nuxeo-platform-login-ntlm</module>
     <module>nuxeo-platform-login-openid</module>
     <module>nuxeo-platform-login-portal-sso</module>
     <module>nuxeo-platform-login-saml2</module>
