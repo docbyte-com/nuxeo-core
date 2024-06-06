@@ -34,7 +34,6 @@ import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_DO
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_EXCEPTION;
 import static org.nuxeo.ecm.core.api.pathsegment.PathSegmentService.NUXEO_MAX_SEGMENT_SIZE_PROPERTY;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -48,7 +47,6 @@ import java.util.zip.ZipFile;
 import javax.inject.Inject;
 
 import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
@@ -143,14 +141,6 @@ public abstract class AbstractAutomationClientTest {
                .setInput(automationTestFolder)
                .execute();
     }
-
-    protected File newFile(String content) throws IOException {
-        File file = Framework.createTempFile("automation-test-\u00e9\u00e1\u00f2-", ".xml");
-        FileUtils.writeStringToFile(file, content, UTF_8);
-        return file;
-    }
-
-    // ------ Tests comes here --------
 
     @Test
     public void testRemoteErrorHandling() throws Exception {

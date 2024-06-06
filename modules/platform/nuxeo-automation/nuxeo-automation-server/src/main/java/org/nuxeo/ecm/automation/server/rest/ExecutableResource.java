@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,8 +75,7 @@ public abstract class ExecutableResource extends DefaultObject {
             String exceptionMessage = "Failed to invoke operation: " + getId();
             if (cause instanceof OperationNotFoundException) {
                 throw new WebResourceNotFoundException(exceptionMessage, cause);
-            } else if (cause instanceof NuxeoException) {
-                NuxeoException nuxeoException = (NuxeoException) cause;
+            } else if (cause instanceof NuxeoException nuxeoException) {
                 nuxeoException.addInfo(exceptionMessage);
                 throw nuxeoException;
             } else {

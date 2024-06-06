@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,19 +157,8 @@ public class BlobObject extends DefaultObject {
 
     @GET
     public Response doGet(@Context Request request) {
-        if (blobHolder instanceof DocumentBlobHolder) {
-            // managed by DocumentBlobHolderWriter
-            return Response.ok(blobHolder).build();
-        } else {
-            // managed by BlobWriter
-            Blob blob;
-            try {
-                blob = blobHolder.getBlob();
-            } catch (PropertyNotFoundException e) {
-                throw new WebResourceNotFoundException("Invalid xpath");
-            }
-            return Response.ok(blob).build();
-        }
+        // managed by DocumentBlobHolderWriter
+        return Response.ok(blobHolder).build();
     }
 
     @DELETE

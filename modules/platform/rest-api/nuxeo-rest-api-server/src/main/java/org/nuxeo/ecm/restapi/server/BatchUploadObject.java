@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@
  */
 package org.nuxeo.ecm.restapi.server;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
@@ -29,15 +30,12 @@ import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -141,7 +139,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
     public static final String MD5 = "md5";
 
     protected Map<String, String> mapWithName(String name) {
-        return Collections.singletonMap("name", name);
+        return Map.of("name", name);
     }
 
     @GET
@@ -149,10 +147,8 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
     public Response handlers() throws IOException {
         BatchManager bm = Framework.getService(BatchManager.class);
         Set<String> supportedHandlers = bm.getSupportedHandlers();
-        List<Map<String, String>> handlers = supportedHandlers.stream()
-                                                              .map(this::mapWithName)
-                                                              .collect(Collectors.toList());
-        Map<String, Object> result = Collections.singletonMap("handlers", handlers);
+        List<Map<String, String>> handlers = supportedHandlers.stream().map(this::mapWithName).toList();
+        Map<String, Object> result = Map.of("handlers", handlers);
         return buildResponse(Status.OK, result);
     }
 
@@ -251,7 +247,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
                 && StringUtils.isNotEmpty(requestBodyFile)) {
             checkPathTraversal(requestBodyFile);
             if (StringUtils.isNotEmpty(fileName)) {
-                fileName = URLDecoder.decode(fileName, "UTF-8");
+                fileName = URLDecoder.decode(fileName, UTF_8);
             }
             File file = new File(requestBodyFile);
             Blob blob = new FileBlob(file, true);
@@ -265,7 +261,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
                     fileSize);
         } else {
             if (StringUtils.isNotEmpty(fileName)) {
-                fileName = URLDecoder.decode(fileName, "UTF-8");
+                fileName = URLDecoder.decode(fileName, UTF_8);
             }
             try (InputStream is = request.getInputStream()) {
                 Blob blob = Blobs.createBlob(is);
@@ -474,7 +470,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
         String key = jsonNode.hasNonNull(KEY) ? jsonNode.get(KEY).asText(null) : null;
         String filename = jsonNode.hasNonNull(NAME) ? jsonNode.get(NAME).asText() : null;
         String mimeType = jsonNode.hasNonNull(MIMETYPE) ? jsonNode.get(MIMETYPE).asText(null) : null;
-        Long length = jsonNode.hasNonNull(FILE_SIZE) ? jsonNode.get(FILE_SIZE).asLong() : -1L;
+        long length = jsonNode.hasNonNull(FILE_SIZE) ? jsonNode.get(FILE_SIZE).asLong() : -1L;
         String md5 = jsonNode.hasNonNull(MD5) ? jsonNode.get(MD5).asText() : null;
 
         BatchFileInfo batchFileInfo = new BatchFileInfo(key, filename, mimeType, length, md5);
@@ -491,7 +487,6 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
         return buildResponse(Status.OK, result);
     }
 
-    @SuppressWarnings("resource") // ExecutionRequest's OperationContext not owned by us, don't close it
     protected Response executeBatch(String batchId, String fileIdx, String operationId, HttpServletRequest request,
             ExecutionRequest xreq) {
         BatchManager bm = Framework.getService(BatchManager.class);
@@ -608,7 +603,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
      * @deprecated since 11.2, not used anymore
      */
     @Deprecated(since = "11.2")
-    protected Response buildJSONResponse(StatusType status, String message) throws UnsupportedEncodingException {
+    protected Response buildJSONResponse(StatusType status, String message) {
         return buildResponse(status, MediaType.APPLICATION_JSON, message);
     }
 
@@ -616,12 +611,12 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
      * @deprecated since 11.2, not used anymore
      */
     @Deprecated(since = "11.2")
-    protected Response buildHTMLResponse(StatusType status, String message) throws UnsupportedEncodingException {
+    protected Response buildHTMLResponse(StatusType status, String message) {
         message = "<html>" + message + "</html>";
         return buildResponse(status, MediaType.TEXT_HTML, message);
     }
 
-    protected Response buildTextResponse(StatusType status, String message) throws UnsupportedEncodingException {
+    protected Response buildTextResponse(StatusType status, String message) {
         return buildResponse(status, MediaType.TEXT_PLAIN, message);
     }
 
@@ -629,10 +624,9 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
         return Response.status(status).build();
     }
 
-    protected Response buildResponse(StatusType status, String type, String message)
-            throws UnsupportedEncodingException {
+    protected Response buildResponse(StatusType status, String type, String message) {
         return Response.status(status)
-                       .header("Content-Length", message.getBytes("UTF-8").length)
+                       .header("Content-Length", message.getBytes(UTF_8).length)
                        .type(type + "; charset=UTF-8")
                        .entity(message)
                        .build();

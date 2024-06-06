@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import java.lang.reflect.Type;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import javax.mail.BodyPart;
@@ -81,7 +81,7 @@ public class MultiPartFormRequestReader implements MessageBodyReader<ExecutionRe
 
     @Override
     public boolean isReadable(Class<?> arg0, Type arg1, Annotation[] arg2, MediaType arg3) {
-        return ExecutionRequest.class.isAssignableFrom(arg0); // TODO check media type too
+        return ExecutionRequest.class.isAssignableFrom(arg0);
     }
 
     @Override
@@ -138,8 +138,8 @@ public class MultiPartFormRequestReader implements MessageBodyReader<ExecutionRe
         try {
             // get back the original filename header bytes and try to decode them using UTF-8
             // if decoding succeeds, use it as the new filename, otherwise keep the original one
-            byte[] bytes = fname.getBytes("ISO-8859-1");
-            CharsetDecoder dec = Charset.forName("UTF-8").newDecoder();
+            byte[] bytes = fname.getBytes(StandardCharsets.ISO_8859_1);
+            CharsetDecoder dec = StandardCharsets.UTF_8.newDecoder();
             CharBuffer buffer = dec.onUnmappableCharacter(CodingErrorAction.REPORT)
                                    .onMalformedInput(CodingErrorAction.REPORT)
                                    .decode(ByteBuffer.wrap(bytes));

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -243,6 +243,7 @@ public class AsyncOperationAdapter extends DefaultAdapter {
 
     @GET
     @Path("{executionId}")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public Response result(@PathParam("executionId") String executionId) throws IOException, MessagingException {
 
         if (isCompleted(executionId)) {
@@ -259,10 +260,9 @@ public class AsyncOperationAdapter extends DefaultAdapter {
             }
 
             // if output is a map let's return as json
-            if (output instanceof Map) {
-                Map map = (Map) output;
+            if (output instanceof Map map) {
                 // if output has a "url" key make it absolute
-                Object url = ((Map<?, ?>) output).get(RESULT_URL_KEY);
+                Object url = map.get(RESULT_URL_KEY);
                 if (url instanceof String) {
                     map = new HashMap(map);
                     try {
