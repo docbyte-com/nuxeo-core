@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DELETE;
@@ -527,7 +526,7 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
                 result = execute(blob, operationId, session, ctx, params);
             }
             return ResponseHelper.getResponse(result, request);
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             log.error("Error while executing automation batch ", e);
             throw new NuxeoException(e);
         }

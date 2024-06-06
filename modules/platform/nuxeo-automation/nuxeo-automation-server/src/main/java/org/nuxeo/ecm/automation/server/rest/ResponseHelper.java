@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.GenericEntity;
@@ -41,7 +40,6 @@ import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.automation.core.util.RecordSet;
 import org.nuxeo.ecm.automation.io.DefaultJsonAdapter;
 import org.nuxeo.ecm.automation.io.JsonAdapter;
-import org.nuxeo.ecm.automation.io.rest.documents.MultipartBlobs;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -51,15 +49,12 @@ import org.nuxeo.ecm.core.api.DocumentRefList;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.webengine.rest.session.SessionFactory;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * @author <a href="mailto:ataillefer@nuxeo.com">Antoine Taillefer</a>
  */
 public class ResponseHelper {
-
-    public static final String MULTIPART_FILENAME_UTF_8 = "nuxeo.multipart.filename.utf8.encoding";
 
     private ResponseHelper() {
     }
@@ -80,40 +75,34 @@ public class ResponseHelper {
         return Response.status(401).build();
     }
 
-    public static Response blobs(List<Blob> blobs) throws MessagingException, IOException {
+    public static Response blobs(List<Blob> blobs) throws IOException {
         return blobs(blobs, HttpServletResponse.SC_OK);
     }
 
-    public static Response blobs(List<Blob> blobs, int httpStatus) throws MessagingException, IOException {
+    public static Response blobs(List<Blob> blobs, int httpStatus) throws IOException {
         if (blobs.isEmpty()) {
             return emptyBlobs();
         }
-        if (Framework.isBooleanPropertyTrue(MULTIPART_FILENAME_UTF_8)) {
-            try (var multipart = new MultiPart()) {
-                for (var blob : blobs) {
-                    var mediaType = Optional.ofNullable(blob.getMimeType())
-                                            .map(ThrowableFunction.asFunction(MediaType::valueOf))
-                                            .orElse(MediaType.APPLICATION_OCTET_STREAM_TYPE);
-                    var contentDisposition = ContentDisposition.type("attachment")
-                                                               .fileName(blob.getFilename())
-                                                               .size(blob.getLength())
-                                                               .build();
-                    multipart.bodyPart(new BodyPart(mediaType).entity(blob.getStream()).contentDisposition(contentDisposition));
-                }
-                return Response.status(httpStatus).entity(multipart).type(multipart.getMediaType()).build();
+        try (var multipart = new MultiPart()) {
+            for (var blob : blobs) {
+                var mediaType = Optional.ofNullable(blob.getMimeType())
+                                        .map(ThrowableFunction.asFunction(MediaType::valueOf))
+                                        .orElse(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                var contentDisposition = ContentDisposition.type("attachment")
+                                                           .fileName(blob.getFilename())
+                                                           .size(blob.getLength())
+                                                           .build();
+                multipart.bodyPart(
+                        new BodyPart(mediaType).entity(blob.getStream()).contentDisposition(contentDisposition));
             }
+            return Response.status(httpStatus).entity(multipart).type(multipart.getMediaType()).build();
         }
-        MultipartBlobs multipartBlobs = new MultipartBlobs(blobs);
-        return Response.status(httpStatus)
-                       .entity(multipartBlobs)
-                       .type(new BoundaryMediaType(multipartBlobs.getContentType()))
-                       .build();
     }
 
     /**
      * @since 5.7.2
      */
-    public static Response getResponse(Object result, HttpServletRequest request) throws MessagingException, IOException {
+    public static Response getResponse(Object result, HttpServletRequest request) throws IOException {
         return getResponse(result, request, HttpServletResponse.SC_OK);
     }
 
@@ -122,8 +111,7 @@ public class ResponseHelper {
      *
      * @since 7.1
      */
-    public static Response getResponse(Object result, HttpServletRequest request, int httpStatus)
-            throws IOException, MessagingException {
+    public static Response getResponse(Object result, HttpServletRequest request, int httpStatus) throws IOException {
         if (result == null || "true".equals(request.getHeader("X-NXVoidOperation"))) {
             return emptyContent();
         }
@@ -152,23 +140,6 @@ public class ResponseHelper {
             return Response.status(httpStatus).entity(result).build();
         } else { // try to adapt to JSON
             return Response.status(httpStatus).entity(new DefaultJsonAdapter(result)).build();
-        }
-    }
-
-    /**
-     * @since 7.1
-     */
-    public static class BoundaryMediaType extends MediaType {
-        private final String ctype;
-
-        BoundaryMediaType(String ctype) {
-            super("multipart", "mixed");
-            this.ctype = ctype;
-        }
-
-        @Override
-        public String toString() {
-            return ctype;
         }
     }
 }

@@ -22,7 +22,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.nuxeo.ecm.automation.io.rest.documents.BusinessAdapterListWriter;
-import org.nuxeo.ecm.automation.io.rest.operations.MultiPartFormRequestReader;
+import org.nuxeo.ecm.automation.io.rest.operations.MultiPartExecutionRequestReader;
 import org.nuxeo.ecm.restapi.io.conversion.ConversionScheduledWriter;
 import org.nuxeo.ecm.restapi.io.conversion.ConversionStatusWithResultWriter;
 import org.nuxeo.ecm.restapi.io.types.DocumentTypesWriter;
@@ -39,9 +39,7 @@ public class APIModule extends WebEngineModule {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> result = super.getClasses();
-        // need to be stateless since it needs the request member to be
-        // injected
-        result.add(MultiPartFormRequestReader.class);
+        result.add(MultiPartExecutionRequestReader.class);
         return result;
     }
 

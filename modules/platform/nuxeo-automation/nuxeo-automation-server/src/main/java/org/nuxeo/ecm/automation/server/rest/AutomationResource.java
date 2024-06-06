@@ -24,7 +24,6 @@ import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -102,7 +101,7 @@ public class AutomationResource extends ModuleRoot {
                 case Blob blob -> Response.ok(blob).build();
                 case null, default -> ResponseHelper.notFound();
             };
-        } catch (MessagingException | IOException e) {
+        } catch (IOException e) {
             throw new NuxeoException(e);
         }
     }

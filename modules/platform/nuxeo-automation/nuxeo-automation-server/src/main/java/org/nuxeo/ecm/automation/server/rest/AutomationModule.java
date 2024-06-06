@@ -27,7 +27,7 @@ import javax.ws.rs.ext.MessageBodyWriter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.io.rest.JsonFactoryProvider;
-import org.nuxeo.ecm.automation.io.rest.operations.MultiPartFormRequestReader;
+import org.nuxeo.ecm.automation.io.rest.operations.MultiPartExecutionRequestReader;
 import org.nuxeo.ecm.automation.server.AutomationServer;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
 import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
@@ -44,9 +44,7 @@ public class AutomationModule extends WebEngineModule {
     public Set<Class<?>> getClasses() {
 
         Set<Class<?>> result = super.getClasses();
-        // need to be stateless since it needs the request member to be
-        // injected
-        result.add(MultiPartFormRequestReader.class);
+        result.add(MultiPartExecutionRequestReader.class);
         return result;
     }
 

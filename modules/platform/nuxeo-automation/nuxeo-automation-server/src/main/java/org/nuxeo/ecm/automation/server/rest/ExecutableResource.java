@@ -20,7 +20,6 @@ package org.nuxeo.ecm.automation.server.rest;
 
 import java.io.IOException;
 
-import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.POST;
@@ -71,7 +70,7 @@ public abstract class ExecutableResource extends DefaultObject {
             Object result = execute(xreq);
             int customHttpStatus = xreq.getRestOperationContext().getHttpStatus();
             return ResponseHelper.getResponse(result, request, customHttpStatus);
-        } catch (OperationException | NuxeoException | MessagingException | IOException cause) {
+        } catch (OperationException | NuxeoException | IOException cause) {
             String exceptionMessage = "Failed to invoke operation: " + getId();
             if (cause instanceof OperationNotFoundException) {
                 throw new WebResourceNotFoundException(exceptionMessage, cause);
