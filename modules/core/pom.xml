@@ -37,6 +37,7 @@
     <module>nuxeo-core-query</module>
     <module>nuxeo-core-schema</module>
     <module>nuxeo-core-search</module>
+    <module>nuxeo-core-search-clients</module>
     <module>nuxeo-core-storage</module>
     <module>nuxeo-core-storage-dbs</module>
     <module>nuxeo-core-storage-mem</module>

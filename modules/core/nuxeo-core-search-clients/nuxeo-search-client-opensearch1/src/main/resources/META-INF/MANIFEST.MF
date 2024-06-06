@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo Core Search Client OpenSearch1
+Bundle-SymbolicName: org.nuxeo.ecm.core.search.client.opensearch1;singleton:=true
+Bundle-Version: 1.0.0
