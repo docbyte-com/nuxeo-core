@@ -10,8 +10,6 @@
      (AL 2.0) OAuth Core (net.oauth.core:oauth:20090531 - http://oauth.net/code/oauth-core-parent/oauth/)
      (AL 2.0) OAuth Core: Provider (net.oauth.core:oauth-provider:20090531 - http://oauth.net/code/oauth-core-parent/oauth-provider/)
      (AL 2.0) OGNL - Object Graph Navigation Library (ognl:ognl:2.7.2 - http://ognl.org)
-     (MIT) SCIM Core (info.simplecloud:scimcore:0.1 - http://code.google.com/p/scimproxy)
-     (MIT) SCIM Proxy Compliance (info.simplecloud.scimproxy:compliance:0.1 - http://code.google.com/p/scimproxy)
      (EPL 1.0) WikiEventModel (org.wikimodel:wem:2.0.2 - http://code.google.com/p/wikimodel/)
      (AL 2.0) ant-launcher (org.apache.ant:ant-launcher:1.7.0 - http://ant.apache.org/ant-launcher/)
      (LGPL 2.1) carol (org.objectweb.carol:carol:2.0.5 - no url defined)
