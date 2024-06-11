@@ -26,23 +26,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.EntityTag;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Request;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.platform.web.common.ServletHelper;
-import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.exceptions.IllegalParameterException;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
@@ -63,10 +67,8 @@ import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
 public class FileService extends DefaultAdapter {
 
     @GET
-    public Response doGet(@Context Request request) {
+    public Response doGet(@FormParam("property") String xpath, @Context Request request) {
         DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
-        FormData form = ctx.getForm();
-        String xpath = form.getString(FormData.PROPERTY);
         if (xpath == null) {
             if (doc.hasSchema("file")) {
                 xpath = "file:content";
@@ -101,8 +103,9 @@ public class FileService extends DefaultAdapter {
             String contentDisposition = ServletHelper.getRFC2231ContentDisposition(ctx.getRequest(), fileName);
 
             // cached resource did change or no ETag -> serve updated content
-            ResponseBuilder builder = Response.ok(blob).header("Content-Disposition", contentDisposition).type(
-                    blob.getMimeType());
+            ResponseBuilder builder = Response.ok(blob)
+                                              .header("Content-Disposition", contentDisposition)
+                                              .type(blob.getMimeType());
             if (etag != null) {
                 builder.tag(etag);
             }
@@ -115,11 +118,11 @@ public class FileService extends DefaultAdapter {
     }
 
     @POST
-    public Response doPost() {
+    public Response doPost(MultivaluedMap<String, String> formParams, @FormParam("property") String xpath,
+            @FormParam("versioning") @DefaultValue("NONE") VersioningOption versioningOption,
+            @FormDataParam("content") Blob blob) {
         DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
-        FormData form = ctx.getForm();
-        form.fillDocument(doc);
-        String xpath = ctx.getForm().getString(FormData.PROPERTY);
+        DocumentHelper.fillDocument(doc, formParams);
         if (xpath == null) {
             if (doc.hasSchema("file")) {
                 xpath = "file:content";
@@ -130,7 +133,6 @@ public class FileService extends DefaultAdapter {
                         + "the blob property xpath to fetch");
             }
         }
-        Blob blob = form.getFirstBlob();
         if (blob == null) {
             throw new IllegalArgumentException("Could not find any uploaded file");
         }
@@ -150,7 +152,7 @@ public class FileService extends DefaultAdapter {
                 p.setValue(blob);
             }
             // make snapshot
-            doc.putContextData(VersioningService.VERSIONING_OPTION, form.getVersioningOption());
+            doc.putContextData(VersioningService.VERSIONING_OPTION, versioningOption);
             CoreSession session = ctx.getCoreSession();
             session.saveDocument(doc);
             session.save();
@@ -163,15 +165,13 @@ public class FileService extends DefaultAdapter {
 
     @GET
     @Path("delete")
-    public Response remove() {
-        return doDelete();
+    public Response remove(@FormParam("property") String xpath) {
+        return doDelete(xpath);
     }
 
     @DELETE
-    public Response doDelete() {
+    public Response doDelete(@FormParam("property") String xpath) {
         DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
-        FormData form = ctx.getForm();
-        String xpath = form.getString(FormData.PROPERTY);
         if (xpath == null) {
             if (doc.hasSchema("file")) {
                 xpath = "file:content";

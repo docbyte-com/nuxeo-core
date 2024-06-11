@@ -163,6 +163,7 @@ public class AuditTest {
                                              .execute(new JSONDocumentNodeHandler());
         httpClient.buildPutRequest("/id/" + doc.getId())
                   .entity(jsonDoc.asJson())
+                  .contentType("application/json")
                   .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Wait for audit indexing

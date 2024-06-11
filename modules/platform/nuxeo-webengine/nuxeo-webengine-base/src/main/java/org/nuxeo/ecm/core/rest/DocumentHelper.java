@@ -21,13 +21,24 @@
 
 package org.nuxeo.ecm.core.rest;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.core.MultivaluedMap;
+
+import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.api.PropertyException;
+import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.ecm.core.api.model.Property;
+import org.nuxeo.ecm.core.api.model.impl.primitives.BlobProperty;
 import org.nuxeo.ecm.core.api.pathsegment.PathSegmentService;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
-import org.nuxeo.ecm.webengine.forms.FormData;
-import org.nuxeo.ecm.webengine.model.WebContext;
+import org.nuxeo.ecm.core.schema.types.ListType;
+import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -39,40 +50,92 @@ public class DocumentHelper {
     private DocumentHelper() {
     }
 
-    public static DocumentModel createDocument(WebContext context, DocumentModel parent, String name) {
-        FormData form = context.getForm();
-        String type = form.getDocumentType();
+    public static DocumentModel createDocument(CoreSession session, DocumentModel parent, String name,
+            MultivaluedMap<String, String> formParams) {
+
+        String type = formParams.getFirst("doctype");
         if (type == null) {
             throw new NuxeoException("Invalid argument exception. No doc type specified");
         }
+        DocumentModel newDoc = session.createDocumentModel(type);
+        fillDocument(newDoc, formParams);
+        if (name != null) {
+            newDoc.setPropertyValue("dc:title", name);
+        }
+        newDoc.setPathInfo(parent.getPathAsString(),
+                Framework.getService(PathSegmentService.class).generatePathSegment(newDoc));
+        newDoc = session.createDocument(newDoc);
+        newDoc.setPropertyValue("dc:title", newDoc.getName());
+        session.saveDocument(newDoc);
+        session.save();
+        return newDoc;
+    }
 
-        try {
-            PathSegmentService pss = Framework.getService(PathSegmentService.class);
-            CoreSession session = context.getCoreSession();
-            DocumentModel newDoc = session.createDocumentModel(type);
-            form.fillDocument(newDoc);
-            if (name != null) {
-                newDoc.setPropertyValue("dc:title", name);
+    public static DocumentModel updateDocument(CoreSession session, DocumentModel doc,
+            MultivaluedMap<String, String> formParams, VersioningOption versioningOption) {
+        fillDocument(doc, formParams);
+        doc.putContextData(VersioningService.VERSIONING_OPTION, versioningOption);
+        doc = session.saveDocument(doc);
+        session.save();
+        return doc;
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public static void fillDocument(DocumentModel doc, MultivaluedMap<String, String> formParams) {
+        for (var entry : formParams.entrySet()) {
+            String key = entry.getKey();
+            if (key.indexOf(':') > -1) { // an XPATH property
+                Property property;
+                try {
+                    property = doc.getProperty(key);
+                } catch (PropertyException e) {
+                    continue; // not a valid property
+                }
+                List<String> list = entry.getValue();
+                if (list.isEmpty()) {
+                    fillDocumentProperty(property, null);
+                } else {
+                    fillDocumentProperty(property, entry.getValue());
+                }
             }
-            newDoc.setPathInfo(parent.getPathAsString(), pss.generatePathSegment(newDoc));
-            newDoc = session.createDocument(newDoc);
-            newDoc.setPropertyValue("dc:title", newDoc.getName());
-            session.saveDocument(newDoc);
-            session.save();
-            return newDoc;
-        } catch (NuxeoException e) {
-            e.addInfo("Failed to create document: " + name);
-            throw e;
         }
     }
 
-    public static DocumentModel updateDocument(WebContext ctx, DocumentModel doc) {
-        FormData form = ctx.getForm();
-        form.fillDocument(doc);
-        doc.putContextData(VersioningService.VERSIONING_OPTION, form.getVersioningOption());
-        doc = ctx.getCoreSession().saveDocument(doc);
-        ctx.getCoreSession().save();
-        return doc;
+    protected static void fillDocumentProperty(Property property, List<String> values) {
+        if (values == null || values.isEmpty()) {
+            property.remove();
+        } else if (property.isScalar()) {
+            property.setValue(values.get(0));
+        } else if (property.isList()) {
+            if (!property.isContainer()) { // an array
+                property.setValue(values);
+            } else {
+                Type elType = ((ListType) property.getType()).getFieldType();
+                if (elType.isSimpleType()) {
+                    property.setValue(values);
+                } else if ("content".equals(elType.getName())) {
+                    // list of blobs
+                    List<Blob> blobs = new ArrayList<>();
+                    // transform strings to blobs
+                    for (var obj : values) {
+                        blobs.add(Blobs.createBlob(obj));
+                    }
+                    property.setValue(blobs);
+                } else {
+                    // complex properties will be ignored
+                }
+            }
+        } else if (property.isComplex()) {
+            if (property.getClass() == BlobProperty.class) {
+                // should be a file upload
+                Blob blob = Blobs.createBlob(values.get(0));
+                property.setValue(blob);
+            } else {
+                // complex properties will be ignored
+            }
+        }
     }
 
 }

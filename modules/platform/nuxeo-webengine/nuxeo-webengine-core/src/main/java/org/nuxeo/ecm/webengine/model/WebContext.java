@@ -36,7 +36,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.session.UserSession;
 import org.nuxeo.runtime.model.Adaptable;
@@ -205,15 +204,6 @@ public interface WebContext extends Adaptable {
      * @return the method
      */
     String getMethod();
-
-    /**
-     * Gets the representation of the data form submitted by the user.
-     * <p>
-     * This provides access to both POST and GET parameters, or to multipart form data requests.
-     *
-     * @return the request form data. Cannot return null
-     */
-    FormData getForm();
 
     /**
      * Gets the URL requested by the client. Same as {@link HttpServletRequest#getRequestURL()}.

@@ -138,8 +138,13 @@ class HttpClientTestRuleLogger {
     }
 
     protected static String jsonPrettyPrint(InputStream stream) throws IOException {
-        // deserialize with Jackson to have a pretty print
-        var node = MAPPER.readTree(stream);
-        return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        try {
+            // deserialize with Jackson to have a pretty print
+            var node = MAPPER.readTree(stream);
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        } catch (IOException e) {
+            stream.reset();
+            return IOUtils.toString(stream, UTF_8);
+        }
     }
 }

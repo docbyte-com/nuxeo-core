@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.ws.rs.core.Application;
 
+import org.nuxeo.ecm.webengine.model.io.BlobReader;
 import org.nuxeo.ecm.webengine.model.io.BlobWriter;
 import org.nuxeo.ecm.webengine.model.io.DocumentBlobHolderWriter;
 import org.nuxeo.ecm.webengine.model.io.DownloadContextBlobHolderWriter;
@@ -45,6 +46,7 @@ public class WebEngineApplication extends Application {
     @Override
     public Set<Object> getSingletons() {
         Set<Object> result = new HashSet<>();
+        result.add(new BlobReader());
         result.add(new WebEngineExceptionMapper());
         result.add(new TemplateWriter());
         result.add(new ScriptFileWriter());

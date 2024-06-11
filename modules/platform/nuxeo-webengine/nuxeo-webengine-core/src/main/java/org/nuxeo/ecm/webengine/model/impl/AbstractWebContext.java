@@ -61,7 +61,6 @@ import org.nuxeo.ecm.platform.rendering.api.RenderingException;
 import org.nuxeo.ecm.platform.web.common.locale.LocaleProvider;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.login.WebEngineFormAuthenticator;
 import org.nuxeo.ecm.webengine.model.AdapterResource;
 import org.nuxeo.ecm.webengine.model.Messages;
@@ -116,8 +115,6 @@ public abstract class AbstractWebContext implements WebContext {
     protected Resource root;
 
     protected Module module;
-
-    protected FormData form;
 
     protected String basePath;
 
@@ -417,14 +414,6 @@ public abstract class AbstractWebContext implements WebContext {
     public String getCookie(String name, String defaultValue) {
         String value = getCookie(name);
         return value == null ? defaultValue : value;
-    }
-
-    @Override
-    public FormData getForm() {
-        if (form == null) {
-            form = new FormData(request);
-        }
-        return form;
     }
 
     @Override

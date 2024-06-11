@@ -32,6 +32,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.MultivaluedMap;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,7 +52,6 @@ import org.nuxeo.connect.update.model.Form;
 import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -216,7 +216,7 @@ public class InstallHandler extends DefaultObject {
     @Produces("text/html")
     @Path(value = "form/{pkgId}/{formId}")
     public Template processInstallForm(@PathParam("pkgId") String pkgId, @PathParam("formId") int formId,
-            @QueryParam("source") String source) {
+            @QueryParam("source") String source, MultivaluedMap<String, String> formParams) {
         PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
         try {
             LocalPackage pkg = pus.getPackage(pkgId);
@@ -231,10 +231,9 @@ public class InstallHandler extends DefaultObject {
             }
 
             Form form = forms[formId];
-            FormData fdata = getContext().getForm();
             Map<String, String> params = getInstallParameters(pkgId);
             for (Field field : form.getFields()) {
-                String data = fdata.getString(field.getName());
+                String data = formParams.getFirst(field.getName());
                 if (data != null) {
                     params.put(field.getName(), data);
                 }
