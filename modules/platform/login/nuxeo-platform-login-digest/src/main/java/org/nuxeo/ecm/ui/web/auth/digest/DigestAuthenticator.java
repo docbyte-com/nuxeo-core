@@ -129,7 +129,6 @@ public class DigestAuthenticator implements NuxeoAuthenticationPlugin {
 
     @Override
     public Boolean needLoginPrompt(HttpServletRequest httpRequest) {
-        // @TODO: Use DIGEST authentication for WebDAV and WSS
         return Boolean.TRUE;
     }
 

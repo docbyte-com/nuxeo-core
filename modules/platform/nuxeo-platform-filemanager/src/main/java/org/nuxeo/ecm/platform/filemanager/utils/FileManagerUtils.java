@@ -57,7 +57,7 @@ public final class FileManagerUtils {
     // with a \, or a DOS file with a /
     public static String fetchFileName(String fullName) {
         // Fetching filename
-        // first normalize input, as unicode can be decomposed (macOS behavior on WebDAV)
+        // first normalize input, as unicode can be decomposed
         String ret = Normalizer.normalize(fullName, Form.NFC);
         int lastWinSeparator = fullName.lastIndexOf('\\');
         int lastUnixSeparator = fullName.lastIndexOf('/');

@@ -89,7 +89,7 @@
   <extension-point name="specificChains">
     <documentation>
       Contribute specific authentication chain for specific urls or request headers.
-      This is usefull to be able to change the authentication plugins used for a dedicated protocol (WSS, WebDav ...)
+      This is usefull to be able to change the authentication plugins used for a dedicated protocol
 
       @author Thierry Delprat (td@nuxeo.com)
     </documentation>
