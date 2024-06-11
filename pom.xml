@@ -975,11 +975,6 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.webengine</groupId>
-        <artifactId>nuxeo-webengine-ui</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-invite</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
