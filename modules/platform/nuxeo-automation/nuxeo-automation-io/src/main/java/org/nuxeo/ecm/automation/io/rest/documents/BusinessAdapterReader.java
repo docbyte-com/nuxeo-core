@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.WebApplicationException;
@@ -52,6 +53,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @since 5.7.2
  */
+@Singleton
 @Provider
 @Consumes(MediaType.APPLICATION_JSON)
 public class BusinessAdapterReader implements MessageBodyReader<BusinessAdapter> {
@@ -60,7 +62,7 @@ public class BusinessAdapterReader implements MessageBodyReader<BusinessAdapter>
     protected HttpServletRequest request;
 
     @Context
-    JsonFactory factory;
+    protected JsonFactory factory;
 
     private CoreSession getCoreSession() {
         return SessionFactory.getSession(request);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,8 @@
 package org.nuxeo.ecm.platform.ui.web.auth.simple;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -39,7 +38,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -47,9 +45,7 @@ import org.mockito.Mock;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.platform.ui.web.auth.NuxeoAuthenticationFilter;
-import org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mockito.MockitoFeature;
 import org.nuxeo.runtime.mockito.RuntimeService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -91,7 +87,7 @@ public abstract class AbstractAuthenticator {
     protected UserManager userManager;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         String anonymousUserId = "Anonymous";
         when(userManager.getAnonymousUserId()).thenReturn(anonymousUserId);
         NuxeoPrincipal anonymousPrincipal = new UserPrincipal(anonymousUserId, null, true, false);
@@ -100,13 +96,7 @@ public abstract class AbstractAuthenticator {
         when(userManager.getPrincipal(CAS_USER)).thenReturn(casUserPrincipal);
     }
 
-    protected PluggableAuthenticationService getAuthService() {
-        return Framework.getService(PluggableAuthenticationService.class);
-    }
-
     protected void initRequest() throws ServletException, IOException {
-        // Cookie[] cookieArray = cookieList.toArray(new Cookie[] {});
-
         naf = new NuxeoAuthenticationFilter();
 
         request = mock(HttpServletRequest.class);
@@ -180,10 +170,4 @@ public abstract class AbstractAuthenticator {
         doAnswer(i -> attributes.keySet()).when(request).getAttributeNames();
         return attributes;
     }
-
-    protected void setLoginPasswordInHeader(String login, String password, HttpServletRequest request) {
-        String b64userpassword = Base64.encodeBase64String((login + ":" + password).getBytes());
-        when(request.getHeader(eq("authorization"))).thenReturn("basic " + b64userpassword);
-    }
-
 }

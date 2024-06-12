@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
@@ -126,8 +126,7 @@ public class TestService {
         Converter cv = ConversionServiceImpl.getConverter("dummyChain");
         assertNotNull(cv);
         boolean isChain = false;
-        if (cv instanceof ChainedConverter) {
-            ChainedConverter ccv = (ChainedConverter) cv;
+        if (cv instanceof ChainedConverter ccv) {
             List<String> steps = ccv.getSteps();
             assertNotNull(steps);
             assertEquals(2, steps.size());
@@ -149,8 +148,7 @@ public class TestService {
         Converter cv2 = ConversionServiceImpl.getConverter("dummyChain2");
         assertNotNull(cv2);
         isChain = false;
-        if (cv2 instanceof ChainedConverter) {
-            ChainedConverter ccv = (ChainedConverter) cv2;
+        if (cv2 instanceof ChainedConverter ccv) {
             List<String> steps = ccv.getSteps();
             assertNull(steps);
             isChain = true;

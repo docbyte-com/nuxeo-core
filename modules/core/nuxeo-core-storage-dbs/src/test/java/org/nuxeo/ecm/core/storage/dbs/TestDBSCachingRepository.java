@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ package org.nuxeo.ecm.core.storage.dbs;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyListOf;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -61,7 +61,7 @@ public class TestDBSCachingRepository {
     public void before() {
         subConnection = mock(DBSConnection.class);
         when(subConnection.readState(any())).then(invocation -> newState(invocation.getArguments()[0].toString()));
-        when(subConnection.readStates(anyListOf(String.class))).then(
+        when(subConnection.readStates(anyList())).then(
                 invocation -> ((List<String>) invocation.getArguments()[0]).stream().map(id -> {
                     State state = new State();
                     state.setSingle(KEY_ID, id);

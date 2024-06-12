@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 
+import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.WebApplicationException;
@@ -51,6 +52,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
+@Singleton
 @Provider
 @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON + "+nxrequest" })
 public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
@@ -59,7 +61,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
     private HttpServletRequest request;
 
     @Context
-    JsonFactory factory;
+    protected JsonFactory factory;
 
     public CoreSession getCoreSession() {
         return SessionFactory.getSession(request);

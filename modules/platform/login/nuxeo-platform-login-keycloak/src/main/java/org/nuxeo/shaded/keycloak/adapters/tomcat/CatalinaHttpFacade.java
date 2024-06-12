@@ -95,7 +95,7 @@ public class CatalinaHttpFacade implements HttpFacade {
             String contextPath = request.getContextPath();
             String servletPath = uri.substring(uri.indexOf(contextPath) + contextPath.length());
 
-            if ("".equals(servletPath)) {
+            if (servletPath.isEmpty()) {
                 servletPath = "/";
             }
 
@@ -133,8 +133,7 @@ public class CatalinaHttpFacade implements HttpFacade {
             }
             if (cookie == null)
                 return null;
-            return new Cookie(cookie.getName(), cookie.getValue(), cookie.getVersion(), cookie.getDomain(),
-                    cookie.getPath());
+            return new Cookie(cookie.getName(), cookie.getValue(), 0, cookie.getDomain(), cookie.getPath());
         }
 
         @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,13 +207,7 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         }
         Set<Class<?>> set = new HashSet<>();
         Collections.addAll(set, cfg.roots);
-        return set;
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> set = new HashSet<>();
-        set.add(new WebContextProvider());
+        set.add(WebContextProvider.class);
         return set;
     }
 

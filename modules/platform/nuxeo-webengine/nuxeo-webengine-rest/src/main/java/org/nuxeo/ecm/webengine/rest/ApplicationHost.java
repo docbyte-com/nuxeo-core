@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,7 +173,7 @@ public class ApplicationHost extends Application {
 
     @Override
     public synchronized Set<Class<?>> getClasses() {
-        HashSet<Class<?>> result = new HashSet<>();
+        var result = new HashSet<Class<?>>();
         for (ApplicationFragment app : getApplications()) {
             try {
                 for (Class<?> clazz : app.getClasses()) {
@@ -186,14 +186,16 @@ public class ApplicationHost extends Application {
                 log.error(e);
             }
         }
+        result.add(TemplateViewMessageBodyWriter.class);
+        result.add(ViewMessageBodyWriter.class);
         return result;
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation") // keep support until drops by the specification
     public synchronized Set<Object> getSingletons() {
-        HashSet<Object> result = new HashSet<>();
-        result.add(new TemplateViewMessageBodyWriter());
-        result.add(new ViewMessageBodyWriter());
+        var result = new HashSet<>();
         for (ApplicationFragment app : getApplications()) {
             for (Object obj : app.getSingletons()) {
                 if (obj.getClass().isAnnotationPresent(Path.class)) {

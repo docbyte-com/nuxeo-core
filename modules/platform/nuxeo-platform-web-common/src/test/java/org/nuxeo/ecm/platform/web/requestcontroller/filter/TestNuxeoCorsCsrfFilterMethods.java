@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ package org.nuxeo.ecm.platform.web.requestcontroller.filter;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
@@ -73,18 +72,10 @@ public class TestNuxeoCorsCsrfFilterMethods {
 
     @Test
     public void testSourceURIOriginNullDefault() {
-        doTestSourceURIOriginNull(false);
-    }
-
-    protected void doTestSourceURIOriginNull(boolean allowNullOrigin) {
         when(request.getHeader(eq(ORIGIN))).thenReturn("null");
         URI uri = filter.getSourceURI(request);
-        if (allowNullOrigin) {
-            assertNull(uri);
-        } else {
-            assertNotNull(uri);
-            assertEquals("privacy-sensitive:///", uri.toASCIIString());
-        }
+        assertNotNull(uri);
+        assertEquals("privacy-sensitive:///", uri.toASCIIString());
     }
 
     @Test

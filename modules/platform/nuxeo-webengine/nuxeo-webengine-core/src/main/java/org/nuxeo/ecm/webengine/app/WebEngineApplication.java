@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,24 +40,20 @@ import org.nuxeo.ecm.webengine.model.io.URLWriter;
  */
 public class WebEngineApplication extends Application {
 
-    public WebEngineApplication() {
-    }
-
     @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new BlobReader());
-        result.add(new WebEngineExceptionMapper());
-        result.add(new TemplateWriter());
-        result.add(new ScriptFileWriter());
-        result.add(new DocumentBlobHolderWriter());
-        result.add(new DownloadContextBlobHolderWriter());
-        result.add(new BlobWriter());
-        result.add(new FileWriter());
-        result.add(new URLWriter());
-        result.add(new TemplateViewWriter());
-        result.add(new JsonNuxeoExceptionWriter());
+    public Set<Class<?>> getClasses() {
+        var result = new HashSet<Class<?>>();
+        result.add(BlobReader.class);
+        result.add(WebEngineExceptionMapper.class);
+        result.add(TemplateWriter.class);
+        result.add(ScriptFileWriter.class);
+        result.add(DocumentBlobHolderWriter.class);
+        result.add(DownloadContextBlobHolderWriter.class);
+        result.add(BlobWriter.class);
+        result.add(FileWriter.class);
+        result.add(URLWriter.class);
+        result.add(TemplateViewWriter.class);
+        result.add(JsonNuxeoExceptionWriter.class);
         return result;
     }
-
 }

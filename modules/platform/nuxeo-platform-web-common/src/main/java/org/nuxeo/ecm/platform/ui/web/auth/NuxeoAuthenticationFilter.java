@@ -54,7 +54,6 @@ import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.USERNAME_KEY;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.io.UnsupportedEncodingException;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -175,10 +174,6 @@ public class NuxeoAuthenticationFilter implements Filter {
     protected final Counter loginCount = registry.counter(
             MetricRegistry.name("nuxeo", "web", "authentication", "logged-users"));
 
-    @Override
-    public void destroy() {
-    }
-
     protected static boolean sendAuthenticationEvent(UserIdentificationInfo userInfo, String eventId, String comment) {
         return Framework.doPrivileged(() -> {
             EventProducer evtProducer = Framework.getService(EventProducer.class);
@@ -197,7 +192,7 @@ public class NuxeoAuthenticationFilter implements Filter {
 
     protected boolean logAuthenticationAttempt(UserIdentificationInfo userInfo, boolean success) {
         String userName = userInfo.getUserName();
-        if (userName == null || userName.length() == 0) {
+        if (StringUtils.isEmpty(userName)) {
             userName = userInfo.getToken();
         }
 
@@ -218,7 +213,7 @@ public class NuxeoAuthenticationFilter implements Filter {
     protected boolean logLogout(UserIdentificationInfo userInfo) {
         loginCount.dec();
         String userName = userInfo.getUserName();
-        if (userName == null || userName.length() == 0) {
+        if (StringUtils.isEmpty(userName)) {
             userName = userInfo.getToken();
         }
 
@@ -526,7 +521,7 @@ public class NuxeoAuthenticationFilter implements Filter {
 
             if (principal != null) {
                 httpRequest.setAttribute(USERNAME_KEY, principal.getName());
-                if (targetPageURL != null && targetPageURL.length() > 0) {
+                if (StringUtils.isNotEmpty(targetPageURL)) {
                     if (XMLHTTP_REQUEST_TYPE.equalsIgnoreCase(httpRequest.getHeader("X-Requested-With"))) {
                         return;
                     } else {
@@ -554,8 +549,7 @@ public class NuxeoAuthenticationFilter implements Filter {
     public NuxeoAuthenticationPlugin getAuthenticator(CachableUserIdentificationInfo ci) {
         String key = ci.getUserInfo().getAuthPluginName();
         if (key != null) {
-            NuxeoAuthenticationPlugin authPlugin = service.getPlugin(key);
-            return authPlugin;
+            return service.getPlugin(key);
         }
         return null;
     }
@@ -734,14 +728,10 @@ public class NuxeoAuthenticationFilter implements Filter {
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if (NXAuthConstants.START_PAGE_FRAGMENT_KEY.equals(cookie.getName())) {
-                        try {
-                            requestedPage = UriBuilder.fromUri(requestedPage)
-                                                      .fragment(URLDecoder.decode(cookie.getValue(), "UTF-8"))
-                                                      .build()
-                                                      .toString();
-                        } catch (UnsupportedEncodingException e) {
-                            log.error("Failed to decode start page url fragment", e);
-                        }
+                        requestedPage = UriBuilder.fromUri(requestedPage)
+                                                  .fragment(URLDecoder.decode(cookie.getValue(), UTF_8))
+                                                  .build()
+                                                  .toString();
                         // enforce cookie removal
                         cookie.setMaxAge(0);
                         httpResponse.addCookie(cookie);
@@ -904,8 +894,7 @@ public class NuxeoAuthenticationFilter implements Filter {
     }
 
     public static String getRequestedPage(ServletRequest request) {
-        if (request instanceof HttpServletRequest) {
-            HttpServletRequest httpRequest = (HttpServletRequest) request;
+        if (request instanceof HttpServletRequest httpRequest) {
             return getRequestedPage(httpRequest);
         } else {
             return null;
@@ -970,16 +959,13 @@ public class NuxeoAuthenticationFilter implements Filter {
                                 return;
                             }
                             HttpServletResponse response = (HttpServletResponse) getResponse();
-                            StringBuilder sb = new StringBuilder();
-                            sb.append("<script type=\"text/javascript\">\n")
-                              .append("document.cookie = '")
-                              .append(NXAuthConstants.START_PAGE_FRAGMENT_KEY)
-                              .append("=' + encodeURIComponent(window.location.hash.substring(1) || '') + '; path=/';\n")
-                              .append("window.location = '")
-                              .append(location)
-                              .append("';\n");
-                            sb.append("</script>");
-                            String script = sb.toString();
+                            String script = """
+                                    <script type="text/javascript">
+                                      document.cookie ='%s=' + encodeURIComponent(window.location.hash.substring(1) || '') + '; path=/';
+                                      window.location = '%s';
+                                    </script>
+                                    """.formatted(
+                                    NXAuthConstants.START_PAGE_FRAGMENT_KEY, location);
 
                             response.setStatus(SC_UNAUTHORIZED);
                             response.setContentType("text/html;charset=UTF-8");

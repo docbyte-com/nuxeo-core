@@ -20,6 +20,7 @@ package org.nuxeo.ecm.webengine.app;
 
 import java.util.function.Supplier;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.core.Feature;
 import jakarta.ws.rs.core.FeatureContext;
 import jakarta.ws.rs.ext.Provider;
@@ -30,6 +31,7 @@ import org.glassfish.jersey.process.internal.RequestScoped;
 /**
  * @since 2025.0
  */
+@Singleton
 @Provider
 public class MyObjectPerRequestProvider implements Supplier<MyObject>, Feature {
 

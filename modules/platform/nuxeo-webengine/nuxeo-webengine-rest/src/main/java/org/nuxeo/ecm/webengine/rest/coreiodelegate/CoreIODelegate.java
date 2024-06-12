@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.Optional;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Feature;
 import jakarta.ws.rs.core.FeatureContext;
@@ -46,6 +47,7 @@ import org.nuxeo.ecm.platform.web.common.RequestContext;
  *
  * @since 11.1
  */
+@Singleton
 @Provider
 @Produces({ APPLICATION_JSON, "text/csv" })
 public class CoreIODelegate extends PartialCoreIODelegate implements Feature {

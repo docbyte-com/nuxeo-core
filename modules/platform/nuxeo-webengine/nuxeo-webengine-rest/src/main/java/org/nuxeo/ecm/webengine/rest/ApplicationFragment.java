@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -118,6 +118,8 @@ public class ApplicationFragment extends Application {
     }
 
     @Override
+    @Deprecated
+    @SuppressWarnings("deprecation")
     public Set<Object> getSingletons() {
         return get().getSingletons();
     }

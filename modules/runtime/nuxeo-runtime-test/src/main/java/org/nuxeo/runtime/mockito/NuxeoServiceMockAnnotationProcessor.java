@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,19 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.internal.configuration.FieldAnnotationProcessor;
+import org.mockito.internal.configuration.MockAnnotationProcessor;
 import org.nuxeo.runtime.api.DefaultServiceProvider;
 
 /**
  * @since 5.7.8
  */
-public class NuxeoServiceMockAnnotationProcessor implements FieldAnnotationProcessor<Mock> {
+public class NuxeoServiceMockAnnotationProcessor extends MockAnnotationProcessor {
 
     @Override
     public Object process(Mock annotation, final Field field) {
+        var mock = super.process(annotation, field);
 
-        Object mock = Mockito.mock(field.getType(), field.getName());
-
+        // bind the mock in Nuxeo Runtime if asked
         for (Annotation ann : field.getAnnotations()) {
             if (ann.annotationType().equals(RuntimeService.class)) {
                 bindMockAsNuxeoService(field, mock);
@@ -49,5 +48,4 @@ public class NuxeoServiceMockAnnotationProcessor implements FieldAnnotationProce
         MockProvider provider = (MockProvider) DefaultServiceProvider.getProvider();
         provider.bind(field.getType(), mock);
     }
-
 }

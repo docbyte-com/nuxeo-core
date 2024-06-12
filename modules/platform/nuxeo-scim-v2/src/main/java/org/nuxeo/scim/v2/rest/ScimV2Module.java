@@ -19,11 +19,9 @@
  */
 package org.nuxeo.scim.v2.rest;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.nuxeo.ecm.webengine.app.JsonNuxeoExceptionWriter;
-import org.nuxeo.ecm.webengine.app.WebContextProvider;
 import org.nuxeo.ecm.webengine.app.WebEngineExceptionMapper;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
 import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
@@ -34,12 +32,11 @@ import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
 public class ScimV2Module extends WebEngineModule {
 
     @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new WebContextProvider());
-        result.add(new CoreIODelegate());
-        result.add(new JsonNuxeoExceptionWriter());
-        result.add(new WebEngineExceptionMapper());
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> result = super.getClasses();
+        result.add(CoreIODelegate.class);
+        result.add(JsonNuxeoExceptionWriter.class);
+        result.add(WebEngineExceptionMapper.class);
         return result;
     }
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.restapi.io.conversion;
 
 import java.io.IOException;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.ext.Provider;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 /**
  * @since 7.4
  */
+@Singleton
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class ConversionStatusWithResultWriter extends EntityWriter<ConversionStatusWithResult> {

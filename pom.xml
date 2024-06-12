@@ -66,14 +66,14 @@
     <ant.assembly.version>2.1.6</ant.assembly.version>
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
-    <tomcat.version>10.0.27</tomcat.version>
+    <tomcat.version>10.1.24</tomcat.version>
     <opensearch.version>1.3.17</opensearch.version>
     <netty.version>4.1.111.Final</netty.version>
     <netty.boringssl.version>2.0.65.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>7.0.0</guice.version>
-    <jersey.version>3.0.14</jersey.version>
+    <jersey.version>3.1.7</jersey.version>
     <chemistry.opencmis.version>2.0.0</chemistry.opencmis.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
@@ -2102,17 +2102,17 @@
       <dependency>
         <groupId>jakarta.activation</groupId>
         <artifactId>jakarta.activation-api</artifactId>
-        <version>2.0.1</version>
+        <version>2.1.3</version>
       </dependency>
       <dependency>
         <groupId>jakarta.annotation</groupId>
         <artifactId>jakarta.annotation-api</artifactId> <!-- provided by Tomcat -->
-        <version>2.0.0</version>
+        <version>3.0.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.el</groupId>
         <artifactId>jakarta.el-api</artifactId> <!-- provided by Tomcat -->
-        <version>4.0.0</version>
+        <version>5.0.1</version>
       </dependency>
       <dependency>
         <groupId>jakarta.inject</groupId>
@@ -2120,14 +2120,19 @@
         <version>2.0.1</version>
       </dependency>
       <dependency>
-        <groupId>com.sun.mail</groupId>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <version>2.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.angus</groupId>
         <artifactId>jakarta.mail</artifactId>
-        <version>2.0.1</version>
+        <version>2.0.3</version>
       </dependency>
       <dependency>
         <groupId>jakarta.persistence</groupId>
         <artifactId>jakarta.persistence-api</artifactId>
-        <version>3.0.0</version>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>javax.script</groupId>
@@ -2152,22 +2157,22 @@
       <dependency>
         <groupId>jakarta.servlet</groupId>
         <artifactId>jakarta.servlet-api</artifactId> <!-- provided by Tomcat -->
-        <version>5.0.0</version>
+        <version>6.0.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.servlet.jsp</groupId>
         <artifactId>jakarta.servlet.jsp-api</artifactId> <!-- provided by Tomcat -->
-        <version>3.0.0</version>
+        <version>3.1.1</version>
       </dependency>
       <dependency>
         <groupId>jakarta.servlet.jsp.jstl</groupId>
         <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.0</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.web</groupId>
         <artifactId>jakarta.servlet.jsp.jstl</artifactId>
-        <version>2.0.0</version>
+        <version>3.0.1</version>
       </dependency>
       <dependency>
         <groupId>jakarta.transaction</groupId>
@@ -2182,22 +2187,22 @@
       <dependency>
         <groupId>jakarta.ws.rs</groupId>
         <artifactId>jakarta.ws.rs-api</artifactId>
-        <version>3.0.0</version>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>3.0.1</version>
+        <version>4.0.2</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
-        <version>3.0.2</version>
+        <version>4.0.5</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.ws</groupId>
         <artifactId>jakarta.xml.ws-api</artifactId>
-        <version>3.0.1</version>
+        <version>4.0.2</version>
       </dependency>
 
       <!-- commons -->
@@ -2585,7 +2590,7 @@
       <dependency>
         <groupId>org.hibernate.orm</groupId>
         <artifactId>hibernate-core</artifactId>
-        <version>6.1.7.Final</version>
+        <version>6.5.2.Final</version>
       </dependency>
 
       <dependency>
@@ -3615,7 +3620,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.12.4</version>
+        <version>5.12.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>

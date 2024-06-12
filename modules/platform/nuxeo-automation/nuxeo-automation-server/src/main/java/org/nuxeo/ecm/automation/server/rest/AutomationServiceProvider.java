@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.nuxeo.ecm.automation.server.rest;
 import jakarta.inject.Singleton;
 import jakarta.ws.rs.core.Feature;
 import jakarta.ws.rs.core.FeatureContext;
+import jakarta.ws.rs.ext.Provider;
 
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.nuxeo.ecm.automation.AutomationService;
@@ -27,6 +28,8 @@ import org.nuxeo.runtime.api.Framework;
 /**
  * @since 8.10
  */
+@Singleton
+@Provider
 public class AutomationServiceProvider implements Feature {
 
     @Override

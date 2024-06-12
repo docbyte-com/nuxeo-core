@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,8 @@ public class WebLayoutApplication extends Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> result = new HashSet<>();
         result.add(RootResource.class);
-        return result;
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
         // nuxeo-core-io MarshallerRegistry service reading and writing
-        result.add(new CoreIODelegate());
+        result.add(CoreIODelegate.class);
         return result;
     }
-
 }

@@ -28,9 +28,9 @@ import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 public class WebEngineTestModule extends WebEngineModule {
 
     @Override
-    public Set<Object> getSingletons() {
-        Set<Object> singletons = super.getSingletons();
-        singletons.add(new JacksonJsonProvider());
-        return singletons;
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> result = super.getClasses();
+        result.add(JacksonJsonProvider.class);
+        return result;
     }
 }

@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.restapi.server;
 
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.nuxeo.ecm.automation.io.rest.documents.BusinessAdapterListWriter;
@@ -40,24 +39,15 @@ public class APIModule extends WebEngineModule {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> result = super.getClasses();
         result.add(MultiPartExecutionRequestReader.class);
-        return result;
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new LinkedHashSet<>();
-
         // writers
-        result.add(new BusinessAdapterListWriter());
-        result.add(new SchemasWriter());
-        result.add(new DocumentTypesWriter());
-        result.add(new FacetsWriter());
-        result.add(new ConversionScheduledWriter());
-        result.add(new ConversionStatusWithResultWriter());
-
+        result.add(BusinessAdapterListWriter.class);
+        result.add(SchemasWriter.class);
+        result.add(DocumentTypesWriter.class);
+        result.add(FacetsWriter.class);
+        result.add(ConversionScheduledWriter.class);
+        result.add(ConversionStatusWithResultWriter.class);
         // nuxeo-core-io MarshallerRegistry service reading and writing
-        result.add(new CoreIODelegate());
-
+        result.add(CoreIODelegate.class);
         return result;
     }
 }

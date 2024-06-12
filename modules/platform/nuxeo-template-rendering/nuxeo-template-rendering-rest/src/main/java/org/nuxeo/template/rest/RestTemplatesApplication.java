@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,16 +32,12 @@ public class RestTemplatesApplication extends WebEngineModule {
     @Override
     public Set<Class<?>> getClasses() {
         Set<Class<?>> result = new HashSet<>();
+        // marshalling
+        result.add(BlobWriter.class);
+        // resources
         result.add(RootResource.class);
         result.add(TemplateBasedResource.class);
         result.add(TemplateResource.class);
-        return result;
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new BlobWriter());
         return result;
     }
 

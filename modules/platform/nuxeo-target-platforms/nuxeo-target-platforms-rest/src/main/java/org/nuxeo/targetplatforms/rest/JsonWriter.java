@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
@@ -42,6 +43,7 @@ import org.nuxeo.targetplatforms.io.JSONExporter;
 /**
  * @since 5.9.3
  */
+@Singleton
 @Provider
 @Produces({ MediaType.APPLICATION_JSON, "text/plain" })
 public class JsonWriter implements MessageBodyWriter<Object> {

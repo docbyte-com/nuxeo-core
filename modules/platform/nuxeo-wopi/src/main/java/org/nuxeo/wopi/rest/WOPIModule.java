@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 
 package org.nuxeo.wopi.rest;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import org.nuxeo.ecm.webengine.app.WebContextProvider;
@@ -35,16 +34,11 @@ public class WOPIModule extends WebEngineModule {
 
     @Override
     public Set<Class<?>> getClasses() {
-        return super.getClasses();
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new WebContextProvider());
-        result.add(new BlobWriter());
-        result.add(new JacksonJsonProvider());
-        result.add(new WOPIExceptionMapper());
+        Set<Class<?>> result = super.getClasses();
+        result.add(WebContextProvider.class);
+        result.add(BlobWriter.class);
+        result.add(JacksonJsonProvider.class);
+        result.add(WOPIExceptionMapper.class);
         return result;
     }
 }

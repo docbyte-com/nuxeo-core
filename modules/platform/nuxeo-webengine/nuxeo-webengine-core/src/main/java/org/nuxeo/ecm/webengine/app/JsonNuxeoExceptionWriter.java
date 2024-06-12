@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.WebApplicationException;
@@ -38,6 +39,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 /**
  * @since 9.3
  */
+@Singleton
 @Provider
 @Produces(MediaType.APPLICATION_JSON)
 public class JsonNuxeoExceptionWriter implements MessageBodyWriter<NuxeoException> {

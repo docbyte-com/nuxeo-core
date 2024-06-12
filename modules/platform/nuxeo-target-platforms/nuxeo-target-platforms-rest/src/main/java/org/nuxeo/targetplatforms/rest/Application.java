@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,7 @@ public class Application extends jakarta.ws.rs.core.Application {
     public Set<Class<?>> getClasses() {
         Set<Class<?>> result = new HashSet<>();
         result.add(RootResource.class);
+        result.add(JsonWriter.class);
         return result;
     }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new JsonWriter());
-        return result;
-    }
-
 }

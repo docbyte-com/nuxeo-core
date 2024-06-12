@@ -23,6 +23,7 @@ import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
@@ -36,6 +37,7 @@ import org.nuxeo.ecm.core.api.Blobs;
 /**
  * @since 2025.0
  */
+@Singleton
 @Provider
 @Consumes("*/*")
 public class BlobReader implements MessageBodyReader<Blob> {

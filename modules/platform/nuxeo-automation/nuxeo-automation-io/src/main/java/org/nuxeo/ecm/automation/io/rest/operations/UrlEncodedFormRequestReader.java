@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.net.URLDecoder;
 
+import jakarta.inject.Singleton;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.WebApplicationException;
@@ -49,6 +50,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
  *
  * @author Tiry (tdelprat@nuxeo.com)
  */
+@Singleton
 @Provider
 @Consumes("application/x-www-form-urlencoded")
 public class UrlEncodedFormRequestReader implements MessageBodyReader<ExecutionRequest> {
@@ -57,7 +59,7 @@ public class UrlEncodedFormRequestReader implements MessageBodyReader<ExecutionR
     protected HttpServletRequest request;
 
     @Context
-    JsonFactory factory;
+    protected JsonFactory factory;
 
     public CoreSession getCoreSession() {
         return SessionFactory.getSession(request);

@@ -32,6 +32,7 @@ import java.util.Map;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletInputStream;
@@ -163,12 +164,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
         return false;
     }
 
-    @Deprecated
-    @Override
-    public boolean isRequestedSessionIdFromUrl() {
-        return false;
-    }
-
     @Override
     public boolean isRequestedSessionIdValid() {
         return false;
@@ -264,12 +259,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
         return null;
     }
 
-    @Deprecated
-    @Override
-    public String getRealPath(String path) {
-        return null;
-    }
-
     @Override
     public String getRemoteAddr() {
         return null;
@@ -332,6 +321,21 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public DispatcherType getDispatcherType() {
+        return null;
+    }
+
+    @Override
+    public String getRequestId() {
+        return "";
+    }
+
+    @Override
+    public String getProtocolRequestId() {
+        return "";
+    }
+
+    @Override
+    public ServletConnection getServletConnection() {
         return null;
     }
 

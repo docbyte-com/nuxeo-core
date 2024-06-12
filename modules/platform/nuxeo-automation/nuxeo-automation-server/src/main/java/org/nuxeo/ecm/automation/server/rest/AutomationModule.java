@@ -18,11 +18,7 @@
  */
 package org.nuxeo.ecm.automation.server.rest;
 
-import java.util.HashSet;
 import java.util.Set;
-
-import jakarta.ws.rs.ext.MessageBodyReader;
-import jakarta.ws.rs.ext.MessageBodyWriter;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,43 +41,17 @@ public class AutomationModule extends WebEngineModule {
 
         Set<Class<?>> result = super.getClasses();
         result.add(MultiPartExecutionRequestReader.class);
-        return result;
-    }
 
-    protected static Set<Object> setupSingletons() {
-
-        Set<Object> result = new HashSet<>();
-
-        AutomationServer as = Framework.getService(AutomationServer.class);
-
-        for (Class<? extends MessageBodyReader<?>> readerKlass : as.getReaders()) {
-            try {
-                result.add(readerKlass.getDeclaredConstructor().newInstance());
-            } catch (ReflectiveOperationException e) {
-                log.error("Unable to instantiate MessageBodyReader: {}", readerKlass, e);
-            }
-        }
-
-        for (Class<? extends MessageBodyWriter<?>> writerKlass : as.getWriters()) {
-            try {
-                result.add(writerKlass.getDeclaredConstructor().newInstance());
-            } catch (ReflectiveOperationException e) {
-                log.error("Unable to instantiate MessageBodyWriter: {}", writerKlass, e);
-            }
-        }
-
-        result.add(new AutomationServiceProvider());
-        result.add(new AutomationServerProvider());
-        result.add(new JsonFactoryProvider());
-        result.add(new CoreSessionProvider());
+        // setup readers & writers from contribution
+        var automationServer = Framework.getService(AutomationServer.class);
+        result.addAll(automationServer.getReaders());
+        result.addAll(automationServer.getWriters());
+        result.add(AutomationServiceProvider.class);
+        result.add(AutomationServerProvider.class);
+        result.add(JsonFactoryProvider.class);
+        result.add(CoreSessionProvider.class);
         // nuxeo-core-io MarshallerRegistry service reading and writing
-        result.add(new CoreIODelegate());
+        result.add(CoreIODelegate.class);
         return result;
     }
-
-    @Override
-    public Set<Object> getSingletons() {
-        return setupSingletons();
-    }
-
 }

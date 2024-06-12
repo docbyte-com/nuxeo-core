@@ -34,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.stream.Collectors;
 
+import jakarta.inject.Singleton;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
@@ -62,6 +63,7 @@ import org.nuxeo.runtime.api.Framework;
 /**
  * @since 2025.0
  */
+@Singleton
 @Provider
 @Consumes({ "multipart/form-data", "multipart/related" })
 public class MultiPartExecutionRequestReader

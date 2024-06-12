@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,9 @@ package org.nuxeo.ecm.automation.io.rest.documents;
 
 import java.io.IOException;
 
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.ext.Provider;
+
 import org.nuxeo.ecm.automation.core.operations.business.adapter.BusinessAdapter;
 import org.nuxeo.ecm.automation.io.rest.EntityListWriter;
 import org.nuxeo.ecm.automation.io.services.codec.ObjectCodecService;
@@ -30,6 +33,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 /**
  * @since 5.8
  */
+@Singleton
+@Provider
 public class BusinessAdapterListWriter extends EntityListWriter<BusinessAdapter> {
 
     @Override

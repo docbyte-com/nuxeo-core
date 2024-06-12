@@ -1,5 +1,5 @@
 /*
-t * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+t * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -68,17 +68,17 @@ public class TestDigestAuthenticator {
     protected DirectoryService dirService;
 
     @Test
-    public void testValidDigest() throws Exception {
+    public void testValidDigest() {
         doTestDigest(false);
     }
 
     @Test
-    public void testBadDigest() throws Exception {
+    public void testBadDigest() {
         doTestDigest(true);
 
     }
 
-    protected void doTestDigest(boolean corrupted) throws Exception {
+    protected void doTestDigest(boolean corrupted) {
         DigestAuthenticator auth = new DigestAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = null; // unused

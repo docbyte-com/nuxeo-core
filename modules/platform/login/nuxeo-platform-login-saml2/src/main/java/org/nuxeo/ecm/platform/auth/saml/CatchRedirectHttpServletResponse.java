@@ -57,16 +57,6 @@ public class CatchRedirectHttpServletResponse implements HttpServletResponse {
     }
 
     @Override
-    public String encodeUrl(String url) {
-        return null;
-    }
-
-    @Override
-    public String encodeRedirectUrl(String url) {
-        return null;
-    }
-
-    @Override
     public void sendError(int sc, String msg) {
     }
 
@@ -105,10 +95,6 @@ public class CatchRedirectHttpServletResponse implements HttpServletResponse {
 
     @Override
     public void setStatus(int sc) {
-    }
-
-    @Override
-    public void setStatus(int sc, String sm) {
     }
 
     @Override

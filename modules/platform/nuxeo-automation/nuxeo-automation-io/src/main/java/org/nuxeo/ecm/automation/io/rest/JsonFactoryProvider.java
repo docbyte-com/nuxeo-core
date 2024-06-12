@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import com.fasterxml.jackson.core.JsonFactory;
 /**
  * @since 5.7.3
  */
+@Singleton
 @Provider
 public class JsonFactoryProvider implements Feature {
 

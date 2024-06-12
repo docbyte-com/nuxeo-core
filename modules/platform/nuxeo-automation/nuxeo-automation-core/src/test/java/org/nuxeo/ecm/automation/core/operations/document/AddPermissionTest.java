@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 package org.nuxeo.ecm.automation.core.operations.document;
 
+import static java.util.Calendar.SEPTEMBER;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
@@ -27,8 +28,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
@@ -135,7 +136,7 @@ public class AddPermissionTest {
         } catch (IllegalParameterException e) {
             String expectedMsg = "'users' or 'email' parameters must be set";
             assertEquals(expectedMsg, e.getOriginalMessage());
-            verifyZeroInteractions(userManager);
+            verifyNoInteractions(userManager);
         }
     }
 
@@ -155,7 +156,7 @@ public class AddPermissionTest {
         } catch (IllegalParameterException e) {
             String expectedMsg = "'end' parameter must be set when adding a permission for an 'email'";
             assertEquals(expectedMsg, e.getOriginalMessage());
-            verifyZeroInteractions(userManager);
+            verifyNoInteractions(userManager);
         }
     }
 
@@ -252,7 +253,7 @@ public class AddPermissionTest {
                 "", null, null, false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -273,10 +274,11 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation(null, groups, null, "Read", null,
-                new GregorianCalendar(2018, 8, 2), new GregorianCalendar(2018, 8, 8), false, true, "Permission Given");
+                new GregorianCalendar(2018, SEPTEMBER, 2), new GregorianCalendar(2018, SEPTEMBER, 8), false, true,
+                "Permission Given");
 
         automationService.run(ctx, AddPermission.ID, params);
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -296,7 +298,8 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation("existingUser", null, null, "Read", null,
-                new GregorianCalendar(2018, 8, 2), new GregorianCalendar(2018, 8, 8), false, false, null);
+                new GregorianCalendar(2018, SEPTEMBER, 2), new GregorianCalendar(2018, SEPTEMBER, 8), false, false,
+                null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -318,11 +321,11 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation(null, null, "jane@nuxeo.com", "Write", null, null,
-                new GregorianCalendar(2018, 8, 8), false, false, null);
+                new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -374,7 +377,7 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation(null, users, "user@nuxeo.com", "Write", null, null,
-                new GregorianCalendar(2018, 8, 8), false, false, null);
+                new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -400,7 +403,7 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation("existingUser1", null, "user@nuxeo.com", "Write",
-                null, null, new GregorianCalendar(2018, 8, 8), false, false, null);
+                null, null, new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -426,7 +429,7 @@ public class AddPermissionTest {
 
         ctx.setInput(doc);
         Map<String, Object> params = getParametersForAddOperation(null, singletonList("existingUser1"), null, "Write",
-                null, null, new GregorianCalendar(2018, 8, 8), true, false, null);
+                null, null, new GregorianCalendar(2018, SEPTEMBER, 8), true, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -481,12 +484,12 @@ public class AddPermissionTest {
 
     protected void verifyUserOrGroup(String userOrGroup, String expectedToBeFindAs) {
         switch (expectedToBeFindAs) {
-        case USER:
-            verify(userManager).getUserModel(userOrGroup);
-            break;
-        default:
-            verify(userManager).getUserModel(userOrGroup);
-            verify(userManager).getGroupModel(userOrGroup);
+            case USER:
+                verify(userManager).getUserModel(userOrGroup);
+                break;
+            default:
+                verify(userManager).getUserModel(userOrGroup);
+                verify(userManager).getGroupModel(userOrGroup);
         }
     }
 
