@@ -20,11 +20,8 @@ package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.concurrent.TimeUnit;
-
 import jakarta.inject.Inject;
 
-import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -38,23 +35,17 @@ import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:security-policy-contrib.xml")
 public class TestSecurityPolicy {
-
-    @Inject
-    protected WorkManager workManager;
 
     @Inject
     protected CoreSession session;
@@ -63,46 +54,7 @@ public class TestSecurityPolicy {
     protected ElasticSearchService ess;
 
     @Inject
-    protected ElasticSearchAdmin esa;
-
-    private boolean syncMode = false;
-
-    private int commandProcessed;
-
-    public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
-    }
-
-    /**
-     * Wait for async worker completion then wait for indexing completion
-     */
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    public void startTransaction() {
-        if (syncMode) {
-            ElasticSearchInlineListener.useSyncIndexing.set(true);
-        }
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        assertEquals(0, esa.getPendingWorkerCount());
-        commandProcessed = esa.getTotalCommandProcessed();
-    }
-
-    public void activateSynchronousMode() throws Exception {
-        ElasticSearchInlineListener.useSyncIndexing.set(true);
-        syncMode = true;
-    }
-
-    @After
-    public void disableSynchronousMode() {
-        ElasticSearchInlineListener.useSyncIndexing.set(false);
-        syncMode = false;
-    }
+    protected TransactionalFeature txFeature;
 
     protected void buildDocs() {
         DocumentModel doc = session.createDocumentModel("/", "folder", "Folder");
@@ -116,17 +68,13 @@ public class TestSecurityPolicy {
         }
     }
 
-    protected void buildAndIndexDocs() throws Exception {
-        startTransaction();
+    protected void buildAndIndexDocs() {
         buildDocs();
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        assertNumberOfCommandProcessed(6);
-        startTransaction();
+        txFeature.nextTransaction();
     }
 
     @Test
-    public void shouldWorkWithSecurityPolicy() throws Exception {
+    public void shouldWorkWithSecurityPolicy() {
         buildAndIndexDocs();
         grantBrowsePermToUser("/folder", "toto");
 
@@ -142,16 +90,14 @@ public class TestSecurityPolicy {
         assertEquals(1, docs.totalSize());
     }
 
-    protected void grantBrowsePermToUser(String path, String username) throws Exception {
+    protected void grantBrowsePermToUser(String path, String username) {
         DocumentRef ref = new PathRef(path);
         ACP acp = new ACPImpl();
         ACL acl = ACPImpl.newACL(ACL.LOCAL_ACL);
         acl.add(new ACE(username, SecurityConstants.READ, true));
         acp.addACL(acl);
         session.setACP(ref, acp, true);
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
     }
 
 }

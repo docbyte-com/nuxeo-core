@@ -18,6 +18,11 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import static org.nuxeo.runtime.api.login.LoginComponent.SYSTEM_USERNAME;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,16 +32,40 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.DocumentNotFoundException;
+import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
+import org.nuxeo.ecm.core.api.model.PropertyConversionException;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
+import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.search.index.IndexingAction;
 import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
+import org.nuxeo.ecm.core.search.index.IndexingProcessor;
+import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.api.login.NuxeoLoginContext;
+import org.nuxeo.runtime.stream.StreamService;
+import org.nuxeo.runtime.transaction.TransactionHelper;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @since 2025.0
  */
-public class SearchServiceImpl implements SearchService {
+public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     private static final Logger log = LogManager.getLogger(SearchServiceImpl.class);
+
+    protected static final int LOAD_SOURCES_TIMEOUT = (int) Duration.ofMinutes(1).toSeconds();
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    protected static final String SELECT_DOCUMENTS_IN = "SELECT * FROM Document WHERE ecm:uuid IN ('%s')";
 
     protected final Map<String, SearchClient> searchClients = new HashMap<>();
 
@@ -138,4 +167,127 @@ public class SearchServiceImpl implements SearchService {
         return repoToSearchIndices.getOrDefault(repository, Collections.emptyList());
     }
 
+    @Override
+    public void indexDocuments(BulkIndexingRequest request) {
+        loadSources(request);
+        try {
+            log.debug("Indexing {} documents ({} delete): {}", request::size, request::sizeDelete, () -> request);
+            getClient(request.getSearchIndex().client()).indexDocuments(request);
+            log.debug("{} Documents indexed", request.size());
+        } catch (SearchClientRetryableException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected void loadSources(BulkIndexingRequest bulk) {
+        List<String> documentIds = bulk.getRequests()
+                                       .stream()
+                                       .filter(IndexingRequest::isUpsert)
+                                       .map(IndexingRequest::getDocumentId)
+                                       .toList();
+        if (documentIds.isEmpty()) {
+            return;
+        }
+        // reset sources if any
+        bulk.getRequests()
+            .stream()
+            .filter(req -> documentIds.contains(req.documentId))
+            .forEach(req -> req.setSource(null));
+        log.debug("Loading {} document sources for: {}", documentIds.size(), documentIds);
+        TransactionHelper.runInTransaction(LOAD_SOURCES_TIMEOUT, () -> {
+            DocumentModelList documents;
+            try (NuxeoLoginContext ignored = Framework.loginSystem()) {
+                CoreSession session = CoreInstance.getCoreSession(bulk.getSearchIndex().repository());
+                documents = loadDocuments(session, documentIds);
+            }
+            IndexingJsonWriter writer = indexToJsonWriter.get(bulk.getSearchIndex());
+            for (DocumentModel doc : documents) {
+                String json = json(writer, doc);
+                bulk.getRequests()
+                    .stream()
+                    .filter(r -> r.getDocumentId().equals(doc.getId()))
+                    .forEach(r -> r.setSource(json));
+            }
+        });
+        log.debug("Loaded");
+    }
+
+    protected DocumentModelList loadDocuments(CoreSession session, List<String> documentIds) {
+        if (documentIds == null || documentIds.isEmpty()) {
+            return new DocumentModelListImpl(0);
+        }
+        try {
+            DocumentModelList ret = session.query(String.format(SELECT_DOCUMENTS_IN, String.join("', '", documentIds)));
+            if (log.isDebugEnabled() && ret.size() < documentIds.size()) {
+                // some documents might have been deleted since scroller projection
+                List<String> notFound = new ArrayList<>(documentIds);
+                ret.forEach(doc -> notFound.remove(doc.getId()));
+                log.debug("Some documents are not accessible: {}", notFound);
+            }
+            return ret;
+        } catch (DocumentNotFoundException | PropertyConversionException e) {
+            // A corrupted document prevents to load the batch of docs
+            log.warn("Fail to loadDocuments because of: {}, retrying without batching", e.getMessage());
+            return loadDocumentsOneByOne(session, documentIds);
+        }
+    }
+
+    protected DocumentModelList loadDocumentsOneByOne(CoreSession session, List<String> documentIds) {
+        DocumentModelList ret = new DocumentModelListImpl(documentIds.size());
+        for (String documentId : documentIds) {
+            try {
+                ret.add(session.getDocument(new IdRef(documentId)));
+            } catch (DocumentNotFoundException e) {
+                log.debug("Document: {} does not exists: {}", documentId, e.getMessage());
+            } catch (PropertyConversionException e) {
+                log.atError()
+                   .withThrowable(log.isDebugEnabled() ? e : null)
+                   .log("Skipping corrupted doc: {}, because of: {}", documentId, e.getMessage());
+            }
+        }
+        return ret;
+    }
+
+    protected String json(IndexingJsonWriter writer, DocumentModel doc) {
+        StringWriter stringWriter = new StringWriter();
+        try {
+            JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter);
+            writer.writeDocument(generator, doc);
+            generator.close();
+            return stringWriter.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public SearchClient getClient(String clientName) {
+        return searchClients.get(clientName);
+    }
+
+    @Override
+    public boolean await(Duration duration) throws InterruptedException {
+        long start = System.currentTimeMillis();
+        // only wait for async, the sync processing is done on afterCompletion
+        if (Framework.getService(StreamService.class)
+                     .await(Name.ofUrn(IndexingProcessor.STREAM_NAME),
+                             Name.ofUrn(IndexingProcessor.ASYNC_COMPUTATION_NAME), duration)) {
+            // now wait for BulkService as async indexing might submit bulk command
+            var bulkService = Framework.getService(BulkService.class);
+            for (var bulkStatus : bulkService.getStatuses(SYSTEM_USERNAME)) {
+                if (IndexingAction.ACTION_NAME.equals(bulkStatus.getAction())) {
+                    if (!bulkService.await(bulkStatus.getId(),
+                            // compute remaining duration
+                            duration.minusMillis(System.currentTimeMillis() - start))) {
+                        // the timeout is exceeded
+                        break;
+                    }
+                }
+            }
+            log.debug("Async indexing completed in {}ms", () -> System.currentTimeMillis() - start);
+            return true;
+        }
+        log.warn("Await timeout on async indexing");
+        return false;
+    }
 }

@@ -22,16 +22,11 @@ package org.nuxeo.elasticsearch.test;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
 import org.apache.lucene.search.join.ScoreMode;
-import org.opensearch.index.query.MoreLikeThisQueryBuilder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
@@ -41,14 +36,15 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.opensearch.index.query.MoreLikeThisQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
 
 /**
  * Test for native ES queries
@@ -70,42 +66,10 @@ public class TestElasticSearchQuery {
     protected ElasticSearchService ess;
 
     @Inject
-    protected WorkManager workManager;
-
-    @Inject
-    ElasticSearchAdmin esa;
-
-    private int commandProcessed;
-
-    // Number of processed command since the startTransaction
-    public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
-    }
-
-    /**
-     * Wait for async worker completion then wait for indexing completion
-     */
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    protected void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
-        commandProcessed = esa.getTotalCommandProcessed();
-    }
-
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void searchWithESNestedQuery() throws Exception {
+    public void searchWithESNestedQuery() {
         createDocumentWithFiles();
 
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
@@ -145,7 +109,7 @@ public class TestElasticSearchQuery {
 
     @Test
     @Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-nested-contrib.xml")
-    public void searchWithNestedNXQLQuery() throws Exception {
+    public void searchWithNestedNXQLQuery() {
         createDocumentWithFiles();
 
         // Use an ES Hint Nested provided by a contribution (elasticsearch-test-nested-contrib.xml)
@@ -159,10 +123,9 @@ public class TestElasticSearchQuery {
     }
 
     @Test
-    public void testMoreLikeThisQuery() throws Exception {
+    public void testMoreLikeThisQuery() {
 
         // Create test data
-        startTransaction();
         DocumentModel doc = session.createDocumentModel("/", "myFile", "File");
         doc.setPropertyValue("dc:title", "very nice title");
         doc = session.createDocument(doc);
@@ -173,9 +136,7 @@ public class TestElasticSearchQuery {
             likeDoc.setPropertyValue("dc:title", title + i);
             session.createDocument(likeDoc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         // Query More Like This
         MoreLikeThisQueryBuilder.Item item = new MoreLikeThisQueryBuilder.Item(null, doc.getId());
@@ -198,13 +159,10 @@ public class TestElasticSearchQuery {
     }
 
     @Test
-    public void testSecurity() throws Exception {
-        startTransaction();
+    public void testSecurity() {
         DocumentModel doc = session.createDocumentModel("/", "aFile", "File");
         session.createDocument(doc);
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         // match the document with system user
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
@@ -221,8 +179,7 @@ public class TestElasticSearchQuery {
         Assert.assertEquals(0, ret.totalSize());
     }
 
-    protected void createDocumentWithFiles() throws Exception {
-        startTransaction();
+    protected void createDocumentWithFiles() {
         DocumentModel doc = session.createDocumentModel("/", "myFile", "File");
         // create doc with a list of blob attachment (textfile1.txt length=1,textfile2.txt length=2, ...)
         var blobs = new ArrayList<>();
@@ -233,9 +190,7 @@ public class TestElasticSearchQuery {
         }
         doc.setPropertyValue("files:files", blobs);
         session.createDocument(doc);
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
     }
 
 }

@@ -37,7 +37,7 @@ public class SearchComponent extends DefaultComponent {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getAdapter(Class<T> adapter) {
-        if (adapter.isAssignableFrom(SearchService.class)) {
+        if (adapter.isAssignableFrom(SearchService.class) || adapter.isAssignableFrom(SearchIndexingService.class)) {
             return (T) searchService;
         }
         return null;

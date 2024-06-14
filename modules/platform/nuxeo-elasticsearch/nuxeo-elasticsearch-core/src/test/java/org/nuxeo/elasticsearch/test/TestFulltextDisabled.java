@@ -38,7 +38,7 @@ public class TestFulltextDisabled extends TestFulltextEnabled {
 
     @Override
     @Test
-    public void testFulltext() throws Exception {
+    public void testFulltext() {
         createFileWithBlob();
         // no binary fulltext extraction
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search'";
@@ -51,7 +51,7 @@ public class TestFulltextDisabled extends TestFulltextEnabled {
 
     @Override
     @Test
-    public void testFulltextOnProxy() throws Exception {
+    public void testFulltextOnProxy() {
         DocumentModel doc = createFileWithBlob();
         createSectionAndPublishFile(doc);
         // no binary fulltext extraction

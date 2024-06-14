@@ -9,6 +9,7 @@
 
   <service>
     <provide interface="org.nuxeo.ecm.core.search.SearchService" />
+    <provide interface="org.nuxeo.ecm.core.search.SearchIndexingService" />
   </service>
 
   <extension-point name="searchClient">

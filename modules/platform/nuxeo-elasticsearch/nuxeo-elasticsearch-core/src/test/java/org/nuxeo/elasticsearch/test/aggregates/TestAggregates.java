@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -40,14 +39,11 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.AbstractBlob;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
 import org.nuxeo.ecm.platform.query.api.AggregateRangeDateDefinition;
 import org.nuxeo.ecm.platform.query.api.AggregateRangeDefinition;
@@ -71,7 +67,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.opensearch.search.builder.SearchSourceBuilder;
 
 @RunWith(FeaturesRunner.class)
@@ -79,9 +75,6 @@ import org.opensearch.search.builder.SearchSourceBuilder;
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:schemas-test-contrib.xml")
 public class TestAggregates {
-
-    @Inject
-    protected CoreFeature coreFeature;
 
     @Inject
     protected CoreSession session;
@@ -92,12 +85,10 @@ public class TestAggregates {
     @Inject
     protected ElasticSearchAdmin esa;
 
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
+    @Inject
+    protected TransactionalFeature txFeature;
 
-    protected void buildDocs() throws Exception {
+    protected void buildDocs() {
         DateTime yesterdayNoon = new DateTime(DateTimeZone.UTC).withTimeAtStartOfDay().minusDays(1).plusHours(12);
         for (int i = 0; i < 10; i++) {
             String name = "doc" + i;
@@ -110,13 +101,8 @@ public class TestAggregates {
             doc.setPropertyValue("dc:created", new Date(yesterdayNoon.minusWeeks(i).getMillis()));
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
         // wait for async jobs
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(60, TimeUnit.SECONDS));
-        assertEquals(0, esa.getPendingWorkerCount());
-        esa.refresh();
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
     }
 
     @Test
@@ -403,7 +389,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProvider() throws Exception {
+    public void testPageProvider() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
@@ -453,7 +439,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProviderBooleanAggregate() throws Exception {
+    public void testPageProviderBooleanAggregate() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
@@ -480,7 +466,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProviderWithRangeSelection() throws Exception {
+    public void testPageProviderWithRangeSelection() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
@@ -515,7 +501,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProviderWithDateRangeSelection() throws Exception {
+    public void testPageProviderWithDateRangeSelection() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
@@ -551,7 +537,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProviderWithHistogramSelection() throws Exception {
+    public void testPageProviderWithHistogramSelection() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
@@ -578,7 +564,7 @@ public class TestAggregates {
     }
 
     @Test
-    public void testPageProviderWithDateHistogramSelection() throws Exception {
+    public void testPageProviderWithDateHistogramSelection() {
         buildDocs();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);

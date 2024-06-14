@@ -82,7 +82,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -162,7 +161,6 @@ import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
@@ -214,7 +212,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     };
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // register a custom deploy action if not already registered
         runtimeFeature.registerHandler(deployHandler);
         // wait indexing of /default-domain as we need to delete it in setUpData
@@ -225,7 +223,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         tearDownBinding();
         waitForIndexing();
         runtimeFeature.unregisterHandler(deployHandler);
@@ -884,7 +882,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testPropertyFromSecondaryType() throws Exception {
+    public void testPropertyFromSecondaryType() {
         DocumentModel doc = coreSession.getDocument(new PathRef("/testfolder1/testfile1"));
         doc.addFacet("CustomFacetWithMySchema2");
         doc.setPropertyValue("my2:string", "foo");
@@ -1037,7 +1035,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         return r.isEmpty() ? null : r;
     }
 
-    protected static String flat(List<ObjectInFolderContainer> tree) throws Exception {
+    protected static String flat(List<ObjectInFolderContainer> tree) {
         return StringUtils.join(flatTree(tree), ", ");
     }
 
@@ -1385,7 +1383,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryBasic() throws Exception {
+    public void testQueryBasic() {
         String statement;
         ObjectList res;
 
@@ -1457,7 +1455,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQuerySecurity() throws Exception {
+    public void testQuerySecurity() {
         String statement;
         ObjectList res;
 
@@ -1478,21 +1476,16 @@ public class TestCmisBinding extends TestCmisBindingBase {
     /**
      * Wait for async worker completion then wait for indexing completion
      */
-    public void waitForIndexing() throws Exception {
+    public void waitForIndexing() {
         // checks whether the repository itself supports fulltext search
         if (!useElasticsearch() && supportsRepositoryFulltextSearch()) {
             return;
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
     }
 
     @Test
-    public void testQueryWhereProperties() throws Exception {
+    public void testQueryWhereProperties() {
         String statement;
         ObjectList res;
 
@@ -1526,7 +1519,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryWhereSystemProperties() throws Exception {
+    public void testQueryWhereSystemProperties() {
         waitForIndexing();
 
         // ----- Object -----
@@ -1601,7 +1594,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryReturnedProperties() throws Exception {
+    public void testQueryReturnedProperties() {
         waitForIndexing();
         checkReturnedValue("dc:title", "testfile1_Title");
         checkReturnedValue("dc:modified", NOT_NULL);
@@ -1612,7 +1605,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryReturnedSystemProperties() throws Exception {
+    public void testQueryReturnedSystemProperties() {
         waitForIndexing();
 
         // ----- Object -----
@@ -1664,7 +1657,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryReturnedStar() throws Exception {
+    public void testQueryReturnedStar() {
         waitForIndexing();
 
         String statement = "SELECT * FROM File WHERE cmis:name = 'testfile1_Title'";
@@ -1730,7 +1723,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryLifecycle() throws Exception {
+    public void testQueryLifecycle() {
         ObjectList res;
 
         waitForIndexing();
@@ -1759,7 +1752,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryPathSegment() throws Exception {
+    public void testQueryPathSegment() {
         String statement;
         ObjectList res;
         List<ObjectData> objects;
@@ -1781,7 +1774,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryPos() throws Exception {
+    public void testQueryPos() {
         String statement;
         ObjectList res;
         List<ObjectData> objects;
@@ -1805,7 +1798,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryVersions() throws Exception {
+    public void testQueryVersions() {
         String statement;
         ObjectList res;
 
@@ -1864,7 +1857,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryLatestsVersions() throws Exception {
+    public void testQueryLatestsVersions() {
         String statement;
         ObjectList res;
         ObjectData first;
@@ -1950,7 +1943,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryAny() throws Exception {
+    public void testQueryAny() {
         String statement;
         ObjectList res;
 
@@ -1989,7 +1982,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryIsNullMuti() throws Exception {
+    public void testQueryIsNullMuti() {
         String statement;
         ObjectList res;
 
@@ -2006,7 +1999,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryIsNotNullMuti() throws Exception {
+    public void testQueryIsNotNullMuti() {
         waitForIndexing();
 
         String statement = "SELECT cmis:objectId FROM cmis:document WHERE dc:subjects IS NOT NULL";
@@ -2016,7 +2009,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
     @SuppressWarnings("boxing")
     @Test
-    public void testQueryMixinTypes() throws Exception {
+    public void testQueryMixinTypes() {
         String statement;
         ObjectList res;
 
@@ -2085,7 +2078,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
     @SuppressWarnings("boxing")
     @Test
-    public void testQueryMixinTypesJoin() throws Exception {
+    public void testQueryMixinTypesJoin() {
         assumeSupportsJoins();
 
         String statement;
@@ -2113,7 +2106,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryOrderBy() throws Exception {
+    public void testQueryOrderBy() {
         String statement;
         ObjectList res;
         ObjectData data;
@@ -2136,7 +2129,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryInFolder() throws Exception {
+    public void testQueryInFolder() {
         waitForIndexing();
 
         ObjectData f1 = getObjectByPath("/testfolder1");
@@ -2156,7 +2149,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryInTree() throws Exception {
+    public void testQueryInTree() {
         ObjectList res;
         String statement;
 
@@ -2178,7 +2171,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryInTreeQualifier() throws Exception {
+    public void testQueryInTreeQualifier() {
         ObjectList res;
         String statement;
         String statementPattern; // qual is type
@@ -2232,7 +2225,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryQualifiers() throws Exception {
+    public void testQueryQualifiers() {
         ObjectList res;
         String statement;
 
@@ -2284,7 +2277,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryContains() throws Exception {
+    public void testQueryContains() {
 
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         assertEquals("testfile1_Title", getString(ob, "dc:title"));
@@ -2349,7 +2342,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Test
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/test-relax-cmis-spec.xml")
     @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support multiple CONTAINS")
-    public void testQueryMultiContainsRelaxingSpec() throws Exception {
+    public void testQueryMultiContainsRelaxingSpec() {
         // when using JOINs, we use the CMISQLQueryMaker which hasn't been updated to allow multiple CONTAINs
         assumeFalse("JOINs are not supported", supportsJoins());
 
@@ -2398,7 +2391,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryContainsQualifier() throws Exception {
+    public void testQueryContainsQualifier() {
 
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         assertEquals("testfile1_Title", getString(ob, "dc:title"));
@@ -2422,7 +2415,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryContainsSyntax() throws Exception {
+    public void testQueryContainsSyntax() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         assertEquals("testfile1_Title", getString(ob, "dc:title"));
 
@@ -2457,7 +2450,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryScore() throws Exception {
+    public void testQueryScore() {
         nextTransaction();
         waitForIndexing();
 
@@ -2497,7 +2490,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoin() throws Exception {
+    public void testQueryJoin() {
         assumeSupportsJoins();
 
         String statement;
@@ -2532,7 +2525,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithSubQueryMulti() throws Exception {
+    public void testQueryJoinWithSubQueryMulti() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2546,7 +2539,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithSubQueryMultiIsNull() throws Exception {
+    public void testQueryJoinWithSubQueryMultiIsNull() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2560,7 +2553,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithSecurity() throws Exception {
+    public void testQueryJoinWithSecurity() {
         assumeSupportsJoins();
 
         reSetUp("bob");
@@ -2607,7 +2600,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithFacets() throws Exception {
+    public void testQueryJoinWithFacets() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2621,7 +2614,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinReturnVirtualColumns() throws Exception {
+    public void testQueryJoinReturnVirtualColumns() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2639,7 +2632,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithMultipleTypes() throws Exception {
+    public void testQueryJoinWithMultipleTypes() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2656,7 +2649,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinWithMultipleTypes2() throws Exception {
+    public void testQueryJoinWithMultipleTypes2() {
         assumeSupportsJoins();
 
         waitForIndexing();
@@ -2671,7 +2664,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryJoinSecondaryType() throws Exception {
+    public void testQueryJoinSecondaryType() {
         // this is a JOIN with secondary type, always valid even if JOINs are not supported
 
         // not implemented for direct CMISQL -> SQL translation
@@ -2733,7 +2726,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryBatching() throws Exception {
+    public void testQueryBatching() {
         int NUM = 20;
         for (int i = 0; i < NUM; i++) {
             String name = String.format("somedoc%03d", Integer.valueOf(i));
@@ -2764,7 +2757,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryPWC() throws Exception {
+    public void testQueryPWC() {
         waitForIndexing();
         // TODO proxies shouldn't be considered checked out
         boolean expectProxies = supportsProxies() && !useElasticsearch();
@@ -2803,7 +2796,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryAllVersions() throws Exception {
+    public void testQueryAllVersions() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         String id = ob.getId();
 
@@ -2851,7 +2844,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryAllVersionsFolders() throws Exception {
+    public void testQueryAllVersionsFolders() {
         ObjectList res;
         Boolean searchAllVersions;
 
@@ -2874,7 +2867,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
     @Test
     // NXP-23164
-    public void testNonPrefixedFields() throws Exception {
+    public void testNonPrefixedFields() {
         ObjectList res;
         String statement;
 
@@ -2903,7 +2896,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Test
     // NXP-12776 randomly failing
     @Ignore
-    public void testVersioning() throws Exception {
+    public void testVersioning() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         String id = ob.getId();
 
@@ -3269,7 +3262,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testProxyVersionProperties() throws Exception {
+    public void testProxyVersionProperties() {
         assumeSupportsProxies();
 
         // check proxy to a version
@@ -3315,7 +3308,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
      * NXP-22253
      */
     @Test
-    public void testProxyOnNonReadableWorkingCopy() throws Exception {
+    public void testProxyOnNonReadableWorkingCopy() {
         assumeSupportsProxies();
 
         // create a proxy to testfile6 version
@@ -3371,7 +3364,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
      * NXP-22252
      */
     @Test
-    public void testProxyOnNonReadableCheckedOutWorkingCopy() throws Exception {
+    public void testProxyOnNonReadableCheckedOutWorkingCopy() {
         assumeSupportsProxies();
 
         // create a proxy to testfile4 which is a regular document (checked out)
@@ -3569,7 +3562,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testRelationship() throws Exception {
+    public void testRelationship() {
         assumeSupportsJoins();
 
         String id1 = getObjectByPath("/testfolder1/testfile1").getId();
@@ -3656,7 +3649,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryWithSecurityPolicyBaseline() throws Exception {
+    public void testQueryWithSecurityPolicyBaseline() {
         DocumentModel doc = coreSession.getDocument(new PathRef("/testfolder1/testfile1"));
         doc.setPropertyValue("dc:title", "SECRET should not be listed");
         coreSession.saveDocument(doc);
@@ -3675,7 +3668,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Test
     // deploy a security policy with a CMISQL query transformer
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/security-policy-contrib2.xml")
-    public void testQueryWithSecurityPolicyAndCMISQLQueryTransformer() throws Exception {
+    public void testQueryWithSecurityPolicyAndCMISQLQueryTransformer() {
         assumeFalse("Testing case where Elasticsearch is not used", useElasticsearch());
         assumeFalse("Testing case where NXQL query transformers are not supported", supportsNXQLQueryTransformers());
 
@@ -3695,7 +3688,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Test
     // deploy a security policy with a NXQL query transformer
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/security-policy-contrib3.xml")
-    public void testQueryWithSecurityPolicyAndNXQLQueryTransformer() throws Exception {
+    public void testQueryWithSecurityPolicyAndNXQLQueryTransformer() {
         assumeFalse("Testing case where Elasticsearch is not used", useElasticsearch());
         assumeTrue("Testing case where NXQL query transformers are supported", supportsNXQLQueryTransformers());
 
@@ -3877,7 +3870,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryProxy() throws Exception {
+    public void testQueryProxy() {
 
         waitForIndexing();
 

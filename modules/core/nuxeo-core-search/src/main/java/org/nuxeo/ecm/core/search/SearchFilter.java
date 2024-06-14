@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,62 +16,51 @@
  * Contributors:
  *     "Guillaume Renard"
  */
-
-package org.nuxeo.elasticsearch;
+package org.nuxeo.ecm.core.search;
 
 import java.io.IOException;
 
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.search.index.commands.ThreadLocalIndexingCommandsStacker;
-import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 
 /**
  * @since 8.3
  */
-public class ElasticSearchFilter implements Filter {
+public class SearchFilter implements Filter {
 
-    public static final String ES_SYNC_FLAG = "nx-es-sync";
+    public static final String SEARCH_SYNC_FLAG = "nx-search-sync";
+
+    protected static final String ES_SYNC_FLAG = "nx-es-sync";
 
     protected static final String ES_SYNC_FLAG_COMPAT = "nx_es_sync";
 
     @Override
-    public void init(FilterConfig filterConfig) throws ServletException {
-    }
-
-    @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-        if (!(request instanceof HttpServletRequest)) {
+        if (!(request instanceof HttpServletRequest httpRequest)) {
             chain.doFilter(request, response);
             return;
         }
-        final HttpServletRequest httpRequest = (HttpServletRequest) request;
-        final boolean esSync = Boolean.parseBoolean(httpRequest.getHeader(ES_SYNC_FLAG))
+        final boolean esSync = Boolean.parseBoolean(httpRequest.getHeader(SEARCH_SYNC_FLAG))
+                // NXP-32506: keep compatibility with old header with es reference
+                || Boolean.parseBoolean(httpRequest.getHeader(ES_SYNC_FLAG))
                 // NXP-28075: keep compatibility with old header with underscores
                 || Boolean.parseBoolean(httpRequest.getHeader(ES_SYNC_FLAG_COMPAT));
         if (!esSync) {
             chain.doFilter(request, response);
             return;
         }
-        ElasticSearchInlineListener.useSyncIndexing.set(true);
         ThreadLocalIndexingCommandsStacker.useSyncIndexing.set(true);
         try {
             chain.doFilter(request, response);
         } finally {
-            ElasticSearchInlineListener.useSyncIndexing.set(false);
             ThreadLocalIndexingCommandsStacker.useSyncIndexing.set(false);
         }
     }
-
-    @Override
-    public void destroy() {
-    }
-
 }

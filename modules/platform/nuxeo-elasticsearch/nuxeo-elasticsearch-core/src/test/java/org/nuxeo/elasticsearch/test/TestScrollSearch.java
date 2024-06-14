@@ -23,25 +23,22 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsScrollResult;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * Tests the scroll search API exposed by {@link ElasticSearchService}.
@@ -62,15 +59,10 @@ public class TestScrollSearch {
     protected ElasticSearchAdmin esa;
 
     @Inject
-    protected WorkManager workManager;
-
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void testScroll() throws Exception {
+    public void testScroll() {
 
         buildAndIndexTree(100);
 
@@ -101,15 +93,7 @@ public class TestScrollSearch {
                 docPaths);
     }
 
-    protected void buildAndIndexTree(int docCount) throws Exception {
-        startTransaction();
-        buildTree(docCount);
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
-    }
-
-    protected void buildTree(int docCount) {
+    protected void buildAndIndexTree(int docCount) {
         String root = "/";
         for (int i = 0; i < docCount; i++) {
             String name = "folder" + i;
@@ -117,22 +101,6 @@ public class TestScrollSearch {
             doc.setPropertyValue("dc:title", "Folder" + i);
             session.createDocument(doc);
         }
+        txFeature.nextTransaction();
     }
-
-    protected void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        assertEquals(0, esa.getPendingWorkerCount());
-    }
-
-    /**
-     * Wait for async worker completion then wait for indexing completion
-     */
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
 }

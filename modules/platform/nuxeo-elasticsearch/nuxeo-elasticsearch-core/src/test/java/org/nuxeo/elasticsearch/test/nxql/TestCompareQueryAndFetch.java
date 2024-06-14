@@ -21,7 +21,6 @@ package org.nuxeo.elasticsearch.test.nxql;
 import static java.util.Calendar.JANUARY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_AVG;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_CARDINALITY;
 
@@ -33,7 +32,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -51,7 +49,6 @@ import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
 import org.nuxeo.ecm.platform.query.core.AggregateDescriptor;
 import org.nuxeo.elasticsearch.aggregate.AggregateFactory;
@@ -62,10 +59,9 @@ import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.core.EsResultSetImpl;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
@@ -87,14 +83,13 @@ public class TestCompareQueryAndFetch {
     @Inject
     protected TrashService trashService;
 
+    @Inject
+    protected TransactionalFeature txFeature;
+
     private String proxyPath;
 
     @Before
-    public void initWorkingDocuments() throws Exception {
-        esa.initIndexes(true);
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
+    public void initWorkingDocuments() {
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal.set(2000, JANUARY, 2, 3, 4, 5);
         cal.set(Calendar.MILLISECOND, 6);
@@ -134,15 +129,8 @@ public class TestCompareQueryAndFetch {
 
         session.checkIn(new PathRef("/file2"), VersioningOption.MINOR, "for testing");
 
-        TransactionHelper.commitOrRollbackTransaction();
-
         // wait for async jobs
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        assertEquals(0, esa.getPendingWorkerCount());
-
-        esa.refresh();
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
     }
 
     @After

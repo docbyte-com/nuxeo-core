@@ -26,12 +26,9 @@ import static org.junit.Assert.assertTrue;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.opensearch.search.builder.SearchSourceBuilder;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -39,15 +36,14 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
  * @since 9.1
@@ -66,28 +62,10 @@ public class TestHighlight {
     protected ElasticSearchAdmin esa;
 
     @Inject
-    protected WorkManager workManager;
-
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    public void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-    }
-
-    @Before
-    public void setUpMapping() throws Exception {
-        esa.initIndexes(true);
-    }
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void testHighlight() throws Exception {
-
+    public void testHighlight() {
         DocumentModel doc = session.createDocumentModel("/", "highlight", "File");
         doc.setPropertyValue("dc:title", "Search me");
         BlobHolder holder = doc.getAdapter(BlobHolder.class);
@@ -101,9 +79,7 @@ public class TestHighlight {
         session.createDocument(doc2);
         session.save();
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
 
         SearchSourceBuilder request = new SearchSourceBuilder();
         List<String> highlightFields = Arrays.asList("dc:title.fulltext", "ecm:binarytext");
@@ -131,9 +107,7 @@ public class TestHighlight {
     }
 
     @Test
-    public void testMultipleHighlights() throws Exception {
-
-        startTransaction();
+    public void testMultipleHighlights() {
         DocumentModel doc = session.createDocumentModel("/", "multipleHighlights", "File");
         BlobHolder holder = doc.getAdapter(BlobHolder.class);
 
@@ -171,9 +145,7 @@ public class TestHighlight {
         session.createDocument(doc);
         session.save();
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
 
         SearchSourceBuilder request = new SearchSourceBuilder();
 

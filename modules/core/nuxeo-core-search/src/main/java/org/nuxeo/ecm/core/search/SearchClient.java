@@ -57,6 +57,23 @@ public interface SearchClient extends AutoCloseable {
      */
     void dropAndInitIndex(String indexName);
 
+    /**
+     * Index documents.
+     *
+     * @throws SearchClientRetryableException when search cluster is not ready
+     */
+    void indexDocuments(BulkIndexingRequest request) throws SearchClientRetryableException;
+
+    /**
+     * Returns a Json document representation or null if not found.
+     */
+    String getDocument(String indexName, String documentId);
+
+    /**
+     * Returns the version which is the timestamp when document was loaded for indexing
+     */
+    Long getDocumentVersion(String indexName, String documentId);
+
     @Override
     void close();
 

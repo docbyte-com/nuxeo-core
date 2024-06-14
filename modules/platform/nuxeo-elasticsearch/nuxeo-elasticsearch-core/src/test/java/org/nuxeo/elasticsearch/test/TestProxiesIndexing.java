@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package org.nuxeo.elasticsearch.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.util.concurrent.TimeUnit;
-
 import jakarta.inject.Inject;
 
 import org.junit.Test;
@@ -27,21 +25,18 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
-
-@RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * Tests the indexing of proxies
  */
+@RunWith(FeaturesRunner.class)
+@Features({ RepositoryElasticSearchFeature.class })
 public class TestProxiesIndexing {
     @Inject
     protected CoreSession coreSession;
@@ -53,33 +48,33 @@ public class TestProxiesIndexing {
     protected ElasticSearchAdmin esa;
 
     @Inject
-    protected WorkManager workManager;
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void testES() throws InterruptedException {
+    public void testES() {
         DocumentModel note = init();
 
         NxQueryBuilder queryBuilder = new NxQueryBuilder(coreSession).nxql("SELECT * FROM Note WHERE ecm:isProxy = 1")
                                                                      .fetchFromElasticsearch();
         DocumentModelList results = ess.query(queryBuilder);
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getPropertyValue("dc:title")).isEqualTo("Titre 1");
+        assertThat(results.getFirst().getPropertyValue("dc:title")).isEqualTo("Titre 1");
 
         update(note);
 
         results = ess.query(queryBuilder);
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getPropertyValue("dc:title")).isEqualTo("Titre 2");
+        assertThat(results.getFirst().getPropertyValue("dc:title")).isEqualTo("Titre 2");
     }
 
     @Test
-    public void testVCS() throws InterruptedException {
+    public void testVCS() {
         DocumentModel note = init();
 
         DocumentModelList results = coreSession.query("SELECT * FROM Note WHERE ecm:isProxy = 1");
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getPropertyValue("dc:title")).isEqualTo("Titre 1");
-        DocumentModel proxy = results.get(0);
+        DocumentModel proxy = results.getFirst();
+        assertThat(proxy.getPropertyValue("dc:title")).isEqualTo("Titre 1");
         update(note);
 
         proxy = coreSession.getDocument(proxy.getRef());
@@ -87,11 +82,11 @@ public class TestProxiesIndexing {
 
         results = coreSession.query("SELECT * FROM Note WHERE ecm:isProxy = 1");
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getPropertyValue("dc:title")).isEqualTo("Titre 2");
+        assertThat(results.getFirst().getPropertyValue("dc:title")).isEqualTo("Titre 2");
 
     }
 
-    protected DocumentModel init() throws InterruptedException {
+    protected DocumentModel init() {
         DocumentModel folder = coreSession.createDocumentModel("/", "folder", "Folder");
         folder = coreSession.createDocument(folder);
 
@@ -102,27 +97,16 @@ public class TestProxiesIndexing {
         coreSession.createProxy(note.getRef(), folder.getRef());
 
         coreSession.save();
-        waitForElasticsearch();
-
+        txFeature.nextTransaction();
         return note;
     }
 
-    protected void update(DocumentModel note) throws InterruptedException {
+    protected void update(DocumentModel note) {
         note = coreSession.getDocument(note.getRef());
         note.setPropertyValue("dc:title", "Titre 2");
         coreSession.saveDocument(note);
 
         coreSession.save();
-        waitForElasticsearch();
-    }
-
-    protected void waitForElasticsearch() throws InterruptedException {
-        TransactionHelper.commitOrRollbackTransaction();
-
-        assertThat(workManager.awaitCompletion(10, TimeUnit.SECONDS)).isTrue();
-        assertThat(esa.getPendingWorkerCount()).isEqualTo(0);
-        esa.refresh();
-
-        TransactionHelper.startTransaction();
+        txFeature.nextTransaction();
     }
 }

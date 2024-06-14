@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,26 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.elasticsearch.test;
+package org.nuxeo.ecm.core.test;
 
-import org.junit.Before;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
+/**
+ * @since 2025.0
+ */
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
-public class TestTreeIndexingSync extends TestTreeIndexing {
+@Features(CoreSearchFeature.class)
+public class CoreSearchFeatureTest {
 
-    @Before
-    public void syncModeByDefault() throws Exception {
-        activateSynchronousMode();
+    @Test
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
     }
 }

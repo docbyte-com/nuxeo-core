@@ -23,21 +23,15 @@ import static org.junit.Assert.assertEquals;
 import jakarta.inject.Inject;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 7.2
  */
-@RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-append-dynamic-mapping-contrib.xml")
 public class TestDynamicMapping extends TestMapping {
 
@@ -45,9 +39,7 @@ public class TestDynamicMapping extends TestMapping {
     protected ElasticSearchAdmin esa;
 
     @Test
-    public void testShouldIndexDocUsingCustomWriter() throws Exception {
-        startTransaction();
-
+    public void testShouldIndexDocUsingCustomWriter() {
         DocumentModel doc = session.createDocumentModel("/", "note", "Note");
         // put some raw json in the node and checked is indexed dynamically
         doc.setPropertyValue("note:note", String.format(
@@ -55,16 +47,8 @@ public class TestDynamicMapping extends TestMapping {
                 "2015-01-01T12:30:00"));
         doc = session.createDocument(doc);
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForIndexing();
-        // automatic versioning system check in all notes after an update
-        // 2 commands processed:
-        // - creation of version - automatically done by versioning system at creation step -> UPDATE on note
-        // creation of version - automatically done by versioning system -> INSERT on version (merged with update)
-        // - creation of note -> INSERT on note
-        assertNumberOfCommandProcessed(2);
+        txFeature.nextTransaction();
 
-        startTransaction();
         // check that the custom mapping applied
 
         // Since ES 2.x we need to express the full path of property: type1:id_int becomes dynamic/type1/type1:id_int

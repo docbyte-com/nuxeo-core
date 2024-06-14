@@ -27,18 +27,15 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.io.DocumentModelReaders;
@@ -47,7 +44,7 @@ import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -66,10 +63,8 @@ public class TestDocumentModelReader {
     @Inject
     protected ElasticSearchAdmin esa;
 
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Test
     public void ICanReadADocModelFromJson() {
@@ -125,11 +120,7 @@ public class TestDocumentModelReader {
         doc.setPropertyValue("dc:title", "Some file");
         session.createDocument(doc);
         session.save();
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        esa.refresh();
+        txFeature.nextTransaction();
 
         // search and retrieve from ES
         ElasticSearchService ess = Framework.getService(ElasticSearchService.class);

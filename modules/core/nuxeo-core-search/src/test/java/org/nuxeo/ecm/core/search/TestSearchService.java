@@ -26,7 +26,7 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.core.search.client.mock.MockSearchClientFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -34,8 +34,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
-@Features(BaseCoreSearchFeature.class)
-@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/test-search-contrib.xml")
+@Features(MockSearchClientFeature.class)
 public class TestSearchService {
 
     @Inject
@@ -46,14 +45,12 @@ public class TestSearchService {
         String defaultRepo = "test";
         String defaultClient = "default";
         assertEquals(defaultRepo, service.getDefaultRepositoryName());
-        assertEquals("Set of repository names: " + service.getRepositoryNames(), 3,
+        assertEquals("Set of repository names: " + service.getRepositoryNames(), 1,
                 service.getRepositoryNames().size());
 
         assertEquals(SearchIndex.of(defaultRepo, defaultClient, "idx"), service.getDefaultSearchIndex());
 
-        assertEquals(
-                List.of(SearchIndex.of(defaultRepo, defaultClient, "idx"),
-                        SearchIndex.of(defaultRepo, defaultClient, "idx-fr")),
+        assertEquals(List.of(SearchIndex.of(defaultRepo, defaultClient, "idx")),
                 service.getSearchIndexForRepository(defaultRepo));
     }
 }

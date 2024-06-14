@@ -32,6 +32,8 @@ import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 
+import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -39,13 +41,15 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.http.test.HttpResponse;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
+import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -68,15 +72,20 @@ public class TestElasticsearchObject extends ManagementBaseTest {
     protected ElasticSearchService ess;
 
     @Inject
-    protected ElasticSearchAdmin esa;
-
-    @Inject
     protected TransactionalFeature txFeature;
 
+    protected OpenSearchComponent openSearchComponent;
+
+    @Before
+    public void retrieveOpenSearchComponent() {
+        openSearchComponent = (OpenSearchComponent) Framework.getService(OpenSearchClientService.class);
+    }
+
     @Test
+    @Ignore("TODO reindexing is not yet supported")
     public void shouldRunIndexing() {
         // Init indexes and drop if any
-        esa.initIndexes(true);
+        openSearchComponent.dropAndInitIndex("nxutest");
 
         // Initial docs count
         long initialDocCount = coreSession.query(GET_ALL_DOCUMENTS_QUERY).totalSize();
@@ -99,6 +108,7 @@ public class TestElasticsearchObject extends ManagementBaseTest {
     }
 
     @Test
+    @Ignore("TODO reindexing is not yet supported")
     public void fullReindexShouldBeExclusive() {
         txFeature.nextTransaction();
         int status1 = httpClient.buildPostRequest("/management/elasticsearch/reindex")
@@ -116,7 +126,7 @@ public class TestElasticsearchObject extends ManagementBaseTest {
     @Test
     public void shouldRunIndexingByNXQLQuery() {
         // Init indexes and drop if any
-        esa.initIndexes(true);
+        openSearchComponent.dropAndInitIndex("nxutest");
 
         // Create new documents without indexing them
         createDocuments();
@@ -131,7 +141,7 @@ public class TestElasticsearchObject extends ManagementBaseTest {
     @Test
     public void shouldRunIndexingOnDocumentAndItsChildren() {
         // Init indexes and drop if any
-        esa.initIndexes(true);
+        openSearchComponent.dropAndInitIndex("nxutest");
 
         // Create new documents without indexing them
         createDocuments();

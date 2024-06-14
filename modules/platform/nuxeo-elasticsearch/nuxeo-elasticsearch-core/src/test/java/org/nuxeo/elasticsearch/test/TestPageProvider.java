@@ -28,25 +28,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.api.PageProviderType;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNativePageProvider;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider;
 import org.nuxeo.elasticsearch.query.PageProviderQueryBuilder;
@@ -54,7 +49,7 @@ import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.opensearch.index.query.QueryBuilder;
 
 @SuppressWarnings("unchecked")
@@ -68,48 +63,13 @@ public class TestPageProvider {
     protected CoreSession session;
 
     @Inject
-    protected WorkManager workManager;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
-
-    @Inject
-    protected ElasticSearchService ess;
-
-    @Inject
     protected PageProviderService pageProviderService;
 
-    private int commandProcessed;
-
-    // Number of processed command since the startTransaction
-    public void assertNumberOfCommandProcessed(int processed) {
-        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
-    }
-
-    /**
-     * Wait for async worker completion then wait for indexing completion
-     */
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    protected void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        assertEquals(0, esa.getPendingWorkerCount());
-        commandProcessed = esa.getTotalCommandProcessed();
-    }
-
-    @Before
-    public void setupIndex() {
-        esa.initIndexes(true);
-    }
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void ICanUseANativePageProvider() throws Exception {
+    public void ICanUseANativePageProvider() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NATIVE_PP_PATTERN");
         assertNotNull(ppdef);
 
@@ -121,17 +81,13 @@ public class TestPageProvider {
         assertNotNull(pp);
 
         // create 10 docs
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        assertNumberOfCommandProcessed(10);
+        txFeature.nextTransaction();
 
-        startTransaction();
         // get current page
         List<DocumentModel> p = (List<DocumentModel>) pp.getCurrentPage();
         assertEquals(10, pp.getResultsCount());
@@ -149,7 +105,7 @@ public class TestPageProvider {
     }
 
     @Test
-    public void ICanUseANxqlPageProvider() throws Exception {
+    public void ICanUseANxqlPageProvider() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_PP_PATTERN");
         assertNotNull(ppdef);
 
@@ -161,17 +117,13 @@ public class TestPageProvider {
         assertNotNull(pp);
 
         // create 10 docs
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        assertNumberOfCommandProcessed(10);
+        txFeature.nextTransaction();
 
-        startTransaction();
         // get current page
         List<DocumentModel> p = pp.getCurrentPage();
         assertEquals(10, pp.getResultsCount());
@@ -205,24 +157,20 @@ public class TestPageProvider {
     }
 
     @Test
-    public void ICanUseANxqlPageProviderWithParameters() throws Exception {
+    public void ICanUseANxqlPageProviderWithParameters() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("nxql_search");
         assertNotNull(ppdef);
         HashMap<String, Serializable> props = new HashMap<>();
         props.put(ElasticSearchNativePageProvider.CORE_SESSION_PROPERTY, (Serializable) session);
         long pageSize = 5;
         PageProvider<?> pp = pageProviderService.getPageProvider("nxql_search", ppdef, null, null, pageSize, 0L, props);
-        startTransaction();
         // create 10 docs
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        assertNumberOfCommandProcessed(10);
-        startTransaction();
+        txFeature.nextTransaction();
 
         // get current page
         String[] params = { "Select * from File where dc:title LIKE 'Test%'" };
@@ -267,7 +215,7 @@ public class TestPageProvider {
     }
 
     @Test
-    public void ICanUseANxqlPageProviderWithFixedPart() throws Exception {
+    public void ICanUseANxqlPageProviderWithFixedPart() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_PP_FIXED_PART");
         assertNotNull(ppdef);
         HashMap<String, Serializable> props = new HashMap<>();
@@ -279,17 +227,13 @@ public class TestPageProvider {
         PageProvider<?> pp = pageProviderService.getPageProvider("NXQL_PP_FIXED_PART", ppdef, model, null, pageSize, 0L,
                 props);
         // create 10 docs
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        assertNumberOfCommandProcessed(10);
-        startTransaction();
+        txFeature.nextTransaction();
 
         String[] params = { session.getRootDocument().getId() };
         pp.setParameters(params);
@@ -886,7 +830,7 @@ public class TestPageProvider {
     }
 
     @Test
-    public void testMaxResultWindow() throws Exception {
+    public void testMaxResultWindow() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_PP_PATTERN");
         HashMap<String, Serializable> props = new HashMap<>();
         props.put(ElasticSearchNativePageProvider.CORE_SESSION_PROPERTY, (Serializable) session);
@@ -896,15 +840,12 @@ public class TestPageProvider {
         pp.setMaxResultWindow(6);
         assertEquals(6, pp.getMaxResultWindow());
         // create 10 docs
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         // get current page
         pp.getCurrentPage();
@@ -931,17 +872,14 @@ public class TestPageProvider {
      * @since 10.3
      */
     @Test
-    public void iCanPerformUnlimitedQuery() throws Exception {
+    public void iCanPerformUnlimitedQuery() {
         // create 10 docs
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             doc.setPropertyValue("dc:title", "TestMe" + i);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_PP_UNLIMITED");
         HashMap<String, Serializable> props = new HashMap<>();
@@ -954,7 +892,7 @@ public class TestPageProvider {
     }
 
     @Test
-    public void ICanUseANxqlPageProviderWithUnrestrictedSession() throws Exception {
+    public void ICanUseANxqlPageProviderWithUnrestrictedSession() {
 
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("UNRESTRICTED_PP");
 
@@ -964,16 +902,13 @@ public class TestPageProvider {
         ElasticSearchNxqlPageProvider pp = (ElasticSearchNxqlPageProvider) pageProviderService.getPageProvider(
                 "UNRESTRICTED_PP", ppdef, null, null, null, 0L, props);
 
-        startTransaction();
         for (int i = 0; i < 10; i++) {
             DocumentModel doc = session.createDocumentModel("/", "testDoc" + i, "File");
             session.createDocument(doc);
         }
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
+        txFeature.nextTransaction();
 
-        startTransaction();
         List<DocumentModel> docs = pp.getCurrentPage();
         assertEquals(10, docs.size());
     }

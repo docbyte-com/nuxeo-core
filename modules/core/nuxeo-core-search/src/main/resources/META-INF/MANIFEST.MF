@@ -4,4 +4,5 @@ Bundle-Name: Nuxeo Core Search
 Bundle-SymbolicName: org.nuxeo.ecm.core.search;singleton:=true
 Bundle-Version: 1.0.0
 Nuxeo-Component: OSGI-INF/indexing-domain-event-producer-contrib.xml,
+  OSGI-INF/indexing-stream-processor-contrib.xml,
   OSGI-INF/search-service.xml

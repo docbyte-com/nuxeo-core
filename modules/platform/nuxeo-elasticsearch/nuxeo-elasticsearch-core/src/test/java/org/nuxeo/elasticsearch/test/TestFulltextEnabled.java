@@ -20,11 +20,8 @@ package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.concurrent.TimeUnit;
-
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -33,15 +30,11 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * Test "on the fly" indexing via the listener system
@@ -57,48 +50,13 @@ public class TestFulltextEnabled {
     protected ElasticSearchService ess;
 
     @Inject
-    protected WorkManager workManager;
-
-    @Inject
     protected CoreFeature coreFeature;
 
     @Inject
     protected TransactionalFeature txFeature;
 
-    @Inject
-    protected ElasticSearchAdmin esa;
-
-    private int commandProcessed;
-
-    // Number of processed command since the startTransaction
-    public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
-    }
-
-    /**
-     * Wait for async worker completion then wait for indexing completion
-     */
-    public void waitForCompletion() throws Exception {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    protected void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        assertEquals(0, esa.getPendingWorkerCount());
-        commandProcessed = esa.getTotalCommandProcessed();
-    }
-
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
-
     @Test
-    public void testFulltext() throws Exception {
+    public void testFulltext() {
         createFileWithBlob();
         // binary fulltext is extracted and searcheable with ES
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search'";
@@ -114,7 +72,7 @@ public class TestFulltextEnabled {
     }
 
     @Test
-    public void testFulltextOnProxy() throws Exception {
+    public void testFulltextOnProxy() {
         DocumentModel doc = createFileWithBlob();
         createSectionAndPublishFile(doc);
         // binary fulltext is extracted and searcheable with ES
@@ -130,29 +88,24 @@ public class TestFulltextEnabled {
         }
     }
 
-    protected DocumentModel createFileWithBlob() throws Exception {
-        startTransaction();
-        // this is to prevent race condition that happen NXP-16169
-        ElasticSearchInlineListener.useSyncIndexing.set(true);
+    protected DocumentModel createFileWithBlob() {
         DocumentModel doc = session.createDocumentModel("/", "myFile", "File");
         BlobHolder holder = doc.getAdapter(BlobHolder.class);
         holder.setBlob(new StringBlob("You know for search"));
         session.createDocument(doc);
         session.save();
 
-        TransactionHelper.commitOrRollbackTransaction();
         // we need to wait for the async fulltext indexing
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         // There is one doc
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
         assertEquals(1, ret.totalSize());
 
-        return ret.get(0);
+        return ret.getFirst();
     }
 
-    protected void createSectionAndPublishFile(DocumentModel doc) throws Exception {
+    protected void createSectionAndPublishFile(DocumentModel doc) {
         // Create a Section
         DocumentModel section = session.createDocumentModel("/", "section", "Folder");
         section = session.createDocument(section);
@@ -161,10 +114,8 @@ public class TestFulltextEnabled {
         session.publishDocument(doc, section);
         session.save();
 
-        TransactionHelper.commitOrRollbackTransaction();
         // we need to wait for the async fulltext indexing
-        waitForCompletion();
-        startTransaction();
+        txFeature.nextTransaction();
 
         // There is one doc
         DocumentModelList ret = ess.query(

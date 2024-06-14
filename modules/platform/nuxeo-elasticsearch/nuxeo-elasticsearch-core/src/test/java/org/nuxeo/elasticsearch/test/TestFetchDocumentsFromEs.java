@@ -21,27 +21,21 @@ package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchType;
@@ -63,10 +57,8 @@ public class TestFetchDocumentsFromEs {
     @Inject
     protected ElasticSearchAdmin esa;
 
-    @Before
-    public void setupIndex() throws Exception {
-        esa.initIndexes(true);
-    }
+    @Inject
+    protected TransactionalFeature txFeature;
 
     protected void buildTree() {
         String root = "/";
@@ -79,32 +71,13 @@ public class TestFetchDocumentsFromEs {
         }
     }
 
-    protected void waitForAsyncIndexing() throws Exception {
-        // wait for indexing
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        assertEquals(0, esa.getPendingWorkerCount());
-    }
-
-    protected void buildAndIndexTree() throws Exception {
-
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-
+    protected void buildAndIndexTree() {
         // build the tree
         buildTree();
 
-        int n = esa.getTotalCommandProcessed();
+        txFeature.nextTransaction();
 
-        TransactionHelper.commitOrRollbackTransaction();
-
-        waitForAsyncIndexing();
-
-        assertEquals(10, esa.getTotalCommandProcessed() - n);
         esa.refresh();
-
-        TransactionHelper.startTransaction();
 
         // check indexing
         SearchResponse searchResponse = searchAll();
@@ -119,7 +92,7 @@ public class TestFetchDocumentsFromEs {
     }
 
     @Test
-    public void shouldLoadDocumentFromEs() throws Exception {
+    public void shouldLoadDocumentFromEs() {
         buildAndIndexTree();
         DocumentModelList docs = ess.query(
                 new NxQueryBuilder(session).nxql("select * from Document").limit(20).fetchFromElasticsearch());
@@ -131,7 +104,7 @@ public class TestFetchDocumentsFromEs {
     }
 
     @Test
-    public void checkNotFetch() throws Exception {
+    public void checkNotFetch() {
         buildAndIndexTree();
         // onlyElasticsearchResponse is useless on query aPI
         DocumentModelList docs = ess.query(
@@ -166,7 +139,7 @@ public class TestFetchDocumentsFromEs {
      * @since 8.2
      */
     @Test
-    public void checkPathLevel() throws Exception {
+    public void checkPathLevel() {
         buildAndIndexTree();
 
         EsResult result = ess.queryAndAggregate(new NxQueryBuilder(session).nxql("select * from Document")

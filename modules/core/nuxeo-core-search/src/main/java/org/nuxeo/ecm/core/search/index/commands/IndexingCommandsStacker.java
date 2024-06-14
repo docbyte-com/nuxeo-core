@@ -189,10 +189,13 @@ public abstract class IndexingCommandsStacker {
             default:
                 return;
         }
-        if (sync && recurse && type != IndexingCommand.Type.DELETE) {
+        if (sync && recurse) {
             // split into 2 commands one sync and an async recurse
-            cmds.add(type, true, false);
             cmds.add(type, false, true);
+            if (type != IndexingCommand.Type.UPDATE_DIRECT_CHILDREN) {
+                // case where there is no sync updated needed
+                cmds.add(type, true, false);
+            }
         } else {
             cmds.add(type, sync, recurse);
         }

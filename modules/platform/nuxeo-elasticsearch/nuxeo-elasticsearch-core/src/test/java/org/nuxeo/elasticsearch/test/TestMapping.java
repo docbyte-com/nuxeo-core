@@ -22,24 +22,20 @@ package org.nuxeo.elasticsearch.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.util.concurrent.TimeUnit;
-
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
@@ -56,38 +52,10 @@ public class TestMapping {
     protected ElasticSearchService ess;
 
     @Inject
-    protected ElasticSearchAdmin esa;
-
-    private int commandProcessed;
-
-    public void assertNumberOfCommandProcessed(int processed) {
-        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed); // NOSONAR
-    }
-
-    /**
-     * Wait for sync and async job and refresh the index
-     */
-    public void waitForIndexing() throws Exception {
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-    }
-
-    public void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        assertEquals(0, esa.getPendingWorkerCount());
-        commandProcessed = esa.getTotalCommandProcessed();
-    }
-
-    @Before
-    public void setUpMapping() {
-        esa.initIndexes(true);
-    }
+    protected TransactionalFeature txFeature;
 
     @Test
-    public void testIlikeSearch() throws Exception {
-        startTransaction();
+    public void testIlikeSearch() {
         DocumentModel doc = session.createDocumentModel("/", "testDoc1", "File"); // NOSONAR
         doc.setPropertyValue("dc:title", "upper case"); // NOSONAR
         doc.setPropertyValue("dc:description", "UPPER CASE DESC"); // NOSONAR
@@ -103,11 +71,8 @@ public class TestMapping {
         doc.setPropertyValue("dc:description", "lower case desc");
         session.createDocument(doc);
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForIndexing();
-        assertNumberOfCommandProcessed(3);
+        txFeature.nextTransaction();
 
-        startTransaction();
         DocumentModelList ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description ILIKE '%Case%'"));
         assertEquals(3, ret.totalSize());
@@ -156,8 +121,7 @@ public class TestMapping {
     }
 
     @Test
-    public void testFulltextAnalyzer() throws Exception {
-        startTransaction();
+    public void testFulltextAnalyzer() {
         DocumentModel doc = session.createDocumentModel("/", "testDoc1", "File");
         doc.setPropertyValue("dc:title", "new-york.jpg");
         session.createDocument(doc);
@@ -170,10 +134,8 @@ public class TestMapping {
         doc.setPropertyValue("dc:title", "foo_jpg");
         session.createDocument(doc);
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForIndexing();
+        txFeature.nextTransaction();
 
-        startTransaction();
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'new-york.jpg'"));
         assertEquals(1, ret.totalSize());
@@ -207,8 +169,7 @@ public class TestMapping {
     }
 
     @Test
-    public void testNgramSearch() throws Exception {
-        startTransaction();
+    public void testNgramSearch() {
         DocumentModel doc = session.createDocumentModel("/", "testDoc1", "File");
         doc.setPropertyValue("dc:title", "FooBar12 test");
         session.createDocument(doc);
@@ -217,10 +178,7 @@ public class TestMapping {
         doc.setPropertyValue("dc:title", "foobar42");
         session.createDocument(doc);
 
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForIndexing();
-
-        startTransaction();
+        txFeature.nextTransaction();
 
         // Common left/right truncature with a ILIKE, translated into wilcard search *oba* with poor performance
         DocumentModelList ret = ess.query(

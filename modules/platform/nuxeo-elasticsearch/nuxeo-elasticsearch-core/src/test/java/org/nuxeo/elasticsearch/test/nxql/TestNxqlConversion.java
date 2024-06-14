@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.elasticsearch.test.nxql;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -34,18 +31,16 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.query.NxqlQueryConverter;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchType;
@@ -75,7 +70,10 @@ public class TestNxqlConversion {
     @Inject
     protected ElasticSearchAdmin esa;
 
-    protected void buildDocs() throws Exception {
+    @Inject
+    protected TransactionalFeature txFeature;
+
+    protected void buildDocs() {
         for (int i = 0; i < 10; i++) {
             String name = "doc" + i;
             DocumentModel doc = session.createDocumentModel("/", name, "File");
@@ -84,16 +82,8 @@ public class TestNxqlConversion {
             doc.setPropertyValue("dc:rights", "Rights" + i % 2);
             doc = session.createDocument(doc);
         }
-        TransactionHelper.commitOrRollbackTransaction();
         // wait for async jobs
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        assertEquals(0, esa.getPendingWorkerCount());
-
-        esa.refresh();
-
-        TransactionHelper.startTransaction();
-
+        txFeature.nextTransaction();
     }
 
     protected SearchResponse search(QueryBuilder query) {
@@ -104,7 +94,7 @@ public class TestNxqlConversion {
     }
 
     @Test
-    public void testQuery() throws Exception {
+    public void testQuery() {
 
         buildDocs();
 
@@ -124,7 +114,7 @@ public class TestNxqlConversion {
     }
 
     @Test
-    public void testQueryLimits() throws Exception {
+    public void testQueryLimits() {
         buildDocs();
 
         // limit does not change the total size, only the returned number of docs
@@ -2053,12 +2043,8 @@ public class TestNxqlConversion {
 
     @Test
     public void shouldFailWhenESHintOperatorIsUnknown() {
-        try {
-            String es = NxqlQueryConverter.toESQueryBuilder(
-                    "select * from Document where /*+ES: OPERATOR(unExitingHint) */ ecm:uuid = '1234'").toString();
-            fail("Should raise an UnsupportedOperationException");
-        } catch (UnsupportedOperationException uso) {
-            assertEquals("Operator: unExitingHint is unknown", uso.getMessage());
-        }
+        var uso = assertThrows(UnsupportedOperationException.class, () -> NxqlQueryConverter.toESQueryBuilder(
+                "select * from Document where /*+ES: OPERATOR(unExitingHint) */ ecm:uuid = '1234'").toString());
+        assertEquals("Operator: unExitingHint is unknown", uso.getMessage());
     }
 }

@@ -45,8 +45,8 @@
         <include>dc:*</include>
         <exclude>ecm:binarytext</exclude>
       </fetchFromSource>
-      <settings file="elasticsearch-doc-settings.json" />
-      <mapping file="elasticsearch-doc-mapping.json" />
+      <settings file="opensearch1-doc-settings.json" />
+      <mapping file="opensearch1-doc-mapping.json" />
     </elasticSearchIndex>
   </extension>
 

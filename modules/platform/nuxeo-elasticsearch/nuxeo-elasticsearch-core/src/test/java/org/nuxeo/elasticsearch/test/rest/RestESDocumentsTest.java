@@ -21,7 +21,6 @@ package org.nuxeo.elasticsearch.test.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_PAGE_PROVIDER;
 import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_TYPE;
@@ -32,7 +31,6 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.StreamSupport;
 
 import jakarta.inject.Inject;
@@ -48,7 +46,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
@@ -58,19 +55,16 @@ import org.nuxeo.ecm.restapi.server.adapters.SearchAdapter;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.ecm.restapi.test.RestServerInit;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.io.marshallers.json.AggregateJsonWriter;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNativePageProvider;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -120,9 +114,9 @@ public class RestESDocumentsTest {
             () -> restServerFeature.getRestApiUrl());
 
     @Test
-    public void iCanPerformESQLPageProviderOnRepository() throws InterruptedException {
+    public void iCanPerformESQLPageProviderOnRepository() {
         // wait for async jobs
-        waitForAsync();
+        txFeature.nextTransaction();
         // Given a repository, when I perform a ESQL pageprovider on it
         JsonNode node = httpClient.buildGetRequest(QueryObject.PATH + "/aggregates_2").execute(new JsonNodeHandler());
         // Then I get document listing as result
@@ -191,7 +185,7 @@ public class RestESDocumentsTest {
      * @since 8.10
      */
     @Test
-    public void iCanQueryESQLPageProviderAndFetchAggregateKeys() throws Exception {
+    public void iCanQueryESQLPageProviderAndFetchAggregateKeys() {
         // Updating a note automatically creates a version of it
         for (int i = 0; i < RestServerInit.MAX_NOTE; i++) {
             DocumentModel doc = RestServerInit.getNote(i, session);
@@ -200,9 +194,7 @@ public class RestESDocumentsTest {
             doc = session.saveDocument(doc);
         }
 
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-        waitForAsync();
+        txFeature.nextTransaction();
 
         // Given a repository, when I perform a ESQL pageprovider on it
         JsonNode node = httpClient.buildGetRequest(QueryObject.PATH + "/aggregates_3")
@@ -268,21 +260,8 @@ public class RestESDocumentsTest {
     /**
      * @since 10.3
      */
-    protected void waitForAsync() throws InterruptedException {
-        // wait for async jobs
-        ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        WorkManager wm = Framework.getService(WorkManager.class);
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        assertEquals(0, esa.getPendingWorkerCount());
-        esa.refresh();
-        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-    }
-
-    /**
-     * @since 10.3
-     */
     @Test
-    public void iCanQueryESQLPageProviderAndFetchVariousAggregates() throws Exception {
+    public void iCanQueryESQLPageProviderAndFetchVariousAggregates() {
         for (int i = 0; i < 50; i++) {
             DocumentModel doc = session.createDocumentModel(ROOT_PATH, "aggTest" + i, "File");
             doc.setPropertyValue("dc:coverage", "europe/Spain");
@@ -298,9 +277,7 @@ public class RestESDocumentsTest {
             session.saveDocument(doc);
         }
 
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-        waitForAsync();
+        txFeature.nextTransaction();
 
         JsonNode node = httpClient.buildGetRequest(QueryObject.PATH + "/aggregates_4")
                                   .addHeader("fetch." + AggregateJsonWriter.ENTITY_TYPE, AggregateJsonWriter.FETCH_KEY)

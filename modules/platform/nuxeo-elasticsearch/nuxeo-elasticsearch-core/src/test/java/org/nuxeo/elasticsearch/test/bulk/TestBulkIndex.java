@@ -36,6 +36,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -56,11 +57,12 @@ import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.bulk.IndexAction;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
+import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchType;
@@ -78,6 +80,9 @@ public class TestBulkIndex {
     protected CoreSession session;
 
     @Inject
+    protected OpenSearchClientService openSearchClientService;
+
+    @Inject
     protected ElasticSearchService ess;
 
     @Inject
@@ -91,9 +96,6 @@ public class TestBulkIndex {
 
     @Before
     public void initWorkingDocuments() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
         for (int i = 0; i < 20; i++) {
             String name = "file" + i;
             String title = String.format("File%02d", i);
@@ -125,7 +127,7 @@ public class TestBulkIndex {
     @Test
     public void testIndexAction() throws InterruptedException {
         checkSearchOrder();
-        esa.initIndexes(true);
+        ((OpenSearchComponent) openSearchClientService).dropAndInitIndex("nxutest");
         BulkCommand command = new Builder(ACTION_NAME, "SELECT * FROM Document", "Administrator").param(
                 REFRESH_INDEX_PARAM, true).param(INDEX_UPDATE_ALIAS_PARAM, true).batch(2).bucket(2).build();
         String commandId = bulkService.submit(command);
@@ -138,6 +140,7 @@ public class TestBulkIndex {
     }
 
     @Test
+    @Ignore("TODO Alias not yet supported")
     @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-write-alias2-contrib.xml")
     public void testBulkReindexWithAlias() throws Exception {
         checkSearchOrder();

@@ -55,7 +55,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 10.10
@@ -93,10 +92,6 @@ public class TestBulkActionWithAggregates {
 
     @Before
     public void before() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-
         now = ZonedDateTime.now();
         dayBeforYesterday = now.minusDays(2);
         lastWeek = now.minusWeeks(1);

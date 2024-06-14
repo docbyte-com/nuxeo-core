@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2%024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,19 @@
  * limitations under the License.
  *
  * Contributors:
- *     Nuxeo
+ *     bdelbosc
  */
-package org.nuxeo.elasticsearch.test;
+package org.nuxeo.ecm.core.search.client.mock;
 
-import org.junit.Before;
-import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
- * Test in synchronous mode
+ * @since 2025.0
  */
-
-@RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
-public class TestAutomaticIndexingSync extends TestAutomaticIndexing {
-
-    @Before
-    public void syncModeByDefault() {
-        activateSynchronousMode();
-    }
+@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/test-search-contrib.xml")
+@Features(BaseCoreSearchFeature.class)
+public class MockSearchClientFeature implements RunnerFeature {
 }

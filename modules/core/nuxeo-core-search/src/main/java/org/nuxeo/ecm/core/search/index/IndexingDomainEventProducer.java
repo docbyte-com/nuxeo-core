@@ -18,6 +18,10 @@
  */
 package org.nuxeo.ecm.core.search.index;
 
+import static org.nuxeo.ecm.core.search.index.IndexingProcessor.SYNC_COMPUTATION_NAME;
+import static org.nuxeo.lib.stream.computation.log.ComputationRunner.NUXEO_METRICS_REGISTRY_NAME;
+
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -34,11 +38,19 @@ import org.nuxeo.ecm.core.search.index.commands.IndexingCommands;
 import org.nuxeo.ecm.core.search.index.commands.ThreadLocalIndexingCommandsStacker;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.Record;
+import org.nuxeo.lib.stream.computation.StreamManager;
 import org.nuxeo.lib.stream.log.LogOffset;
+import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.codec.CodecService;
+import org.nuxeo.runtime.stream.StreamService;
 
 import com.fasterxml.uuid.Generators;
+
+import io.dropwizard.metrics5.MetricName;
+import io.dropwizard.metrics5.MetricRegistry;
+import io.dropwizard.metrics5.SharedMetricRegistries;
+import io.dropwizard.metrics5.Timer;
 
 /**
  * @since 2025.0
@@ -55,15 +67,23 @@ public class IndexingDomainEventProducer extends DomainEventProducer {
 
     protected static final String SOURCE_NAME = "IDX";
 
+    protected final MetricRegistry registry = SharedMetricRegistries.getOrCreate(NUXEO_METRICS_REGISTRY_NAME);
+
     protected final ThreadLocalIndexingCommandsStacker stacker = new ThreadLocalIndexingCommandsStacker();
 
     protected final Codec<IndexingDomainEvent> codec;
+
+    protected final StreamManager streamManager;
+
+    protected final Timer syncWaitTimer;
 
     protected boolean anySyncCommand;
 
     public IndexingDomainEventProducer(String name, String stream) {
         super(name, stream);
         codec = Framework.getService(CodecService.class).getCodec(CODEC_NAME, IndexingDomainEvent.class);
+        streamManager = Framework.getService(StreamService.class).getStreamManager();
+        syncWaitTimer = registry.timer(MetricName.build("nuxeo.search.indexing.sync"));
     }
 
     @Override
@@ -119,9 +139,25 @@ public class IndexingDomainEventProducer extends DomainEventProducer {
             log.debug("No sync command");
             return;
         }
-        List<LogOffset> maxOffsets = maxPerPartition(offsets);
-        log.warn("Waiting for sync consumer to process {} records and reach offsets: {}", offsets.size(), maxOffsets);
-        // TODO: implement
+        try (Timer.Context ignored = syncWaitTimer.time()) {
+            List<LogOffset> maxOffsets = maxPerPartition(offsets);
+            if (maxOffsets.size() > 1) {
+                log.error("Unexpected, partition key is transaction we should have only one offset: {}", maxOffsets);
+            }
+            LogOffset offset = maxOffsets.getFirst();
+            log.info("Waiting for sync consumer to process {} records and reach offsets: {}", offsets.size(),
+                    maxOffsets);
+            try {
+                if (streamManager.waitFor(stream, Name.ofUrn(SYNC_COMPUTATION_NAME), offset, Duration.ofSeconds(10))) {
+                    log.info("completed in {} ms", () -> ignored.stop() / 1000000);
+                } else {
+                    log.warn("Time out on waiting for indexer sync consumer, continuing");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -178,6 +179,13 @@ public class LogStreamManager implements StreamManager {
     }
 
     @Override
+    public boolean waitFor(String streamUrn, Name group, LogOffset offset, Duration timeout)
+            throws InterruptedException {
+        Name stream = Name.ofUrn(streamUrn);
+        return logManager.getAppender(stream).waitFor(offset, group, timeout);
+    }
+
+    @Override
     public Set<String> getProcessorNames() {
         return Collections.unmodifiableSet(processors.keySet());
     }
@@ -203,8 +211,8 @@ public class LogStreamManager implements StreamManager {
     }
 
     /**
-     * Returns {@code true} if the {@link #subscribe} method is supported.
-     * Now deprecated because some implementations support subscribe only on specific streams.
+     * Returns {@code true} if the {@link #subscribe} method is supported. Now deprecated because some implementations
+     * support subscribe only on specific streams.
      *
      * @deprecated since 2021.34 use {@link #supportSubscribe(Name)} instead
      */

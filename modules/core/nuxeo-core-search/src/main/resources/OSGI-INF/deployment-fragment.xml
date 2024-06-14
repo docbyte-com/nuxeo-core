@@ -4,14 +4,12 @@
   <extension target="web#SERVLET">
 
     <filter>
-      <display-name>ElasticSearchFilter</display-name>
-      <filter-name>ElasticSearchFilter</filter-name>
-      <filter-class>
-        org.nuxeo.elasticsearch.ElasticSearchFilter
-      </filter-class>
+      <display-name>SearchFilter</display-name>
+      <filter-name>SearchFilter</filter-name>
+      <filter-class>org.nuxeo.ecm.core.search.SearchFilter</filter-class>
     </filter>
     <filter-mapping>
-      <filter-name>ElasticSearchFilter</filter-name>
+      <filter-name>SearchFilter</filter-name>
       <url-pattern>/site/*</url-pattern>
       <url-pattern>/api/*</url-pattern>
       <dispatcher>REQUEST</dispatcher>

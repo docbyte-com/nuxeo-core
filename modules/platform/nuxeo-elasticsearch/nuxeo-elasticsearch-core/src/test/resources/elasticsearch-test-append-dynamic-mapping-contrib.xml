@@ -1,13 +1,21 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.elasticsearch.test.dynamic.mapping.contrib">
   <require>org.nuxeo.elasticsearch.test.mapping.contrib</require>
-  <extension point="elasticSearchIndex" target="org.nuxeo.elasticsearch.ElasticSearchComponent">
-    <elasticSearchIndex name="nxutest" repository="test" type="doc">
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="nxutest">
       <mapping file="dynamic-mapping.json" append="true"/>
-    </elasticSearchIndex>
+    </index>
   </extension>
   <!-- custom writer to be used with the dynamic mapper -->
-  <extension point="elasticSearchDocWriter" target="org.nuxeo.elasticsearch.ElasticSearchComponent">
-    <writer class="org.nuxeo.elasticsearch.test.CustomJsonESDocumentWriter" />
+  <!-- TODO no merge on searchClient descriptor for now, redefine everything -->
+  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
+    <searchClient name="opensearch" default="true"
+                  class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
+      <connection>
+        <option name="clientId">search/default</option>
+      </connection>
+      <index name="nxutest" repository="test" create="false" default="true"
+        writerClass="org.nuxeo.elasticsearch.test.CustomJsonESDocumentWriter" />
+    </searchClient>
   </extension>
 </component>

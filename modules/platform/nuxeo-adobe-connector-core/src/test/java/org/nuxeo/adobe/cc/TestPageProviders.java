@@ -42,7 +42,6 @@ import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -68,11 +67,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Deploy("org.nuxeo.ecm.platform.restapi.server.search")
 public class TestPageProviders {
 
-    @Inject
-    protected CoreSession session;
+    protected static final String TEST_WORKSPACE_PATH = "/default-domain/workspaces/test";
 
     @Inject
-    protected ElasticSearchAdmin esa;
+    protected CoreSession session;
 
     @Inject
     protected RestServerFeature restServerFeature;
@@ -84,31 +82,23 @@ public class TestPageProviders {
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
             () -> restServerFeature.getRestApiUrl());
 
-    protected String testWorkspacePath;
-
     protected String testWorkspaceId;
 
     @Before
     public void before() {
-        esa.initIndexes(true);
-
-        DocumentModel doc = session.createDocumentModel("/default-domain/workspaces", "test", "Workspace");
-        doc = session.createDocument(doc);
-        session.save();
-
-        testWorkspacePath = doc.getPathAsString();
+        DocumentModel doc = session.getDocument(new PathRef(TEST_WORKSPACE_PATH));
         testWorkspaceId = doc.getId();
     }
 
     @Test
     public void testAllImages() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc = session.createDocument(doc);
 
         final DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-all-images", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         });
     }
 
@@ -118,39 +108,39 @@ public class TestPageProviders {
 
         testPageProvider("adobe-connector-browse", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("path").asText()).isEqualTo(testWorkspacePath);
+            assertThat(entries.getFirst().get("path").asText()).isEqualTo(TEST_WORKSPACE_PATH);
         }, rootId);
     }
 
     @Test
     public void testOthers() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc = session.createDocument(doc);
 
         CollectionManager cm = Framework.getService(CollectionManager.class);
-        DocumentModel collection = cm.createCollection(session, "my-collec", "dummy", testWorkspacePath);
+        DocumentModel collection = cm.createCollection(session, "my-collec", "dummy", TEST_WORKSPACE_PATH);
         cm.addToCollection(collection, doc, session);
 
         AtomicReference<String> collectionId = new AtomicReference<>();
         testPageProvider("adobe-connector-other_primary", (entries) -> {
             assertThat(entries).hasSize(1);
-            collectionId.set(entries.get(0).get("uid").asText());
+            collectionId.set(entries.getFirst().get("uid").asText());
         });
 
         DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-other_secondary", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         }, collectionId.get());
     }
 
     @Test
     public void testSearch() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc.setPropertyValue("dc:description", "hello");
         session.createDocument(doc);
 
-        doc = session.createDocumentModel(testWorkspacePath, "bar", PICTURE_TYPE_NAME);
+        doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "bar", PICTURE_TYPE_NAME);
         doc.setPropertyValue("dc:description", "world");
         doc = session.createDocument(doc);
 
@@ -161,7 +151,7 @@ public class TestPageProviders {
         DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-search", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         }, params);
     }
 

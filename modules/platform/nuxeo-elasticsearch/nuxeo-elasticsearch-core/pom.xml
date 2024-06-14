@@ -59,6 +59,10 @@
       <artifactId>nuxeo-core-search</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-search-client-opensearch1</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.nuxeo.lib.stream</groupId>
       <artifactId>nuxeo-stream</artifactId>
     </dependency>
@@ -112,6 +116,16 @@
       <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-search</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-search-client-opensearch1</artifactId>
+      <type>test-jar</type>
+    </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-test</artifactId>

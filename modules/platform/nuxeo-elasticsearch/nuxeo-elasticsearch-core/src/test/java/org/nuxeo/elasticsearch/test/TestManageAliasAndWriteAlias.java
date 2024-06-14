@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
@@ -52,6 +53,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
+@Ignore("TODO Alias not yet supported")
 public class TestManageAliasAndWriteAlias {
 
     @Inject

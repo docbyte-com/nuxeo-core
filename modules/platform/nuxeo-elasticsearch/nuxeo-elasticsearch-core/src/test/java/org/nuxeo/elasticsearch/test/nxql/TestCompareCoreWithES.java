@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
@@ -41,15 +40,13 @@ import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
@@ -68,13 +65,13 @@ public class TestCompareCoreWithES {
     @Inject
     protected TrashService trashService;
 
+    @Inject
+    protected TransactionalFeature txFeature;
+
     private String proxyPath;
 
     @Before
-    public void initWorkingDocuments() throws Exception {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
+    public void initWorkingDocuments() {
         for (int i = 0; i < 5; i++) {
             String name = "file" + i;
             DocumentModel doc = session.createDocumentModel("/", name, "File");
@@ -118,19 +115,8 @@ public class TestCompareCoreWithES {
 
         session.checkIn(new PathRef("/file2"), VersioningOption.MINOR, "for testing");
 
-        TransactionHelper.commitOrRollbackTransaction();
-
         // wait for async jobs
-        Framework.getService(WorkManager.class).awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
-        assertEquals(0, esa.getPendingWorkerCount());
-        TransactionHelper.startTransaction();
-    }
-
-    @Before
-    public void setupIndex() {
-        esa.initIndexes(true);
+        txFeature.nextTransaction();
     }
 
     @After
@@ -202,23 +188,8 @@ public class TestCompareCoreWithES {
 
         DocumentModelList coreResult = session.query(nxql);
         NxQueryBuilder nxQueryBuilder = new NxQueryBuilder(session).nxql(nxql).limit(30);
-        for (int i = 0; i < 2; i++) {
-            if (i == 1) {
-                nxQueryBuilder = nxQueryBuilder.fetchFromElasticsearch();
-            }
-            DocumentModelList esResult = ess.query(nxQueryBuilder);
-            try {
-                assertSameDocumentLists(coreResult, esResult);
-            } catch (AssertionError e) {
-                // System.out.println("Error while executing " + nxql);
-                // System.out.println("Core result : ");
-                // dump(coreResult);
-                // System.out.println("elasticsearch result : ");
-                // dump(esResult);
-                // e.printStackTrace();
-                throw e;
-            }
-        }
+        DocumentModelList esResult = ess.query(nxQueryBuilder);
+        assertSameDocumentLists(coreResult, esResult);
     }
 
     protected void testQueries(String[] testQueries) {

@@ -21,7 +21,6 @@ package org.nuxeo.ecm.automation.elasticsearch;
 import static java.lang.Long.max;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -34,6 +33,7 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
@@ -56,6 +56,9 @@ public class ElasticsearchWaitForIndexingOperation {
 
     @Context
     protected ElasticSearchAdmin esa;
+
+    @Context
+    protected SearchIndexingService searchIndexingService;
 
     @Context
     protected CoreSession repo;
@@ -85,7 +88,9 @@ public class ElasticsearchWaitForIndexingOperation {
             if (waitForAuditStoredInEs && !auditService.await(Duration.ofSeconds(computeRemainingTime(start)))) {
                 throw new TimeoutException();
             }
-            esa.prepareWaitForIndexing().get(computeRemainingTime(start), TimeUnit.SECONDS);
+            if (!searchIndexingService.await(Duration.ofSeconds(computeRemainingTime(start)))) {
+                throw new TimeoutException();
+            }
             if (waitForBulkService) {
                 BulkService bulkService = Framework.getService(BulkService.class);
                 if (!bulkService.await(Duration.ofSeconds(computeRemainingTime(start)))) {
@@ -95,7 +100,7 @@ public class ElasticsearchWaitForIndexingOperation {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return Boolean.FALSE;
-        } catch (TimeoutException | ExecutionException e) {
+        } catch (TimeoutException e) {
             if (ExceptionUtils.hasInterruptedCause(e)) {
                 // reset interrupted status
                 Thread.currentThread().interrupt();

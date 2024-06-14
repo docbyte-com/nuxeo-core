@@ -125,6 +125,8 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
         stackCommand(doc2, DocumentEventTypes.BEFORE_DOC_UPDATE, false);
         stackCommand(doc2, DocumentEventTypes.BEFORE_DOC_UPDATE, false);
         stackCommand(doc2, DocumentEventTypes.BEFORE_DOC_UPDATE, false);
+        // it's possible to get created after update
+        stackCommand(doc2, DocumentEventTypes.DOCUMENT_CREATED, true);
 
         stackCommand(doc3, DocumentEventTypes.DOCUMENT_CREATED, false);
         stackCommand(doc3, DocumentEventTypes.BEFORE_DOC_UPDATE, false);
@@ -146,8 +148,8 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
         assertEquals(0, ic3.getCommands().size());
 
         flushCommands();
-        assertEquals(0, flushedSyncCommands.size());
-        assertEquals(2, flushedAsyncCommands.size());
+        assertEquals(1, flushedSyncCommands.size());
+        assertEquals(1, flushedAsyncCommands.size());
 
     }
 
@@ -223,12 +225,32 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
         assertEquals(2, ic1.getCommands().size());
         assertTrue(ic1.contains(Type.UPDATE));
         assertEquals(Type.UPDATE, ic1.getCommands().get(0).getType());
-        assertFalse(ic1.getCommands().get(0).isRecurse());
-        assertTrue(ic1.getCommands().get(1).isRecurse());
+        assertTrue(ic1.getCommands().get(0).isRecurse());
+        assertFalse(ic1.getCommands().get(1).isRecurse());
 
         flushCommands();
         assertEquals(1, flushedSyncCommands.size());
         assertEquals(1, flushedAsyncCommands.size());
+    }
+
+    @Test
+    public void noDuplicateInChildrenOrderChangedInSync() {
+        DocumentModel doc1 = new MockDocumentModel("1", true);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_CHILDREN_ORDER_CHANGED, true);
+        IndexingCommands ic1 = getCommands(doc1);
+        flushCommands();
+        assertEquals(0, flushedSyncCommands.size());
+        assertEquals(1, flushedAsyncCommands.size());
+    }
+
+    @Test
+    public void noDuplicateInDeleteRecurseInSync() {
+        DocumentModel doc1 = new MockDocumentModel("1", true);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_REMOVED, true);
+        IndexingCommands ic1 = getCommands(doc1);
+        flushCommands();
+        assertEquals(1, flushedSyncCommands.size());
+        assertEquals(0, flushedAsyncCommands.size());
     }
 
     @Test

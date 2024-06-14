@@ -96,7 +96,7 @@ public class ITNuxeoIdempotentRequestTest {
                   "params": {
                     "timeoutSecond": 110,
                     "refresh": true,
-                    "waitForAudit": true
+                    "waitForBulkService": true
                   }
                 }
                 """;

@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.indexing.test.disable">
+
+  <require>org.nuxeo.ecm.core.search.indexing</require>
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="domainEventProducer">
+    <domainEventProducer name="indexingDomain" enabled="false" />
+  </extension>
+
+</component>

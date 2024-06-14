@@ -18,17 +18,45 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
+import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
+import org.nuxeo.ecm.core.search.SearchClientException;
+import org.nuxeo.ecm.core.search.SearchClientRetryableException;
+import org.nuxeo.runtime.RetryableException;
+import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
 import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
+import org.opensearch.action.bulk.BulkRequest;
+import org.opensearch.action.delete.DeleteRequest;
+import org.opensearch.action.get.GetRequest;
+import org.opensearch.action.get.GetResponse;
+import org.opensearch.action.index.IndexRequest;
+import org.opensearch.action.search.ClearScrollRequest;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchScrollRequest;
+import org.opensearch.action.support.WriteRequest;
+import org.opensearch.common.unit.TimeValue;
+import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.index.VersionType;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
  * @since 2025.0
  */
 public class OpenSearchSearchClient extends AbstractSearchClient {
+
+    private static final Logger log = LogManager.getLogger(OpenSearchSearchClient.class);
+
+    public static final String ECM_ANCESTOR_FIELDS = "ecm:ancestorId";
 
     protected final OpenSearchClient client;
 
@@ -63,6 +91,103 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public void dropAndInitIndex(String indexName) {
         ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex(indexName);
+    }
+
+    @Override
+    public void indexDocuments(BulkIndexingRequest request) throws SearchClientRetryableException {
+        String indexName = request.getSearchIndex().index();
+        BulkRequest bulkRequest = new BulkRequest();
+        int count = 0;
+        for (IndexingRequest item : request.getRequests()) {
+            if (item.isDelete()) {
+                bulkRequest.add(new DeleteRequest(indexName, item.getDocumentId()).versionType(VersionType.EXTERNAL)
+                                                                                  .version(request.getVersion()));
+                if (item.isDeleteRecursive()) {
+                    // recurse delete are processed first before bulk index/delete command
+                    var query = QueryBuilders.constantScoreQuery(
+                            QueryBuilders.termQuery(ECM_ANCESTOR_FIELDS, item.getDocumentId()));
+                    doRecurseDelete(indexName, query);
+                }
+                count++;
+            } else {
+                bulkRequest.add(new IndexRequest(indexName).id(item.getDocumentId())
+                                                           .versionType(VersionType.EXTERNAL)
+                                                           .version(request.getVersion())
+                                                           .source(item.getSource(), XContentType.JSON));
+                count++;
+            }
+        }
+        if (request.isRefresh()) {
+            bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
+        }
+        // TODO check bulk request size and split if necessary
+        if (count > 0) {
+            // TODO add a BulkResponse with error, missing, indexed docs
+            // the goal is to be able to retry only the failed documents one by one.
+            try {
+                client.bulk(bulkRequest);
+            } catch (RetryableException e) {
+                throw new SearchClientRetryableException(e.getMessage());
+            }
+        }
+    }
+
+    protected void doRecurseDelete(String indexName, QueryBuilder queryBuilder) throws SearchClientRetryableException {
+        log.debug("delete recurse: {}", queryBuilder);
+        try {
+            TimeValue keepAlive = TimeValue.timeValueMinutes(1);
+            SearchSourceBuilder search = new SearchSourceBuilder().size(100).query(queryBuilder).fetchSource(false);
+            SearchRequest request = new SearchRequest(indexName).scroll(keepAlive).source(search);
+            request.scroll(TimeValue.timeValueMinutes(1));
+
+            SearchResponse response;
+            for (response = client.search(request); //
+                    response.getHits().getHits().length > 0; //
+                    response = client.scroll(new SearchScrollRequest(response.getScrollId()).scroll(keepAlive))) {
+                // Build bulk delete request
+                BulkRequest bulkRequest = new BulkRequest();
+                for (org.opensearch.search.SearchHit hit : response.getHits().getHits()) {
+                    bulkRequest.add(new DeleteRequest(hit.getIndex(), hit.getId()));
+                }
+                log.debug("Bulk delete request on {} elements", bulkRequest.numberOfActions());
+                // Run bulk delete request
+                client.bulk(bulkRequest);
+            }
+            // Close the scroll
+            ClearScrollRequest closeScrollRequest = new ClearScrollRequest();
+            closeScrollRequest.addScrollId(response.getScrollId());
+            client.clearScroll(closeScrollRequest);
+        } catch (RetryableException e) {
+            throw new SearchClientRetryableException(e.getMessage());
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
+    }
+
+    @Override
+    public String getDocument(String indexName, String documentId) {
+        try {
+            GetResponse response = client.get(new GetRequest(indexName).id(documentId));
+            if (response.isExists()) {
+                return response.getSourceAsString();
+            }
+            return null;
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
+    }
+
+    @Override
+    public Long getDocumentVersion(String indexName, String documentId) {
+        try {
+            GetResponse response = client.get(new GetRequest(indexName).id(documentId));
+            if (response.isExists()) {
+                return response.getVersion();
+            }
+            return null;
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
     }
 
     @Override

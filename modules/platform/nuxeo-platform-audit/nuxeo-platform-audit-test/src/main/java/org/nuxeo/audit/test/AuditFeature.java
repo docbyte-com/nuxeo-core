@@ -19,15 +19,12 @@
 package org.nuxeo.audit.test;
 
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.AUDIT_SERVICE_VALUE;
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_ELASTICSEARCH_7;
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_ELASTICSEARCH_8;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
-import java.util.Set;
 import java.util.function.IntFunction;
 
 import jakarta.inject.Inject;
@@ -62,9 +59,9 @@ public class AuditFeature implements RunnerFeature {
 
     public AuditFeature(DynamicFeaturesLoader loader) {
         var feature = switch (AUDIT_SERVICE_VALUE) {
-            case STORAGE_ELASTICSEARCH_7, STORAGE_ELASTICSEARCH_8, STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
             case STORAGE_MEM -> MemAuditFeature.class;
             case STORAGE_MONGODB -> MongoDBAuditFeature.class;
+            case STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
             case STORAGE_SQL -> SQLAuditFeature.class;
             default ->
                 throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
@@ -79,8 +76,7 @@ public class AuditFeature implements RunnerFeature {
     }
 
     public boolean isBackendOpenSearch() {
-        return Set.of(STORAGE_ELASTICSEARCH_7, STORAGE_ELASTICSEARCH_8, STORAGE_OPENSEARCH_1)
-                  .contains(AUDIT_SERVICE_VALUE);
+        return STORAGE_OPENSEARCH_1.equals(AUDIT_SERVICE_VALUE);
     }
 
     public boolean isBackendSql() {

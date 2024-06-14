@@ -18,13 +18,35 @@
  */
 package org.nuxeo.ecm.core.search.client.mock;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
+import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @since 2025.0
  */
 public class MockSearchClient extends AbstractSearchClient {
+
+    private static final Logger log = LogManager.getLogger(MockSearchClient.class);
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    protected final Map<String, String> documents = new ConcurrentHashMap<>();
+
+    protected final Map<String, Long> indexTime = new ConcurrentHashMap<>();
 
     public MockSearchClient(SearchClientDescriptor descriptor) {
         super(descriptor);
@@ -49,12 +71,72 @@ public class MockSearchClient extends AbstractSearchClient {
 
     @Override
     public void dropIndex(String name) {
-
+        documents.clear();
     }
 
     @Override
     public void dropAndInitIndex(String indexName) {
 
+    }
+
+    @Override
+    public void indexDocuments(BulkIndexingRequest bulk) {
+        long now = System.currentTimeMillis();
+        for (IndexingRequest request : bulk.getRequests()) {
+            String key = keyOf(bulk.getSearchIndex().index(), request.getDocumentId());
+            if (request.isDelete()) {
+                log.info("Delete {}, recursive: {}", key, request.isDeleteRecursive());
+                String deleted = documents.remove(key);
+                indexTime.remove(key);
+                if (request.isDeleteRecursive() && deleted != null) {
+                    String path = getPathFromDoc(deleted) + "/";
+                    log.info("Removing all doc with path: {}", path);
+                    for (Iterator<Map.Entry<String, String>> iter = documents.entrySet().iterator(); iter.hasNext();) {
+                        Map.Entry<String, String> entry = iter.next();
+                        String docPath = getPathFromDoc(entry.getValue());
+                        if (docPath.startsWith(path)) {
+                            log.info("Deleting doc: {}, with path: {}", entry.getKey(), docPath);
+                            iter.remove();
+                            indexTime.remove(entry.getKey());
+                        }
+                    }
+                }
+            } else {
+                String source = request.getSource();
+                log.info("Upsert {}: {}", key, source);
+                documents.put(key, source);
+                indexTime.put(key, now);
+            }
+        }
+    }
+
+    protected String getPathFromDoc(String doc) {
+        if (isBlank(doc)) {
+            return "";
+        }
+        try {
+            JsonNode node = MAPPER.readTree(doc).get("ecm:path");
+            if (node == null) {
+                return "";
+            }
+            return node.asText();
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    protected String keyOf(String indexName, String documentId) {
+        return indexName + ":" + documentId;
+    }
+
+    @Override
+    public String getDocument(String indexName, String documentId) {
+        return documents.get(keyOf(indexName, documentId));
+    }
+
+    @Override
+    public Long getDocumentVersion(String indexName, String documentId) {
+        return indexTime.getOrDefault(keyOf(indexName, documentId), null);
     }
 
     @Override

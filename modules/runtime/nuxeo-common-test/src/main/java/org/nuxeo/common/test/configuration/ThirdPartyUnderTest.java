@@ -32,10 +32,6 @@ public final class ThirdPartyUnderTest {
 
     // Third Party service possibilities
 
-    public static final String STORAGE_ELASTICSEARCH_7 = "elasticsearch7";
-
-    public static final String STORAGE_ELASTICSEARCH_8 = "elasticsearch8";
-
     public static final String STORAGE_MEM = "mem";
 
     public static final String STORAGE_MONGODB = "mongodb";
@@ -61,6 +57,8 @@ public final class ThirdPartyUnderTest {
     public static final SystemProperty DIRECTORY_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.directory",
             STORAGE_SQL);
 
+    public static final SystemProperty SEARCH_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.search", STORAGE_MEM);
+
     public static final SystemProperty STREAM_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.stream", STREAM_MEM);
 
     // Effective property values
@@ -72,6 +70,8 @@ public final class ThirdPartyUnderTest {
 
     public static final String DIRECTORY_SERVICE_VALUE = computeSystemProperty(DIRECTORY_SERVICE_PROPERTY,
             CORE_SERVICE_PROPERTY);
+
+    public static final String SEARCH_SERVICE_VALUE = computeSystemProperty(SEARCH_SERVICE_PROPERTY);
 
     public static final String STREAM_SERVICE_VALUE = computeSystemProperty(STREAM_SERVICE_PROPERTY);
 

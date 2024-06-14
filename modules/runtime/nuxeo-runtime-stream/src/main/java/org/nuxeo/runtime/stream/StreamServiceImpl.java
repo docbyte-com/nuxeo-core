@@ -18,6 +18,8 @@
  */
 package org.nuxeo.runtime.stream;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.io.Externalizable;
 import java.time.Duration;
 import java.time.Instant;
@@ -189,8 +191,8 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
 
     protected Settings getSettings(StreamProcessorDescriptor descriptor) {
         CodecService codecService = Framework.getService(CodecService.class);
-        Codec<Record> actualCodec = descriptor.defaultCodec == null ? codecService.getCodec(DEFAULT_CODEC, Record.class)
-                : codecService.getCodec(descriptor.defaultCodec, Record.class);
+        Codec<Record> actualCodec = codecService.getCodec(requireNonNullElse(descriptor.defaultCodec, DEFAULT_CODEC),
+                Record.class);
         Settings settings = new Settings(descriptor.defaultConcurrency, descriptor.defaultPartitions, actualCodec,
                 descriptor.getDefaultPolicy(), null, descriptor.defaultExternal);
         descriptor.computations.forEach(comp -> settings.setConcurrency(comp.name, comp.concurrency));
