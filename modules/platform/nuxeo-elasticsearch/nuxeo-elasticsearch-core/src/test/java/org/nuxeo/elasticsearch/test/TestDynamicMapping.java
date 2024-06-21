@@ -58,11 +58,11 @@ public class TestDynamicMapping extends TestMapping {
         TransactionHelper.commitOrRollbackTransaction();
         waitForIndexing();
         // automatic versioning system check in all notes after an update
-        // 3 commands processed:
+        // 2 commands processed:
         // - creation of version - automatically done by versioning system at creation step -> UPDATE on note
-        // - creation of version - automatically done by versioning system -> INSERT on version
+        // creation of version - automatically done by versioning system -> INSERT on version (merged with update)
         // - creation of note -> INSERT on note
-        assertNumberOfCommandProcessed(3);
+        assertNumberOfCommandProcessed(2);
 
         startTransaction();
         // check that the custom mapping applied

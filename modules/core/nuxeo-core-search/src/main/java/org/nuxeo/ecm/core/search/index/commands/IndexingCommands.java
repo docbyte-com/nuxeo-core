@@ -19,6 +19,8 @@
  */
 package org.nuxeo.ecm.core.search.index.commands;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -68,13 +70,16 @@ public class IndexingCommands {
             if (existing.merge(command)) {
                 return;
             }
-        } else if (commandTypes.contains(IndexingCommand.Type.INSERT)) {
+        } else if (commandTypes.contains(IndexingCommand.Type.INSERT)
+                || commandTypes.contains(IndexingCommand.Type.UPDATE)) {
             if (command.type == IndexingCommand.Type.DELETE) {
                 // index and delete in the same tx
                 clear();
             } else if (command.isSync()) {
+                IndexingCommand existing = requireNonNullElse(find(IndexingCommand.Type.INSERT),
+                        find(IndexingCommand.Type.UPDATE));
                 // switch to sync if possible
-                find(IndexingCommand.Type.INSERT).makeSync();
+                existing.makeSync();
             }
             // we already have an index command, don't care about the new command
             return;

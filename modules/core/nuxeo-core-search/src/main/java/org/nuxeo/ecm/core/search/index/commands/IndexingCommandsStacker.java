@@ -80,6 +80,10 @@ public abstract class IndexingCommandsStacker {
         if (doc == null) {
             return;
         }
+        if (doc.getRepositoryName() == null) {
+            log.warn("Skipping indexing doc without repo: {}, event: {}", doc.getId(), eventId);
+            return;
+        }
         if ("/".equals(doc.getPathAsString())) {
             log.debug("Skip indexing command for root document");
             if (eventId.equals(DOCUMENT_SECURITY_UPDATED)) {
@@ -185,7 +189,7 @@ public abstract class IndexingCommandsStacker {
             default:
                 return;
         }
-        if (sync && recurse) {
+        if (sync && recurse && type != IndexingCommand.Type.DELETE) {
             // split into 2 commands one sync and an async recurse
             cmds.add(type, true, false);
             cmds.add(type, false, true);
