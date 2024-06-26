@@ -27,18 +27,14 @@ import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_PRIMARYTYPE;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.COMMENT_PARENT_ID_PROPERTY;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_PROPERTY;
-import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_RELATION;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_SECURED;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STEP_PROPERTY_TO_SECURED;
-import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STEP_RELATION_TO_PROPERTY;
 import static org.nuxeo.ecm.platform.comment.impl.AbstractCommentManager.COMMENTS_DIRECTORY;
 import static org.nuxeo.ecm.platform.comment.impl.PropertyCommentManager.HIDDEN_FOLDER_TYPE;
 import static org.nuxeo.ecm.platform.ec.notification.NotificationConstants.DISABLE_NOTIFICATION_SERVICE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -54,12 +50,6 @@ import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.migrator.AbstractRepositoryMigrator;
 import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.ecm.platform.comment.service.CommentService;
-import org.nuxeo.ecm.platform.comment.service.CommentServiceConfig;
-import org.nuxeo.ecm.platform.relations.api.Graph;
-import org.nuxeo.ecm.platform.relations.api.RelationManager;
-import org.nuxeo.ecm.platform.relations.api.ResourceAdapter;
-import org.nuxeo.ecm.platform.relations.api.Statement;
-import org.nuxeo.ecm.platform.relations.api.impl.QNameResourceImpl;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.migration.MigrationService.MigrationContext;
 
@@ -85,15 +75,7 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
 
     @Override
     protected String probeSession(CoreSession session) {
-        CommentService commentComponent = (CommentService) Framework.getRuntime().getComponent(CommentService.NAME);
-        CommentServiceConfig commentServiceConfig = commentComponent.getConfig();
-        if (commentServiceConfig != null) {
-            Graph graph = Framework.getService(RelationManager.class).getGraph(commentServiceConfig.graphName, session);
-            if (!graph.getStatements().isEmpty()) {
-                return MIGRATION_STATE_RELATION;
-            }
-        }
-        // If not in relation, check if there are still comments under hidden Comments folder(s)
+        // Check if there are still comments under hidden Comments folder(s)
         // Do a new query one to check the step and the second the make the migration (do all comments)
         if (hasUnsecuredComments(session)) {
             return MIGRATION_STATE_PROPERTY;
@@ -104,7 +86,7 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
 
     @Override
     public void run(String step, MigrationContext migrationContext) {
-        if (!Set.of(MIGRATION_STEP_RELATION_TO_PROPERTY, MIGRATION_STEP_PROPERTY_TO_SECURED).contains(step)) {
+        if (!MIGRATION_STEP_PROPERTY_TO_SECURED.equals(step)) {
             throw new NuxeoException("Unknown migration step: " + step);
         }
         // needed for reportProgress
@@ -120,62 +102,9 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
 
     @Override
     protected void migrateSession(String step, MigrationContext migrationContext, CoreSession session) {
-        if (MIGRATION_STEP_RELATION_TO_PROPERTY.equals(step)) {
-            migrateSessionRelationToProperty(session, migrationContext);
-        } else if (MIGRATION_STEP_PROPERTY_TO_SECURED.equals(step)) {
+        if (MIGRATION_STEP_PROPERTY_TO_SECURED.equals(step)) {
             migrateSessionPropertyToSecured(session, migrationContext);
         }
-    }
-
-    /**
-     * @since 11.1
-     */
-    protected void migrateSessionRelationToProperty(CoreSession session, MigrationContext migrationContext) {
-        CommentService commentComponent = Framework.getService(CommentService.class);
-        CommentServiceConfig commentServiceConfig = commentComponent.getConfig();
-        if (commentServiceConfig != null) {
-            RelationManager relationManager = Framework.getService(RelationManager.class);
-            Graph graph = relationManager.getGraph(commentServiceConfig.graphName, session);
-            List<Statement> statements = graph.getStatements();
-            checkShutdownRequested(migrationContext);
-
-            processBatched(migrationContext, BATCH_SIZE, statements,
-                    statement -> migrateCommentsFromRelationToProperty(session, relationManager, commentServiceConfig,
-                            statement),
-                    "Migrating comments from Relation to Property");
-            reportProgress("Done Migrating from Relation to Property", statements.size(), statements.size());
-        }
-    }
-
-    /**
-     * @since 11.1
-     */
-    protected void migrateCommentsFromRelationToProperty(CoreSession session, RelationManager relationManager,
-            CommentServiceConfig config, Statement statement) {
-        Map<String, Object> ctxMap = Collections.singletonMap(ResourceAdapter.CORE_SESSION_CONTEXT_KEY, session);
-        QNameResourceImpl object = (QNameResourceImpl) statement.getObject();
-        DocumentModel parent = (DocumentModel) relationManager.getResourceRepresentation(config.documentNamespace,
-                object, ctxMap);
-
-        QNameResourceImpl subject = (QNameResourceImpl) statement.getSubject();
-        DocumentModel comment = (DocumentModel) relationManager.getResourceRepresentation(config.commentNamespace,
-                subject, ctxMap);
-
-        if (parent != null && comment != null) {
-            comment.putContextData(DISABLE_NOTIFICATION_SERVICE, TRUE); // Remove notifications
-            comment.setPropertyValue(COMMENT_PARENT_ID_PROPERTY, parent.getId());
-            session.saveDocument(comment);
-        } else if (parent == null && comment == null) {
-            log.warn("Documents {} and {} do not exist, they cannot be migrated", object.getLocalName(),
-                    subject.getLocalName());
-        } else {
-            log.warn("Document {} does not exist, it cannot be migrated",
-                    () -> parent == null ? object.getLocalName() : subject.getLocalName());
-        }
-
-        Graph graph = relationManager.getGraph(config.graphName, session);
-        graph.remove(statement);
-
     }
 
     /**
@@ -283,7 +212,7 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
     protected List<String> getUnsecuredCommentIds(CoreSession session) {
         List<String> parentIds = getCommentFolders(session);
         if (parentIds.isEmpty()) {
-            return Collections.emptyList();
+            return List.of();
         }
 
         String query = String.format("SELECT %s FROM Comment WHERE %s IN (%s)", ECM_UUID, ECM_PARENTID,
@@ -320,7 +249,7 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
             List<String> timestampCommentFoldersIds = session.queryProjection(query, 0, 0)
                                                              .stream()
                                                              .map(entry -> (String) entry.get(ECM_UUID))
-                                                             .collect(Collectors.toList());
+                                                             .toList();
             parentIds.addAll(rootCommentsFolderIds);
             parentIds.addAll(timestampCommentFoldersIds);
         }
@@ -331,9 +260,7 @@ public class CommentsMigrator extends AbstractRepositoryMigrator {
     public String probeState() {
         List<String> repositoryNames = Framework.getService(RepositoryService.class).getRepositoryNames();
         Set<String> probes = repositoryNames.stream().map(this::probeRepository).collect(Collectors.toSet());
-        if (probes.contains(MIGRATION_STATE_RELATION)) {
-            return MIGRATION_STATE_RELATION;
-        } else if (probes.contains(MIGRATION_STATE_PROPERTY)) {
+        if (probes.contains(MIGRATION_STATE_PROPERTY)) {
             return MIGRATION_STATE_PROPERTY;
         }
         return MIGRATION_STATE_SECURED;

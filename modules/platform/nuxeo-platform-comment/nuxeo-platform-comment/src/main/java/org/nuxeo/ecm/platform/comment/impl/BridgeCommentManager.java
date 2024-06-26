@@ -83,43 +83,8 @@ public class BridgeCommentManager extends AbstractCommentManager {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
-    public DocumentModel createComment(DocumentModel docModel, String comment) {
-        return second.createComment(docModel, comment);
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel docModel, String comment, String author) {
-        return second.createComment(docModel, comment, author);
-    }
-
-    @Override
     public DocumentModel createComment(DocumentModel docModel, DocumentModel comment) throws CommentSecurityException {
         return second.createComment(docModel, comment);
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel docModel, DocumentModel parent, DocumentModel child) {
-        return second.createComment(docModel, parent, child);
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public void deleteComment(DocumentModel docModel, DocumentModel comment) {
-        if (comment.getPropertyValue(COMMENT_PARENT_ID_PROPERTY) != null) {
-            second.deleteComment(docModel, comment);
-        } else {
-            first.deleteComment(docModel, comment);
-        }
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public List<DocumentModel> getDocumentsForComment(DocumentModel comment) {
-        return Stream.concat(first.getDocumentsForComment(comment).stream(),
-                second.getDocumentsForComment(comment).stream()).distinct().collect(Collectors.toList());
     }
 
     @Override
@@ -231,13 +196,11 @@ public class BridgeCommentManager extends AbstractCommentManager {
     }
 
     @Override
+    @SuppressWarnings("ConstantValue") // keep the switch in case the enum receive a new value one day
     public boolean hasFeature(Feature feature) {
-        switch (feature) {
-        case COMMENTS_LINKED_WITH_PROPERTY:
-            return false;
-        default:
-            throw new UnsupportedOperationException(feature.name());
-        }
+        return switch (feature) {
+            case COMMENTS_ARE_SPECIAL_CHILDREN -> false;
+        };
     }
 
     @Override
@@ -263,7 +226,6 @@ public class BridgeCommentManager extends AbstractCommentManager {
      * In some cases, leveraging {@link CommentConstants#COMMENT_PARENT_ID_PROPERTY} is not enough, this is the case
      * when bridge is used with {@link PropertyCommentManager} and {@link TreeCommentManager}.
      * <ul>
-     * <li>{@link CommentManagerImpl} (or RelationCommentManager): Comments structures are stored in jenaGraph</li>
      * <li>{@link PropertyCommentManager}: All comments are stored under a hidden folder and each comment stores its
      * parent id in {@code comment:parentId} property</li>
      * <li>{@link TreeCommentManager}: A {@link CommentConstants#COMMENT_ROOT_DOC_TYPE} document is created under the
@@ -277,16 +239,6 @@ public class BridgeCommentManager extends AbstractCommentManager {
     protected <T> T execute(CoreSession s, DocumentRef documentRef, Function<CommentManager, T> function) {
         return CoreInstance.doPrivileged(s, session -> {
             DocumentModel documentModel = session.getDocument(documentRef);
-
-            // From `Relation` to `Property`
-            if (first instanceof CommentManagerImpl && second instanceof PropertyCommentManager) {
-                if (documentModel.getPropertyValue(COMMENT_PARENT_ID_PROPERTY) != null) {
-                    // Comment is in property model
-                    return function.apply(second);
-                }
-                // Comment still in relation model
-                return function.apply(first);
-            }
 
             // From `Property` to `Tree`
             if (first instanceof PropertyCommentManager && second instanceof TreeCommentManager) {

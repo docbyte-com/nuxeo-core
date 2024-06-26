@@ -12,7 +12,6 @@
 
   <modules>
     <module>nuxeo-platform-comment-api</module>
-    <module>nuxeo-platform-comment-core</module>
     <module>nuxeo-platform-comment</module>
     <module>nuxeo-platform-comment-rest-api</module>
     <module>nuxeo-platform-comment-workflow</module>

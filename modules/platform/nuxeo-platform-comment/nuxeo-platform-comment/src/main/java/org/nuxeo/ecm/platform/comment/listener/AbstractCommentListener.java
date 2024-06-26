@@ -30,10 +30,6 @@ import org.nuxeo.ecm.core.event.EventBundle;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.platform.comment.api.CommentManager;
-import org.nuxeo.ecm.platform.comment.service.CommentServiceConfig;
-import org.nuxeo.ecm.platform.comment.service.CommentServiceHelper;
-import org.nuxeo.ecm.platform.relations.api.RelationManager;
-import org.nuxeo.runtime.api.Framework;
 
 public abstract class AbstractCommentListener {
 
@@ -51,9 +47,7 @@ public abstract class AbstractCommentListener {
             if (ctx instanceof DocumentEventContext docCtx) {
                 DocumentModel doc = docCtx.getSourceDocument();
                 CoreSession coreSession = docCtx.getCoreSession();
-                CommentServiceConfig config = CommentServiceHelper.getCommentService().getConfig();
-                RelationManager relationManager = Framework.getService(RelationManager.class);
-                doProcess(coreSession, relationManager, config, doc);
+                doProcess(coreSession, doc);
             }
         }
     }
@@ -64,7 +58,6 @@ public abstract class AbstractCommentListener {
                       .forEach(comment -> coreSession.removeDocument(new IdRef(comment.getId())));
     }
 
-    protected abstract void doProcess(CoreSession coreSession, RelationManager relationManager,
-            CommentServiceConfig config, DocumentModel docMessage);
+    protected abstract void doProcess(CoreSession coreSession, DocumentModel docMessage);
 
 }

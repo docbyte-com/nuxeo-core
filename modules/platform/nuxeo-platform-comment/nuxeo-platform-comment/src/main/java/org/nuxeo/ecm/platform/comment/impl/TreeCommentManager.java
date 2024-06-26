@@ -157,12 +157,6 @@ public class TreeCommentManager extends AbstractCommentManager {
     }
 
     @Override
-    @SuppressWarnings("removal")
-    public List<DocumentModel> getDocumentsForComment(DocumentModel comment) {
-        throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
-    }
-
-    @Override
     public DocumentModel getThreadForComment(DocumentModel comment) {
         throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
     }
@@ -249,23 +243,6 @@ public class TreeCommentManager extends AbstractCommentManager {
     }
 
     @Override
-    public DocumentModel createComment(DocumentModel doc, String text) {
-        throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel doc, String text, String author) {
-        throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel doc, DocumentModel parent, DocumentModel child) {
-        throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
-    }
-
-    @Override
     public Comment updateComment(CoreSession session, String commentId, Comment comment) {
         // Get the comment doc model
         DocumentModel commentDoc = getCommentDocumentModel(session, commentId);
@@ -321,13 +298,6 @@ public class TreeCommentManager extends AbstractCommentManager {
     public void deleteComment(CoreSession s, String commentId) {
         removeComment(s, new IdRef(commentId));
     }
-
-    @Override
-    @SuppressWarnings("removal")
-    public void deleteComment(DocumentModel doc, DocumentModel comment) {
-        throw new UnsupportedOperationException(SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE);
-    }
-
     /**
      * Returns the {@link DocumentRef} of the comments location in repository for the given commented document model.
      *
@@ -351,14 +321,11 @@ public class TreeCommentManager extends AbstractCommentManager {
     }
 
     @Override
+    @SuppressWarnings("ConstantValue") // keep the switch in case the enum receive a new value one day
     public boolean hasFeature(Feature feature) {
-        switch (feature) {
-        case COMMENTS_LINKED_WITH_PROPERTY:
-        case COMMENTS_ARE_SPECIAL_CHILDREN:
-            return true;
-        default:
-            throw new UnsupportedOperationException(feature.name());
-        }
+        return switch (feature) {
+            case COMMENTS_ARE_SPECIAL_CHILDREN -> true;
+        };
     }
 
     @Override

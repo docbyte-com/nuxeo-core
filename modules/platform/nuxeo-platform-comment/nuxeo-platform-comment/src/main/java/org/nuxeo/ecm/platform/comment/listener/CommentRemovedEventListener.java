@@ -22,9 +22,6 @@
 package org.nuxeo.ecm.platform.comment.listener;
 
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.COMMENT_DOC_TYPE;
-import static org.nuxeo.ecm.platform.comment.api.CommentManager.Feature.COMMENTS_LINKED_WITH_PROPERTY;
-
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,11 +29,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.platform.comment.api.CommentManager;
-import org.nuxeo.ecm.platform.comment.service.CommentServiceConfig;
-import org.nuxeo.ecm.platform.relations.api.Graph;
-import org.nuxeo.ecm.platform.relations.api.RelationManager;
-import org.nuxeo.ecm.platform.relations.api.Resource;
-import org.nuxeo.ecm.platform.relations.api.Statement;
 import org.nuxeo.runtime.api.Framework;
 
 public class CommentRemovedEventListener extends AbstractCommentListener implements EventListener {
@@ -44,33 +36,13 @@ public class CommentRemovedEventListener extends AbstractCommentListener impleme
     private static final Logger log = LogManager.getLogger(CommentRemovedEventListener.class);
 
     @Override
-    protected void doProcess(CoreSession coreSession, RelationManager relationManager, CommentServiceConfig config,
-            DocumentModel docMessage) {
-        log.debug("Processing relations cleanup on Comment removal");
+    protected void doProcess(CoreSession coreSession, DocumentModel docMessage) {
+        log.debug("Processing replies cleanup on Comment removal");
         String typeName = docMessage.getType();
         if (COMMENT_DOC_TYPE.equals(typeName) || "Post".equals(typeName)) {
             CommentManager commentManager = Framework.getService(CommentManager.class);
-            if (commentManager.hasFeature(COMMENTS_LINKED_WITH_PROPERTY)) {
-                deleteCommentChildren(coreSession, commentManager, docMessage);
-                coreSession.save();
-            } else if (relationManager != null) {
-                onCommentRemoved(relationManager, config, docMessage);
-            } else {
-                log.info("Migration in progress or relation manager is missing");
-            }
+            deleteCommentChildren(coreSession, commentManager, docMessage);
+            coreSession.save();
         }
-    }
-
-    private static void onCommentRemoved(RelationManager relationManager, CommentServiceConfig config,
-            DocumentModel docModel) {
-        Resource commentRes = relationManager.getResource(config.commentNamespace, docModel, null);
-        if (commentRes == null) {
-            log.warn("Could not adapt document model to relation resource; "
-                    + "check the service relation adapters configuration");
-            return;
-        }
-        Graph graph = relationManager.getGraph(config.graphName, docModel.getCoreSession());
-        List<Statement> statementList = graph.getStatements(commentRes, null, null);
-        graph.remove(statementList);
     }
 }

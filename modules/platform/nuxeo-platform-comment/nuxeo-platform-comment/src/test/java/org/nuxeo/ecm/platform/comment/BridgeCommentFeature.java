@@ -52,7 +52,7 @@ import com.google.inject.name.Names;
  * This feature doesn't trigger the migration!
  * <p>
  * Due to its design, this feature can't be used as it because there should not be a migration step having the supported
- * implementation. It should be used with {@link RelationCommentFeature} or {@link PropertyCommentFeature}.
+ * implementation. It should be used with {@link PropertyCommentFeature}.
  *
  * @since 11.1
  */

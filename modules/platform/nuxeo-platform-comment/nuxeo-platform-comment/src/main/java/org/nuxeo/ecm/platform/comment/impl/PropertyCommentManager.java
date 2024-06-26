@@ -108,22 +108,6 @@ public class PropertyCommentManager extends AbstractCommentManager {
     }
 
     @Override
-    public List<DocumentModel> getComments(DocumentModel docModel, DocumentModel parent) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
-    }
-
-    @Override
-    public DocumentModel createComment(DocumentModel docModel, String comment) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel docModel, String text, String author) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
-    }
-
-    @Override
     public DocumentModel createComment(DocumentModel docModel, DocumentModel commentModel)
             throws CommentSecurityException {
 
@@ -148,24 +132,6 @@ public class PropertyCommentManager extends AbstractCommentManager {
         notifyEvent(session, CommentEvents.COMMENT_ADDED, docModel, comment);
 
         return comment;
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public DocumentModel createComment(DocumentModel docModel, DocumentModel parent, DocumentModel child) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public void deleteComment(DocumentModel docModel, DocumentModel comment) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
-    }
-
-    @Override
-    @SuppressWarnings("removal")
-    public List<DocumentModel> getDocumentsForComment(DocumentModel comment) {
-        throw new UnsupportedOperationException("This service implementation does not implement deprecated API.");
     }
 
     @Override
@@ -420,15 +386,11 @@ public class PropertyCommentManager extends AbstractCommentManager {
     }
 
     @Override
+    @SuppressWarnings("ConstantValue") // keep the switch in case the enum receive a new value one day
     public boolean hasFeature(Feature feature) {
-        switch (feature) {
-        case COMMENTS_LINKED_WITH_PROPERTY:
-            return true;
-        case COMMENTS_ARE_SPECIAL_CHILDREN:
-            return false;
-        default:
-            throw new UnsupportedOperationException(feature.name());
-        }
+        return switch (feature) {
+            case COMMENTS_ARE_SPECIAL_CHILDREN -> false;
+        };
     }
 
     @Override
@@ -445,8 +407,8 @@ public class PropertyCommentManager extends AbstractCommentManager {
             PageProvider<DocumentModel> pageProvider;
             // backward compatibility
             if (isBlank(documentId)) {
-                pageProvider = (PageProvider<DocumentModel>) ppService.getPageProvider(GET_COMMENT_PAGEPROVIDER_NAME, null,
-                        1L, 0L, props, entityId);
+                pageProvider = (PageProvider<DocumentModel>) ppService.getPageProvider(GET_COMMENT_PAGEPROVIDER_NAME,
+                        null, 1L, 0L, props, entityId);
             } else {
                 pageProvider = (PageProvider<DocumentModel>) ppService.getPageProvider(
                         GET_EXTERNAL_COMMENT_PAGEPROVIDER_NAME, null, 1L, 0L, props, documentId, entityId);
