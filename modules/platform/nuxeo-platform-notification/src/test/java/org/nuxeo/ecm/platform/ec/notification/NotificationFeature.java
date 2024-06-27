@@ -16,7 +16,9 @@
  */
 package org.nuxeo.ecm.platform.ec.notification;
 
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
@@ -25,6 +27,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @since 2023.4
  */
 @Deploy("org.nuxeo.ecm.platform.notification")
+@Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.notification.tests:default-general-settings-contrib.xml")
+@Features(AutomationCoreFeature.class)
 public class NotificationFeature implements RunnerFeature {
 }

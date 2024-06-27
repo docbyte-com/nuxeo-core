@@ -31,11 +31,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 11.4
  */
-@Deploy("org.nuxeo.ecm.core.cache")
-@Deploy("org.nuxeo.ecm.core.mimetype")
 @Deploy("org.nuxeo.ecm.platform.oauth")
 @Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.ecm.platform.query.api:OSGI-INF/pageprovider-framework.xml")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.liveconnect")
 @Deploy("org.nuxeo.ecm.liveconnect.test:OSGI-INF/test-box-config.xml")
 @Deploy("org.nuxeo.ecm.liveconnect.test:OSGI-INF/test-googledrive-config.xml")

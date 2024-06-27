@@ -41,7 +41,7 @@ import com.google.inject.Scopes;
  * @since 5.7
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Features({ DetectThreadDeadlocksFeature.class, WebEngineFeature.class, AutomationServerFeature.class })
+@Features({ AutomationFeature.class, DetectThreadDeadlocksFeature.class, WebEngineFeature.class })
 public class EmbeddedAutomationServerFeature implements RunnerFeature {
 
     @Inject

@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.repository.AutomationRepositoryInit;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -52,7 +52,7 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WebEngineFeature.class, AutomationServerFeature.class })
+@Features({ AutomationFeature.class, WebEngineFeature.class })
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.automation.test.test:test-servletcontainer-contrib.xml")

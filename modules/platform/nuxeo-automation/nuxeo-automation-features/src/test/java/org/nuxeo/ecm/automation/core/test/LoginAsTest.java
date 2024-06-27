@@ -34,10 +34,10 @@ import org.nuxeo.ecm.automation.core.operations.FetchContextDocument;
 import org.nuxeo.ecm.automation.core.operations.document.CreateDocument;
 import org.nuxeo.ecm.automation.core.operations.login.LoginAs;
 import org.nuxeo.ecm.automation.core.operations.login.Logout;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -47,9 +47,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, NuxeoLoginFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, NuxeoLoginFeature.class })
+@Deploy("org.nuxeo.ecm.platform.dublincore")
 public class LoginAsTest {
 
     @Inject

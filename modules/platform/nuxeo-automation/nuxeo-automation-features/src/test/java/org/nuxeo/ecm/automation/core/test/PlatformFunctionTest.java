@@ -33,9 +33,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
-import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.automation.features.PlatformFunctions;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -47,8 +46,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.7
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.automation.features:test-vocabularies-contrib.xml")
 @Deploy("org.nuxeo.ecm.automation.features:test-platform-functions.xml")
 public class PlatformFunctionTest {

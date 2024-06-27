@@ -51,7 +51,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
  */
 @RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directory-resolver-contrib.xml")
 public class DirectoryEntryJsonWriterTest
         extends AbstractJsonWriterTest.External<DirectoryEntryJsonWriter, DirectoryEntry> {

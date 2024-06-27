@@ -33,9 +33,11 @@ import java.util.stream.Stream;
 
 import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
@@ -46,6 +48,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.migration")
+@Features(ClusterFeature.class)
 public class MigrationFeature implements RunnerFeature {
 
     protected static final String[] KEYS = { STEP, START_TIME, PING_TIME, PROGRESS_MESSAGE, PROGRESS_NUM,

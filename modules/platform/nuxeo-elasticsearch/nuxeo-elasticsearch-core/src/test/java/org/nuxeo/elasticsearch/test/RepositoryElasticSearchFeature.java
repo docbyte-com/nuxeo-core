@@ -18,6 +18,8 @@
  */
 package org.nuxeo.elasticsearch.test;
 
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
@@ -28,16 +30,9 @@ import org.nuxeo.runtime.test.runner.LogFeature;
 /**
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-@Deploy("org.nuxeo.ecm.automation.server")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
-@Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.webengine.rest")
-@Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.core.management")
-@Features({ NuxeoLoginFeature.class, LogFeature.class, RepositoryLightElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core.test:elastic-search-core-management-tests-component.xml")
+@Features({ AutomationIOFeature.class, AutomationServerFeature.class, NuxeoLoginFeature.class, LogFeature.class,
+        RepositoryLightElasticSearchFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class RepositoryElasticSearchFeature extends RepositoryLightElasticSearchFeature {
     // Same as RepositoryLightElasticSearchFeature with more deployments

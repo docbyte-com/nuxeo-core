@@ -36,7 +36,7 @@ import org.nuxeo.ecm.automation.core.impl.OperationTypeImpl;
 import org.nuxeo.ecm.automation.core.operations.document.CreateDocument;
 import org.nuxeo.ecm.automation.core.operations.document.SaveDocument;
 import org.nuxeo.ecm.automation.core.operations.login.Logout;
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.helpers.TestOperation;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -44,9 +44,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
 
 @RunWith(FeaturesRunner.class)
-@Features(AutomationServerFeature.class)
+@Features(AutomationFeature.class)
 @Deploy("org.nuxeo.ecm.automation.test")
-@Deploy("org.nuxeo.ecm.webengine.core")
 public class TestOperationRegistration {
 
     @Inject

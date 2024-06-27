@@ -31,16 +31,12 @@ import org.junit.runner.RunWith;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @since 11.2
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.runtime.kv")
-@Deploy("org.nuxeo.runtime.cluster")
-@Deploy("org.nuxeo.runtime.migration")
+@Features(MigrationFeature.class)
 @Deploy("org.nuxeo.runtime.migration.tests:OSGI-INF/dummy-migration.xml")
 public class TestMigrationService {
 

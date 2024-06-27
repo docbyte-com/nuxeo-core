@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -32,9 +33,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @since 7.2
  */
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.user.center.profile")
-@Features(PlatformFeature.class)
+@Features({ ImagingFeature.class, PlatformFeature.class })
 public class UserProfileFeature implements RunnerFeature {
 
     protected File dir;

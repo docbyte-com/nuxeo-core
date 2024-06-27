@@ -21,6 +21,7 @@ package org.nuxeo.runtime.stream.tests;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.runtime.stream.StreamServiceImpl.STREAM_PROCESSING_ENABLED;
 
 import java.util.Set;
 
@@ -32,16 +33,17 @@ import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.StreamManager;
 import org.nuxeo.lib.stream.log.LogManager;
 import org.nuxeo.lib.stream.log.Name;
-import org.nuxeo.runtime.stream.DisableStreamProcessingFeature;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @RunWith(FeaturesRunner.class)
-@Features({ DisableStreamProcessingFeature.class, RuntimeStreamFeature.class })
+@Features(RuntimeStreamFeature.class)
 @Deploy("org.nuxeo.runtime.stream:test-stream-contrib.xml")
+@WithFrameworkProperty(name = STREAM_PROCESSING_ENABLED, value = "false")
 public class TestStreamServiceDisabledProcessing {
 
     @Inject

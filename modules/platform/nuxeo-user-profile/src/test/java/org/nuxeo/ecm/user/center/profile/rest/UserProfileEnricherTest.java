@@ -48,8 +48,8 @@ import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriterTest;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.io.NuxeoPrincipalJsonWriter;
+import org.nuxeo.ecm.user.center.profile.UserProfileFeature;
 import org.nuxeo.ecm.user.center.profile.UserProfileService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -58,9 +58,7 @@ import org.nuxeo.runtime.test.runner.Features;
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 8.1
  */
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.user.center.profile")
+@Features(UserProfileFeature.class)
 @Deploy("org.nuxeo.ecm.user.center.profile:OSGI-INF/test-core-types-contrib.xml")
 public class UserProfileEnricherTest extends AbstractJsonWriterTest.External<NuxeoPrincipalJsonWriter, NuxeoPrincipal> {
 

@@ -18,7 +18,7 @@
  */
 package org.nuxeo.binary.metadata.test;
 
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -29,7 +29,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.binary.metadata")
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Features(CoreFeature.class)
+@Features(AutomationCoreFeature.class)
 public class BinaryMetadataFeature implements RunnerFeature {
 
 }

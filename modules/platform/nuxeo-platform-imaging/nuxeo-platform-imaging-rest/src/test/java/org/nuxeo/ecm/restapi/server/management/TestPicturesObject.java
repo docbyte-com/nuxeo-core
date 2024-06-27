@@ -48,7 +48,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.platform.picture.PictureViewsHelper;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.ecm.platform.picture.listener.PictureViewsGenerationListener;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -58,7 +58,7 @@ import org.nuxeo.runtime.test.runner.Features;
 /**
  * @since 11.3
  */
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.picture.rest")
 public class TestPicturesObject extends ManagementBaseTest {
 

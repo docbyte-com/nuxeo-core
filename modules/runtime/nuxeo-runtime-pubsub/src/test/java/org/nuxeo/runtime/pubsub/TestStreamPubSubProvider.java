@@ -22,17 +22,12 @@ import static junit.framework.TestCase.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.runtime.cluster.ClusterFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ ClusterFeature.class })
-@Deploy("org.nuxeo.runtime.stream")
-@Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.runtime.stream:test-stream-contrib.xml")
-@Deploy("org.nuxeo.runtime.stream:test-stream-pubsub-contrib.xml")
+@Features({ PubSubFeature.class, RuntimeStreamFeature.class })
 public class TestStreamPubSubProvider extends TestMemPubSubProvider {
 
     @Test

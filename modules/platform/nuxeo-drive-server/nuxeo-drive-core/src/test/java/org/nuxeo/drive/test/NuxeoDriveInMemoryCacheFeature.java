@@ -24,8 +24,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
  * @since 8.4
+ * @deprecated since 2025.0, use only {@link NuxeoDriveFeature} as it configures Nuxeo cache that are in memory
  */
 @Features(InMemoryCacheFeature.class)
+@Deprecated(since = "2025.0", forRemoval = true)
 public class NuxeoDriveInMemoryCacheFeature implements RunnerFeature {
 
 }

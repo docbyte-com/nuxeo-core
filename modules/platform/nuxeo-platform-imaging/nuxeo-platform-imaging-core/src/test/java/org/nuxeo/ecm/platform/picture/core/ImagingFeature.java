@@ -24,7 +24,9 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
- * since 11.3
+ * @since 11.3
+ * @deprecated since 2025.0, use {@link ImagingCoreFeature} instead or
+ *             {@code org.nuxeo.ecm.platform.picture.test.ImagingFeature} from nuxeo-platform-imaging-test module
  */
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
@@ -32,6 +34,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.tag")
 @Deploy("org.nuxeo.ecm.platform.picture.core.tests:OSGI-INF/empty-picture-configuration-contrib.xml")
 @Features(AutomationCoreFeature.class)
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ImagingFeature implements RunnerFeature {
 
 }

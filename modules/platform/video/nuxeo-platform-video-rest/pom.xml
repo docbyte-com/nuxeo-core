@@ -32,5 +32,9 @@
       <artifactId>nuxeo-rest-api-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-imaging-test</artifactId>
+    </dependency>
   </dependencies>
 </project>

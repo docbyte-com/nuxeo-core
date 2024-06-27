@@ -29,18 +29,17 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.platform.mail.MailFeature;
 import org.nuxeo.ecm.platform.mail.service.MailService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @author Alexandre Russel
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.platform.mail")
+@Features(MailFeature.class)
 @Deploy("org.nuxeo.ecm.platform.mail.test")
 public class TestPropertiesFetcher {
 

@@ -51,7 +51,6 @@ import org.nuxeo.ecm.web.resources.wro.processor.FlavorResourceProcessor;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 import ro.isdc.wro.config.Context;
 import ro.isdc.wro.model.factory.DefaultWroModelFactoryDecorator;
@@ -65,11 +64,7 @@ import ro.isdc.wro.util.WroTestUtils;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.theme.styling")
-@Deploy("org.nuxeo.web.resources.core")
-@Deploy("org.nuxeo.web.resources.wro")
-@Deploy("org.nuxeo.web.resources.wro:webresources-test-config.xml")
+@Features(WebResourcesWroFeature.class)
 @Deploy("org.nuxeo.web.resources.wro:theme-styling-test-config.xml")
 public class TestFlavorResourceProcessor {
 

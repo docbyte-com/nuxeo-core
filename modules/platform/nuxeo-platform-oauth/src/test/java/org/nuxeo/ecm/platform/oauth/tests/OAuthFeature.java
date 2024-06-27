@@ -25,6 +25,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 @Deploy("org.nuxeo.ecm.platform.oauth")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Features({ DummyLoginFeature.class, PlatformFeature.class })
 public class OAuthFeature implements RunnerFeature {
 

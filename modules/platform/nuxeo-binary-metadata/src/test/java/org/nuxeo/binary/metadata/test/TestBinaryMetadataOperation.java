@@ -53,7 +53,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(BinaryMetadataFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-test.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-disable-listener.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-pdf-test.xml")

@@ -27,6 +27,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoGroup;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -43,10 +44,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(DirectoryFeature.class)
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 @Deploy("org.nuxeo.ecm.automation.features:test-usermanager-powerusers.xml")

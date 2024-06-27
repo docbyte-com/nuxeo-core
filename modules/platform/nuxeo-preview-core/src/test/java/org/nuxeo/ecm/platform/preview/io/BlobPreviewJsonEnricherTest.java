@@ -40,11 +40,11 @@ import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.platform.preview.PreviewCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.preview")
+@Features({ CoreFeature.class, PreviewCoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.preview:test-dummy-blob-provider.xml")
 public class BlobPreviewJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentModelJsonWriter, DocumentModel> {
 

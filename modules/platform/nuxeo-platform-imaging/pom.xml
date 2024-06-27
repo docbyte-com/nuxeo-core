@@ -16,6 +16,7 @@
   <modules>
     <module>nuxeo-platform-imaging-core</module>
     <module>nuxeo-platform-imaging-rest</module>
+    <module>nuxeo-platform-imaging-test</module>
   </modules>
 
 </project>

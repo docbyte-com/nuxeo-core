@@ -27,6 +27,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @since 11.1
  */
 @Deploy("org.nuxeo.ecm.jwt")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
 @Features(PlatformFeature.class)
 public class JWTFeature implements RunnerFeature {

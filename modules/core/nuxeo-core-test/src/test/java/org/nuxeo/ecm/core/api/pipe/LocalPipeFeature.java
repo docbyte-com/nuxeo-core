@@ -16,14 +16,13 @@
  */
 package org.nuxeo.ecm.core.api.pipe;
 
+import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
-@Deploy("org.nuxeo.ecm.core.event")
 @Deploy("org.nuxeo.ecm.core.event.test:test-LocalPipes.xml")
-@Features(RuntimeFeature.class)
+@Features(CoreEventFeature.class)
 public class LocalPipeFeature implements RunnerFeature {
 
 }

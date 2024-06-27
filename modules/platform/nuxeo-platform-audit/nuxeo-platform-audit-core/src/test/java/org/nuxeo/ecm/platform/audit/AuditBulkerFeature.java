@@ -18,19 +18,10 @@ package org.nuxeo.ecm.platform.audit;
 
 import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_AUDIT_ENABLED_PROP;
 
-import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.runtime.management.ManagementFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
-@Deploy("org.nuxeo.runtime.datasource")
-@Deploy("org.nuxeo.runtime.metrics")
-@Deploy("org.nuxeo.ecm.core.persistence")
-@Deploy("org.nuxeo.ecm.platform.audit")
-@Deploy("org.nuxeo.ecm.platform.audit:nxaudit-ds.xml")
 @Deploy("org.nuxeo.ecm.platform.audit:test-audit-bulker-contrib.xml")
-@Features({ ManagementFeature.class, PlatformFeature.class })
 @WithFrameworkProperty(name = STREAM_AUDIT_ENABLED_PROP, value = "false")
 public class AuditBulkerFeature extends AuditFeature {
 

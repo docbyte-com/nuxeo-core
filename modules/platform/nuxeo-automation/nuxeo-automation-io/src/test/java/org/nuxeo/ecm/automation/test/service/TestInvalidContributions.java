@@ -24,8 +24,8 @@ import java.util.List;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.runtime.RuntimeMessage.Level;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -38,9 +38,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, WebEngineFeatureCore.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.io")
+@Features({ AutomationCoreFeature.class, AutomationIOFeature.class })
 public class TestInvalidContributions {
 
     protected void checkStartupError(String message) {

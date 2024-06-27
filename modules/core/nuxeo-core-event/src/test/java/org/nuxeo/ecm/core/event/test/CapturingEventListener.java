@@ -66,7 +66,7 @@ public class CapturingEventListener extends EventListenerDescriptor implements E
      * @param events The events to catch, leave empty to catch them all
      */
     public CapturingEventListener(String... events) {
-        this.name = DEFAULT_NAME;
+        this.name = DEFAULT_NAME + "-" + String.join("/", events) + "-" + hashCode();
         this.className = getClass().getName();
         this.events = events.length == 0 ? null : new HashSet<>(Arrays.asList(events)); // null to meet acceptEvent
         // add listener to event bus
@@ -270,6 +270,13 @@ public class CapturingEventListener extends EventListenerDescriptor implements E
         } else {
             return Optional.of(list.get(list.size() - 1));
         }
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public boolean hasCapturedEvents() {
+        return streamCapturedEvents().findAny().isPresent();
     }
 
     public long getCapturedEventCount(String event) {

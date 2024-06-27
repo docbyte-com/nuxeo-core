@@ -39,6 +39,7 @@ import com.google.inject.name.Names;
 @Deploy("org.nuxeo.ecm.directory.api")
 @Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.types.contrib")
+@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/types-config.xml")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/core-directory-config.xml")
 @Features(CoreFeature.class)

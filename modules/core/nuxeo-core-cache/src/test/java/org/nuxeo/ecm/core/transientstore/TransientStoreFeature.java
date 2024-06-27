@@ -19,16 +19,17 @@
 package org.nuxeo.ecm.core.transientstore;
 
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
-@Deploy("org.nuxeo.ecm.core.cache")
-@Features(RuntimeFeature.class)
+// deploy partially the bundle because we have features for cache and transient store
+@Deploy("org.nuxeo.ecm.core.cache:OSGI-INF/transientstore-service.xml")
+@Features(CoreEventFeature.class)
 public class TransientStoreFeature implements RunnerFeature {
 
     @Override

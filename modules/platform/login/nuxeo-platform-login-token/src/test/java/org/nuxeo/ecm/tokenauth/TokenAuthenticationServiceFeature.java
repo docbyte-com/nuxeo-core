@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.tokenauth;
 
+import org.nuxeo.ecm.jwt.JWTFeature;
+import org.nuxeo.ecm.platform.oauth.tests.OAuthFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.tokenauth.service.TokenAuthenticationService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -30,15 +32,12 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @author Antoine Taillefer (ataillefer@nuxeo.com)
  * @since 5.7
  */
-@Deploy("org.nuxeo.ecm.platform.web.common:OSGI-INF/authentication-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.oauth")
-@Deploy("org.nuxeo.ecm.jwt")
 @Deploy("org.nuxeo.ecm.automation.server:OSGI-INF/auth-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token:OSGI-INF/token-authentication-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token:OSGI-INF/token-authentication-directory-types.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token:OSGI-INF/token-authentication-framework.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token.test:OSGI-INF/test-token-authentication-directory-contrib.xml")
-@Features(PlatformFeature.class)
+@Features({ JWTFeature.class, OAuthFeature.class, PlatformFeature.class })
 public class TokenAuthenticationServiceFeature implements RunnerFeature {
 
 }

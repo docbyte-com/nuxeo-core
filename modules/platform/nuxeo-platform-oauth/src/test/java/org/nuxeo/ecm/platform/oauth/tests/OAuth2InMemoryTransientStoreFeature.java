@@ -26,7 +26,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 9.2
  */
-@Deploy("org.nuxeo.ecm.platform.oauth:OSGI-INF/transientstore-test-config.xml")
+@Deploy("org.nuxeo.ecm.platform.oauth.test:OSGI-INF/transientstore-test-config.xml")
 @Features(InMemoryTransientStoreFeature.class)
 public class OAuth2InMemoryTransientStoreFeature implements RunnerFeature {
 }

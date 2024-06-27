@@ -30,6 +30,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -56,9 +57,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  * @since 5.7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features({ CoreFeature.class, AutomationIOFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.io")
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.automation.io:testrestcontrib.xml")
 public class RestServiceTest {

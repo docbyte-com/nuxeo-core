@@ -23,10 +23,11 @@ import static org.junit.Assert.assertNotNull;
 
 import java.io.Serializable;
 
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.quota.size.QuotaAware;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -37,9 +38,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.platform.content.template")
+@Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.quota")
 @Deploy("org.nuxeo.ecm.quota.test")
-@Features(CoreFeature.class)
+@Features({ AutomationCoreFeature.class, AutomationServerFeature.class })
 public class QuotaFeature implements RunnerFeature {
 
     @SuppressWarnings("unchecked")

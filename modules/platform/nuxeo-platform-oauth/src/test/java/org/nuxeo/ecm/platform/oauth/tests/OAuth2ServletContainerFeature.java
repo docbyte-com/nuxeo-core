@@ -42,8 +42,9 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 /**
  * @since 9.2
  */
-@Deploy("org.nuxeo.ecm.platform.oauth:OSGI-INF/servletcontainer-config.xml")
-@Deploy("org.nuxeo.ecm.platform.oauth:OSGI-INF/test-oauth2-authentication-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.web.common")
+@Deploy("org.nuxeo.ecm.platform.oauth.test:OSGI-INF/servletcontainer-config.xml")
+@Deploy("org.nuxeo.ecm.platform.oauth.test:OSGI-INF/test-oauth2-authentication-contrib.xml")
 @Features(ServletContainerTransactionalFeature.class)
 public class OAuth2ServletContainerFeature implements RunnerFeature, WorkingDirectoryConfigurator {
 

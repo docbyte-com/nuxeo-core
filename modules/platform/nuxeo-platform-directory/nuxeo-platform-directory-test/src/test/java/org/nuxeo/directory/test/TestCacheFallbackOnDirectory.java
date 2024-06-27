@@ -50,7 +50,6 @@ import io.dropwizard.metrics5.SharedMetricRegistries;
  */
 @RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directories-schema-override.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:directory-default-user-contrib.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:directory-cache-config.xml")

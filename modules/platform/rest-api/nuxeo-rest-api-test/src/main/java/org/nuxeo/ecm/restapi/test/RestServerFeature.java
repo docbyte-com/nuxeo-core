@@ -20,7 +20,7 @@ package org.nuxeo.ecm.restapi.test;
 
 import jakarta.inject.Inject;
 
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -37,7 +37,7 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 @Deploy("org.nuxeo.ecm.platform.restapi.test")
 @Deploy("org.nuxeo.ecm.platform.restapi.server")
 @Deploy("org.nuxeo.ecm.platform.tag")
-@Features({ WebEngineFeature.class, AutomationServerFeature.class })
+@Features({ WebEngineFeature.class, AutomationFeature.class })
 public class RestServerFeature implements RunnerFeature {
 
     @Inject

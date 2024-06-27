@@ -22,16 +22,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
 import org.nuxeo.drive.fixtures.DefaultFileSystemItemFactoryFixture;
 import org.nuxeo.drive.service.impl.DefaultFileSystemItemFactory;
-import org.nuxeo.drive.test.NuxeoDriveInMemoryCacheFeature;
 import org.nuxeo.ecm.core.cache.CacheService;
 import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
-import org.nuxeo.runtime.test.runner.Features;
 
 /**
  * Tests the {@link DefaultFileSystemItemFactory} against the in-memory implementation of the {@link CacheService}.
  */
 @RunWith(ContributableFeaturesRunner.class)
-@Features(NuxeoDriveInMemoryCacheFeature.class)
 @SuiteClasses(DefaultFileSystemItemFactoryFixture.class)
 public class TestDefaultFileSystemItemFactory {
 

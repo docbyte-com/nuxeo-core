@@ -46,7 +46,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directory-resolver-contrib.xml")
 public class DirectoryEntryListJsonWriterTest
         extends AbstractJsonWriterTest.External<DirectoryEntryListJsonWriter, List<DirectoryEntry>> {

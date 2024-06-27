@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.runners.model.TestClass;
+import org.nuxeo.runtime.RuntimeServiceException;
 
 import com.google.inject.Module;
 
@@ -108,11 +109,15 @@ class FeaturesLoader {
             throw new IllegalStateException("Cycle detected in features dependencies of " + clazz);
         }
         // load required features from annotation
-        List<Features> annos = FeaturesRunner.getScanner().getAnnotations(clazz, Features.class);
-        for (Features anno : annos) {
-            for (Class<? extends RunnerFeature> cl : anno.value()) {
-                loadFeature(cycles, cl);
+        try {
+            List<Features> annos = FeaturesRunner.getScanner().getAnnotations(clazz, Features.class);
+            for (Features anno : annos) {
+                for (Class<? extends RunnerFeature> cl : anno.value()) {
+                    loadFeature(cycles, cl);
+                }
             }
+        } catch (TypeNotPresentException e) {
+            throw new RuntimeServiceException(e.getMessage() + ", a test-jar dependency is probably missing", e);
         }
         Holder actual = new Holder(clazz);
         holders.add(actual);

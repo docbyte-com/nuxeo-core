@@ -26,9 +26,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationType;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.ecm.automation.io.rest.JsonWriter;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -38,10 +38,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @since 5.9.4
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, WebEngineFeatureCore.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
+@Features({ AutomationCoreFeature.class, AutomationIOFeature.class })
 @Deploy("org.nuxeo.ecm.automation.io:test-chains.xml")
 @Deploy("org.nuxeo.ecm.automation.io:operations-contrib-test.xml")
 public class TestAutomationJson {

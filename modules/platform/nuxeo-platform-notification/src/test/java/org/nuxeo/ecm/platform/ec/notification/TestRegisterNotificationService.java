@@ -50,8 +50,10 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @author <a href="mailto:rspivak@nuxeo.com">Ruslan Spivak</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeFeature.class, NotificationFeature.class })
+@Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.ecm.platform.notification:OSGI-INF/NotificationService.xml")
 @Deploy("org.nuxeo.mail")
+@Deploy("org.nuxeo.ecm.platform.notification.tests:default-general-settings-contrib.xml")
 @WithFrameworkProperty(name = "org.nuxeo.ecm.notification.serverPrefix", value = "testServerPrefix")
 @WithFrameworkProperty(name = "org.nuxeo.ecm.notification.eMailSubjectPrefix", value = "testSubjectPrefix")
 public class TestRegisterNotificationService {
@@ -164,7 +166,7 @@ public class TestRegisterNotificationService {
     public void testVetoRegistration() {
 
         Collection<NotificationListenerVeto> vetos = getService().getNotificationVetos();
-        assertEquals(3, vetos.size());
+        assertEquals(2, vetos.size());
         assertEquals("org.nuxeo.ecm.platform.ec.notification.veto.NotificationVeto1",
                 getService().getNotificationListenerVetoRegistry().getVeto("veto1").getClass().getCanonicalName());
         assertEquals("org.nuxeo.ecm.platform.ec.notification.veto.NotificationVeto20",

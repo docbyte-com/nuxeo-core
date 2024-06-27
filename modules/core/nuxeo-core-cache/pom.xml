@@ -65,6 +65,16 @@
       <artifactId>nuxeo-runtime-cluster</artifactId>
       <type>test-jar</type>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-stream</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-event</artifactId>
+      <type>test-jar</type>
+    </dependency>
   </dependencies>
 
   <build>

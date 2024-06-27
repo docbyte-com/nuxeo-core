@@ -58,7 +58,7 @@ import io.dropwizard.metrics5.SharedMetricRegistries;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ ClusterFeature.class, DirectoryFeature.class })
+@Features(DirectoryFeature.class)
 @Deploy("org.nuxeo.ecm.directory.tests:test-directories-schema-override.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directories-bundle.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:test-cluster.xml")

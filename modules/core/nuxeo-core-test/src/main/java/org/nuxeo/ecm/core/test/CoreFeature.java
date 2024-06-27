@@ -48,7 +48,10 @@ import org.nuxeo.ecm.core.api.local.DummyLoginFeature;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
+import org.nuxeo.ecm.core.cache.CacheFeature;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.event.CoreEventFeature;
+import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.model.stream.StreamDocumentGC;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -86,19 +89,13 @@ import com.google.inject.Binder;
  * In addition, by injecting the feature itself, some helper methods are available to open new sessions.
  */
 @Deploy("org.nuxeo.runtime.reload")
-@Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.pubsub")
 @Deploy("org.nuxeo.runtime.mongodb")
-@Deploy("org.nuxeo.runtime.migration")
 @Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.core.query")
 @Deploy("org.nuxeo.ecm.core.api")
 @Deploy("org.nuxeo.ecm.core")
-@Deploy("org.nuxeo.ecm.core.io")
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.core.test")
-@Deploy("org.nuxeo.ecm.core.mimetype")
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.ecm.core.storage")
 @Deploy("org.nuxeo.ecm.core.storage.sql")
@@ -117,11 +114,14 @@ import com.google.inject.Binder;
         RuntimeStreamFeature.class, //
         TransactionalFeature.class, //
         // Core features
-        // keep WorkManagerFeature before CoreBulkFeature because transactional waiter registration order matters
-        WorkManagerFeature.class, //
+        CacheFeature.class, //
+        ConvertFeature.class, //
         CoreBulkFeature.class, //
         CoreEventFeature.class, //
-        DummyLoginFeature.class })
+        CoreIOFeature.class, //
+        DummyLoginFeature.class, //
+        MigrationFeature.class, //
+        WorkManagerFeature.class })
 @LoggerLevel(klass = StreamOrphanBlobGC.class, level = "ERROR")
 public class CoreFeature implements RunnerFeature {
 

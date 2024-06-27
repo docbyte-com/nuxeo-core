@@ -42,4 +42,9 @@ public class NuxeoLoginFeatureTest {
         assertTrue(loginAs instanceof LoginAsImpl);
     }
 
+    @Test
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
+    }
 }

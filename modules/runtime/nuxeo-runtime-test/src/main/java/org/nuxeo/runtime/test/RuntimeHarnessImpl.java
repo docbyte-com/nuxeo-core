@@ -155,8 +155,10 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                 throw new AssertionError("Cannot locate " + contrib + " in " + name);
             }
             context.deploy(location);
-        } else {
+        } else if (!context.isDeployed(contrib)) {
             context.deploy(contrib);
+        } else {
+            log.info("The component: {}:{} is already deployed, ignoring.", name, contrib);
         }
     }
 

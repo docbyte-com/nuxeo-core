@@ -18,18 +18,9 @@
  */
 package org.nuxeo.ecm.platform.comment;
 
-import static org.junit.Assert.assertTrue;
-
-import jakarta.inject.Inject;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.nuxeo.ecm.platform.comment.api.CommentManager;
-import org.nuxeo.ecm.platform.comment.impl.TreeCommentManager;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
@@ -40,21 +31,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @since 11.1
  */
 @Deploy("org.nuxeo.ecm.platform.comment.api")
-@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.comment")
 @Features(PlatformFeature.class)
 public class CommentFeature implements RunnerFeature {
-
-    @RunWith(FeaturesRunner.class)
-    @Features(CommentFeature.class)
-    public static class TestCommentFeature {
-
-        @Inject
-        protected CommentManager service;
-
-        @Test
-        public void testCommentManager() {
-            assertTrue(service instanceof TreeCommentManager);
-        }
-    }
 }

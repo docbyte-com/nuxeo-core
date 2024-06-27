@@ -44,20 +44,16 @@ import org.nuxeo.ecm.automation.core.operations.services.query.DocumentPaginated
 import org.nuxeo.ecm.automation.core.operations.services.query.ResultSetPaginatedQuery;
 import org.nuxeo.ecm.automation.core.util.PaginableRecordSet;
 import org.nuxeo.ecm.automation.core.util.Properties;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.runtime.management")
+@Features(AutomationFeaturesFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core:test-providers.xml")
 @Deploy("org.nuxeo.ecm.automation.core:test-operations.xml")
 public class SearchOperationTest {

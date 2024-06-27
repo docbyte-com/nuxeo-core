@@ -42,8 +42,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(CacheFeature.class)
 @Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.ecm.core.cache:inmemory-cache-config.xml")
-@Deploy("org.nuxeo.ecm.core.cache:test-cluster.xml")
+@Deploy("org.nuxeo.ecm.core.cache.test:test-cluster.xml")
 public class TestCacheInvalidation {
 
     // from XML file

@@ -66,7 +66,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 5.7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WorkflowFeature.class, LogCaptureFeature.class })
+@Features(LogCaptureFeature.class)
 public class WorkflowEscalationTest extends AbstractGraphRouteTest {
 
     @Inject

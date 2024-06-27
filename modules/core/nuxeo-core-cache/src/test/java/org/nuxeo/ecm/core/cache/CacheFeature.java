@@ -30,11 +30,16 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 
-@Deploy("org.nuxeo.ecm.core.cache")
+// deploy partially the bundle because we have features for cache and transient store
+// also because transient store requires more components than cache
+@Deploy("org.nuxeo.ecm.core.cache:OSGI-INF/CacheService.xml")
+@Deploy("org.nuxeo.ecm.core.cache.test:inmemory-cache-config.xml")
 @Features(ClusterFeature.class)
 public class CacheFeature implements RunnerFeature {
 
     public static final String DEFAULT_TEST_CACHE_NAME = "default-test-cache";
+
+    public static final String MAXSIZE_TEST_CACHE_NAME = "maxsize-test-cache";
 
     public static final String KEY = "key1";
 
@@ -43,6 +48,7 @@ public class CacheFeature implements RunnerFeature {
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindCache(binder, DEFAULT_TEST_CACHE_NAME);
+        bindCache(binder, MAXSIZE_TEST_CACHE_NAME);
     }
 
     protected void bindCache(Binder binder, final String name) {
@@ -60,6 +66,7 @@ public class CacheFeature implements RunnerFeature {
     @Override
     public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
         clearCache(DEFAULT_TEST_CACHE_NAME);
+        clearCache(MAXSIZE_TEST_CACHE_NAME);
     }
 
     protected void clearCache(String name) {

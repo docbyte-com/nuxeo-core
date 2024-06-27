@@ -63,6 +63,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
+import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -72,7 +73,9 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features(AutomationScriptingFeature.class)
+@Features({ AutomationScriptingFeature.class, UserManagerFeature.class })
+@Deploy("org.nuxeo.ecm.platform.content.template") // needed for the default-domain creation
+@Deploy("org.nuxeo.ecm.platform.dublincore") // needed for TestPropertiesAccessOnDocuments which gets dc:creator
 public class TestScriptRunnerInfrastructure {
 
     protected static String[] attachments = { "att1", "att2", "att3" };

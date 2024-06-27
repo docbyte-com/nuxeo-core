@@ -18,20 +18,20 @@
  */
 package org.nuxeo.ecm.core.io;
 
+import org.nuxeo.ecm.core.cache.CacheFeature;
+import org.nuxeo.ecm.core.event.CoreEventFeature;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * Intermediate feature for nuxeo-core-io module.
  *
  * @since 10.2
  */
-@Deploy("org.nuxeo.ecm.core.event")
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.core.io")
-@Features(RuntimeFeature.class)
+@Features({ CacheFeature.class, CoreEventFeature.class, TransientStoreFeature.class })
 public class CoreIOFeature implements RunnerFeature {
 
 }

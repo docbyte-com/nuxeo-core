@@ -44,7 +44,6 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Features({ AutomationFeature.class, AuditFeature.class, RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.ecm.platform.uidgen.core")
 @Deploy("org.nuxeo.elasticsearch.seqgen")
-@Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-index-test-contrib.xml")
 @Deploy("org.nuxeo.admin.center")
 @Deploy("org.nuxeo.elasticsearch.audit")

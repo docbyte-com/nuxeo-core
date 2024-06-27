@@ -18,26 +18,9 @@
  */
 package org.nuxeo.ecm.core.cache;
 
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
-
-import com.google.inject.Binder;
-import com.google.inject.name.Names;
-
-@Deploy("org.nuxeo.ecm.core.cache:inmemory-cache-config.xml")
-@Features(CacheFeature.class)
-public class InMemoryCacheFeature implements RunnerFeature {
-
-    public static final String MAXSIZE_TEST_CACHE_NAME = "maxsize-test-cache";
-
-    @Override
-    public void configure(FeaturesRunner runner, Binder binder) {
-        binder.bind(Cache.class)
-              .annotatedWith(Names.named(MAXSIZE_TEST_CACHE_NAME))
-              .toProvider(() -> Framework.getService(CacheService.class).getCache(MAXSIZE_TEST_CACHE_NAME));
-    }
-
+/**
+ * @deprecated since 2025.0, use {@link CacheFeature} instead because now all Nuxeo caches are in memory
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
+public class InMemoryCacheFeature extends CacheFeature {
 }

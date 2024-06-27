@@ -25,8 +25,12 @@ import jakarta.inject.Inject;
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
 import org.nuxeo.automation.scripting.internals.AutomationScriptingServiceImpl;
 import org.nuxeo.automation.scripting.internals.ScriptingOperationImpl;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,12 +41,15 @@ import com.google.inject.Binder;
 /**
  * @since 8.4
  */
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.automation.scripting")
-@Deploy("org.nuxeo.ecm.automation.scripting:automation-scripting-contrib.xml")
-@Deploy("org.nuxeo.ecm.automation.scripting:core-types-contrib.xml")
-@Features(PlatformFeature.class)
+@Deploy("org.nuxeo.ecm.automation.scripting.tests:automation-scripting-contrib.xml")
+@Deploy("org.nuxeo.ecm.automation.scripting.tests:core-types-contrib.xml")
+@Features({ //
+        AutomationCoreFeature.class, //
+        AutomationIOFeature.class, //
+        AutomationFeaturesFeature.class, //
+        AutomationServerFeature.class, //
+        WebEngineCoreFeature.class })
 public class AutomationScriptingFeature implements RunnerFeature {
 
     @Inject

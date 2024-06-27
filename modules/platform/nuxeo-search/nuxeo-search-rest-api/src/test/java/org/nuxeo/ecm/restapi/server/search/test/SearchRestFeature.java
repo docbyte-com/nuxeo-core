@@ -28,7 +28,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 11.1
  */
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.platform.webapp.types")
 @Deploy("org.nuxeo.ecm.platform.search.core")

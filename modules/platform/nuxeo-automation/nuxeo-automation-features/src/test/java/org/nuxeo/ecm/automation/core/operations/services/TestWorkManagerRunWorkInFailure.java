@@ -36,6 +36,7 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.operations.services.workmanager.WorkManagerRunWorkInFailure;
 import org.nuxeo.ecm.automation.core.util.StringList;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.impl.blob.JSONBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -54,9 +55,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeStreamFeature.class, CoreFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestWorkManagerRunWorkInFailure {
 

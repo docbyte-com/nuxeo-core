@@ -54,11 +54,6 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ BinaryMetadataFeature.class, LogCaptureFeature.class })
-@Deploy("org.nuxeo.ecm.platform.picture.core")
-@Deploy("org.nuxeo.ecm.platform.io.core")
-@Deploy("org.nuxeo.ecm.platform.rendition.core")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.platform.tag")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-test.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-pdf-test.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-provider.xml")
@@ -229,48 +224,6 @@ public class TestBinaryMetadataSyncListener extends BaseBinaryMetadataTest {
     }
 
     @Test
-    public void testEXIFandIPTC() throws IOException {
-        // Create folder
-        DocumentModel doc = session.createDocumentModel("/", "folder", "Folder");
-        doc.setPropertyValue("dc:title", "Folder");
-        session.createDocument(doc);
-
-        // Create first picture
-        doc = session.createDocumentModel("/folder", "picture", "Picture");
-        doc.setPropertyValue("dc:title", "picture");
-        doc = session.createDocument(doc);
-
-        // Attach EXIF sample
-        File binary = FileUtils.getResourceFileFromContext("data/china.jpg");
-        Blob fb = Blobs.createBlob(binary, "image/jpeg");
-        DocumentHelper.addBlob(doc.getProperty("file:content"), fb);
-        session.saveDocument(doc);
-
-        // Verify
-        DocumentModel picture = session.getDocument(doc.getRef());
-        assertEquals("Horizontal (normal)", picture.getPropertyValue("imd:orientation"));
-        assertEquals(2.4, picture.getPropertyValue("imd:fnumber"));
-
-        // Create second picture
-        doc = session.createDocumentModel("/folder", "picture1", "Picture");
-        doc.setPropertyValue("dc:title", "picture");
-        doc = session.createDocument(doc);
-
-        // Attach IPTC sample
-        binary = FileUtils.getResourceFileFromContext("data/iptc_sample.jpg");
-        fb = Blobs.createBlob(binary, "image/jpeg");
-        DocumentHelper.addBlob(doc.getProperty("file:content"), fb);
-        session.saveDocument(doc);
-
-        // Verify
-        picture = session.getDocument(doc.getRef());
-        assertEquals("DDP", picture.getPropertyValue("dc:source"));
-        assertEquals("ImageForum", picture.getPropertyValue("dc:rights"));
-        assertEquals("Music", picture.getPropertyValue("dc:description").toString().substring(0, 5));
-
-    }
-
-    @Test
     public void testUpdateOnBlobsFromProvidersWhichPreventUserUpdate() {
         // Create a folder
         DocumentModel doc = session.createDocumentModel("/", "folder", "Folder");
@@ -278,22 +231,22 @@ public class TestBinaryMetadataSyncListener extends BaseBinaryMetadataTest {
         session.createDocument(doc);
 
         // Create a doc
-        doc = session.createDocumentModel("/folder", "picture", "Picture");
-        doc.setPropertyValue("dc:title", "a picture file");
+        doc = session.createDocumentModel("/folder", "file", "File");
+        doc.setPropertyValue("dc:title", "file");
         doc = session.createDocument(doc);
 
         // Attach blob from provider
         BlobInfo blobInfo = new BlobInfo();
         blobInfo.key = "testProvider:user@testProvider.com:0134cc5";
-        blobInfo.digest = "5cc31b4305e2beb7191f717448";
-        blobInfo.filename = "iptc_sample.jpg";
-        blobInfo.mimeType = "image/jpeg";
+        blobInfo.digest = "38b141256d3d236f39318aedfc750108";
+        blobInfo.filename = "hello.pdf";
+        blobInfo.mimeType = "application/pdf";
         Blob blob = new SimpleManagedBlob(blobInfo);
         DocumentHelper.addBlob(doc.getProperty("file:content"), blob);
         session.save();
 
         // update metadata and check if the blob is still a blob from the provider
-        doc.setPropertyValue("imd:user_comment", "a comment");
+        doc.setPropertyValue("dc:coverage", "Writer (edited)");
         session.saveDocument(doc);
         Blob anotherBlob = (Blob) doc.getProperty("file:content").getValue();
         // assert the blob was not modified even if the metadata was updated

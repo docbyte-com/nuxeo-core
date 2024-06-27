@@ -41,13 +41,12 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.platform.picture.api.ImageInfo;
 import org.nuxeo.ecm.platform.picture.api.ImagingService;
 import org.nuxeo.ecm.platform.picture.api.PictureConversion;
 import org.nuxeo.ecm.platform.picture.api.PictureView;
 import org.nuxeo.ecm.platform.picture.api.adapters.MultiviewPicture;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -59,7 +58,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 7.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 public class TestPictureConversions {
 
     @Inject
@@ -67,9 +66,6 @@ public class TestPictureConversions {
 
     @Inject
     protected ImagingService imagingService;
-
-    @Inject
-    protected EventService eventService;
 
     @Inject
     protected TransactionalFeature txFeature;
@@ -218,10 +214,9 @@ public class TestPictureConversions {
         // Use a small image so the biggest conversions will have the same result and it will be fetched from the cache
         picture.setPropertyValue("file:content", (Serializable) getCatBlob());
         picture = session.createDocument(picture);
-        txFeature.nextTransaction();
 
-        // Wait for the end of all the async works
-        eventService.waitForAsyncCompletion();
+        // wait for async listener + baf
+        txFeature.nextTransaction();
 
         // Fetch the picture views
         MultiviewPicture multiviewPicture = picture.getAdapter(MultiviewPicture.class);
@@ -255,7 +250,7 @@ public class TestPictureConversions {
         picture.setPropertyValue("file:content", (Serializable) getCatBlob());
         picture = session.saveDocument(picture);
 
-        // wait for baf
+        // wait for async listener + baf
         txFeature.nextTransaction();
 
         picture = session.getDocument(picture.getRef());

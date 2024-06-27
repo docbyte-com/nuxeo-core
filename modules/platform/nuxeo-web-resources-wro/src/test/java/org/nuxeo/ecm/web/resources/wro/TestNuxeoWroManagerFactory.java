@@ -46,10 +46,8 @@ import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroManagerFactory;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroModelFactory;
 import org.nuxeo.ecm.web.resources.wro.processor.CssUrlRewritingProcessor;
 import org.nuxeo.ecm.web.resources.wro.provider.NuxeoUriLocator;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 import ro.isdc.wro.config.Context;
 import ro.isdc.wro.manager.WroManager;
@@ -67,10 +65,7 @@ import ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.web.resources.core")
-@Deploy("org.nuxeo.web.resources.wro")
-@Deploy("org.nuxeo.web.resources.wro:webresources-test-config.xml")
+@Features(WebResourcesWroFeature.class)
 public class TestNuxeoWroManagerFactory {
 
     @Mock

@@ -35,10 +35,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroModelFactory;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 import ro.isdc.wro.config.Context;
 import ro.isdc.wro.model.WroModel;
@@ -53,10 +51,7 @@ import ro.isdc.wro.util.WroTestUtils;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeFeature.class })
-@Deploy("org.nuxeo.web.resources.core")
-@Deploy("org.nuxeo.web.resources.wro")
-@Deploy("org.nuxeo.web.resources.wro:webresources-test-config.xml")
+@Features(WebResourcesWroFeature.class)
 public class TestNuxeoWroModelFactory {
 
     static final String BUNDLE = "org.nuxeo.web.resources.rest";
@@ -90,7 +85,7 @@ public class TestNuxeoWroModelFactory {
     @Test
     public void testNuxeoWroModelBundle() throws Exception {
         Collection<Group> groups = model.getGroups();
-        assertEquals(3, groups.size());
+        assertEquals(4, groups.size());
         Iterator<Group> groupsIt = model.getGroups().iterator();
 
         Group all = groupsIt.next();

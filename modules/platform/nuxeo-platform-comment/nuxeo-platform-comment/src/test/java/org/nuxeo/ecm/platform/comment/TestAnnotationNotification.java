@@ -58,7 +58,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CommentNotificationFeature.class, SmtpMailServerFeature.class })
+@Features(CommentNotificationFeature.class)
 public class TestAnnotationNotification {
 
     @Inject

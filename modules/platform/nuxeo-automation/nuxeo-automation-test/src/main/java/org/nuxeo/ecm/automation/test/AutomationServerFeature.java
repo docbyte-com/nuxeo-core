@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.automation.test;
 
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
@@ -26,11 +25,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * Automation feature which deploys the automation bundles needed by a server.
  *
  * @since 10.1
+ * @deprecated since 2025.0, use {@link AutomationFeature} instead
  */
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.automation.server")
 @Features(AutomationFeature.class)
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AutomationServerFeature implements RunnerFeature {
 
 }

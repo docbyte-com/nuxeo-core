@@ -33,10 +33,9 @@ import org.nuxeo.ecm.automation.core.operations.LogOperation;
 import org.nuxeo.ecm.automation.core.operations.RestoreDocumentInputFromScript;
 import org.nuxeo.ecm.automation.core.operations.SetInputAsVar;
 import org.nuxeo.ecm.automation.core.operations.document.FetchDocument;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
@@ -45,9 +44,7 @@ import org.nuxeo.runtime.test.runner.LogCaptureFeature;
  * Testing RestoreDocumentInputFromScript and LogOperation operations.
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, LogCaptureFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, LogCaptureFeature.class })
 @LogCaptureFeature.FilterOn(loggerName = "loggerName", logLevel = "ERROR")
 public class TestRestoreInputFromScriptAndLogOperation {
     @Inject

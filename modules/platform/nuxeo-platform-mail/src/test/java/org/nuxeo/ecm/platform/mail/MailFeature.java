@@ -27,7 +27,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -36,7 +36,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @since 2021.9
  */
 @Deploy("org.nuxeo.ecm.platform.mail")
-@Features(CoreFeature.class)
+@Deploy("org.nuxeo.ecm.platform.types")
+@Features(AutomationCoreFeature.class)
 public class MailFeature implements RunnerFeature {
 
     public static Message getSampleMessage(String relativeFilePath) throws IOException, MessagingException {

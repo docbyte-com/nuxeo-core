@@ -31,6 +31,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.sql")
+@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.directory.sql:nxdirectory-ds.xml")
 @Features(CoreFeature.class)
 public class SQLDirectoryFeature implements RunnerFeature {

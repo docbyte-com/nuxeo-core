@@ -43,8 +43,11 @@ import org.opensearch.gateway.DanglingIndicesState;
 /**
  * @since 11.1
  */
+@Deploy("org.nuxeo.ecm.core.management")
+@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
+@Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-contrib.xml")
+@Deploy("org.nuxeo.elasticsearch.core.test:elastic-search-core-management-tests-component.xml")
 @Features({ CoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 // remove WARN on deprecated on [ignore_throttled] parameter

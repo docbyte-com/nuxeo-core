@@ -37,7 +37,6 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.notification.api.NotificationManager;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -47,7 +46,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 9.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, NotificationFeature.class })
+@Features(NotificationFeature.class)
 public class TestNotificationManager {
 
     @Inject

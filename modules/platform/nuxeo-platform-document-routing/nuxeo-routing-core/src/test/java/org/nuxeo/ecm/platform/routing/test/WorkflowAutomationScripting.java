@@ -39,7 +39,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphRoute;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -48,7 +48,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WorkflowFeature.class, WebEngineFeatureCore.class })
+@Features({ WorkflowFeature.class, WebEngineCoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-document-routing-scripting-contrib.xml")
 public class WorkflowAutomationScripting extends AbstractGraphRouteTest {
 
