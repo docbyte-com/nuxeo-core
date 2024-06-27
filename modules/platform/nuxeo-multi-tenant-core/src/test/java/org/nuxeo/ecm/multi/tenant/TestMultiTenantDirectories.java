@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package org.nuxeo.ecm.multi.tenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.nuxeo.ecm.multi.tenant.Constants.POWER_USERS_GROUP;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,7 +115,7 @@ public class TestMultiTenantDirectories {
         Framework.doPrivileged(() -> {
             // Open the testDirectory
             try (Session sessionDir = directoryService.open("testDirectory")) {
-                DocumentModelList entries = sessionDir.query(Collections.emptyMap());
+                DocumentModelList entries = sessionDir.query(Map.of());
                 assertThat(entries).hasSize(2);
             }
         });

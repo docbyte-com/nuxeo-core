@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,15 +47,15 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFUtilsTest {
 
-    private File pdfFile;
-
-    private DocumentModel testDocsFolder;
-
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
+
+    protected File pdfFile;
+
+    protected DocumentModel testDocsFolder;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         testDocsFolder = coreSession.createDocumentModel("/", "test-pictures", "Folder");
         testDocsFolder.setPropertyValue("dc:title", "test-pdfutils");
         testDocsFolder = coreSession.createDocument(testDocsFolder);

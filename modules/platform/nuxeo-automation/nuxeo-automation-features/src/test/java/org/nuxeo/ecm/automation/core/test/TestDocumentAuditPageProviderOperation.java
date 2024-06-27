@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -150,17 +151,17 @@ public class TestDocumentAuditPageProviderOperation {
     @Inject
     protected CoreSession session;
 
+    @Inject
+    protected TransactionalFeature txFeature;
+
+    @Inject
+    protected AuditReader reader;
+
     protected DocumentModel doc;
 
     protected DocumentModel proxy;
 
     protected List<DocumentModel> versions;
-
-    @Inject
-    TransactionalFeature txFeature;
-
-    @Inject
-    protected AuditReader reader;
 
     protected int nbEntries = 0;
 
@@ -212,7 +213,7 @@ public class TestDocumentAuditPageProviderOperation {
         params.put("queryParams", queryParams);
 
         List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
+        assertFalse(entries.isEmpty());
     }
 
     @Test
@@ -256,7 +257,7 @@ public class TestDocumentAuditPageProviderOperation {
         params.put("namedQueryParams", namedParams);
 
         List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
+        assertFalse(entries.isEmpty());
         assertTrue(nbEntries > entries.size());
     }
 
@@ -277,7 +278,7 @@ public class TestDocumentAuditPageProviderOperation {
         params.put("namedQueryParams", namedParams);
 
         List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
+        assertFalse(entries.isEmpty());
         assertTrue(entries.size() < nbEntries);
     }
 

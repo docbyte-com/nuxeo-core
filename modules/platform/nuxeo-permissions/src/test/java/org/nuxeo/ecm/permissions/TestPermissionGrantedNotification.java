@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.permissions;
 
 import static org.junit.Assert.assertEquals;
@@ -135,8 +134,8 @@ public class TestPermissionGrantedNotification {
 
         eventService.fireEvent(UpdateACEStatusListener.UPDATE_ACE_STATUS_EVENT, new EventContextImpl());
         eventService.waitForAsyncCompletion();
-        DummyPermissionGrantedNotificationListener.processedACEs.sort((o1, o2) -> o1.getUsername().compareTo(
-                o2.getUsername()));
+        DummyPermissionGrantedNotificationListener.processedACEs.sort(
+                (o1, o2) -> o1.getUsername().compareTo(o2.getUsername()));
         assertEquals(3, DummyPermissionGrantedNotificationListener.processedACEs.size());
         assertEquals("bender", DummyPermissionGrantedNotificationListener.processedACEs.get(0).getUsername());
         assertEquals("fry", DummyPermissionGrantedNotificationListener.processedACEs.get(1).getUsername());

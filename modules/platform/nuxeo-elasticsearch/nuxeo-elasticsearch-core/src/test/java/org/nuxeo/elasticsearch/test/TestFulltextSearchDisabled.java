@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
  * Contributors:
  *     Benoit Delbosc
  */
-
 package org.nuxeo.elasticsearch.test;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -27,13 +28,11 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.test.FulltextSearchDisabledFeature;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features({ FulltextSearchDisabledFeature.class, RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestFulltextSearchDisabled extends TestFulltextEnabled {
 
     @Override
@@ -43,11 +42,10 @@ public class TestFulltextSearchDisabled extends TestFulltextEnabled {
         // binary fulltext extraction is done
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search'";
         DocumentModelList esRet = ess.query(new NxQueryBuilder(session).nxql(nxql));
-        Assert.assertEquals(1, esRet.totalSize());
+        assertEquals(1, esRet.totalSize());
 
         // fulltext search with core is not allowed
-        exception.expect(QueryParseException.class);
-        session.query(nxql);
+        assertThrows(QueryParseException.class, () -> session.query(nxql));
     }
 
     @Override
@@ -58,11 +56,10 @@ public class TestFulltextSearchDisabled extends TestFulltextEnabled {
         // binary fulltext extraction is done
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search' AND ecm:isProxy = 1";
         DocumentModelList esRet = ess.query(new NxQueryBuilder(session).nxql(nxql));
-        Assert.assertEquals(1, esRet.totalSize());
+        assertEquals(1, esRet.totalSize());
 
         // fulltext search with core is not allowed
-        exception.expect(QueryParseException.class);
-        session.query(nxql);
+        assertThrows(QueryParseException.class, () -> session.query(nxql));
     }
 
 }

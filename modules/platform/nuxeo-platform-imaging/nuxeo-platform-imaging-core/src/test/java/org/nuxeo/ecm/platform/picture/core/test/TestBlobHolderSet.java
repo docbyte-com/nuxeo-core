@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Laurent Doguin
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
@@ -110,7 +109,6 @@ public class TestBlobHolderSet {
         assertEquals("image/jpeg", blob.getMimeType());
         byte[] bytes = IOUtils.toByteArray(blob.getStream());
         assertEquals(2022140, bytes.length);
-        bytes = null;
 
         // generated views
         assertEquals(6, bh.getBlobs().size());

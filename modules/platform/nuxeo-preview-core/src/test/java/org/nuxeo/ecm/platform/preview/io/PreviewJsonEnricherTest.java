@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.preview.io;
 
 import java.net.URL;
@@ -43,12 +42,12 @@ import org.nuxeo.runtime.test.runner.Features;
 @Deploy("org.nuxeo.ecm.platform.dublincore")
 public class PreviewJsonEnricherTest extends AbstractJsonWriterTest.External<DocumentModelJsonWriter, DocumentModel> {
 
+    @Inject
+    protected CoreSession session;
+
     public PreviewJsonEnricherTest() {
         super(DocumentModelJsonWriter.class, DocumentModel.class);
     }
-
-    @Inject
-    private CoreSession session;
 
     @Test
     public void test() throws Exception {

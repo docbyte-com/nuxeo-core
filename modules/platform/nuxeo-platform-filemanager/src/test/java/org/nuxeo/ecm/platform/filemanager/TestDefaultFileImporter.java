@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 /**
  * @author <a href="mailto:ei@nuxeo.com">Eugen Ionica</a>
  */
-
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(init = RepositoryInit.class, cleanup = Granularity.METHOD)
@@ -55,7 +54,7 @@ public class TestDefaultFileImporter {
     protected CoreSession session;
 
     @Test
-    public void testDefautImportType() throws Exception {
+    public void testDefaultImportType() {
         assertNotNull(session);
         DocumentModel workspace = session.getDocument(new PathRef(PATH_WORKSPACE));
         assertNotNull(workspace);

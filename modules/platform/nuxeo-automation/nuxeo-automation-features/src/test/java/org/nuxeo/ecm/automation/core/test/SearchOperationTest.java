@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@ package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.util.Calendar;
 import java.util.HashMap;
@@ -67,10 +67,10 @@ public class SearchOperationTest {
     protected DocumentModel dst;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected OperationContext ctx;
 
@@ -202,19 +202,14 @@ public class SearchOperationTest {
      * @since 8.2
      */
     @Test
-    public void testQueryWithNamedParametersInvalid() throws Exception {
+    public void testQueryWithNamedParametersInvalid() {
         Map<String, Object> params = getNamedParamsProps(null, null);
         params.put("query", "SELECT * FROM Document where dc:title=:foo ORDER BY dc:title");
-        try {
-            service.run(ctx, DocumentPaginatedQuery.ID, params);
-            fail("Should have raised an OperationException");
-        } catch (OperationException e) {
-            assertNotNull(e.getMessage());
-            assertTrue(e.getMessage().contains(
-                    "Failed to execute query: SELECT * FROM " + "Document " +
-                            "where dc:title=:foo ORDER "
+        var e = assertThrows(OperationException.class, () -> service.run(ctx, DocumentPaginatedQuery.ID, params));
+        assertNotNull(e.getMessage());
+        assertTrue(e.getMessage()
+                    .contains("Failed to execute query: SELECT * FROM " + "Document " + "where dc:title=:foo ORDER "
                             + "BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
-        }
     }
 
     /**
@@ -237,15 +232,12 @@ public class SearchOperationTest {
     public void testQueryWithNamedParametersAndDocInvalid() throws Exception {
         Map<String, Object> params = getNamedParamsProps("np:title", "WS1");
         params.put("query", "SELECT * FROM Document where dc:title=:foo ORDER BY dc:title");
-        try {
-            service.run(ctx, DocumentPaginatedQuery.ID, params);
-            fail("Should have raised an OperationException");
-        } catch (OperationException e) {
-            assertNotNull(e.getMessage());
-            assertTrue(e.getMessage()
-                        .contains(
-                                "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
-        }
+        var e = assertThrows(OperationException.class, () -> service.run(ctx, DocumentPaginatedQuery.ID, params));
+        assertNotNull(e.getMessage());
+        assertTrue(
+                e.getMessage()
+                 .contains(
+                         "Failed to execute query: SELECT * FROM Document where dc:title=:foo ORDER BY dc:title, Lexical Error: Illegal character <:> at offset 38"));
     }
 
     /**

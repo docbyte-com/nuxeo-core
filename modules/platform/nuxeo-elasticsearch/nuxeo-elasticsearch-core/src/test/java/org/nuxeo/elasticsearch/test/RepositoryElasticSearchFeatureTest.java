@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,28 @@
  * limitations under the License.
  *
  * Contributors:
- *     Vincent Vergnolle
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.platform.picture.convert.test;
+package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.convert.api.ConversionService;
-import org.nuxeo.ecm.core.convert.api.ConverterCheckResult;
-import org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
- * @since 7.1
- * @author Vincent Vergnolle
+ * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
-public class TestResizePictureConverter {
+@Features(RepositoryElasticSearchFeature.class)
+public class RepositoryElasticSearchFeatureTest {
 
     @Test
-    public void iShouldHaveResizePictureConverterRegistered() {
-        ConverterCheckResult check = Framework.getService(ConversionService.class)
-                                              .isConverterAvailable(ImagingConvertConstants.OPERATION_RESIZE);
-        assertTrue(check.isAvailable());
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
     }
-
 }

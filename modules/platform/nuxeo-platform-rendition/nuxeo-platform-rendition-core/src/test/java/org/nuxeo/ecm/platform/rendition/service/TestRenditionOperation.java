@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.nuxeo.ecm.platform.rendition.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -146,7 +147,7 @@ public class TestRenditionOperation {
         List<DocumentModel> retrievedPublished = session.query(String.format(
                 "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
         assertEquals(1, retrievedPublished.size());
-        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
+        assertEquals(publishedRendition.getId(), retrievedPublished.getFirst().getId());
     }
 
     /**
@@ -174,14 +175,14 @@ public class TestRenditionOperation {
         List<DocumentModel> retrievedPublished = session.query(String.format(
                 "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
         assertEquals(1, retrievedPublished.size());
-        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
+        assertEquals(publishedRendition.getId(), retrievedPublished.getFirst().getId());
     }
 
     /**
      * @since 10.3
      */
     @Test
-    public void shouldPublishMutlipleDocument() throws OperationException {
+    public void shouldPublishMultipleDocument() throws OperationException {
         DocumentModel file1 = createDummyFile();
         DocumentModel file2 = createDummyFile();
         DocumentModel section = session.createDocumentModel("/", "section", "Section");
@@ -191,7 +192,8 @@ public class TestRenditionOperation {
         Map<String, Object> params = new HashMap<>();
         params.put("target", section);
         params.put("defaultRendition", true);
-        DocumentModelList publishedRenditions = (DocumentModelList) automationService.run(ctx, PublishRendition.ID, params);
+        DocumentModelList publishedRenditions = (DocumentModelList) automationService.run(ctx, PublishRendition.ID,
+                params);
         assertNotNull(publishedRenditions);
         assertEquals(2, publishedRenditions.size());
     }
@@ -247,13 +249,13 @@ public class TestRenditionOperation {
         return session.createDocument(file);
     }
 
-    @Test(expected = NuxeoException.class)
+    @Test
     public void shouldThroughTraceExceptionForNonExistingRendition() throws OperationException {
         DocumentModel file = createDummyFile();
 
         ctx.setInput(file);
         Map<String, Object> params = new HashMap<>();
         params.put("renditionName", "nonExistingRendition");
-        automationService.run(ctx, GetRendition.ID, params);
+        assertThrows(NuxeoException.class, () -> automationService.run(ctx, GetRendition.ID, params));
     }
 }

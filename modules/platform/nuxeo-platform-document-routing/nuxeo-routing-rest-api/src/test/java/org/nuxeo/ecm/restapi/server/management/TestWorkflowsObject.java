@@ -32,14 +32,12 @@ import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 import org.nuxeo.ecm.platform.routing.test.WorkflowFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
@@ -51,7 +49,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 /**
  * @since 2023
  */
-@Features({ AutomationFeature.class, WorkflowFeature.class, AuditFeature.class })
+@Features(WorkflowFeature.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
 public class TestWorkflowsObject extends ManagementBaseTest {
 
@@ -104,7 +102,7 @@ public class TestWorkflowsObject extends ManagementBaseTest {
                     DocumentModel task = session.createDocumentModel("/", i + "dummyTask" + j + "-" + k,
                             TASK_TYPE_NAME);
                     task.setPropertyValue(TASK_PROCESS_ID_PROPERTY_NAME, route.getId());
-                    task = session.createDocument(task);
+                    session.createDocument(task);
                 }
             }
         }

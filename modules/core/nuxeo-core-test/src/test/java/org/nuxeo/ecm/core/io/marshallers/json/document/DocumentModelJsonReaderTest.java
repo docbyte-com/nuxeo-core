@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -50,7 +51,6 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -88,12 +88,17 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
 
     @Test
     public void testReadSchemaWithoutPrefix() throws IOException {
-        String noteJson = "{ \"entity-type\": \"document\",\n" + //
-                "  \"type\": \"Note\",\n" + //
-                "  \"name\": \"aNote\",\n" + //
-                "  \"properties\":\n" + //
-                "   { \"dc:title\": \"A note\",\n" + //
-                "     \"note:note\": \"note content\" } }";
+        String noteJson = """
+                {
+                  "entity-type": "document",
+                  "type": "Note",
+                  "name": "aNote",
+                  "properties": {
+                    "dc:title": "A note",
+                    "note:note": "note content"
+                  }
+                }
+                """;
 
         DocumentModelJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentModelJsonReader.class);
         DocumentModel noteDocument;
@@ -107,9 +112,16 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     }
 
     @Test
-    public void testScalarCreatedWithDefaultValue() throws JsonParseException, IOException {
+    public void testScalarCreatedWithDefaultValue() throws IOException {
         // given a doc json with a property with a default value not modified
-        String noteJson = "{ \"entity-type\": \"document\", \"type\": \"DocDefaultValue\", \"name\": \"aDoc\" }";
+        String noteJson = """
+                {
+                  "entity-type": "document",
+                  "type": "DocDefaultValue",
+                  "name": "aDoc
+                  }
+                }
+                """;
 
         // when I parse it it
         DocumentModelJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentModelJsonReader.class);
@@ -129,9 +141,18 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     }
 
     @Test
-    public void testScalarSetOnNullDontSetDefaultValueAgain() throws JsonParseException, IOException {
+    public void testScalarSetOnNullDontSetDefaultValueAgain() throws IOException {
         // given a doc json with a property with a default value set to null
-        String noteJson = "{ \"entity-type\": \"document\", \"type\": \"DocDefaultValue\", \"name\": \"aDoc\", \"properties\": {\"dv:simpleWithDefault\":null} }";
+        String noteJson = """
+                {
+                  "entity-type": "document",
+                  "type": "DocDefaultValue",
+                  "name": "aDoc",
+                  "properties": {
+                    "dv:simpleWithDefault": null
+                  }
+                }
+                """;
 
         // when I parse it it
         DocumentModelJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentModelJsonReader.class);
@@ -147,9 +168,15 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     }
 
     @Test
-    public void testMultiCreatedWithDefaultValue() throws JsonParseException, IOException {
+    public void testMultiCreatedWithDefaultValue() throws IOException {
         // given a doc json with a property with a default value not modified
-        String noteJson = "{ \"entity-type\": \"document\", \"type\": \"DocDefaultValue\", \"name\": \"aDoc\" }";
+        String noteJson = """
+                {
+                  "entity-type": "document",
+                  "type": "DocDefaultValue",
+                  "name": "aDoc"
+                }
+                """;
 
         // when I parse it
         DocumentModelJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentModelJsonReader.class);
@@ -169,9 +196,18 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     }
 
     @Test
-    public void testMultiSetOnNullDontSetDefaultValueAgain() throws JsonParseException, IOException {
+    public void testMultiSetOnNullDontSetDefaultValueAgain() throws IOException {
         // given a doc json with a property with a default value not modified
-        String noteJson = "{ \"entity-type\": \"document\", \"type\": \"DocDefaultValue\", \"name\": \"aDoc\", \"properties\": {\"dv:multiWithDefault\":null} }";
+        String noteJson = """
+                {
+                  "entity-type": "document",
+                  "type": "DocDefaultValue",
+                  "name": "aDoc",
+                  "properties": {
+                    "dv:multiWithDefault": null
+                  }
+                }
+                """;
 
         // when I parse it
         DocumentModelJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentModelJsonReader.class);
@@ -307,12 +343,16 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     }
 
     protected void testPropertyWithWrongRepresentationThrowsException(String properties) throws IOException {
-        String json = '{' + //
-                "\"entity-type\": \"document\", " + //
-                "\"type\": \"MyDocType\", " + //
-                "\"name\": \"myDoc\", " + //
-                "\"properties\": " + properties + " " + //
-                '}';
+        String json = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "myDoc",
+                  "properties": {
+                    %s
+                  }
+                }
+                """.formatted(COMMON_DOC_TYPE, properties);
         try (JsonParser jp = JsonFactoryProvider.get().createParser(json)) {
             JsonNode jn = jp.readValueAsTree();
 
@@ -327,12 +367,16 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
 
     protected void testPropertyWithAcceptedRepresentationWorks(String properties, String expectedProperty,
             Object expectedValue) throws IOException {
-        String json = '{' + //
-                "\"entity-type\": \"document\", " + //
-                "\"type\": \"MyDocType\", " + //
-                "\"name\": \"myDoc\", " + //
-                "\"properties\": " + properties + " " + //
-                '}';
+        String json = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "myDoc",
+                  "properties": {
+                    %s
+                  }
+                }
+                """.formatted(COMMON_DOC_TYPE, properties);
         try (JsonParser jp = JsonFactoryProvider.get().createParser(json)) {
             JsonNode jn = jp.readValueAsTree();
 

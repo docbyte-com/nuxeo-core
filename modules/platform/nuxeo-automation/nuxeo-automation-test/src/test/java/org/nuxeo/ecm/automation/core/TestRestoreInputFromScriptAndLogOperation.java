@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,16 +48,16 @@ import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 @Features({ CoreFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.ecm.automation.features")
-@LogCaptureFeature.FilterOn(loggerName = "loggerName", logLevel =  "ERROR")
+@LogCaptureFeature.FilterOn(loggerName = "loggerName", logLevel = "ERROR")
 public class TestRestoreInputFromScriptAndLogOperation {
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    LogCaptureFeature.Result logCaptureResult;
+    protected LogCaptureFeature.Result logCaptureResult;
 
     protected OperationContext ctx;
 
@@ -88,11 +88,12 @@ public class TestRestoreInputFromScriptAndLogOperation {
         chain.add(FetchDocument.ID).set("value", "/");
         // use the new operation to restore the input
         chain.add(RestoreDocumentInputFromScript.ID).set("script", "Context[\"test\"]");
-        chain.add(LogOperation.ID).set("category", "loggerName").set("message", "expr:Input title @{This.title}.").set(
-                "level", "error");
+        chain.add(LogOperation.ID)
+             .set("category", "loggerName")
+             .set("message", "expr:Input title @{This.title}.")
+             .set("level", "error");
 
-        // assert that the output is "/test" is the one retrieved from the
-        // context variable
+        // assert that the output is "/test" is the one retrieved from the context variable
         DocumentModel returnedDoc = (DocumentModel) service.run(ctx, chain);
         Assert.assertEquals("/test", returnedDoc.getPathAsString());
         // making sure that

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * Contributors:
  * Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.rendition.publisher;
 
 import static org.junit.Assert.assertEquals;
@@ -48,7 +47,6 @@ import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.publisher.api.PublicationNode;
 import org.nuxeo.ecm.platform.publisher.api.PublicationTree;
 import org.nuxeo.ecm.platform.publisher.api.PublishedDocument;
@@ -95,9 +93,6 @@ public class TestRenditionPublicationWFAprove {
     protected PublisherService publisherService;
 
     @Inject
-    protected DirectoryService directoryService;
-
-    @Inject
     protected CoreFeature coreFeature;
 
     @Inject
@@ -108,7 +103,7 @@ public class TestRenditionPublicationWFAprove {
     protected DocumentModel doc2Publish = null;
 
     @Before
-    public void initPublishTestCase() throws Exception {
+    public void initPublishTestCase() {
         if (doc2Publish != null) {
             session.removeChildren(session.getRootDocument().getRef());
             eventService.waitForAsyncCompletion();
@@ -123,7 +118,7 @@ public class TestRenditionPublicationWFAprove {
         }
     }
 
-    private DocumentModel createDocumentToPublish() throws Exception {
+    private DocumentModel createDocumentToPublish() {
         DocumentModel wsRoot = session.getDocument(new PathRef("/default-domain/workspaces"));
 
         DocumentModel ws = session.createDocumentModel(wsRoot.getPathAsString(), "ws1", "Workspace");
@@ -143,7 +138,7 @@ public class TestRenditionPublicationWFAprove {
         return doc2Publish;
     }
 
-    private void initializeACP() throws Exception {
+    private void initializeACP() {
 
         DocumentModel root = session.getRootDocument();
         ACP acp = session.getACP(root.getRef());
@@ -190,14 +185,14 @@ public class TestRenditionPublicationWFAprove {
         session.save();
     }
 
-    private void changeUser(String userName) throws Exception {
+    private void changeUser(String userName) {
         session = coreFeature.getCoreSession(userName);
         session.save(); // synch with previous
     }
 
     @Test
     @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
-    public void testApproveRenditionPublishing() throws Exception {
+    public void testApproveRenditionPublishing() {
 
         String defaultTreeName = publisherService.getAvailablePublicationTree().get(0);
         PublicationTree tree = publisherService.getPublicationTree(defaultTreeName, session, null);
@@ -234,8 +229,8 @@ public class TestRenditionPublicationWFAprove {
         // myuser2 can see it, it's the validator
         changeUser("myuser2");
         PublicationTree treeUser2 = publisherService.getPublicationTree(defaultTreeName, session, factoryParams);
-        List<PublishedDocument> publishedDocuments = treeUser2.getExistingPublishedDocument(new DocumentLocationImpl(
-                doc2Publish));
+        List<PublishedDocument> publishedDocuments = treeUser2.getExistingPublishedDocument(
+                new DocumentLocationImpl(doc2Publish));
         assertEquals(1, publishedDocuments.size());
 
         publishedDocument = publishedDocuments.get(0);

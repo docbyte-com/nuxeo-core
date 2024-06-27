@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.directory.test;
 
 import java.util.Collection;
@@ -52,13 +50,13 @@ import com.google.inject.name.Names;
 /**
  * @since 9.2
  */
-@Features(CoreFeature.class)
-@RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.directory.api")
 @Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.sql")
 @Deploy("org.nuxeo.directory.mongodb")
+@Features(CoreFeature.class)
+@RepositoryConfig(cleanup = Granularity.METHOD)
 public class DirectoryFeature implements RunnerFeature {
 
     public static final String USER_DIRECTORY_NAME = "userDirectory";

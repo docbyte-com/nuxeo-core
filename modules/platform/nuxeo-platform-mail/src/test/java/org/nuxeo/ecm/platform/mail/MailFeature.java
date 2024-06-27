@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,15 @@
  */
 package org.nuxeo.ecm.platform.mail;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
+import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -26,8 +35,14 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 2021.9
  */
-@Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.mail")
+@Features(CoreFeature.class)
 public class MailFeature implements RunnerFeature {
 
+    public static Message getSampleMessage(String relativeFilePath) throws IOException, MessagingException {
+        String absoluteFilePath = FileUtils.getResourcePathFromContext(relativeFilePath);
+        try (InputStream stream = new FileInputStream(absoluteFilePath)) {
+            return new MimeMessage(null, stream);
+        }
+    }
 }

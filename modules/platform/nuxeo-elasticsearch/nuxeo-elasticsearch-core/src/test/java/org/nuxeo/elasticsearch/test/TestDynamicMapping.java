@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
  * Contributors:
  *     mcedica@nuxeo.com
  */
-
 package org.nuxeo.elasticsearch.test;
+
+import static org.junit.Assert.assertEquals;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -38,12 +38,11 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-append-dynamic-mapping-contrib.xml")
 public class TestDynamicMapping extends TestMapping {
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Test
     public void testShouldIndexDocUsingCustomWriter() throws Exception {
@@ -71,18 +70,18 @@ public class TestDynamicMapping extends TestMapping {
         // Since ES 2.x we need to express the full path of property: type1:id_int becomes dynamic/type1/type1:id_int
         DocumentModelList ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dynamic/type1/type1:id_int = 11"));
-        Assert.assertEquals(0, ret.totalSize());
+        assertEquals(0, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE dynamic/type1/type1:id_int = 10 AND ecm:isVersion = 0"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE dynamic/type1/type1:name_string LIKE 'test' AND ecm:isVersion = 0"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE dynamic/type1/type1:creation_date BETWEEN DATE '2015-01-01' AND DATE '2015-01-02' AND ecm:isVersion = 0"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 7.1
  */
-@Features(CoreFeature.class)
 @Deploy("org.nuxeo.binary.metadata")
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
+@Features(CoreFeature.class)
 public class BinaryMetadataFeature implements RunnerFeature {
 
 }

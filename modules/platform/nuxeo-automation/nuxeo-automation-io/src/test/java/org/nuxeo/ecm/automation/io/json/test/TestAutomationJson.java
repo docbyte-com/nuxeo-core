@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 public class TestAutomationJson {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected String getJsonChain(String chainId) throws Exception {
         OperationType op = service.getOperation(chainId);

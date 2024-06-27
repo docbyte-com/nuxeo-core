@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,13 @@
 
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -42,8 +44,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.ecm.platform.tag")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-mapping-contrib.xml")
 public class TestMapping {
 
@@ -54,12 +54,12 @@ public class TestMapping {
     protected ElasticSearchService ess;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     private int commandProcessed;
 
     public void assertNumberOfCommandProcessed(int processed) {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed); // NOSONAR
+        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed); // NOSONAR
     }
 
     /**
@@ -74,7 +74,7 @@ public class TestMapping {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         commandProcessed = esa.getTotalCommandProcessed();
     }
 
@@ -108,48 +108,48 @@ public class TestMapping {
         startTransaction();
         DocumentModelList ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description ILIKE '%Case%'"));
-        Assert.assertEquals(3, ret.totalSize());
+        assertEquals(3, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description ILIKE 'Upper%'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE dc:description ILIKE 'mixED case desc'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title LIKE 'case%'"));
-        Assert.assertEquals(3, ret.totalSize());
+        assertEquals(3, ret.totalSize());
         ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title LIKE 'Case%'"));
-        Assert.assertEquals(3, ret.totalSize());
+        assertEquals(3, ret.totalSize());
 
         // case sensitive for other operation
         ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description LIKE '%Case%'"));
-        Assert.assertEquals(0, ret.totalSize());
+        assertEquals(0, ret.totalSize());
         try {
             ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description LIKE 'Upper%'"));
-            Assert.fail("phrase prefix on keyword should raise error on elastic 7.x");
+            fail("phrase prefix on keyword should raise error on elastic 7.x");
         } catch (NuxeoException e) {
             // expected
         }
         try {
             ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description LIKE 'UPPER%'"));
-            Assert.fail("phrase prefix on keyword should raise error on elastic 7.x");
+            fail("phrase prefix on keyword should raise error on elastic 7.x");
         } catch (NuxeoException e) {
             // expected
         }
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:description LIKE '%Case%'"));
-        Assert.assertEquals(3, ret.totalSize());
+        assertEquals(3, ret.totalSize());
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:description LIKE 'Upper%'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:description LIKE 'UPPER%'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
     }
 
@@ -174,33 +174,33 @@ public class TestMapping {
         startTransaction();
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'new-york.jpg'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         // The standard tokenizer first split new-york.jpg in "new" "york.jpg"
         // then the word delimiter gives: "new" york" "jpg" "york.jpg"
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'new york jpg'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'new-york'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'york new'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'york -new-york'"));
-        Assert.assertEquals(1, ret.totalSize());
-        Assert.assertEquals("testDoc2", ret.get(0).getName());
+        assertEquals(1, ret.totalSize());
+        assertEquals("testDoc2", ret.get(0).getName());
 
         ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'NewYork'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'jpg'"));
-        Assert.assertEquals(3, ret.totalSize());
+        assertEquals(3, ret.totalSize());
 
     }
 
@@ -223,37 +223,37 @@ public class TestMapping {
         // Common left/right truncature with a ILIKE, translated into wilcard search *oba* with poor performance
         DocumentModelList ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:title ILIKE '%Oba%'"));
-        Assert.assertEquals(2, ret.totalSize());
+        assertEquals(2, ret.totalSize());
 
         // Use an ngram index
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) ANALYZER(lowercase_analyzer) OPERATOR(match) */ dc:title = 'ObA'"));
-        Assert.assertEquals(2, ret.totalSize());
+        assertEquals(2, ret.totalSize());
 
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) ANALYZER(lowercase_analyzer) OPERATOR(match) */ dc:title = 'fOObar42'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         // No tokenizer mind the space
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) ANALYZER(lowercase_analyzer) OPERATOR(match) */ dc:title = '2 t'"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         // need to provide min_ngram (3) or more characters
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) ANALYZER(lowercase_analyzer) OPERATOR(match) */ dc:title = '42'"));
-        Assert.assertEquals(0, ret.totalSize());
+        assertEquals(0, ret.totalSize());
 
         // If we don't set the proper analyzer the searched term is also ngramized matching too much
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) OPERATOR(match) */ dc:title = 'ZOObar'"));
-        Assert.assertEquals(2, ret.totalSize());
+        assertEquals(2, ret.totalSize());
 
         // Using the lowercase analyzer for the search term and a ngram max_gram greater than the search term make it
         // work
         ret = ess.query(new NxQueryBuilder(session).nxql(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.ngram) ANALYZER(lowercase_analyzer) OPERATOR(match) */ dc:title = 'ZOObar'"));
-        Assert.assertEquals(0, ret.totalSize());
+        assertEquals(0, ret.totalSize());
 
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,17 +69,19 @@ import org.xml.sax.SAXException;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFInfoTest {
 
-    private FileBlob pdfFileBlob;
-
-    private DocumentModel testDocsFolder, pdfDocModel;
-
-    private DateFormat dateFormatter;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected FileBlob pdfFileBlob;
+
+    protected DocumentModel testDocsFolder;
+
+    protected DocumentModel pdfDocModel;
+
+    protected DateFormat dateFormatter;
 
     @Before
     public void setUp() {
@@ -125,7 +127,7 @@ public class PDFInfoTest {
         assertEquals("TextEdit", info.getContentCreator());
         assertEquals("2014-10-23 20:49:29", dateFormatter.format(info.getCreationDate().getTime()));
         assertEquals("2014-10-23 20:49:29", dateFormatter.format(info.getModificationDate().getTime()));
-        assertEquals(false, info.isEncrypted());
+        assertFalse(info.isEncrypted());
         assertEquals("", info.getKeywords());
         assertEquals(612.0, info.getMediaBoxWidthInPoints(), 0.0);
         assertEquals(792.0, info.getMediaBoxHeightInPoints(), 0.0);
@@ -138,7 +140,7 @@ public class PDFInfoTest {
         assertTrue(info.getPermissions().canFillInForm());
         assertTrue(info.getPermissions().canExtractForAccessibility());
         assertTrue(info.getPermissions().canAssembleDocument());
-        assertTrue(info.getPermissions().canPrintDegraded());
+        assertTrue(info.getPermissions().canPrintFaithful());
     }
 
     @Test
@@ -232,7 +234,7 @@ public class PDFInfoTest {
         assertTrue(info.getPermissions().canFillInForm());
         assertTrue(info.getPermissions().canExtractForAccessibility());
         assertTrue(info.getPermissions().canAssembleDocument());
-        assertTrue(info.getPermissions().canPrintDegraded());
+        assertTrue(info.getPermissions().canPrintFaithful());
     }
 
     @Test
@@ -248,7 +250,7 @@ public class PDFInfoTest {
         assertTrue(info.getPermissions().canPrint());
         assertTrue(info.getPermissions().canExtractContent());
         assertTrue(info.getPermissions().canExtractForAccessibility());
-        assertTrue(info.getPermissions().canPrintDegraded());
+        assertTrue(info.getPermissions().canPrintFaithful());
         assertFalse(info.getPermissions().canModify());
         assertFalse(info.getPermissions().canModifyAnnotations());
         assertFalse(info.getPermissions().canFillInForm());

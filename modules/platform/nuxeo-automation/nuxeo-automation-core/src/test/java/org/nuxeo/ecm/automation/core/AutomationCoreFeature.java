@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * since 11.3
  */
-@Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core")
+@Features(CoreFeature.class)
 public class AutomationCoreFeature implements RunnerFeature {
 
 }

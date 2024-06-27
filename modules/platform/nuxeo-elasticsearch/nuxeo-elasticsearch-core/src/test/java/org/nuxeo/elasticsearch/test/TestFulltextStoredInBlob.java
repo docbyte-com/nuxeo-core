@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,13 +29,11 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features({ FulltextStoredInBlobFeature.class, RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestFulltextStoredInBlob extends TestFulltextEnabled {
 
     @Override
@@ -47,8 +46,7 @@ public class TestFulltextStoredInBlob extends TestFulltextEnabled {
         assertEquals(1, esRet.totalSize());
 
         // fulltext search with core is not allowed
-        exception.expect(QueryParseException.class);
-        session.query(nxql);
+        assertThrows(QueryParseException.class, () -> session.query(nxql));
     }
 
     @Override
@@ -62,8 +60,7 @@ public class TestFulltextStoredInBlob extends TestFulltextEnabled {
         assertEquals(1, esRet.totalSize());
 
         // fulltext search with core is not allowed
-        exception.expect(QueryParseException.class);
-        session.query(nxql);
+        assertThrows(QueryParseException.class, () -> session.query(nxql));
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ package org.nuxeo.ecm.platform.pdf.tests;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.HashMap;
@@ -61,15 +61,17 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFEncryptionTest {
 
-    private FileBlob pdfFileBlob, pdfEncryptedFileBlob;
-
-    private DocumentModel testDocsFolder;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected FileBlob pdfFileBlob;
+
+    protected FileBlob pdfEncryptedFileBlob;
+
+    protected DocumentModel testDocsFolder;
 
     protected OperationContext ctx;
 
@@ -124,7 +126,7 @@ public class PDFEncryptionTest {
         assertTrue(pdfPermissions.canPrint());
         assertTrue(pdfPermissions.canExtractContent());
         assertTrue(pdfPermissions.canExtractForAccessibility());
-        assertTrue(pdfPermissions.canPrintDegraded());
+        assertTrue(pdfPermissions.canPrintFaithful());
         assertFalse(pdfPermissions.canModifyAnnotations());
         assertFalse(pdfPermissions.canModify());
         assertFalse(pdfPermissions.canFillInForm());
@@ -137,7 +139,7 @@ public class PDFEncryptionTest {
         assertTrue(pdfPermissions.canPrint());
         assertTrue(pdfPermissions.canExtractContent());
         assertTrue(pdfPermissions.canExtractForAccessibility());
-        assertTrue(pdfPermissions.canPrintDegraded());
+        assertTrue(pdfPermissions.canPrintFaithful());
         assertTrue(pdfPermissions.canModifyAnnotations());
         assertTrue(pdfPermissions.canModify());
         assertTrue(pdfPermissions.canFillInForm());
@@ -160,12 +162,7 @@ public class PDFEncryptionTest {
     public void testRemoveEncryption() throws Exception {
         // verify that a given PDF file is encrypted
         File f = FileUtils.getResourceFileFromContext(TestUtils.PDF_ENCRYPTED_PATH);
-        try {
-            PDDocument.load(f);
-            fail();
-        } catch (InvalidPasswordException e) {
-            // ok
-        }
+        assertThrows(InvalidPasswordException.class, () -> PDDocument.load(f).close());
         // decrypt that same PDF file and verify that the resulting PDF is now decrypted
         FileBlob fb = new FileBlob(f);
         PDFEncryption pdfe = new PDFEncryption(fb);
@@ -203,7 +200,7 @@ public class PDFEncryptionTest {
         assertFalse(encryptedPDF.getCurrentAccessPermission().canModify());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canModifyAnnotations());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canPrint());
-        assertFalse(encryptedPDF.getCurrentAccessPermission().canPrintDegraded());
+        assertFalse(encryptedPDF.getCurrentAccessPermission().canPrintFaithful());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canExtractContent());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canExtractForAccessibility());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canAssembleDocument());
@@ -238,7 +235,7 @@ public class PDFEncryptionTest {
         assertTrue(encryptedPDF.getCurrentAccessPermission().canModify());
         assertTrue(encryptedPDF.getCurrentAccessPermission().canModifyAnnotations());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canPrint());
-        assertFalse(encryptedPDF.getCurrentAccessPermission().canPrintDegraded());
+        assertFalse(encryptedPDF.getCurrentAccessPermission().canPrintFaithful());
         assertTrue(encryptedPDF.getCurrentAccessPermission().canExtractContent());
         assertTrue(encryptedPDF.getCurrentAccessPermission().canExtractForAccessibility());
         assertFalse(encryptedPDF.getCurrentAccessPermission().canAssembleDocument());
@@ -248,17 +245,12 @@ public class PDFEncryptionTest {
 
     @Test
     public void testRemoveEncryptionOperation() throws Exception {
+        assertThrows(InvalidPasswordException.class, () -> PDDocument.load(pdfEncryptedFileBlob.getFile()).close());
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfEncryptedFileBlob);
         chain.add(PDFRemoveEncryptionOperation.ID).set("ownerPwd", TestUtils.PDF_ENCRYPTED_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
-        try {
-            PDDocument.load(pdfEncryptedFileBlob.getFile());
-            fail();
-        } catch (InvalidPasswordException e) {
-            // ok
-        }
         PDDocument decryptedPDF = PDDocument.load(result.getFile());
         assertFalse(decryptedPDF.isEncrypted());
         decryptedPDF.close();

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,27 @@
  *
  * Contributors:
  *     <a href="mailto:ldoguin@nuxeo.com">Laurent Doguin</a>
- *
- * $Id:
  */
-
 package org.nuxeo.ecm.platform.mail.service;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.platform.mail.MailFeature.getSampleMessage;
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.HTML_TEXT_PROPERTY_NAME;
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.PARENT_PATH_KEY;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.IOException;
 import java.util.List;
 
 import jakarta.inject.Inject;
 import jakarta.mail.Message;
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -87,13 +82,13 @@ public class TestMailInjection {
     }
 
     @Test
-    public void testMailUnicityCheck() throws FileNotFoundException, MessagingException {
+    public void testMailUnicityCheck() throws IOException, MessagingException {
         assertNotNull(session.getDocument(new PathRef("/mailFolder1")));
         assertNotNull(session.getDocument(new PathRef("/mailFolder2")));
         injectEmail("data/test_mail.eml", mailFolder1.getPathAsString());
         DocumentModelList children = session.getChildren(mailFolder1.getRef());
         assertNotNull(children);
-        assertTrue(!children.isEmpty());
+        assertFalse(children.isEmpty());
         assertEquals(1, children.size());
         injectEmail("data/test_mail2.eml", mailFolder1.getPathAsString());
         children = session.getChildren(mailFolder1.getRef());
@@ -107,30 +102,29 @@ public class TestMailInjection {
         injectEmail("data/test_mail2.eml", mailFolder2.getPathAsString());
         children = session.getChildren(mailFolder2.getRef());
         assertNotNull(children);
-        assertTrue(!children.isEmpty());
+        assertFalse(children.isEmpty());
         assertEquals(2, children.size());
     }
 
     @Test
-    public void testMailImageContentDisposition() throws FileNotFoundException, MessagingException {
+    public void testMailImageContentDisposition() throws IOException, MessagingException {
         testMailImage("data/test_image.eml", "data/test_sample_message.eml");
     }
 
     // NXP-30062
     @Test
-    public void testMailImageNoContentDisposition() throws FileNotFoundException, MessagingException {
+    public void testMailImageNoContentDisposition() throws IOException, MessagingException {
         testMailImage("data/test_image_no_content_disposition.eml",
                 "data/test_sample_message_no_content_disposition.eml");
     }
 
-    protected void testMailImage(String emailPath1, String emailPath2)
-            throws FileNotFoundException, MessagingException {
+    protected void testMailImage(String emailPath1, String emailPath2) throws IOException, MessagingException {
         assertNotNull(session.getDocument(new PathRef("/mailFolder1")));
         assertNotNull(session.getDocument(new PathRef("/mailFolder2")));
         injectEmail(emailPath1, mailFolder1.getPathAsString());
         DocumentModelList children = session.getChildren(mailFolder1.getRef());
         assertNotNull(children);
-        assertTrue(!children.isEmpty());
+        assertFalse(children.isEmpty());
         assertEquals(1, children.size());
         DocumentModel mail = children.get(0);
         String html = (String) mail.getPropertyValue(HTML_TEXT_PROPERTY_NAME);
@@ -149,7 +143,7 @@ public class TestMailInjection {
                 String.format("/nuxeo/nxfile/default/%s/files:files/1/file/background.gif", mail.getId())));
     }
 
-    private void injectEmail(String filePath, String parentPath) throws FileNotFoundException, MessagingException {
+    private void injectEmail(String filePath, String parentPath) throws IOException, MessagingException {
         MessageActionPipe pipe = mailService.getPipe("nxmail");
         assertNotNull(pipe);
         Visitor visitor = new Visitor(pipe);
@@ -166,32 +160,22 @@ public class TestMailInjection {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testBadMailAddress() throws FileNotFoundException, MessagingException {
+    public void testBadMailAddress() throws IOException, MessagingException {
         injectEmail("data/test_bad_mail_address.eml", mailFolder1.getPathAsString());
         DocumentModelList children = session.getChildren(mailFolder1.getRef());
         assertNotNull(children);
-        assertTrue(!children.isEmpty());
+        assertFalse(children.isEmpty());
         assertEquals(1, children.size());
         DocumentModel mail = children.get(0);
         List<String> recipients = (List<String>) mail.getPropertyValue("mail:recipients");
         assertNotNull(recipients);
-        assertTrue(!recipients.isEmpty());
+        assertFalse(recipients.isEmpty());
         assertEquals(recipients.get(0), "<Undisclosed-Recipient:;>");
         List<String> ccRecipients = (List<String>) mail.getPropertyValue("mail:cc_recipients");
         assertNotNull(ccRecipients);
-        assertTrue(!ccRecipients.isEmpty());
+        assertFalse(ccRecipients.isEmpty());
         assertEquals(ccRecipients.get(0), "<Undisclosed-Recipient:;>");
         assertEquals(mail.getProperty("mail:sender").getValue(String.class), "Nicolas Ulrich <nulrich:nuxeo.com>");
-    }
-
-    @SuppressWarnings("resource") // test
-    private Message getSampleMessage(String filePath) throws FileNotFoundException, MessagingException {
-        InputStream stream = new FileInputStream(getTestMailSource(filePath));
-        return new MimeMessage(null, stream);
-    }
-
-    private String getTestMailSource(String filePath) {
-        return FileUtils.getResourcePathFromContext(filePath);
     }
 
     private void createMailFolders() {

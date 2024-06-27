@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@
 package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -1012,7 +1013,7 @@ public class TestSQLRepositoryFulltextQuery {
         createDocs();
         waitForFulltextIndexing();
         DocumentModelList list = session.query("SELECT * FROM File WHERE ecm:fulltext = 'Drink'");
-        assertTrue(!list.isEmpty());
+        assertFalse(list.isEmpty());
         Map<String, String> map = session.getBinaryFulltext(list.get(0).getRef());
         assertTrue(map.containsKey(BINARY_FULLTEXT_MAIN_KEY));
         assertTrue(map.get(BINARY_FULLTEXT_MAIN_KEY).contains("Drink"));
@@ -1028,7 +1029,7 @@ public class TestSQLRepositoryFulltextQuery {
         waitForFulltextIndexing();
 
         DocumentModelList list = session.query("SELECT * FROM File WHERE ecm:fulltext = 'Drink' and ecm:isProxy = 1");
-        assertTrue(!list.isEmpty());
+        assertFalse(list.isEmpty());
         Map<String, String> map = session.getBinaryFulltext(list.get(0).getRef());
         assertTrue(map.containsKey(BINARY_FULLTEXT_MAIN_KEY));
         assertTrue(map.get(BINARY_FULLTEXT_MAIN_KEY).contains("Drink"));

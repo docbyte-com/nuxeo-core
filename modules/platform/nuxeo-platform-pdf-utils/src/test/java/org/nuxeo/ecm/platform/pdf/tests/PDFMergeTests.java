@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,13 +56,19 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFMergeTests {
 
-    private DocumentModel testDocsFolder, docMergePDF1, docMergePDF2, docMergePDF3;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected DocumentModel testDocsFolder;
+
+    protected DocumentModel docMergePDF1;
+
+    protected DocumentModel docMergePDF2;
+
+    protected DocumentModel docMergePDF3;
 
     protected OperationContext ctx;
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2%024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,10 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.elasticsearch.test;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -31,11 +29,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestAutomaticIndexingSync extends TestAutomaticIndexing {
 
     @Before
-    public void syncModeByDefault() throws Exception {
+    public void syncModeByDefault() {
         activateSynchronousMode();
     }
 }

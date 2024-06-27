@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,8 @@
  *     Radu Darlea
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.platform.tag;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -32,9 +29,7 @@ import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -135,8 +130,8 @@ public abstract class AbstractTestTagService {
         String file1Id = file1.getId();
         String file2Id = file2.getId();
 
-        Set<String> file1set = new HashSet<>(Collections.singleton(file1Id));
-        Set<String> twofiles = new HashSet<>(Arrays.asList(file1Id, file2Id));
+        Set<String> file1set = new HashSet<>(List.of(file1Id));
+        Set<String> twofiles = new HashSet<>(List.of(file1Id, file2Id));
 
         // add tag
         tagService.tag(session, file1Id, "mytag");
@@ -144,8 +139,8 @@ public abstract class AbstractTestTagService {
         tagService.tag(session, file2Id, "mytag");
         session.save();
 
-        Set<String> mytag = new HashSet<>(Collections.singleton("mytag"));
-        Set<String> twotags = new HashSet<>(Arrays.asList("mytag", "othertag"));
+        Set<String> mytag = new HashSet<>(List.of("mytag"));
+        Set<String> twotags = new HashSet<>(List.of("mytag", "othertag"));
 
         // find tags for doc
         Set<String> tags;
@@ -187,7 +182,7 @@ public abstract class AbstractTestTagService {
 
         // check tag present
         Set<String> tags = tagService.getTags(session, file1Id);
-        assertEquals(Collections.singleton("mytag"), tags);
+        assertEquals(Set.of("mytag"), tags);
 
         // trash doc
         Framework.getService(TrashService.class).trashDocument(file);
@@ -199,7 +194,7 @@ public abstract class AbstractTestTagService {
         file.refresh();
         assertTrue(file.isTrashed());
         tags = tagService.getTags(session, file1Id);
-        assertEquals(Collections.singleton("mytag"), tags);
+        assertEquals(Set.of("mytag"), tags);
     }
 
     @Test
@@ -511,9 +506,9 @@ public abstract class AbstractTestTagService {
         session.save();
         String fileId = file.getId();
 
-        List<String> charToTests = Arrays.asList(" ", "\\", "/", "'", "%");
+        List<String> charToTests = List.of(" ", "\\", "/", "'", "%");
         String sanitizedLabel = "mytag";
-        Set<String> expectedTagLabels = singleton(sanitizedLabel);
+        Set<String> expectedTagLabels = Set.of(sanitizedLabel);
         for (String charToTest : charToTests) {
             String tagLabel = "my" + charToTest + "tag";
             String message = "Character '" + charToTest + "' is not well sanitized";
@@ -529,7 +524,7 @@ public abstract class AbstractTestTagService {
             assertEquals(message, expectedTagLabels, suggestions);
             // find documents with this tag
             List<String> taggedDocIds = tagService.getTagDocumentIds(session, tagLabel);
-            assertEquals(message, singletonList(fileId), taggedDocIds);
+            assertEquals(message, List.of(fileId), taggedDocIds);
             // remove tag
             tagService.untag(session, fileId, tagLabel);
             session.save();
@@ -543,7 +538,7 @@ public abstract class AbstractTestTagService {
             session.save();
             // find documents with this tag
             taggedDocIds = tagService.getTagDocumentIds(session, sanitizedLabel);
-            assertEquals(message, singletonList(fileId), taggedDocIds);
+            assertEquals(message, List.of(fileId), taggedDocIds);
             // remove tag
             tagService.untag(session, fileId, sanitizedLabel);
             session.save();
@@ -566,7 +561,6 @@ public abstract class AbstractTestTagService {
         testQueriesOnTags();
     }
 
-    @SuppressWarnings("resource") // test
     protected void testQueriesOnTags() {
         String nxql;
         DocumentModelList dml;
@@ -724,7 +718,7 @@ public abstract class AbstractTestTagService {
                 set.add(tag);
             }
         }
-        assertEquals(new HashSet<>(Arrays.asList(expected)), set);
+        assertEquals(new HashSet<>(List.of(expected)), set);
     }
 
     @Test

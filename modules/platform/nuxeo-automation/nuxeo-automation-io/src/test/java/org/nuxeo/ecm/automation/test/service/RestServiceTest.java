@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,34 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.util.List;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.MarshallingConstants;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContextImpl;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
 /**
@@ -50,7 +61,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 @Deploy("org.nuxeo.ecm.automation.io")
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.automation.io:testrestcontrib.xml")
-public class RestServiceTest extends BaseRestTest {
+public class RestServiceTest {
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Inject
+    protected CoreSession session;
 
     @Before
     public void doBefore() {
@@ -99,7 +115,7 @@ public class RestServiceTest extends BaseRestTest {
         // When it is written as Json with breadcrumb context category
         String jsonFolder = getDocumentAsJson(folder, "breadcrumb");
         // Then it contains the breadcrumb in contextParameters
-        JsonNode node = parseJson(jsonFolder);
+        JsonNode node = MAPPER.readTree(jsonFolder);
         JsonNode breadCrumbEntries = node.get("contextParameters").get("breadcrumb").get("entries");
         assertEquals("/folder1", breadCrumbEntries.get(0).get("path").asText());
         assertEquals("/folder1/doc0", breadCrumbEntries.get(1).get("path").asText());
@@ -112,7 +128,7 @@ public class RestServiceTest extends BaseRestTest {
         // When are written as Json with breadcrumb context category
         String docsJson = getDocumentsAsJson(docs, "breadcrumb");
         // Then it contains the breadcrumb in contextParameters
-        JsonNode jsonDocs = parseJson(docsJson);
+        JsonNode jsonDocs = MAPPER.readTree(docsJson);
         ArrayNode nodes = (ArrayNode) jsonDocs.get("entries");
         int i = 0;
         for (JsonNode node : nodes) {
@@ -129,7 +145,7 @@ public class RestServiceTest extends BaseRestTest {
         DocumentModel folder = session.getDocument(new PathRef("/folder1"));
         DocumentModel note = session.getDocument(new PathRef("/folder1/doc0"));
 
-        // When it is written as Json whith test category
+        // When it is written as Json with test category
         String jsonFolder = getDocumentAsJson(folder);
         String jsonNote = getDocumentAsJson(note);
 
@@ -141,4 +157,42 @@ public class RestServiceTest extends BaseRestTest {
         jsonAssert.has("contextParameters.children.entries").length(3);
     }
 
+    /**
+     * Returns the JSON representation of the document.
+     */
+    protected String getDocumentAsJson(DocumentModel doc) throws Exception {
+        return getDocumentAsJson(doc, null);
+    }
+
+    /**
+     * Returns the JSON representation of the document. A category may be passed to have impact on the Content Enrichers
+     */
+    protected String getDocumentAsJson(DocumentModel doc, String category) throws Exception {
+        RenderingContext ctx = RenderingContext.CtxBuilder.enrichDoc(category == null ? "children" : category).get();
+        return MarshallerHelper.objectToJson(doc, ctx);
+    }
+
+    /**
+     * Returns the JSON representation of the document with all schemas. A category may be passed to have impact on the
+     * Content Enrichers.
+     */
+    protected String getFullDocumentAsJson(DocumentModel doc, String category) throws Exception {
+        RenderingContextImpl.RenderingContextBuilder builder = RenderingContext.CtxBuilder.builder();
+        builder.properties(MarshallingConstants.WILDCARD_VALUE);
+        builder.enrichDoc(category == null ? "children" : category);
+        builder.fetch("document", "versionLabel");
+        return MarshallerHelper.objectToJson(doc, builder.get());
+    }
+
+    /**
+     * Returns the JSON representation of these docs. A category may be passed to have impact on the Content Enrichers
+     */
+    protected String getDocumentsAsJson(List<DocumentModel> docs, String category) throws Exception {
+        RenderingContext ctx = RenderingContext.CtxBuilder.enrichDoc(category == null ? "children" : category).get();
+        return MarshallerHelper.listToJson(DocumentModel.class, docs, ctx);
+    }
+
+    protected void assertEqualsJson(String expected, String actual) {
+        JSONAssert.assertEquals(expected, actual, JSONCompareMode.NON_EXTENSIBLE);
+    }
 }

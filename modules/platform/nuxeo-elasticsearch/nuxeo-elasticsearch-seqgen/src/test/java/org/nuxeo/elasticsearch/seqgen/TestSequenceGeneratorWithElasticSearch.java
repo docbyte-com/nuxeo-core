@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class TestSequenceGeneratorWithElasticSearch {
     protected UIDGeneratorService uidGeneratorService;
 
     @Test
-    public void testIncrement() throws Exception {
+    public void testIncrement() {
         UIDSequencer seq = uidGeneratorService.getSequencer();
         assertNotNull(seq);
         assertTrue(seq.getClass().isAssignableFrom(ESUIDSequencer.class));
@@ -77,7 +77,7 @@ public class TestSequenceGeneratorWithElasticSearch {
         assertEquals(1_000_001L, seq.getNextLong("mySequence"));
         assertEquals(1_000_002L, seq.getNextLong("mySequence"));
         seq.initSequence("another", 3_147_483_647L);
-        assertTrue("Sequence should be a long",seq.getNextLong("another") > 3_147_483_647L);
+        assertTrue("Sequence should be a long", seq.getNextLong("another") > 3_147_483_647L);
 
     }
 
@@ -88,16 +88,10 @@ public class TestSequenceGeneratorWithElasticSearch {
         int nbCalls = 5000;
 
         final UIDSequencer seq = uidGeneratorService.getSequencer();
-        ThreadPoolExecutor tpe = new ThreadPoolExecutor(5, 5, 500L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<Runnable>(nbCalls + 1));
+        var tpe = new ThreadPoolExecutor(5, 5, 500L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(nbCalls + 1));
 
         for (int i = 0; i < nbCalls; i++) {
-            tpe.submit(new Runnable() {
-                @Override
-                public void run() {
-                    seq.getNextLong(seqName);
-                }
-            });
+            tpe.submit(() -> seq.getNextLong(seqName));
         }
 
         tpe.shutdown();

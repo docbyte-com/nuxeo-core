@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ import ro.isdc.wro.util.WroTestUtils;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeFeature.class })
+@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.theme.styling")
 @Deploy("org.nuxeo.web.resources.core")
 @Deploy("org.nuxeo.web.resources.wro")
@@ -87,6 +87,8 @@ public class TestFlavorResourceProcessor {
 
     private ResourcePreProcessor victim;
 
+    protected AutoCloseable mocksToClose;
+
     @BeforeClass
     public static void onBeforeClass() {
         assertEquals(0, Context.countActive());
@@ -99,7 +101,7 @@ public class TestFlavorResourceProcessor {
 
     @Before
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
+        mocksToClose = MockitoAnnotations.openMocks(this);
         Context.set(Context.webContext(mockRequest, mock(HttpServletResponse.class), mock(FilterConfig.class)));
         WroModelFactory factory = DefaultWroModelFactoryDecorator.decorate(new NuxeoWroModelFactory(),
                 Collections.emptyList());
@@ -109,8 +111,9 @@ public class TestFlavorResourceProcessor {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         Context.unset();
+        mocksToClose.close();
     }
 
     @Test

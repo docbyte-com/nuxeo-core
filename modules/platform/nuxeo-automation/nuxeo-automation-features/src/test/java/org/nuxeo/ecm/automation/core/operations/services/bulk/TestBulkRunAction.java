@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 import jakarta.servlet.http.HttpServletResponse;
@@ -306,7 +305,7 @@ public class TestBulkRunAction {
         DocumentModel model = session.getDocument(new PathRef("/default-domain/workspaces/test"));
         String nxql = String.format("SELECT * from ComplexDoc WHERE ecm:parentId='%s' AND ecm:isProxy = 0",
                 model.getId());
-        List<String> ids = session.query(nxql).stream().map(DocumentModel::getId).collect(Collectors.toList());
+        List<String> ids = session.query(nxql).stream().map(DocumentModel::getId).toList();
         assertTrue(ids.size() > 2);
 
         // Build a bulk command based on the query but excluding 2 doc ids

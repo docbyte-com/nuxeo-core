@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-`2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,10 +56,10 @@ public class PDFLinksTest {
     private static final String PDF_LINKED_3_LOCAL_PATH = TestUtils.PDF_LINKED_3_PATH.replace("files/", "");
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Test
     public void testLaunchAndRemoteLinks() throws Exception {

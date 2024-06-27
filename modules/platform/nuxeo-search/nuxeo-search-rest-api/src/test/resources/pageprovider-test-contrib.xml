@@ -172,20 +172,20 @@
 
     <coreQueryPageProvider name="test_primitive_type_predicates">
       <whereClause>
+        <predicate parameter="pt:booleanField" operator="=">
+          <field schema="primitivetypes" name="booleanField" />
+        </predicate>
+        <predicate parameter="pt:doubleField" operator="=">
+          <field schema="primitivetypes" name="doubleField" />
+        </predicate>
+        <predicate parameter="pt:floatField" operator="=">
+          <field schema="primitivetypes" name="floatField" />
+        </predicate>
         <predicate parameter="pt:integerField" operator="=">
           <field schema="primitivetypes" name="integerField" />
         </predicate>
         <predicate parameter="pt:longField" operator="=">
           <field schema="primitivetypes" name="longField" />
-        </predicate>
-        <predicate parameter="pt:floatField" operator="=">
-          <field schema="primitivetypes" name="floatField" />
-        </predicate>
-        <predicate parameter="pt:doubleField" operator="=">
-          <field schema="primitivetypes" name="doubleField" />
-        </predicate>
-        <predicate parameter="pt:booleanField" operator="=">
-          <field schema="primitivetypes" name="booleanField" />
         </predicate>
         <fixedPart>
           ecm:primaryType = 'PrimitiveTypes'

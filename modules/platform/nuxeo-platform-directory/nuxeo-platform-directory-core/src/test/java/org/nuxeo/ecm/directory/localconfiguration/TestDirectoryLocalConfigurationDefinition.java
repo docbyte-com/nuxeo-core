@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * Contributors:
  * Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.directory.localconfiguration;
 
 import static org.junit.Assert.assertEquals;
@@ -58,7 +57,8 @@ public class TestDirectoryLocalConfigurationDefinition {
 
     public static final DocumentRef PARENT_DOMAIN_REF = new PathRef("/default-domain");
 
-    public static final DocumentRef CHILD_WORKSPACE_REF = new PathRef("/default-domain/workspaces/workspace/workspace2");
+    public static final DocumentRef CHILD_WORKSPACE_REF = new PathRef(
+            "/default-domain/workspaces/workspace/workspace2");
 
     @Inject
     protected CoreSession session;
@@ -66,18 +66,15 @@ public class TestDirectoryLocalConfigurationDefinition {
     @Inject
     protected DirectoryService directoryService;
 
-    @Inject
-    protected LocalConfigurationService localConfigurationService;
-
     @Before
-    public void disableListeners() throws Exception {
+    public void disableListeners() {
         EventServiceAdmin eventAdmin = Framework.getService(EventServiceAdmin.class);
         eventAdmin.setBulkModeEnabled(true);
         eventAdmin.setListenerEnabledFlag("sql-storage-binary-text", false);
     }
 
     @Test
-    public void shouldReturnANullSuffixValueIfLocalConfigurationNotSet() throws Exception {
+    public void shouldReturnANullSuffixValueIfLocalConfigurationNotSet() {
         DocumentModel workspace = session.getDocument(PARENT_DOMAIN_REF);
         LocalConfigurationService localConfigurationService = Framework.getService(LocalConfigurationService.class);
 
@@ -88,7 +85,7 @@ public class TestDirectoryLocalConfigurationDefinition {
     }
 
     @Test
-    public void shouldReturnSuffixGivenByLocalConfig() throws Exception {
+    public void shouldReturnSuffixGivenByLocalConfig() {
         DocumentModel workspace = session.getDocument(PARENT_DOMAIN_REF);
 
         setDirectorySuffix(workspace, "suffix");
@@ -102,7 +99,7 @@ public class TestDirectoryLocalConfigurationDefinition {
     }
 
     @Test
-    public void shouldReturnSuffixGivenByLocalConfigWithTrim() throws Exception {
+    public void shouldReturnSuffixGivenByLocalConfigWithTrim() {
         DocumentModel workspace = session.getDocument(PARENT_DOMAIN_REF);
 
         setDirectorySuffix(workspace, "  suffix     ");

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,11 +35,11 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @author dmetzler
  */
-@Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
+@Deploy("org.nuxeo.ecm.platform.content.template")
 @Deploy("org.nuxeo.ecm.quota")
 @Deploy("org.nuxeo.ecm.quota.test")
-@Deploy("org.nuxeo.ecm.platform.content.template")
+@Features(CoreFeature.class)
 public class QuotaFeature implements RunnerFeature {
 
     @SuppressWarnings("unchecked")

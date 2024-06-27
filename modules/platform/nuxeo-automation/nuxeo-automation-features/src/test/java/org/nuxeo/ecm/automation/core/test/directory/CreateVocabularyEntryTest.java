@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,6 +58,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.automation.features:test-vocabularies-contrib.xml")
 public class CreateVocabularyEntryTest {
 
+    protected static final String DIRECTORY_CONTINENT = "continent";
+
     @Inject
     protected CoreSession session;
 
@@ -66,8 +68,6 @@ public class CreateVocabularyEntryTest {
 
     @Inject
     protected DirectoryService directoryService;
-
-    private String vocabularyName = "continent";
 
     protected OperationContext context;
 
@@ -85,33 +85,35 @@ public class CreateVocabularyEntryTest {
     public void shouldCreateEntry() throws OperationException {
         String entryId = "test_entry";
 
-        assertEquals("vocabulary", directoryService.getDirectorySchema(vocabularyName));
-        Session vocabularySession = directoryService.open(vocabularyName);
-        assertFalse(vocabularySession.hasEntry(entryId));
+        assertEquals("vocabulary", directoryService.getDirectorySchema(DIRECTORY_CONTINENT));
+        try (Session vocabularySession = directoryService.open(DIRECTORY_CONTINENT)) {
+            assertFalse(vocabularySession.hasEntry(entryId));
 
-        OperationChain chain = new OperationChain("shouldCreateEntry");
-        chain.add(CreateVocabularyEntry.ID).set("vocabularyName", vocabularyName).set("id", entryId);
-        service.run(context, chain);
+            OperationChain chain = new OperationChain("shouldCreateEntry");
+            chain.add(CreateVocabularyEntry.ID).set("vocabularyName", DIRECTORY_CONTINENT).set("id", entryId);
+            service.run(context, chain);
 
-        assertTrue(vocabularySession.hasEntry(entryId));
+            assertTrue(vocabularySession.hasEntry(entryId));
+        }
     }
 
     @Test
     public void shouldNotCreateEntry() throws OperationException {
         String entryId = "europe";
 
-        assertEquals("vocabulary", directoryService.getDirectorySchema(vocabularyName));
-        Session vocabularySession = directoryService.open(vocabularyName);
-        assertTrue(vocabularySession.hasEntry(entryId));
-        int numberOfEntriesBefore = vocabularySession.query(new HashMap<>()).size();
+        assertEquals("vocabulary", directoryService.getDirectorySchema(DIRECTORY_CONTINENT));
+        try (Session vocabularySession = directoryService.open(DIRECTORY_CONTINENT)) {
+            assertTrue(vocabularySession.hasEntry(entryId));
+            int numberOfEntriesBefore = vocabularySession.query(new HashMap<>()).size();
 
-        OperationChain chain = new OperationChain("shouldNotCreateEntry");
-        chain.add(CreateVocabularyEntry.ID).set("vocabularyName", vocabularyName).set("id", entryId);
-        service.run(context, chain);
+            OperationChain chain = new OperationChain("shouldNotCreateEntry");
+            chain.add(CreateVocabularyEntry.ID).set("vocabularyName", DIRECTORY_CONTINENT).set("id", entryId);
+            service.run(context, chain);
 
-        int numberOfEntriesAfter = vocabularySession.query(new HashMap<>()).size();
-        assertTrue(vocabularySession.hasEntry(entryId));
-        assertEquals(numberOfEntriesBefore, numberOfEntriesAfter);
+            int numberOfEntriesAfter = vocabularySession.query(new HashMap<>()).size();
+            assertTrue(vocabularySession.hasEntry(entryId));
+            assertEquals(numberOfEntriesBefore, numberOfEntriesAfter);
+        }
     }
 
 }

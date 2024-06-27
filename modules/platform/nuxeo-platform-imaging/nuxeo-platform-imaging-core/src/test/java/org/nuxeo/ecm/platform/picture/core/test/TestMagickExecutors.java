@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -59,8 +59,8 @@ public class TestMagickExecutors {
 
         assertNotNull(info);
         assertEquals("JPEG", info.getFormat());
-        assertFalse(info.getWidth() == 0);
-        assertFalse(info.getHeight() == 0);
+        assertNotEquals(0, info.getWidth());
+        assertNotEquals(0, info.getHeight());
         assertTrue(info.getColorSpace().endsWith("RGB"));
 
         System.out.print(info);

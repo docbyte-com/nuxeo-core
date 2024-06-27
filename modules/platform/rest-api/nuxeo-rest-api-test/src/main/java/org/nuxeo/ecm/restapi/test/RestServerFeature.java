@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 /**
  * @since 5.7.2
  */
-@Features({ WebEngineFeature.class, AutomationServerFeature.class })
 @Deploy("org.nuxeo.ecm.automation.test")
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.types")
@@ -38,6 +37,7 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 @Deploy("org.nuxeo.ecm.platform.restapi.test")
 @Deploy("org.nuxeo.ecm.platform.restapi.server")
 @Deploy("org.nuxeo.ecm.platform.tag")
+@Features({ WebEngineFeature.class, AutomationServerFeature.class })
 public class RestServerFeature implements RunnerFeature {
 
     @Inject

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,17 +53,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Deploy("org.nuxeo.ecm.automation.io:testdoc-core-contrib.xml")
 public class DocumentModelIOTest {
 
-    private static final String JSON = "{" + //
-            "  \"myschema:list\": [" + //
-            "    {" + //
-            "      \"foo\":\"test1\"," + //
-            "      \"bar\":\"test2\" " + //
-            "    }" + //
-            "  ]" + //
-            "}";
+    private static final String JSON = """
+            {
+              "myschema:list": [
+                {
+                  "foo":"test1",
+                  "bar":"test2"
+                }
+              ]
+            }
+            """;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Test
     public void listOfComplexPropertiesAreDecoded() throws Exception {

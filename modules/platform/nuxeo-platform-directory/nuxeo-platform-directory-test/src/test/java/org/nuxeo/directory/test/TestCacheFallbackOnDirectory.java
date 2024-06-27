@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
 package org.nuxeo.directory.test;
 
@@ -64,7 +63,7 @@ public class TestCacheFallbackOnDirectory {
     protected CacheService cacheService;
 
     @Test
-    public void testGetFromCache() throws Exception {
+    public void testGetFromCache() {
 
         Directory dir = directoryService.getDirectory("userDirectory");
         try (Session session = dir.getSession()) {

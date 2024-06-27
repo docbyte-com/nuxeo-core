@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     btatar
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
@@ -45,7 +42,7 @@ public class TestImagingService {
     protected ImagingService imagingService;
 
     @Test
-    public void testConfigurationContrib() throws Exception {
+    public void testConfigurationContrib() {
         String conversionFormat = imagingService.getConfigurationValue("conversionFormat", "png");
 
         assertEquals("jpg", conversionFormat);
@@ -53,7 +50,7 @@ public class TestImagingService {
     }
 
     @Test
-    public void testUnregisteredConfiguration() throws Exception {
+    public void testUnregisteredConfiguration() {
         String testConfiguration = imagingService.getConfigurationValue("testConfiguration");
         assertNull(testConfiguration);
 

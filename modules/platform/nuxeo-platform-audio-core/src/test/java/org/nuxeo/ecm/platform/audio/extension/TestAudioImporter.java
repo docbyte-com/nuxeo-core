@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.audio.extension;
 
 import static org.junit.Assert.assertEquals;
@@ -27,8 +26,6 @@ import java.io.File;
 
 import jakarta.inject.Inject;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -66,20 +63,8 @@ public class TestAudioImporter {
     @Inject
     protected FileManager fileManagerService;
 
-    protected DocumentModel root;
-
     private File getTestFile() {
         return new File(FileUtils.getResourcePathFromContext("test-data/sample.wav"));
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        root = session.getRootDocument();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        root = null;
     }
 
     @Test
@@ -117,15 +102,14 @@ public class TestAudioImporter {
     public void testImportAudio() throws Exception {
         File testFile = getTestFile();
         Blob blob = Blobs.createBlob(testFile, "audio/wav");
+        var root = session.getRootDocument();
         String rootPath = root.getPathAsString();
         assertNotNull(blob);
         assertNotNull(rootPath);
         assertNotNull(session);
         assertNotNull(fileManagerService);
 
-        FileImporterContext context = FileImporterContext.builder(session, blob, rootPath)
-                                                         .overwrite(true)
-                                                         .build();
+        FileImporterContext context = FileImporterContext.builder(session, blob, rootPath).overwrite(true).build();
         DocumentModel docModel = fileManagerService.createOrUpdateDocument(context);
 
         assertNotNull(docModel);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,9 +130,11 @@ public class TestThumbnailAudioFactory {
         FrameBodyAPIC frameBody = new FrameBodyAPIC();
         frameBody.setDescription("description");
         if (thumbnailFilePath != null) {
-            frameBody.setImageData(getClass().getResourceAsStream(thumbnailFilePath).readAllBytes());
-            if (thumbnailMimeType != null) {
-                frameBody.setMimeType(thumbnailMimeType);
+            try (var stream = getClass().getResourceAsStream(thumbnailFilePath)) {
+                frameBody.setImageData(stream.readAllBytes());
+                if (thumbnailMimeType != null) {
+                    frameBody.setMimeType(thumbnailMimeType);
+                }
             }
         }
         frame.setBody(frameBody);

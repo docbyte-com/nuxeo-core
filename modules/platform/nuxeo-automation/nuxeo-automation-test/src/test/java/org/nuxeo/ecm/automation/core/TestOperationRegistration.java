@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.nuxeo.ecm.automation.core.impl.OperationTypeImpl;
 import org.nuxeo.ecm.automation.core.operations.document.CreateDocument;
 import org.nuxeo.ecm.automation.core.operations.document.SaveDocument;
 import org.nuxeo.ecm.automation.core.operations.login.Logout;
-import org.nuxeo.ecm.automation.io.services.codec.ObjectCodecService;
 import org.nuxeo.ecm.automation.test.AutomationServerFeature;
 import org.nuxeo.ecm.automation.test.helpers.TestOperation;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -51,10 +50,7 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 public class TestOperationRegistration {
 
     @Inject
-    AutomationService service;
-
-    @Inject
-    ObjectCodecService objectCodecService;
+    protected AutomationService service;
 
     @Inject
     protected HotDeployer hotDeployer;

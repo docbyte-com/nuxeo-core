@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,8 @@ package org.nuxeo.ecm.web.resources.wro;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
-
-import java.io.IOException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -34,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroPageCacheKeyFactory;
 
 import ro.isdc.wro.cache.CacheKey;
@@ -57,6 +56,8 @@ public class TestNuxeoWroPageCacheKeyFactory {
 
     private NuxeoWroPageCacheKeyFactory victim;
 
+    protected AutoCloseable mocksToClose;
+
     @BeforeClass
     public static void onBeforeClass() {
         assertEquals(0, Context.countActive());
@@ -69,7 +70,7 @@ public class TestNuxeoWroPageCacheKeyFactory {
 
     @Before
     public void setUp() {
-        initMocks(this);
+        mocksToClose = MockitoAnnotations.openMocks(this);
         Context.set(Context.standaloneContext());
         victim = new NuxeoWroPageCacheKeyFactory();
         final WroManagerFactory managerFactory = new BaseWroManagerFactory().setGroupExtractor(mockGroupExtractor);
@@ -77,13 +78,14 @@ public class TestNuxeoWroPageCacheKeyFactory {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         Context.unset();
+        mocksToClose.close();
     }
 
     @Test
     public void shouldHaveMinimizeEnabledByDefault() {
-        assertEquals(true, Context.get().getConfig().isMinimizeEnabled());
+        assertTrue(Context.get().getConfig().isMinimizeEnabled());
     }
 
     @Test(expected = NullPointerException.class)
@@ -120,7 +122,7 @@ public class TestNuxeoWroPageCacheKeyFactory {
     }
 
     @Test
-    public void shouldHaveMinimizationTurnedOffWhenMinimizeEnabledIsFalse() throws IOException {
+    public void shouldHaveMinimizationTurnedOffWhenMinimizeEnabledIsFalse() {
         when(mockGroupExtractor.isMinimized(mockRequest)).thenReturn(true);
         when(mockRequest.getRequestURI()).thenReturn("/wro/api/v1/resource/page/g1");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);
@@ -129,7 +131,7 @@ public class TestNuxeoWroPageCacheKeyFactory {
     }
 
     @Test
-    public void shouldDetectSlash() throws IOException {
+    public void shouldDetectSlash() {
         Context.get().getConfig().setMinimizeEnabled(false);
         when(mockRequest.getRequestURI()).thenReturn("/wro/api/v1/resource/page/galaxy/default");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);
@@ -148,7 +150,7 @@ public class TestNuxeoWroPageCacheKeyFactory {
     }
 
     @Test
-    public void shouldChangeWithFlavor() throws IOException {
+    public void shouldChangeWithFlavor() {
         Context.get().getConfig().setMinimizeEnabled(false);
         when(mockRequest.getRequestURI()).thenReturn("/wro/api/v1/resource/page/galaxy/default");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);
@@ -167,7 +169,7 @@ public class TestNuxeoWroPageCacheKeyFactory {
     }
 
     @Test
-    public void shouldChangeWithParams() throws IOException {
+    public void shouldChangeWithParams() {
         Context.get().getConfig().setMinimizeEnabled(false);
         when(mockRequest.getRequestURI()).thenReturn("/wro/api/v1/resource/page/galaxy/default");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);

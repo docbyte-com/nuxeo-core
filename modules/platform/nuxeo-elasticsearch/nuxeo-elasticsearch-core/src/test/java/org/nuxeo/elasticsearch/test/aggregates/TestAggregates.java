@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Benoit Delbosc
  */
-
 package org.nuxeo.elasticsearch.test.aggregates;
 
 import static org.junit.Assert.assertEquals;
@@ -29,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -38,7 +36,6 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.format.DateTimeFormat;
@@ -75,12 +72,12 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:schemas-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestAggregates {
 
     @Inject
@@ -295,9 +292,8 @@ public class TestAggregates {
         aggDef.setProperty("extendedBoundsMin", "0");
         aggDef.setProperty("extendedBoundsMax", "10240");
         HistogramAggregate agg = (HistogramAggregate) AggregateFactory.create(aggDef, null);
-        agg.setSelection(Collections.singletonList("2048.0"));
-        NxQueryBuilder qb = new NxQueryBuilder(session).nxql("SELECT * FROM Document")
-                                                       .addAggregate(agg);
+        agg.setSelection(List.of("2048.0"));
+        NxQueryBuilder qb = new NxQueryBuilder(session).nxql("SELECT * FROM Document").addAggregate(agg);
         SearchSourceBuilder request = new SearchSourceBuilder();
         qb.updateRequest(request);
         assertEqualsEvenUnderWindows(
@@ -318,7 +314,7 @@ public class TestAggregates {
         aggDef.setProperty("order", "count desc");
         aggDef.setProperty("minDocCounts", "5");
         DateHistogramAggregate agg = (DateHistogramAggregate) AggregateFactory.create(aggDef, null);
-        agg.setSelection(Collections.singletonList("2016-08"));
+        agg.setSelection(List.of("2016-08"));
         NxQueryBuilder qb = new NxQueryBuilder(session).nxql("SELECT * FROM Document").addAggregate(agg);
         SearchSourceBuilder request = new SearchSourceBuilder();
         qb.updateRequest(request);
@@ -626,6 +622,7 @@ public class TestAggregates {
     private static class DummyLengthBlob extends AbstractBlob {
 
         private static final long serialVersionUID = 1L;
+
         private final long length;
 
         public DummyLengthBlob(long length) {

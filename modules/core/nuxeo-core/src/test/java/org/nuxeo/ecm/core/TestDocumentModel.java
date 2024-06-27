@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
@@ -29,11 +28,9 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.apache.commons.lang3.SerializationUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -49,6 +46,7 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 public class TestDocumentModel {
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testDocumentModelImpl() {
         DocumentModel model = new DocumentModelImpl("my type");
 
@@ -98,7 +96,6 @@ public class TestDocumentModel {
         assertFalse(original.isAttached());
         // write it
         byte[] buffer = SerializationUtils.serialize(original);
-        original = null;
         // read it
         Object rehydrated = SerializationUtils.deserialize(buffer);
         // check it's a document and it's detached

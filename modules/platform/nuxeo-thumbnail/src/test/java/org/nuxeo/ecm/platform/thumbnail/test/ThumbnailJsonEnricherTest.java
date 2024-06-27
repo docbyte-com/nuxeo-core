@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  *     Thomas Roger
- *
  */
 package org.nuxeo.ecm.platform.thumbnail.test;
 

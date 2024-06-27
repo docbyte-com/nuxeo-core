@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,12 @@ import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.core.operations.FetchContextDocument;
 import org.nuxeo.ecm.automation.core.operations.document.CreateDocument;
 import org.nuxeo.ecm.automation.core.operations.document.GetDocumentParent;
@@ -44,47 +44,22 @@ import org.nuxeo.ecm.automation.core.operations.stack.PushDocument;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.RuntimeServiceEvent;
-import org.nuxeo.runtime.RuntimeServiceListener;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ DocumentUpdatePropertiesWithMultilineTest.InitFeature.class, CoreFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
+@Features(AutomationCoreFeature.class)
 public class DocumentUpdatePropertiesWithMultilineTest {
-
-    public static class InitFeature implements RunnerFeature {
-
-        @Override
-        public void initialize(FeaturesRunner runner) {
-            Framework.addListener(new RuntimeServiceListener() {
-
-                @Override
-                public void handleEvent(RuntimeServiceEvent event) {
-                    if (event.id != RuntimeServiceEvent.RUNTIME_ABOUT_TO_START) {
-                        return;
-                    }
-                    Framework.removeListener(this);
-                    event.runtime.getProperties().setProperty(Properties.PROPERTIES_MULTILINE_ESCAPE, "true");
-                }
-            });
-        }
-    }
 
     protected DocumentModel src;
 
     protected DocumentModel dst;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected OperationContext ctx;
 
@@ -116,21 +91,23 @@ public class DocumentUpdatePropertiesWithMultilineTest {
      * Test if a multiline description is correctly updated
      */
     @Test
-    @Ignore
     public void testUpdateWithMultilineDescription() throws Exception {
         ctx.setInput(src);
 
         OperationChain chain = new OperationChain("testChain");
         chain.add(FetchContextDocument.ID);
-        chain.add(CreateDocument.ID).set("type", "Note").set("properties", new Properties("dc:title=MyDoc")).set(
-                "name", "note");
+        chain.add(CreateDocument.ID)
+             .set("type", "Note")
+             .set("properties", new Properties("dc:title=MyDoc"))
+             .set("name", "note");
         chain.add(PushDocument.ID);
         chain.add(GetDocumentParent.ID);
         chain.add(SetDocumentProperty.ID).set("xpath", "dc:description").set("value", "parentdoc");
         chain.add(SaveDocument.ID);
         chain.add(PopDocument.ID);
-        chain.add(UpdateDocument.ID).set("properties",
-                new Properties("dc:title=MyDoc2\ndc:description=" + "mydesc\notherdesc".replace("\n", "\\\n")));
+        chain.add(UpdateDocument.ID)
+             .set("properties",
+                     new Properties("dc:title=MyDoc2\ndc:description=" + "mydesc\notherdesc".replace("\n", "\\\n")));
         chain.add(LockDocument.ID);
         chain.add(SaveDocument.ID);
 

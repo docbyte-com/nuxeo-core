@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Alexandre Russel
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.mail.fetcher;
 
 import static org.junit.Assert.assertEquals;
@@ -59,7 +56,7 @@ public class TestPropertiesFetcher {
     public MailService propertiesFetcherService;
 
     @Test
-    public void testService() throws Exception {
+    public void testService() {
         assertNotNull(propertiesFetcherService);
         PropertiesFetcher fetcher = propertiesFetcherService.getFetcher("testFactory");
         assertNotNull(fetcher);

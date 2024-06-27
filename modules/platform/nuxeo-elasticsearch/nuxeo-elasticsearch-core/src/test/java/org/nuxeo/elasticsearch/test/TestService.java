@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,26 @@
  * Contributors:
  *     tiry
  */
-
 package org.nuxeo.elasticsearch.test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -44,74 +45,71 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 
 @RunWith(FeaturesRunner.class)
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Features({ RepositoryElasticSearchFeature.class })
 public class TestService {
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Inject
-    ElasticSearchService ess;
+    protected ElasticSearchService ess;
 
     @Inject
-    ElasticSearchIndexing esi;
+    protected ElasticSearchIndexing esi;
 
     @Test
-    public void checkDeclaredServices() throws Exception {
-        Assert.assertNotNull(ess);
-        Assert.assertNotNull(esi);
-        Assert.assertNotNull(esa);
+    public void checkDeclaredServices() {
+        assertNotNull(ess);
+        assertNotNull(esi);
+        assertNotNull(esa);
 
         @SuppressWarnings("resource") // not ours to close
         ESClient client = esa.getClient();
-        Assert.assertNotNull(client);
+        assertNotNull(client);
 
-        Assert.assertEquals(0, esa.getTotalCommandProcessed());
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
-        Assert.assertEquals(0, esa.getRunningWorkerCount());
-        Assert.assertFalse(esa.isIndexingInProgress());
-        Assert.assertEquals(1, esa.getRepositoryNames().size());
-        Assert.assertEquals("test", esa.getRepositoryNames().get(0));
+        assertEquals(0, esa.getTotalCommandProcessed());
+        assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getRunningWorkerCount());
+        assertFalse(esa.isIndexingInProgress());
+        assertEquals(1, esa.getRepositoryNames().size());
+        assertEquals("test", esa.getRepositoryNames().get(0));
     }
 
     @Test
-    public void verifyNodeStartedWithConfig() throws Exception {
+    public void verifyNodeStartedWithConfig() {
 
         ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-        Assert.assertNotNull(ess);
+        assertNotNull(ess);
 
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        Assert.assertNotNull(esa);
+        assertNotNull(esa);
 
-        Assert.assertTrue(esa.getClient().waitForYellowStatus(null, 10));
+        assertTrue(esa.getClient().waitForYellowStatus(null, 10));
     }
 
     @Test
     public void verifyPrepareWaitForIndexing() throws Exception {
         ListenableFuture<Boolean> futureRet = esa.prepareWaitForIndexing();
-        Assert.assertFalse(futureRet.isCancelled());
-        Assert.assertTrue(futureRet.get());
-        Assert.assertTrue(futureRet.isDone());
-        Assert.assertTrue(futureRet.get());
+        assertFalse(futureRet.isCancelled());
+        assertTrue(futureRet.get());
+        assertTrue(futureRet.isDone());
+        assertTrue(futureRet.get());
     }
 
     @Test
     public void verifyPrepareWaitForIndexingTimeout() throws Exception {
         // when a worker is created it is pending
-        Assert.assertFalse(esa.isIndexingInProgress());
+        assertFalse(esa.isIndexingInProgress());
         esi.runReindexingWorker("test", "select * from Document");
         ListenableFuture<Boolean> futureRet = esa.prepareWaitForIndexing();
         try {
             futureRet.get(0, TimeUnit.MILLISECONDS);
             // sometime we don't timeout
-            Assert.assertTrue(futureRet.isDone());
+            assertTrue(futureRet.isDone());
         } catch (TimeoutException e) {
-            Assert.assertTrue(futureRet.get());
+            assertTrue(futureRet.get());
         } finally {
-            Assert.assertFalse(esa.isIndexingInProgress());
+            assertFalse(esa.isIndexingInProgress());
         }
     }
 
@@ -128,14 +126,14 @@ public class TestService {
 
             @Override
             public void onFailure(Throwable t) {
-                Assert.fail("Fail");
+                fail("Fail");
             }
         }, MoreExecutors.newDirectExecutorService());
 
-        Assert.assertTrue(futureRet.get());
+        assertTrue(futureRet.get());
         // callback are executed in async, :/
         Thread.sleep(200);
-        Assert.assertTrue(callbackRet[0]);
+        assertTrue(callbackRet[0]);
     }
 
 }

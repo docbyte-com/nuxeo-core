@@ -153,8 +153,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.automation</groupId>
-      <artifactId>nuxeo-automation-io</artifactId>
-      <scope>test</scope>
+      <artifactId>nuxeo-automation-test</artifactId>
     </dependency>
     <dependency>
       <groupId>io.dropwizard.metrics5</groupId>

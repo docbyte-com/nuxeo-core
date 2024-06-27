@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ package org.nuxeo.ecm.automation.core.operations.users;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import jakarta.inject.Inject;
@@ -94,7 +94,7 @@ public class TestCreateOrUpdateUser {
 
             NuxeoPrincipal principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME, principal.getFirstName());
-            assertEquals(Arrays.asList(MEMBERS), principal.getGroups());
+            assertEquals(List.of(MEMBERS), principal.getGroups());
 
             // cannot create if mode = create and the user exists
             params.put("mode", "create");
@@ -131,7 +131,7 @@ public class TestCreateOrUpdateUser {
 
             NuxeoPrincipal principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME, principal.getFirstName());
-            assertEquals(Arrays.asList(MEMBERS), principal.getGroups());
+            assertEquals(List.of(MEMBERS), principal.getGroups());
 
             DocumentModel group1 = userManager.getBareGroupModel();
             DocumentModel group2 = userManager.getBareGroupModel();
@@ -155,7 +155,7 @@ public class TestCreateOrUpdateUser {
 
             principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME2, principal.getFirstName());
-            assertEquals(Arrays.asList(GROUP1, GROUP2), principal.getGroups());
+            assertEquals(List.of(GROUP1, GROUP2), principal.getGroups());
 
             // clear groups
             params = new HashMap<>();

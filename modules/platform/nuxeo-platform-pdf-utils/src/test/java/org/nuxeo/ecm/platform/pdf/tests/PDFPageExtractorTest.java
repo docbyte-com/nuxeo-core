@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,15 +57,19 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26793")
 public class PDFPageExtractorTest {
 
-    private FileBlob pdfFileBlob, encryptedPdfFileBlob;
-
-    private DocumentModel testDocsFolder, pdfDocModel;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected FileBlob pdfFileBlob;
+
+    protected FileBlob encryptedPdfFileBlob;
+
+    protected DocumentModel testDocsFolder;
+
+    protected DocumentModel pdfDocModel;
 
     protected OperationContext ctx;
 
@@ -79,8 +83,8 @@ public class PDFPageExtractorTest {
         pdfFileBlob = new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.PDF_PATH));
         pdfFileBlob.setMimeType("application/pdf");
         pdfFileBlob.setFilename(pdfFileBlob.getFile().getName());
-        pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(),
-                pdfFileBlob.getFile().getName(), "File");
+        pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(), pdfFileBlob.getFile().getName(),
+                "File");
         pdfDocModel.setPropertyValue("dc:title", pdfFileBlob.getFile().getName());
         pdfDocModel.setPropertyValue("file:content", pdfFileBlob);
         pdfDocModel = coreSession.createDocument(pdfDocModel);
@@ -150,7 +154,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesToPictures() throws Exception {
+    public void testExtractPDFPagesToPictures() {
         FileBlob fb = new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.PDF_TRANSCRIPT_PATH));
         PDFPageExtractor pdfpe = new PDFPageExtractor(fb);
         BlobList results = pdfpe.getPagesAsImages(null);
@@ -167,9 +171,7 @@ public class PDFPageExtractorTest {
     public void testExtractPDFPagesOperation() throws Exception {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
-        chain.add(PDFExtractPagesOperation.ID)
-        .set("startPage", 1)
-        .set("endPage", 3);
+        chain.add(PDFExtractPagesOperation.ID).set("startPage", 1).set("endPage", 3);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         assertEquals(pdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
@@ -182,9 +184,9 @@ public class PDFPageExtractorTest {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(encryptedPdfFileBlob);
         chain.add(PDFExtractPagesOperation.ID)
-        .set("startPage", 1)
-        .set("endPage", 3)
-        .set("password", TestUtils.PDF_ENCRYPTED_PASSWORD);
+             .set("startPage", 1)
+             .set("endPage", 3)
+             .set("password", TestUtils.PDF_ENCRYPTED_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         assertEquals(encryptedPdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
@@ -207,7 +209,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test(expected = NuxeoException.class)
-    public void testExtractPDFPagesShouldFail() throws Exception {
+    public void testExtractPDFPagesShouldFail() {
         PDFPageExtractor pdfpe = new PDFPageExtractor(
                 new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.JPG_PATH)));
         pdfpe.extract(1, 3); // IOException: Failed to load the PDF

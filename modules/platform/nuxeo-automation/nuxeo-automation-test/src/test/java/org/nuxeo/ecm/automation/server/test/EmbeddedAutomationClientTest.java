@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -116,7 +115,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
     protected static String[] attachments = { "att1", "att2", "att3" };
 
     @Inject
-    UserManager userManager;
+    protected UserManager userManager;
 
     @Inject
     private TransactionalFeature txFeature;
@@ -544,8 +543,8 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
     public void testRawJSONDatastructuresAsParameters() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        POJOObject obj1 = new POJOObject("[obj1 text]", Arrays.asList("1", "2"));
-        POJOObject obj2 = new POJOObject("[obj2 text]", Arrays.asList("2", "3"));
+        POJOObject obj1 = new POJOObject("[obj1 text]", List.of("1", "2"));
+        POJOObject obj2 = new POJOObject("[obj2 text]", List.of("2", "3"));
 
         String obj1JSON = mapper.writeValueAsString(obj1);
         String obj2JSON = mapper.writeValueAsString(obj2);
@@ -556,8 +555,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         Map<String, Object> map2 = mapper.readValue(obj2JSON, Map.class);
 
         // Expected result when passing obj1 and obj2 as input to the
-        POJOObject expectedObj12 = new POJOObject("Merged texts: [obj1 text][obj2 text]",
-                Arrays.asList("1", "2", "2", "3"));
+        POJOObject expectedObj12 = new POJOObject("Merged texts: [obj1 text][obj2 text]", List.of("1", "2", "2", "3"));
 
         // The pojo and the map parameters can be passed as java objects
         // directly in the client call, the generic Jackson-based parser /
@@ -578,7 +576,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         assertEquals(expectedObj12, returnedObj12);
 
         // Check scalar parameters can be passed as argument
-        POJOObject expectedObj1AndDouble = new POJOObject("Merged texts: [obj1 text]", Arrays.asList("1", "2", "3.0"));
+        POJOObject expectedObj1AndDouble = new POJOObject("Merged texts: [obj1 text]", List.of("1", "2", "3.0"));
         POJOObject returnedObj1AndDouble = session.newRequest(NestedJSONOperation.ID) //
                                                   .set("pojo", map1)
                                                   .set("doubleParam", 3.0)
@@ -591,9 +589,9 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         // It is possible to pass arbitrary Java objects as the input as
         // long as the JSON representation is a valid representation for the
         // expected input type of the operation
-        POJOObject expectedListObj = new POJOObject("Merged texts: ", Arrays.asList("a", "b", "c"));
+        POJOObject expectedListObj = new POJOObject("Merged texts: ", List.of("a", "b", "c"));
         POJOObject returnedListObj = session.newRequest(NestedJSONOperation.ID) //
-                                            .setInput(Arrays.asList("a", "b", "c"))
+                                            .setInput(List.of("a", "b", "c"))
                                             .executeReturningEntity(POJOObject.class);
         assertEquals(expectedListObj, returnedListObj);
 
@@ -601,7 +599,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         // negotiation: note, as no special codec has been rejustered for
         // POJOObject, the operation must be able to consume Map instances with
         // the same inner structure as the POJOObject class.
-        POJOObject pojoInput = new POJOObject("input pojo", Arrays.asList("a", "b", "c"));
+        POJOObject pojoInput = new POJOObject("input pojo", List.of("a", "b", "c"));
         returnedListObj = session.newRequest(NestedJSONOperation.ID) //
                                  .setInput(pojoInput)
                                  .executeReturningEntity(POJOObject.class);
@@ -626,7 +624,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         list.add(new SimplePojo("test3"));
         List<List<SimplePojo>> listList = new ArrayList<>();
         listList.add(list);
-        SimplePojo[] simplePojos = list.toArray(new SimplePojo[list.size()]);
+        SimplePojo[] simplePojos = list.toArray(SimplePojo[]::new);
         String type = SimplePojoObjectCodec.TYPE;
         SimplePojo result1;
         result1 = session.newRequest(JSONOperationWithArrays.ID)

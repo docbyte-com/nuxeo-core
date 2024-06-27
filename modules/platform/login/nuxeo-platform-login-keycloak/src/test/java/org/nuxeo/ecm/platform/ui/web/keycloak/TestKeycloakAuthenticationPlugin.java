@@ -210,7 +210,7 @@ public class TestKeycloakAuthenticationPlugin {
     }
 
     @Test
-    public void testKeycloakBearerAuthenticationSucceedingWithNullRealmAcess() {
+    public void testKeycloakBearerAuthenticationSucceedingWithNullRealmAccess() {
         KeycloakAuthenticationPlugin keycloakAuthenticationPlugin = new KeycloakAuthenticationPlugin();
         initPlugin(keycloakAuthenticationPlugin);
 

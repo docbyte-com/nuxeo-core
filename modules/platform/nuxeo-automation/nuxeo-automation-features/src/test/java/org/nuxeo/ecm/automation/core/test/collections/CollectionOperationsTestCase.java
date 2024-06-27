@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -58,12 +58,12 @@ public abstract class CollectionOperationsTestCase {
     protected DocumentModel testWorkspace;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
-    OperationChain chain;
+    protected OperationChain chain;
 
     protected OperationContext ctx;
 
@@ -83,8 +83,8 @@ public abstract class CollectionOperationsTestCase {
         testWorkspace = session.createDocument(testWorkspace);
         List<DocumentModel> result = new ArrayList<>();
         for (int i = 1; i <= nbFile; i++) {
-            DocumentModel testFile = session.createDocumentModel(testWorkspace.getPath().toString(),
-                    TEST_FILE_NAME + i, "File");
+            DocumentModel testFile = session.createDocumentModel(testWorkspace.getPath().toString(), TEST_FILE_NAME + i,
+                    "File");
             testFile = session.createDocument(testFile);
             result.add(testFile);
         }

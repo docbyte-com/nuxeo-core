@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 import java.time.Duration;
@@ -29,14 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchType;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,14 +54,18 @@ import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestTreeIndexing {
 
     private static final String IDX_NAME = "nxutest";
@@ -78,20 +77,20 @@ public class TestTreeIndexing {
     protected BulkService bulk;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    ElasticSearchService ess;
+    protected ElasticSearchService ess;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     private boolean syncMode = false;
 
     private int commandProcessed;
 
     public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
+        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
     }
 
     /**
@@ -111,7 +110,7 @@ public class TestTreeIndexing {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         commandProcessed = esa.getTotalCommandProcessed();
     }
 
@@ -152,7 +151,7 @@ public class TestTreeIndexing {
         startTransaction();
         // check indexing at ES level
         SearchResponse searchResponse = searchAll();
-        Assert.assertEquals(10, searchResponse.getHits().getTotalHits().value);
+        assertEquals(10, searchResponse.getHits().getTotalHits().value);
     }
 
     protected SearchResponse searchAll() {
@@ -174,7 +173,7 @@ public class TestTreeIndexing {
 
         // check sub tree search
         SearchResponse searchResponse = search(QueryBuilders.prefixQuery("ecm:path", "/folder0/folder1/folder2"));
-        Assert.assertEquals(8, searchResponse.getHits().getTotalHits().value);
+        assertEquals(8, searchResponse.getHits().getTotalHits().value);
     }
 
     @Test
@@ -182,7 +181,7 @@ public class TestTreeIndexing {
         buildAndIndexTree();
 
         DocumentRef ref = new PathRef("/folder0/folder1/folder2");
-        Assert.assertTrue(session.exists(ref));
+        assertTrue(session.exists(ref));
 
         startTransaction();
         session.removeDocument(ref);
@@ -192,7 +191,7 @@ public class TestTreeIndexing {
 
         startTransaction();
         SearchResponse searchResponse = searchAll();
-        Assert.assertEquals(2, searchResponse.getHits().getTotalHits().value);
+        assertEquals(2, searchResponse.getHits().getTotalHits().value);
     }
 
     @Test
@@ -200,7 +199,7 @@ public class TestTreeIndexing {
         buildAndIndexTree();
         startTransaction();
         DocumentRef ref = new PathRef("/folder0/folder1/folder2");
-        Assert.assertTrue(session.exists(ref));
+        assertTrue(session.exists(ref));
         DocumentModel doc = session.getDocument(ref);
 
         // move in the same folder : rename
@@ -210,17 +209,17 @@ public class TestTreeIndexing {
         waitForCompletion();
         startTransaction();
         SearchResponse searchResponse = searchAll();
-        Assert.assertEquals(10, searchResponse.getHits().getTotalHits().value);
+        assertEquals(10, searchResponse.getHits().getTotalHits().value);
 
         // check sub tree search
         searchResponse = search(QueryBuilders.prefixQuery("ecm:path", "/folder0/folder1/folder2"));
-        Assert.assertEquals(0, searchResponse.getHits().getTotalHits().value);
+        assertEquals(0, searchResponse.getHits().getTotalHits().value);
 
         searchResponse = search(QueryBuilders.prefixQuery("ecm:path", "/folder0/folder1/folderA"));
-        Assert.assertEquals(8, searchResponse.getHits().getTotalHits().value);
+        assertEquals(8, searchResponse.getHits().getTotalHits().value);
 
         searchResponse = search(QueryBuilders.prefixQuery("ecm:path", "/folder0/folder1"));
-        Assert.assertEquals(9, searchResponse.getHits().getTotalHits().value);
+        assertEquals(9, searchResponse.getHits().getTotalHits().value);
 
     }
 
@@ -230,13 +229,13 @@ public class TestTreeIndexing {
         buildAndIndexTree();
 
         DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document"));
-        Assert.assertEquals(10, docs.totalSize());
+        assertEquals(10, docs.totalSize());
 
         // check for user with no rights
         startTransaction();
         CoreSession restrictedSession = CoreInstance.getCoreSession(null, "toto");
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(0, docs.totalSize());
+        assertEquals(0, docs.totalSize());
 
         // add READ rights and check that user now has access
 
@@ -251,7 +250,7 @@ public class TestTreeIndexing {
         waitForCompletion();
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(8, docs.totalSize());
+        assertEquals(8, docs.totalSize());
 
         // block rights and check that blocking is taken into account
 
@@ -270,7 +269,7 @@ public class TestTreeIndexing {
         waitForCompletion();
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(3, docs.totalSize());
+        assertEquals(3, docs.totalSize());
     }
 
     @Test
@@ -279,12 +278,12 @@ public class TestTreeIndexing {
 
         buildAndIndexTree();
         DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document"));
-        Assert.assertEquals(10, docs.totalSize());
+        assertEquals(10, docs.totalSize());
 
         // check for user with no rights
         CoreSession restrictedSession = CoreInstance.getCoreSession(null, "toto");
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(0, docs.totalSize());
+        assertEquals(0, docs.totalSize());
 
         // add READ rights and check that user now has access
         DocumentRef ref = new PathRef("/folder0/folder1/folder2");
@@ -299,7 +298,7 @@ public class TestTreeIndexing {
 
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document order by dc:title"));
-        Assert.assertEquals(8, docs.totalSize());
+        assertEquals(8, docs.totalSize());
 
         // Add an unsupported negative ACL
         ref = new PathRef("/folder0/folder1/folder2/folder3/folder4/folder5");
@@ -316,7 +315,7 @@ public class TestTreeIndexing {
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document order by dc:title"));
         // can view folder2, folder3 and folder4
-        Assert.assertEquals(3, docs.totalSize());
+        assertEquals(3, docs.totalSize());
     }
 
     @Test
@@ -324,11 +323,11 @@ public class TestTreeIndexing {
         buildAndIndexTree();
 
         DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document"));
-        Assert.assertEquals(10, docs.totalSize());
+        assertEquals(10, docs.totalSize());
 
         CoreSession restrictedSession = CoreInstance.getCoreSession(null, "toto");
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(0, docs.totalSize());
+        assertEquals(0, docs.totalSize());
 
         DocumentRef ref = new PathRef("/folder0");
         ACP acp = new ACPImpl();
@@ -342,7 +341,7 @@ public class TestTreeIndexing {
 
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document order by dc:title"));
-        Assert.assertEquals(10, docs.totalSize());
+        assertEquals(10, docs.totalSize());
 
         acp = new ACPImpl();
         acl = ACPImpl.newACL(ACL.LOCAL_ACL);
@@ -361,7 +360,7 @@ public class TestTreeIndexing {
 
         startTransaction();
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document order by dc:title"));
-        Assert.assertEquals(0, docs.totalSize());
+        assertEquals(0, docs.totalSize());
     }
 
     @Test
@@ -369,7 +368,7 @@ public class TestTreeIndexing {
         buildAndIndexTree();
         startTransaction();
         DocumentRef ref = new PathRef("/folder0/folder1/folder2");
-        Assert.assertTrue(session.exists(ref));
+        assertTrue(session.exists(ref));
         Framework.getService(TrashService.class).trashDocument(session.getDocument(ref));
 
         TransactionHelper.commitOrRollbackTransaction();
@@ -378,7 +377,7 @@ public class TestTreeIndexing {
         startTransaction();
         DocumentModelList docs = ess.query(
                 new NxQueryBuilder(session).nxql("select * from Document where ecm:isTrashed = 0"));
-        Assert.assertEquals(2, docs.totalSize());
+        assertEquals(2, docs.totalSize());
     }
 
     @Test
@@ -394,7 +393,7 @@ public class TestTreeIndexing {
 
         startTransaction();
         DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document"));
-        Assert.assertEquals(18, docs.totalSize());
+        assertEquals(18, docs.totalSize());
     }
 
 }

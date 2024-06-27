@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
  * Contributors:
  *     <a href="mailto:grenard@nuxeo.com">Guillaume Renard</a>
  *     <a href="mailto:ncunha@nuxeo.com">Nuno Cunha</a>
- *
  */
-
 package org.nuxeo.ecm.restapi.server;
 
 import static org.apache.http.HttpStatus.SC_CONFLICT;
@@ -36,7 +34,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
@@ -71,7 +68,6 @@ import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.routing.core.io.DocumentRouteWriter;
 import org.nuxeo.ecm.platform.routing.core.io.TaskWriter;
 import org.nuxeo.ecm.platform.routing.core.io.enrichers.PendingTasksJsonEnricher;
@@ -108,7 +104,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, WorkflowFeature.class, AuditFeature.class, LogCaptureFeature.class })
+@Features({ RestServerFeature.class, WorkflowFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
 @Deploy("org.nuxeo.ecm.platform.routing.default")
@@ -281,8 +277,7 @@ public class WorkflowEndpointTest {
         var jsonNodeHandler = new JsonNodeHandler();
         var statusCodeHandler = new HttpStatusCodeHandler();
 
-        List<String> expectedNames = Arrays.asList("SerialDocumentReview", "ParallelDocumentReview");
-        Collections.sort(expectedNames);
+        List<String> expectedNames = List.of("ParallelDocumentReview", "SerialDocumentReview");
 
         httpClient.buildGetRequest("/workflowModel").executeAndConsume(jsonNodeHandler, node -> {
             assertEquals(2, node.get("entries").size());
@@ -1066,8 +1061,7 @@ public class WorkflowEndpointTest {
         // Create a task not related to a workflow instance
         List<Task> tasks = Framework.getService(TaskService.class)
                                     .createTask(session, session.getPrincipal(), note, "testNoWorkflowTask",
-                                            List.of("user:Administrator"), false, null, null, null,
-                                            Collections.emptyMap(), null);
+                                            List.of("user:Administrator"), false, null, null, null, Map.of(), null);
         assertEquals(1, tasks.size());
         Task task = tasks.get(0);
         txFeature.nextTransaction();

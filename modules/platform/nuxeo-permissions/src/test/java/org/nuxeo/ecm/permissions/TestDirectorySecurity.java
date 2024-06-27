@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class TestDirectorySecurity {
     protected Serializable entryId;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // as system, create an dummy entry
         Framework.doPrivileged(() -> {
             try (Session session = directoryService.open(DIR_NAME)) {

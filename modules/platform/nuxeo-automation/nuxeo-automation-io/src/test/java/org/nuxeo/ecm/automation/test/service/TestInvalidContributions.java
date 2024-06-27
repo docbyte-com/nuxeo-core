@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  *
  * @since 11.3
  */
-
 @RunWith(FeaturesRunner.class)
 @Features({ PlatformFeature.class, WebEngineFeatureCore.class })
 @Deploy("org.nuxeo.ecm.automation.core")

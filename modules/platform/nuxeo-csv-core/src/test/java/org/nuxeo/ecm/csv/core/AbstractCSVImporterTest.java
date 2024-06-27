@@ -35,7 +35,11 @@ import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
-@Features({ CoreFeature.class, DirectoryFeature.class, UserManagerFeature.class, TransientStoreFeature.class })
+@Features({ //
+        CoreFeature.class, //
+        DirectoryFeature.class, //
+        UserManagerFeature.class, //
+        TransientStoreFeature.class })
 @Deploy("org.nuxeo.ecm.core.io")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.types")

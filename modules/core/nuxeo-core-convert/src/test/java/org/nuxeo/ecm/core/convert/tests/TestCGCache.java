@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,11 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.core.convert.tests;
 
+import static org.awaitility.Awaitility.await;
+import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -29,6 +29,7 @@ import java.io.IOException;
 
 import jakarta.inject.Inject;
 
+import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -52,7 +53,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestCGCache {
 
     @Inject
-    ConversionService cs;
+    protected ConversionService cs;
 
     @Test
     public void testCGTask() throws Exception {
@@ -70,18 +71,17 @@ public class TestCGCache {
         assertEquals(1, cacheSize2 - cacheSize1);
 
         // wait for the GCThread to run
-        int retryCount = 0;
         int noRuns = ConversionCacheGCManager.getGCRuns();
-        while (ConversionCacheGCManager.getGCRuns() == noRuns && retryCount++ < 5) {
-            Thread.sleep(1100);
-        }
+        await().atMost(Duration.TEN_SECONDS)
+               .pollInterval(Duration.ONE_SECOND)
+               .until(ConversionCacheGCManager::getGCRuns, not(noRuns));
         assertTrue(ConversionCacheGCManager.getGCRuns() > 0);
 
         int cacheSize3 = ConversionCacheHolder.getNbCacheEntries();
         assertEquals(0, cacheSize3 - cacheSize1);
     }
 
-    private Converter deployConverter() throws Exception {
+    private Converter deployConverter() {
         return ConversionServiceImpl.getConverter("identity");
     }
 

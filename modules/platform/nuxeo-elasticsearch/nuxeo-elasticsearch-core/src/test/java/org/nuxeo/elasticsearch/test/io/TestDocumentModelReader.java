@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,11 @@
  */
 package org.nuxeo.elasticsearch.test.io;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
@@ -26,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,7 +45,6 @@ import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -55,14 +58,13 @@ import com.fasterxml.jackson.core.JsonGenerator;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestDocumentModelReader {
 
     @Inject
     protected CoreSession session;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Before
     public void setupIndex() throws Exception {
@@ -70,7 +72,7 @@ public class TestDocumentModelReader {
     }
 
     @Test
-    public void ICanReadADocModelFromJson() throws Exception {
+    public void ICanReadADocModelFromJson() {
         String json = "{\"ecm:versionLabel\":\"0.0\",\"common:icon-expanded\":null,"
                 + "\"ecm:currentLifeCycleState\":\"project\",\"ecm:changeToken\":null,\"ecm:uuid\":\"56ca3935-c6c9-4cd4-ac23-d9df5ebf340a\","
                 + "\"dc:nature\":\"Nature0\",\"dc:created\":null,\"relatedtext:relatedtextresources\":[],\"dc:description\":null,"
@@ -86,34 +88,34 @@ public class TestDocumentModelReader {
                 + "\"ecm:isVersion\":false,\"uid:minor_version\":\"0\",\"dc:issued\":null,"
                 + "\"ecm:title\":\"File Title\",\"dc:modified\":null,\"dc:expired\":null,\"dc:coverage\":null,\"dc:language\":null}";
         DocumentModel doc = DocumentModelReaders.fromJson(json).getDocumentModel();
-        Assert.assertNotNull(doc);
-        Assert.assertEquals("56ca3935-c6c9-4cd4-ac23-d9df5ebf340a", doc.getId());
-        Assert.assertEquals("project", doc.getCurrentLifeCycleState());
-        Assert.assertEquals("file0", doc.getName());
-        Assert.assertEquals("/root/my/path/file0", doc.getPathAsString());
-        Assert.assertEquals("test", doc.getRepositoryName());
-        Assert.assertFalse(doc.isAttached());
-        Assert.assertFalse(doc.isProxy());
-        Assert.assertFalse(doc.isFolder());
-        Assert.assertFalse(doc.isVersion());
-        Assert.assertFalse(doc.isLocked());
-        Assert.assertEquals("File Title", doc.getTitle());
+        assertNotNull(doc);
+        assertEquals("56ca3935-c6c9-4cd4-ac23-d9df5ebf340a", doc.getId());
+        assertEquals("project", doc.getCurrentLifeCycleState());
+        assertEquals("file0", doc.getName());
+        assertEquals("/root/my/path/file0", doc.getPathAsString());
+        assertEquals("test", doc.getRepositoryName());
+        assertFalse(doc.isAttached());
+        assertFalse(doc.isProxy());
+        assertFalse(doc.isFolder());
+        assertFalse(doc.isVersion());
+        assertFalse(doc.isLocked());
+        assertEquals("File Title", doc.getTitle());
         // Assert.assertEquals("Failure", doc.getLifeCyclePolicy());
-        Assert.assertNotNull(doc.getParentRef());
-        Assert.assertTrue(doc.isImmutable());
-        Assert.assertEquals("File", doc.getType());
+        assertNotNull(doc.getParentRef());
+        assertTrue(doc.isImmutable());
+        assertEquals("File", doc.getType());
     }
 
     @Test
-    public void ICanReadADocModelFromSource() throws Exception {
+    public void ICanReadADocModelFromSource() {
         Map<String, Object> source = new HashMap<>();
         source.put("ecm:uuid", "001");
         source.put("ecm:primaryType", "File");
         DocumentModel doc = DocumentModelReaders.fromSource(source).getDocumentModel();
-        Assert.assertNotNull(doc);
-        Assert.assertEquals(doc.getId(), "001");
-        Assert.assertEquals("File", doc.getType());
-        Assert.assertFalse(doc.isFolder());
+        assertNotNull(doc);
+        assertEquals(doc.getId(), "001");
+        assertEquals("File", doc.getType());
+        assertFalse(doc.isFolder());
     }
 
     @Test
@@ -126,25 +128,25 @@ public class TestDocumentModelReader {
         TransactionHelper.commitOrRollbackTransaction();
         TransactionHelper.startTransaction();
         WorkManager wm = Framework.getService(WorkManager.class);
-        Assert.assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
+        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
         esa.refresh();
 
         // search and retrieve from ES
         ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
         DocumentModelList docs = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM File").fetchFromElasticsearch());
-        Assert.assertEquals(1, docs.totalSize());
+        assertEquals(1, docs.totalSize());
         DocumentModel esDoc = docs.get(0);
         // esDoc.detach(false);
-        Assert.assertNotNull(esDoc);
+        assertNotNull(esDoc);
 
         // search from ES retrieve with VCS
         docs = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM File").fetchFromDatabase());
         DocumentModel vcsDoc = docs.get(0);
 
         // compare both docs
-        Assert.assertNotNull(esDoc);
-        Assert.assertEquals(vcsDoc, esDoc);
+        assertNotNull(esDoc);
+        assertEquals(vcsDoc, esDoc);
 
         JsonFactory factory = new JsonFactory();
         OutputStream out = new ByteArrayOutputStream();
@@ -159,6 +161,6 @@ public class TestDocumentModelReader {
         }
         String vcsJson = out.toString();
 
-        Assert.assertEquals(vcsJson, esJson);
+        assertEquals(vcsJson, esJson);
     }
 }

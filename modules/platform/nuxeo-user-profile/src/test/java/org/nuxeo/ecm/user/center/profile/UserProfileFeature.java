@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 7.2
  */
-@Features(PlatformFeature.class)
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.user.center.profile")
+@Features(PlatformFeature.class)
 public class UserProfileFeature implements RunnerFeature {
 
     protected File dir;

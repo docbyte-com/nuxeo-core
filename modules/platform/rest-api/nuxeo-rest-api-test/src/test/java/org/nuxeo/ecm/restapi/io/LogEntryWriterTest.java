@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,7 +54,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @since 5.8
  */
-
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
@@ -63,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class LogEntryWriterTest {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Before
     public void doBefore() {

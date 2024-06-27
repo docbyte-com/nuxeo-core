@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 
@@ -108,17 +107,17 @@ public class TestThreeDRenditions {
         List<TransmissionThreeD> colladaThreeDs = BatchConverterHelper.getTransmissions(results, resources);
         List<TransmissionThreeD> transmissionThreeDs = colladaThreeDs.stream()
                                                                      .map(threeDService::convertColladaToglTF)
-                                                                     .collect(Collectors.toList());
+                                                                     .toList();
 
         List<Map<String, Serializable>> transmissionList = transmissionThreeDs.stream()
                                                                               .map(TransmissionThreeD::toMap)
-                                                                              .collect(Collectors.toList());
+                                                                              .toList();
         doc.setPropertyValue(TRANSMISSIONS_PROPERTY, (Serializable) transmissionList);
 
         List<ThreeDRenderView> threeDRenderViews = BatchConverterHelper.getRenders(results);
         List<Map<String, Serializable>> renderViewList = threeDRenderViews.stream()
                                                                           .map(ThreeDRenderView::toMap)
-                                                                          .collect(Collectors.toList());
+                                                                          .toList();
         doc.setPropertyValue(RENDER_VIEWS_PROPERTY, (Serializable) renderViewList);
 
     }
@@ -128,14 +127,14 @@ public class TestThreeDRenditions {
                                .stream()
                                .filter(renditionDefinition -> THREED_RENDITION_DEFINITION_KINDS.contains(
                                        renditionDefinition.getKind()))
-                               .collect(Collectors.toList());
+                               .toList();
     }
 
     protected List<Rendition> getThreeDAvailableRenditions(DocumentModel doc, boolean onlyVisible) {
         return renditionService.getAvailableRenditions(doc, onlyVisible)
                                .stream()
                                .filter(rendition -> THREED_RENDITION_DEFINITION_KINDS.contains(rendition.getKind()))
-                               .collect(Collectors.toList());
+                               .toList();
     }
 
     protected static ThreeD getTestThreeD() throws IOException {
@@ -169,7 +168,7 @@ public class TestThreeDRenditions {
 
         List<RenditionDefinition> renditionDefinitions = getThreeDRenditionDefinitions(doc);
         long timeDelta = (new Date()).getTime() - timeBefore.getTime();
-        if (renditionDefinitions.size() == 0) {
+        if (renditionDefinitions.isEmpty()) {
             log.warn("[NXP-21450] memory max: {}MB", Runtime.getRuntime().maxMemory() / 1024 / 1024);
             log.warn("[NXP-21450] memory total: {}MB", Runtime.getRuntime().totalMemory() / 1024 / 1024);
             log.warn("[NXP-21450] memory free: {}MB", Runtime.getRuntime().freeMemory() / 1024 / 1024);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  */
-
 package org.nuxeo.ecm.platform.audit;
 
 import java.time.Duration;
@@ -35,12 +33,12 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
-@Features({ ManagementFeature.class, PlatformFeature.class })
 @Deploy("org.nuxeo.runtime.datasource")
 @Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.ecm.platform.audit:nxaudit-ds.xml")
+@Features({ ManagementFeature.class, PlatformFeature.class })
 public class AuditFeature implements RunnerFeature {
 
     @Override
@@ -48,7 +46,7 @@ public class AuditFeature implements RunnerFeature {
         runner.getFeature(TransactionalFeature.class).addWaiter(new BulkAuditWaiter());
     }
 
-    protected class BulkAuditWaiter implements TransactionalFeature.Waiter {
+    protected static class BulkAuditWaiter implements TransactionalFeature.Waiter {
         @Override
         public boolean await(Duration duration) throws InterruptedException {
             return Framework.getService(AuditLogger.class).await(duration.toMillis(), TimeUnit.MILLISECONDS);

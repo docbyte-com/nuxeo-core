@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
  */
-
 package org.nuxeo.ecm.platform.audit;
 
 import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_AUDIT_ENABLED_PROP;
@@ -26,13 +24,13 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
-@Features({ ManagementFeature.class, PlatformFeature.class })
 @Deploy("org.nuxeo.runtime.datasource")
 @Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.ecm.platform.audit:nxaudit-ds.xml")
 @Deploy("org.nuxeo.ecm.platform.audit:test-audit-bulker-contrib.xml")
+@Features({ ManagementFeature.class, PlatformFeature.class })
 @WithFrameworkProperty(name = STREAM_AUDIT_ENABLED_PROP, value = "false")
 public class AuditBulkerFeature extends AuditFeature {
 

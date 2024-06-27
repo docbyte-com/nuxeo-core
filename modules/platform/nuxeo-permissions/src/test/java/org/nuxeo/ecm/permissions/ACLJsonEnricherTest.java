@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.permissions;
 
 import java.io.IOException;
@@ -61,10 +60,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.core.io:OSGI-INF/doc-type-contrib.xml")
 public class ACLJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentModelJsonWriter, DocumentModel> {
 
-    public ACLJsonEnricherTest() {
-        super(DocumentModelJsonWriter.class, DocumentModel.class);
-    }
-
     @Inject
     private CoreSession session;
 
@@ -73,6 +68,10 @@ public class ACLJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentMo
     private ACE ace2;
 
     private ACE ace3;
+
+    public ACLJsonEnricherTest() {
+        super(DocumentModelJsonWriter.class, DocumentModel.class);
+    }
 
     @Before
     public void before() {
@@ -129,7 +128,7 @@ public class ACLJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentMo
         json = json.has("acls").length(1).has(0);
         json.has("name").isEquals("local");
         json.has("aces").isArray();
-        JsonAssert systemJson =  json.has("aces").get(5);
+        JsonAssert systemJson = json.has("aces").get(5);
         json = json.has("aces").get(3);
         json.has("username").isObject();
         json.has("creator").isObject();
@@ -160,8 +159,7 @@ public class ACLJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentMo
     public void testExtendedFetchingAsRegularUser() throws Exception {
         CoreSession systemSession = session;
         try (NuxeoLoginContext loginContext = Framework.loginUser("joe")) {
-            CoreSession joeSession = CoreInstance.getCoreSession(session.getRepositoryName());
-            session = joeSession;
+            session = CoreInstance.getCoreSession(session.getRepositoryName());
             testExtendedFetching();
         } finally {
             session = systemSession;

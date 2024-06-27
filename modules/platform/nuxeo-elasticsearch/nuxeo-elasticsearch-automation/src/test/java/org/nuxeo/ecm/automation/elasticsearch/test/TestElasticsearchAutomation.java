@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core")
@@ -66,19 +65,19 @@ public class TestElasticsearchAutomation {
     private static final String INDEX_CHAIN = "indexAndRefresh";
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    ElasticSearchService ess;
+    protected ElasticSearchService ess;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Inject
-    BulkService bulkService;
+    protected BulkService bulkService;
 
     protected DocumentRef rootRef;
 
@@ -123,7 +122,6 @@ public class TestElasticsearchAutomation {
         // nothing indexed because of disable indexing flag
         assertEquals(0, ess.query(new NxQueryBuilder(coreSession).nxql("SELECT * from Document")).totalSize());
     }
-
 
     @Test
     public void testIndexingAll() throws Exception {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     annejubert
  */
-
 package org.nuxeo.io.fsexporter.test;
 
 import java.io.File;
@@ -51,10 +50,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestFSExporterAttachedFiles {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    FSExporter service;
+    protected FSExporter service;
 
     @Test
     public void shouldExportFile() throws Exception {

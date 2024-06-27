@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.nuxeo.ecm.automation.core.operations.users;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -79,7 +78,7 @@ public class TestQueryUsers {
     @Inject
     protected AutomationService automationService;
 
-    private static final Map<String, Object> map(Object... args) {
+    protected static Map<String, Object> map(Object... args) {
         Map<String, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < args.length;) {
             map.put((String) args[i++], args[i++]);
@@ -123,7 +122,7 @@ public class TestQueryUsers {
             Map<String, Object> params = new HashMap<>();
             params.put("pattern", FIRSTNAME);
             Blob blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -140,7 +139,7 @@ public class TestQueryUsers {
             params.put("pattern", FIRSTNAME);
             params.put("tenantId", TENANTID);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser2", //
                             "firstName", "syd", //
@@ -157,7 +156,7 @@ public class TestQueryUsers {
             Map<String, Object> params = new HashMap<>();
             params.put("firstName", FIRSTNAME);
             Blob blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -174,7 +173,7 @@ public class TestQueryUsers {
             params.put("firstName", FIRSTNAME);
             params.put("lastName", LASTNAME);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -186,7 +185,7 @@ public class TestQueryUsers {
             params.put("firstName", FIRSTNAME);
             params.put("tenantId", TENANTID);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser2", //
                             "firstName", "syd", //

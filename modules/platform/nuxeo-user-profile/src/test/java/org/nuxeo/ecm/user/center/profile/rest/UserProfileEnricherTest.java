@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 
 package org.nuxeo.ecm.user.center.profile.rest;
 
+import static java.util.Calendar.MAY;
 import static org.nuxeo.common.utils.DateUtils.toZonedDateTime;
 import static org.nuxeo.ecm.user.center.profile.UserProfileConstants.USER_PROFILE_AVATAR_FIELD;
 import static org.nuxeo.ecm.user.center.profile.UserProfileConstants.USER_PROFILE_BIRTHDATE_FIELD;
@@ -30,7 +31,6 @@ import java.io.Serializable;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 
@@ -71,7 +71,7 @@ public class UserProfileEnricherTest extends AbstractJsonWriterTest.External<Nux
     }
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
     protected UserProfileService userProfileService;
@@ -86,7 +86,7 @@ public class UserProfileEnricherTest extends AbstractJsonWriterTest.External<Nux
     @Before
     public void setUp() throws IOException {
         birthDate = Calendar.getInstance();
-        birthDate.set(1973, 4, 19, 22, 13, 0);
+        birthDate.set(1973, MAY, 19, 22, 13, 0);
         DocumentModel up = userProfileService.getUserProfileDocument(session);
         up.setPropertyValue(USER_PROFILE_PHONENUMBER_FIELD, "mynumber");
         up.setPropertyValue(USER_PROFILE_BIRTHDATE_FIELD, birthDate.getTime());
@@ -129,12 +129,12 @@ public class UserProfileEnricherTest extends AbstractJsonWriterTest.External<Nux
         List<DocumentRef> refs = session.getChildren(session.getRootDocument().getRef())
                                         .stream()
                                         .map(DocumentModel::getRef)
-                                        .collect(Collectors.toList());
-        session.removeDocuments(refs.toArray(new DocumentRef[refs.size()]));
+                                        .toList();
+        session.removeDocuments(refs.toArray(DocumentRef[]::new));
         session.save();
         RenderingContext ctx = CtxBuilder.session(session).enrich("user", NAME).get();
         JsonAssert jsonAssert = jsonAssert(session.getPrincipal(), ctx);
-        jsonAssert = jsonAssert.get(String.format("contextParameters.%s", NAME)).isNull();
+        jsonAssert.get(String.format("contextParameters.%s", NAME)).isNull();
     }
 
     @Test

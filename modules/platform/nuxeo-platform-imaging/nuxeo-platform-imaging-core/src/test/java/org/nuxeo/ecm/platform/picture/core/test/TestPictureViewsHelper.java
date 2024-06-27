@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,6 +61,7 @@ public class TestPictureViewsHelper {
     protected TransactionalFeature txFeature;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testComputePictureViewsModificationDate() throws IOException {
         DocumentModel doc = session.createDocumentModel("/", "pictureDoc", "Picture");
         Blob blob = Blobs.createBlob(FileUtils.getResourceFileFromContext("images/test.jpg"), "image/jpeg",

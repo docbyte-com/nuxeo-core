@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,20 +104,20 @@ public class TestPictureConversions {
     public void iCanMergePictureConversions() {
         for (PictureConversion pictureConversion : imagingService.getPictureConversions()) {
             switch (pictureConversion.getId()) {
-            case "Original":
-            case "OriginalJpeg":
-                assertFalse(pictureConversion.getId(), pictureConversion.isEnabled());
-                break;
-            case "Small":
-                assertEquals(50, (int) pictureConversion.getMaxSize());
-                assertTrue(pictureConversion.getDescription().contains("override"));
-                break;
-            case "Thumbnail":
-                assertEquals(320, (int) pictureConversion.getMaxSize());
-                break;
-            case "Medium":
-                assertTrue(pictureConversion.getDescription().contains("override"));
-                break;
+                case "Original":
+                case "OriginalJpeg":
+                    assertFalse(pictureConversion.getId(), pictureConversion.isEnabled());
+                    break;
+                case "Small":
+                    assertEquals(50, (int) pictureConversion.getMaxSize());
+                    assertTrue(pictureConversion.getDescription().contains("override"));
+                    break;
+                case "Thumbnail":
+                    assertEquals(320, (int) pictureConversion.getMaxSize());
+                    break;
+                case "Medium":
+                    assertTrue(pictureConversion.getDescription().contains("override"));
+                    break;
             }
         }
     }

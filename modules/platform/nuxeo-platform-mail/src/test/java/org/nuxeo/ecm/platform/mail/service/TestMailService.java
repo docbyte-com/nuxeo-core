@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,6 @@ import jakarta.mail.Session;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.mail.action.MessageActionPipe;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,9 +36,6 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
- * The test of this class is commented out because it should not be run in CI environement. To test the mail service
- * remove the _ infront of the testTest method.
- *
  * @author Alexandre Russel
  */
 @RunWith(FeaturesRunner.class)
@@ -48,16 +44,15 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 public class TestMailService {
 
     @Inject
-    protected HotDeployer hotDeployer;
+    protected MailService mailService;
 
-    protected MailService getService() {
-        return Framework.getRuntime().getService(MailService.class);
-    }
+    @Inject
+    protected HotDeployer hotDeployer;
 
     @Test
     public void testServiceRegistration() throws Exception {
 
-        MessageActionPipe pipe = getService().getPipe("nxmail");
+        MessageActionPipe pipe = mailService.getPipe("nxmail");
         assertNotNull(pipe);
         assertEquals(4, pipe.size());
         assertEquals(pipe.get(0).getClass().getSimpleName(), "StartAction");
@@ -68,7 +63,7 @@ public class TestMailService {
         // test contribution merge
         hotDeployer.deploy("org.nuxeo.ecm.platform.mail.test:OSGI-INF/mailService-test-contrib.xml");
 
-        pipe = getService().getPipe("nxmail");
+        pipe = mailService.getPipe("nxmail");
         assertNotNull(pipe);
         assertEquals(4, pipe.size());
         assertEquals(pipe.get(0).getClass().getSimpleName(), "StartAction");
@@ -79,7 +74,7 @@ public class TestMailService {
         // test contribution override
         hotDeployer.deploy("org.nuxeo.ecm.platform.mail.test:OSGI-INF/mailService-override-test-contrib.xml");
 
-        pipe = getService().getPipe("nxmail");
+        pipe = mailService.getPipe("nxmail");
         assertNotNull(pipe);
         assertEquals(2, pipe.size());
         assertEquals(pipe.get(0).getClass().getSimpleName(), "ExtractMessageInformationAction");
@@ -89,18 +84,18 @@ public class TestMailService {
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.mail.test:OSGI-INF/mailService-session-factory-test-contrib.xml")
-    public void testSessionFactoryUnique() throws Exception {
+    public void testSessionFactoryUnique() {
 
-        Session session1 = getService().getSession("testFactory");
+        Session session1 = mailService.getSession("testFactory");
         assertNotNull(session1);
         // check we get the same session by getting a session again
-        Session session1a = getService().getSession("testFactory");
+        Session session1a = mailService.getSession("testFactory");
         assertNotNull(session1a);
         // check equality by reference
         assertSame("Sessions should be equals", session1, session1a);
 
         // now get a new session
-        Session session2 = getService().getSession("testFactory2");
+        Session session2 = mailService.getSession("testFactory2");
         assertNotNull(session2);
         assertNotSame("Sessions shouldn't be equals", session1, session2);
     }

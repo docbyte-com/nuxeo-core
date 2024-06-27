@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -63,7 +62,6 @@ import org.opensearch.search.builder.SearchSourceBuilder;
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:disable-listener-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestManualIndexing {
 
     private static final String IDX_NAME = "nxutest";
@@ -84,13 +82,13 @@ public class TestManualIndexing {
     protected BlobManager manager;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     private int commandProcessed;
 
     // Number of processed command since the startTransaction
     public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
+        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
     }
 
     /**
@@ -106,7 +104,7 @@ public class TestManualIndexing {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         commandProcessed = esa.getTotalCommandProcessed();
     }
 
@@ -135,11 +133,11 @@ public class TestManualIndexing {
                                                            .source(new SearchSourceBuilder().from(0).size(60));
         SearchResponse searchResponse = esa.getClient().search(request);
         // System.out.println(searchResponse.getHits().getAt(0).sourceAsString());
-        Assert.assertEquals(1, searchResponse.getHits().getTotalHits().value);
+        assertEquals(1, searchResponse.getHits().getTotalHits().value);
 
         request.source(new SearchSourceBuilder().query(QueryBuilders.matchQuery("ecm:title", "Testme")));
         searchResponse = esa.getClient().search(request);
-        Assert.assertEquals(1, searchResponse.getHits().getTotalHits().value);
+        assertEquals(1, searchResponse.getHits().getTotalHits().value);
     }
 
     @Test
@@ -166,7 +164,7 @@ public class TestManualIndexing {
         esi.indexNonRecursive(cmd);
         assertNumberOfCommandProcessed(1);
 
-        esi.indexNonRecursive(Arrays.asList(cmd, cmd));
+        esi.indexNonRecursive(List.of(cmd, cmd));
         assertNumberOfCommandProcessed(3);
     }
 
@@ -191,11 +189,11 @@ public class TestManualIndexing {
         SearchRequest request = new SearchRequest(IDX_NAME).searchType(SearchType.DFS_QUERY_THEN_FETCH)
                                                            .source(new SearchSourceBuilder().from(0).size(60));
         SearchResponse searchResponse = esa.getClient().search(request);
-        Assert.assertEquals(1, searchResponse.getHits().getTotalHits().value);
+        assertEquals(1, searchResponse.getHits().getTotalHits().value);
 
         request.source(new SearchSourceBuilder().query(QueryBuilders.matchQuery("ecm:title", "TestMe")));
         searchResponse = esa.getClient().search(request);
-        Assert.assertEquals(0, searchResponse.getHits().getTotalHits().value);
+        assertEquals(0, searchResponse.getHits().getTotalHits().value);
 
         // now commit and wait for post commit indexing
         TransactionHelper.commitOrRollbackTransaction();
@@ -203,7 +201,7 @@ public class TestManualIndexing {
         startTransaction();
 
         IndexingCommand cmd = new IndexingCommand(doc, Type.INSERT, false, false);
-        esi.runIndexingWorker(Arrays.asList(cmd));
+        esi.runIndexingWorker(List.of(cmd));
         TransactionHelper.commitOrRollbackTransaction();
         waitForCompletion();
         assertNumberOfCommandProcessed(1);
@@ -213,10 +211,10 @@ public class TestManualIndexing {
         request.source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery()));
         searchResponse = esa.getClient().search(request);
         // System.out.println(searchResponse.getHits().getAt(0).sourceAsString());
-        Assert.assertEquals(2, searchResponse.getHits().getTotalHits().value);
+        assertEquals(2, searchResponse.getHits().getTotalHits().value);
         request.source(new SearchSourceBuilder().query(QueryBuilders.matchQuery("ecm:title", "TestMe")));
         searchResponse = esa.getClient().search(request);
-        Assert.assertEquals(1, searchResponse.getHits().getTotalHits().value);
+        assertEquals(1, searchResponse.getHits().getTotalHits().value);
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,17 +122,18 @@ public class PlatformFunctionTest {
     }
 
     @Test
-    public void testGetVocabularyLabel() throws OperationException {
+    public void testGetVocabularyLabel() {
         String vocabularyName = "continent";
-        Session vocabularySession = directoryService.open(vocabularyName);
-        String entryId = "europe";
-        String entryLabel = "label.directories.continent." + entryId;
-        String notEntryId = "dream_land";
+        try (Session vocabularySession = directoryService.open(vocabularyName)) {
+            String entryId = "europe";
+            String entryLabel = "label.directories.continent." + entryId;
+            String notEntryId = "dream_land";
 
-        assertTrue(vocabularySession.hasEntry(entryId));
-        assertFalse(vocabularySession.hasEntry(notEntryId));
-        assertEquals(entryLabel, pf.getVocabularyLabel(vocabularyName, entryId));
-        assertEquals(notEntryId, pf.getVocabularyLabel(vocabularyName, notEntryId));
+            assertTrue(vocabularySession.hasEntry(entryId));
+            assertFalse(vocabularySession.hasEntry(notEntryId));
+            assertEquals(entryLabel, pf.getVocabularyLabel(vocabularyName, entryId));
+            assertEquals(notEntryId, pf.getVocabularyLabel(vocabularyName, notEntryId));
+        }
     }
 
     @Test

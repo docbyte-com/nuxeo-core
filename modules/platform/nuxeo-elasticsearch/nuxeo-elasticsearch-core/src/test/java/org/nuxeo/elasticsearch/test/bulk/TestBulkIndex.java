@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,6 @@ import org.opensearch.search.builder.SearchSourceBuilder;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class, CoreBulkFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestBulkIndex {
 
@@ -97,7 +96,7 @@ public class TestBulkIndex {
         }
         for (int i = 0; i < 20; i++) {
             String name = "file" + i;
-            String title =  String.format("File%02d", i);
+            String title = String.format("File%02d", i);
             DocumentModel doc = session.createDocumentModel("/", name, "File");
             doc.setPropertyValue("dc:title", title);
             if (i == 0) {
@@ -127,18 +126,14 @@ public class TestBulkIndex {
     public void testIndexAction() throws InterruptedException {
         checkSearchOrder();
         esa.initIndexes(true);
-        BulkCommand command = new Builder(ACTION_NAME, "SELECT * FROM Document", "Administrator")
-                .param(REFRESH_INDEX_PARAM, true)
-                .param(INDEX_UPDATE_ALIAS_PARAM, true)
-                .batch(2)
-                .bucket(2)
-                .build();
+        BulkCommand command = new Builder(ACTION_NAME, "SELECT * FROM Document", "Administrator").param(
+                REFRESH_INDEX_PARAM, true).param(INDEX_UPDATE_ALIAS_PARAM, true).batch(2).bucket(2).build();
         String commandId = bulkService.submit(command);
         assertTrue("command timeout", bulkService.await(commandId, Duration.ofSeconds(60)));
         BulkStatus status = bulkService.getStatus(commandId);
         assertEquals(BulkStatus.State.COMPLETED, status.getState());
-        assertTrue(status.getProcessingStartTime() != null);
-        assertTrue(status.getProcessingEndTime() != null);
+        assertNotNull(status.getProcessingStartTime());
+        assertNotNull(status.getProcessingEndTime());
         assertTrue(status.getProcessingDurationMillis() > 0);
     }
 

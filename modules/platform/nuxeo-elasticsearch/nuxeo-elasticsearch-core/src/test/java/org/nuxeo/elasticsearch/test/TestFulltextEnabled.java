@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,16 @@
  * Contributors:
  *     Benoit Delbosc
  */
-
 package org.nuxeo.elasticsearch.test;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -40,8 +38,6 @@ import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -51,11 +47,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestFulltextEnabled {
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Inject
     protected CoreSession session;
@@ -76,7 +68,7 @@ public class TestFulltextEnabled {
 
     // Number of processed command since the startTransaction
     public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
+        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
     }
 
     /**
@@ -96,7 +88,7 @@ public class TestFulltextEnabled {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         commandProcessed = esa.getTotalCommandProcessed();
     }
 
@@ -111,13 +103,13 @@ public class TestFulltextEnabled {
         // binary fulltext is extracted and searcheable with ES
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search'";
         DocumentModelList esRet = ess.query(new NxQueryBuilder(session).nxql(nxql));
-        Assert.assertEquals(1, esRet.totalSize());
+        assertEquals(1, esRet.totalSize());
 
         // binary fulltext is also searcheable with VCS
         if (coreFeature.getStorageConfiguration().supportsFulltextSearch()) {
             sleepForFulltext();
             DocumentModelList coreRet = session.query(nxql);
-            Assert.assertEquals(1, coreRet.totalSize());
+            assertEquals(1, coreRet.totalSize());
         }
     }
 
@@ -128,13 +120,13 @@ public class TestFulltextEnabled {
         // binary fulltext is extracted and searcheable with ES
         String nxql = "SELECT * FROM Document WHERE ecm:fulltext='search' AND ecm:isProxy = 1";
         DocumentModelList esRet = ess.query(new NxQueryBuilder(session).nxql(nxql));
-        Assert.assertEquals(1, esRet.totalSize());
+        assertEquals(1, esRet.totalSize());
 
         // binary fulltext is also searcheable with VCS
         if (coreFeature.getStorageConfiguration().supportsFulltextSearch()) {
             sleepForFulltext();
             DocumentModelList coreRet = session.query(nxql);
-            Assert.assertEquals(1, coreRet.totalSize());
+            assertEquals(1, coreRet.totalSize());
         }
     }
 
@@ -155,7 +147,7 @@ public class TestFulltextEnabled {
 
         // There is one doc
         DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
 
         return ret.get(0);
     }
@@ -177,7 +169,7 @@ public class TestFulltextEnabled {
         // There is one doc
         DocumentModelList ret = ess.query(
                 new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE ecm:isProxy = 1"));
-        Assert.assertEquals(1, ret.totalSize());
+        assertEquals(1, ret.totalSize());
     }
 
 }

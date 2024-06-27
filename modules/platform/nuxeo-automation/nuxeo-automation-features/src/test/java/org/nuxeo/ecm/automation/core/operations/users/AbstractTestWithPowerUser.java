@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.automation.core.operations.users;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.List;
 
 import jakarta.inject.Inject;
 
@@ -76,7 +75,7 @@ public abstract class AbstractTestWithPowerUser {
         DocumentModel user = userManager.getBareUserModel();
         user.setPropertyValue("user:username", "leela");
         user.setPropertyValue("user:password", "pwd");
-        user.setPropertyValue("user:groups", (Serializable) Collections.singletonList("powerusers"));
+        user.setPropertyValue("user:groups", (Serializable) List.of("powerusers"));
         userManager.createUser(user);
 
         // simple user with no group
@@ -92,7 +91,7 @@ public abstract class AbstractTestWithPowerUser {
             userManager.deleteGroup("subgroup");
         }
         NuxeoGroup group = new NuxeoGroupImpl("subgroup");
-        group.setParentGroups(Collections.singletonList(ADMINISTRATORS_GROUP));
+        group.setParentGroups(List.of(ADMINISTRATORS_GROUP));
         userManager.createGroup(group.getModel());
 
         txFeature.nextTransaction();

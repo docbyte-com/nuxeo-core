@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,10 @@
  */
 package org.nuxeo.elasticsearch.test.nxql;
 
+import static java.util.Calendar.JANUARY;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_AVG;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_CARDINALITY;
 
@@ -34,7 +38,6 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,21 +57,18 @@ import org.nuxeo.ecm.platform.query.core.AggregateDescriptor;
 import org.nuxeo.elasticsearch.aggregate.AggregateFactory;
 import org.nuxeo.elasticsearch.aggregate.SingleValueMetricAggregate;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.core.EsResultSetImpl;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestCompareQueryAndFetch {
 
@@ -85,9 +85,6 @@ public class TestCompareQueryAndFetch {
     protected ElasticSearchAdmin esa;
 
     @Inject
-    protected ElasticSearchIndexing esi;
-
-    @Inject
     protected TrashService trashService;
 
     private String proxyPath;
@@ -99,7 +96,7 @@ public class TestCompareQueryAndFetch {
             TransactionHelper.startTransaction();
         }
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        cal.set(2000, 1 - 1, 2, 3, 4, 5);
+        cal.set(2000, JANUARY, 2, 3, 4, 5);
         cal.set(Calendar.MILLISECOND, 6);
         for (int i = 0; i < 5; i++) {
             String name = "file" + i;
@@ -141,20 +138,20 @@ public class TestCompareQueryAndFetch {
 
         // wait for async jobs
         WorkManager wm = Framework.getService(WorkManager.class);
-        Assert.assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
+        assertEquals(0, esa.getPendingWorkerCount());
 
         esa.refresh();
         TransactionHelper.startTransaction();
     }
 
     @After
-    public void cleanWorkingDocuments() throws Exception {
+    public void cleanWorkingDocuments() {
         // prevent NXP-14686 bug that prevent cleanupSession to remove version
         session.removeDocument(new PathRef(proxyPath));
     }
 
-    protected String getDigest(IterableQueryResult docs) throws Exception {
+    protected String getDigest(IterableQueryResult docs) {
         StringBuilder sb = new StringBuilder();
         for (Map<String, Serializable> doc : docs) {
             List<String> keys = new ArrayList<>(doc.keySet());
@@ -184,11 +181,11 @@ public class TestCompareQueryAndFetch {
         return sb.toString();
     }
 
-    protected void assertSameDocumentLists(IterableQueryResult expected, IterableQueryResult actual) throws Exception {
-        Assert.assertEquals(getDigest(expected), getDigest(actual));
+    protected void assertSameDocumentLists(IterableQueryResult expected, IterableQueryResult actual) {
+        assertEquals(getDigest(expected), getDigest(actual));
     }
 
-    protected void compareESAndCore(String nxql) throws Exception {
+    protected void compareESAndCore(String nxql) {
         IterableQueryResult coreResult = session.queryAndFetch(nxql, NXQL.NXQL);
         EsResult esRes = ess.queryAndAggregate(new NxQueryBuilder(session).nxql(nxql).limit(20));
         try (IterableQueryResult esResult = esRes.getRows()) {
@@ -198,7 +195,7 @@ public class TestCompareQueryAndFetch {
     }
 
     @Test
-    public void testSimpleSearchWithSort() throws Exception {
+    public void testSimpleSearchWithSort() {
         compareESAndCore("select ecm:uuid, dc:title, dc:nature from Document order by ecm:uuid");
         compareESAndCore("select ecm:uuid, dc:title from Document where ecm:isTrashed = 0 order by ecm:uuid");
         compareESAndCore("select ecm:uuid, dc:nature from File order by dc:nature, ecm:uuid");
@@ -207,20 +204,20 @@ public class TestCompareQueryAndFetch {
     }
 
     @Test
-    public void testIteratorWithLimit() throws Exception {
+    public void testIteratorWithLimit() {
         int LIMIT = 5;
         EsResult esRes = ess.queryAndAggregate(
                 new NxQueryBuilder(session).nxql("select ecm:uuid From Document").limit(LIMIT));
         try (IterableQueryResult res = esRes.getRows()) {
             // the number of doc in the iterator
-            Assert.assertEquals(LIMIT, res.size());
+            assertEquals(LIMIT, res.size());
             // the total number of docs that match for the query
-            Assert.assertEquals(20, ((EsResultSetImpl) res).totalSize());
+            assertEquals(20, ((EsResultSetImpl) res).totalSize());
         }
     }
 
     @Test
-    public void testAggregates() throws Exception {
+    public void testAggregates() {
         AggregateDefinition aggDef = new AggregateDescriptor();
         aggDef.setId("cardinal");
         aggDef.setType(AGG_CARDINALITY);
@@ -240,7 +237,7 @@ public class TestCompareQueryAndFetch {
                                                        .addAggregate(average)
                                                        .onlyElasticsearchResponse();
         ess.queryAndAggregate(qb);
-        Assert.assertNotNull(cardinality.getValue());
+        assertNotNull(cardinality.getValue());
     }
 
 }

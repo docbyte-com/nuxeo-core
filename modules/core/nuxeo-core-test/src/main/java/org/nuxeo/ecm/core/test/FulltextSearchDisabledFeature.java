@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,16 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.ecm.core.test;
 
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
+import org.nuxeo.runtime.test.runner.WithFrameworkPropertyFeature;
 
+@Features(WithFrameworkPropertyFeature.class)
+@WithFrameworkProperty(name = FulltextSearchDisabledFeature.KEY, value = "true")
 public class FulltextSearchDisabledFeature implements RunnerFeature {
-    private static final String KEY = "nuxeo.test.fulltext.search.disabled";
 
-    private String flag;
-
-    @Override
-    public void initialize(FeaturesRunner runner) {
-        flag = System.setProperty(KEY, "true");
-    }
-
-    @Override
-    public void stop(FeaturesRunner runner) {
-        if (flag == null) {
-            System.clearProperty(KEY);
-        } else {
-            System.setProperty(KEY, flag);
-        }
-    }
-
+    protected static final String KEY = "nuxeo.test.fulltext.search.disabled";
 }

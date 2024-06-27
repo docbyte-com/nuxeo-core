@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
 package org.nuxeo.ecm.platform.preview.tests.service;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.File;
@@ -26,7 +26,6 @@ import java.util.regex.Pattern;
 import jakarta.inject.Inject;
 
 import org.hamcrest.Matchers;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -59,6 +58,11 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.dublincore")
 public class TestService {
 
+    @Inject
+    protected CoreSession repo;
+
+    protected final Pattern charsetPattern = Pattern.compile("content=\".*;\\s*charset=(.*)\"");
+
     @Test
     public void testService() {
         PreviewAdapterManager pam = Framework.getService(PreviewAdapterManager.class);
@@ -78,13 +82,8 @@ public class TestService {
         checkLatin1(doc, "latin1.csv", "text/csv");
     }
 
-    @Inject
-    protected CoreSession repo;
-
-    protected final Pattern charsetPattern = Pattern.compile("content=\".*;\\s*charset=(.*)\"");
-
-    public void checkLatin1(DocumentModel doc, String name, String mtype) throws IOException,
-            MimetypeNotFoundException, MimetypeDetectionException {
+    public void checkLatin1(DocumentModel doc, String name, String mtype)
+            throws IOException, MimetypeNotFoundException, MimetypeDetectionException {
         File file = new File(getClass().getResource("/" + name).getPath());
         Blob blob = Blobs.createBlob(file);
         blob.setMimeType(mtype);
@@ -93,13 +92,13 @@ public class TestService {
         Blob htmlBlob = adapter.getFilePreviewBlobs().get(0);
         String htmlContent = htmlBlob.getString().toLowerCase();
         Matcher matcher = charsetPattern.matcher(htmlContent);
-        Assert.assertThat(matcher.find(), Matchers.is(true));
+        assertThat(matcher.find(), Matchers.is(true));
         String charset = matcher.group();
         if ("windows-1252".equals(charset)) {
-            Assert.assertThat(htmlContent,
+            assertThat(htmlContent,
                     Matchers.containsString("test de pr&Atilde;&copy;visualisation avant rattachement"));
         } else {
-            Assert.assertThat(htmlContent, Matchers.containsString("test de prévisualisation avant rattachement"));
+            assertThat(htmlContent, Matchers.containsString("test de prévisualisation avant rattachement"));
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,13 +36,13 @@ import com.google.inject.Binder;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
-@Features(CoreFeature.class)
-@RepositoryConfig(init = CoreDirectoryInit.class)
 @Deploy("org.nuxeo.ecm.directory.api")
 @Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/types-config.xml")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/core-directory-config.xml")
+@Features(CoreFeature.class)
+@RepositoryConfig(init = CoreDirectoryInit.class)
 public class CoreDirectoryFeature implements RunnerFeature {
 
     public static final String CORE_DIRECTORY_NAME = "userCoreDirectory";

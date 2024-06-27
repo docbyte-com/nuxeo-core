@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.security.Principal;
 import java.util.Map;
@@ -56,12 +55,12 @@ public class FunctionsTest {
     protected DocumentModel src;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    ContextService ctxService;
+    protected ContextService ctxService;
 
-    OperationContext ctx;
+    protected OperationContext ctx;
 
     @Before
     public void initRepo() throws Exception {
@@ -75,16 +74,15 @@ public class FunctionsTest {
     }
 
     @After
-    public void clearRepo() throws Exception {
+    public void clearRepo() {
         session.removeChildren(session.getRootDocument().getRef());
     }
 
     @Test
-    public void testPrincipalWrapper() throws Exception {
+    public void testPrincipalWrapper() {
         Map<String, ContextHelper> contextHelperList = ctxService.getHelperFunctions();
         PlatformFunctions functions = (PlatformFunctions) contextHelperList.get("Fn");
         assertEquals(functions, Scripting.newExpression("Fn").eval(ctx));
-        assertTrue(functions instanceof PlatformFunctions);
 
         NuxeoPrincipal np = (functions).getPrincipal("Administrator");
         assertEquals("Administrator", np.getName());
@@ -92,7 +90,7 @@ public class FunctionsTest {
                 ((Principal) Scripting.newExpression("Fn.getPrincipal(\"Administrator\")").eval(ctx)).getName());
     }
 
-    public void testPrincipalProperties() throws Exception {
+    public void testPrincipalProperties() {
         NuxeoPrincipalImpl np = new NuxeoPrincipalImpl("test");
         np.setFirstName("Bob");
         assertEquals("test", Scripting.newExpression("CurrentUser.name").eval(ctx));

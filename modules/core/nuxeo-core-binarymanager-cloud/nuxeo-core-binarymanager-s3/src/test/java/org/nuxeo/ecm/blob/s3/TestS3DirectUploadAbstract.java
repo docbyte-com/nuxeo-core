@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.blob.s3.S3BlobProviderFeature.PREFIX_TEST;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.AWS_ID_PROPERTY;
@@ -168,23 +168,16 @@ public abstract class TestS3DirectUploadAbstract {
         // create and initialize batch
         BatchHandler handler = batchManager.getHandler("s3");
         // complete upload with invalid key
-        try {
-            handler.completeUpload(null, null, new BatchFileInfo("invalid key", null, null, 10, null));
-            fail("should throw 404");
-        } catch (AmazonS3Exception e) {
-            assertTrue(e.getMessage().contains("404"));
-        }
+        var e = assertThrows(AmazonS3Exception.class,
+                () -> handler.completeUpload(null, null, new BatchFileInfo("invalid key", null, null, 10, null)));
+        assertTrue(e.getMessage().contains("404"));
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-s3directupload-fail-contrib.xml")
     public void testFailsOnCopyToTransientStore() {
-        try {
-            test("s3fail", 1024);
-            fail("should fail on putBlobs");
-        } catch (NuxeoException e) {
-            assertEquals("putBlobs failed", e.getMessage());
-        }
+        var e = assertThrows(NuxeoException.class, () -> test("s3fail", 1024));
+        assertEquals("putBlobs failed", e.getMessage());
     }
 
     @Test
@@ -228,13 +221,9 @@ public abstract class TestS3DirectUploadAbstract {
     @Test
     public void testTokenRenewalNullBatchId() {
         // Test that refreshing tokens does not work for an invalid batch ID.
-        S3DirectBatchHandler handler = (S3DirectBatchHandler) batchManager.getHandler("s3");
-        try {
-            handler.refreshToken(null);
-            fail("should not allow null batch ID");
-        } catch (NullPointerException e) {
-            assertTrue(e.getMessage().contains("required batch ID"));
-        }
+        var handler = batchManager.getHandler("s3");
+        var e = assertThrows(NullPointerException.class, () -> handler.refreshToken(null));
+        assertTrue(e.getMessage().contains("required batch ID"));
     }
 
     protected void test(String handlerName, int size) {
@@ -297,7 +286,7 @@ public abstract class TestS3DirectUploadAbstract {
         // upload the content with our arbitrary key
         AmazonS3 s3Client = createS3Client(properties);
         TransferManager tm = TransferManagerBuilder.standard()
-                                                   .withMultipartUploadThreshold(MULTIPART_THRESHOLD * 1L)
+                                                   .withMultipartUploadThreshold((long) MULTIPART_THRESHOLD)
                                                    .withS3Client(s3Client)
                                                    .build();
 

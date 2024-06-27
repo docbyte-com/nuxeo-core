@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
  *     Nuxeo - initial API and implementation
  *     <a href="mailto:hbrown@nuxeo.com">Harlan</a>
  */
-
 package org.nuxeo.ecm.platform.importer.tests;
 
 import static org.junit.Assert.assertEquals;
@@ -59,7 +58,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 public class TestImporterWithFileManager {
 
     @Inject
-    TransactionalFeature txFeature;
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -68,7 +67,7 @@ public class TestImporterWithFileManager {
     protected DefaultImporterService importerService;
 
     @Test
-    public void testImporterContribution() throws Exception {
+    public void testImporterContribution() {
 
         DocumentModel doc = session.createDocumentModel("/default-domain/workspaces", "ws1", "Workspace");
         doc = session.createDocument(doc);

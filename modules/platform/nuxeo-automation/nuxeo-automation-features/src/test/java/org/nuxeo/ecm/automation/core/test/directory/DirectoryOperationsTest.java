@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Thomas Roger <troger@nuxeo.com>
  *     Mincong Huang <mhuang@nuxeo.com>
  */
-
 package org.nuxeo.ecm.automation.core.test.directory;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -31,10 +30,10 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jakarta.inject.Inject;
 
@@ -122,8 +121,20 @@ public class DirectoryOperationsTest {
 
     @Test
     public void shouldCreateNewEntriesIfAllParamsFilled() throws Exception {
-        String newEntries = "[{\"id\": \"newContinent\", \"label\": \"newLabel\", \"obsolete\": 0},"
-                + "{\"id\": \"anotherContinent\", \"label\": \"anotherLabel\", \"obsolete\": 0}]";
+        String newEntries = """
+                [
+                  {
+                    "id": "newContinent",
+                    "label": "newLabel",
+                    "obsolete": 0
+                  },
+                  {
+                    "id": "anotherContinent",
+                    "label": "anotherLabel",
+                    "obsolete": 0
+                  }
+                ]
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("directoryName", "continent");
@@ -156,8 +167,18 @@ public class DirectoryOperationsTest {
     @Test
     public void shouldCreateNewEntriesIfSomeParamsMissing() throws Exception {
         // Field 'obsolete' is missing on purpose.
-        String newEntries = "[{\"id\": \"newContinent\", \"label\": \"newLabel\"},"
-                + "{\"id\": \"anotherContinent\", \"label\": \"anotherLabel\"}]";
+        String newEntries = """
+                [
+                  {
+                    "id": "newContinent",
+                    "label": "newLabel"
+                  },
+                  {
+                    "id": "anotherContinent",
+                    "label": "anotherLabel"
+                  }
+                ]
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("directoryName", "continent");
@@ -199,13 +220,21 @@ public class DirectoryOperationsTest {
         // assert using method 'Session#query'
         Map<String, Serializable> filter = new HashMap<>();
         filter.put("obsolete", 0L);
-        DocumentModelList docs = directorySession.query(filter, Collections.emptySet(), Collections.emptyMap(), false);
+        DocumentModelList docs = directorySession.query(filter, Set.of(), Map.of(), false);
         assertEquals(9, docs.size());
     }
 
     @Test
-    public void shouldNotCreateNewEntryIFEntryAlreadyExsists() throws Exception {
-        String newEntries = "[{\"id\": \"europe\", \"label\": \"europe\", \"obsolete\": 0}]";
+    public void shouldNotCreateNewEntryIFEntryAlreadyExists() throws Exception {
+        String newEntries = """
+                [
+                  {
+                    "id": "europe",
+                    "label": "europe",
+                    "obsolete": 0
+                  }
+                ]
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("directoryName", "continent");
@@ -281,7 +310,15 @@ public class DirectoryOperationsTest {
     public void shouldUpdateEntries() throws Exception {
         createEntry("entryToUpdate", "entryToUpdateLabel", 0);
 
-        String entriesToUpdate = "[{\"id\": \"entryToUpdate\", \"label\": \"newEntryToUpdateLabel\", \"obsolete\": 0}]";
+        String entriesToUpdate = """
+                [
+                  {
+                    "id": "entryToUpdate",
+                    "label": "newEntryToUpdateLabel",
+                    "obsolete": 0
+                  }
+                ]
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("directoryName", "continent");
@@ -308,7 +345,13 @@ public class DirectoryOperationsTest {
 
     @Test
     public void shouldReadEntries() throws Exception {
-        String entriesToRead = "[\"europe\", \"asia\", \"oceania\"]";
+        String entriesToRead = """
+                [
+                  "europe",
+                  "asia",
+                  "oceania"
+                ]
+                """;
 
         Map<String, Object> params = new HashMap<>();
         params.put("directoryName", "continent");
@@ -393,7 +436,7 @@ public class DirectoryOperationsTest {
         assertEquals(2, children.size());
     }
 
-    /** NXP-28113 */
+    // NXP-28113
     @Test
     @Deploy("org.nuxeo.ecm.automation.features:test-parent-child-directories.xml")
     public void shouldSuggestOnParentChildDirectories() throws Exception {
@@ -405,8 +448,8 @@ public class DirectoryOperationsTest {
         assertJSON("json/shouldSuggestOnParentChildDirectories.json", result);
     }
 
-    /** NXP-28113 */
-    /** NXP-31052 */
+    // NXP-28113
+    // NXP-31052
     @Test
     @Deploy("org.nuxeo.ecm.automation.features:test-parent-child-directories.xml")
     public void shouldSuggestWithParentSelectionOnParentChildDirectories() throws Exception {
@@ -418,7 +461,7 @@ public class DirectoryOperationsTest {
         assertJSON("json/shouldSuggestWithParentSelectionOnParentChildDirectories.json", result);
     }
 
-    /** NXP-31052 */
+    // NXP-31052
     @Test
     @Deploy("org.nuxeo.ecm.automation.features:test-parent-child-directories.xml")
     public void shouldSuggestWithObsoleteOnParentChildDirectories() throws Exception {
@@ -430,7 +473,7 @@ public class DirectoryOperationsTest {
         assertJSON("json/shouldSuggestWithObsoleteOnParentChildDirectories.json", result);
     }
 
-    /** NXP-28113 */
+    // NXP-28113
     @Test
     @Deploy("org.nuxeo.ecm.automation.features:test-parent-child-directories.xml")
     public void shouldFilterSuggestionOnParentChildDirectories() throws Exception {

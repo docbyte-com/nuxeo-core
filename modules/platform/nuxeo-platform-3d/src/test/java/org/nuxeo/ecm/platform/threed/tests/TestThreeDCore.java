@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.platform.threed")
 @Deploy("org.nuxeo.ecm.platform.threed.test:OSGI-INF/threed-disable-listeners-contrib.xml")
-public class Test3DCore {
+public class TestThreeDCore {
 
     protected static final String TEST_ZIP3D_FILE_NAME = "dummy3ds.zip";
 
@@ -82,7 +82,7 @@ public class Test3DCore {
     @Test
     public void testThreeDImporter() throws IOException {
         for (String testFileName : TEST_FILE_NAMES) {
-            try (InputStream is = Test3DCore.class.getResourceAsStream("/test-data/" + testFileName)) {
+            try (InputStream is = TestThreeDCore.class.getResourceAsStream("/test-data/" + testFileName)) {
                 assertNotNull("Failed to load resource: test-data/" + testFileName, is);
                 Blob blob = Blobs.createBlob(is);
                 blob.setFilename(testFileName);

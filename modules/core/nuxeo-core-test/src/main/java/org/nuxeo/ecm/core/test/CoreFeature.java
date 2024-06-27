@@ -61,7 +61,6 @@ import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.management.ManagementFeature;
-import org.nuxeo.runtime.model.URLStreamRef;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.test.runner.Defaults;
@@ -183,6 +182,7 @@ public class CoreFeature implements RunnerFeature {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void initialize(FeaturesRunner runner) {
         runner.getFeature(RuntimeFeature.class).registerHandler(new CoreDeployer());
 
@@ -221,9 +221,9 @@ public class CoreFeature implements RunnerFeature {
                 }
             }
             URL blobContribUrl = storageConfiguration.getBlobManagerContrib(runner);
-            harness.getContext().deploy(new URLStreamRef(blobContribUrl));
+            harness.getContext().deploy(blobContribUrl);
             URL repoContribUrl = storageConfiguration.getRepositoryContrib(runner);
-            harness.getContext().deploy(new URLStreamRef(repoContribUrl));
+            harness.getContext().deploy(repoContribUrl);
         } catch (IOException e) {
             throw new NuxeoException(e);
         }
@@ -355,7 +355,7 @@ public class CoreFeature implements RunnerFeature {
                 deferredIds.add(id);
             }
         }
-        adminSession.removeDocuments(deferredIds.toArray(new DocumentRef[0]));
+        adminSession.removeDocuments(deferredIds.toArray(DocumentRef[]::new));
     }
 
     protected void initializeSession() {

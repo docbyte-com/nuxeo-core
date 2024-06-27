@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
  * Contributors:
  *     Nour AL KOTOB
  */
-
 package org.nuxeo.runtime.migration;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
 import jakarta.inject.Inject;
 
@@ -77,24 +76,16 @@ public class TestMigrationService {
         migrationService.probeAndRun(dummyMigration);
         await().atMost(1, SECONDS)
                .until(() -> "reallyAfter".equals(migrationService.getMigration(dummyMigration).getStatus().getState()));
-        try {
-            migrationService.probeAndRun(dummyMigration);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("Migration: dummy-migration must have only one runnable step from state: reallyAfter",
-                    e.getMessage());
-        }
+        var e = assertThrows(IllegalArgumentException.class, () -> migrationService.probeAndRun(dummyMigration));
+        assertEquals("Migration: dummy-migration must have only one runnable step from state: reallyAfter",
+                e.getMessage());
 
         // Migration with 2 parallel steps: before to after, before to reallyAfter
         String dummyMultiMigration = "dummy-multi-migration";
         assertEquals("before", migrationService.getMigration(dummyMultiMigration).getStatus().getState());
-        try {
-            migrationService.probeAndRun(dummyMultiMigration);
-            fail();
-        } catch (IllegalArgumentException e) {
-            assertEquals("Migration: dummy-multi-migration must have only one runnable step from state: before",
-                    e.getMessage());
-        }
+        e = assertThrows(IllegalArgumentException.class, () -> migrationService.probeAndRun(dummyMultiMigration));
+        assertEquals("Migration: dummy-multi-migration must have only one runnable step from state: before",
+                e.getMessage());
     }
 
     protected void assertDummyMigration(Migration actual) {

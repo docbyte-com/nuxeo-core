@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,13 @@
  */
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -49,7 +50,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:security-policy-contrib.xml")
 public class TestSecurityPolicy {
 
@@ -57,20 +57,20 @@ public class TestSecurityPolicy {
     protected WorkManager workManager;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    ElasticSearchService ess;
+    protected ElasticSearchService ess;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     private boolean syncMode = false;
 
     private int commandProcessed;
 
     public void assertNumberOfCommandProcessed(int processed) throws Exception {
-        Assert.assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
+        assertEquals(processed, esa.getTotalCommandProcessed() - commandProcessed);
     }
 
     /**
@@ -89,7 +89,7 @@ public class TestSecurityPolicy {
         if (!TransactionHelper.isTransactionActive()) {
             TransactionHelper.startTransaction();
         }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         commandProcessed = esa.getTotalCommandProcessed();
     }
 
@@ -133,13 +133,13 @@ public class TestSecurityPolicy {
         // As administrator I can see all docs
         DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document"));
         // don't use docs.totalSize that could be wrong, see NXP-29782
-        Assert.assertEquals(6, docs.size());
+        assertEquals(6, docs.size());
 
         // As user File document are not denied
         CoreSession restrictedSession = CoreInstance.getCoreSession(null, "toto");
         docs = ess.query(new NxQueryBuilder(restrictedSession).nxql("select * from Document"));
-        Assert.assertEquals(1, docs.size());
-        Assert.assertEquals(1, docs.totalSize());
+        assertEquals(1, docs.size());
+        assertEquals(1, docs.totalSize());
     }
 
     protected void grantBrowsePermToUser(String path, String username) throws Exception {

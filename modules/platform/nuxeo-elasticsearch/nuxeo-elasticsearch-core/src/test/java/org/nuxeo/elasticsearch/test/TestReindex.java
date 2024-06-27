@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,12 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.elasticsearch.test;
 
 import static java.lang.Boolean.TRUE;
-import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.INDEX_BULK_MAX_SIZE_PROPERTY;
 
 import java.util.List;
@@ -30,7 +30,6 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -62,12 +61,9 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.ecm.platform.tag")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestReindex {
 
     @Inject
@@ -89,10 +85,10 @@ public class TestReindex {
     protected WorkManager workManager;
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Inject
-    LogCaptureFeature.Result logCaptureResult;
+    protected LogCaptureFeature.Result logCaptureResult;
 
     private boolean syncMode = false;
 
@@ -139,7 +135,7 @@ public class TestReindex {
         assertEquals(coreDocs.totalSize(), docs.totalSize());
         assertEquals(getDigest(coreDocs), getDigest(docs));
         // cannot do that because of NXP-16154
-        // Assert.assertEquals(getDigest(coreDocs), 42, docs.totalSize());
+        // assertEquals(getDigest(coreDocs), 42, docs.totalSize());
         esa.initIndexes(true);
         esa.refresh();
         DocumentModelList docs2 = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
@@ -179,7 +175,7 @@ public class TestReindex {
             doc = session.saveDocument(doc);
             session.publishDocument(doc, folder);
             if (i % 2 == 0) {
-                trashService.trashDocuments(singletonList(doc));
+                trashService.trashDocuments(List.of(doc));
             }
         }
         TransactionHelper.commitOrRollbackTransaction();
@@ -208,8 +204,8 @@ public class TestReindex {
             System.setProperty(INDEX_BULK_MAX_SIZE_PROPERTY, "4096");
             shouldReindexDocument();
             List<String> events = logCaptureResult.getCaughtEventMessages();
-            Assert.assertFalse("Expecting warn message", events.isEmpty());
-            Assert.assertTrue(events.get(events.size() - 1).contains("Max bulk size reached"));
+            assertFalse("Expecting warn message", events.isEmpty());
+            assertTrue(events.get(events.size() - 1).contains("Max bulk size reached"));
         } finally {
             System.clearProperty(INDEX_BULK_MAX_SIZE_PROPERTY);
         }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@
 package org.nuxeo.ecm.platform.pdf.tests;
 
 import java.awt.geom.Point2D;
-import java.io.IOException;
 
 import jakarta.inject.Inject;
 
@@ -40,19 +39,19 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingTranslationTest {
 
-    private static long PAGE_WIDTH = 400;
+    protected static long PAGE_WIDTH = 400;
 
-    private static long PAGE_HEIGHT = 800;
+    protected static long PAGE_HEIGHT = 800;
 
-    private static long WATERMARK_WIDTH = 200;
+    protected static long WATERMARK_WIDTH = 200;
 
-    private static long WATERMARK_HEIGHT = 100;
+    protected static long WATERMARK_HEIGHT = 100;
 
     @Inject
-    PDFTransformationServiceImpl pdfTransformationService;
+    protected PDFTransformationServiceImpl pdfTransformationService;
 
     @Test
-    public void testBottomLeftCorner() throws IOException {
+    public void testBottomLeftCorner() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
                 WATERMARK_HEIGHT, properties);
@@ -61,7 +60,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testBottomRightCorner() throws IOException {
+    public void testBottomRightCorner() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
@@ -71,7 +70,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopRightCorner() throws IOException {
+    public void testTopRightCorner() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         properties.setInvertY(true);
@@ -82,7 +81,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopRightCornerWithMargin() throws IOException {
+    public void testTopRightCornerWithMargin() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setxPosition(50);
         properties.setyPosition(50);
@@ -95,7 +94,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopLeftCorner() throws IOException {
+    public void testTopLeftCorner() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertY(true);
         Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
@@ -105,7 +104,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testCenter() throws IOException {
+    public void testCenter() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRelativeCoordinates(true);
         properties.setxPosition(0.5);
@@ -117,7 +116,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testBottomLeftCornerRotationDown() throws IOException {
+    public void testBottomLeftCornerRotationDown() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(-90);
         Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
@@ -127,7 +126,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testBottomLeftCornerRotationDownWithMargin() throws IOException {
+    public void testBottomLeftCornerRotationDownWithMargin() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(-90);
         properties.setxPosition(50);
@@ -139,7 +138,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testBottomLeftCornerRotationUp() throws IOException {
+    public void testBottomLeftCornerRotationUp() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRotation(90);
         Point2D vector = pdfTransformationService.computeTranslationVector(PAGE_WIDTH, WATERMARK_WIDTH, PAGE_HEIGHT,
@@ -149,7 +148,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopRightCornerRotationDown() throws IOException {
+    public void testTopRightCornerRotationDown() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         properties.setInvertY(true);
@@ -161,7 +160,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopRightCornerRotationUp() throws IOException {
+    public void testTopRightCornerRotationUp() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         properties.setInvertY(true);
@@ -173,7 +172,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testTopRightCornerRotationUpWithMargin() throws IOException {
+    public void testTopRightCornerRotationUpWithMargin() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setInvertX(true);
         properties.setInvertY(true);
@@ -187,7 +186,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testCenterRotationUp() throws IOException {
+    public void testCenterRotationUp() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRelativeCoordinates(true);
         properties.setxPosition(0.5);
@@ -200,7 +199,7 @@ public class PDFWatermarkingTranslationTest {
     }
 
     @Test
-    public void testCenterRotationDown() throws IOException {
+    public void testCenterRotationDown() {
         WatermarkProperties properties = pdfTransformationService.getDefaultProperties();
         properties.setRelativeCoordinates(true);
         properties.setxPosition(0.5);

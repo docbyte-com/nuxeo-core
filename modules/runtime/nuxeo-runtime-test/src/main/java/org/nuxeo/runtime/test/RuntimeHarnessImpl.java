@@ -20,6 +20,7 @@ package org.nuxeo.runtime.test;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static org.nuxeo.runtime.api.Framework.NUXEO_TESTING_SYSTEM_PROP;
 
 import java.io.File;
 import java.io.IOException;
@@ -271,7 +272,7 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
 
     @Override
     public void start() throws Exception {
-        System.setProperty("org.nuxeo.runtime.testing", "true");
+        System.setProperty(NUXEO_TESTING_SYSTEM_PROP, "true");
         wipeEmptyTestSystemProperties();
         wipeRuntime();
         initUrls();
@@ -489,16 +490,13 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
      * properties.
      */
     protected void wipeEmptyTestSystemProperties() {
-        List<String> emptyProps = System.getProperties()
-                                        .entrySet()
-                                        .stream()
-                                        .filter(this::isAnEmptyTestProperty)
-                                        .map(entry -> entry.getKey().toString())
-                                        .toList();
-        emptyProps.forEach(System::clearProperty);
-        if (log.isDebugEnabled()) {
-            emptyProps.forEach(property -> log.debug("Removed empty test system property: {}", property));
-        }
+        System.getProperties()
+              .entrySet()
+              .stream()
+              .filter(this::isAnEmptyTestProperty)
+              .map(entry -> entry.getKey().toString())
+              .peek(property -> log.debug("Removed empty test system property: {}", property))
+              .forEach(System::clearProperty);
     }
 
     protected boolean isAnEmptyTestProperty(Map.Entry<Object, Object> entry) {

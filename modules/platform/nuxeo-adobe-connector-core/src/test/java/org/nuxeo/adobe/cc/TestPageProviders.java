@@ -57,7 +57,10 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, RepositoryElasticSearchFeature.class, CollectionFeature.class })
+@Features({ //
+        CollectionFeature.class, //
+        RepositoryElasticSearchFeature.class, //
+        RestServerFeature.class })
 @Deploy("org.nuxeo.adobe.cc.nuxeo-adobe-connector-core")
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.platform.oauth")

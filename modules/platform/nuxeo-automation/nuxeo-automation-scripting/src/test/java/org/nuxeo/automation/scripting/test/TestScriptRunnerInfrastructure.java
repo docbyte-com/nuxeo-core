@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +38,6 @@ import java.util.Map;
 import jakarta.inject.Inject;
 
 import org.assertj.core.api.Assertions;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.automation.scripting.AutomationScriptingFeature;
@@ -84,38 +78,22 @@ public class TestScriptRunnerInfrastructure {
     protected static String[] attachments = { "att1", "att2", "att3" };
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Inject
-    AutomationScriptingFeature feature;
+    protected AutomationScriptingFeature feature;
 
     @Inject
     protected AutomationScriptingService service;
 
-    ByteArrayOutputStream outContent = new ByteArrayOutputStream();
-
-    private PrintStream outStream;
+    @Inject
+    protected TracerFactory factory;
 
     @Inject
-    TracerFactory factory;
-
-    @Before
-    public void setupContext() {
-        outStream = System.out;
-        System.setOut(new PrintStream(outContent));
-    }
-
-    @After
-    public void cleanUpStreams() throws IOException {
-        outContent.close();
-        System.setOut(outStream);
-    }
-
-    @Inject
-    AutomationScriptingFeature scripting;
+    protected AutomationScriptingFeature scripting;
 
     @Test
     public void shouldExecuteSimpleScript() throws Exception {
@@ -652,7 +630,7 @@ public class TestScriptRunnerInfrastructure {
         DocumentModel domain = session.getDocument(new PathRef("/default-domain"));
         DocumentModel workspaces = session.getDocument(new PathRef("/default-domain/workspaces"));
         try (OperationContext ctx = new OperationContext(session)) {
-            ctx.setInput(Arrays.asList(domain, workspaces));
+            ctx.setInput(List.of(domain, workspaces));
             List<DocumentModel> docs = (List<DocumentModel>) automationService.run(ctx,
                     "Scripting.TestInputAdaptedAsDocuments");
             assertEquals(2, docs.size());
@@ -667,7 +645,7 @@ public class TestScriptRunnerInfrastructure {
         Blob blob1 = Blobs.createBlob("Blob1");
         Blob blob2 = Blobs.createBlob("Blob2");
         try (OperationContext ctx = new OperationContext(session)) {
-            ctx.setInput(Arrays.asList(blob1, blob2));
+            ctx.setInput(List.of(blob1, blob2));
             List<Blob> blobs = (List<Blob>) automationService.run(ctx, "Scripting.TestInputAdaptedAsBlobs");
             assertEquals(2, blobs.size());
             assertEquals("Blob1", blobs.get(0).getString());
@@ -714,7 +692,7 @@ public class TestScriptRunnerInfrastructure {
         DocumentModel domain = session.getDocument(new PathRef("/default-domain"));
         DocumentModel workspaces = session.getDocument(new PathRef("/default-domain/workspaces"));
         try (OperationContext ctx = new OperationContext(session)) {
-            ctx.setInput(Arrays.asList(domain, workspaces));
+            ctx.setInput(List.of(domain, workspaces));
             List<DocumentModel> docs = (List<DocumentModel>) automationService.run(ctx,
                     "Scripting.TestPropertiesAccessOnDocuments");
             assertEquals(2, docs.size());
@@ -745,10 +723,10 @@ public class TestScriptRunnerInfrastructure {
         DocumentModel domain = session.getDocument(new PathRef("/default-domain"));
         DocumentModel workspaces = session.getDocument(new PathRef("/default-domain/workspaces"));
         DocumentModel doc = session.createDocumentModel("/", "file", "FileWithDocumentFields");
-        doc.setPropertyValue("df:documentIds", (Serializable) Arrays.asList(computeDocumentFieldRef(domain.getId()),
+        doc.setPropertyValue("df:documentIds", (Serializable) List.of(computeDocumentFieldRef(domain.getId()),
                 computeDocumentFieldRef(workspaces.getId())));
         doc.setPropertyValue("df:documentPaths",
-                (Serializable) Arrays.asList(computeDocumentFieldRef(workspaces.getPathAsString()),
+                (Serializable) List.of(computeDocumentFieldRef(workspaces.getPathAsString()),
                         computeDocumentFieldRef(domain.getPathAsString())));
         doc = session.createDocument(doc);
         try (OperationContext ctx = new OperationContext(session)) {
@@ -773,7 +751,7 @@ public class TestScriptRunnerInfrastructure {
     @Test
     public void testImportWithClassFilter() throws IOException, OperationException {
         try (OperationContext ctx = new OperationContext(session)) {
-            Blob blob = (Blob) automationService.run(ctx, "Scripting.TestImport", Collections.emptyMap());
+            Blob blob = (Blob) automationService.run(ctx, "Scripting.TestImport", Map.of());
             assertEquals("application/json", blob.getMimeType());
             String string = blob.getString();
             assertTrue(string, string.startsWith("{'uuid': "));

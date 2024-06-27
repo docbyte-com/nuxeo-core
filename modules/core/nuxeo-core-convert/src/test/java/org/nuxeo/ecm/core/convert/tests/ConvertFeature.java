@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,18 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 /**
  * @since 6.0
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.core.api")
 @Deploy("org.nuxeo.ecm.core.convert.api")
 @Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.mimetype")
+@Features(RuntimeFeature.class)
 public class ConvertFeature implements RunnerFeature {
 
     @Override
     public void start(FeaturesRunner runner) throws Exception {
         // we need to deploy it by hand to overwrite the settings deployed at class level
-        runner.getFeature(RuntimeFeature.class).getHarness().deployContrib("org.nuxeo.ecm.core.convert",
-                "OSGI-INF/convert-service-default-test-config.xml");
+        runner.getFeature(RuntimeFeature.class)
+              .getHarness()
+              .deployContrib("org.nuxeo.ecm.core.convert", "OSGI-INF/convert-service-default-test-config.xml");
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.MockitoAnnotations.initMocks;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -40,6 +39,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.nuxeo.ecm.web.resources.api.Resource;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroPageCacheKeyFactory;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroPageManagerFactory;
@@ -84,6 +84,8 @@ public class TestNuxeoWroPageManagerFactory {
 
     protected WroManager victim;
 
+    protected AutoCloseable mocksToClose;
+
     @BeforeClass
     public static void onBeforeClass() {
         assertEquals(0, Context.countActive());
@@ -96,7 +98,7 @@ public class TestNuxeoWroPageManagerFactory {
 
     @Before
     public void setUp() {
-        initMocks(this);
+        mocksToClose = MockitoAnnotations.openMocks(this);
         Context.set(Context.webContext(mockRequest, mockResponse, mockFilterConf));
         final WroManagerFactory factory = new NuxeoWroPageManagerFactory();
         victim = factory.create();
@@ -104,8 +106,9 @@ public class TestNuxeoWroPageManagerFactory {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         Context.unset();
+        mocksToClose.close();
     }
 
     @Test

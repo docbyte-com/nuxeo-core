@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * since 11.4
  */
-@Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.automation.core")
@@ -38,6 +37,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.video:disable-picture-migration.xml")
 // contribution to deactivate the unwanted works: fulltextExtractor, fulltextUpdater and videoConversion
 @Deploy("org.nuxeo.ecm.platform.video:test-video-workmanager-config.xml")
+@Features(CoreFeature.class)
 public class VideoFeature implements RunnerFeature {
 
 }

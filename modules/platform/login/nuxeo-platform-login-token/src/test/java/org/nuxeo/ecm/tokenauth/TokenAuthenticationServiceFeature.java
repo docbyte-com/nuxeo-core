@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @author Antoine Taillefer (ataillefer@nuxeo.com)
  * @since 5.7
  */
-@Features(PlatformFeature.class)
 @Deploy("org.nuxeo.ecm.platform.web.common:OSGI-INF/authentication-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.oauth")
 @Deploy("org.nuxeo.ecm.jwt")
@@ -39,6 +38,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.login.token:OSGI-INF/token-authentication-directory-types.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token:OSGI-INF/token-authentication-framework.xml")
 @Deploy("org.nuxeo.ecm.platform.login.token.test:OSGI-INF/test-token-authentication-directory-contrib.xml")
+@Features(PlatformFeature.class)
 public class TokenAuthenticationServiceFeature implements RunnerFeature {
 
 }

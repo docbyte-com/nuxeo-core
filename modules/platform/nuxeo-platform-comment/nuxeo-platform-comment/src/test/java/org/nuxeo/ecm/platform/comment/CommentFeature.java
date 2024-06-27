@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Salem Aouana
  */
-
 package org.nuxeo.ecm.platform.comment;
 
 import static org.junit.Assert.assertTrue;
@@ -40,10 +39,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  *
  * @since 11.1
  */
-@Features(PlatformFeature.class)
 @Deploy("org.nuxeo.ecm.platform.comment.api")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.comment")
+@Features(PlatformFeature.class)
 public class CommentFeature implements RunnerFeature {
 
     @RunWith(FeaturesRunner.class)

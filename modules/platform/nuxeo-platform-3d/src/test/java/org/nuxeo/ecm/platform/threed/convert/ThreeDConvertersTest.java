@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -129,7 +129,7 @@ public class ThreeDConvertersTest {
         BlobHolder result = cs.convert(converter, blobs, params);
         long timeDelta = System.currentTimeMillis() - before;
         assertNotNull(result);
-        if (result.getBlobs().size() == 0) {
+        if (result.getBlobs().isEmpty()) {
             log.warn("[NXP-21450] memory max: {}MB", Runtime.getRuntime().maxMemory() / 1024 / 1024);
             log.warn("[NXP-21450] memory total: {}MB", Runtime.getRuntime().totalMemory() / 1024 / 1024);
             log.warn("[NXP-21450] memory free: {}MB", Runtime.getRuntime().freeMemory() / 1024 / 1024);

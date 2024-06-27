@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.platform.userworkspace.core.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import jakarta.inject.Inject;
 
@@ -59,8 +58,8 @@ public class TestFavoritesUserWorkspace {
         DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
                 "Workspace");
         testWorkspace = session.createDocument(testWorkspace);
-        DocumentModel testFile = session.createDocumentModel(testWorkspace.getPathAsString(), "foo", "File");
-        testFile = session.createDocument(testFile);
+        DocumentModel testFile = session.createDocument(
+                session.createDocumentModel(testWorkspace.getPathAsString(), "foo", "File"));
         favoritesManager.addToFavorites(testFile, session);
         assertTrue(favoritesManager.isFavorite(testFile, session));
 
@@ -71,18 +70,11 @@ public class TestFavoritesUserWorkspace {
         assertFalse(favoritesManager.isFavorite(testFile, session));
         assertFalse(favoritesManager.isFavorite(testWorkspace, session));
 
-        try {
-            favoritesManager.addToFavorites(testFile, session);
-            fail("Should have raised DocumentNotFoundException");
-        } catch (DocumentNotFoundException e) {
-            assertEquals("No user favorites found", e.getMessage());
-        }
+        var e = assertThrows(DocumentNotFoundException.class, () -> favoritesManager.addToFavorites(testFile, session));
+        assertEquals("No user favorites found", e.getMessage());
 
-        try {
-            favoritesManager.removeFromFavorites(testFile, session);
-            fail("Should have raised DocumentNotFoundException");
-        } catch (DocumentNotFoundException e) {
-            assertEquals("No user favorites found", e.getMessage());
-        }
+        e = assertThrows(DocumentNotFoundException.class,
+                () -> favoritesManager.removeFromFavorites(testFile, session));
+        assertEquals("No user favorites found", e.getMessage());
     }
 }

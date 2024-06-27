@@ -47,7 +47,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.5
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, CollectionFeature.class })
+@Features({ CollectionFeature.class, RestServerFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.convert")

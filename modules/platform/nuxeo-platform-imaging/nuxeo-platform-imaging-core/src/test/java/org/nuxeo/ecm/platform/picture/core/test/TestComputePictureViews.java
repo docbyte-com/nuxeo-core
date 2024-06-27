@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import jakarta.inject.Inject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -61,7 +60,7 @@ public class TestComputePictureViews {
     protected PictureViewsHelper pvh = new PictureViewsHelper();
 
     @Test
-    public void testComputePictureViewsOnCreatedDocumentVersion() throws IOException, OperationException {
+    public void testComputePictureViewsOnCreatedDocumentVersion() throws IOException {
         // Take into account the initial status count.
         var initialCount = bulkService.getStatuses("Administrator").size();
 

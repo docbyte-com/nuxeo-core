@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.filemanager.core.listener.tests;
 
 import static java.util.Objects.requireNonNull;
@@ -124,7 +121,7 @@ public class TestMimetypeIconUpdater {
     }
 
     @Test
-    public void testEmptyMimeTypeWithCharset() throws Exception {
+    public void testEmptyMimeTypeWithCharset() {
         DocumentModel doc = createDocument("File", PDF_EXTENSION, "application/octet-stream; charset=UTF-8");
         Blob blob = (Blob) doc.getProperty("file", "content");
         assertNotNull(blob);
@@ -168,8 +165,8 @@ public class TestMimetypeIconUpdater {
     }
 
     /**
-     * Ensures that if we are not able to normalize the document blob mime type (i.e mime type is unknown in Nuxeo), we should keep
-     * the original one.
+     * Ensures that if we are not able to normalize the document blob mime type (i.e mime type is unknown in Nuxeo), we
+     * should keep the original one.
      *
      * @since 11.1
      */
@@ -244,19 +241,19 @@ public class TestMimetypeIconUpdater {
         blob.setMimeType(mimeType);
 
         switch (documentType) {
-        case "File":
-        case "Workspace":
-            documentModel.setProperty("file", "content", blob);
-            break;
-        case "SimpleBlobDocument":
-            documentModel.setProperty("simpleblob", "blob", blob);
-            break;
-        case "WithoutPrefixDocument":
-            documentModel.setProperty("wihtoutpref", "blob", blob);
-            break;
-        default:
-            throw new IllegalArgumentException(
-                    String.format("Undefined behaviour for document type '%s'", documentType));
+            case "File":
+            case "Workspace":
+                documentModel.setProperty("file", "content", blob);
+                break;
+            case "SimpleBlobDocument":
+                documentModel.setProperty("simpleblob", "blob", blob);
+                break;
+            case "WithoutPrefixDocument":
+                documentModel.setProperty("wihtoutpref", "blob", blob);
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        String.format("Undefined behaviour for document type '%s'", documentType));
 
         }
         return documentModel;

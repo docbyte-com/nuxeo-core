@@ -27,6 +27,7 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.runners.model.TestClass;
@@ -99,14 +100,13 @@ class FeaturesLoader {
 
     }
 
-    protected void loadFeature(HashSet<Class<?>> cycles, Class<? extends RunnerFeature> clazz) throws Exception {
+    protected void loadFeature(Set<Class<?>> cycles, Class<? extends RunnerFeature> clazz) throws Exception {
         if (index.containsKey(clazz)) {
             return;
         }
-        if (cycles.contains(clazz)) {
+        if (!cycles.add(clazz)) {
             throw new IllegalStateException("Cycle detected in features dependencies of " + clazz);
         }
-        cycles.add(clazz);
         // load required features from annotation
         List<Features> annos = FeaturesRunner.getScanner().getAnnotations(clazz, Features.class);
         for (Features anno : annos) {
@@ -114,7 +114,7 @@ class FeaturesLoader {
                 loadFeature(cycles, cl);
             }
         }
-        final Holder actual = new Holder(clazz);
+        Holder actual = new Holder(clazz);
         holders.add(actual);
         index.put(clazz, actual);
     }

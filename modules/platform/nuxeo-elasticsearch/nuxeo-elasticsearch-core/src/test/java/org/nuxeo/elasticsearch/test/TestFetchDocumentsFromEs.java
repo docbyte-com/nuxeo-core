@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,16 +19,14 @@
  */
 package org.nuxeo.elasticsearch.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchType;
-import org.opensearch.search.SearchHit;
-import org.opensearch.search.builder.SearchSourceBuilder;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,14 +39,17 @@ import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.search.SearchHit;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 public class TestFetchDocumentsFromEs {
 
     private static final String IDX_NAME = "nxutest";
@@ -81,8 +82,8 @@ public class TestFetchDocumentsFromEs {
     protected void waitForAsyncIndexing() throws Exception {
         // wait for indexing
         WorkManager wm = Framework.getService(WorkManager.class);
-        Assert.assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
+        assertEquals(0, esa.getPendingWorkerCount());
     }
 
     protected void buildAndIndexTree() throws Exception {
@@ -100,14 +101,14 @@ public class TestFetchDocumentsFromEs {
 
         waitForAsyncIndexing();
 
-        Assert.assertEquals(10, esa.getTotalCommandProcessed() - n);
+        assertEquals(10, esa.getTotalCommandProcessed() - n);
         esa.refresh();
 
         TransactionHelper.startTransaction();
 
         // check indexing
         SearchResponse searchResponse = searchAll();
-        Assert.assertEquals(10, searchResponse.getHits().getTotalHits().value);
+        assertEquals(10, searchResponse.getHits().getTotalHits().value);
 
     }
 
@@ -122,7 +123,7 @@ public class TestFetchDocumentsFromEs {
         buildAndIndexTree();
         DocumentModelList docs = ess.query(
                 new NxQueryBuilder(session).nxql("select * from Document").limit(20).fetchFromElasticsearch());
-        Assert.assertEquals(10, docs.totalSize());
+        assertEquals(10, docs.totalSize());
         /*
          * for (DocumentModel doc : docs) { System.out.println(doc); }
          */
@@ -135,28 +136,28 @@ public class TestFetchDocumentsFromEs {
         // onlyElasticsearchResponse is useless on query aPI
         DocumentModelList docs = ess.query(
                 new NxQueryBuilder(session).nxql("select * from Document").limit(20).onlyElasticsearchResponse());
-        Assert.assertNull(docs);
+        assertNull(docs);
         docs = ess.query(new NxQueryBuilder(session).nxql("select * from Document")
                                                     .limit(20)
                                                     .fetchFromElasticsearch()
                                                     .onlyElasticsearchResponse());
-        Assert.assertNull(docs);
+        assertNull(docs);
 
         // using queryAndAggregate we can have the original Elasticsearch response
         EsResult result = ess.queryAndAggregate(
                 new NxQueryBuilder(session).nxql("select * from Document").limit(20).onlyElasticsearchResponse());
-        Assert.assertNull(result.getDocuments());
-        Assert.assertNull(result.getAggregates());
-        Assert.assertEquals(10, result.getElasticsearchResponse().getHits().getTotalHits().value);
+        assertNull(result.getDocuments());
+        assertNull(result.getAggregates());
+        assertEquals(10, result.getElasticsearchResponse().getHits().getTotalHits().value);
         // System.out.println(result.getElasticsearchResponse());
 
         result = ess.queryAndAggregate(new NxQueryBuilder(session).nxql("select * from Document")
                                                                   .limit(20)
                                                                   .fetchFromElasticsearch()
                                                                   .onlyElasticsearchResponse());
-        Assert.assertNull(result.getDocuments());
-        Assert.assertNull(result.getAggregates());
-        Assert.assertEquals(10, result.getElasticsearchResponse().getHits().getTotalHits().value);
+        assertNull(result.getDocuments());
+        assertNull(result.getAggregates());
+        assertEquals(10, result.getElasticsearchResponse().getHits().getTotalHits().value);
         // System.out.println(result.getElasticsearchResponse());
 
     }
@@ -177,9 +178,9 @@ public class TestFetchDocumentsFromEs {
             String path = (String) sh.getSourceAsMap().get("ecm:path");
             int pathDepth = (int) sh.getSourceAsMap().get("ecm:path@depth");
             String[] split = path.split("/");
-            Assert.assertEquals(split.length, pathDepth);
+            assertEquals(split.length, pathDepth);
             for (int i = 1; i < split.length; i++) {
-                Assert.assertEquals(split[i], sh.getSourceAsMap().get("ecm:path@level" + i));
+                assertEquals(split[i], sh.getSourceAsMap().get("ecm:path@level" + i));
             }
         }
 

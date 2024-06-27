@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Map;
 
 import jakarta.inject.Inject;
@@ -95,7 +94,7 @@ public class TestRecomputeThumbnails {
         assertNull(thumbnail);
 
         // call operation to recompute the thumbnails with the default query
-        Map<String, String> parameters = Collections.singletonMap("query", RecomputeThumbnails.DEFAULT_QUERY);
+        Map<String, String> parameters = Map.of("query", RecomputeThumbnails.DEFAULT_QUERY);
         try (OperationContext ctx = new OperationContext(session)) {
             automationService.run(ctx, RecomputeThumbnails.ID, parameters);
         }
@@ -107,7 +106,7 @@ public class TestRecomputeThumbnails {
         assertNotNull(thumbnail);
 
         // call operation to recompute the thumbnails with a custom query
-        parameters = Collections.singletonMap("query", "SELECT * FROM Document WHERE ecm:mixinType = 'Thumbnail'");
+        parameters = Map.of("query", "SELECT * FROM Document WHERE ecm:mixinType = 'Thumbnail'");
         try (OperationContext ctx = new OperationContext(session)) {
             automationService.run(ctx, RecomputeThumbnails.ID, parameters);
         }
@@ -136,7 +135,7 @@ public class TestRecomputeThumbnails {
     }
 
     @Test
-    public void testNoThumbnailWhenDisabled() throws IOException, OperationException {
+    public void testNoThumbnailWhenDisabled() throws IOException {
         Blob blob = Blobs.createBlob(FileUtils.getResourceFileFromContext("test-data/big_nuxeo_logo.jpg"), "image/jpeg",
                 StandardCharsets.UTF_8.name(), "big_nuxeo_logo.jpg");
 

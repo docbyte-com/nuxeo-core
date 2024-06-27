@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  *  limitations under the License.
  *
  */
-
 package org.nuxeo.mail.amazon.ses;
 
 import static com.amazonaws.SDKGlobalConfiguration.ACCESS_KEY_ENV_VAR;
@@ -35,10 +34,10 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
 /**
  * @since 2023.4
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.runtime.aws")
 @Deploy("org.nuxeo.mail")
 @Deploy("org.nuxeo.mail.amazon.ses")
+@Features(RuntimeFeature.class)
 public class SESFeature implements RunnerFeature {
 
     protected static final String AWS_SES_MAIL_SENDER_ENV_VAR = "AWS_SES_MAIL_SENDER";

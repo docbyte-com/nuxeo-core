@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
  * Contributors:
  *     Arnaud Kervern
  */
-
 package org.nuxeo.ecm.platform.shibboleth.computedgroups;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,8 +126,8 @@ public class TestShibbolethGroupHelper {
 
         Reference dirRef = dir.getReferences(userManager.getGroupSubGroupsField()).get(0);
 
-        assertTrue(dirRef.getTargetIdsForSource("testRef").size() > 0);
-        assertTrue(dirRef.getSourceIdsForTarget("refShib").size() > 0);
+        assertFalse(dirRef.getTargetIdsForSource("testRef").isEmpty());
+        assertFalse(dirRef.getSourceIdsForTarget("refShib").isEmpty());
         assertEquals("testRef", dirRef.getSourceIdsForTarget("refShib").get(0));
         deleteShibbGroups();
     }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testTwoBinaryIndexes() throws Exception {
+    public void testTwoBinaryIndexes() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
@@ -108,7 +108,7 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testGetBinaryFulltext() throws Exception {
+    public void testGetBinaryFulltext() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
@@ -133,7 +133,7 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testExcludeFieldBlob() throws Exception {
+    public void testExcludeFieldBlob() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
@@ -155,10 +155,10 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testEnforceFulltextFieldSizeLimit() throws Exception {
+    public void testEnforceFulltextFieldSizeLimit() {
         SQLRepositoryService repositoryService = Framework.getService(SQLRepositoryService.class);
-        RepositoryDescriptor repositoryDescriptor = repositoryService.getRepositoryImpl(
-                session.getRepositoryName()).getRepositoryDescriptor();
+        RepositoryDescriptor repositoryDescriptor = repositoryService.getRepositoryImpl(session.getRepositoryName())
+                                                                     .getRepositoryDescriptor();
         int fulltextFieldSizeLimit = repositoryDescriptor.getFulltextDescriptor().getFulltextFieldSizeLimit();
         assertEquals(1024, fulltextFieldSizeLimit); // from XML config
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,6 @@ import org.osgi.framework.Bundle;
 /**
  * @since 10.1
  */
-@TransactionalConfig(autoStart = false)
-@Features({ ClusterFeature.class, TransactionalFeature.class })
 @Deploy("org.nuxeo.runtime.pubsub")
 @Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.migration")
@@ -54,6 +52,8 @@ import org.osgi.framework.Bundle;
 @Deploy("org.nuxeo.ecm.core.storage.sql")
 @Deploy("org.nuxeo.ecm.platform.el")
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests")
+@Features({ ClusterFeature.class, TransactionalFeature.class })
+@TransactionalConfig(autoStart = false)
 public class SQLBackendFeature implements RunnerFeature {
 
     @Override
@@ -84,7 +84,7 @@ public class SQLBackendFeature implements RunnerFeature {
         repositoryService.initRepositories();
     }
 
-    public class SQLBackendDeployer extends HotDeployer.ActionHandler {
+    public static class SQLBackendDeployer extends HotDeployer.ActionHandler {
 
         @Override
         public void exec(String action, String... agrs) throws Exception {

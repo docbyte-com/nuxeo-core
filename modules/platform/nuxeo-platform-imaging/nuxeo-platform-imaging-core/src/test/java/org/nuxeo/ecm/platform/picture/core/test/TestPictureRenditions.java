@@ -56,7 +56,6 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.ecm.platform.io.core")
 @Deploy("org.nuxeo.ecm.platform.rendition.core")
 @Deploy("org.nuxeo.ecm.platform.convert")
-
 public class TestPictureRenditions {
 
     public static final List<String> EXPECTED_ALL_RENDITION_DEFINITION_NAMES = List.of("xmlExport", "zipExport",

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -345,11 +346,11 @@ public class TestSQLRepositoryAPI {
         // simple list as array
         child.setProperty("dublincore", "subjects", new String[] { "a", "b" });
         // simple list as List
-        child.setProperty("testList", "simplelist", new ArrayList<>(Arrays.asList("c", "d")));
+        child.setProperty("testList", "simplelist", List.of("c", "d"));
         // simple list as non-serializable array
         child.setProperty("testList", "strings", new Object[] { "e", "f" });
         // complex list as List
-        child.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("c", "d")));
+        child.setProperty("testList", "participants", List.of("c", "d"));
         session.saveDocument(child);
         session.save();
 
@@ -366,18 +367,18 @@ public class TestSQLRepositoryAPI {
 
         Object subjects = child.getProperty("dublincore", "subjects");
         assertTrue(subjects instanceof String[]);
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) subjects));
+        assertEquals(List.of("a", "b"), List.of((String[]) subjects));
         Object simples = child.getProperty("testList", "simplelist");
         assertTrue(simples instanceof String[]);
-        assertEquals(Arrays.asList("c", "d"), Arrays.asList((String[]) simples));
+        assertEquals(List.of("c", "d"), List.of((String[]) simples));
         Object strings = child.getProperty("testList", "strings");
         assertTrue(strings.getClass().isArray());
         // Objet[] has been normalized to String[] when re-read from database
         assertEquals(String.class, strings.getClass().getComponentType());
-        assertEquals(Arrays.asList("e", "f"), Arrays.asList((Serializable[]) strings));
+        assertEquals(List.of("e", "f"), List.of((Serializable[]) strings));
         Object participants = child.getProperty("testList", "participants");
         assertTrue(participants instanceof List);
-        assertEquals(Arrays.asList("c", "d"), participants);
+        assertEquals(List.of("c", "d"), participants);
     }
 
     @Test
@@ -1030,7 +1031,7 @@ public class TestSQLRepositoryAPI {
         for (DocumentModel doc : session.getChildrenIterator(new PathRef("/"))) {
             names.add(doc.getName());
         }
-        assertEquals(new HashSet<>(Arrays.asList("doc1", "doc2", "doc3")), names);
+        assertEquals(new HashSet<>(List.of("doc1", "doc2", "doc3")), names);
 
         // bob doesn't see doc2
         CoreSession bobSession = openSessionAs("bob");
@@ -1039,7 +1040,7 @@ public class TestSQLRepositoryAPI {
             names.add(doc.getName());
         }
         // doc2 is not in the returned set
-        assertEquals(new HashSet<>(Arrays.asList("doc1", "doc3")), names);
+        assertEquals(new HashSet<>(List.of("doc1", "doc3")), names);
     }
 
     /**
@@ -1131,7 +1132,7 @@ public class TestSQLRepositoryAPI {
         assertNotNull(returnedDocument.getSchemas());
 
         // TODO NXP-2514: should it contain 3 or 1 schemas? not sure about that.
-        List<String> schemas = Arrays.asList(returnedDocument.getSchemas());
+        List<String> schemas = List.of(returnedDocument.getSchemas());
         assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1150,7 +1151,7 @@ public class TestSQLRepositoryAPI {
         assertNotNull(returnedDocument.getType());
         assertNotNull(returnedDocument.getSchemas());
 
-        schemas = Arrays.asList(returnedDocument.getSchemas());
+        schemas = List.of(returnedDocument.getSchemas());
         assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1399,8 +1400,8 @@ public class TestSQLRepositoryAPI {
         DocumentModelList docs = session.query("select * from Document");
         System.out.println("List all documents");
         for (DocumentModel doc : docs) {
-            System.out.println(String.format("- type: %s, proxy: %s, version: %s %s", doc.getType(), doc.isProxy(),
-                    doc.isVersion(), doc));
+            System.out.printf("- type: %s, proxy: %s, version: %s %s%n", doc.getType(), doc.isProxy(), doc.isVersion(),
+                    doc);
         }
     }
 
@@ -1557,7 +1558,7 @@ public class TestSQLRepositoryAPI {
         doc = session.createDocument(doc);
         DocumentModel proxy1 = session.createProxy(doc.getRef(), folder.getRef());
         DocumentModel proxy2 = session.createProxy(doc.getRef(), folder.getRef());
-        List<DocumentRef> proxies = Arrays.asList(proxy1.getRef(), proxy2.getRef());
+        List<DocumentRef> proxies = List.of(proxy1.getRef(), proxy2.getRef());
         session.save();
         nextTransaction();
 
@@ -1634,7 +1635,7 @@ public class TestSQLRepositoryAPI {
         DocumentModelList list = session.query("SELECT name FROM File");
         assertEquals(1, list.size());
         DocumentModel docModel = list.get(0);
-        List<String> schemas = Arrays.asList(docModel.getSchemas());
+        List<String> schemas = List.of(docModel.getSchemas());
         // TODO NXP-2514: is it 3 or 4? (should "uid" be in the list or not?)
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
@@ -1646,7 +1647,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT content/filename FROM File");
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1658,7 +1659,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM File");
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1669,7 +1670,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM HiddenFile", facetFilter);
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("dublincore"));
 
@@ -1677,7 +1678,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM Document");
         assertEquals(3, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("dublincore"));
@@ -2157,7 +2158,7 @@ public class TestSQLRepositoryAPI {
         DocumentModel child1 = session.createDocumentModel("/", "file1", "File");
         DocumentModel child2 = session.createDocumentModel("/", "fold1", "Folder");
         DocumentModel child3 = session.createDocumentModel("/", "ws1", "Workspace");
-        List<DocumentModel> returnedChildFiles = createChildDocuments(Arrays.asList(child1, child2, child3));
+        List<DocumentModel> returnedChildFiles = createChildDocuments(List.of(child1, child2, child3));
         assertFalse(returnedChildFiles.get(0).isFolder());
         assertTrue(returnedChildFiles.get(1).isFolder());
         assertTrue(returnedChildFiles.get(2).isFolder());
@@ -2173,7 +2174,7 @@ public class TestSQLRepositoryAPI {
         // facet not yet present
         assertFalse(doc.hasFacet("Aged"));
         assertFalse(doc.hasFacet(FacetNames.HIDDEN_IN_NAVIGATION));
-        Set<String> baseFacets = new HashSet<>(Arrays.asList(FacetNames.DOWNLOADABLE, FacetNames.VERSIONABLE,
+        Set<String> baseFacets = new HashSet<>(List.of(FacetNames.DOWNLOADABLE, FacetNames.VERSIONABLE,
                 FacetNames.PUBLISHABLE, FacetNames.COMMENTABLE, FacetNames.HAS_RELATED_TEXT));
         assertEquals(baseFacets, doc.getFacets());
         try {
@@ -2911,7 +2912,7 @@ public class TestSQLRepositoryAPI {
         str = (String[]) childFile.getProperty("dublincore", "participants");
 
         assertNotNull(str);
-        List<String> list = Arrays.asList(str);
+        List<String> list = List.of(str);
         assertTrue(list.contains("a"));
         assertTrue(list.contains("b"));
         assertTrue(list.contains("c"));
@@ -2928,7 +2929,7 @@ public class TestSQLRepositoryAPI {
         str = (String[]) childFile.getProperty("dublincore", "participants");
 
         assertNotNull(str);
-        list = Arrays.asList(str);
+        list = List.of(str);
         assertTrue(list.contains("a"));
         assertTrue(list.contains("b"));
     }
@@ -2966,7 +2967,7 @@ public class TestSQLRepositoryAPI {
         assertEquals(length, blob.getLength());
         assertEquals("UTF8", blob.getEncoding());
         assertEquals("java/class", blob.getMimeType());
-        assertTrue(Arrays.equals(content, blob.getByteArray()));
+        assertArrayEquals(content, blob.getByteArray());
 
         // blob from a stream, with no known length
         URL url = getClass().getClassLoader().getResource("META-INF/MANIFEST.MF");
@@ -3137,11 +3138,7 @@ public class TestSQLRepositoryAPI {
         assertEquals("File", docModel.getType());
 
         // bad type should fail
-        try {
-            session.createDocumentModel("NotAValidTypeName");
-            fail();
-        } catch (IllegalArgumentException e) {
-        }
+        assertThrows(IllegalArgumentException.class, () -> session.createDocumentModel("NotAValidTypeName"));
 
         // same as previously with path info
         docModel = session.createDocumentModel("/path/to/parent", "some-id", "File");
@@ -3182,7 +3179,7 @@ public class TestSQLRepositoryAPI {
 
         assertEquals("t", copy.getProperty("dublincore", "title"));
         assertEquals("d", copy.getProperty("dublincore", "description"));
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) copy.getProperty("dublincore", "subjects")));
+        assertEquals(List.of("a", "b"), List.of((String[]) copy.getProperty("dublincore", "subjects")));
         Object fileso = copy.getProperty("files", "files");
         assertNotNull(fileso);
         List<Map<String, Object>> newfiles = (List<Map<String, Object>>) fileso;
@@ -3229,7 +3226,7 @@ public class TestSQLRepositoryAPI {
 
         assertEquals("t", copy.getProperty("dublincore", "title"));
         assertEquals("d", copy.getProperty("dublincore", "description"));
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) copy.getProperty("dublincore", "subjects")));
+        assertEquals(List.of("a", "b"), List.of((String[]) copy.getProperty("dublincore", "subjects")));
     }
 
     @Test
@@ -3403,6 +3400,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.createDocument(doc);
 
+        @SuppressWarnings("deprecation")
         DataModel dm = doc.getDataModel("book");
         dm.setValue("title", "my title");
         assertEquals("my title", dm.getValue("title"));
@@ -3503,13 +3501,13 @@ public class TestSQLRepositoryAPI {
         doc = session.saveDocument(doc);
 
         blob = (Blob) doc.getPropertyObject("file", "content").getValue();
-        assertTrue(Arrays.equals(bytes, blob.getByteArray()));
+        assertArrayEquals(bytes, blob.getByteArray());
 
         // reset not implemented (not needed) for StorageBlob's Binary
         // XXX blob.getStream().reset();
 
         blob = (Blob) doc.getPropertyObject("file", "content").getValue();
-        assertTrue(Arrays.equals(bytes, blob.getByteArray()));
+        assertArrayEquals(bytes, blob.getByteArray());
     }
 
     @Test
@@ -3618,6 +3616,7 @@ public class TestSQLRepositoryAPI {
         docModel = session.createDocument(docModel);
         DocumentModel proxyModel = session.createProxy(docModel.getRef(), root.getRef());
 
+        @SuppressWarnings("rawtypes")
         Session internalSession = ((AbstractSession) session).getSession();
         // Remove atomically proxy target
         internalSession.removeDocument(docModel.getId());
@@ -3821,7 +3820,7 @@ public class TestSQLRepositoryAPI {
             actual.put(uuid.toString(), info); // toString() for sequence ids
         }
         res.close();
-        assertEquals(Collections.singletonMap(proxy.getId(), "proxyinfo"), actual);
+        assertEquals(Map.of(proxy.getId(), "proxyinfo"), actual);
 
         // test that the copy has the extra schema values
         session.copy(folder.getRef(), root.getRef(), "folderCopy");
@@ -3911,7 +3910,7 @@ public class TestSQLRepositoryAPI {
         ver.setProperty("dublincore", "title", "Ver title");
         Calendar mod = new GregorianCalendar(2008, Calendar.JULY, 14, 12, 34, 56);
         ver.setProperty("dublincore", "modified", mod);
-        session.importDocuments(Collections.singletonList(ver));
+        session.importDocuments(List.of(ver));
         session.save();
 
         reopenSession();
@@ -3942,7 +3941,7 @@ public class TestSQLRepositoryAPI {
                 null, false, null, null, null);
         proxy.putContextData(CoreSession.IMPORT_PROXY_TARGET_ID, vid);
         proxy.putContextData(CoreSession.IMPORT_PROXY_VERSIONABLE_ID, id);
-        session.importDocuments(Collections.singletonList(proxy));
+        session.importDocuments(List.of(proxy));
         session.save();
 
         reopenSession();
@@ -3971,7 +3970,7 @@ public class TestSQLRepositoryAPI {
         doc.putContextData(CoreSession.IMPORT_VERSION_MAJOR, Long.valueOf(8));
         doc.putContextData(CoreSession.IMPORT_VERSION_MINOR, Long.valueOf(1));
         doc.setProperty("dublincore", "title", "Live title");
-        session.importDocuments(Collections.singletonList(doc));
+        session.importDocuments(List.of(doc));
         session.save();
 
         reopenSession();
@@ -4006,7 +4005,7 @@ public class TestSQLRepositoryAPI {
                 null, null, false, null, null, null);
         try {
             // VCS fails in importDocuments because its cache know the id alreay exists
-            session.importDocuments(Collections.singletonList(doc2));
+            session.importDocuments(List.of(doc2));
             session.save();
             fail();
         } catch (ConcurrentUpdateException e) {
@@ -4139,7 +4138,7 @@ public class TestSQLRepositoryAPI {
                                                         event.getName()))
                                                 .map(TestSQLRepositoryAPI::getDetailedEventName)
                                                 .collect(Collectors.toList());
-        assertEquals(Arrays.asList(expectedEventNames), actualEventNames);
+        assertEquals(List.of(expectedEventNames), actualEventNames);
     }
 
     public static String getDetailedEventName(Event event) {
@@ -4543,7 +4542,7 @@ public class TestSQLRepositoryAPI {
         runBinariesGC(true, false);
 
         // store some binaries
-        for (String str : Arrays.asList("ABC", "DEF", "GHI", "JKL")) {
+        for (String str : List.of("ABC", "DEF", "GHI", "JKL")) {
             addBinary(str, str);
             addBinary(str, str + "2");
         }
@@ -4629,14 +4628,14 @@ public class TestSQLRepositoryAPI {
         runBinariesGC(true, false);
 
         DocumentModel doc = session.createDocumentModel("/", "file", "File");
-        Map<String, Object> abc = Collections.singletonMap("file", Blobs.createBlob("ABC"));
-        Map<String, Object> def = Collections.singletonMap("file", Blobs.createBlob("DEF"));
-        Map<String, Object> ghi = Collections.singletonMap("file", Blobs.createBlob("GHI"));
-        doc.setPropertyValue("files", (Serializable) Arrays.asList(abc, def, ghi));
+        Map<String, Object> abc = Map.of("file", Blobs.createBlob("ABC"));
+        Map<String, Object> def = Map.of("file", Blobs.createBlob("DEF"));
+        Map<String, Object> ghi = Map.of("file", Blobs.createBlob("GHI"));
+        doc.setPropertyValue("files", (Serializable) List.of(abc, def, ghi));
         doc = session.createDocument(doc);
         session.save();
         // remove GHI
-        doc.setPropertyValue("files", (Serializable) Arrays.asList(abc, def));
+        doc.setPropertyValue("files", (Serializable) List.of(abc, def));
         session.saveDocument(doc);
         session.save();
         nextTransaction();
@@ -5090,7 +5089,7 @@ public class TestSQLRepositoryAPI {
             }
         }
         DummyRetentionExpiredComputation computation = new DummyRetentionExpiredComputation();
-        assertTrue(computation.wentThrough(Arrays.asList("foo", doc.getId())));
+        assertTrue(computation.wentThrough(List.of("foo", doc.getId())));
 
         // valid doc has no retention anymore and can be deleted
         doc = session.getDocument(doc.getRef());
@@ -5300,7 +5299,7 @@ public class TestSQLRepositoryAPI {
         String token = doc.getChangeToken();
 
         // change the doc by changing a list
-        doc.setPropertyValue("dc:subjects", (Serializable) Arrays.asList("foo", "bar"));
+        doc.setPropertyValue("dc:subjects", (Serializable) List.of("foo", "bar"));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5328,7 +5327,7 @@ public class TestSQLRepositoryAPI {
 
         // change the doc by creating a complex property list
         doc.setPropertyValue("relatedtext:relatedtextresources",
-                (Serializable) Collections.singletonList(Collections.singletonMap("relatedtextid", "123")));
+                (Serializable) List.of(Map.of("relatedtextid", "123")));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5339,7 +5338,7 @@ public class TestSQLRepositoryAPI {
 
         // change the doc by updating a complex property list
         doc.setPropertyValue("relatedtext:relatedtextresources",
-                (Serializable) Collections.singletonList(Collections.singletonMap("relatedtextid", "456")));
+                (Serializable) List.of(Map.of("relatedtextid", "456")));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5349,7 +5348,7 @@ public class TestSQLRepositoryAPI {
         assertNotEquals(token2, token3);
 
         // change the doc by removing a complex property list
-        doc.setPropertyValue("relatedtext:relatedtextresources", (Serializable) Collections.emptyList());
+        doc.setPropertyValue("relatedtext:relatedtextresources", (Serializable) List.of());
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();

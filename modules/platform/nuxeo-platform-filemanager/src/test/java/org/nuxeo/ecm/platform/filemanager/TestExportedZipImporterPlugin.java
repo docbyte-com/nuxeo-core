@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,13 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- *
- *
  */
-
 package org.nuxeo.ecm.platform.filemanager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.zip.ZipFile;
@@ -149,7 +145,7 @@ public class TestExportedZipImporterPlugin {
                                                          .build();
         fm.createOrUpdateDocument(context);
         DocumentModelList children = coreSession.getChildren(destWS.getRef());
-        assertTrue(children.size() > 0);
+        assertFalse(children.isEmpty());
         DocumentModel importedWS = children.get(0);
         assertEquals(importedWS.getTitle(), sourceWS.getTitle());
         DocumentModelList subChildren = coreSession.getChildren(importedWS.getRef());

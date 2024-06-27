@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 import com.google.inject.Binder;
-import com.google.inject.Provider;
 
 /**
  * Based on the existing {@link PlatformFeature}, AutomationFeature is a simple feature that includes
@@ -44,17 +43,13 @@ import com.google.inject.Provider;
  * @since 5.7
  * @since 5.6-HF02
  */
-@Features({ PlatformFeature.class, AutomationCoreFeature.class })
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.automation.scripting")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.runtime.management")
+@Features({ PlatformFeature.class, AutomationCoreFeature.class })
 public class AutomationFeature implements RunnerFeature {
-
-    protected final OperationContextProvider contextProvider = new OperationContextProvider();
-
-    protected final TracerProvider tracerProvider = new TracerProvider();
 
     protected OperationContext context;
 
@@ -63,24 +58,6 @@ public class AutomationFeature implements RunnerFeature {
     protected OperationCallback tracer;
 
     protected CoreFeature coreFeature;
-
-    public class OperationContextProvider implements Provider<OperationContext> {
-
-        @Override
-        public OperationContext get() {
-            return getContext();
-        }
-
-    }
-
-    class TracerProvider implements Provider<OperationCallback> {
-
-        @Override
-        public OperationCallback get() {
-            return getTracer();
-        }
-
-    }
 
     protected OperationContext getContext() {
         if (context == null) {
@@ -105,8 +82,8 @@ public class AutomationFeature implements RunnerFeature {
 
     @Override
     public void configure(FeaturesRunner runner, Binder binder) {
-        binder.bind(OperationContext.class).toProvider(contextProvider).in(AutomationScope.INSTANCE);
-        binder.bind(OperationCallback.class).toProvider(tracerProvider).in(AutomationScope.INSTANCE);
+        binder.bind(OperationContext.class).toProvider(this::getContext).in(AutomationScope.INSTANCE);
+        binder.bind(OperationCallback.class).toProvider(this::getTracer).in(AutomationScope.INSTANCE);
         coreFeature = runner.getFeature(CoreFeature.class);
         tracerFactory = Framework.getService(TracerFactory.class);
     }

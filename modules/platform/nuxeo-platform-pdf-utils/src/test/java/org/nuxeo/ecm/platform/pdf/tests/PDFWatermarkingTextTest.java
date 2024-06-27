@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,18 +49,18 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingTextTest {
 
-    private static final String TEXT_WATERMARK = "(c) Test Text Watermark";
+    protected static final String TEXT_WATERMARK = "(c) Test Text Watermark";
 
-    private static final String PDF_PATH = "/files/test-watermark.pdf";
-
-    @Inject
-    CoreSession coreSession;
+    protected static final String PDF_PATH = "/files/test-watermark.pdf";
 
     @Inject
-    PDFTransformationService pdfTransformationService;
+    protected CoreSession coreSession;
 
     @Inject
-    AutomationService automationService;
+    protected PDFTransformationService pdfTransformationService;
+
+    @Inject
+    protected AutomationService automationService;
 
     protected OperationContext ctx;
 

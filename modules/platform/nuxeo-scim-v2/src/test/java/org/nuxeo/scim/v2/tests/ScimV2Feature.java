@@ -44,9 +44,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @since 2023.14
  */
-@Features({ AutomationServerFeature.class, WebEngineFeature.class })
 @Deploy("org.nuxeo.scim.v2")
 @Deploy("org.nuxeo.scim.v2:test-scim-v2-runtime-server-contrib.xml")
+@Features({ AutomationServerFeature.class, WebEngineFeature.class })
 public class ScimV2Feature implements RunnerFeature {
 
     @Inject

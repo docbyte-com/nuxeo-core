@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -290,13 +288,13 @@ public class TypeTest {
 
     @Test
     public void testCoreSubTypesWithHotReload() throws Exception {
-        Collection<String> testMyDocTypeSubtypes1 = Arrays.asList("MyOtherDocType", "MyHiddenDocType");
-        Collection<String> testMyDocTypeSubtypes2 = Arrays.asList("MyOtherDocType2", "MyHiddenDocType");
-        Collection<String> testMyDocType2Subtypes1 = Arrays.asList("MyDocType", "MyOtherDocType", "MyHiddenDocType");
-        Collection<String> testMyDocType2Subtypes2 = Arrays.asList("MyDocType", "MyOtherDocType");
-        Collection<String> testMyDocType2Subtypes3 = Arrays.asList("MyDocType");
-        Collection<String> testSchemas = Arrays.asList("schema1", "schema2");
-        Collection<String> testFacets = Arrays.asList("myFacet", "facet1", "facet2");
+        Collection<String> testMyDocTypeSubtypes1 = List.of("MyOtherDocType", "MyHiddenDocType");
+        Collection<String> testMyDocTypeSubtypes2 = List.of("MyOtherDocType2", "MyHiddenDocType");
+        Collection<String> testMyDocType2Subtypes1 = List.of("MyDocType", "MyOtherDocType", "MyHiddenDocType");
+        Collection<String> testMyDocType2Subtypes2 = List.of("MyDocType", "MyOtherDocType");
+        Collection<String> testMyDocType2Subtypes3 = List.of("MyDocType");
+        Collection<String> testSchemas = List.of("schema1", "schema2");
+        Collection<String> testFacets = List.of("myFacet", "facet1", "facet2");
 
         assertSubtypes("MyDocType", testMyDocTypeSubtypes1);
         assertSubtypes("MyDocType2", testMyDocType2Subtypes1);
@@ -307,7 +305,7 @@ public class TypeTest {
 
         assertSubtypes("MyDocType", testMyDocTypeSubtypes2);
         // subtypes differ for MyDocType2 because ecm override contrib removed MyOtherDocType from getTypeService()
-        assertSubtypes("MyDocType2", testMyDocType2Subtypes1, Arrays.asList("MyDocType", "MyHiddenDocType"));
+        assertSubtypes("MyDocType2", testMyDocType2Subtypes1, List.of("MyDocType", "MyHiddenDocType"));
         assertFacetsAndSchemas("MyDocType", testFacets, testSchemas);
 
         // deploy core contribution to override types
@@ -335,8 +333,8 @@ public class TypeTest {
         // undeploy original ecm contribution to override types
         hotDeployer.undeploy("org.nuxeo.ecm.platform.types:test-types-bundle.xml");
 
-        assertSubtypes("MyDocType", Collections.emptyList());
-        assertSubtypes("MyDocType2", testMyDocType2Subtypes3, Collections.emptyList());
+        assertSubtypes("MyDocType", List.of());
+        assertSubtypes("MyDocType2", testMyDocType2Subtypes3, List.of());
         assertFacetsAndSchemas("MyDocType", testFacets, testSchemas);
     }
 
@@ -369,7 +367,7 @@ public class TypeTest {
         assertEquals(facets.size(), currentFacets.size());
         assertTrue(facets.containsAll(currentFacets));
 
-        Collection<String> currentSchemas = Arrays.asList(schemaManager.getDocumentType(docType).getSchemaNames());
+        Collection<String> currentSchemas = List.of(schemaManager.getDocumentType(docType).getSchemaNames());
         assertNotNull(currentSchemas);
         assertEquals(schemas.size(), currentSchemas.size());
         assertTrue(schemas.containsAll(currentSchemas));

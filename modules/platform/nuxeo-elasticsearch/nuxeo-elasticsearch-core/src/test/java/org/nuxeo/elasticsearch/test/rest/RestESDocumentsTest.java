@@ -21,6 +21,7 @@ package org.nuxeo.elasticsearch.test.rest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_PAGE_PROVIDER;
 import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_TYPE;
@@ -36,7 +37,6 @@ import java.util.stream.StreamSupport;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -274,10 +274,10 @@ public class RestESDocumentsTest {
         // wait for async jobs
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
         WorkManager wm = Framework.getService(WorkManager.class);
-        Assert.assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
+        assertEquals(0, esa.getPendingWorkerCount());
         esa.refresh();
-        Assert.assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
+        assertTrue(wm.awaitCompletion(20, TimeUnit.SECONDS));
     }
 
     /**

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.filemanager.core.listener.tests;
 
 import static org.junit.Assert.assertEquals;
@@ -64,14 +61,14 @@ public class TestDigestComputerListener {
     }
 
     @Test
-    public void testDigest() throws Exception {
+    public void testDigest() {
         DocumentModel file = createFileDocument();
         Blob blob = (Blob) file.getProperty("file", "content");
         assertNotNull(blob);
 
         String digest = blob.getDigest();
         assertNotNull(digest);
-        assertFalse("".equals(digest));
+        assertFalse(digest.isEmpty());
         assertEquals("CJz5xUykO51gRRCIQadZ9dL20NPDd/O0yVBEgP13Skg=", digest);
     }
 

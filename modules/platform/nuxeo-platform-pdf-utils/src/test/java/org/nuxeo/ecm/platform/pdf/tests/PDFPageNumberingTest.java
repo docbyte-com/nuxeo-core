@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,20 +55,20 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26793")
 public class PDFPageNumberingTest {
 
-    private FileBlob pdfFileBlob;
-
-    private String pdfMD5;
-
-    private DocumentModel testDocsFolder;
-
-    private static final int[] indexOfNumberingByPage = new int[] {
-            1665, 1387, 1515, 1592, 1397, 1592, 1387, 1729, 1589, 1444, 1459, 1667, 849 };
+    private static final int[] INDEX_OF_NUMBERING_BY_PAGE = new int[] { 1665, 1387, 1515, 1592, 1397, 1592, 1387, 1729,
+            1589, 1444, 1459, 1667, 849 };
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
+
+    protected FileBlob pdfFileBlob;
+
+    protected String pdfMD5;
+
+    protected DocumentModel testDocsFolder;
 
     protected OperationContext ctx;
 
@@ -103,7 +103,7 @@ public class PDFPageNumberingTest {
         for (int page = firstPage; page <= 13; page++) {
             // every numbered page should have the right number
             int currentPageNumber = firstNumber + (page - firstPage);
-            assertEquals(indexOfNumberingByPage[page - 1],
+            assertEquals(INDEX_OF_NUMBERING_BY_PAGE[page - 1],
                     TestUtils.extractText(resultPDF, page, page).indexOf(Integer.toString(currentPageNumber)));
         }
         resultPDF.close();
@@ -166,12 +166,12 @@ public class PDFPageNumberingTest {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFAddPageNumbersOperation.ID)
-        .set("startAtPage", 2)
-        .set("startAtNumber", 10)
-        .set("position", "Top left")
-        .set("fontName", PDType1Font.COURIER.getBaseFont())
-        .set("fontSize", 32)
-        .set("hex255Color", "ff00ff");
+             .set("startAtPage", 2)
+             .set("startAtNumber", 10)
+             .set("position", "Top left")
+             .set("fontName", PDType1Font.COURIER.getBaseFont())
+             .set("fontSize", 32)
+             .set("hex255Color", "ff00ff");
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         checkPageNumbering(result, 2, 10);

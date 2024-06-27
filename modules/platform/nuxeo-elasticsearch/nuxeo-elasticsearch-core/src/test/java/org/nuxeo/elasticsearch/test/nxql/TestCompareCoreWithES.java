@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
  */
 package org.nuxeo.elasticsearch.test.nxql;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +29,6 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -45,14 +47,12 @@ import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestCompareCoreWithES {
 
@@ -124,7 +124,7 @@ public class TestCompareCoreWithES {
         Framework.getService(WorkManager.class).awaitCompletion(20, TimeUnit.SECONDS);
         esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
         esa.refresh();
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
+        assertEquals(0, esa.getPendingWorkerCount());
         TransactionHelper.startTransaction();
     }
 
@@ -159,7 +159,7 @@ public class TestCompareCoreWithES {
     }
 
     protected void assertSameDocumentLists(DocumentModelList expected, DocumentModelList actual) {
-        Assert.assertEquals(expected.size(), actual.size());
+        assertEquals(expected.size(), actual.size());
         // quick check for some props for better failure messages
         for (int i = 0; i < expected.size(); i++) {
             DocumentModel expectedDoc = expected.get(i);
@@ -168,11 +168,11 @@ public class TestCompareCoreWithES {
                     "relatedtext:relatedtextresources")) {
                 Serializable expectedValue = getProperty(expectedDoc, xpath);
                 Serializable actualValue = getProperty(actualDoc, xpath);
-                Assert.assertEquals(xpath, expectedValue, actualValue);
+                assertEquals(xpath, expectedValue, actualValue);
             }
-            Assert.assertEquals(expectedDoc.isVersion(), actualDoc.isVersion());
+            assertEquals(expectedDoc.isVersion(), actualDoc.isVersion());
         }
-        Assert.assertEquals(getDigest(expected), getDigest(actual));
+        assertEquals(getDigest(expected), getDigest(actual));
     }
 
     protected Serializable getProperty(DocumentModel doc, String xpath) {
@@ -304,7 +304,7 @@ public class TestCompareCoreWithES {
     @Test
     public void testSearchWithAncestorId() {
         DocumentModel folder = session.getDocument(new PathRef("/folder"));
-        Assert.assertNotNull(folder);
+        assertNotNull(folder);
         String fid = folder.getId();
         testQueries(new String[] { "SELECT * from Document WHERE ecm:ancestorId = 'non-esisting-id' ORDER BY ecm:uuid",
                 "SELECT * from Document WHERE ecm:ancestorId != 'non-existing-id' ORDER BY ecm:uuid",

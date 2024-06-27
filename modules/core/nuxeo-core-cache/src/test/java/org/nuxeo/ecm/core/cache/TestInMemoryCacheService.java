@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,11 @@
  *
  * Contributors:
  *     mhilaire
- *
  */
-
 package org.nuxeo.ecm.core.cache;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-
-import java.io.IOException;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -42,11 +38,11 @@ public class TestInMemoryCacheService {
 
     @Inject
     @Named(CacheFeature.DEFAULT_TEST_CACHE_NAME)
-    Cache defaultCache;
+    protected Cache defaultCache;
 
     @Inject
     @Named(InMemoryCacheFeature.MAXSIZE_TEST_CACHE_NAME)
-    Cache maxSizeCache;
+    protected Cache maxSizeCache;
 
     @Test
     public void getGuavaCache() {
@@ -55,13 +51,13 @@ public class TestInMemoryCacheService {
     }
 
     @Test
-    public void maxSizeZero() throws IOException {
+    public void maxSizeZero() {
         maxSizeCache.put("key", "val");
         assertNull(maxSizeCache.get("key"));
     }
 
     @Test
-    public void maxSizeExceeded() throws IOException {
+    public void maxSizeExceeded() {
         // Default test config set to 3 the maxSize, and the cache already
         // contains the key1
         defaultCache.put("key2", "val2");

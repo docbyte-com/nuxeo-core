@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,13 +51,13 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 public class TestPictureResize {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
     protected EventService eventService;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected OperationContext ctx;
 

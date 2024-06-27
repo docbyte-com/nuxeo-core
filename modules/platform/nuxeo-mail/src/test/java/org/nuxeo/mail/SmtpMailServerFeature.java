@@ -56,10 +56,10 @@ import com.google.inject.Binder;
 /**
  * @since 11.1
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.runtime.jtajca")
 @Deploy("org.nuxeo.mail")
 @Deploy("org.nuxeo.mail.test")
+@Features(RuntimeFeature.class)
 public class SmtpMailServerFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(SmtpMailServerFeature.class);

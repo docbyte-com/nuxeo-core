@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.Map;
 
 import jakarta.inject.Inject;
 
@@ -45,7 +45,6 @@ import org.nuxeo.lib.stream.computation.ComputationMetadataMapping;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.internals.ComputationContextImpl;
 import org.nuxeo.runtime.stream.StreamNoRetryException;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -57,7 +56,6 @@ import org.opensearch.common.xcontent.XContentType;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class, CoreBulkFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestBulkIndexMalformedInput {
 
@@ -88,7 +86,7 @@ public class TestBulkIndexMalformedInput {
         // Create a bulkIndex computation
         BulkIndexComputation comp = new BulkIndexComputation(10_000, 10, 100);
         ComputationContextImpl context = new ComputationContextImpl(
-                new ComputationMetadataMapping(comp.metadata(), Collections.emptyMap()));
+                new ComputationMetadataMapping(comp.metadata(), Map.of()));
         comp.init(context);
 
         // Corrupt the elastic doc representation replacing a boolean value with an integer
@@ -116,7 +114,7 @@ public class TestBulkIndexMalformedInput {
         // Create a bulkIndex computation
         BulkIndexComputation comp = new BulkIndexComputation(10_000, 10, 100);
         ComputationContextImpl context = new ComputationContextImpl(
-                new ComputationMetadataMapping(comp.metadata(), Collections.emptyMap()));
+                new ComputationMetadataMapping(comp.metadata(), Map.of()));
         comp.init(context);
 
         // Submit the record to the computation

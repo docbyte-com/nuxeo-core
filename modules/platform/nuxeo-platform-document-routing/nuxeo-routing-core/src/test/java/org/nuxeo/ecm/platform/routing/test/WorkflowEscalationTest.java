@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -403,12 +403,11 @@ public class WorkflowEscalationTest extends AbstractGraphRouteTest {
 
         node2.setPropertyValue(GraphNode.PROP_STOP, Boolean.TRUE);
         session.saveDocument(node2);
-        DocumentRoute route = instantiateAndRun(session);
+        instantiateAndRun(session);
 
         transactionalFeature.nextTransaction();
         DocumentModelList nodes = session.query(SUSPENDED_NODES_WITH_ESCALATION_QUERY);
         assertEquals(1, nodes.size());
-        DocumentModel nodeDoc = nodes.get(0);
 
         // this will trigger a Bulk Action
         eventService.fireEvent(new EventContextImpl().newEvent(EXECUTE_ESCALATION_RULE_EVENT));

@@ -60,17 +60,17 @@ public class TestJWTAuthenticator {
     protected JWTService service;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         LoginComponent.pushPrincipal(new UserPrincipal(USERNAME, Collections.emptyList(), false, false));
     }
 
     @After
-    public void teardown() throws Exception {
+    public void teardown() {
         LoginComponent.popPrincipal();
     }
 
     @Test
-    public void testValidateTicket() throws Exception {
+    public void testValidateTicket() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -87,7 +87,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketFromURI() throws Exception {
+    public void testValidateTicketFromURI() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -104,7 +104,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketWithAudience() throws Exception {
+    public void testValidateTicketWithAudience() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -123,7 +123,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketWithBadAudience() throws Exception {
+    public void testValidateTicketWithBadAudience() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -141,7 +141,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testNoAuthorizationHeader() throws Exception {
+    public void testNoAuthorizationHeader() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -156,7 +156,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testCorruptedTicket() throws Exception {
+    public void testCorruptedTicket() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Arnaud Kervern
  */
-
 package org.nuxeo.ecm.platform.shibboleth.computedgroups;
 
 import static org.junit.Assert.assertFalse;
@@ -24,7 +23,6 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -61,6 +59,15 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.login.shibboleth")
 public class TestShibbolethComputedGroup {
 
+    protected static String[] sampleArray = new String[] { "hello", "world" };
+
+    @Inject
+    protected DirectoryService directoryService;
+
+    protected Session userDir;
+
+    protected Session groupDir;
+
     @Before
     public void setUp() {
         userDir = directoryService.open("userDirectory");
@@ -81,15 +88,6 @@ public class TestShibbolethComputedGroup {
             groupDir.close();
         }
     }
-
-    @Inject
-    protected DirectoryService directoryService;
-
-    protected Session userDir;
-
-    protected Session groupDir;
-
-    protected static String[] sampleArray = new String[] { "hello", "world" };
 
     @Test
     public void testOnlyEL() {
@@ -156,7 +154,7 @@ public class TestShibbolethComputedGroup {
     }
 
     protected DocumentModel createUser(String username) {
-        return userDir.createEntry(Collections.singletonMap("username", username));
+        return userDir.createEntry(Map.of("username", username));
     }
 
     protected DocumentModel createShibbGroup(String name, String el) {

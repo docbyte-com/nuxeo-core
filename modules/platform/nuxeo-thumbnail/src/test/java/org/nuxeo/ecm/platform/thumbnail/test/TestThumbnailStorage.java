@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,16 @@
  */
 package org.nuxeo.ecm.platform.thumbnail.test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.Serializable;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -79,9 +83,9 @@ public class TestThumbnailStorage {
         txFeature.nextTransaction(); // wait for thumbnail update
 
         file = session.getDocument(file.getRef());
-        Assert.assertTrue(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
-        Assert.assertNotNull(file.getPropertyValue(ThumbnailConstants.THUMBNAIL_PROPERTY_NAME));
-        Assert.assertEquals(1, UpdateThumbnailCounter.count);
+        assertTrue(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
+        assertNotNull(file.getPropertyValue(ThumbnailConstants.THUMBNAIL_PROPERTY_NAME));
+        assertEquals(1, UpdateThumbnailCounter.count);
     }
 
     @Test
@@ -91,7 +95,7 @@ public class TestThumbnailStorage {
 
         txFeature.nextTransaction(); // wait for thumbnail update
 
-        Assert.assertFalse(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
+        assertFalse(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
 
         // Attach a blob
         Blob blob = Blobs.createBlob(FileUtils.getResourceFileFromContext("test-data/big_nuxeo_logo.jpg"),
@@ -102,9 +106,9 @@ public class TestThumbnailStorage {
         txFeature.nextTransaction(); // wait for thumbnail update
 
         file = session.getDocument(file.getRef());
-        Assert.assertTrue(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
-        Assert.assertNotNull(file.getPropertyValue(ThumbnailConstants.THUMBNAIL_PROPERTY_NAME));
-        Assert.assertEquals(1, UpdateThumbnailCounter.count);
+        assertTrue(file.hasFacet(ThumbnailConstants.THUMBNAIL_FACET));
+        assertNotNull(file.getPropertyValue(ThumbnailConstants.THUMBNAIL_PROPERTY_NAME));
+        assertEquals(1, UpdateThumbnailCounter.count);
 
         // update a property other than the content, shouldn't trigger thumbnail computation
         file.setPropertyValue("dc:title", "Update title");
@@ -113,7 +117,7 @@ public class TestThumbnailStorage {
         txFeature.nextTransaction(); // wait for thumbnail update
 
         file = session.getDocument(file.getRef());
-        Assert.assertEquals(1, UpdateThumbnailCounter.count);
+        assertEquals(1, UpdateThumbnailCounter.count);
     }
 
     @Test
@@ -128,7 +132,7 @@ public class TestThumbnailStorage {
 
         txFeature.nextTransaction(); // wait for thumbnail update
 
-        Assert.assertEquals(1, UpdateThumbnailCounter.count);
+        assertEquals(1, UpdateThumbnailCounter.count);
 
         // Update
         blob.setFilename("logo.jpg");
@@ -137,6 +141,6 @@ public class TestThumbnailStorage {
 
         txFeature.nextTransaction(); // wait for thumbnail update
 
-        Assert.assertEquals(2, UpdateThumbnailCounter.count);
+        assertEquals(2, UpdateThumbnailCounter.count);
     }
 }

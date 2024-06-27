@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -637,7 +637,7 @@ public class TestFileManagerService {
             fileManager.createOrUpdateDocument(context);
             // test if the parent path is found in the event context properties
             assertEquals(workspace.getPathAsString(),
-                    listener.findFirstCapturedEventContext().get().getProperty(CoreEventConstants.PARENT_PATH));
+                    listener.findFirstCapturedEventContextOrElseThrow().getProperty(CoreEventConstants.PARENT_PATH));
         }
     }
 

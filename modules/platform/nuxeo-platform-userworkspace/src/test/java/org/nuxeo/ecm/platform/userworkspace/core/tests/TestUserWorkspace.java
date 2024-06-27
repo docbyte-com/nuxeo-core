@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import jakarta.inject.Inject;
@@ -295,8 +294,7 @@ public class TestUserWorkspace {
     }
 
     protected void expectCandidateNames(String username, String... expected) {
-        assertEquals(Arrays.asList(expected),
-                ((AbstractUserWorkspaceImpl) uwm).getCandidateUserWorkspaceNames(username));
+        assertEquals(List.of(expected), ((AbstractUserWorkspaceImpl) uwm).getCandidateUserWorkspaceNames(username));
     }
 
     @Test

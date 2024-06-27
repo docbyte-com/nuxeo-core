@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Funsho David
  */
-
 package org.nuxeo.ecm.jwt;
 
 import org.nuxeo.ecm.platform.test.PlatformFeature;
@@ -27,9 +26,9 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 11.1
  */
-@Features(PlatformFeature.class)
 @Deploy("org.nuxeo.ecm.jwt")
 @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
+@Features(PlatformFeature.class)
 public class JWTFeature implements RunnerFeature {
 
 }

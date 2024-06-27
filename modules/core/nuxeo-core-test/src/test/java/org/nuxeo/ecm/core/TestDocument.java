@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import static org.nuxeo.ecm.core.api.VersioningOption.MAJOR;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,7 +57,6 @@ import org.nuxeo.ecm.core.model.Session;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.SchemaManagerImpl;
 import org.nuxeo.ecm.core.schema.types.CompositeType;
-import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Schema;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -106,7 +104,7 @@ public class TestDocument {
     }
 
     @FunctionalInterface
-    private interface TriConsumer<T, U, V> {
+    protected interface TriConsumer<T, U, V> {
         void accept(T t, U u, V v);
     }
 
@@ -155,7 +153,7 @@ public class TestDocument {
         Document root = session.getRootDocument();
         Document doc1 = root.addChild("doc", "TestDocument");
         Document doc2 = root.addChild("doc2", "File");
-        doc1.setValue("tp:complexList", Collections.singletonList(Collections.emptyMap()));
+        doc1.setValue("tp:complexList", List.of(Map.of()));
 
         BiConsumer<String, Object> c1 = (xpath, value) -> DocumentSetValue.accept(doc1, xpath, value);
         checkSet(c1, "tp:complexList", Long.valueOf(0),
@@ -189,9 +187,9 @@ public class TestDocument {
 
         // array
         doc.setValue("dc:subjects", new Object[] { "a", "b" });
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((Object[]) doc.getValue("dc:subjects")));
-        doc.setValue("dc:subjects", Arrays.asList("c", "d"));
-        assertEquals(Arrays.asList("c", "d"), Arrays.asList((Object[]) doc.getValue("dc:subjects")));
+        assertEquals(List.of("a", "b"), List.of((Object[]) doc.getValue("dc:subjects")));
+        doc.setValue("dc:subjects", List.of("c", "d"));
+        assertEquals(List.of("c", "d"), List.of((Object[]) doc.getValue("dc:subjects")));
 
         // blob
         Blob blob = Blobs.createBlob("hello world!");
@@ -226,9 +224,9 @@ public class TestDocument {
         vignette.put("width", size1);
         vignette.put("content", blob);
         vignettes.add(vignette); // 0
-        vignettes.add(Collections.singletonMap("height", size3)); // 1
-        vignettes.add(Collections.singletonMap("height", size3)); // 2
-        vignettes.add(Collections.singletonMap("height", size3)); // 3
+        vignettes.add(Map.of("height", size3)); // 1
+        vignettes.add(Map.of("height", size3)); // 2
+        vignettes.add(Map.of("height", size3)); // 3
 
         // set recursive
         doc.setValue("cmpf:attachedFile", attachedFile);
@@ -281,12 +279,12 @@ public class TestDocument {
         Object list = doc.getValue("cmpf:attachedFile/vignettes");
         assertTrue(list instanceof List);
         assertEquals(4, ((List<?>) list).size());
-        assertEquals(Arrays.asList(v0, ev1, ev2or3, ev2or3), list);
+        assertEquals(List.of(v0, ev1, ev2or3, ev2or3), list);
 
         // get recursive map
         Map<String, Object> atf = new HashMap<>();
         atf.put("name", null);
-        atf.put("vignettes", Arrays.asList(v0, ev1, ev2or3, ev2or3));
+        atf.put("vignettes", List.of(v0, ev1, ev2or3, ev2or3));
         assertEquals(atf, doc.getValue("cmpf:attachedFile"));
     }
 
@@ -296,7 +294,7 @@ public class TestDocument {
         Document doc = root.addChild("doc", "File");
 
         Blob blob = Blobs.createBlob("My content");
-        doc.setValue("files", Collections.singletonList(Collections.singletonMap("file", blob)));
+        doc.setValue("files", List.of(Map.of("file", blob)));
         assertEquals(blob, doc.getValue("files/0/file"));
     }
 
@@ -309,7 +307,7 @@ public class TestDocument {
         assertTrue(list instanceof List);
         assertEquals(0, ((List<?>) list).size());
 
-        doc.setValue("tp:fileList", Collections.singletonList(Blobs.createBlob("My content")));
+        doc.setValue("tp:fileList", List.of(Blobs.createBlob("My content")));
 
         list = doc.getValue("tp:fileList");
         assertTrue(list instanceof List);
@@ -428,8 +426,8 @@ public class TestDocument {
         Blob blob2 = Blobs.createBlob("content2", "text/html");
 
         List<Map<String, Object>> vignettes = new ArrayList<>();
-        vignettes.add(Collections.singletonMap("content", blob1));
-        vignettes.add(Collections.singletonMap("content", blob2));
+        vignettes.add(Map.of("content", blob1));
+        vignettes.add(Map.of("content", blob2));
         Map<String, Object> attachedFile = new HashMap<>();
         attachedFile.put("vignettes", vignettes);
         doc.setValue("cmpf:attachedFile", attachedFile);
@@ -437,13 +435,12 @@ public class TestDocument {
         // list the paths
         List<String> paths = new ArrayList<>();
         doc.visitBlobs(accessor -> paths.add(accessor.getXPath()));
-        assertEquals(Arrays.asList("cmpf:attachedFile/vignettes/0/content", "cmpf:attachedFile/vignettes/1/content"),
-                paths);
+        assertEquals(List.of("cmpf:attachedFile/vignettes/0/content", "cmpf:attachedFile/vignettes/1/content"), paths);
 
         // get the MIME types
         List<String> mimeTypes = new ArrayList<>();
         doc.visitBlobs(accessor -> mimeTypes.add(accessor.getBlob().getMimeType()));
-        assertEquals(Arrays.asList("text/plain", "text/html"), mimeTypes);
+        assertEquals(List.of("text/plain", "text/html"), mimeTypes);
 
         // set the file names
         doc.visitBlobs(accessor -> {
@@ -470,14 +467,13 @@ public class TestDocument {
     }
 
     @Test
-    public void testBlobsVisitorWithOldFacet() throws Exception {
+    public void testBlobsVisitorWithOldFacet() {
         Document root = session.getRootDocument();
         Document doc = root.addChild("doc", "ComplexDoc");
         doc.addFacet("Aged");
 
         Blob blob = Blobs.createBlob("content1", "text/plain");
-        doc.setValue("cmpf:attachedFile", Collections.singletonMap("vignettes",
-                Collections.singletonList(Collections.singletonMap("content", blob))));
+        doc.setValue("cmpf:attachedFile", Map.of("vignettes", List.of(Map.of("content", blob))));
 
         // simulate an obsolete Aged facet present on the document but not in the schema manager
         Map<String, CompositeType> facets = ((SchemaManagerImpl) schemaManager).facets;
@@ -486,7 +482,7 @@ public class TestDocument {
             // list the paths
             List<String> paths = new ArrayList<>();
             doc.visitBlobs(accessor -> paths.add(accessor.getXPath()));
-            assertEquals(Arrays.asList("cmpf:attachedFile/vignettes/0/content"), paths);
+            assertEquals(List.of("cmpf:attachedFile/vignettes/0/content"), paths);
         } finally {
             facets.put("Aged", agedFacet);
         }
@@ -509,7 +505,7 @@ public class TestDocument {
         testGetChangesClearComplexPropertyBeforeSet(false);
     }
 
-    protected void testGetChangesClearComplexPropertyBeforeSet(boolean clearComplexPropertyBeforeSet) throws Exception {
+    protected void testGetChangesClearComplexPropertyBeforeSet(boolean clearComplexPropertyBeforeSet) {
         boolean oldClearComplexPropertyBeforeSet = schemaManager.getClearComplexPropertyBeforeSet();
         try {
             ((SchemaManagerImpl) schemaManager).clearComplexPropertyBeforeSet = clearComplexPropertyBeforeSet;
@@ -564,7 +560,7 @@ public class TestDocument {
         assertTrue(changed);
         changes = writeContext.getChanges();
         if (schemaManager.getClearComplexPropertyBeforeSet()) {
-            expected = new HashSet<>(Arrays.asList( //
+            expected = new HashSet<>(List.of( //
                     "cmpf:attachedFile", //
                     "cmpf:attachedFile/name", //
                     "cmpf:attachedFile/vignettes", //
@@ -581,7 +577,7 @@ public class TestDocument {
             ));
         } else {
             // check that we don't have cmpf:attachedFile/vignettes/0 in the list
-            expected = new HashSet<>(Arrays.asList( //
+            expected = new HashSet<>(List.of( //
                     "cmpf:attachedFile", //
                     "cmpf:attachedFile/vignettes", //
                     "cmpf:attachedFile/vignettes/1", //
@@ -599,7 +595,7 @@ public class TestDocument {
         assertTrue(changed);
         changes = writeContext.getChanges();
         if (schemaManager.getClearComplexPropertyBeforeSet()) {
-            expected = new HashSet<>(Arrays.asList( //
+            expected = new HashSet<>(List.of( //
                     "cmpf:attachedFile", //
                     "cmpf:attachedFile/name", //
                     "cmpf:attachedFile/vignettes", //
@@ -616,7 +612,7 @@ public class TestDocument {
             ));
         } else {
             // check that we don't have cmpf:attachedFile/vignettes/0 in the list
-            expected = new HashSet<>(Arrays.asList( //
+            expected = new HashSet<>(List.of( //
                     "cmpf:attachedFile", //
                     "cmpf:attachedFile/vignettes", //
                     "cmpf:attachedFile/vignettes/1", //

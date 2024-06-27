@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,7 @@ public class RepositoryService extends DefaultComponent {
         config.setMaxTotalPerKey(poolConfig.getMaxPoolSize());
         config.setMaxIdlePerKey(poolConfig.getMaxPoolSize());
         config.setMinIdlePerKey(poolConfig.getMinPoolSize());
-        config.setMaxWaitMillis(poolConfig.getBlockingTimeoutMillis());
+        config.setMaxWait(Duration.ofMillis(poolConfig.getBlockingTimeoutMillis()));
         basePool = new GenericKeyedObjectPool<>(new SessionFactory(), config);
         // use an eroding pool to avoid keeping idle sessions too long
         pool = PoolUtils.erodingPool(basePool);

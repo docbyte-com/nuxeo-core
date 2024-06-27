@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,23 +46,22 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestAutomationYaml {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected String getYamlChain(String chainId) throws Exception {
         OperationType op = service.getOperation(chainId);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         YamlWriter.toYaml(out, op.getDocumentation());
-        return new String(out.toByteArray());
+        return out.toString();
     }
 
     protected String getYamlOp(Operation op) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         YamlWriter.toYaml(out, op);
-        return new String(out.toByteArray());
+        return out.toString();
     }
 
-    protected void checkEquals(String expected, String actual) throws Exception {
-        // System.err.println(expected);
+    protected void checkEquals(String expected, String actual) {
         assertEquals(expected, actual);
     }
 
@@ -76,71 +75,75 @@ public class TestAutomationYaml {
     @Test
     public void testChain() throws Exception {
         String chain = getYamlChain("chain");
-        StringBuilder res = new StringBuilder();
-        res.append("description: My desc\n");
-        res.append("operations:\n");
-        res.append("- Context.FetchDocument\n");
-        res.append("- Document.Create:\n");
-        res.append("    type: Note\n");
-        res.append("    name: MyDoc\n");
-        res.append("    properties:\n");
-        res.append("      dc:description: My Doc desc\n");
-        res.append("      dc:title: My Doc\n");
-        checkEquals(res.toString(), chain);
+        String res = """
+                description: My desc
+                operations:
+                - Context.FetchDocument
+                - Document.Create:
+                    type: Note
+                    name: MyDoc
+                    properties:
+                      dc:description: My Doc desc
+                      dc:title: My Doc
+                """;
+        checkEquals(res, chain);
     }
 
     @Test
     public void testChainAlt() throws Exception {
         String chain = getYamlChain("chain_props");
-        StringBuilder res = new StringBuilder();
-        res.append("- Context.FetchDocument\n");
-        res.append("- Document.Create:\n");
-        res.append("    type: Note\n");
-        res.append("    name: MyDoc\n");
-        res.append("    properties:\n");
-        res.append("      dc:description: My Doc desc\n");
-        res.append("      dc:title: My Doc\n");
-        checkEquals(res.toString(), chain);
+        String res = """
+                - Context.FetchDocument
+                - Document.Create:
+                    type: Note
+                    name: MyDoc
+                    properties:
+                      dc:description: My Doc desc
+                      dc:title: My Doc
+                """;
+        checkEquals(res, chain);
     }
 
     @Test
     public void testChainWithParams() throws Exception {
         String chain = getYamlChain("chain_with_params");
-        StringBuilder res = new StringBuilder();
-        res.append("description: This is an awesome chain!\n");
-        res.append("params:\n");
-        res.append("- foo:\n");
-        res.append("    type: string\n");
-        res.append("    values:\n");
-        res.append("    - bar\n");
-        res.append("- foo2:\n");
-        res.append("    type: boolean\n");
-        res.append("    description: yop\n");
-        res.append("operations:\n");
-        res.append("- Context.FetchDocument\n");
-        res.append("- Document.Create:\n");
-        res.append("    type: Note\n");
-        res.append("    name: MyDoc\n");
-        checkEquals(res.toString(), chain);
+        String res = """
+                description: This is an awesome chain!
+                params:
+                - foo:
+                    type: string
+                    values:
+                    - bar
+                - foo2:
+                    type: boolean
+                    description: yop
+                operations:
+                - Context.FetchDocument
+                - Document.Create:
+                    type: Note
+                    name: MyDoc
+                """;
+        checkEquals(res, chain);
     }
 
     @Test
     public void testChainSample() throws Exception {
         String chain = getYamlChain("chain_complex");
-        StringBuilder res = new StringBuilder();
-        res.append("- Context.FetchDocument\n");
-        res.append("- Document.Create:\n");
-        res.append("    type: Note\n");
-        res.append("    name: note\n");
-        res.append("    properties:\n");
-        res.append("      dc:title: MyDoc\n");
-        res.append("- Document.Copy:\n");
-        res.append("    target: ../../dst\n");
-        res.append("    name: note_copy\n");
-        res.append("- Document.SetProperty:\n");
-        res.append("    xpath: dc:description\n");
-        res.append("    value: mydesc\n");
-        checkEquals(res.toString(), chain);
+        String res = """
+                - Context.FetchDocument
+                - Document.Create:
+                    type: Note
+                    name: note
+                    properties:
+                      dc:title: MyDoc
+                - Document.Copy:
+                    target: ../../dst
+                    name: note_copy
+                - Document.SetProperty:
+                    xpath: dc:description
+                    value: mydesc
+                """;
+        checkEquals(res, chain);
     }
 
     @Test
@@ -149,14 +152,15 @@ public class TestAutomationYaml {
         String yop = getYamlOp(op.getDocumentation().getOperations()[0]);
         assertEquals("Context.FetchDocument\n", yop);
         yop = getYamlOp(op.getDocumentation().getOperations()[1]);
-        StringBuilder res = new StringBuilder();
-        res.append("Document.Create:\n");
-        res.append("  type: Note\n");
-        res.append("  name: MyDoc\n");
-        res.append("  properties:\n");
-        res.append("    dc:description: My Doc desc\n");
-        res.append("    dc:title: My Doc\n");
-        checkEquals(res.toString(), yop);
+        String res = """
+                Document.Create:
+                  type: Note
+                  name: MyDoc
+                  properties:
+                    dc:description: My Doc desc
+                    dc:title: My Doc
+                """;
+        checkEquals(res, yop);
     }
 
 }

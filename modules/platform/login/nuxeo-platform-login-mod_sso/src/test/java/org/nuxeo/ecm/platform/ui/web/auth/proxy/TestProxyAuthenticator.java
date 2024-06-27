@@ -18,7 +18,6 @@
  *     Academie de Rennes - proxy CAS support
  *     Revolution Linux - Username string cleanup
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.proxy;
 
 import static org.junit.Assert.assertEquals;

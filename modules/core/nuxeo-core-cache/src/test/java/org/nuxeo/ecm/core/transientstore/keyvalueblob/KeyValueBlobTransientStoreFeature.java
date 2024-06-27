@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,11 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 /**
  * @since 9.3
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.core.api")
 @Deploy("org.nuxeo.ecm.core.cache.test:OSGI-INF/test-kvbts-config.xml")
+@Features(RuntimeFeature.class)
 public class KeyValueBlobTransientStoreFeature implements RunnerFeature {
 
 }

@@ -46,9 +46,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class UserSubscriptionAdapterTest {
 
     @Inject
-    private CoreSession session;
+    protected CoreSession session;
 
-    private DocumentModel doc;
+    protected DocumentModel doc;
 
     @Before
     public void doBefore() {

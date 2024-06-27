@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public class TestMemPubSubProvider {
     }
 
     @Test
-    public void testNoSubscriber() throws Exception {
+    public void testNoSubscriber() {
         // nothing to receive it but we can still send something into the void
         pubSubService.publish("topicVoid", "something".getBytes(UTF_8));
     }
