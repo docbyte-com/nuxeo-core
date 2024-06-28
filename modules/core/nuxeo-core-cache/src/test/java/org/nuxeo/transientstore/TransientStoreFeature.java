@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,27 +14,14 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thomas Roger
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-
-package org.nuxeo.transientstore.test.work;
-
-import org.nuxeo.ecm.core.work.AbstractWork;
+package org.nuxeo.transientstore;
 
 /**
- * @since 7.4
+ * @since 2025.0
+ * @deprecated since 2025.0, use {@link org.nuxeo.ecm.core.transientstore.TransientStoreFeature} instead
  */
-public class DummyWork extends AbstractWork {
-
-    private static final long serialVersionUID = 1L;
-
-    @Override
-    public void work() {
-
-    }
-
-    @Override
-    public String getTitle() {
-        return "Dummy work";
-    }
+@Deprecated(since = "2025.0", forRemoval = true)
+public class TransientStoreFeature extends org.nuxeo.ecm.core.transientstore.TransientStoreFeature {
 }

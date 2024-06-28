@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,24 @@
  * Contributors:
  *     Thomas Roger
  */
-package org.nuxeo.ecm.platform.oauth.tests;
+package org.nuxeo.ecm.core.transientstore.work;
 
-import org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.ecm.core.work.AbstractWork;
 
 /**
- * @since 9.2
+ * @since 7.4
  */
-@Deploy("org.nuxeo.ecm.platform.oauth:OSGI-INF/transientstore-test-config.xml")
-@Features(InMemoryTransientStoreFeature.class)
-public class OAuth2InMemoryTransientStoreFeature implements RunnerFeature {
+public class DummyWork extends AbstractWork {
+
+    private static final long serialVersionUID = 1L;
+
+    @Override
+    public void work() {
+
+    }
+
+    @Override
+    public String getTitle() {
+        return "Dummy work";
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,20 +24,18 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import javax.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.picture.api.ImagingService;
 import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionDefinition;
@@ -48,8 +46,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-
-import com.google.inject.Inject;
 
 /**
  * @since 7.2
@@ -63,23 +59,17 @@ import com.google.inject.Inject;
 
 public class TestPictureRenditions {
 
-    public static final List<String> EXPECTED_ALL_RENDITION_DEFINITION_NAMES = Arrays.asList("xmlExport", "zipExport",
+    public static final List<String> EXPECTED_ALL_RENDITION_DEFINITION_NAMES = List.of("xmlExport", "zipExport",
             "zipTreeExport", "Thumbnail", "Small", "Medium", "FullHD", "OriginalJpeg", "mainBlob");
 
-    public static final List<String> EXPECTED_FILTERED_RENDITION_DEFINITION_NAMES = Arrays.asList("xmlExport",
-            "zipExport", "zipTreeExport", "Small", "FullHD", "OriginalJpeg", "mainBlob");
+    public static final List<String> EXPECTED_FILTERED_RENDITION_DEFINITION_NAMES = List.of("xmlExport", "zipExport",
+            "zipTreeExport", "Small", "FullHD", "OriginalJpeg", "mainBlob");
 
     @Inject
     protected CoreSession session;
 
     @Inject
     protected RenditionService renditionService;
-
-    @Inject
-    protected ImagingService imagingService;
-
-    @Inject
-    protected AutomationService automationService;
 
     @Inject
     protected HotDeployer deployer;
@@ -91,7 +81,7 @@ public class TestPictureRenditions {
     protected LogCaptureFeature.Result logCaptureResult;
 
     @Test
-    public void shouldExposeAllPictureViewsAsRenditions() throws IOException {
+    public void shouldExposeAllPictureViewsAsRenditions() {
         DocumentModel doc = session.createDocumentModel("/", "picture", "Picture");
         doc = session.createDocument(doc);
 
@@ -139,7 +129,7 @@ public class TestPictureRenditions {
         List<RenditionDefinition> imageToPDFRenditionDefinitions = renditionDefinitions.stream()
                                                                                        .filter(rD -> rD.getName()
                                                                                                        .equals("imageToPDF"))
-                                                                                       .collect(Collectors.toList());
+                                                                                       .toList();
         assertEquals(1, imageToPDFRenditionDefinitions.size());
         RenditionDefinition imageToPDFRenditionDefinition = imageToPDFRenditionDefinitions.get(0);
         assertEquals("Image.Blob.ConvertToPDF", imageToPDFRenditionDefinition.getOperationChain());

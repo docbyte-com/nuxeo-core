@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Thomas Roger
- *
  */
-
 package org.nuxeo.ecm.csv.core;
 
 import java.io.File;
@@ -31,11 +29,11 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 @Features({ CoreFeature.class, DirectoryFeature.class, UserManagerFeature.class, TransientStoreFeature.class })
 @Deploy("org.nuxeo.ecm.core.io")

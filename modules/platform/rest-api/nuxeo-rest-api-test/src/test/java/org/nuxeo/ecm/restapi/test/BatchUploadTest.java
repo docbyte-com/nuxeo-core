@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,11 @@ package org.nuxeo.ecm.restapi.test;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
+import org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.restapi.server.jaxrs.BatchUploadObject;
 import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.transientstore.test.InMemoryTransientStoreFeature;
 
 /**
  * Tests the {@link BatchUploadObject} endpoints against an in-memory implementation of the {@link TransientStore}.

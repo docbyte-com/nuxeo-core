@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ package org.nuxeo.ecm.core.management.jtajca;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.management.JMX;
 import javax.management.MBeanServer;
 import javax.management.MalformedObjectNameException;
@@ -45,7 +46,6 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 import com.google.inject.Binder;
 import com.google.inject.Provider;
-import com.google.inject.name.Named;
 import com.google.inject.name.Names;
 
 // ideally this feature should deploy/use TransactionalFeature but we can't depend on it because features order is

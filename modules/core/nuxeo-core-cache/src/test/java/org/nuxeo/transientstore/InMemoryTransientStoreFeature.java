@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thomas Roger
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.platform.oauth.tests;
-
-import org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+package org.nuxeo.transientstore;
 
 /**
- * @since 9.2
+ * @since 2025.0
+ * @deprecated since 2025.0, use {@link org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature} instead
  */
-@Deploy("org.nuxeo.ecm.platform.oauth:OSGI-INF/transientstore-test-config.xml")
-@Features(InMemoryTransientStoreFeature.class)
-public class OAuth2InMemoryTransientStoreFeature implements RunnerFeature {
+@Deprecated(since = "2025.0", forRemoval = true)
+public class InMemoryTransientStoreFeature extends org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature {
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     mhilaire
- *
  */
-
 package org.nuxeo.ecm.core.cache;
 
 import org.nuxeo.runtime.api.Framework;
@@ -29,16 +27,17 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 
-@Features(CacheFeature.class)
 @Deploy("org.nuxeo.ecm.core.cache:inmemory-cache-config.xml")
+@Features(CacheFeature.class)
 public class InMemoryCacheFeature implements RunnerFeature {
 
     public static final String MAXSIZE_TEST_CACHE_NAME = "maxsize-test-cache";
 
     @Override
     public void configure(FeaturesRunner runner, Binder binder) {
-        binder.bind(Cache.class).annotatedWith(Names.named(MAXSIZE_TEST_CACHE_NAME)).toProvider(
-                () -> Framework.getService(CacheService.class).getCache(MAXSIZE_TEST_CACHE_NAME));
+        binder.bind(Cache.class)
+              .annotatedWith(Names.named(MAXSIZE_TEST_CACHE_NAME))
+              .toProvider(() -> Framework.getService(CacheService.class).getCache(MAXSIZE_TEST_CACHE_NAME));
     }
 
 }

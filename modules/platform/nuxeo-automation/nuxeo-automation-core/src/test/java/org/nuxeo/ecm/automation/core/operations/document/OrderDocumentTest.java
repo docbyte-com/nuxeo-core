@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,8 +43,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 10.1
  */
@@ -52,10 +52,10 @@ import com.google.inject.Inject;
 public class OrderDocumentTest {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected DocumentModel folder1;
 
@@ -252,7 +252,7 @@ public class OrderDocumentTest {
     }
 
     protected void moveBeforeMultiple(DocumentModel[] srcList, DocumentModel dest) throws OperationException {
-        ctx.setInput(Arrays.asList(srcList));
+        ctx.setInput(List.of(srcList));
         Map<String, Object> params = new HashMap<>();
         if (dest != null) {
             params.put("before", dest);

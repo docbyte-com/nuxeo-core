@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@
  */
 package org.nuxeo.elasticsearch.http.readonly;
 
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import org.junit.Assert;
+import javax.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
@@ -30,8 +32,6 @@ import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
-import com.google.inject.Inject;
 
 /**
  * @since 7.4
@@ -44,7 +44,7 @@ import com.google.inject.Inject;
 public class TestAuditRequestFilter {
 
     @Inject
-    ElasticSearchAdmin esa;
+    protected ElasticSearchAdmin esa;
 
     @Test
     public void testMatchAllAuditAsAdmin() {
@@ -52,21 +52,16 @@ public class TestAuditRequestFilter {
         AuditRequestFilter filter = new AuditRequestFilter();
         filter.init(TestSearchRequestFilter.getAdminCoreSession(),
                 esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE), "pretty", payload);
-        Assert.assertEquals(payload, filter.getPayload());
+        assertEquals(payload, filter.getPayload());
     }
 
     @Test
     public void testMatchAllAuditAsNonAdmin() {
         String payload = "{\"query\": {\"match_all\": {}}}";
         AuditRequestFilter filter = new AuditRequestFilter();
-        try {
-            filter.init(TestSearchRequestFilter.getNonAdminCoreSession(),
-                    esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE), "pretty", payload);
-        } catch (IllegalArgumentException e) {
-            // Expected
-            return;
-        }
-        fail("Non Admin should not be able to access audit");
+        assertThrows("Non Admin should not be able to access audit", IllegalArgumentException.class,
+                () -> filter.init(TestSearchRequestFilter.getNonAdminCoreSession(),
+                        esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE), "pretty", payload));
     }
 
 }

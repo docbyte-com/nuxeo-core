@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * Contributors:
  *     <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-package org.nuxeo.transientstore.test;
+package org.nuxeo.ecm.core.transientstore;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
@@ -27,9 +27,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
@@ -42,9 +43,6 @@ import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.EventContextImpl;
-import org.nuxeo.ecm.core.transientstore.AbstractTransientStore;
-import org.nuxeo.ecm.core.transientstore.SimpleTransientStore;
-import org.nuxeo.ecm.core.transientstore.TransientStorageGCTrigger;
 import org.nuxeo.ecm.core.transientstore.api.MaximumTransientSpaceExceeded;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
@@ -55,8 +53,6 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
 @Features(TransientStoreFeature.class)
 @Deploy("org.nuxeo.ecm.core.event")
@@ -64,10 +60,10 @@ import com.google.inject.Inject;
 public class TransientStorageComplianceFixture {
 
     @Inject
-    HotDeployer deployer;
+    protected HotDeployer deployer;
 
     @Test
-    public void verifyServiceDeclared() throws Exception {
+    public void verifyServiceDeclared() {
 
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
         assertNotNull(tss);
@@ -91,7 +87,7 @@ public class TransientStorageComplianceFixture {
         blob.setFilename("fake.txt");
         blob.setMimeType("text/plain");
         blob.setDigest(DigestUtils.md5Hex(content));
-        ts.putBlobs(id, Collections.singletonList(blob));
+        ts.putBlobs(id, List.of(blob));
     }
 
     @Test
@@ -197,7 +193,7 @@ public class TransientStorageComplianceFixture {
     }
 
     @Test
-    public void verifyNullCases() throws Exception {
+    public void verifyNullCases() {
 
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
         TransientStore ts = tss.getStore("testStore");
@@ -223,7 +219,7 @@ public class TransientStorageComplianceFixture {
         assertTrue(blobs.isEmpty());
 
         // Entry with blobs only
-        ts.putBlobs("otherEntry", Collections.singletonList(new StringBlob("joe")));
+        ts.putBlobs("otherEntry", List.of(new StringBlob("joe")));
         assertTrue(ts.exists("otherEntry"));
         params = ts.getParameters("otherEntry");
         assertNotNull(params);
@@ -234,7 +230,7 @@ public class TransientStorageComplianceFixture {
     }
 
     @Test(expected = MaximumTransientSpaceExceeded.class)
-    public void verifyMaxSizeException() throws Exception {
+    public void verifyMaxSizeException() {
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
         TransientStore ts = tss.getStore("microStore");
         putEntry(ts, "A");
@@ -266,7 +262,7 @@ public class TransientStorageComplianceFixture {
     }
 
     @Test
-    public void verifyDeleteOnGC() throws Exception {
+    public void verifyDeleteOnGC() {
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
         TransientStore ts = tss.getStore("testStore");
         Assume.assumeTrue("Skipping test for this implementation", ts instanceof AbstractTransientStore);
@@ -339,7 +335,7 @@ public class TransientStorageComplianceFixture {
     }
 
     @Test
-    public void verifyDeleteAfterUseGC() throws Exception {
+    public void verifyDeleteAfterUseGC() {
 
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
         TransientStore ts = tss.getStore("testStore");
@@ -387,7 +383,8 @@ public class TransientStorageComplianceFixture {
         Framework.getProperties().setProperty("nuxeo.data.dir", Environment.getDefault().getData().getAbsolutePath());
 
         TransientStoreService tss = Framework.getService(TransientStoreService.class);
-        Assume.assumeTrue("Skipping test for this implementation", tss.getStore("microStore") instanceof AbstractTransientStore);
+        Assume.assumeTrue("Skipping test for this implementation",
+                tss.getStore("microStore") instanceof AbstractTransientStore);
 
         // Verify default behavior (store cache dir is in ${nuxeo.data.dir}/transientstores/{name}
         AbstractTransientStore ts = (AbstractTransientStore) tss.getStore("microStore");

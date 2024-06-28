@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * Contributors:
  *     <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-package org.nuxeo.transientstore.test;
+package org.nuxeo.ecm.core.transientstore;
 
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -26,8 +26,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  * @since 7.2
  */
-@Features({ TransientStoreFeature.class })
 @Deploy("org.nuxeo.ecm.core.cache.test:test-in-memory-transientstore-contrib.xml")
+@Features(TransientStoreFeature.class)
 public class InMemoryTransientStoreFeature implements RunnerFeature {
 
 }

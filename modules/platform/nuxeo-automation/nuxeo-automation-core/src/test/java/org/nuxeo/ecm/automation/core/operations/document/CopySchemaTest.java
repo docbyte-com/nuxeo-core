@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,13 +43,11 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 8.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({CoreFeature.class})
+@Features({ CoreFeature.class })
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.ecm.automation.core:OSGI-INF/copy-schema-test-contrib.xml")
 public class CopySchemaTest {
@@ -59,8 +59,11 @@ public class CopySchemaTest {
     private AutomationService service;
 
     private DocumentModel source;
+
     private DocumentModel target1;
+
     private DocumentModel target2;
+
     private DocumentModelList targets;
 
     protected OperationContext context;
@@ -106,7 +109,7 @@ public class CopySchemaTest {
         OperationChain chain = new OperationChain("testThrowException");
         chain.add(CopySchema.ID).set("schema", schema);
         try {
-            target1 = (DocumentModel)service.run(context, chain);
+            target1 = (DocumentModel) service.run(context, chain);
         } catch (OperationException e) {
             triggeredException = true;
         }
@@ -129,7 +132,7 @@ public class CopySchemaTest {
         context.setInput(target1);
         OperationChain chain = new OperationChain("testSingleTargetSinglePropertyById");
         chain.add(CopySchema.ID).set("sourceId", source.getId()).set("schema", schema);
-        target1 = (DocumentModel)service.run(context, chain);
+        target1 = (DocumentModel) service.run(context, chain);
 
         assertEquals(source.getProperty(schema, property), target1.getProperty(schema, property));
     }
@@ -150,7 +153,7 @@ public class CopySchemaTest {
         context.setInput(target1);
         OperationChain chain = new OperationChain("testSingleTargetSinglePropertyByPath");
         chain.add(CopySchema.ID).set("sourcePath", source.getPath().toString()).set("schema", schema);
-        target1 = (DocumentModel)service.run(context, chain);
+        target1 = (DocumentModel) service.run(context, chain);
 
         assertEquals(source.getProperty(schema, property), target1.getProperty(schema, property));
     }
@@ -172,7 +175,7 @@ public class CopySchemaTest {
         context.setInput(target1);
         OperationChain chain = new OperationChain("testSingleTargetFullSchema");
         chain.add(CopySchema.ID).set("sourceId", source.getId()).set("schema", schema);
-        target1 = (DocumentModel)service.run(context, chain);
+        target1 = (DocumentModel) service.run(context, chain);
 
         for (Map.Entry<String, Object> pair : source.getProperties(schema).entrySet()) {
             // ensure that the values of the properties for the two documents are now the same
@@ -200,7 +203,7 @@ public class CopySchemaTest {
         context.setInput(targets);
         OperationChain chain = new OperationChain("testMultipleTargetsSingleProperty");
         chain.add(CopySchema.ID).set("sourceId", source.getId()).set("schema", schema);
-        targets = (DocumentModelList)service.run(context, chain);
+        targets = (DocumentModelList) service.run(context, chain);
 
         assertEquals(target1, targets.get(0));
         assertEquals(target2, targets.get(1));
@@ -230,7 +233,7 @@ public class CopySchemaTest {
         context.setInput(targets);
         OperationChain chain = new OperationChain("testMultipleTargersFullSchema");
         chain.add(CopySchema.ID).set("sourceId", source.getId()).set("schema", schema);
-        targets = (DocumentModelList)service.run(context, chain);
+        targets = (DocumentModelList) service.run(context, chain);
 
         assertEquals(target1, targets.get(0));
         assertEquals(target2, targets.get(1));

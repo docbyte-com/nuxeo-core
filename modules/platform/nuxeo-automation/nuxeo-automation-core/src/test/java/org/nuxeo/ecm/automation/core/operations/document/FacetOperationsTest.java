@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import javax.inject.Inject;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,8 +41,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 8.3
  */
@@ -51,10 +51,10 @@ import com.google.inject.Inject;
 public class FacetOperationsTest {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     // MyNewFacet is declared in OSGI-INF/add-facet-test-contrib.xml
     public static final String THE_FACET = "MyNewFacet";
@@ -110,14 +110,14 @@ public class FacetOperationsTest {
         ctx.setInput(docNoFacet);
         OperationChain chain = new OperationChain("testAddFacet");
         chain.add(AddFacet.ID).set("facet", THE_FACET);
-        DocumentModel resultDoc = (DocumentModel)service.run(ctx, chain);
+        DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
 
         assertNotNull(resultDoc);
         assertTrue("The doc should now have the facet.", resultDoc.hasFacet(THE_FACET));
 
     }
 
-    @Test(expected=OperationException.class)
+    @Test(expected = OperationException.class)
     public void testAddUnknownFacet() throws OperationException {
 
         ctx.setInput(docNoFacet);
@@ -132,14 +132,14 @@ public class FacetOperationsTest {
     @Test
     public void testRemoveFacet() throws OperationException {
 
-        //remove from a document with facet
+        // remove from a document with facet
         assertNotNull(docWithFacet);
         assertTrue("New doc should have the facet.", docWithFacet.hasFacet(THE_FACET));
 
         ctx.setInput(docWithFacet);
         OperationChain chain = new OperationChain("testRemoveFacet");
         chain.add(RemoveFacet.ID).set("facet", THE_FACET);
-        DocumentModel resultDoc = (DocumentModel)service.run(ctx, chain);
+        DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
 
         assertNotNull(resultDoc);
         assertFalse("The doc should not have the facet.", resultDoc.hasFacet(THE_FACET));
@@ -167,7 +167,7 @@ public class FacetOperationsTest {
         ctx.setInput(docNoFacet);
         OperationChain chain = new OperationChain("testAddFacet");
         chain.add(AddFacet.ID).set("facet", THE_FACET).set("save", false);
-        DocumentModel resultDoc = (DocumentModel)service.run(ctx, chain);
+        DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
 
         assertNotNull(resultDoc);
         assertTrue("The doc should now have the facet.", resultDoc.hasFacet(THE_FACET));
@@ -180,14 +180,14 @@ public class FacetOperationsTest {
     @Test
     public void testRemoveFacetNoSave() throws OperationException {
 
-        //remove from a document with facet
+        // remove from a document with facet
         assertNotNull(docWithFacet);
         assertTrue("New doc should have the facet.", docWithFacet.hasFacet(THE_FACET));
 
         ctx.setInput(docWithFacet);
         OperationChain chain = new OperationChain("testRemoveFacet");
-        chain.add(RemoveFacet.ID).set("facet", THE_FACET).set("save",  false);
-        DocumentModel resultDoc = (DocumentModel)service.run(ctx, chain);
+        chain.add(RemoveFacet.ID).set("facet", THE_FACET).set("save", false);
+        DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
 
         assertNotNull(resultDoc);
         assertFalse("The doc should not have the facet.", resultDoc.hasFacet(THE_FACET));

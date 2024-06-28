@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,29 @@
  * Contributors:
  *     Thomas Roger
  */
-
-package org.nuxeo.transientstore.test.work;
+package org.nuxeo.ecm.core.transientstore.work;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.event.EventService;
-import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
-import org.nuxeo.ecm.core.transientstore.work.TransientStoreWork;
+import org.nuxeo.ecm.core.transientstore.InMemoryTransientStoreFeature;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.transientstore.test.InMemoryTransientStoreFeature;
-
-import com.google.inject.Inject;
 
 /**
  * @since 7.4
@@ -55,9 +53,6 @@ public class TestTransientStoreWork {
 
     @Inject
     protected WorkManager workManager;
-
-    @Inject
-    protected TransientStoreService transientStoreService;
 
     @Test
     public void shouldStoreBlobAndParamsInTransientStore() throws IOException {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     mhilaire
- *
  */
-
 package org.nuxeo.ecm.core.cache;
 
 import org.junit.Assert;
@@ -48,8 +46,9 @@ public class CacheFeature implements RunnerFeature {
     }
 
     protected void bindCache(Binder binder, final String name) {
-        binder.bind(Cache.class).annotatedWith(Names.named(name)).toProvider(
-                () -> Framework.getService(CacheService.class).getCache(name));
+        binder.bind(Cache.class)
+              .annotatedWith(Names.named(name))
+              .toProvider(() -> Framework.getService(CacheService.class).getCache(name));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.directory.Session;
@@ -35,11 +37,10 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class })
-@Deploy({ "org.nuxeo.ecm.platform.oauth", "org.nuxeo.adobe.cc.nuxeo-adobe-connector-core" })
+@Features(PlatformFeature.class)
+@Deploy("org.nuxeo.adobe.cc.nuxeo-adobe-connector-core")
+@Deploy("org.nuxeo.ecm.platform.oauth")
 public class TestNuxeoAdobeConnectorService {
 
     @Inject

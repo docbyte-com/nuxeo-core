@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 /**
  * @since 7.10
@@ -214,7 +213,7 @@ public class BatchManagerFixture {
         assertEquals("text/plain", fileEntry.getMimeType());
         assertEquals(fileSize, fileEntry.getFileSize());
         assertEquals(3, fileEntry.getChunkCount());
-        assertEquals(Arrays.asList(0, 1, 2), fileEntry.getOrderedChunkIndexes());
+        assertEquals(List.of(0, 1, 2), fileEntry.getOrderedChunkIndexes());
         assertEquals(blob, fileEntry.getBlob());
 
         // Batch chunk entries
