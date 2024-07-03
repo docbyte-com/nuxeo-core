@@ -28,9 +28,9 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.thumbnail.ThumbnailFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -42,12 +42,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 9.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(ThumbnailFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.thumbnail")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.url")
-@Deploy("org.nuxeo.ecm.platform.thumbnail:test-thumbnail-document-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.thumbnail.test:test-thumbnail-document-contrib.xml")
 public class TestGetDefaultThumbnail {
 
     @Inject

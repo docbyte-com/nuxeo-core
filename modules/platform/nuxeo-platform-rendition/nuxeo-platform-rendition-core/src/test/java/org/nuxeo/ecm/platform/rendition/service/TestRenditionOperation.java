@@ -62,6 +62,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
@@ -75,6 +76,9 @@ public class TestRenditionOperation {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature transactionalFeature;
 
     @Inject
     protected CoreSession session;
@@ -187,6 +191,7 @@ public class TestRenditionOperation {
         DocumentModel file2 = createDummyFile();
         DocumentModel section = session.createDocumentModel("/", "section", "Section");
         section = session.createDocument(section);
+        transactionalFeature.nextTransaction();
 
         ctx.setInput(new String[] { file1.getId(), file2.getId() });
         Map<String, Object> params = new HashMap<>();

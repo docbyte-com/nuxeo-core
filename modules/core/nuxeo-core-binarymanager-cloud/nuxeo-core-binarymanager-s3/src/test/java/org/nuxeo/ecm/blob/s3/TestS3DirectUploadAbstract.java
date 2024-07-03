@@ -64,6 +64,7 @@ import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
 import org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStore;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -89,7 +90,9 @@ import com.amazonaws.services.s3.transfer.Upload;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ TestS3DirectUploadAbstract.SetPropertiesFeature.class, CoreFeature.class })
+@Deploy("org.nuxeo.ecm.core.management")
 @Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3")
+@BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
 public abstract class TestS3DirectUploadAbstract {
 
     public static final int MULTIPART_THRESHOLD = 5 * 1024 * 1024; // 5MB AWS minimum value

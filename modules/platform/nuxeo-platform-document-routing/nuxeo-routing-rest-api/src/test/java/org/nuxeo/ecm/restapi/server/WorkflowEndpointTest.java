@@ -88,6 +88,7 @@ import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -108,8 +109,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
 @Deploy("org.nuxeo.ecm.platform.routing.default")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.actions")
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class WorkflowEndpointTest {
 
     protected static final int NB_WF = 5;
@@ -1048,6 +1049,7 @@ public class WorkflowEndpointTest {
         Event event = new EventImpl(DocumentRoutingWorkflowInstancesCleanup.CLEANUP_WORKFLOW_EVENT_NAME, eventContext);
         eventService.fireEvent(event);
 
+        // TODO there's a code change here, an additional nextTransaction, to tackle
         txFeature.nextTransaction();
     }
 

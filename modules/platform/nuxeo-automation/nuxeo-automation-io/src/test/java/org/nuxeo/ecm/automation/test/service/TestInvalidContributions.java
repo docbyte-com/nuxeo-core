@@ -28,6 +28,7 @@ import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.runtime.RuntimeMessage.Level;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -39,6 +40,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationCoreFeature.class, AutomationIOFeature.class })
+@BlacklistComponent("org.nuxeo.ecm.automation.server.marshallers") // needs AutomationServer
 public class TestInvalidContributions {
 
     protected void checkStartupError(String message) {

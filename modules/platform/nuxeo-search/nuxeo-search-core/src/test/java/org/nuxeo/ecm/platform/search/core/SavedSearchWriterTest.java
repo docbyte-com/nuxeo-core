@@ -34,7 +34,9 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 @Features(CoreFeature.class)
+@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.search.core")
+@Deploy("org.nuxeo.ecm.platform.types")
 public class SavedSearchWriterTest extends AbstractJsonWriterTest.External<SavedSearchWriter, SavedSearch> {
 
     public static final String SEARCH_TYPE_NAME = "DefaultSearch";

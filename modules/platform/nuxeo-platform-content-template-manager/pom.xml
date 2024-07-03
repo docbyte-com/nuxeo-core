@@ -52,6 +52,11 @@
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-filemanager</artifactId>
+      <type>test-jar</type>
+    </dependency>
 
   </dependencies>
 </project>

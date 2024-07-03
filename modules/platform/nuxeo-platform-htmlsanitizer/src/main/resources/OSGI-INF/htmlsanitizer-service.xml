@@ -85,15 +85,4 @@
       class="org.nuxeo.ecm.platform.htmlsanitizer.HtmlSanitizerAntiSamyDescriptor" />
   </extension-point>
 
-  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent"
-    point="listener">
-    <description>
-      Listener that runs (very early) the HTML Sanitizer.
-    </description>
-    <listener name="htmlsanitizerlistener"
-      class="org.nuxeo.ecm.platform.htmlsanitizer.HtmlSanitizerListener"
-      postCommit="false" async="false" priority="-10">
-    </listener>
-  </extension>
-
 </component>

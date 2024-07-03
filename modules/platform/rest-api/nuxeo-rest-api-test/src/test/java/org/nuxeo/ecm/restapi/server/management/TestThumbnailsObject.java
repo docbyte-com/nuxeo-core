@@ -45,19 +45,15 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
 import org.nuxeo.ecm.platform.thumbnail.ThumbnailConstants;
+import org.nuxeo.ecm.platform.thumbnail.ThumbnailFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 /**
  * @since 11.3
  */
-@Features(AutomationFeature.class)
-@Deploy("org.nuxeo.ecm.platform.tag")
-@Deploy("org.nuxeo.ecm.platform.convert")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.thumbnail")
+@Features({ AutomationFeature.class, ThumbnailFeature.class })
 public class TestThumbnailsObject extends ManagementBaseTest {
 
     @Inject

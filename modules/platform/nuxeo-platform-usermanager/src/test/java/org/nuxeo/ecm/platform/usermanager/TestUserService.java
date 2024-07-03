@@ -35,18 +35,18 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.cache.CacheFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager.MatchType;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @author Florent Guillaume
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
+@Features(CacheFeature.class)
 @Deploy("org.nuxeo.ecm.platform.usermanager:OSGI-INF/UserService.xml")
 @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-userservice-config.xml")
 public class TestUserService {

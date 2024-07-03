@@ -34,6 +34,7 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.platform.login.portal")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 public class TestPortalAuthenticator {
 
     private static final String SOME_TS = "1538167025822";

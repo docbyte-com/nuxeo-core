@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <component name="org.nuxeo.rest.api.stream.test.contrib">
+  <require>org.nuxeo.ecm.webengine.test.WebEngineComponentSetup</require>
 
   <extension target="org.nuxeo.runtime.server" point="servlet">
     <servlet context="/">

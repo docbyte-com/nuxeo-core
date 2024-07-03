@@ -38,9 +38,9 @@ import org.junit.runner.RunWith;
 import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.importer.stream.automation.BlobConsumers;
 import org.nuxeo.importer.stream.automation.DocumentConsumers;
 import org.nuxeo.importer.stream.automation.FileBlobProducers;
@@ -55,10 +55,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(AutomationCoreFeature.class)
 @Deploy("org.nuxeo.importer.stream")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.core.io")
 @Deploy("org.nuxeo.importer.stream:test-core-type-contrib.xml")
 public class TestAutomation {
 

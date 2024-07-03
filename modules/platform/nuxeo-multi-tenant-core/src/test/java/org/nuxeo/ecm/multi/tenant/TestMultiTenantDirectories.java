@@ -31,7 +31,6 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -41,8 +40,6 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.NuxeoLoginContext;
@@ -56,14 +53,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ DirectoryFeature.class, NuxeoLoginFeature.class, PlatformFeature.class })
-@Deploy("org.nuxeo.ecm.default.config")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.multi.tenant")
-@Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-test-contrib.xml")
+@Features(MultiTenantCoreFeature.class)
 @Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-enabled-default-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-test-directories-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.test:test-usermanagerimpl/userservice-config.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD, init = MultiTenantRepositoryInit.class)
 public class TestMultiTenantDirectories {
 

@@ -39,15 +39,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.runtime.api.login.LoginComponent;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.jwt")
-@Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
+@Features(JWTFeature.class)
 public class TestJWTAuthenticator {
 
     protected static final String USERNAME = "bob";

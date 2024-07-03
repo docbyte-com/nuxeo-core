@@ -43,6 +43,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.importer.core")
 @Deploy("org.nuxeo.ecm.platform.scanimporter")
+@Deploy("org.nuxeo.ecm.platform.scanimporter.test:needed-contribution-for-factory-deployment.xml")
 public abstract class ImportTestCase {
 
     @Inject

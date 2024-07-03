@@ -57,6 +57,7 @@ import org.nuxeo.ecm.platform.userworkspace.core.service.AbstractUserWorkspaceIm
 import org.nuxeo.ecm.platform.userworkspace.core.service.UserWorkspaceDescriptor;
 import org.nuxeo.ecm.platform.userworkspace.core.service.UserWorkspaceServiceImplComponent;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -67,6 +68,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.platform.collections.core")
 @Deploy("org.nuxeo.ecm.platform.web.common")
+@BlacklistComponent("org.nuxeo.ecm.platform.userworkspace.operationsContrib") // needs OperationServiceComponent
+@BlacklistComponent("org.nuxeo.ecm.platform.types.web") // needs TypeService
 public class TestUserWorkspace {
 
     @Inject

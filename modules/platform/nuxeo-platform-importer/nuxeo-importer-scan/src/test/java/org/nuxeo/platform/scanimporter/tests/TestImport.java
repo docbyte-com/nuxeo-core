@@ -35,7 +35,6 @@ import org.nuxeo.ecm.platform.scanimporter.service.ImporterConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
-@Deploy("org.nuxeo.ecm.platform.scanimporter.test:needed-contribution-for-factory-deployment.xml")
 @Deploy("org.nuxeo.ecm.platform.scanimporter.test:OSGI-INF/core-type-test-contrib.xml")
 public class TestImport extends ImportTestCase {
 

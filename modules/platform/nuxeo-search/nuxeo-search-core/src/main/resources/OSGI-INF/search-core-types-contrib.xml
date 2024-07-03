@@ -7,6 +7,7 @@
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
     <schema name="default_search" prefix="defaults" src="schemas/default_search.xsd" />
+    <schema name="expired_search" prefix="expired_search" src="schemas/expired_search.xsd" />
   </extension>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="doctype">

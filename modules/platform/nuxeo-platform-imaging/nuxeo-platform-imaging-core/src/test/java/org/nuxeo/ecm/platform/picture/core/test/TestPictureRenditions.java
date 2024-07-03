@@ -151,6 +151,8 @@ public class TestPictureRenditions {
         DocumentModel doc = session.createDocumentModel("/", "picture", "Picture");
         doc.setPropertyValue("file:content", (Serializable) blob);
         doc = session.createDocument(doc);
+        // wait for picture views generation to avoid concurrent update/race condition when getting rendition imageToPDF
+        transactionalFeature.nextTransaction();
 
         // get a PDF stored rendition of the Picture
         Rendition rendition = renditionService.getRendition(doc, "imageToPDF", true);

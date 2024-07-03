@@ -61,7 +61,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 7.4
  */
 @RunWith(FeaturesRunner.class)
-@Features({ TransactionalFeature.class, PlatformFeature.class })
+@Features({ PermissionsFeature.class, PlatformFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.permissions")
 public class TestPermissionListener {

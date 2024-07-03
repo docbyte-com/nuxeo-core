@@ -49,6 +49,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.jwt")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 public class TestJWTService {
 
     // secret from XML, to check manual token creation

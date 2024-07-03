@@ -45,6 +45,8 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
  */
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.ecm.platform.login.mod_sso")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.platform.login.mod_sso.test")
 @Deploy("org.nuxeo.ecm.platform.login.mod_sso.test:OSGI-INF/mod_sso-descriptor-bundle.xml")
 public class TestProxyAuthenticator {

@@ -23,9 +23,10 @@ import java.net.URL;
 import java.sql.SQLException;
 
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
+import org.nuxeo.ecm.core.cache.CacheFeature;
 import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -34,25 +35,21 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.TransactionalConfig;
-import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.osgi.framework.Bundle;
 
 /**
  * @since 10.1
  */
 @Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.migration")
 @Deploy("org.nuxeo.ecm.core.api")
 @Deploy("org.nuxeo.ecm.core")
 @Deploy("org.nuxeo.ecm.core.schema")
-@Deploy("org.nuxeo.ecm.core.event")
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.core.storage")
 @Deploy("org.nuxeo.ecm.core.storage.sql")
 @Deploy("org.nuxeo.ecm.platform.el")
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests")
-@Features({ ClusterFeature.class, TransactionalFeature.class })
+@Features({ CacheFeature.class, CoreBulkFeature.class })
 @TransactionalConfig(autoStart = false)
 public class SQLBackendFeature implements RunnerFeature {
 

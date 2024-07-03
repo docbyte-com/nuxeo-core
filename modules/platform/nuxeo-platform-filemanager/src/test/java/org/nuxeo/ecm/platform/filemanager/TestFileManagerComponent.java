@@ -29,6 +29,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.filemanager.service.FileManagerService;
 import org.nuxeo.ecm.platform.filemanager.service.extension.FileImporter;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -36,9 +37,13 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.core.mimetype")
 @Deploy("org.nuxeo.ecm.platform.filemanager")
 @Deploy("org.nuxeo.ecm.platform.filemanager:nxfilemanager-test-contribs.xml")
+@BlacklistComponent("filemanager.core.listener.unicity") // needs EventServiceComponent
+// needs PageProviderService
+@BlacklistComponent("org.nuxeo.ecm.platform.filemanager.service.FileManagerService.PageProviders")
+@BlacklistComponent("filemanager.core.listener.icon") // needs EventServiceComponent
+@BlacklistComponent("filemanager.core.listener.digest") // needs EventServiceComponent
 public class TestFileManagerComponent {
     @Inject
     protected FileManager fileManager;

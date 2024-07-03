@@ -25,6 +25,7 @@ import jakarta.inject.Inject;
 
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.directory.test.DirectoryFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -36,11 +37,11 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 @Features({ //
+        AutomationCoreFeature.class, //
         CoreFeature.class, //
         DirectoryFeature.class, //
         UserManagerFeature.class, //
         TransientStoreFeature.class })
-@Deploy("org.nuxeo.ecm.core.io")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.platform.dublincore")

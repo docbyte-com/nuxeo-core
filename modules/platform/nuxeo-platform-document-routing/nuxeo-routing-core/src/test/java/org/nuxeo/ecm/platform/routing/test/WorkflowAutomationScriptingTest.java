@@ -50,7 +50,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features({ WorkflowFeature.class, WebEngineCoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-document-routing-scripting-contrib.xml")
-public class WorkflowAutomationScripting extends AbstractGraphRouteTest {
+public class WorkflowAutomationScriptingTest extends AbstractGraphRouteTest {
 
     @Inject
     protected CoreSession session;

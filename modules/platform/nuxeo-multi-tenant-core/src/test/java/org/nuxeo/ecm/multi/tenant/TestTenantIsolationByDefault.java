@@ -39,8 +39,6 @@ import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -50,15 +48,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.6
  */
 @RunWith(FeaturesRunner.class)
-@Features({ NuxeoLoginFeature.class, PlatformFeature.class })
+@Features(MultiTenantCoreFeature.class)
 @RepositoryConfig
-@Deploy("org.nuxeo.ecm.multi.tenant")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.core.cache")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.default.config")
-@Deploy("org.nuxeo.ecm.platform.test:test-usermanagerimpl/userservice-config.xml")
-@Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-enabled-default-test-contrib.xml")
 public class TestTenantIsolationByDefault {
 

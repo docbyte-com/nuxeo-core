@@ -123,9 +123,13 @@ public class RepositoryService extends DefaultComponent {
         PoolConfiguration poolConfig = null; // NOSONAR
         RepositoryManager repositoryManager = Framework.getService(RepositoryManager.class);
         if (repositoryManager != null) {
-            org.nuxeo.ecm.core.api.repository.Repository repo = repositoryManager.getDefaultRepository();
-            if (repo != null) {
+            try {
+                org.nuxeo.ecm.core.api.repository.Repository repo = repositoryManager.getDefaultRepository();
                 poolConfig = repo.getPoolConfig();
+            } catch (RuntimeException e) {
+                if (!"No repository defined".equals(e.getMessage())) {
+                    throw e;
+                }
             }
         }
         if (poolConfig == null) {

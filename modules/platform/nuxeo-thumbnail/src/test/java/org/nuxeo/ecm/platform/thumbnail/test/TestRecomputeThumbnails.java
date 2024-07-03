@@ -34,15 +34,14 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
 import org.nuxeo.ecm.platform.thumbnail.ThumbnailConstants;
+import org.nuxeo.ecm.platform.thumbnail.ThumbnailFeature;
 import org.nuxeo.ecm.platform.thumbnail.operation.RecomputeThumbnails;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -53,10 +52,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 10.10
  */
 @RunWith(FeaturesRunner.class)
-@Features(AutomationCoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.convert")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.thumbnail")
+@Features(ThumbnailFeature.class)
 public class TestRecomputeThumbnails {
 
     @Inject

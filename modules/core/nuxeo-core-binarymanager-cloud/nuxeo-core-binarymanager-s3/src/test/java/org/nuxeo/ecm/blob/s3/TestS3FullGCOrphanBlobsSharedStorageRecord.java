@@ -42,6 +42,7 @@ import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobs;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
@@ -49,6 +50,7 @@ import org.nuxeo.runtime.test.runner.Features;
  * @since 2023.5
  */
 @Features({ CoreFeature.class, S3BlobProviderFeature.class })
+@BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
 public class TestS3FullGCOrphanBlobsSharedStorageRecord extends AbstractTestFullGCOrphanBlobs {
 
     protected DocumentModel doc1;

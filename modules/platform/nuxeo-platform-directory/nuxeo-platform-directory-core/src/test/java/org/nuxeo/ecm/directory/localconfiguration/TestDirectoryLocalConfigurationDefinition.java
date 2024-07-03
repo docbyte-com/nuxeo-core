@@ -52,7 +52,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RepositoryConfig(init = DirectoryLocalConfigurationRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.api")
-@Deploy("org.nuxeo.ecm.directory:types-for-test-directory-local-configuration.xml")
+@Deploy("org.nuxeo.ecm.platform.query.api")
+@Deploy("org.nuxeo.ecm.directory.core.tests:types-for-test-directory-local-configuration.xml")
 public class TestDirectoryLocalConfigurationDefinition {
 
     public static final DocumentRef PARENT_DOMAIN_REF = new PathRef("/default-domain");

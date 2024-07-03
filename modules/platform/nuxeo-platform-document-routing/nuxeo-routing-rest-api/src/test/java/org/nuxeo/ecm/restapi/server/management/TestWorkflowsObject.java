@@ -42,6 +42,7 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 import org.nuxeo.ecm.platform.routing.test.WorkflowFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -51,6 +52,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @Features(WorkflowFeature.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class TestWorkflowsObject extends ManagementBaseTest {
 
     @Inject

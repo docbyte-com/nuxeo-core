@@ -29,7 +29,7 @@ import jakarta.inject.Inject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
+import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.HttpResponse;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -41,9 +41,7 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
  * @since 2021.22
  */
 @RunWith(FeaturesRunner.class)
-@Features({ ServletContainerFeature.class, PlatformFeature.class })
-@Deploy("org.nuxeo.ecm.platform.restapi.test")
-@Deploy("org.nuxeo.ecm.platform.restapi.server")
+@Features(RestServerFeature.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.test:test-stream-servlet-contrib.xml")
 public class TestStreamServlet {
 

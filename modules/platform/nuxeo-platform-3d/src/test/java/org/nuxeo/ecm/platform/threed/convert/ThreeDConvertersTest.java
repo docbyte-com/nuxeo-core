@@ -60,6 +60,8 @@ import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandAvailability;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandLineExecutorService;
+import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
+import org.nuxeo.ecm.platform.rendition.service.RenditionFeature;
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -71,7 +73,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 8.4
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features({ CoreFeature.class, FileManagerFeature.class, RenditionFeature.class })
 @Deploy("org.nuxeo.ecm.platform.threed")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
 @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class)

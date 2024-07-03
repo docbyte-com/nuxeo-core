@@ -29,6 +29,7 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.oauth2.clients.OAuth2ClientService;
@@ -38,9 +39,10 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
+@Features({ AutomationCoreFeature.class, PlatformFeature.class })
 @Deploy("org.nuxeo.adobe.cc.nuxeo-adobe-connector-core")
 @Deploy("org.nuxeo.ecm.platform.oauth")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 public class TestNuxeoAdobeConnectorService {
 
     @Inject

@@ -53,6 +53,18 @@
       <artifactId>nuxeo-automation-test</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-rendition-core</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-thumbnail</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>

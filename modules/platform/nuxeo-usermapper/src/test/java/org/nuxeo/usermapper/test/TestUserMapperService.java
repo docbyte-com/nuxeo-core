@@ -42,9 +42,10 @@ import org.nuxeo.usermapper.test.dummy.DummyUser;
  */
 @RunWith(FeaturesRunner.class)
 @Features(UserMapperFeature.class)
-@Deploy("org.nuxeo.usermapper:usermapper-contribs.xml")
+@Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.user.center.profile")
+@Deploy("org.nuxeo.usermapper:usermapper-contribs.xml")
 public class TestUserMapperService {
 
     @Inject

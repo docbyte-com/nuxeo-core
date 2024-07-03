@@ -35,10 +35,9 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.schema.DocumentType;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.platform.audio.AudioCoreFeature;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -46,13 +45,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * Tests that the AudioImporter class works by importing a sample audio file
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.audio.core")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.platform.io.core")
-@Deploy("org.nuxeo.ecm.platform.rendition.core")
-@Deploy("org.nuxeo.ecm.platform.tag")
+@Features(AudioCoreFeature.class)
 public class TestAudioImporter {
 
     protected static final String AUDIO_TYPE = "Audio";

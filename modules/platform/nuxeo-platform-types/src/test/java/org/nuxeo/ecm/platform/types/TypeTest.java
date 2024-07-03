@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.platform.forms.layout.api.BuiltinModes;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -49,6 +50,13 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.platform.types:test-core-types-bundle.xml")
 @Deploy("org.nuxeo.ecm.platform.types:test-types-bundle.xml")
+// blacklist component that are not useful for the tests
+// loading them would increase the duration as the class uses a lot the HotDeployer
+@BlacklistComponent("org.nuxeo.ecm.platform.types.contrib") // needs DocumentAdapterService
+@BlacklistComponent("org.nuxeo.ecm.platform.types.local.configuration") // needs DocumentAdapterService
+@BlacklistComponent("org.nuxeo.ecm.platform.types.listeners") // needs EventService
+@BlacklistComponent("org.nuxeo.ecm.platform.types.marshallers") // needs MarshallerRegistry
+@BlacklistComponent("org.nuxeo.ecm.platform.content.view.local.configuration") // needs DocumentAdapterService
 public class TypeTest {
 
     @Inject
