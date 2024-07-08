@@ -2,8 +2,6 @@
 <component name="org.nuxeo.ecm.core.query.test.core-types">
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
-    <schema name="testquery-lib" src="schemas/testquery-lib.xsd" />
-    <schema name="testquery-schema" src="schemas/testquery-schema.xsd"  prefix="my" />
     <schema name="testschema" src="schemas/testschema.xsd" prefix="tst" />
     <schema name="testschema3" src="schemas/testschema3.xsd" /> <!-- no prefix -->
     <schema name="age" src="schemas/age.xsd" prefix="age" />
@@ -13,11 +11,6 @@
   </extension>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="doctype">
-    <doctype name="MyDocType" extends="Document">
-      <schema name="common" />
-      <schema name="dublincore"/>
-      <schema name="testquery-schema" />
-    </doctype>
     <doctype name="TestDoc" extends="Document">
       <schema name="testschema" />
       <schema name="testschema3" />

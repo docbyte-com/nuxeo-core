@@ -31,6 +31,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRINGS_PROP;
 
 import java.io.Serializable;
 import java.time.temporal.ChronoUnit;
@@ -106,8 +109,8 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @Features({ CoreFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
-@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/testquery-core-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib-2.xml")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-query-core-types-contrib.xml")
 public class TestSQLRepositoryQuery {
 
     @Inject
@@ -511,13 +514,13 @@ public class TestSQLRepositoryQuery {
         assertEquals(notMatchesNull() ? 2 : 0, dml.size());
 
         // with a scalar list defined by a xs:complexType (and not a xs:simpleType)
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
-        Property prop = doc.getProperty("my:participants");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        Property prop = doc.getProperty(COMMON_STRINGS_PROP);
         assertTrue(prop instanceof ListProperty);
         prop.setValue(List.of("foo", "bar"));
         doc = session.createDocument(doc);
         session.save();
-        dml = session.query("SELECT * FROM MyDocType WHERE my:participants/* = 'foo'");
+        dml = session.query("SELECT * FROM CommonDocument WHERE tcs:strings/* = 'foo'");
         assertEquals(1, dml.size());
     }
 
@@ -1302,33 +1305,33 @@ public class TestSQLRepositoryQuery {
         DocumentModelList dml;
         createDocs();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(0, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(0, dml.size());
 
-        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", "MyDocType");
-        doc.setPropertyValue("my:boolean", Boolean.TRUE);
+        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_BOOLEAN_PROP, Boolean.TRUE);
         doc = session.createDocument(doc);
         session.save();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(1, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(0, dml.size());
 
-        doc.setPropertyValue("my:boolean", Boolean.FALSE);
+        doc.setPropertyValue(COMMON_BOOLEAN_PROP, Boolean.FALSE);
         session.saveDocument(doc);
         session.save();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(0, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(1, dml.size());
     }
@@ -2095,7 +2098,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(7, dml.size());
 
         // create a doc with no lifecycle associated
-        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
         assertEquals("undefined", doc.getCurrentLifeCycleState());
@@ -3825,30 +3828,31 @@ public class TestSQLRepositoryQuery {
     @Test
     public void testQueryDefaultValue() {
         // create a document with no metadata
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         // try to query default values
-        DocumentModelList dml = session.query("SELECT * FROM MyDocType WHERE my:testDefault = 'the default value'");
+        DocumentModelList dml = session.query(
+                "SELECT * FROM CommonDocument WHERE tcs:defaultString = 'defaultString default value'");
         assertEquals(1, dml.size());
     }
 
     @Test
     public void testQueryDefaultValueInComplex() {
         // create a document with no metadata
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         // try to query default values
         DocumentModelList dml = session.query(
-                "SELECT * FROM MyDocType WHERE my:complex/testDefault = 'the default value'");
+                "SELECT * FROM CommonDocument WHERE tcc:complex/defaultString = 'complex/defaultString default value'");
         assertEquals(1, dml.size());
     }
 
     @Test
     public void testIsRecord() {
-        String queryRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1";
-        String queryNotRecord = "SELECT * FROM MyDocType WHERE ecm:isRecord = 0";
+        String queryRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1";
+        String queryNotRecord = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 0";
         DocumentModelList dml;
 
         // no record present initially
@@ -3858,7 +3862,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create a document
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
 
@@ -3882,10 +3886,10 @@ public class TestSQLRepositoryQuery {
 
     @Test
     public void testIsFlexibleRecord() {
-        String queryAllRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1";
-        String queryEnforcedRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 0";
-        String queryFlexibleRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 1";
-        String queryNotRecord = "SELECT * FROM MyDocType WHERE ecm:isRecord = 0";
+        String queryAllRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1";
+        String queryEnforcedRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 0";
+        String queryFlexibleRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 1";
+        String queryNotRecord = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 0";
         DocumentModelList dml;
 
         // no record present initially
@@ -3900,9 +3904,9 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create 2 documents
-        DocumentModel doc1 = session.createDocumentModel("/", "doc1", "MyDocType");
+        DocumentModel doc1 = session.createDocumentModel("/", "doc1", COMMON_DOC_TYPE);
         doc1 = session.createDocument(doc1);
-        DocumentModel doc2 = session.createDocumentModel("/", "doc2", "MyDocType");
+        DocumentModel doc2 = session.createDocumentModel("/", "doc2", COMMON_DOC_TYPE);
         doc2 = session.createDocument(doc2);
         session.save();
 
@@ -3941,13 +3945,13 @@ public class TestSQLRepositoryQuery {
     public void testRetainUntil() {
         Calendar fiveSeconds = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         fiveSeconds.add(Calendar.SECOND, 5);
-        String query = String.format("SELECT * FROM MyDocType WHERE ecm:retainUntil > TIMESTAMP '%s'",
+        String query = String.format("SELECT * FROM CommonDocument WHERE ecm:retainUntil > TIMESTAMP '%s'",
                 DateParser.formatW3CDateTime(fiveSeconds));
         DocumentModelList dml = session.query(query);
         assertEquals(0, dml.size());
 
         // create a record
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.makeRecord(doc.getRef());
         // retain one hour
@@ -3964,8 +3968,8 @@ public class TestSQLRepositoryQuery {
 
     @Test
     public void testHasLegalHold() {
-        String queryHolds = "SELECT * FROM MyDocType WHERE ecm:hasLegalHold = 1";
-        String queryNoHold = "SELECT * FROM MyDocType WHERE ecm:hasLegalHold = 0";
+        String queryHolds = "SELECT * FROM CommonDocument WHERE ecm:hasLegalHold = 1";
+        String queryNoHold = "SELECT * FROM CommonDocument WHERE ecm:hasLegalHold = 0";
         DocumentModelList dml;
 
         // no hold present initially
@@ -3975,7 +3979,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create a document
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.makeRecord(doc.getRef());
         session.save();

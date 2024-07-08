@@ -19,16 +19,19 @@
  */
 package org.nuxeo.automation.scripting.test;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_STRING_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEXES_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRINGS_PROP;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -77,8 +80,6 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Deploy("org.nuxeo.ecm.platform.content.template") // needed for the default-domain creation
 @Deploy("org.nuxeo.ecm.platform.dublincore") // needed for TestPropertiesAccessOnDocuments which gets dc:creator
 public class TestScriptRunnerInfrastructure {
-
-    protected static String[] attachments = { "att1", "att2", "att3" };
 
     @Inject
     protected CoreSession session;
@@ -226,30 +227,31 @@ public class TestScriptRunnerInfrastructure {
     }
 
     @Test
-    public void testComplexProperties() throws IOException, OperationException {
-        // Fill the document properties
-        Map<String, Object> creationProps = new HashMap<>();
-        creationProps.put("ds:tableName", "MyTable");
-        creationProps.put("ds:attachments", attachments);
-
-        // send the fields representation as json
-        File fieldAsJsonFile = FileUtils.getResourceFileFromContext("creationFields.json");
-        assertNotNull(fieldAsJsonFile);
-        String fieldsDataAsJSon = org.apache.commons.io.FileUtils.readFileToString(fieldAsJsonFile, UTF_8);
-        fieldsDataAsJSon = fieldsDataAsJSon.replaceAll("\n", "");
-        fieldsDataAsJSon = fieldsDataAsJSon.replaceAll("\r", "");
-        creationProps.put("ds:fields", fieldsDataAsJSon);
-        creationProps.put("dc:title", "testDoc");
-
+    public void testComplexProperties() throws OperationException {
+        String creationProps = """
+                 tcs:long=1720444934
+                 tcs:string=Some string
+                 tcs:strings=["att1", "att2", "att3"]
+                 tcc:complexes=[\
+                  {\
+                    "string": "complexes 0 string",\
+                    "strings": ["att4", "att5", "att6"]\
+                  },\
+                  {\
+                    "string": "complexes 1 string",\
+                    "strings": ["att4", "att5", "att6"]\
+                  }\
+                ]
+                """;
         try (OperationContext ctx = new OperationContext(session)) {
             Map<String, Object> params = new HashMap<>();
-            params.put("properties", toString(creationProps));
-            params.put("type", "DataSet");
+            params.put("properties", creationProps);
+            params.put("type", COMMON_DOC_TYPE);
             params.put("name", "testDoc");
             DocumentModel result = (DocumentModel) automationService.run(ctx, "Scripting.TestComplexProperties",
                     params);
-            assertEquals("whatever",
-                    ((Map<?, ?>) ((List<?>) result.getPropertyValue("ds:fields")).get(0)).get("sqlTypeHint"));
+            assertEquals("complexes 0 string",
+                    ((Map<?, ?>) ((List<?>) result.getPropertyValue(COMMON_COMPLEXES_PROP)).get(0)).get("string"));
         }
     }
 
@@ -285,21 +287,6 @@ public class TestScriptRunnerInfrastructure {
         // Test platform functions injection
         String message = scripting.run("platformFunctions.js", session, String.class);
         assertEquals("devnull@nuxeo.com", message);
-    }
-
-    public String toString(Map<String, Object> creationProps) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Object> entry : creationProps.entrySet()) {
-            Object v = entry.getValue();
-            if (v != null) {
-                if (v.getClass() == String.class) {
-                    sb.append(entry.getKey()).append("=").append(entry.getValue()).append("\n");
-                }
-            } else {
-                sb.append(entry.getKey()).append("=").append("\n");
-            }
-        }
-        return sb.toString();
     }
 
     @Test
@@ -366,22 +353,18 @@ public class TestScriptRunnerInfrastructure {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void canHandleJavaListMap() throws OperationException {
-        DocumentModel doc = session.createDocumentModel("/", "doc", "List");
-        List<String> attachments = new ArrayList<>();
-        attachments.add("att1");
-        attachments.add("att2");
-        attachments.add("att3");
-        doc.setPropertyValue("list:items", (Serializable) attachments);
-        Map<String, String> values = new HashMap<>();
-        values.put("name", "vlad");
-        values.put("description", "desc");
-        doc.setPropertyValue("list:complexItem", (Serializable) values);
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_STRINGS_PROP, (Serializable) List.of("attr1", "attr2", "attr3"));
+        doc.setPropertyValue(COMMON_ARRAY_STRING_PROP, (Serializable) List.of("attr3", "attr4", "attr5"));
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) Map.of("string", "vlad"));
         try (OperationContext ctx = new OperationContext(session)) {
             ctx.setInput(session.createDocument(doc));
             DocumentModel result = (DocumentModel) automationService.run(ctx, "Scripting.TestList");
-            assertEquals("newValue", ((String[]) result.getPropertyValue("list:items"))[0]);
-            assertEquals("vlad", ((Map<?, ?>) result.getPropertyValue("list:complexItem")).get("name"));
+            assertEquals("newValue", ((List<String>) result.getPropertyValue(COMMON_STRINGS_PROP)).get(0));
+            assertEquals("newValue", ((String[]) result.getPropertyValue(COMMON_ARRAY_STRING_PROP))[2]);
+            assertEquals("vlad", ((Map<?, ?>) result.getPropertyValue(COMMON_COMPLEX_PROP)).get("string"));
         }
     }
 
@@ -673,19 +656,16 @@ public class TestScriptRunnerInfrastructure {
     @SuppressWarnings("unchecked")
     @Test
     public void testUpdateComplexProperties() throws OperationException {
-        DocumentModel doc = session.createDocumentModel("/", "docComplex", "List");
-        Map<String, Serializable> map = new HashMap<>();
-        map.put("name", "name");
-        map.put("description", "description");
-        doc.setPropertyValue("list:complexItem", (Serializable) map);
+        DocumentModel doc = session.createDocumentModel("/", "docComplex", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) Map.of("string", "Nuxeo", "integer", 1_000));
         doc = session.createDocument(doc);
         try (OperationContext ctx = new OperationContext(session)) {
             ctx.setInput(doc);
             DocumentModel res = (DocumentModel) automationService.run(ctx, "Scripting.TestUpdateComplexProperties");
             Map<String, Serializable> complexItem = (Map<String, Serializable>) res.getPropertyValue(
-                    "list:complexItem");
-            assertEquals("foo", complexItem.get("name"));
-            assertEquals("bar", complexItem.get("description"));
+                    COMMON_COMPLEX_PROP);
+            assertEquals("Hyland", complexItem.get("string"));
+            assertEquals(10_000L, complexItem.get("integer"));
         }
     }
 

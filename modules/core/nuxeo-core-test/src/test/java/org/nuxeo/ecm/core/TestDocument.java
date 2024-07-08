@@ -23,6 +23,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.core.api.VersioningOption.MAJOR;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DEFAULT_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_SCALAR_SCHEMA;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRING_PROP;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -625,27 +630,28 @@ public class TestDocument {
     @Test
     public void testDeltaAfterPhantomNull() {
         Document root = session.getRootDocument();
-        Document doc = root.addChild("doc", "MyDocType");
+        Document doc = root.addChild("doc", COMMON_DOC_TYPE);
 
         // change to dc:title
-        Schema schema = doc.getType().getSchema("myschema");
+        Schema schema = doc.getType().getSchema(COMMON_SCALAR_SCHEMA);
         DocumentPart dp = new DocumentPartImpl(schema);
         doc.readDocumentPart(dp);
         // change unrelated prop, it should initialize all phantom properties to non-null as well
-        dp.setValue("my:string", "foo");
-        assertTrue(dp.get("my:testDefaultLong").isPhantom());
+        dp.setValue(COMMON_STRING_PROP, "foo");
+        assertTrue(dp.get(COMMON_DEFAULT_LONG_PROP).isPhantom());
         WriteContext writeContext = doc.getWriteContext();
         doc.writeDocumentPart(dp, writeContext);
         session.save();
+
         // then write a delta, the database-level increment must work on 0 and not null
-        dp.setValue("my:testDefaultLong", DeltaLong.valueOf(Long.valueOf(0), 10));
+        dp.setValue(COMMON_DEFAULT_LONG_PROP, DeltaLong.valueOf(Long.valueOf(0), 10));
         writeContext = doc.getWriteContext();
         doc.writeDocumentPart(dp, writeContext);
 
         reopenSession();
         root = session.getRootDocument();
         doc = root.getChild("doc");
-        assertEquals(Long.valueOf(10), doc.getValue("my:testDefaultLong"));
+        assertEquals(Long.valueOf(10), doc.getValue(COMMON_DEFAULT_LONG_PROP));
     }
 
 }

@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.platform.thumbnail.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
 
 import jakarta.inject.Inject;
 
@@ -54,7 +55,7 @@ public class TestGetDefaultThumbnail {
     public void thumbnail_service_returns_default_thumbnail_outside_servlet_context() {
         // When I create a new File in the repository
         DocumentModel root = session.getRootDocument();
-        DocumentModel newDoc = session.createDocumentModel(root.getPathAsString(), "MyDoc", "MyDocType");
+        DocumentModel newDoc = session.createDocumentModel(root.getPathAsString(), "MyDoc", COMMON_DOC_TYPE);
         session.createDocument(newDoc);
         session.save();
 

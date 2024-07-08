@@ -34,6 +34,13 @@ import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.BEFORE_DOC_UPDATE;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.INCREMENT_BEFORE_UPDATE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYTHING;
 import static org.nuxeo.ecm.core.model.Session.PROP_RETENTION_STRICT_MODE_ENABLED;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEXES_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_SCHEMA;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DATE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_SCALAR_SCHEMA;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRING_PROP;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -267,14 +274,14 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testBasics() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel child = session.createDocumentModel("/", "domain", "MyDocType");
+        DocumentModel child = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         child = session.createDocument(child);
         session.save();
 
-        child.setProperty("dublincore", "title", "The title");
+        child.setProperty(COMMON_SCALAR_SCHEMA, "string", "Some String");
         // use local tz
         Calendar cal = new GregorianCalendar(2008, Calendar.JULY, 14, 12, 34, 56);
-        child.setProperty("dublincore", "modified", cal);
+        child.setProperty(COMMON_SCALAR_SCHEMA, "date", cal);
         session.saveDocument(child);
         session.save();
 
@@ -283,12 +290,12 @@ public class TestSQLRepositoryAPI {
         // root = session.getRootDocument();
         child = session.getChild(root.getRef(), "domain");
 
-        String title = (String) child.getProperty("dublincore", "title");
-        assertEquals("The title", title);
-        String description = (String) child.getProperty("dublincore", "description");
-        assertNull(description);
-        Calendar modified = (Calendar) child.getProperty("dublincore", "modified");
-        assertEquals(cal, modified);
+        String string = (String) child.getProperty(COMMON_SCALAR_SCHEMA, "string");
+        assertEquals("Some String", string);
+        String integer = (String) child.getProperty(COMMON_SCALAR_SCHEMA, "integer");
+        assertNull(integer);
+        Calendar date = (Calendar) child.getProperty(COMMON_SCALAR_SCHEMA, "date");
+        assertEquals(cal, date);
     }
 
     /*
@@ -299,10 +306,10 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
 
         // create the parent doc under the root
-        DocumentModel parent = session.newDocumentModel(new PathRef("/"), "domain", "MyDocType");
-        Calendar parentModifTime = GregorianCalendar.getInstance();
-        parent.setPropertyValue("dc:title", "Title of parent");
-        parent.setPropertyValue("dc:modified", parentModifTime);
+        DocumentModel parent = session.newDocumentModel(new PathRef("/"), "domain", COMMON_DOC_TYPE);
+        Calendar cal = GregorianCalendar.getInstance();
+        parent.setPropertyValue(COMMON_STRING_PROP, "String of parent");
+        parent.setPropertyValue(COMMON_DATE_PROP, cal);
         parent = session.createDocument(parent);
 
         // create the child doc under the parent
@@ -319,9 +326,9 @@ public class TestSQLRepositoryAPI {
         reopenSession();
 
         assertEquals(root.getRef(), parent.getParentRef());
-        assertEquals("Title of parent", parent.getPropertyValue("dc:title"));
-        assertNull(parent.getPropertyValue("dc:description"));
-        assertEquals(parentModifTime, parent.getPropertyValue("dc:modified"));
+        assertEquals("String of parent", parent.getPropertyValue(COMMON_STRING_PROP));
+        assertNull(parent.getPropertyValue(COMMON_INTEGER_PROP));
+        assertEquals(cal, parent.getPropertyValue(COMMON_DATE_PROP));
 
         assertEquals(parent.getRef(), child.getParentRef());
         assertEquals("Title of child", child.getPropertyValue("dc:title"));
@@ -338,23 +345,21 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testLists() {
-        DocumentModel child = session.createDocumentModel("/", "domain", "MyDocType");
+        DocumentModel child = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         child = session.createDocument(child);
         session.save();
 
         // simple list as array
-        child.setProperty("dublincore", "subjects", new String[] { "a", "b" });
-        // simple list as List
-        child.setProperty("testList", "simplelist", List.of("c", "d"));
+        child.setProperty(COMMON_SCALAR_SCHEMA, "arrayString", new String[] { "a", "b" });
         // simple list as non-serializable array
-        child.setProperty("testList", "strings", new Object[] { "e", "f" });
+        child.setProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString", new Object[] { "e", "f" });
         // complex list as List
-        child.setProperty("testList", "participants", List.of("c", "d"));
+        child.setProperty(COMMON_COMPLEX_SCHEMA, "complex/strings", List.of("c", "d"));
         session.saveDocument(child);
         session.save();
 
         child = session.getDocument(child.getRef());
-        Object s = child.getProperty("testList", "strings");
+        Object s = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString");
         assertTrue(s.getClass().isArray());
         // Objet[] has been normalized to String[] when re-fetched from mapper cache
         assertEquals(String.class, s.getClass().getComponentType());
@@ -364,25 +369,22 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
         child = session.getChild(root.getRef(), "domain");
 
-        Object subjects = child.getProperty("dublincore", "subjects");
-        assertTrue(subjects instanceof String[]);
-        assertEquals(List.of("a", "b"), List.of((String[]) subjects));
-        Object simples = child.getProperty("testList", "simplelist");
-        assertTrue(simples instanceof String[]);
-        assertEquals(List.of("c", "d"), List.of((String[]) simples));
-        Object strings = child.getProperty("testList", "strings");
+        Object arrayString = child.getProperty(COMMON_SCALAR_SCHEMA, "arrayString");
+        assertTrue(arrayString instanceof String[]);
+        assertEquals(List.of("a", "b"), List.of((String[]) arrayString));
+        Object strings = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString");
         assertTrue(strings.getClass().isArray());
         // Objet[] has been normalized to String[] when re-read from database
         assertEquals(String.class, strings.getClass().getComponentType());
         assertEquals(List.of("e", "f"), List.of((Serializable[]) strings));
-        Object participants = child.getProperty("testList", "participants");
-        assertTrue(participants instanceof List);
-        assertEquals(List.of("c", "d"), participants);
+        Object complexStrings = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/strings");
+        assertTrue(complexStrings instanceof List);
+        assertEquals(List.of("c", "d"), complexStrings);
     }
 
     @Test
     public void testPathWithExtraSlash() {
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         DocumentModelList children = session.getChildren(new PathRef("/"));
@@ -522,17 +524,17 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testMarkDirty() {
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
 
-        doc.setProperty("dublincore", "title", "title1");
-        doc.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("a", "b")));
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "string1");
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "strings", List.of("a", "b"));
         session.saveDocument(doc);
         session.save();
 
-        doc.setProperty("dublincore", "title", "title2");
-        doc.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("c", "d")));
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "string2");
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "strings", List.of("c", "d"));
         session.saveDocument(doc);
         session.save();
 
@@ -540,10 +542,10 @@ public class TestSQLRepositoryAPI {
         reopenSession();
         // root = session.getRootDocument();
         doc = session.getDocument(new PathRef("/doc"));
-        String title = (String) doc.getProperty("dublincore", "title");
-        assertEquals("title2", title);
-        Object participants = doc.getProperty("testList", "participants");
-        assertEquals(Arrays.asList("c", "d"), participants);
+        String string = (String) doc.getProperty(COMMON_SCALAR_SCHEMA, "string");
+        assertEquals("string2", string);
+        Object strings = doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
+        assertEquals(List.of("c", "d"), strings);
     }
 
     @Test
@@ -3259,11 +3261,11 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testPropertyModel() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "theDoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "theDoc", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        Property p = doc.getPropertyObject("myschema", "long");
+        Property p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
 
         assertTrue(p.isPhantom());
         assertNull(p.getValue());
@@ -3271,7 +3273,7 @@ public class TestSQLRepositoryAPI {
         assertEquals(Long.valueOf(12), p.getValue());
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         assertFalse(p.isPhantom());
         assertEquals(Long.valueOf(12), p.getValue());
         p.setValue(null);
@@ -3280,7 +3282,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         // assertTrue(p.isPhantom());
         assertNull(p.getValue());
         p.setValue(Long.valueOf(13));
@@ -3290,7 +3292,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         // assertTrue(p.isPhantom()); not applicable to SQL
         assertNull(p.getValue());
     }
@@ -3339,7 +3341,7 @@ public class TestSQLRepositoryAPI {
         // check in a non-ordered folder
         DocumentModel parent2 = session.createDocumentModel("/", "folder", "Folder");
         session.createDocument(parent2);
-        DocumentModel doc3 = session.createDocumentModel("/folder", "doc3", "MyDocType");
+        DocumentModel doc3 = session.createDocumentModel("/folder", "doc3", COMMON_DOC_TYPE);
         doc3 = session.createDocument(doc3);
         session.save();
         doc3 = session.getDocument(doc3.getRef());
@@ -3383,11 +3385,11 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testComplexList() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        List list = (List) doc.getProperty("testList", "attachments");
+        List list = (List) doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
@@ -3423,11 +3425,11 @@ public class TestSQLRepositoryAPI {
 
         // list test
 
-        doc = session.createDocumentModel(root.getPathAsString(), "mydoc2", "MyDocType");
+        doc = session.createDocumentModel(root.getPathAsString(), "mydoc2", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        List<?> list = (List<?>) doc.getProperty("testList", "attachments");
+        List<?> list = (List<?>) doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
@@ -3437,7 +3439,7 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
         DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", "Book");
         doc = session.createDocument(doc);
-        DocumentModel doc2 = session.createDocumentModel(root.getPathAsString(), "mydoc2", "MyDocType");
+        DocumentModel doc2 = session.createDocumentModel(root.getPathAsString(), "mydoc2", COMMON_DOC_TYPE);
         doc2 = session.createDocument(doc2);
         List<DocumentRef> childrenRefs = session.getChildrenRefs(root.getRef(), null);
         assertEquals(2, childrenRefs.size());
@@ -4236,14 +4238,14 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testPlacelessDocument() {
-        DocumentModel doc = session.createDocumentModel(null, "mydoc", "MyDocType");
-        doc.setProperty("dublincore", "title", "The title");
+        DocumentModel doc = session.createDocumentModel(null, "mydoc", COMMON_DOC_TYPE);
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "The String");
         doc = session.createDocument(doc);
         assertNull(doc.getParentRef()); // placeless
         session.save();
 
-        DocumentModel doc2 = session.createDocumentModel(null, "other", "MyDocType");
-        doc2.setProperty("dublincore", "title", "Other");
+        DocumentModel doc2 = session.createDocumentModel(null, "other", COMMON_DOC_TYPE);
+        doc2.setProperty(COMMON_SCALAR_SCHEMA, "string", "Other");
         doc2 = session.createDocument(doc2);
         assertNull(doc2.getParentRef()); // placeless
         session.save();
@@ -4253,8 +4255,8 @@ public class TestSQLRepositoryAPI {
         doc = session.getDocument(new IdRef(doc.getId()));
         assertNull(doc.getParentRef());
 
-        assertEquals("The title", doc.getProperty("dublincore", "title"));
-        assertNull(doc.getProperty("dublincore", "description"));
+        assertEquals("The String", doc.getProperty(COMMON_SCALAR_SCHEMA, "string"));
+        assertNull(doc.getProperty(COMMON_SCALAR_SCHEMA, "integer"));
 
         doc2 = session.getDocument(new IdRef(doc2.getId()));
         assertNull(doc2.getParentRef());
@@ -4346,8 +4348,10 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testObsoleteType() {
+        var schemaManagerImpl = (SchemaManagerImpl) schemaManager;
+
         DocumentRef rootRef = session.getRootDocument().getRef();
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         DocumentRef docRef = new IdRef(doc.getId());
         session.save();
@@ -4355,27 +4359,26 @@ public class TestSQLRepositoryAPI {
         assertNotNull(session.getDocument(docRef));
         assertNotNull(session.getChild(rootRef, "doc"));
 
-        // remove MyDocType from known types
-        DocumentTypeDescriptor dtd = ((SchemaManagerImpl) schemaManager).getDocumentTypeDescriptor("MyDocType");
-        ((SchemaManagerImpl) schemaManager).unregisterDocumentType(dtd);
+        // remove ~CommonDocument from known types
+        DocumentTypeDescriptor dtd = schemaManagerImpl.getDocumentTypeDescriptor(COMMON_DOC_TYPE);
+        schemaManagerImpl.unregisterDocumentType(dtd);
 
-        reopenSession();
-        if (!isDBS()) {
-            // DBS does not do obsolete type check on hasChildren() due to cost
-            assertFalse(session.hasChildren(rootRef));
-        }
-        assertEquals(0, session.getChildren(rootRef).size());
         try {
-            session.getDocument(docRef);
-            fail("shouldn't be able to get doc with obsolete type");
-        } catch (DocumentNotFoundException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: MyDocType"));
-        }
-        try {
-            session.getChild(rootRef, "doc");
-            fail("shouldn't be able to get doc with obsolete type");
-        } catch (DocumentNotFoundException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: MyDocType"));
+            reopenSession();
+            if (!isDBS()) {
+                // DBS does not do obsolete type check on hasChildren() due to cost
+                assertFalse(session.hasChildren(rootRef));
+            }
+            assertEquals(0, session.getChildren(rootRef).size());
+            var e = assertThrows("shouldn't be able to get doc with obsolete type", DocumentNotFoundException.class,
+                    () -> session.getDocument(docRef));
+            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: CommonDocument"));
+
+            e = assertThrows("shouldn't be able to get doc with obsolete type", DocumentNotFoundException.class,
+                    () -> session.getChild(rootRef, "doc"));
+            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: CommonDocument"));
+        } finally {
+            schemaManagerImpl.registerDocumentType(dtd);
         }
     }
 
@@ -5657,9 +5660,9 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testConcurrentArrayUpdateAndRemove() {
-        DocumentModel doc = session.createDocumentModel("/", "document", "MyDocType2");
-        doc.setPropertyValue("cpxl:complexList",
-                (Serializable) List.of(Map.of("foo", "value-foo", "bar", "value-bar")));
+        DocumentModel doc = session.createDocumentModel("/", "document", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("string", "value-string", "strings", List.of("value-bar"))));
         doc = session.createDocument(doc);
         DocumentRef docRef = doc.getRef();
         nextTransaction();
@@ -5673,7 +5676,7 @@ public class TestSQLRepositoryAPI {
                 DocumentModel document = session.getDocument(docRef);
                 // sync the two threads
                 barrier.await(5, TimeUnit.SECONDS);
-                document.setPropertyValue("cpxl:complexList", (Serializable) List.of());
+                document.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of());
                 // the removal should occur before the update
                 session.saveDocument(document);
                 session.save();
@@ -5684,7 +5687,7 @@ public class TestSQLRepositoryAPI {
                 DocumentModel document = session.getDocument(docRef);
                 // sync the two threads
                 barrier.await(5, TimeUnit.SECONDS);
-                document.setPropertyValue("cpxl:complexList/0/foo", "updated");
+                document.setPropertyValue("tcc:complexes/0/string", "updated");
                 // the update should occur after the removal
                 barrier.await(5, TimeUnit.SECONDS);
                 session.saveDocument(document);
@@ -5711,7 +5714,7 @@ public class TestSQLRepositoryAPI {
             // the update to the complex element will just fail to do anything
             // as the element is now gone
             doc.refresh();
-            assertEquals(List.of(), doc.getPropertyValue("cpxl:complexList"));
+            assertEquals(List.of(), doc.getPropertyValue(COMMON_COMPLEXES_PROP));
         }
     }
 

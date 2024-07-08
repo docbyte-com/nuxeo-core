@@ -211,6 +211,7 @@ public class DublinCoreListenerTest {
     @Test
     public void shouldInvokeStorageServiceButNotSetCreationDateWhenEventIsBeforeUpdateAndDocumentIsDirty() {
         DocumentModel doc = Mockito.mock(DocumentModel.class);
+        when(doc.hasSchema(eq("dublincore"))).thenReturn(true);
         when(doc.isDirty()).thenReturn(true);
 
         Map<String, Serializable> properties = new HashMap<>();
@@ -258,6 +259,7 @@ public class DublinCoreListenerTest {
     @Test
     public void shouldInvokeStorageServiceButNotSetCreationDateWhenEventIsTransitionAndDocumentIsNotImmutable() {
         DocumentModel doc = Mockito.mock(DocumentModel.class);
+        when(doc.hasSchema(eq("dublincore"))).thenReturn(true);
         when(doc.isImmutable()).thenReturn(false);
 
         DocumentEventContext ctx = new DocumentEventContext(session, session.getPrincipal(), doc);

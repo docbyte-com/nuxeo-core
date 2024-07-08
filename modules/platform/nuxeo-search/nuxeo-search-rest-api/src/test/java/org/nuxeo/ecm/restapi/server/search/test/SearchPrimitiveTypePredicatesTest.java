@@ -21,6 +21,12 @@ package org.nuxeo.ecm.restapi.server.search.test;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOUBLE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_FLOAT_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_LONG_PROP;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
 import java.util.List;
@@ -80,20 +86,20 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Before
     public void before() {
-        doc0 = session.createDocumentModel("/", "doc0", "PrimitiveTypes");
-        doc0.setPropertyValue("pt:integerField", 0);
-        doc0.setPropertyValue("pt:longField", 0L);
-        doc0.setPropertyValue("pt:floatField", 0F);
-        doc0.setPropertyValue("pt:doubleField", 0D);
-        doc0.setPropertyValue("pt:booleanField", false);
+        doc0 = session.createDocumentModel("/", "doc0", COMMON_DOC_TYPE);
+        doc0.setPropertyValue(COMMON_BOOLEAN_PROP, false);
+        doc0.setPropertyValue(COMMON_INTEGER_PROP, 0);
+        doc0.setPropertyValue(COMMON_LONG_PROP, 0L);
+        doc0.setPropertyValue(COMMON_FLOAT_PROP, 0F);
+        doc0.setPropertyValue(COMMON_DOUBLE_PROP, 0D);
         doc0 = session.createDocument(doc0);
 
-        doc1 = session.createDocumentModel("/", "doc1", "PrimitiveTypes");
-        doc1.setPropertyValue("pt:integerField", 1);
-        doc1.setPropertyValue("pt:longField", 1L);
-        doc1.setPropertyValue("pt:floatField", 1F);
-        doc1.setPropertyValue("pt:doubleField", 1D);
-        doc1.setPropertyValue("pt:booleanField", true);
+        doc1 = session.createDocumentModel("/", "doc1", COMMON_DOC_TYPE);
+        doc1.setPropertyValue(COMMON_BOOLEAN_PROP, true);
+        doc1.setPropertyValue(COMMON_INTEGER_PROP, 1);
+        doc1.setPropertyValue(COMMON_LONG_PROP, 1L);
+        doc1.setPropertyValue(COMMON_FLOAT_PROP, 1F);
+        doc1.setPropertyValue(COMMON_DOUBLE_PROP, 1D);
         doc1 = session.createDocument(doc1);
 
         txFeature.nextTransaction();
@@ -102,7 +108,7 @@ public class SearchPrimitiveTypePredicatesTest {
     @Test
     public void testBooleanType() {
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "false") // NOSONAR
+                  .addQueryParameter("boolean", "false") // NOSONAR
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
@@ -111,7 +117,7 @@ public class SearchPrimitiveTypePredicatesTest {
                   });
 
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "true")
+                  .addQueryParameter("boolean", "true")
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
@@ -121,7 +127,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
         // bad query parameter, match document with boolean type field value = false
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "foo")
+                  .addQueryParameter("boolean", "foo")
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
@@ -134,7 +140,7 @@ public class SearchPrimitiveTypePredicatesTest {
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void testBooleanTypeStrictValidation() {
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "false")
+                  .addQueryParameter("boolean", "false")
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
@@ -143,7 +149,7 @@ public class SearchPrimitiveTypePredicatesTest {
                   });
 
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "true")
+                  .addQueryParameter("boolean", "true")
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
@@ -152,7 +158,7 @@ public class SearchPrimitiveTypePredicatesTest {
                   });
 
         httpClient.buildGetRequest(PP_EXECUTE_PATH)
-                  .addQueryParameter("booleanField", "foo")
+                  .addQueryParameter("boolean", "foo")
                   .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
                       assertEquals("exception", node.get("entity-type").asText());
                       assertEquals("400", node.get("status").asText());
@@ -168,24 +174,24 @@ public class SearchPrimitiveTypePredicatesTest {
      */
     @Test
     public void testIntegerType() {
-        testPrimitiveType("integerField", false);
+        testPrimitiveType("integer", false);
     }
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void testIntegerTypeStrictValidation() {
-        testPrimitiveTypeStrictValidation("integerField");
+        testPrimitiveTypeStrictValidation("integer");
     }
 
     @Test
     public void testLongType() {
-        testPrimitiveType("longField", false);
+        testPrimitiveType("long", false);
     }
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void testLongTypeStrictValidation() {
-        testPrimitiveTypeStrictValidation("longField");
+        testPrimitiveTypeStrictValidation("long");
     }
 
     /**
@@ -194,24 +200,24 @@ public class SearchPrimitiveTypePredicatesTest {
      */
     @Test
     public void testFloatType() {
-        testPrimitiveType("floatField", true);
+        testPrimitiveType("float", true);
     }
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void testFloatTypeStrictValidation() {
-        testPrimitiveTypeStrictValidation("floatField");
+        testPrimitiveTypeStrictValidation("float");
     }
 
     @Test
     public void testDoubleType() {
-        testPrimitiveType("doubleField", true);
+        testPrimitiveType("double", true);
     }
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void testDoubleTypeStrictValidation() {
-        testPrimitiveTypeStrictValidation("doubleField");
+        testPrimitiveTypeStrictValidation("double");
     }
 
     protected void testPrimitiveType(String predicateFieldName, boolean testFloatNotation) {

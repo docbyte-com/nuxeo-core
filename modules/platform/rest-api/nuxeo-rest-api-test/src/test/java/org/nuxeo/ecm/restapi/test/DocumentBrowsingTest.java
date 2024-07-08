@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter.ENTITY_TYPE;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.HEADER_PREFIX;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
 import java.io.Serializable;
@@ -617,20 +618,19 @@ public class DocumentBrowsingTest {
 
     // NXP-30680
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void iCantCreateADocumentWithAWrongPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
         String data = """
                 {
                   "entity-type": "document",
-                  "type": "MyDocType",
+                  "type": "%s",
                   "name": "newName",
                   "properties": {
-                    "my:integer": "Some string"
+                    "tcs:integer": "Some string"
                   }
                 }
-                """;
+                """.formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -639,19 +639,18 @@ public class DocumentBrowsingTest {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void iCanCreateADocumentWithABooleanPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
         String data = """
                 {
                   "entity-type": "document",
-                  "type": "MyDocType",
+                  "type": "%s",
                   "name": "newName",
                   "properties": {
-                      "my:boolean": "Some string"
+                    "tcs:boolean": "Some string"
                   }
-                }""";
+                }""".formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -660,7 +659,6 @@ public class DocumentBrowsingTest {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void iCantCreateADocumentWithAWrongBooleanPropertyTypeStrictValidation() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
@@ -668,12 +666,12 @@ public class DocumentBrowsingTest {
         String data = """
                 {
                   "entity-type": "document",
-                  "type": "MyDocType",
+                  "type": "%s",
                   "name": "newName",
                   "properties": {
-                      "my:boolean": "Some string"
+                    "tcs:boolean": "Some string"
                   }
-                }""";
+                }""".formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)

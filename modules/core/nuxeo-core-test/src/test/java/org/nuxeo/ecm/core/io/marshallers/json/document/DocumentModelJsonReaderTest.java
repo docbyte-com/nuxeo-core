@@ -25,7 +25,19 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_DOUBLE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_STRING_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_STRING_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DATE_PROP;
 import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOUBLE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRING_PROP;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -118,8 +130,7 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
                 {
                   "entity-type": "document",
                   "type": "DocDefaultValue",
-                  "name": "aDoc
-                  }
+                  "name": "aDoc"
                 }
                 """;
 
@@ -226,120 +237,124 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
     // NXP-30806
     // NXP-31199
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void testPropertyValuePossibilities() throws IOException {
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": \"Some string\"}", "my:string", "Some string");
-        testPropertyWithAcceptedRepresentationWorks(String.format("{\"my:string\": %s}", Long.MAX_VALUE), "my:string",
-                String.valueOf(Long.MAX_VALUE));
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": 1234}", "my:string", "1234");
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": 12.34}", "my:string", "12.34");
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": true}", "my:string", "true");
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": null}", "my:string", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:string\": \"\"}", "my:string", "");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:string\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:string\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": \"Some string\"}", COMMON_STRING_PROP,
+                "Some string");
+        testPropertyWithAcceptedRepresentationWorks(String.format("{\"tcs:string\": %s}", Long.MAX_VALUE),
+                COMMON_STRING_PROP, String.valueOf(Long.MAX_VALUE));
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": 1234}", COMMON_STRING_PROP, "1234");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": 12.34}", COMMON_STRING_PROP, "12.34");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": true}", COMMON_STRING_PROP, "true");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": null}", COMMON_STRING_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:string\": \"\"}", COMMON_STRING_PROP, "");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:string\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:string\": [0]}");
 
         // numbers are always handled as Long in Nuxeo
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integer\": 1234}", "my:integer", 1234L);
-        testPropertyWithAcceptedRepresentationWorks(String.format("{\"my:integer\": %s}", Long.MAX_VALUE), "my:integer",
-                Long.MAX_VALUE);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integer\": \"1234\"}", "my:integer", 1234L);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integer\": null}", "my:integer", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integer\": \"\"}", "my:integer", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": \"12.34\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:integer\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:integer\": 1234}", COMMON_INTEGER_PROP, 1234L);
+        testPropertyWithAcceptedRepresentationWorks(String.format("{\"tcs:integer\": %s}", Long.MAX_VALUE),
+                COMMON_INTEGER_PROP, Long.MAX_VALUE);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:integer\": \"1234\"}", COMMON_INTEGER_PROP, 1234L);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:integer\": null}", COMMON_INTEGER_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:integer\": \"\"}", COMMON_INTEGER_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": \"12.34\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:integer\": [0]}");
 
-        testPropertyWithAcceptedRepresentationWorks(String.format("{\"my:long\": %s}", Long.MAX_VALUE), "my:long",
-                Long.MAX_VALUE);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:long\": 1234}", "my:long", 1234L);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:long\": \"1234\"}", "my:long", 1234L);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:long\": null}", "my:long", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:long\": \"\"}", "my:long", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": \"12.34\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:long\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks(String.format("{\"tcs:long\": %s}", Long.MAX_VALUE),
+                COMMON_LONG_PROP, Long.MAX_VALUE);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:long\": 1234}", COMMON_LONG_PROP, 1234L);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:long\": \"1234\"}", COMMON_LONG_PROP, 1234L);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:long\": null}", COMMON_LONG_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:long\": \"\"}", COMMON_LONG_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": \"12.34\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:long\": [0]}");
 
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": true}", "my:boolean", true);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": \"true\"}", "my:boolean", true);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": \"Some string\"}", "my:boolean", false);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": 1234}", "my:boolean", true);
-        testPropertyWithAcceptedRepresentationWorks(String.format("{\"my:boolean\": %s}", Long.MAX_VALUE), "my:boolean",
-                true);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": 1}", "my:boolean", true);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": 0}", "my:boolean", false);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": null}", "my:boolean", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:boolean\": \"\"}", "my:boolean", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:boolean\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:boolean\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:boolean\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": true}", COMMON_BOOLEAN_PROP, true);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": \"true\"}", COMMON_BOOLEAN_PROP, true);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": \"Some string\"}", COMMON_BOOLEAN_PROP, false);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": 1234}", COMMON_BOOLEAN_PROP, true);
+        testPropertyWithAcceptedRepresentationWorks(String.format("{\"tcs:boolean\": %s}", Long.MAX_VALUE),
+                COMMON_BOOLEAN_PROP, true);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": 1}", COMMON_BOOLEAN_PROP, true);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": 0}", COMMON_BOOLEAN_PROP, false);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": null}", COMMON_BOOLEAN_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:boolean\": \"\"}", COMMON_BOOLEAN_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:boolean\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:boolean\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:boolean\": [0]}");
 
-        testPropertyWithAcceptedRepresentationWorks("{\"my:double\": 1234}", "my:double", 1234.0);
-        testPropertyWithAcceptedRepresentationWorks(String.format("{\"my:double\": %s}", Long.MAX_VALUE), "my:double",
-                Long.valueOf(Long.MAX_VALUE).doubleValue());
-        testPropertyWithAcceptedRepresentationWorks("{\"my:double\": 12.34}", "my:double", 12.34);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:double\": \"12.34\"}", "my:double", 12.34);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:double\": null}", "my:double", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:double\": \"\"}", "my:double", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:double\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:double\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:double\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:double\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:double\": 1234}", COMMON_DOUBLE_PROP, 1234.0);
+        testPropertyWithAcceptedRepresentationWorks(String.format("{\"tcs:double\": %s}", Long.MAX_VALUE),
+                COMMON_DOUBLE_PROP, Long.valueOf(Long.MAX_VALUE).doubleValue());
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:double\": 12.34}", COMMON_DOUBLE_PROP, 12.34);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:double\": \"12.34\"}", COMMON_DOUBLE_PROP, 12.34);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:double\": null}", COMMON_DOUBLE_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:double\": \"\"}", COMMON_DOUBLE_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:double\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:double\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:double\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:double\": [0]}");
 
         var date = DateParser.parseW3CDateTime("2022-01-18T17:20:21.123");
         var cal = Calendar.getInstance();
         cal.setTime(date);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:date\": \"2022-01-18T17:20:21.123\"}", "my:date", cal);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:date\": null}", "my:date", null);
-        testPropertyWithAcceptedRepresentationWorks("{\"my:date\": \"\"}", "my:date", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": 1234}");
-        testPropertyWithWrongRepresentationThrowsException(String.format("{\"my:date\": %s}", Long.MAX_VALUE));
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": {\"key\": true}}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:date\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:date\": \"2022-01-18T17:20:21.123\"}", COMMON_DATE_PROP,
+                cal);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:date\": null}", COMMON_DATE_PROP, null);
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:date\": \"\"}", COMMON_DATE_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": 1234}");
+        testPropertyWithWrongRepresentationThrowsException(String.format("{\"tcs:date\": %s}", Long.MAX_VALUE));
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": {\"key\": true}}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:date\": [0]}");
 
-        testPropertyWithAcceptedRepresentationWorks("{\"my:strings\": [\"Some string\"]}", "my:strings",
-                new String[] { "Some string" });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:strings\": null}", "my:strings", null);
-        testPropertyWithWrongRepresentationThrowsException("{\"my:strings\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:strings\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:strings\": 1234}");
-        testPropertyWithWrongRepresentationThrowsException(String.format("{\"my:strings\": %s}", Long.MAX_VALUE));
-        testPropertyWithWrongRepresentationThrowsException("{\"my:strings\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:strings\": {\"key\": true}}");
-        testPropertyWithAcceptedRepresentationWorks("{\"my:longs\": []}", "my:longs", new Long[] {});
-        testPropertyWithAcceptedRepresentationWorks("{\"my:longs\": [1, 2, 3]}", "my:longs", new Long[] { 1L, 2L, 3L });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:longs\": [2147483648, 9223372036854775807]}", "my:longs",
-                new Long[] { 2147483648L, 9223372036854775807L });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integers\": []}", "my:integers", new Long[] {});
-        testPropertyWithAcceptedRepresentationWorks("{\"my:integers\": [4, 5, 6]}", "my:integers",
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayString\": [\"Some string\"]}",
+                COMMON_ARRAY_STRING_PROP, new String[] { "Some string" });
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayString\": null}", COMMON_ARRAY_STRING_PROP, null);
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:arrayString\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:arrayString\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:arrayString\": 1234}");
+        testPropertyWithWrongRepresentationThrowsException(String.format("{\"tcs:arrayString\": %s}", Long.MAX_VALUE));
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:arrayString\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcs:arrayString\": {\"key\": true}}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayLong\": []}", COMMON_ARRAY_LONG_PROP, new Long[] {});
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayLong\": [1, 2, 3]}", COMMON_ARRAY_LONG_PROP,
+                new Long[] { 1L, 2L, 3L });
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayLong\": [2147483648, 9223372036854775807]}",
+                COMMON_ARRAY_LONG_PROP, new Long[] { 2147483648L, 9223372036854775807L });
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayInteger\": []}", COMMON_ARRAY_INTEGER_PROP,
+                new Long[] {});
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayInteger\": [4, 5, 6]}", COMMON_ARRAY_INTEGER_PROP,
                 new Long[] { 4L, 5L, 6L });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:doubles\": []}", "my:doubles", new Double[] {});
-        testPropertyWithAcceptedRepresentationWorks("{\"my:doubles\": [7, 8, 9]}", "my:doubles",
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayDouble\": []}", COMMON_ARRAY_DOUBLE_PROP,
+                new Double[] {});
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayDouble\": [7, 8, 9]}", COMMON_ARRAY_DOUBLE_PROP,
                 new Double[] { 7D, 8D, 9D });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:doubles\": [7.8, 8.8, 9.8]}", "my:doubles",
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayDouble\": [7.8, 8.8, 9.8]}", COMMON_ARRAY_DOUBLE_PROP,
                 new Double[] { 7.8D, 8.8D, 9.8D });
-        testPropertyWithAcceptedRepresentationWorks("{\"my:doubles\": [9223372036854775807]}", "my:doubles",
-                new Double[] { 9223372036854775807D });
+        testPropertyWithAcceptedRepresentationWorks("{\"tcs:arrayDouble\": [9223372036854775807]}",
+                COMMON_ARRAY_DOUBLE_PROP, new Double[] { 9223372036854775807D });
 
         // complex
-        testPropertyWithAcceptedRepresentationWorks("{\"my:name\": {\"FirstName\":\"foo\", \"LastName\":\"bar\"}}",
-                "my:name", Map.of("FirstName", "foo", "LastName", "bar"));
-        testPropertyWithAcceptedRepresentationWorks("{\"my:name\": null}", "my:name", Map.of());
-        testPropertyWithWrongRepresentationThrowsException("{\"my:name\": \"Some string\"}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:name\": true}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:name\": 1234}");
-        testPropertyWithWrongRepresentationThrowsException(String.format("{\"my:name\": %s}", Long.MAX_VALUE));
-        testPropertyWithWrongRepresentationThrowsException("{\"my:name\": 12.34}");
-        testPropertyWithWrongRepresentationThrowsException("{\"my:name\": [0]}");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcc:complex\": {\"string\":\"foo\"}}",
+                COMMON_COMPLEX_STRING_PROP, "foo");
+        testPropertyWithAcceptedRepresentationWorks("{\"tcc:complex\": null}", COMMON_COMPLEX_PROP, Map.of());
+        testPropertyWithWrongRepresentationThrowsException("{\"tcc:complex\": \"Some string\"}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcc:complex\": true}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcc:complex\": 1234}");
+        testPropertyWithWrongRepresentationThrowsException(String.format("{\"tcc:complex\": %s}", Long.MAX_VALUE));
+        testPropertyWithWrongRepresentationThrowsException("{\"tcc:complex\": 12.34}");
+        testPropertyWithWrongRepresentationThrowsException("{\"tcc:complex\": [0]}");
     }
 
     protected void testPropertyWithWrongRepresentationThrowsException(String properties) throws IOException {
@@ -348,9 +363,7 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
                   "entity-type": "document",
                   "type": "%s",
                   "name": "myDoc",
-                  "properties": {
-                    %s
-                  }
+                  "properties": %s
                 }
                 """.formatted(COMMON_DOC_TYPE, properties);
         try (JsonParser jp = JsonFactoryProvider.get().createParser(json)) {
@@ -372,9 +385,7 @@ public class DocumentModelJsonReaderTest extends AbstractJsonWriterTest.Local<Do
                   "entity-type": "document",
                   "type": "%s",
                   "name": "myDoc",
-                  "properties": {
-                    %s
-                  }
+                  "properties": %s
                 }
                 """.formatted(COMMON_DOC_TYPE, properties);
         try (JsonParser jp = JsonFactoryProvider.get().createParser(json)) {

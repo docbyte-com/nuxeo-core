@@ -56,6 +56,7 @@ import org.nuxeo.ecm.core.model.stream.StreamDocumentGC;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
+import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
@@ -91,7 +92,6 @@ import com.google.inject.Binder;
 @Deploy("org.nuxeo.runtime.reload")
 @Deploy("org.nuxeo.runtime.pubsub")
 @Deploy("org.nuxeo.runtime.mongodb")
-@Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.core.query")
 @Deploy("org.nuxeo.ecm.core.api")
 @Deploy("org.nuxeo.ecm.core")
@@ -119,6 +119,7 @@ import com.google.inject.Binder;
         CoreBulkFeature.class, //
         CoreEventFeature.class, //
         CoreIOFeature.class, //
+        CoreSchemaFeature.class, //
         DummyLoginFeature.class, //
         MigrationFeature.class, //
         WorkManagerFeature.class })

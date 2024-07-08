@@ -302,7 +302,8 @@
         function run(input, params) {
           return Document.Update(input, {
             "properties" : {
-                "list:items" : ["newValue", "att2", "att3"]
+                "tcs:strings" : ["newValue", "att2", "att3"],
+                "tcs:arrayString" : ["att4", "att5", "newValue"]
             }
           });
         }
@@ -585,9 +586,9 @@
       <script><![CDATA[
         function run(input, params) {
           var properties = {
-            "list:complexItem": {
-              "name": "foo",
-              "description": "bar"
+            "tcc:complex": {
+              "string": "Hyland",
+              "integer": 10000
             }
           };
 
