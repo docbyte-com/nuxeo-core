@@ -27,7 +27,6 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -248,7 +247,7 @@ public class TaskServiceTest {
         assertEquals(2, tasks.size());
         // order is database-dependent
         if (tasks.get(0).getActors().get(0).equals("members")) {
-            Collections.reverse(tasks);
+            tasks = tasks.reversed();
         }
 
         Task task1 = tasks.get(0);

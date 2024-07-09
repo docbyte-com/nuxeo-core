@@ -918,18 +918,16 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
     public long addAndGet(String key, long delta) throws NumberFormatException { // NOSONAR
         try (Connection connection = getConnection()) {
             for (int retry = 0; retry < MAX_RETRY; retry++) {
-                String updateReturningSql;
                 boolean useReturnResultSet = false;
-                if (dialect instanceof DialectPostgreSQL) {
-                    updateReturningSql = updateReturningPostgreSQLSql;
-                } else if (dialect instanceof DialectOracle) {
-                    updateReturningSql = updateReturningOracleSql;
-                    useReturnResultSet = true;
-                } else if (dialect instanceof DialectSQLServer) {
-                    updateReturningSql = updateReturningSQLServerSql;
-                } else {
-                    updateReturningSql = null;
-                }
+                String updateReturningSql = switch (dialect) {
+                    case DialectPostgreSQL ignored -> updateReturningPostgreSQLSql;
+                    case DialectOracle ignored -> {
+                        useReturnResultSet = true;
+                        yield updateReturningOracleSql;
+                    }
+                    case DialectSQLServer ignored -> updateReturningSQLServerSql;
+                    case null, default -> null;
+                };
                 if (updateReturningSql != null) {
                     List<Column> psColumns = List.of(longCol, keyCol);
                     List<Serializable> psValues = List.of(Long.valueOf(delta), key);

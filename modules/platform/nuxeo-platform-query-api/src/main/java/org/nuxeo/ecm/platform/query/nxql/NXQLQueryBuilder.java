@@ -169,7 +169,6 @@ public class NXQLQueryBuilder {
                         whereClause.getEscapeFixedPartParameters(), model) + ')');
             }
         } else if (StringUtils.isNotBlank(quickFiltersClause)) {
-            fixedPart = quickFiltersClause;
         }
 
         if (elements.isEmpty()) {
@@ -221,27 +220,15 @@ public class NXQLQueryBuilder {
                     continue;
                 }
                 key = ":" + key;
-                if (parameter instanceof String[] strings) {
-                    pattern = replaceStringList(pattern, List.of(strings), quoteParameters, escape, key);
-                } else if (parameter instanceof List<?> list) {
-                    pattern = replaceStringList(pattern, list, quoteParameters, escape, key);
-                } else if (parameter instanceof Boolean bool) {
-                    pattern = buildPattern(pattern, key, bool ? "1" : "0");
-                } else if (parameter instanceof Number) {
-                    pattern = buildPattern(pattern, key, parameter.toString());
-                } else if (parameter instanceof Literal) {
-                    if (quoteParameters) {
-                        pattern = buildPattern(pattern, key, "'" + parameter + "'");
-                    } else {
-                        pattern = buildPattern(pattern, key, ((Literal) parameter).asString());
-                    }
-                } else {
-                    if (quoteParameters) {
-                        pattern = buildPattern(pattern, key, "'" + parameter + "'");
-                    } else {
-                        pattern = buildPattern(pattern, key, parameter.toString());
-                    }
-                }
+                pattern = switch (parameter) {
+                    case String[] strings -> replaceStringList(pattern, List.of(strings), quoteParameters, escape, key);
+                    case List<?> list -> replaceStringList(pattern, list, quoteParameters, escape, key);
+                    case Boolean bool -> buildPattern(pattern, key, bool ? "1" : "0");
+                    case Number number -> buildPattern(pattern, key, number.toString());
+                    case Literal literal when !quoteParameters -> buildPattern(pattern, key, literal.asString());
+                    case Object obj when quoteParameters -> buildPattern(pattern, key, "'" + obj + "'");
+                    default -> buildPattern(pattern, key, parameter.toString());
+                };
             }
         }
 
@@ -254,28 +241,22 @@ public class NXQLQueryBuilder {
             String[] queryStrList = (pattern + ' ').split("\\?");
             queryBuilder = new StringBuilder(queryStrList[0]);
             for (int i = 0; i < params.length; i++) {
-                if (params[i] instanceof String[] string) {
-                    appendStringList(queryBuilder, List.of(string), quoteParameters, escape);
-                } else if (params[i] instanceof List<?> list) {
-                    appendStringList(queryBuilder, list, quoteParameters, escape);
-                } else if (params[i] instanceof Boolean bool) {
-                    queryBuilder.append(bool ? 1 : 0);
-                } else if (params[i] instanceof Number number) {
-                    queryBuilder.append(number);
-                } else if (params[i] instanceof Literal literal) {
-                    if (quoteParameters) {
-                        queryBuilder.append(literal);
-                    } else {
-                        queryBuilder.append(literal.asString());
-                    }
-                } else {
-                    if (params[i] == null) {
-                        if (quoteParameters) {
-                            queryBuilder.append("''");
+                switch (params[i]) {
+                    case String[] string -> appendStringList(queryBuilder, List.of(string), quoteParameters, escape);
+                    case List<?> list -> appendStringList(queryBuilder, list, quoteParameters, escape);
+                    case Boolean bool -> queryBuilder.append(bool ? 1 : 0);
+                    case Number number -> queryBuilder.append(number);
+                    case Literal literal when quoteParameters -> queryBuilder.append(literal);
+                    case Literal literal -> queryBuilder.append(literal.asString());
+                    case null, default -> {
+                        if (params[i] == null) {
+                            if (quoteParameters) {
+                                queryBuilder.append("''");
+                            }
+                        } else {
+                            String queryParam = params[i].toString();
+                            queryBuilder.append(prepareStringLiteral(queryParam, quoteParameters, escape));
                         }
-                    } else {
-                        String queryParam = params[i].toString();
-                        queryBuilder.append(prepareStringLiteral(queryParam, quoteParameters, escape));
                     }
                 }
                 queryBuilder.append(queryStrList[i + 1]);
@@ -419,9 +400,9 @@ public class NXQLQueryBuilder {
                 return "";
             } else if (options.size() == 1) {
                 if (operator.equals("NOT IN")) {
-                    return serializeUnary(parameter, "!=", options.get(0));
+                    return serializeUnary(parameter, "!=", options.getFirst());
                 } else {
-                    return serializeUnary(parameter, "=", options.get(0));
+                    return serializeUnary(parameter, "=", options.getFirst());
                 }
             } else {
                 StringBuilder builder = new StringBuilder();
@@ -454,7 +435,7 @@ public class NXQLQueryBuilder {
                 if (options == null || options.isEmpty()) {
                     return "";
                 } else if (options.size() == 1) {
-                    return serializeUnary(parameter, operator, options.get(0));
+                    return serializeUnary(parameter, operator, options.getFirst());
                 } else {
                     StringBuilder builder = new StringBuilder();
                     builder.append('(');
@@ -462,7 +443,7 @@ public class NXQLQueryBuilder {
                         builder.append(serializeUnary(parameter, operator, options.get(i)));
                         builder.append(" OR ");
                     }
-                    builder.append(serializeUnary(parameter, operator, options.get(options.size() - 1)));
+                    builder.append(serializeUnary(parameter, operator, options.getLast()));
                     builder.append(')');
                     return builder.toString();
                 }
@@ -655,28 +636,26 @@ public class NXQLQueryBuilder {
         if (rawValue == null) {
             return null;
         }
-        String value;
-        if (rawValue instanceof GregorianCalendar gc) {
-            value = "TIMESTAMP '" + getDateFormat().format(gc.getTime()) + "'";
-        } else if (rawValue instanceof Date date) {
-            value = "TIMESTAMP '" + getDateFormat().format(date) + "'";
-        } else if (rawValue instanceof Integer || rawValue instanceof Long || rawValue instanceof Double) {
-            value = rawValue.toString(); // no quotes
-        } else if (rawValue instanceof Boolean bool) {
-            value = bool.booleanValue() ? "1" : "0";
-        } else {
-            value = rawValue.toString().trim();
-            if (value.isEmpty()) {
-                return null;
+        return switch (rawValue) {
+            case GregorianCalendar cal -> "TIMESTAMP '" + getDateFormat().format(cal.getTime()) + "'";
+            case Date date -> "TIMESTAMP '" + getDateFormat().format(date) + "'";
+            case Integer ignored -> rawValue.toString();
+            case Long ignored -> rawValue.toString();
+            case Double ignored -> rawValue.toString();
+            case Boolean bool -> bool.booleanValue() ? "1" : "0";
+            default -> {
+                String value = rawValue.toString().trim();
+                if (value.isEmpty()) {
+                    yield null;
+                }
+                String fieldType = getFieldType(model, fieldDescriptor);
+                if ("long".equals(fieldType) || "integer".equals(fieldType) || "double".equals(fieldType)) {
+                    yield value;
+                } else {
+                    yield NXQL.escapeString(value);
+                }
             }
-            String fieldType = getFieldType(model, fieldDescriptor);
-            if ("long".equals(fieldType) || "integer".equals(fieldType) || "double".equals(fieldType)) {
-                return value;
-            } else {
-                return NXQL.escapeString(value);
-            }
-        }
-        return value;
+        };
     }
 
     protected static DateFormat getDateFormat() {

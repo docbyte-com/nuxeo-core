@@ -78,17 +78,13 @@ public class LDAPFilterMatcher {
     }
 
     private boolean recursiveMatch(Attributes attributes, ExprNode filterElement) {
-        if (filterElement instanceof PresenceNode) {
-            return presenceMatch(attributes, (PresenceNode) filterElement);
-        } else if (filterElement instanceof SimpleNode) {
-            return simpleMatch(attributes, (SimpleNode) filterElement);
-        } else if (filterElement instanceof SubstringNode) {
-            return substringMatch(attributes, (SubstringNode) filterElement);
-        } else if (filterElement instanceof BranchNode) {
-            return branchMatch(attributes, (BranchNode) filterElement);
-        } else {
-            throw new DirectoryException("unsupported filter element type: " + filterElement);
-        }
+        return switch (filterElement) {
+            case PresenceNode presenceNode -> presenceMatch(attributes, presenceNode);
+            case SimpleNode simpleNode -> simpleMatch(attributes, simpleNode);
+            case SubstringNode substringNode -> substringMatch(attributes, substringNode);
+            case BranchNode branchNode -> branchMatch(attributes, branchNode);
+            case null, default -> throw new DirectoryException("unsupported filter element type: " + filterElement);
+        };
     }
 
     /**

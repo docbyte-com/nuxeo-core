@@ -44,7 +44,6 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
-import com.unboundid.scim2.common.types.AttributeDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,6 +86,7 @@ import com.unboundid.scim2.common.filters.Filter;
 import com.unboundid.scim2.common.filters.NotFilter;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.messages.PatchRequest;
+import com.unboundid.scim2.common.types.AttributeDefinition;
 import com.unboundid.scim2.common.types.GroupResource;
 import com.unboundid.scim2.common.types.UserResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
@@ -124,22 +124,21 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
 
     protected static Object getValue(Filter filter) {
         ValueNode vn = filter.getComparisonValue();
-        if (vn == null) {
-            return null;
-        } else if (vn instanceof TextNode tn) {
-            var v = tn.asText();
-            try {
-                // may be a string representing an ISO date time
-                return DateUtils.parseISODateTime(v);
-            } catch (DateTimeException e) {
-                return v;
+        return switch (vn) {
+            case TextNode tn -> {
+                var v = tn.asText();
+                try {
+                    // may be a string representing an ISO date time
+                    yield DateUtils.parseISODateTime(v);
+                } catch (DateTimeException e) {
+                    yield v;
+                }
             }
-        } else if (vn instanceof NumericNode nn) {
-            return nn.numberValue();
-        } else if (vn instanceof BooleanNode bn) {
-            return bn.asBoolean();
-        }
-        return vn.toString();
+            case NumericNode nn -> nn.numberValue();
+            case BooleanNode bn -> bn.asBoolean();
+            case null -> null;
+            default -> vn.toString();
+        };
     }
 
     protected Deque<ScimV2MappingDescriptor> descriptors = new LinkedList<>();

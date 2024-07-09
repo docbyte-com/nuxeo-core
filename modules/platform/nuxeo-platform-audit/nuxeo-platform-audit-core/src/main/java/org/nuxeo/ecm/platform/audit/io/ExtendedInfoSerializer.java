@@ -19,8 +19,6 @@
 package org.nuxeo.ecm.platform.audit.io;
 
 import java.io.IOException;
-import java.io.Serializable;
-import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
 
@@ -41,35 +39,35 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  */
 public class ExtendedInfoSerializer extends JsonSerializer<ExtendedInfo> {
 
+    protected static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3)
+                                                                                            .toFormatter();
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
     @Override
     public void serialize(ExtendedInfo info, JsonGenerator jg, SerializerProvider provider) throws IOException {
-
-        ObjectMapper mapper = new ObjectMapper();
-        jg.setCodec(mapper);
-        if (info instanceof ExtendedInfoImpl.DateInfo dateInfo) {
-            DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
-            Instant instant = dateInfo.getDateValue().toInstant();
-            jg.writeObject(formatter.format(instant));
-        } else if (info instanceof ExtendedInfoImpl.BlobInfo) {
-            Serializable value = ((ExtendedInfoImpl.BlobInfo) info).getBlobValue();
-            jg.writeObject(Base64.encodeBase64(SerializationUtils.serialize(value)));
-        } else if (info instanceof ExtendedInfoImpl.StringInfo) {
-            writeString(jg, mapper, ((ExtendedInfoImpl.StringInfo) info).getStringValue().trim());
-        } else { // ESExtendedInfo or MongoDBExtendedInfo
-            Serializable value = info.getSerializableValue();
-            if (value instanceof String) {
-                writeString(jg, mapper, (String) value);
-            } else {
-                jg.writeObject(value);
+        jg.setCodec(MAPPER);
+        switch (info) {
+            case ExtendedInfoImpl.DateInfo dateInfo ->
+                jg.writeObject(DATE_FORMATTER.format(dateInfo.getDateValue().toInstant()));
+            case ExtendedInfoImpl.BlobInfo blobInfo ->
+                jg.writeObject(Base64.encodeBase64(SerializationUtils.serialize(blobInfo.getBlobValue())));
+            case ExtendedInfoImpl.StringInfo stringInfo -> writeString(jg, stringInfo.getStringValue().trim());
+            case null, default -> { // ESExtendedInfo or MongoDBExtendedInfo
+                if (info != null && info.getSerializableValue() instanceof String serializableValue) {
+                    writeString(jg, serializableValue);
+                } else {
+                    jg.writeObject(info == null ? null : info.getSerializableValue());
+                }
             }
         }
     }
 
-    private void writeString(JsonGenerator jg, ObjectMapper mapper, String stringValue) throws IOException {
+    private void writeString(JsonGenerator jg, String stringValue) throws IOException {
         if ((stringValue.startsWith("{") && stringValue.endsWith("}"))
                 || (stringValue.startsWith("[") && stringValue.endsWith("]"))) {
             try {
-                mapper.readTree(stringValue);
+                MAPPER.readTree(stringValue);
                 jg.writeRawValue(stringValue);
             } catch (IOException e) {
                 // If the value represents an invalid JSON, send a null value to ES to prevent potential

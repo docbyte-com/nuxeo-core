@@ -929,9 +929,8 @@ public class PersistenceContext {
             todo.addAll(getChildren(fragment.getId(), null, true)); // complex
             children.add(fragment);
         }
-        Collections.reverse(children);
         // iterate on children depth first
-        for (SimpleFragment fragment : children) {
+        for (SimpleFragment fragment : children.reversed()) {
             // remove from context
             boolean primary = fragment == hierFragment;
             removeFragmentAndDependents(fragment, primary);
@@ -1125,10 +1124,9 @@ public class PersistenceContext {
     public void recomputeVersionSeries(Serializable versionSeriesId) {
         List<SimpleFragment> versFrags = seriesVersions.getSelectionFragments(versionSeriesId, null);
         versFrags.sort(VER_CREATED_COMPARATOR);
-        Collections.reverse(versFrags);
         boolean isLatest = true;
         boolean isLatestMajor = true;
-        for (SimpleFragment vsf : versFrags) {
+        for (SimpleFragment vsf : versFrags.reversed()) {
 
             // isLatestVersion
             vsf.put(Model.VERSION_IS_LATEST_KEY, Boolean.valueOf(isLatest));

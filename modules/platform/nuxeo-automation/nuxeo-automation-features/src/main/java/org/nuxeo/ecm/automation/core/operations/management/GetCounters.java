@@ -72,8 +72,7 @@ public class GetCounters {
                 CounterHistoryStack stack = cm.getCounterHistory(counterName);
 
                 // copy and reverse the list
-                List<long[]> valueList = new ArrayList<>(stack.getAsList());
-                Collections.reverse(valueList);
+                List<long[]> valueList = new ArrayList<>(stack.getAsList()).reversed();
 
                 // bare values [ [t0,v0], [t1,v1] ...]
                 List<List<Number>> valueSerie = new ArrayList<>();

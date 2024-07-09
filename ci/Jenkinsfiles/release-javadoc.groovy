@@ -32,7 +32,7 @@ def getJavadocVersion(currentVersion) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   environment {
     NUXEO_BRANCH = "${params.NUXEO_BRANCH}"

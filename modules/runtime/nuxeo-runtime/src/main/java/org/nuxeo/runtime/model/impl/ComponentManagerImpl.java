@@ -646,8 +646,7 @@ public class ComponentManagerImpl implements ComponentManager {
         watch.start();
         listeners.beforeDeactivation();
         Collection<RegistrationInfo> resolved = registry.getResolvedRegistrationInfo();
-        List<RegistrationInfo> reverseResolved = new ArrayList<>(resolved);
-        Collections.reverse(reverseResolved);
+        List<RegistrationInfo> reverseResolved = new ArrayList<>(resolved).reversed();
         for (RegistrationInfo ri : reverseResolved) {
             if (ri.isActivated()) {
                 watch.start(ri.getName().getName());

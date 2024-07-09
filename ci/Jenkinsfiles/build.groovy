@@ -206,7 +206,7 @@ def auditNuxeo(namespace) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-platform-lts-2023'
+    label 'jenkins-nuxeo-platform-lts-2025'
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))

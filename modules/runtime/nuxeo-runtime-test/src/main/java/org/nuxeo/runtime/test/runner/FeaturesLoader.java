@@ -81,9 +81,7 @@ class FeaturesLoader {
     }
 
     protected <T> List<T> reversed(List<T> list) {
-        List<T> reversed = new ArrayList<>(list);
-        Collections.reverse(reversed);
-        return reversed;
+        return new ArrayList<>(list).reversed();
     }
 
     protected boolean contains(Class<? extends RunnerFeature> aType) {

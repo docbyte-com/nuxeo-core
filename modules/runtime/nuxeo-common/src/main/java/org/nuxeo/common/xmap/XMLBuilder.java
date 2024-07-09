@@ -52,15 +52,7 @@ public class XMLBuilder {
         }
         // process annotated members
         for (XAnnotatedMember m : xao.members) {
-            if (m instanceof XAnnotatedMap) {
-                m.toXML(o, currentNode);
-            } else if (m instanceof XAnnotatedList) {
-                m.toXML(o, currentNode);
-            } else if (m instanceof XAnnotatedContent) {
-                m.toXML(o, currentNode);
-            } else if (m instanceof XAnnotatedParent) {
-
-            } else {
+            if (m != null && !(m instanceof XAnnotatedParent)) {
                 m.toXML(o, currentNode);
             }
         }

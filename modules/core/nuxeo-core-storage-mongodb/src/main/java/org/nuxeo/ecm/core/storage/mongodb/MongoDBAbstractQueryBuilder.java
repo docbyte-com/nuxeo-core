@@ -271,7 +271,7 @@ public abstract class MongoDBAbstractQueryBuilder {
 
     protected Document walkAndOr(Expression expr, List<? extends Operand> values) {
         if (values.size() == 1) {
-            return (Document) walkOperand(null, values.get(0));
+            return (Document) walkOperand(null, values.getFirst());
         }
         boolean and = expr.operator == Operator.AND;
         String op = and ? MongoDBOperators.AND : MongoDBOperators.OR;
@@ -426,35 +426,25 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     public Object walkOperand(FieldInfo fieldInfo, Operand op) {
-        if (op instanceof Literal) {
-            return walkLiteral(fieldInfo, (Literal) op);
-        } else if (op instanceof LiteralList) {
-            return walkLiteralList(fieldInfo, (LiteralList) op);
-        } else if (op instanceof Function) {
-            return walkFunction((Function) op);
-        } else if (op instanceof Expression) {
-            return walkExpression((Expression) op);
-        } else if (op instanceof Reference) {
-            return walkReference((Reference) op);
-        } else {
-            throw new QueryParseException("Unknown operand: " + op);
-        }
+        return switch (op) {
+            case Literal literal -> walkLiteral(fieldInfo, literal);
+            case LiteralList literals -> walkLiteralList(fieldInfo, literals);
+            case Function function -> walkFunction(function);
+            case Expression expression1 -> walkExpression(expression1);
+            case Reference reference -> walkReference(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + op);
+        };
     }
 
     public Object walkLiteral(FieldInfo fieldInfo, Literal lit) {
-        if (lit instanceof BooleanLiteral) {
-            return walkBooleanLiteral(fieldInfo, (BooleanLiteral) lit);
-        } else if (lit instanceof DateLiteral) {
-            return walkDateLiteral(fieldInfo, (DateLiteral) lit);
-        } else if (lit instanceof DoubleLiteral) {
-            return walkDoubleLiteral(fieldInfo, (DoubleLiteral) lit);
-        } else if (lit instanceof IntegerLiteral) {
-            return walkIntegerLiteral(fieldInfo, (IntegerLiteral) lit);
-        } else if (lit instanceof StringLiteral) {
-            return walkStringLiteral(fieldInfo, (StringLiteral) lit);
-        } else {
-            throw new QueryParseException("Unknown literal: " + lit);
-        }
+        return switch (lit) {
+            case BooleanLiteral booleanLiteral -> walkBooleanLiteral(fieldInfo, booleanLiteral);
+            case DateLiteral dateLiteral -> walkDateLiteral(fieldInfo, dateLiteral);
+            case DoubleLiteral doubleLiteral -> walkDoubleLiteral(fieldInfo, doubleLiteral);
+            case IntegerLiteral integerLiteral -> walkIntegerLiteral(fieldInfo, integerLiteral);
+            case StringLiteral stringLiteral -> walkStringLiteral(fieldInfo, stringLiteral);
+            case null, default -> throw new QueryParseException("Unknown literal: " + lit);
+        };
     }
 
     public Object walkBooleanLiteral(FieldInfo fieldInfo, BooleanLiteral lit) {
@@ -517,7 +507,7 @@ public abstract class MongoDBAbstractQueryBuilder {
             if (func.args == null || func.args.size() != 1) {
                 periodAndDurationText = null;
             } else {
-                periodAndDurationText = ((StringLiteral) func.args.get(0)).value;
+                periodAndDurationText = ((StringLiteral) func.args.getFirst()).value;
             }
             ZonedDateTime dateTime;
             try {

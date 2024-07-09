@@ -111,7 +111,7 @@ JAVA_TOOLS=$JAVA_HOME/lib/tools.jar
 PATH="$JAVA_HOME/bin:$PATH"
 
 # Check Java Version
-: ${REQUIRED_JAVA_VERSION:=17}
+: ${REQUIRED_JAVA_VERSION:=21}
 # Check 'java' bin
 command -v $JAVA >/dev/null 2>&1 || die "Nuxeo requires Java $REQUIRED_JAVA_VERSION+. No $JAVA command detected in the PATH (including JAVA_HOME)."
 # Check Java version

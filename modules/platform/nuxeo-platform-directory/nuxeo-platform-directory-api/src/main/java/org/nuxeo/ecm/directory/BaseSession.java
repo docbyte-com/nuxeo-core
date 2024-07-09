@@ -386,7 +386,7 @@ public abstract class BaseSession implements Session, EntrySource {
         String idFieldName = directory.getSchemaFieldMap().get(getIdField()).getName().getPrefixedName();
         DocumentModelList result = query(Collections.singletonMap(idFieldName, id), Collections.emptySet(),
                 Collections.emptyMap(), true);
-        return result.isEmpty() ? null : result.get(0);
+        return result.isEmpty() ? null : result.getFirst();
     }
 
     @Override
@@ -446,7 +446,7 @@ public abstract class BaseSession implements Session, EntrySource {
                         "Directory: {} cannot update field: {} for entry: {}: this field is associated with more than one reference",
                         getDirectory().getName(), referenceFieldName, docModel.getId());
             } else {
-                Reference reference = references.get(0);
+                Reference reference = references.getFirst();
                 List<String> targetIds = toStringList(docModel.getProperty(schemaName, referenceFieldName));
                 if (reference.getClass() == referenceClass) {
                     reference.setTargetIdsForSource(docModel.getId(), targetIds, this);
@@ -460,15 +460,12 @@ public abstract class BaseSession implements Session, EntrySource {
 
     @SuppressWarnings("unchecked")
     public static List<String> toStringList(Object value) {
-        if (value == null) {
-            return null;
-        } else if (value instanceof List) {
-            return (List<String>) value;
-        } else if (value instanceof Object[]) {
-            return (List<String>) (List<?>) List.of((Object[]) value);
-        } else {
-            throw new NuxeoException("Cannot convert to List<String>: " + value);
-        }
+        return switch (value) {
+            case List<?> list -> (List<String>) list;
+            case Object[] objects -> (List<String>) (List<?>) List.of(objects);
+            case null -> null;
+            default -> throw new NuxeoException("Cannot convert to List<String>: " + value);
+        };
     }
 
     @Override

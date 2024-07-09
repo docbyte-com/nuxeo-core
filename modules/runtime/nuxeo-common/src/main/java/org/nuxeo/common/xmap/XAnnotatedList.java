@@ -105,16 +105,12 @@ public class XAnnotatedList extends XAnnotatedMember {
     public void toXML(Object instance, Element parent) {
         Object v = accessor.getValue(instance);
         if (v != null) {
-            Object[] objects;
-            if (v instanceof Object[]) {
-                objects = (Object[]) v;
-            } else if (v instanceof List) {
-                objects = ((List<?>) v).toArray();
-            } else if (v instanceof Collection) {
-                objects = ((Collection<?>) v).toArray();
-            } else {
-                objects = PrimitiveArrays.toObjectArray(v);
-            }
+            Object[] objects = switch (v) {
+                case Object[] objects1 -> objects1;
+                case List<?> list -> list.toArray();
+                case Collection<?> collection -> collection.toArray();
+                default -> PrimitiveArrays.toObjectArray(v);
+            };
             if (objects != null) {
                 if (xao == null) {
                     for (Object o : objects) {

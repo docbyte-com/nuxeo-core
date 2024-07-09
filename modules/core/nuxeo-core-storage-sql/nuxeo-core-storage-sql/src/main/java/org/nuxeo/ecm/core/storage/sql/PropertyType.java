@@ -183,26 +183,20 @@ public enum PropertyType {
      * @param array {@code true} if an array type is required
      */
     public static PropertyType fromFieldType(Type fieldType, boolean array) {
-        if (fieldType instanceof StringType) {
-            return array ? ARRAY_STRING : STRING;
-        } else if (fieldType instanceof BooleanType) {
-            return array ? ARRAY_BOOLEAN : BOOLEAN;
-        } else if (fieldType instanceof LongType) {
-            return array ? ARRAY_LONG : LONG;
-        } else if (fieldType instanceof DoubleType) {
-            return array ? ARRAY_DOUBLE : DOUBLE;
-        } else if (fieldType instanceof DateType) {
-            return array ? ARRAY_DATETIME : DATETIME;
-        } else if (fieldType instanceof BinaryType) {
-            return array ? ARRAY_BINARY : BINARY;
-        } else if (fieldType instanceof IntegerType) {
-            throw new RuntimeException("Unimplemented primitive type: " + fieldType.getClass().getName());
-        } else if (fieldType instanceof SimpleTypeImpl) {
+        return switch (fieldType) {
+            case StringType ignored -> array ? ARRAY_STRING : STRING;
+            case BooleanType ignored -> array ? ARRAY_BOOLEAN : BOOLEAN;
+            case LongType ignored -> array ? ARRAY_LONG : LONG;
+            case DoubleType ignored -> array ? ARRAY_DOUBLE : DOUBLE;
+            case DateType ignored -> array ? ARRAY_DATETIME : DATETIME;
+            case BinaryType ignored -> array ? ARRAY_BINARY : BINARY;
+            case IntegerType ignored ->
+                throw new RuntimeException("Unimplemented primitive type: " + fieldType.getClass().getName());
             // simple type with constraints -- ignore constraints XXX
-            return fromFieldType(fieldType.getSuperType(), array);
-        } else {
-            throw new RuntimeException("Invalid primitive type: " + fieldType.getClass().getName());
-        }
+            case SimpleTypeImpl simpleType -> fromFieldType(simpleType.getSuperType(), array);
+            case null -> throw new RuntimeException("Invalid null primitive type");
+            default -> throw new RuntimeException("Invalid primitive type: " + fieldType.getClass().getName());
+        };
     }
 
 }

@@ -262,27 +262,21 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
         if (array == null) {
             array = EMPTY_STRING_ARRAY;
         }
-        Class<?> klass;
-        if (type instanceof StringType) {
-            klass = String.class;
-        } else if (type instanceof BooleanType) {
-            klass = Boolean.class;
-        } else if (type instanceof LongType) {
-            klass = Long.class;
-        } else if (type instanceof DoubleType) {
-            klass = Double.class;
-        } else if (type instanceof DateType) {
-            klass = Calendar.class;
-        } else if (type instanceof BinaryType) {
-            klass = String.class;
-        } else if (type instanceof IntegerType) {
-            throw new RuntimeException("Unimplemented primitive type: " + type.getClass().getName());
-        } else if (type instanceof SimpleTypeImpl) {
+        if (type instanceof SimpleTypeImpl) {
             // simple type with constraints -- ignore constraints XXX
             return typedArray(type.getSuperType(), array);
-        } else {
-            throw new RuntimeException("Invalid primitive type: " + type.getClass().getName());
         }
+        Class<?> klass = switch (type) {
+            case StringType ignored -> String.class;
+            case BooleanType ignored -> Boolean.class;
+            case LongType ignored -> Long.class;
+            case DoubleType ignored -> Double.class;
+            case DateType ignored -> Calendar.class;
+            case BinaryType ignored -> String.class;
+            case IntegerType ignored ->
+                throw new RuntimeException("Unimplemented primitive type: " + type.getClass().getName());
+            case null, default -> throw new RuntimeException("Invalid primitive type: " + type.getClass().getName());
+        };
         int len = array.length;
         Object[] copy = (Object[]) Array.newInstance(klass, len);
         System.arraycopy(array, 0, copy, 0, len);

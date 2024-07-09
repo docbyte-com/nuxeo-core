@@ -8,7 +8,7 @@ ARG ORACLE_LINUX_TAG=$EL_VERSION-slim
 
 # ------------------------------------------------------------------------
 # Build stage
-FROM azul/zulu-openjdk:17 AS builder
+FROM azul/zulu-openjdk:21 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   procps \
@@ -84,7 +84,7 @@ RUN microdnf -y update \
     unzip \
     wget \
     # Install Java before LibreOffice that depends on it
-    zulu17-jdk \
+    zulu21-jdk \
   # Install LibreOffice, only for amd64 since not available for arm64
   && if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
        curl -f -L https://packages.nuxeo.com/repository/document-foundation-raw/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz | tar -C /tmp -xzv \

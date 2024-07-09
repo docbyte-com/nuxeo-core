@@ -65,16 +65,11 @@ public class FireEvent {
     public void run() {
         CoreSession session = ctx.getCoreSession();
         Object input = ctx.getInput();
-        if (input instanceof DocumentModel) {
-            sendDocumentEvent((DocumentModel) input);
-        } else if (input instanceof DocumentRef) {
-            sendDocumentEvent(session.getDocument((DocumentRef) input));
-        } else if (input instanceof DocumentModelList docs) {
-            for (DocumentModel documentModel : docs) {
-                sendDocumentEvent(documentModel);
-            }
-        } else {
-            sendUnknownEvent(input);
+        switch (input) {
+            case DocumentRef docRef -> sendDocumentEvent(session.getDocument(docRef));
+            case DocumentModel doc -> sendDocumentEvent(doc);
+            case DocumentModelList docs -> docs.forEach(this::sendDocumentEvent);
+            case null, default -> sendUnknownEvent(input);
         }
     }
 

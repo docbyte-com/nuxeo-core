@@ -1083,8 +1083,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             docsList.add(readModel(doc));
             doc = doc.getParent();
         }
-        Collections.reverse(docsList);
-        return docsList;
+        return docsList.reversed();
     }
 
     @Override

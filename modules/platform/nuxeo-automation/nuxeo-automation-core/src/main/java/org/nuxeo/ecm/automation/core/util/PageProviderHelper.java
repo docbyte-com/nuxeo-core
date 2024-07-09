@@ -375,19 +375,15 @@ public class PageProviderHelper {
     }
 
     protected static String getClauseFromBucket(Bucket bucket, String field) {
-        String clause;
         // Replace potential '.' path separator with '/' character
         field = field.replaceAll("\\.", "/");
-        if (bucket instanceof BucketTerm) {
-            clause = field + "='" + bucket.getKey() + "'";
-        } else if (bucket instanceof BucketRange bucketRange) {
-            clause = getRangeClause(field, bucketRange);
-        } else if (bucket instanceof BucketRangeDate bucketRangeDate) {
-            clause = getRangeDateClause(field, bucketRangeDate);
-        } else {
-            throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
-        }
-        return clause;
+        return switch (bucket) {
+            case BucketTerm bucketTerm -> field + "='" + bucketTerm.getKey() + "'";
+            case BucketRange bucketRange -> getRangeClause(field, bucketRange);
+            case BucketRangeDate bucketRangeDate -> getRangeDateClause(field, bucketRangeDate);
+            case null -> throw new NuxeoException("Unknown null bucket instance for NXQL translation");
+            default -> throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
+        };
     }
 
     protected static String getRangeClause(String field, BucketRange bucketRange) {

@@ -2136,8 +2136,7 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         // CoreSession returns them in creation order,
         // CMIS wants them last first
-        Collections.reverse(list);
-        return list;
+        return list.reversed();
     }
 
     @Override
@@ -2159,8 +2158,7 @@ public class NuxeoCmisService extends AbstractCmisService
         if (Boolean.TRUE.equals(major)) {
             // we must list all versions
             List<DocumentModel> versions = coreSession.getVersions(doc.getRef());
-            Collections.reverse(versions);
-            for (DocumentModel ver : versions) {
+            for (DocumentModel ver : versions.reversed()) {
                 if (ver.isMajorVersion()) {
                     return getObject(repositoryId, ver.getId(), filter, includeAllowableActions, includeRelationships,
                             renditionFilter, includePolicyIds, includeAcl, null);

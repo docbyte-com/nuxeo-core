@@ -19,7 +19,6 @@
 package org.nuxeo.runtime.contribution.impl;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -68,8 +67,7 @@ public abstract class AbstractContributionRegistry<K, T> implements Contribution
             parents.add(pParent);
             pParent = pParent.parent;
         }
-        Collections.reverse(parents);
-        for (AbstractContributionRegistry<K, T> p : parents) {
+        for (AbstractContributionRegistry<K, T> p : parents.reversed()) {
             p.listeners.add(this);
             for (Contribution<K, T> contrib : p.registry.values().toArray(Contribution[]::new)) {
                 importContribution(contrib);

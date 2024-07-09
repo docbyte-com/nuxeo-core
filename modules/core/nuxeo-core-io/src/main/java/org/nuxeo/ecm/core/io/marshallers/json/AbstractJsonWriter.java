@@ -220,27 +220,26 @@ public abstract class AbstractJsonWriter<EntityType> implements Writer<EntityTyp
      */
     @SuppressWarnings("unchecked")
     protected void writeSerializable(Serializable value, JsonGenerator jg) throws IOException {
-        if (value instanceof Collection) {
-            jg.writeStartArray();
-            for (Serializable serializable : (Collection<Serializable>) value) {
-                writeSerializable(serializable, jg);
+        switch (value) {
+            case Collection<?> values -> {
+                jg.writeStartArray();
+                for (Serializable serializable : (Collection<Serializable>) values) {
+                    writeSerializable(serializable, jg);
+                }
+                jg.writeEndArray();
             }
-            jg.writeEndArray();
-        } else if (value instanceof Serializable[]) {
-            jg.writeStartArray();
-            for (Serializable serializable : (Serializable[]) value) {
-                writeSerializable(serializable, jg);
+            case Serializable[] serializables -> {
+                jg.writeStartArray();
+                for (Serializable serializable : serializables) {
+                    writeSerializable(serializable, jg);
+                }
+                jg.writeEndArray();
             }
-            jg.writeEndArray();
-        } else if (value instanceof String) {
-            jg.writeString((String) value);
-        } else if (value instanceof Boolean) {
-            jg.writeBoolean((boolean) value);
-        } else if (value instanceof Number) {
-            jg.writeNumber(value.toString());
-        } else {
+            case String string -> jg.writeString(string);
+            case Boolean bool -> jg.writeBoolean(bool);
+            case Number number -> jg.writeNumber(number.toString());
             // try with marshallers
-            writeEntity(value, jg);
+            case null, default -> writeEntity(value, jg);
         }
     }
 

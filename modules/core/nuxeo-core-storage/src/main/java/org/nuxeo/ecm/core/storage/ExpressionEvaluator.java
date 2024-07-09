@@ -416,35 +416,25 @@ public abstract class ExpressionEvaluator {
     }
 
     public Object walkOperand(Operand op) {
-        if (op instanceof Literal) {
-            return walkLiteral((Literal) op);
-        } else if (op instanceof LiteralList) {
-            return walkLiteralList((LiteralList) op);
-        } else if (op instanceof Function) {
-            return walkFunction((Function) op);
-        } else if (op instanceof Expression) {
-            return walkExpression((Expression) op);
-        } else if (op instanceof Reference) {
-            return walkReference((Reference) op);
-        } else {
-            throw new QueryParseException("Unknown operand: " + op);
-        }
+        return switch (op) {
+            case Literal literal -> walkLiteral(literal);
+            case LiteralList literals -> walkLiteralList(literals);
+            case Function function -> walkFunction(function);
+            case Expression expression -> walkExpression(expression);
+            case Reference reference -> walkReference(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + op);
+        };
     }
 
     public Object walkLiteral(Literal lit) {
-        if (lit instanceof BooleanLiteral) {
-            return walkBooleanLiteral((BooleanLiteral) lit);
-        } else if (lit instanceof DateLiteral) {
-            return walkDateLiteral((DateLiteral) lit);
-        } else if (lit instanceof DoubleLiteral) {
-            return walkDoubleLiteral((DoubleLiteral) lit);
-        } else if (lit instanceof IntegerLiteral) {
-            return walkIntegerLiteral((IntegerLiteral) lit);
-        } else if (lit instanceof StringLiteral) {
-            return walkStringLiteral((StringLiteral) lit);
-        } else {
-            throw new QueryParseException("Unknown literal: " + lit);
-        }
+        return switch (lit) {
+            case BooleanLiteral booleanLiteral -> walkBooleanLiteral(booleanLiteral);
+            case DateLiteral dateLiteral -> walkDateLiteral(dateLiteral);
+            case DoubleLiteral doubleLiteral -> walkDoubleLiteral(doubleLiteral);
+            case IntegerLiteral integerLiteral -> walkIntegerLiteral(integerLiteral);
+            case StringLiteral stringLiteral -> walkStringLiteral(stringLiteral);
+            case null, default -> throw new QueryParseException("Unknown literal: " + lit);
+        };
     }
 
     public Boolean walkBooleanLiteral(BooleanLiteral lit) {

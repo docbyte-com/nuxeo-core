@@ -713,18 +713,14 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
         try (OperationContext context = getExecutionContext(getSession())) {
             Expression expr = Scripting.newExpression(taskDueDateExpr);
             Object res = expr.eval(context);
-            if (res instanceof DateWrapper) {
-                return ((DateWrapper) res).getDate();
-            } else if (res instanceof Date) {
-                return (Date) res;
-            } else if (res instanceof Calendar) {
-                return ((Calendar) res).getTime();
-            } else if (res instanceof String) {
-                return DateParser.parseW3CDateTime((String) res);
-            } else {
-                throw new DocumentRouteException(
+            return switch (res) {
+                case DateWrapper dateWrapper -> dateWrapper.getDate();
+                case Date date -> date;
+                case Calendar calendar -> calendar.getTime();
+                case String s -> DateParser.parseW3CDateTime(s);
+                case null, default -> throw new DocumentRouteException(
                         "The following expression can not be evaluated to a date: " + taskDueDateExpr);
-            }
+            };
         } catch (DocumentRouteException e) {
             throw e;
         } catch (RuntimeException e) {

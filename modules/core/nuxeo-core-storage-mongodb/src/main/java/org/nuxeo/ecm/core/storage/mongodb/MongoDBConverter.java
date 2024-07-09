@@ -119,17 +119,12 @@ public class MongoDBConverter {
     }
 
     public Object valueToBson(String key, Object value) {
-        if (value instanceof State) {
-            return stateToBson((State) value);
-        } else if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> values = (List<Object>) value;
-            return listToBson(key, values);
-        } else if (value instanceof Object[]) {
-            return listToBson(key, Arrays.asList((Object[]) value));
-        } else {
-            return serializableToBson(key, value);
-        }
+        return switch (value) {
+            case State state -> stateToBson(state);
+            case List<?> list -> listToBson(key, list);
+            case Object[] objects -> listToBson(key, Arrays.asList(objects));
+            case null, default -> serializableToBson(key, value);
+        };
     }
 
     public Document stateToBson(State state) {
@@ -369,15 +364,12 @@ public class MongoDBConverter {
             for (Entry<String, Serializable> en : diff.entrySet()) {
                 String name = elemPrefix + en.getKey();
                 Serializable value = en.getValue();
-                if (value instanceof StateDiff) {
-                    processStateDiff((StateDiff) value, name);
-                } else if (value instanceof ListDiff) {
-                    processListDiff((ListDiff) value, name);
-                } else if (value instanceof Delta) {
-                    processDelta((Delta) value, name);
-                } else {
+                switch (value) {
+                    case StateDiff stateDiff -> processStateDiff(stateDiff, name);
+                    case ListDiff listDiff -> processListDiff(listDiff, name);
+                    case Delta delta -> processDelta(delta, name);
                     // not a diff
-                    processValue(name, value);
+                    case null, default -> processValue(name, value);
                 }
             }
         }
@@ -406,7 +398,7 @@ public class MongoDBConverter {
                 Object pushed;
                 if (listDiff.rpush.size() == 1) {
                     // no need to use $each for one element
-                    pushed = valueToBson(prefix, listDiff.rpush.get(0));
+                    pushed = valueToBson(prefix, listDiff.rpush.getFirst());
                 } else {
                     pushed = new Document(MONGODB_EACH, listToBson(prefix, listDiff.rpush));
                 }

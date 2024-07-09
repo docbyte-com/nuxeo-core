@@ -78,15 +78,12 @@ public class MongoDBSerializationHelper {
      */
     @SuppressWarnings("unchecked")
     public static Object valueToBson(Object value) {
-        if (value instanceof Map<?, ?> map) {
-            return fieldMapToBson((Map<String, Object>) map);
-        } else if (value instanceof List<?> values) {
-            return listToBson(values);
-        } else if (value instanceof Object[] values) {
-            return listToBson(List.of(values));
-        } else {
-            return serializableToBson(value);
-        }
+        return switch (value) {
+            case Map<?, ?> map -> fieldMapToBson((Map<String, Object>) map);
+            case List<?> list -> listToBson(list);
+            case Object[] objects -> listToBson(List.of(objects));
+            case null, default -> serializableToBson(value);
+        };
     }
 
     protected static List<Object> listToBson(List<?> values) {

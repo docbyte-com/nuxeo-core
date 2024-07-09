@@ -35,7 +35,7 @@ void promoteDockerImage(String dockerRegistry, String imageName, String buildVer
 pipeline {
 
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
 
   environment {

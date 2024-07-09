@@ -31,7 +31,6 @@ import static org.nuxeo.ecm.platform.comment.CommentUtils.newExternalComment;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -356,8 +355,7 @@ public abstract class AbstractTestCommentManager {
 
         assertEquals(comments.subList(3, 6),
                 commentManager.getComments(session, commentedDocModel.getId(), 3L, 1L, true));
-        List<Comment> reversedComments = new ArrayList<>(comments);
-        Collections.reverse(reversedComments);
+        List<Comment> reversedComments = new ArrayList<>(comments).reversed();
         assertEquals(reversedComments.subList(3, 6),
                 commentManager.getComments(session, commentedDocModel.getId(), 3L, 1L, false));
     }

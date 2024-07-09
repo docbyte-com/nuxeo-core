@@ -23,7 +23,6 @@ import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.ROUTE_
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -168,11 +167,10 @@ public class GraphRouteImpl extends DocumentRouteImpl implements GraphRoute {
             }
         }
 
-        // reverse the post-order to find the topological ordering
-        Collections.reverse(postOrder);
         Map<String, Integer> ordering = new HashMap<>();
         int i = 1;
-        for (String nodeId : postOrder) {
+        // reverse the post-order to find the topological ordering
+        for (String nodeId : postOrder.reversed()) {
             ordering.put(nodeId, Integer.valueOf(i++));
         }
 

@@ -414,14 +414,12 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
             TextTemplate tmpl = new TextTemplate();
             for (String key : params.keySet()) {
                 Object val = params.get(key);
-                if (val == null) {
-                    continue;
-                } else if (val instanceof Calendar) {
-                    tmpl.setVariable(key, Long.toString(((Calendar) val).getTime().getTime()));
-                } else if (val instanceof Date) {
-                    tmpl.setVariable(key, Long.toString(((Date) val).getTime()));
-                } else {
-                    tmpl.setVariable(key, val.toString());
+                switch (val) {
+                    case Calendar calendar -> tmpl.setVariable(key, Long.toString(calendar.getTime().getTime()));
+                    case Date date -> tmpl.setVariable(key, Long.toString(date.getTime()));
+                    case null -> {
+                    }
+                    default -> tmpl.setVariable(key, val.toString());
                 }
             }
             query = tmpl.processText(query);

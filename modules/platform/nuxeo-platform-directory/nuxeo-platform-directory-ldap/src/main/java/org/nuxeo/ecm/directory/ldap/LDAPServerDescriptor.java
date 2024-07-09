@@ -20,7 +20,6 @@
 package org.nuxeo.ecm.directory.ldap;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -289,8 +288,7 @@ public class LDAPServerDescriptor {
                     break;
                 }
             }
-            Collections.reverse(domainComponents);
-            return StringUtils.join(domainComponents, ".");
+            return StringUtils.join(domainComponents.reversed(), ".");
         } catch (InvalidNameException e) {
             throw new DirectoryException(e);
         }

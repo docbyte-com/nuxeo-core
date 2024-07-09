@@ -56,24 +56,17 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
 
     protected final DocumentModel doc;
 
+    @SuppressWarnings("unchecked")
     public static Object wrap(Object object, AutomationMapper mapper) {
-        if (object == null) {
-            return null;
-        }
-        if (object instanceof DocumentModel) {
-            return new DocumentScriptingWrapper(mapper, (DocumentModel) object);
-        } else if (object instanceof DocumentModelList) {
-            List<DocumentScriptingWrapper> docs = new ArrayList<>();
-            for (DocumentModel doc : (DocumentModelList) object) {
-                docs.add(new DocumentScriptingWrapper(mapper, doc));
-            }
-            return docs;
-        } else if (object instanceof Map<?, ?>) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> m = (Map<String, Object>) object;
-            return wrap(m, mapper);
-        }
-        return object;
+        return switch (object) {
+            case DocumentModel documentModel -> new DocumentScriptingWrapper(mapper, documentModel);
+            case DocumentModelList documentModels ->
+                documentModels.stream()
+                              .map(doc -> new DocumentScriptingWrapper(mapper, doc))
+                              .collect(Collectors.toCollection(ArrayList::new));
+            case Map<?, ?> map -> wrap((Map<String, Object>) map, mapper);
+            case null, default -> object;
+        };
     }
 
     public static Map<String, Object> wrap(Map<String, Object> source, AutomationMapper mapper) {
@@ -97,7 +90,7 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
             // - l is a list of Blob -> l needs to be converted to BlobList
             // - l is a list -> do nothing
             if (!l.isEmpty() && !(result instanceof DocumentModelList || result instanceof BlobList)) {
-                Object first = l.get(0);
+                Object first = l.getFirst();
                 if (first instanceof DocumentModel) {
                     result = l.stream()
                               .map(DocumentModel.class::cast)

@@ -28,7 +28,7 @@ def checkParameters() {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   options {
     timeout(time: 8, unit: 'HOURS')

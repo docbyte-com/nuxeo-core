@@ -77,16 +77,12 @@ public class DocumentModelComparator implements Sorter {
         } else if (v2 == null) {
             return asc ? 1 : -1;
         }
-        final int cmp;
-        if (v1 instanceof Long && v2 instanceof Long) {
-            cmp = ((Long) v1).compareTo((Long) v2);
-        } else if (v1 instanceof Integer && v2 instanceof Integer) {
-            cmp = ((Integer) v1).compareTo((Integer) v2);
-        } else if (v1 instanceof Calendar && v2 instanceof Calendar) {
-            cmp = ((Calendar) v1).compareTo((Calendar) v2);
-        } else {
-            cmp = collator.compare(v1.toString(), v2.toString());
-        }
+        int cmp = switch (v1) {
+            case Long l1 when v2 instanceof Long l2 -> l1.compareTo(l2);
+            case Integer i1 when v2 instanceof Integer i2 -> i1.compareTo(i2);
+            case Calendar c1 when v2 instanceof Calendar c2 -> c1.compareTo(c2);
+            default -> collator.compare(v1.toString(), v2.toString());
+        };
         return asc ? cmp : -cmp;
     }
 

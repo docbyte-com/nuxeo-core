@@ -629,10 +629,9 @@ public class DBSSession extends BaseSession {
         List<DBSDocumentState> docStates = transaction.getKeyValuedStates(KEY_VERSION_SERIES_ID, versionSeriesId,
                 KEY_IS_VERSION, TRUE);
         docStates.sort(VERSION_CREATED_COMPARATOR);
-        Collections.reverse(docStates);
         boolean isLatest = true;
         boolean isLatestMajor = true;
-        for (DBSDocumentState docState : docStates) {
+        for (DBSDocumentState docState : docStates.reversed()) {
             // isLatestVersion
             docState.put(KEY_IS_LATEST_VERSION, isLatest ? TRUE : null);
             isLatest = false;

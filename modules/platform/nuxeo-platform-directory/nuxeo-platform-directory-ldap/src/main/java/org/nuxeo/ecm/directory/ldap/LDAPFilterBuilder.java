@@ -191,7 +191,7 @@ public class LDAPFilterBuilder {
 
     protected void walkMulti(String op, List<? extends Operand> values) {
         if (values.size() == 1) {
-            walkOperand(values.get(0));
+            walkOperand(values.getFirst());
         } else {
             filter.append('(');
             filter.append(op);
@@ -347,16 +347,12 @@ public class LDAPFilterBuilder {
     }
 
     public void walkOperand(Operand operand) {
-        if (operand instanceof Literal) {
-            walkLiteral(operand);
-        } else if (operand instanceof Function) {
-            walkFunction((Function) operand);
-        } else if (operand instanceof Expression) {
-            walkExpression((Expression) operand);
-        } else if (operand instanceof Reference) {
-            walkReference(operand);
-        } else {
-            throw new QueryParseException("Unknown operand: " + operand);
+        switch (operand) {
+            case Literal literal -> walkLiteral(literal);
+            case Function function -> walkFunction(function);
+            case Expression expression -> walkExpression(expression);
+            case Reference reference -> walkReference(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + operand);
         }
     }
 
@@ -364,18 +360,13 @@ public class LDAPFilterBuilder {
         if (!(operand instanceof Literal lit)) {
             throw new QueryParseException("Requires literal instead of: " + operand);
         }
-        if (lit instanceof BooleanLiteral) {
-            walkBooleanLiteral((BooleanLiteral) lit);
-        } else if (lit instanceof DateLiteral) {
-            walkDateLiteral((DateLiteral) lit);
-        } else if (lit instanceof DoubleLiteral) {
-            walkDoubleLiteral((DoubleLiteral) lit);
-        } else if (lit instanceof IntegerLiteral) {
-            walkIntegerLiteral((IntegerLiteral) lit);
-        } else if (lit instanceof StringLiteral) {
-            walkStringLiteral((StringLiteral) lit);
-        } else {
-            throw new QueryParseException("Unknown literal: " + lit);
+        switch (lit) {
+            case BooleanLiteral booleanLiteral -> walkBooleanLiteral(booleanLiteral);
+            case DateLiteral dateLiteral -> walkDateLiteral(dateLiteral);
+            case DoubleLiteral doubleLiteral -> walkDoubleLiteral(doubleLiteral);
+            case IntegerLiteral integerLiteral -> walkIntegerLiteral(integerLiteral);
+            case StringLiteral stringLiteral -> walkStringLiteral(stringLiteral);
+            default -> throw new QueryParseException("Unknown literal: " + lit);
         }
     }
 

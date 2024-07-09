@@ -219,32 +219,28 @@ public class PlatformFunctions extends CoreFunctions {
         }
 
         for (Object value : values) {
-            if (value == null) {
-                continue;
-            }
-
-            if (value instanceof Object[] array) {
-                for (Object subValue : array) {
-                    if (subValue != null) {
-                        list.add((T) subValue);
-                    }
+            switch (value) {
+                case Object[] array -> addNonNull(list, List.of(array));
+                case Collection<?> collection -> addNonNull(list, collection);
+                case null -> {
                 }
-                continue;
+                default -> list.add((T) value);
             }
-
-            if (value instanceof Collection<?> collection) {
-                for (Object subValue : collection) {
-                    if (subValue != null) {
-                        list.add((T) subValue);
-                    }
-                }
-                continue;
-            }
-
-            list.add((T) value);
 
         }
         return list;
+    }
+
+    /**
+     * @since 2025.0
+     */
+    @SuppressWarnings("unchecked")
+    protected <T> void addNonNull(List<T> list, Collection<?> collection) {
+        for (Object value : collection) {
+            if (value != null) {
+                list.add((T) value);
+            }
+        }
     }
 
     /**

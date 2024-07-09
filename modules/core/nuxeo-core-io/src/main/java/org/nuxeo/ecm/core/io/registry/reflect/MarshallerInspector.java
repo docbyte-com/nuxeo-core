@@ -285,17 +285,13 @@ public class MarshallerInspector implements Comparable<MarshallerInspector> {
      * @since 7.2
      */
     private RenderingContext getRealContext(RenderingContext ctx) {
-        if (ctx == null) {
-            return RenderingContext.CtxBuilder.get();
-        }
-        if (ctx instanceof RenderingContextImpl) {
-            return ctx;
-        }
-        if (ctx instanceof ThreadSafeRenderingContext) {
-            RenderingContext delegate = ((ThreadSafeRenderingContext) ctx).getDelegate();
-            return getRealContext(delegate);
-        }
-        return null;
+        return switch (ctx) {
+            case null -> RenderingContext.CtxBuilder.get();
+            case RenderingContextImpl renderingContext -> renderingContext;
+            case ThreadSafeRenderingContext threadSafeRenderingContext ->
+                getRealContext(threadSafeRenderingContext.getDelegate());
+            default -> null;
+        };
     }
 
     /**

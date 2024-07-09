@@ -94,21 +94,14 @@ public class AutomationResource extends ModuleRoot {
             } catch (PropertyException e) {
                 return ResponseHelper.notFound();
             }
-            if (obj == null) {
-                return ResponseHelper.notFound();
-            }
-            if (obj instanceof List<?> list) {
-                if (list.isEmpty()) {
-                    return ResponseHelper.notFound();
-                }
-                if (list.get(0) instanceof Blob) { // a list of blobs -> use
-                    // multipart/mixed
-                    return ResponseHelper.blobs((List<Blob>) list);
-                }
-            } else if (obj instanceof Blob) {
-                return obj; // BlobWriter will do all the processing and call the DownloadService
-            }
-            return ResponseHelper.notFound();
+            return switch (obj) {
+                // a list of blobs -> use multipart/mixed
+                case List<?> list when !list.isEmpty() && list.getFirst() instanceof Blob ->
+                    ResponseHelper.blobs((List<Blob>) list);
+                // BlobWriter will do all the processing and call the DownloadService
+                case Blob blob -> blob;
+                case null, default -> ResponseHelper.notFound();
+            };
         } catch (MessagingException | IOException e) {
             throw new NuxeoException(e);
         }

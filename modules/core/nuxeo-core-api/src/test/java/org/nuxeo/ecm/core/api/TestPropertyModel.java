@@ -193,21 +193,22 @@ public class TestPropertyModel {
         dp = new DocumentPartImpl(schema);
     }
 
-    @SuppressWarnings("unchecked")
-    protected static void clearMap(Map<String, Serializable> map) {
-        Iterator<Map.Entry<String, Serializable>> it = map.entrySet().iterator();
+    /**
+     * @param map the map to remove null values from
+     */
+    protected static void clearMap(Map<?, ?> map) {
+        Iterator<? extends Entry<?, ?>> it = map.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, Serializable> entry = it.next();
-            Serializable v = entry.getValue();
-            if (v == null) {
-                it.remove();
-            } else if (v instanceof Map<?, ?> m) {
-                clearMap((Map<String, Serializable>) m);
-            } else if (v instanceof List<?> list) {
-                for (Object el : list) {
-                    if (el instanceof Map<?, ?> m) {
-                        clearMap((Map<String, Serializable>) m);
+            Map.Entry<?, ?> entry = it.next();
+            switch (entry.getValue()) {
+                case null -> it.remove();
+                case Map<?, ?> m -> clearMap(m);
+                case List<?> list -> list.forEach(value -> {
+                    if (value instanceof Map<?, ?> m) {
+                        clearMap(m);
                     }
+                });
+                default -> {
                 }
             }
         }
@@ -658,7 +659,7 @@ public class TestPropertyModel {
         map.remove("book:keywords");
         map.remove("book:file");
         List<Serializable> list = (List<Serializable>) map.get("book:authors");
-        Map<String, Serializable> amap = (Map<String, Serializable>) list.get(0);
+        Map<String, Serializable> amap = (Map<String, Serializable>) list.getFirst();
         amap.remove("age");
         amap = (Map<String, Serializable>) amap.get("name");
         amap.remove("lastName");

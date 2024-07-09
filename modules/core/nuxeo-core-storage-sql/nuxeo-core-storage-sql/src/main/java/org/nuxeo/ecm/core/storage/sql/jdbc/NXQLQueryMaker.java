@@ -732,9 +732,9 @@ public class NXQLQueryMaker implements QueryMaker {
             // use last (and only) Select in above big loop
             if (!withSelects.isEmpty()) {
                 select = new Select(null);
-                String with = withTables.get(0) + " AS (" + statements.get(0) + ')';
+                String with = withTables.getFirst() + " AS (" + statements.getFirst() + ')';
                 select.setWith(with);
-                Select withSelect = withSelects.get(0);
+                Select withSelect = withSelects.getFirst();
                 select.setWhat(withSelect.getWhat());
                 select.setFrom(withSelect.getFrom());
                 select.setWhere(withSelect.getWhere());
@@ -955,21 +955,15 @@ public class NXQLQueryMaker implements QueryMaker {
     }
 
     protected static Serializable getSerializableLiteral(Literal literal) {
-        Serializable value;
-        if (literal instanceof BooleanLiteral booleanLiteral) {
-            value = Boolean.valueOf(booleanLiteral.value);
-        } else if (literal instanceof DateLiteral dLit) {
-            value = dLit.onlyDate ? dLit.toSqlDate() : dLit.toCalendar();
-        } else if (literal instanceof DoubleLiteral doubleLiteral) {
-            value = Double.valueOf(doubleLiteral.value);
-        } else if (literal instanceof IntegerLiteral integerLiteral) {
-            value = Long.valueOf(integerLiteral.value);
-        } else if (literal instanceof StringLiteral stringLiteral) {
-            value = stringLiteral.value;
-        } else {
-            throw new QueryParseException("type of literal in list is not recognized: " + literal.getClass());
-        }
-        return value;
+        return switch (literal) {
+            case BooleanLiteral booleanLiteral -> Boolean.valueOf(booleanLiteral.value);
+            case DateLiteral dLit -> dLit.onlyDate ? dLit.toSqlDate() : dLit.toCalendar();
+            case DoubleLiteral doubleLiteral -> Double.valueOf(doubleLiteral.value);
+            case IntegerLiteral integerLiteral -> Long.valueOf(integerLiteral.value);
+            case StringLiteral stringLiteral -> stringLiteral.value;
+            case null, default ->
+                throw new QueryParseException("type of literal in list is not recognized: " + literal.getClass());
+        };
     }
 
     protected static List<Serializable> getSerializableLiterals(LiteralList list) {
@@ -1433,7 +1427,7 @@ public class NXQLQueryMaker implements QueryMaker {
             String func = node.name.toUpperCase();
             if (inSelect) {
                 if (!AGGREGATE_FUNCTIONS.contains(func) || node.args.size() != 1
-                        || !(node.args.get(0) instanceof Reference ref)) {
+                        || !(node.args.getFirst() instanceof Reference ref)) {
                     throw new QueryParseException("Function not supported in SELECT clause: " + node);
                 }
                 visitReference(ref);
@@ -1443,7 +1437,7 @@ public class NXQLQueryMaker implements QueryMaker {
                 if (NXQL.NOW_FUNCTION.equals(func)) {
                     if (node.args == null || node.args.isEmpty()) {
                         // ok, no arg
-                    } else if (node.args.size() == 1 && node.args.get(0) instanceof StringLiteral) {
+                    } else if (node.args.size() == 1 && node.args.getFirst() instanceof StringLiteral) {
                         // ok, one string arg
                     } else {
                         throw new QueryParseException("Function not supported in WHERE clause: " + node);
@@ -2524,7 +2518,7 @@ public class NXQLQueryMaker implements QueryMaker {
             if (inSelect) {
                 // AGGREGATE_FUNCTIONS
                 String func = node.name.toUpperCase();
-                Reference ref = (Reference) node.args.get(0);
+                Reference ref = (Reference) node.args.getFirst();
                 ref.accept(this); // whatColumns / whatKeys for column
 
                 // replace column info with aggregate
@@ -2561,7 +2555,7 @@ public class NXQLQueryMaker implements QueryMaker {
                 if (node.args == null || node.args.size() != 1) {
                     periodAndDurationText = null;
                 } else {
-                    periodAndDurationText = ((StringLiteral) node.args.get(0)).value;
+                    periodAndDurationText = ((StringLiteral) node.args.getFirst()).value;
                 }
                 ZonedDateTime dateTime;
                 try {

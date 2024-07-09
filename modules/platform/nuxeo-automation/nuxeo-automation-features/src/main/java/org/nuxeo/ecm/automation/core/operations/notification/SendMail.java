@@ -293,20 +293,17 @@ public class SendMail {
         for (String xpath : blobXpath) {
             try {
                 Property p = doc.getProperty(xpath);
-                if (p instanceof BlobProperty) {
-                    getBlob(p.getValue(), blobs);
-                } else if (p instanceof ListProperty) {
-                    for (Property pp : p) {
-                        getBlob(pp.getValue(), blobs);
+                switch (p) {
+                    case BlobProperty blobProperty -> getBlob(blobProperty.getValue(), blobs);
+                    case ListProperty listProperty -> listProperty.forEach(prop -> getBlob(prop.getValue(), blobs));
+                    case MapProperty mapProperty ->
+                        mapProperty.values().forEach(prop -> getBlob(prop.getValue(), blobs));
+                    case null -> {
                     }
-                } else if (p instanceof MapProperty) {
-                    for (Property sp : ((MapProperty) p).values()) {
-                        getBlob(sp.getValue(), blobs);
-                    }
-                } else {
-                    Object o = p.getValue();
-                    if (o instanceof Blob) {
-                        blobs.add((Blob) o);
+                    default -> {
+                        if (p.getValue() instanceof Blob blob) {
+                            blobs.add(blob);
+                        }
                     }
                 }
             } catch (PropertyException pe) {

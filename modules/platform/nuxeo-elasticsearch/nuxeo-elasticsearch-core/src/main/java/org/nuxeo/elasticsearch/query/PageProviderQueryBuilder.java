@@ -130,20 +130,18 @@ public class PageProviderQueryBuilder {
      * Convert a params for fixed part
      */
     protected static String convertParam(final Object param, boolean quote) {
-        String ret;
-        if (param == null) {
-            ret = "";
-        } else if (param instanceof List<?> list) {
-            StringBuilder stringBuilder = new StringBuilder();
-            NXQLQueryBuilder.appendStringList(stringBuilder, list, quote, true);
-            ret = stringBuilder.toString();
-            // quote is already taken in account
-            quote = false;
-        } else if (param instanceof Calendar cal) {
-            ret = DateParser.formatW3CDateTime(cal.getTime());
-        } else {
-            ret = param.toString();
-        }
+        String ret = switch (param) {
+            case List<?> list -> {
+                StringBuilder stringBuilder = new StringBuilder();
+                NXQLQueryBuilder.appendStringList(stringBuilder, list, quote, true);
+                // quote is already taken in account
+                quote = false;
+                yield stringBuilder.toString();
+            }
+            case Calendar cal -> DateParser.formatW3CDateTime(cal.getTime());
+            case null -> "";
+            default -> param.toString();
+        };
         if (quote && param instanceof String) {
             ret = "\"" + ret + "\"";
         }

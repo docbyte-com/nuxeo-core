@@ -272,9 +272,7 @@ public class MarshallerRegistryImpl extends DefaultComponent implements Marshall
             result.putAll(searchAllCandidates(ctx, marshalledClazz, genericType, mediatype, customs));
         }
         result.putAll(searchAllCandidates(ctx, marshalledClazz, genericType, mediatype, wildcards));
-        List<Marshaller<T>> resultList = new ArrayList<>(result.values());
-        Collections.reverse(resultList);
-        return resultList;
+        return new ArrayList<>(result.values()).reversed();
     }
 
     @SuppressWarnings("unchecked")

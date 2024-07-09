@@ -185,15 +185,15 @@ public class DocumentPropertiesJsonReader extends AbstractJsonReader<List<Proper
         } else if (type instanceof BooleanType) {
             return values.toArray((T[]) Array.newInstance(Boolean.class, values.size()));
         } else if (type instanceof LongType) {
-            if (!values.isEmpty() && values.get(0) instanceof Integer) {
+            if (!values.isEmpty() && values.getFirst() instanceof Integer) {
                 return values.toArray((T[]) Array.newInstance(Integer.class, values.size()));
             }
             return values.toArray((T[]) Array.newInstance(Long.class, values.size()));
         } else if (type instanceof DoubleType) {
-            if (!values.isEmpty() && values.get(0) instanceof Integer) {
+            if (!values.isEmpty() && values.getFirst() instanceof Integer) {
                 return values.toArray((T[]) Array.newInstance(Integer.class, values.size()));
             }
-            if (!values.isEmpty() && values.get(0) instanceof Long) {
+            if (!values.isEmpty() && values.getFirst() instanceof Long) {
                 return values.toArray((T[]) Array.newInstance(Long.class, values.size()));
             }
             return values.toArray((T[]) Array.newInstance(Double.class, values.size()));
@@ -293,23 +293,16 @@ public class DocumentPropertiesJsonReader extends AbstractJsonReader<List<Proper
         } else if (jn.isBinary() && type instanceof BinaryType) {
             value = jn.binaryValue();
         } else if (jn.isTextual()) {
-            if (type instanceof BooleanType) {
-                value = tryParse(Boolean::parseBoolean, jn.asText(), property);
-            } else if (type instanceof LongType) {
-                value = tryParse(Long::parseLong, jn.asText(), property);
-            } else if (type instanceof DoubleType) {
-                value = tryParse(Double::parseDouble, jn.asText(), property);
-            } else if (type instanceof IntegerType) {
-                value = tryParse(Integer::parseInt, jn.asText(), property);
-            } else if (type instanceof BinaryType) {
-                value = jn.binaryValue();
-            } else if (type instanceof StringType) {
-                value = jn.asText();
-            } else if (type instanceof DateType) {
-                value = tryParse(type::decode, jn.asText(), property);
-            } else {
-                throw newUnableToDeserializeException(property);
-            }
+            value = switch (type) {
+                case BooleanType ignored -> tryParse(Boolean::parseBoolean, jn.asText(), property);
+                case LongType ignored -> tryParse(Long::parseLong, jn.asText(), property);
+                case DoubleType ignored -> tryParse(Double::parseDouble, jn.asText(), property);
+                case IntegerType ignored -> tryParse(Integer::parseInt, jn.asText(), property);
+                case BinaryType ignored -> jn.binaryValue();
+                case StringType ignored -> jn.asText();
+                case DateType dataType -> tryParse(dataType::decode, jn.asText(), property);
+                case null, default -> throw newUnableToDeserializeException(property);
+            };
         } else {
             throw newUnableToDeserializeException(property);
         }

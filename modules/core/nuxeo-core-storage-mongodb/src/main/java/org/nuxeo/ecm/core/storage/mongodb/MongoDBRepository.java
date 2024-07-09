@@ -379,24 +379,17 @@ public class MongoDBRepository extends DBSRepositoryBase {
 
     protected void markReferencedBlobs(Document ob, BiConsumer<String, String> markerCallback) {
         for (var value : ob.values()) {
-            if (value instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> list = (List<Object>) value;
-                for (Object v : list) {
+            switch (value) {
+                case List<?> list -> list.forEach(v -> {
                     if (v instanceof Document) {
                         markReferencedBlobs((Document) v, markerCallback);
                     } else {
                         markReferencedBlob(v, markerCallback);
                     }
-                }
-            } else if (value instanceof Object[]) {
-                for (Object v : (Object[]) value) {
-                    markReferencedBlob(v, markerCallback);
-                }
-            } else if (value instanceof Document) {
-                markReferencedBlobs((Document) value, markerCallback);
-            } else {
-                markReferencedBlob(value, markerCallback);
+                });
+                case Object[] objects -> List.of(objects).forEach(v -> markReferencedBlob(v, markerCallback));
+                case Document document -> markReferencedBlobs(document, markerCallback);
+                case null, default -> markReferencedBlob(value, markerCallback);
             }
         }
     }

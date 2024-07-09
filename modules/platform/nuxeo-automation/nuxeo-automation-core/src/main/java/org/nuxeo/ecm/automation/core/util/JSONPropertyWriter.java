@@ -221,26 +221,21 @@ public class JSONPropertyWriter {
             }
         } else {
             fieldNameWriter.accept(jg, prop);
-            if (type instanceof BooleanType) {
-                jg.writeBoolean((Boolean) v);
-            } else if (type instanceof LongType) {
-                jg.writeNumber(((Number) v).longValue());
-            } else if (type instanceof DoubleType) {
-                jg.writeNumber(((Number) v).doubleValue());
-            } else if (type instanceof IntegerType) {
-                jg.writeNumber(((Number) v).intValue());
-            } else if (type instanceof BinaryType) {
-                jg.writeBinary((byte[]) v);
-            } else if (type instanceof DateType && dateTimeFormat == DateTimeFormat.TIME_IN_MILLIS) {
-                if (v instanceof Date) {
-                    jg.writeNumber(((Date) v).getTime());
-                } else if (v instanceof Calendar) {
-                    jg.writeNumber(((Calendar) v).getTimeInMillis());
-                } else {
-                    throw new PropertyException("Unknown class for DateType: " + v.getClass().getName() + ", " + v);
+            switch (type) {
+                case BooleanType ignored -> jg.writeBoolean((Boolean) v);
+                case LongType ignored -> jg.writeNumber(((Number) v).longValue());
+                case DoubleType ignored -> jg.writeNumber(((Number) v).doubleValue());
+                case IntegerType ignored -> jg.writeNumber(((Number) v).intValue());
+                case BinaryType ignored -> jg.writeBinary((byte[]) v);
+                case DateType ignored when dateTimeFormat == DateTimeFormat.TIME_IN_MILLIS -> {
+                    switch (v) {
+                        case Date date -> jg.writeNumber(date.getTime());
+                        case Calendar cal -> jg.writeNumber(cal.getTimeInMillis());
+                        case null, default -> throw new PropertyException(
+                                "Unknown class for DateType: " + v.getClass().getName() + ", " + v);
+                    }
                 }
-            } else {
-                jg.writeString(type.encode(v));
+                case null, default -> jg.writeString(type.encode(v));
             }
         }
     }

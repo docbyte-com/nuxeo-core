@@ -128,19 +128,13 @@ public class TestAvroMapper {
         if (!(Objects.equals(e.getName(), o.getName()) && e.getClass().equals(o.getClass()))) {
             return false;
         }
-        if (e instanceof ArrayProperty) {
-            return equals((ArrayProperty) e, (ArrayProperty) o);
-        }
-        if (e instanceof BlobProperty) {
-            return equals((BlobProperty) e, (BlobProperty) o);
-        }
-        if (e instanceof ComplexProperty) {
-            return equals((ComplexProperty) e, (ComplexProperty) o);
-        }
-        if (e instanceof ListProperty) {
-            return equals((ListProperty) e, (ListProperty) o);
-        }
-        return Objects.equals(e.getValue(), o.getValue());
+        return switch (e) {
+            case ArrayProperty properties -> equals(properties, (ArrayProperty) o);
+            case BlobProperty properties -> equals(properties, (BlobProperty) o);
+            case ComplexProperty properties -> equals(properties, (ComplexProperty) o);
+            case ListProperty properties -> equals(properties, (ListProperty) o);
+            default -> Objects.equals(e.getValue(), o.getValue());
+        };
     }
 
     protected void test(String path) throws IOException {

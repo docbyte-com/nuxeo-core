@@ -164,26 +164,17 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
 
         @Override
         public JWTBuilderImpl withClaim(String name, Object value) {
-            if (value instanceof Boolean) {
-                builder.withClaim(name, (Boolean) value);
-            } else if (value instanceof Date) {
-                builder.withClaim(name, (Date) value);
-            } else if (value instanceof Double) {
-                builder.withClaim(name, (Double) value);
-            } else if (value instanceof Integer) {
-                builder.withClaim(name, (Integer) value);
-            } else if (value instanceof Long) {
-                builder.withClaim(name, (Long) value);
-            } else if (value instanceof String) {
-                builder.withClaim(name, (String) value);
-            } else if (value instanceof Integer[]) {
-                builder.withArrayClaim(name, (Integer[]) value);
-            } else if (value instanceof Long[]) {
-                builder.withArrayClaim(name, (Long[]) value);
-            } else if (value instanceof String[]) {
-                builder.withArrayClaim(name, (String[]) value);
-            } else {
-                throw new NuxeoException("Unknown claim type: " + value);
+            switch (value) {
+                case Boolean b -> builder.withClaim(name, b);
+                case Date date -> builder.withClaim(name, date);
+                case Double v -> builder.withClaim(name, v);
+                case Integer i -> builder.withClaim(name, i);
+                case Long l -> builder.withClaim(name, l);
+                case String s -> builder.withClaim(name, s);
+                case Integer[] integers -> builder.withArrayClaim(name, integers);
+                case Long[] longs -> builder.withArrayClaim(name, longs);
+                case String[] strings -> builder.withArrayClaim(name, strings);
+                case null, default -> throw new NuxeoException("Unknown claim type: " + value);
             }
             return this;
         }
@@ -203,26 +194,17 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
     }
 
     protected void builderWithClaim(Builder builder, String name, Object value) {
-        if (value instanceof Boolean) {
-            builder.withClaim(name, (Boolean) value);
-        } else if (value instanceof Date) {
-            builder.withClaim(name, (Date) value);
-        } else if (value instanceof Double) {
-            builder.withClaim(name, (Double) value);
-        } else if (value instanceof Integer) {
-            builder.withClaim(name, (Integer) value);
-        } else if (value instanceof Long) {
-            builder.withClaim(name, (Long) value);
-        } else if (value instanceof String) {
-            builder.withClaim(name, (String) value);
-        } else if (value instanceof Integer[]) {
-            builder.withArrayClaim(name, (Integer[]) value);
-        } else if (value instanceof Long[]) {
-            builder.withArrayClaim(name, (Long[]) value);
-        } else if (value instanceof String[]) {
-            builder.withArrayClaim(name, (String[]) value);
-        } else {
-            throw new NuxeoException("Unknown claim type: " + value);
+        switch (value) {
+            case Boolean b -> builder.withClaim(name, b);
+            case Date date -> builder.withClaim(name, date);
+            case Double v -> builder.withClaim(name, v);
+            case Integer i -> builder.withClaim(name, i);
+            case Long l -> builder.withClaim(name, l);
+            case String s -> builder.withClaim(name, s);
+            case Integer[] integers -> builder.withArrayClaim(name, integers);
+            case Long[] longs -> builder.withArrayClaim(name, longs);
+            case String[] strings -> builder.withArrayClaim(name, strings);
+            case null, default -> throw new NuxeoException("Unknown claim type: " + value);
         }
     }
 

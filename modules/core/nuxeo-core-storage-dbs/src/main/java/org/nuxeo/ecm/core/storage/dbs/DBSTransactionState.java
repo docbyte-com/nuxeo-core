@@ -1465,16 +1465,12 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         }
 
         protected void findDirtyPaths(Object value, String path) {
-            if (value instanceof Object[]) {
-                findDirtyPaths((Object[]) value, path);
-            } else if (value instanceof List) {
-                findDirtyPaths((List<?>) value, path);
-            } else if (value instanceof ListDiff) {
-                findDirtyPaths((ListDiff) value, path);
-            } else if (value instanceof State) {
-                findDirtyPaths((State) value, path);
-            } else {
-                paths.add(path);
+            switch (value) {
+                case Object[] objects -> findDirtyPaths(objects, path);
+                case List<?> list -> findDirtyPaths(list, path);
+                case ListDiff listDiff -> findDirtyPaths(listDiff, path);
+                case State state -> findDirtyPaths(state, path);
+                case null, default -> paths.add(path);
             }
         }
 

@@ -287,19 +287,15 @@ public class UserProfileImporter {
                                 type = type.getSuperType();
                             }
                             if (type.isSimpleType()) {
-                                if (type instanceof StringType) {
-                                    fieldValue = stringValue;
-                                } else if (type instanceof IntegerType) {
-                                    fieldValue = Integer.valueOf(stringValue);
-                                } else if (type instanceof LongType) {
-                                    fieldValue = Long.valueOf(stringValue);
-                                } else if (type instanceof DoubleType) {
-                                    fieldValue = Double.valueOf(stringValue);
-                                } else if (type instanceof BooleanType) {
-                                    fieldValue = Boolean.valueOf(stringValue);
-                                } else if (type instanceof DateType) {
-                                    fieldValue = getDateFormat().parse(stringValue);
-                                }
+                                fieldValue = switch (type) {
+                                    case StringType ignored -> stringValue;
+                                    case IntegerType ignored -> Integer.valueOf(stringValue);
+                                    case LongType ignored -> Long.valueOf(stringValue);
+                                    case DoubleType ignored -> Double.valueOf(stringValue);
+                                    case BooleanType ignored -> Boolean.valueOf(stringValue);
+                                    case DateType ignored -> getDateFormat().parse(stringValue);
+                                    default -> null;
+                                };
                             }
                         }
                     }

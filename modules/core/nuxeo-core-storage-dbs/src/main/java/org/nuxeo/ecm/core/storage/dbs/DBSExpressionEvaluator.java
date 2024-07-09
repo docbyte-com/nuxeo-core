@@ -37,7 +37,6 @@ import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.PROP_MINOR_VERSION;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -360,7 +359,7 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
         parsing = false;
 
         // we use all iterators in reversed ordered to increment them lexicographically from the end
-        Collections.reverse(allIterInfos);
+        allIterInfos = allIterInfos.reversed();
     }
 
     /**
@@ -779,27 +778,15 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
         } else if (step instanceof Integer) {
             // explicit list index
             int index = ((Integer) step).intValue();
-            if (value == null) {
-                return null;
-            } else if (value instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Serializable> list = (List<Serializable>) value;
-                if (index >= list.size()) {
-                    return null;
-                } else {
-                    return list.get(index);
-                }
-            } else if (value instanceof Object[]) {
-                Object[] array = (Object[]) value;
-                if (index >= array.length) {
-                    return null;
-                } else {
-                    return array[index];
-                }
-            } else {
-                throw new QueryParseException(
+            return switch (value) {
+                case null -> null;
+                case List list when index >= list.size() -> null;
+                case Object[] array when index >= array.length -> null;
+                case List list -> list.get(index);
+                case Object[] array -> array[index];
+                default -> throw new QueryParseException(
                         "Invalid property " + step + " (no List/array but " + value.getClass() + ")");
-            }
+            };
         } else {
             throw new QueryParseException("Invalid step " + step + " (unknown class " + step.getClass() + ")");
         }
