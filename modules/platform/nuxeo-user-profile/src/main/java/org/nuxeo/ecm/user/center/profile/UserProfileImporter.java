@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -72,7 +72,10 @@ public class UserProfileImporter {
 
     public static final String USER_PROFILE_IMPORTER_USERNAME_COL = "username";
 
-    protected Character escapeCharacter = '\\';
+    protected static final CSVFormat IMPORT_CSV_FORMAT = CSVFormat.DEFAULT.builder()
+                                                                          .setEscape('\\')
+                                                                          .setHeader()
+                                                                          .build();
 
     protected ImporterConfig config;
 
@@ -114,7 +117,7 @@ public class UserProfileImporter {
             }
 
             try (Reader in = new BufferedReader(new InputStreamReader(is));
-                    CSVParser parser = CSVFormat.DEFAULT.withEscape(escapeCharacter).withHeader().parse(in)) {
+                    CSVParser parser = IMPORT_CSV_FORMAT.parse(in)) {
                 doImport(session, parser, ups);
             }
         } catch (IOException e) {
@@ -123,14 +126,10 @@ public class UserProfileImporter {
 
     }
 
-    @SuppressWarnings("resource") // closed by caller
     protected InputStream getResourceAsStream(String resource) {
         InputStream is = getClass().getClassLoader().getResourceAsStream(resource);
         if (is == null) {
             is = Framework.getResourceLoader().getResourceAsStream(resource);
-            if (is == null) {
-                return null;
-            }
         }
         return is;
     }

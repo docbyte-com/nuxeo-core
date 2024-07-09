@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.PROP_MINOR_VERSION;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -102,7 +101,9 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
 
     protected boolean parsing;
 
-    /** Info about a value and how to compute it from the toplevel state or an iterator's state. */
+    /**
+     * Info about a value and how to compute it from the toplevel state or an iterator's state.
+     */
     protected static final class ValueInfo {
 
         /**
@@ -126,7 +127,9 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
 
         public boolean isDateCast;
 
-        /** The value computed for this reference. */
+        /**
+         * The value computed for this reference.
+         */
         public Object value;
 
         public ValueInfo(List<Serializable> steps, String nxqlProp, String canonRef) {
@@ -211,13 +214,13 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
 
         public void setList(Object list) {
             if (list == null) {
-                this.list = Collections.emptyList();
+                this.list = List.of();
             } else if (list instanceof List) {
                 @SuppressWarnings("unchecked")
                 List<Object> stateList = (List<Object>) list;
                 this.list = stateList;
             } else {
-                this.list = Arrays.asList((Object[]) list);
+                this.list = List.of((Object[]) list);
             }
             reset();
         }
@@ -255,22 +258,34 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
         }
     }
 
-    /** For each encountered reference in traversal order, the corresponding value info. */
+    /**
+     * For each encountered reference in traversal order, the corresponding value info.
+     */
     protected List<ValueInfo> referenceValueInfos;
 
-    /** Map of canonical reference to value info. */
+    /**
+     * Map of canonical reference to value info.
+     */
     protected Map<String, ValueInfo> canonicalReferenceValueInfos;
 
-    /** Map of canonical reference prefix to iterator. */
+    /**
+     * Map of canonical reference prefix to iterator.
+     */
     protected Map<String, IterInfo> canonicalPrefixIterInfos;
 
-    /** List of all iterators, in reversed order. */
+    /**
+     * List of all iterators, in reversed order.
+     */
     protected List<IterInfo> allIterInfos;
 
-    /** The toplevel iterators. */
+    /**
+     * The toplevel iterators.
+     */
     protected List<IterInfo> toplevelIterInfos;
 
-    /** The toplevel values, computed without wildcards. */
+    /**
+     * The toplevel values, computed without wildcards.
+     */
     protected List<ValueInfo> toplevelValueInfos;
 
     // correlation to use for each uncorrelated wildcard (negative to avoid collisions with correlated ones)
@@ -315,7 +330,7 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
 
     protected Set<String> getMixinDocumentTypes(String mixin) {
         Set<String> types = schemaManager.getDocumentTypeNamesForFacet(mixin);
-        return types == null ? Collections.emptySet() : types;
+        return types == null ? Set.of() : types;
     }
 
     protected boolean isNeverPerInstanceMixin(String mixin) {
@@ -353,7 +368,7 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
      */
     public List<Map<String, Serializable>> matches(State state) {
         if (!checkSecurity(state)) {
-            return Collections.emptyList();
+            return List.of();
         }
         this.state = state; // needed for mixin types evaluation
 
@@ -420,8 +435,7 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
         boolean sortOnFulltextScore = false;
         SelectList elements = selectClause.getSelectList();
         for (Operand op : elements.values()) {
-            if (op instanceof Reference) {
-                Reference ref = (Reference) op;
+            if (op instanceof Reference ref) {
                 if (ref.name.equals(NXQL.ECM_FULLTEXT_SCORE)) {
                     projectionOnFulltextScore = true;
                 }
@@ -705,13 +719,13 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
         List<Serializable> steps;
         String canonRef;
         if (subPart.equals(KEY_ACL_NAME)) {
-            steps = new ArrayList<>(Arrays.asList(KEY_ACP, Long.valueOf(corr), KEY_ACL_NAME));
+            steps = new ArrayList<>(List.of(KEY_ACP, Long.valueOf(corr), KEY_ACL_NAME));
             canonRef = KEY_ACP + '/' + wildcard + '/' + KEY_ACL_NAME;
         } else {
             // for the second iterator we want a correlation number tied to the first one
             int corr2 = corr * 1000000;
             String wildcard2 = "*" + corr2;
-            steps = new ArrayList<>(Arrays.asList(KEY_ACP, Long.valueOf(corr), KEY_ACL, Long.valueOf(corr2), subPart));
+            steps = new ArrayList<>(List.of(KEY_ACP, Long.valueOf(corr), KEY_ACL, Long.valueOf(corr2), subPart));
             canonRef = KEY_ACP + '/' + wildcard + '/' + KEY_ACL + '/' + wildcard2 + '/' + subPart;
         }
         ValueInfo valueInfo = new ValueInfo(steps, name, canonRef);
@@ -863,7 +877,7 @@ public class DBSExpressionEvaluator extends ExpressionEvaluator {
          */
         String primaryType = (String) state.get(KEY_PRIMARY_TYPE);
         Object[] mixinTypesArray = (Object[]) state.get(KEY_MIXIN_TYPES);
-        List<Object> mixinTypes = mixinTypesArray == null ? Collections.emptyList() : Arrays.asList(mixinTypesArray);
+        List<Object> mixinTypes = mixinTypesArray == null ? List.of() : List.of(mixinTypesArray);
         if (include) {
             // primary types
             if (matchPrimaryTypes.contains(primaryType)) {

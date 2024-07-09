@@ -44,6 +44,7 @@ import java.util.UUID;
 import java.util.function.BiFunction;
 import java.util.function.UnaryOperator;
 
+import com.unboundid.scim2.common.types.AttributeDefinition;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -249,12 +250,12 @@ public class ScimV2MappingServiceImpl extends DefaultComponent implements ScimV2
         try {
             userCaseSensitiveFields = SchemaUtils.getAttributes(UserResource.class)
                                                  .stream()
-                                                 .filter(a -> a.isCaseExact())
+                                                 .filter(AttributeDefinition::isCaseExact)
                                                  .map(a -> a.getName().toLowerCase())
                                                  .toList();
             groupCaseSensitiveFields = SchemaUtils.getAttributes(GroupResource.class)
                                                   .stream()
-                                                  .filter(a -> a.isCaseExact())
+                                                  .filter(AttributeDefinition::isCaseExact)
                                                   .map(a -> a.getName().toLowerCase())
                                                   .toList();
         } catch (IntrospectionException e) {

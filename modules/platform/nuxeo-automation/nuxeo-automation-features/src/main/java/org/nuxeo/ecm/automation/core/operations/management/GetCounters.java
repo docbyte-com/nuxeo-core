@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
 package org.nuxeo.ecm.automation.core.operations.management;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,8 +43,8 @@ import org.nuxeo.runtime.management.counters.CounterManager;
  * Return the data collected by one or more Counters For each counter 3 series are returned , bare values, delta and
  * speed
  *
- * @deprecated since 11.4, superseded by dropwizard metrics
  * @author Tiry (tdelprat@nuxeo.com)
+ * @deprecated since 11.4, superseded by dropwizard metrics
  */
 @Deprecated(since = "11.4")
 @Operation(id = GetCounters.ID, category = Constants.CAT_SERVICES, label = "Retrieve counters values", description = "Retrieve data collected by one or more Counters", addToStudio = false, deprecatedSince = "11.4")
@@ -97,11 +95,11 @@ public class GetCounters {
 
                     // bare values
                     Float bareValue = Float.valueOf(value);
-                    valueSerie.add(Arrays.asList(tFloat, bareValue));
+                    valueSerie.add(List.of(tFloat, bareValue));
 
                     // delta values
                     Float deltaValue = Float.valueOf(value - lastValue);
-                    deltaSerie.add(Arrays.asList(tFloat, deltaValue));
+                    deltaSerie.add(List.of(tFloat, deltaValue));
 
                     if (lastTS > 0) {
                         // speed values
@@ -110,7 +108,7 @@ public class GetCounters {
                             tdelta = 1;
                         }
                         Float speedValue = Float.valueOf(60 * (value - lastValue) / (tdelta));
-                        speedSerie.add(Arrays.asList(tFloat, speedValue));
+                        speedSerie.add(List.of(tFloat, speedValue));
                     }
                     lastTS = t;
                     lastValue = value;

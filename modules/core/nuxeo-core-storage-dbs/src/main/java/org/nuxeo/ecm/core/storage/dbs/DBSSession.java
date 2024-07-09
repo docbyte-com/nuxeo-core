@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -287,7 +287,7 @@ public class DBSSession extends BaseSession {
         String[] names = path.split("/", -1);
         for (int i = 1; i < names.length; i++) {
             String name = names[i];
-            if (name.length() == 0) {
+            if (name.isEmpty()) {
                 throw new DocumentNotFoundException("Path with empty component: " + path);
             }
             docState = transaction.getChildState(parentId, name);
@@ -326,7 +326,7 @@ public class DBSSession extends BaseSession {
         String[] names = path.split("/", -1);
         for (int i = 1; i < names.length; i++) {
             String name = names[i];
-            if (name.length() == 0) {
+            if (name.isEmpty()) {
                 throw new DocumentNotFoundException("Path with empty component: " + path);
             }
             // TODO XXX add getChildId method
@@ -821,7 +821,9 @@ public class DBSSession extends BaseSession {
         return name;
     }
 
-    /** Checks that we don't move/copy under ourselves. */
+    /**
+     * Checks that we don't move/copy under ourselves.
+     */
     protected void checkNotUnder(String parentId, String id, String op) {
         // TODO use ancestors
         String pid = parentId;
@@ -879,7 +881,6 @@ public class DBSSession extends BaseSession {
             }
         }
         ancestorIdsList.add(parentId);
-        Object[] ancestorIds = ancestorIdsList.toArray(Object[]::new);
 
         if (ancestorIdsList.contains(sourceId)) {
             throw new DocumentExistsException("Cannot move a node under itself: " + parentId + " is under " + sourceId);
@@ -1668,7 +1669,9 @@ public class DBSSession extends BaseSession {
         return projections;
     }
 
-    /** Does an ORDER BY clause include ecm:path */
+    /**
+     * Does an ORDER BY clause include ecm:path
+     */
     protected boolean isOrderByPath(OrderByClause orderByClause) {
         if (orderByClause == null) {
             return false;

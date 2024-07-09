@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,13 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.runtime.mongodb;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +50,7 @@ public class MongoDBSerializationHelper {
      * @return the new BSON object
      */
     public static Document fieldMapToBson(String key, Object value) {
-        return fieldMapToBson(Collections.singletonMap(key, value));
+        return fieldMapToBson(Map.of(key, value));
     }
 
     /**
@@ -80,23 +76,20 @@ public class MongoDBSerializationHelper {
      * @param value the object to transform
      * @return the BSON object
      */
+    @SuppressWarnings("unchecked")
     public static Object valueToBson(Object value) {
-        if (value instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) value;
-            return fieldMapToBson(map);
-        } else if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> values = (List<Object>) value;
+        if (value instanceof Map<?, ?> map) {
+            return fieldMapToBson((Map<String, Object>) map);
+        } else if (value instanceof List<?> values) {
             return listToBson(values);
-        } else if (value instanceof Object[]) {
-            return listToBson(Arrays.asList((Object[]) value));
+        } else if (value instanceof Object[] values) {
+            return listToBson(List.of(values));
         } else {
             return serializableToBson(value);
         }
     }
 
-    protected static List<Object> listToBson(List<Object> values) {
+    protected static List<Object> listToBson(List<?> values) {
         List<Object> objects = new ArrayList<>(values.size());
         for (Object value : values) {
             objects.add(valueToBson(value));
@@ -105,8 +98,8 @@ public class MongoDBSerializationHelper {
     }
 
     protected static Object serializableToBson(Object value) {
-        if (value instanceof Calendar) {
-            return ((Calendar) value).getTime();
+        if (value instanceof Calendar cal) {
+            return cal.getTime();
         }
         return value;
     }
@@ -130,9 +123,7 @@ public class MongoDBSerializationHelper {
     }
 
     protected static Serializable bsonToValue(Object value) {
-        if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) value;
+        if (value instanceof List<?> list) {
             if (list.isEmpty()) {
                 return null;
             } else {
@@ -159,8 +150,8 @@ public class MongoDBSerializationHelper {
                     return array;
                 }
             }
-        } else if (value instanceof Document) {
-            return (Serializable) bsonToFieldMap((Document) value);
+        } else if (value instanceof Document doc) {
+            return (Serializable) bsonToFieldMap(doc);
         } else {
             return scalarToSerializable(value);
         }
@@ -174,9 +165,9 @@ public class MongoDBSerializationHelper {
     }
 
     protected static Serializable scalarToSerializable(Object value) {
-        if (value instanceof Date) {
+        if (value instanceof Date date) {
             Calendar cal = Calendar.getInstance();
-            cal.setTime((Date) value);
+            cal.setTime(date);
             return cal;
         }
         return (Serializable) value;

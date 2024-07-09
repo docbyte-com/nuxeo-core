@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -227,6 +227,7 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> verifyToken(String token) {
         Objects.requireNonNull(token);
         Algorithm algorithm = getAlgorithm();

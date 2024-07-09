@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ public class RenderingContextImpl implements RenderingContext {
         return baseUrl;
     }
 
-    @SuppressWarnings("resource") // wrapped session will be closed when the wrapper is closed
     @Override
     public SessionWrapper getSession(DocumentModel document) {
         if (document != null) {
@@ -336,7 +335,7 @@ public class RenderingContextImpl implements RenderingContext {
 
     public static final class RenderingContextBuilder {
 
-        private RenderingContextImpl ctx;
+        protected final RenderingContextImpl ctx;
 
         RenderingContextBuilder() {
             ctx = new RenderingContextImpl();

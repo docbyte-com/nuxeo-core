@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.core.api;
 
 import java.text.Collator;
@@ -105,7 +102,9 @@ public class DocumentModelComparator implements Sorter {
 
         int cmp = 0;
         if (schemaName != null) {
+            @SuppressWarnings("deprecation")
             DataModel d1 = doc1.getDataModel(schemaName);
+            @SuppressWarnings("deprecation")
             DataModel d2 = doc2.getDataModel(schemaName);
             for (Entry<String, String> e : orderBy.entrySet()) {
                 final String fieldName = e.getKey();
@@ -121,13 +120,13 @@ public class DocumentModelComparator implements Sorter {
             for (Entry<String, String> e : orderBy.entrySet()) {
                 final String propertyName = e.getKey();
                 final boolean asc = ORDER_ASC.equals(e.getValue());
-                Object v1 = null;
+                Object v1;
                 try {
                     v1 = doc1.getPropertyValue(propertyName);
                 } catch (PropertyException pe) {
                     v1 = null;
                 }
-                Object v2 = null;
+                Object v2;
                 try {
                     v2 = doc2.getPropertyValue(propertyName);
                 } catch (PropertyException pe) {
@@ -141,13 +140,7 @@ public class DocumentModelComparator implements Sorter {
         }
         if (cmp == 0) {
             // everything being equal, provide consistent ordering
-            if (doc1.hashCode() == doc2.hashCode()) {
-                cmp = 0;
-            } else if (doc1.hashCode() < doc2.hashCode()) {
-                cmp = -1;
-            } else {
-                cmp = 1;
-            }
+            cmp = Integer.compare(doc1.hashCode(), doc2.hashCode());
         }
         return cmp;
     }

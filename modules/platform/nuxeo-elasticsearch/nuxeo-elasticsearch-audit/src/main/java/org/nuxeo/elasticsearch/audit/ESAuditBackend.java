@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -240,7 +240,6 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public List<LogEntry> queryLogs(org.nuxeo.ecm.core.query.sql.model.QueryBuilder builder) {
         // prepare parameters
         MultiExpression predicate = builder.predicate();
@@ -375,7 +374,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
     }
 
     public SearchRequest buildQuery(String query, Map<String, Object> params) {
-        if (params != null && params.size() > 0) {
+        if (params != null && !params.isEmpty()) {
             query = expandQueryVariables(query, params);
         }
         SearchRequest request = createSearchRequest();
@@ -411,7 +410,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
     }
 
     public String expandQueryVariables(String query, Map<String, Object> params) {
-        if (params != null && params.size() > 0) {
+        if (params != null && !params.isEmpty()) {
             TextTemplate tmpl = new TextTemplate();
             for (String key : params.keySet()) {
                 Object val = params.get(key);
@@ -591,7 +590,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
                             l.add(v.toString());
                         }
                     }
-                    values = l.toArray(new String[l.size()]);
+                    values = l.toArray(String[]::new);
                 } else if (val[0] instanceof Object[]) {
                     values = (String[]) val[0];
                 }

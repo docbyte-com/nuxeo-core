@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     bdelbosc
  */
-
 package org.nuxeo.elasticsearch.query;
 
 import java.util.Calendar;
@@ -24,8 +23,6 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
@@ -33,6 +30,8 @@ import org.nuxeo.ecm.platform.query.api.PredicateDefinition;
 import org.nuxeo.ecm.platform.query.api.PredicateFieldDefinition;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
 
 /**
  * Elasticsearch query builder for Native Page provider.
@@ -109,11 +108,10 @@ public class PageProviderQueryBuilder {
                 continue;
             }
             Object value = values[0];
-            if (values[0] instanceof Collection<?>) {
-                Collection<?> vals = (Collection<?>) values[0];
-                values = vals.toArray(new Object[vals.size()]);
-            } else if (values[0] instanceof Object[]) {
-                values = (Object[]) values[0];
+            if (values[0] instanceof Collection<?> vals) {
+                values = vals.toArray(Object[]::new);
+            } else if (values[0] instanceof Object[] vals) {
+                values = vals;
             }
             String name = predicate.getParameter();
             String operator = predicate.getOperator().toUpperCase();
@@ -135,14 +133,14 @@ public class PageProviderQueryBuilder {
         String ret;
         if (param == null) {
             ret = "";
-        } else if (param instanceof List<?>) {
-            StringBuilder stringBuilder = new StringBuilder("");
-            NXQLQueryBuilder.appendStringList(stringBuilder, (List<?>) param, quote, true);
+        } else if (param instanceof List<?> list) {
+            StringBuilder stringBuilder = new StringBuilder();
+            NXQLQueryBuilder.appendStringList(stringBuilder, list, quote, true);
             ret = stringBuilder.toString();
             // quote is already taken in account
             quote = false;
-        } else if (param instanceof Calendar) {
-            ret = DateParser.formatW3CDateTime(((Calendar) param).getTime());
+        } else if (param instanceof Calendar cal) {
+            ret = DateParser.formatW3CDateTime(cal.getTime());
         } else {
             ret = param.toString();
         }
@@ -152,28 +150,25 @@ public class PageProviderQueryBuilder {
         return ret;
     }
 
-    @SuppressWarnings("rawtypes")
     protected static boolean isNonNullParam(final Object[] val) {
         if (val == null) {
             return false;
         }
         for (Object v : val) {
-            if (v != null) {
-                if (v instanceof String) {
-                    if (!((String) v).isEmpty()) {
-                        return true;
-                    }
-                } else if (v instanceof String[]) {
-                    if (((String[]) v).length > 0) {
-                        return true;
-                    }
-                } else if (v instanceof Collection) {
-                    if (!((Collection) v).isEmpty()) {
-                        return true;
-                    }
-                } else {
+            if (v instanceof String string) {
+                if (!string.isEmpty()) {
                     return true;
                 }
+            } else if (v instanceof String[] strings) {
+                if (strings.length > 0) {
+                    return true;
+                }
+            } else if (v instanceof Collection<?> collection) {
+                if (!collection.isEmpty()) {
+                    return true;
+                }
+            } else if (v != null) {
+                return true;
             }
         }
         return false;

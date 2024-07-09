@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -967,8 +967,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 if (listType.getFieldType().isSimpleType()) {
                     // array
                     Serializable value = property.getValueForWrite();
-                    if (value instanceof List) {
-                        List<?> list = (List<?>) value;
+                    if (value instanceof List<?> list) {
                         Object[] array;
                         // use properly-typed array, useful for mem backend that doesn't re-convert all types
                         Class<?> klass = Object.class;
@@ -980,8 +979,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                         }
                         array = (Object[]) Array.newInstance(klass, list.size());
                         value = list.toArray(array);
-                    } else if (value instanceof Object[]) {
-                        Object[] ar = (Object[]) value;
+                    } else if (value instanceof Object[] ar) {
                         if (ar.length != 0) {
                             // use properly-typed array, useful for mem backend that doesn't re-convert all types
                             Class<?> klass = Object.class;

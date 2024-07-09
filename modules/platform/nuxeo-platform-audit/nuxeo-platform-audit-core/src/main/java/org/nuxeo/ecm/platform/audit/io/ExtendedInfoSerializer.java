@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,25 +15,24 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.ecm.platform.audit.io;
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.SerializationUtils;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeFormatterBuilder;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.SerializationUtils;
+import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
+import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
  * Serializer class for extended info to a JSON object
@@ -43,13 +42,11 @@ import java.time.format.DateTimeFormatterBuilder;
 public class ExtendedInfoSerializer extends JsonSerializer<ExtendedInfo> {
 
     @Override
-    public void serialize(ExtendedInfo info, JsonGenerator jg,
-            SerializerProvider provider) throws IOException {
+    public void serialize(ExtendedInfo info, JsonGenerator jg, SerializerProvider provider) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         jg.setCodec(mapper);
-        if (info instanceof ExtendedInfoImpl.DateInfo) {
-            ExtendedInfoImpl.DateInfo dateInfo = (ExtendedInfoImpl.DateInfo) info;
+        if (info instanceof ExtendedInfoImpl.DateInfo dateInfo) {
             DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
             Instant instant = dateInfo.getDateValue().toInstant();
             jg.writeObject(formatter.format(instant));

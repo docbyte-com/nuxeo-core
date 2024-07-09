@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
+@SuppressWarnings("unused")
 public class PlatformFunctions extends CoreFunctions {
 
     private static final Logger log = LogManager.getLogger(PlatformFunctions.class);
@@ -213,7 +214,6 @@ public class PlatformFunctions extends CoreFunctions {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> concatenateIntoList(List<T> list, Object... values) {
-
         if (list == null) {
             throw new IllegalArgumentException("First parameter must not be null");
         }
@@ -223,8 +223,8 @@ public class PlatformFunctions extends CoreFunctions {
                 continue;
             }
 
-            if (value instanceof Object[]) {
-                for (Object subValue : (Object[]) value) {
+            if (value instanceof Object[] array) {
+                for (Object subValue : array) {
                     if (subValue != null) {
                         list.add((T) subValue);
                     }
@@ -232,8 +232,8 @@ public class PlatformFunctions extends CoreFunctions {
                 continue;
             }
 
-            if (value instanceof Collection) {
-                for (Object subValue : (Collection<Object>) value) {
+            if (value instanceof Collection<?> collection) {
+                for (Object subValue : collection) {
                     if (subValue != null) {
                         list.add((T) subValue);
                     }
@@ -251,7 +251,6 @@ public class PlatformFunctions extends CoreFunctions {
      * Idem than concatenateInto except that a new list is created.
      */
     public <T> List<T> concatenateValuesAsNewList(Object... values) {
-
         List<T> result = new ArrayList<>();
         return concatenateIntoList(result, values);
     }

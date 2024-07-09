@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,8 +131,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
     private static final String KEY_UNDOLOG_CREATE = "__UNDOLOG_CREATE__\0\0";
 
     /** Keys used when computing Read ACLs. */
-    protected static final Set<String> READ_ACL_RECURSION_KEYS = new HashSet<>(
-            Arrays.asList(KEY_READ_ACL, KEY_ACP, KEY_IS_VERSION, KEY_VERSION_SERIES_ID, KEY_PARENT_ID, KEY_ANCESTOR_IDS));
+    protected static final Set<String> READ_ACL_RECURSION_KEYS = new HashSet<>(Arrays.asList(KEY_READ_ACL, KEY_ACP,
+            KEY_IS_VERSION, KEY_VERSION_SERIES_ID, KEY_PARENT_ID, KEY_ANCESTOR_IDS));
 
     public static final String READ_ACL_ASYNC_ENABLED_PROPERTY = "nuxeo.core.readacl.async.enabled";
 
@@ -681,7 +681,7 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
      * itself (not the ancestors, needed for ACL inheritance and for which caching is useful).
      */
     public void updateReadACLs(Collection<String> docIds) {
-        docIds.forEach(id -> updateDocumentReadAclsNoCache(id));
+        docIds.forEach(this::updateDocumentReadAclsNoCache);
     }
 
     /**
@@ -721,6 +721,7 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
 
     /**
      * Gets the Read ACL (flat list of users having browse permission, including inheritance) on a document.
+     * 
      * @deprecated since 2021.39 use {@link #materializedKeys(State)} instead
      */
     @Deprecated
@@ -730,9 +731,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
     }
 
     /**
-     * Returns materialized keys for a state:
-     * - Read ACL (flat list of users having browse permission, including inheritance) on a document
-     * - Ancestor ids
+     * Returns materialized keys for a state: - Read ACL (flat list of users having browse permission, including
+     * inheritance) on a document - Ancestor ids
      */
     protected State materializedKeys(State state) {
         State ret = new State(2);
@@ -760,8 +760,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                 if (aclList != null) {
                     for (Serializable aclSer : aclList) {
                         State aclMap = (State) aclSer;
-                        @SuppressWarnings("unchecked") List<Serializable> aceList = (List<Serializable>) aclMap.get(
-                                KEY_ACL);
+                        @SuppressWarnings("unchecked")
+                        List<Serializable> aceList = (List<Serializable>) aclMap.get(KEY_ACL);
                         for (Serializable aceSer : aceList) {
                             State aceMap = (State) aceSer;
                             String username = (String) aceMap.get(KEY_ACE_USER);
@@ -771,7 +771,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                             if (replaceReadVersionPermission && READ_VERSION.equals(permission)) {
                                 permission = READ;
                             }
-                            if (TRUE.equals(granted) && browsePermissions.contains(permission) && (status == null || status == 1)) {
+                            if (TRUE.equals(granted) && browsePermissions.contains(permission)
+                                    && (status == null || status == 1)) {
                                 racls.add(username);
                             }
                             if (FALSE.equals(granted)) {
@@ -803,10 +804,10 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         // sort to have canonical order
         List<String> racl = new ArrayList<>(racls);
         Collections.sort(racl);
-        ret.put(KEY_READ_ACL, racl.toArray(new String[racl.size()]));
+        ret.put(KEY_READ_ACL, racl.toArray(String[]::new));
         if (!ret.containsKey(KEY_ANCESTOR_IDS)) {
             // versions are placeless
-            ret.put(KEY_ANCESTOR_IDS, ancestors.toArray(new String[ancestors.size()]));
+            ret.put(KEY_ANCESTOR_IDS, ancestors.toArray(String[]::new));
         }
         return ret;
     }
@@ -1167,23 +1168,23 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
      */
     protected boolean isProxySpecific(String key, SchemaManager schemaManager) {
         switch (key) {
-        // these are placeful stuff
-        case KEY_SYS_CHANGE_TOKEN:
-        case KEY_CHANGE_TOKEN:
-        case KEY_ID:
-        case KEY_PARENT_ID:
-        case KEY_ANCESTOR_IDS:
-        case KEY_NAME:
-        case KEY_POS:
-        case KEY_ACP:
-        case KEY_READ_ACL:
-            // these are proxy-specific
-        case KEY_IS_PROXY:
-        case KEY_PROXY_TARGET_ID:
-        case KEY_PROXY_VERSION_SERIES_ID:
-        case KEY_IS_VERSION:
-        case KEY_PROXY_IDS:
-            return true;
+            // these are placeful stuff
+            case KEY_SYS_CHANGE_TOKEN:
+            case KEY_CHANGE_TOKEN:
+            case KEY_ID:
+            case KEY_PARENT_ID:
+            case KEY_ANCESTOR_IDS:
+            case KEY_NAME:
+            case KEY_POS:
+            case KEY_ACP:
+            case KEY_READ_ACL:
+                // these are proxy-specific
+            case KEY_IS_PROXY:
+            case KEY_PROXY_TARGET_ID:
+            case KEY_PROXY_VERSION_SERIES_ID:
+            case KEY_IS_VERSION:
+            case KEY_PROXY_IDS:
+                return true;
         }
         int p = key.indexOf(':');
         if (p == -1) {
@@ -1492,15 +1493,14 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         }
 
         protected void findDirtyPaths(ListDiff value, String path) {
-            String newPath = path;
             if (value.diff != null) {
-                findDirtyPaths(value.diff, newPath);
+                findDirtyPaths(value.diff, path);
             }
             if (value.rpush != null) {
-                findDirtyPaths(value.rpush, newPath);
+                findDirtyPaths(value.rpush, path);
             }
             if (value.pull != null) {
-                findDirtyPaths(value.pull, newPath);
+                findDirtyPaths(value.pull, path);
             }
         }
 

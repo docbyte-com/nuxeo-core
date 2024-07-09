@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger <troger@nuxeo.com>
  */
-
 package org.nuxeo.ecm.multi.tenant;
 
 import static org.junit.Assert.assertEquals;
@@ -451,7 +450,7 @@ public class TestMultiTenantService {
         return coreFeature.getCoreSessionCurrentUser();
     }
 
-    protected String getPowerUsersGroup() throws LoginException {
+    protected String getPowerUsersGroup() {
         try (NuxeoLoginContext loginContext = Framework.loginSystem("Administrator")) {
             NuxeoGroup pwrUsrGrp = userManager.getGroup(Constants.POWER_USERS_GROUP);
 
@@ -467,7 +466,7 @@ public class TestMultiTenantService {
         }
     }
 
-    protected NuxeoPrincipal createUser(String username, boolean isPowerUser, String tenant) throws LoginException {
+    protected NuxeoPrincipal createUser(String username, boolean isPowerUser, String tenant) {
         DocumentModel user = userManager.getBareUserModel();
         user.setPropertyValue("user:username", username);
         user.setPropertyValue("user:tenantId", tenant);

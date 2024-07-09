@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
  *
  * Contributors:
  *     Anahide Tchertchian
- *
  */
-
 package org.nuxeo.ecm.directory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -313,6 +310,7 @@ public abstract class BaseSession implements Session, EntrySource {
      * @return the directory entry
      * @since 11.1
      */
+    @SuppressWarnings("deprecation")
     public static DocumentModel createEntryModel(String schema, String id, Map<String, Object> values,
             boolean readOnly) {
         DocumentModelImpl entry = new DocumentModelImpl(schema, id, null, null, null, new String[] { schema },
@@ -467,7 +465,7 @@ public abstract class BaseSession implements Session, EntrySource {
         } else if (value instanceof List) {
             return (List<String>) value;
         } else if (value instanceof Object[]) {
-            return (List<String>) (List<?>) Arrays.asList((Object[]) value);
+            return (List<String>) (List<?>) List.of((Object[]) value);
         } else {
             throw new NuxeoException("Cannot convert to List<String>: " + value);
         }
@@ -632,7 +630,7 @@ public abstract class BaseSession implements Session, EntrySource {
         } else {
             // query is an OR multiexpression
             queryBuilder.filter(
-                    new MultiExpression(Operator.AND, new ArrayList<>(Arrays.asList(predicate, multiExpression))));
+                    new MultiExpression(Operator.AND, new ArrayList<>(List.of(predicate, multiExpression))));
         }
         return queryBuilder;
     }

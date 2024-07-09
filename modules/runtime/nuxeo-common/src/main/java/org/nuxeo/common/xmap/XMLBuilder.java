@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.common.xmap;
 
 import java.io.IOException;
@@ -49,7 +46,7 @@ public class XMLBuilder {
         // XPath xpath = XPathFactory.newInstance().newXPath();
         Element currentNode = parent;
         String path = xao.getPath().toString();
-        if (path.length() > 0) {
+        if (!path.isEmpty()) {
             currentNode = parent.getOwnerDocument().createElement(path);
             parent.appendChild(currentNode);
         }
@@ -69,7 +66,6 @@ public class XMLBuilder {
         }
     }
 
-    // TODO use xpath for that ?
     public static Element getOrCreateElement(Element root, Path path) {
         Element e = root;
         for (String segment : path.segments) {

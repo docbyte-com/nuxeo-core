@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.directory.ldap;
 
 import java.io.Serializable;
@@ -319,22 +318,22 @@ public class LDAPFilterBuilder {
                 param.append(c);
             } else {
                 switch (c) {
-                case '%':
-                    if (param.length() != 0) {
-                        addFilterParam(param.toString());
-                        param.setLength(0);
-                    }
-                    filter.append('*');
-                    break;
-                case '_': // interpret it as an escaped _, not a wildcard
-                    param.append(c);
-                    break;
-                case '\\':
-                    escapeNext = true;
-                    break;
-                default:
-                    param.append(c);
-                    break;
+                    case '%':
+                        if (!param.isEmpty()) {
+                            addFilterParam(param.toString());
+                            param.setLength(0);
+                        }
+                        filter.append('*');
+                        break;
+                    case '_': // interpret it as an escaped _, not a wildcard
+                        param.append(c);
+                        break;
+                    case '\\':
+                        escapeNext = true;
+                        break;
+                    default:
+                        param.append(c);
+                        break;
                 }
             }
             escape = escapeNext;
@@ -342,7 +341,7 @@ public class LDAPFilterBuilder {
         if (escape) {
             throw new QueryParseException("Invalid LIKE parameter ending with escape character");
         }
-        if (param.length() != 0) {
+        if (!param.isEmpty()) {
             addFilterParam(param.toString());
         }
     }
@@ -362,10 +361,9 @@ public class LDAPFilterBuilder {
     }
 
     public void walkLiteral(Operand operand) {
-        if (!(operand instanceof Literal)) {
+        if (!(operand instanceof Literal lit)) {
             throw new QueryParseException("Requires literal instead of: " + operand);
         }
-        Literal lit = (Literal) operand;
         if (lit instanceof BooleanLiteral) {
             walkBooleanLiteral((BooleanLiteral) lit);
         } else if (lit instanceof DateLiteral) {

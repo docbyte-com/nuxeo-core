@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -402,10 +402,9 @@ public class MongoDBRepository extends DBSRepositoryBase {
     }
 
     protected void markReferencedBlob(Object value, BiConsumer<String, String> markerCallback) {
-        if (!(value instanceof String)) {
+        if (!(value instanceof String key)) {
             return;
         }
-        String key = (String) value;
         markerCallback.accept(key, repositoryName);
     }
 

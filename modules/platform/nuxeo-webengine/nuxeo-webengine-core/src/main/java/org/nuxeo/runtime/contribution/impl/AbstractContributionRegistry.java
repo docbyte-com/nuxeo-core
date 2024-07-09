@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.runtime.contribution.impl;
 
 import java.util.ArrayList;
@@ -74,14 +71,14 @@ public abstract class AbstractContributionRegistry<K, T> implements Contribution
         Collections.reverse(parents);
         for (AbstractContributionRegistry<K, T> p : parents) {
             p.listeners.add(this);
-            for (Contribution<K, T> contrib : p.registry.values().toArray(new Contribution[0])) {
+            for (Contribution<K, T> contrib : p.registry.values().toArray(Contribution[]::new)) {
                 importContribution(contrib);
             }
             p = p.parent;
         }
     }
 
-    protected void importContribution(Contribution<K,T> contrib) {
+    protected void importContribution(Contribution<K, T> contrib) {
         if (!contrib.isResolved()) {
             return;
         }

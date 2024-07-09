@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,12 @@ import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -228,7 +226,7 @@ public class ExifToolProcessor implements BinaryMetadataProcessor {
             if (metadataValue instanceof Collection) {
                 commandTags.addAll(buildCommandTagsFromCollection(tag, (Collection<Object>) metadataValue));
             } else if (metadataValue instanceof Object[]) {
-                commandTags.addAll(buildCommandTagsFromCollection(tag, Arrays.asList((Object[]) metadataValue)));
+                commandTags.addAll(buildCommandTagsFromCollection(tag, List.of((Object[]) metadataValue)));
             } else if (metadataValue instanceof Calendar) {
                 commandTags.add(buildCommandTagFromDate(tag, ((Calendar) metadataValue).getTime()));
             } else {
@@ -242,7 +240,7 @@ public class ExifToolProcessor implements BinaryMetadataProcessor {
      * @since 8.3
      */
     private String buildCommandTag(String tag, Object value) {
-        return "-" + tag + "=" + Objects.toString(value);
+        return "-" + tag + "=" + value;
     }
 
     /**

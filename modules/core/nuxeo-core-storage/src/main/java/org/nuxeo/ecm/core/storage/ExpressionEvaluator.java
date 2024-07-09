@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -401,6 +401,7 @@ public abstract class ExpressionEvaluator {
         return walkExpression(pred);
     }
 
+    @SuppressWarnings("unchecked")
     public Boolean walkIn(Operand lvalue, Operand rvalue, boolean positive) {
         Object right = walkOperand(rvalue);
         if (!(right instanceof List)) {
@@ -499,15 +500,15 @@ public abstract class ExpressionEvaluator {
     }
 
     public Boolean walkStartsWith(Operand lvalue, Operand rvalue) {
-        if (!(lvalue instanceof Reference)) {
+        if (!(lvalue instanceof Reference lreference)) {
             throw new QueryParseException("Invalid STARTSWITH query, left hand side must be a property: " + lvalue);
         }
-        String name = ((Reference) lvalue).name;
-        if (!(rvalue instanceof StringLiteral)) {
+        String name = lreference.name;
+        if (!(rvalue instanceof StringLiteral rliteral)) {
             throw new QueryParseException(
                     "Invalid STARTSWITH query, right hand side must be a literal path: " + rvalue);
         }
-        String path = ((StringLiteral) rvalue).value;
+        String path = rliteral.value;
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
@@ -652,10 +653,9 @@ public abstract class ExpressionEvaluator {
         if (left == null || right == null) {
             return null; // NOSONAR
         }
-        if (!(left instanceof String)) {
+        if (!(left instanceof String value)) {
             throw new QueryParseException("Invalid LIKE lhs: " + left);
         }
-        String value = (String) left;
         if (caseInsensitive) {
             value = value.toLowerCase();
             right = right.toLowerCase();
@@ -679,34 +679,34 @@ public abstract class ExpressionEvaluator {
             char c = chars[i];
             boolean escapeNext = false;
             switch (c) {
-            case '%':
-                if (escape) {
+                case '%':
+                    if (escape) {
+                        regex.append(c);
+                    } else {
+                        regex.append(".*");
+                    }
+                    break;
+                case '_':
+                    if (escape) {
+                        regex.append(c);
+                    } else {
+                        regex.append(".");
+                    }
+                    break;
+                case '\\':
+                    if (escape) {
+                        regex.append("\\\\"); // backslash escaped for regexp
+                    } else {
+                        escapeNext = true;
+                    }
+                    break;
+                default:
+                    // escape mostly everything just in case
+                    if (!CharUtils.isAsciiAlphanumeric(c)) {
+                        regex.append("\\");
+                    }
                     regex.append(c);
-                } else {
-                    regex.append(".*");
-                }
-                break;
-            case '_':
-                if (escape) {
-                    regex.append(c);
-                } else {
-                    regex.append(".");
-                }
-                break;
-            case '\\':
-                if (escape) {
-                    regex.append("\\\\"); // backslash escaped for regexp
-                } else {
-                    escapeNext = true;
-                }
-                break;
-            default:
-                // escape mostly everything just in case
-                if (!CharUtils.isAsciiAlphanumeric(c)) {
-                    regex.append("\\");
-                }
-                regex.append(c);
-                break;
+                    break;
             }
             escape = escapeNext;
         }

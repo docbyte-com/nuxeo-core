@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,10 +96,8 @@ public class TestAvroMapper {
         try {
             Blob b1 = (Blob) e.getValue();
             Blob b2 = (Blob) o.getValue();
-            return b1.getLength() == b2.getLength()
-                    && b1.getString().equals(b2.getString())
-                    && b1.getEncoding().equals(b2.getEncoding())
-                    && b1.getMimeType().equals(b2.getMimeType());
+            return b1.getLength() == b2.getLength() && b1.getString().equals(b2.getString())
+                    && b1.getEncoding().equals(b2.getEncoding()) && b1.getMimeType().equals(b2.getMimeType());
         } catch (Exception e1) {
             return false;
         }

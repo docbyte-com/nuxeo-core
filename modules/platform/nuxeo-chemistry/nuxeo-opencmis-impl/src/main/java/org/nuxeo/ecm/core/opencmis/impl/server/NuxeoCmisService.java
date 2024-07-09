@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import static org.nuxeo.ecm.core.opencmis.impl.server.NuxeoContentStream.DIGEST_
 import static org.nuxeo.ecm.core.opencmis.impl.server.NuxeoObjectData.REND_STREAM_RENDITION_PREFIX;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -139,7 +138,6 @@ import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.CompoundFilter;
@@ -155,7 +153,6 @@ import org.nuxeo.ecm.core.io.download.DownloadService.DownloadContext;
 import org.nuxeo.ecm.core.opencmis.impl.server.versioning.CMISVersioningFilter;
 import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils;
 import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils.BatchedList;
-import org.nuxeo.ecm.core.opencmis.impl.util.SimpleImageInfo;
 import org.nuxeo.ecm.core.opencmis.impl.util.TypeManagerImpl;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -204,7 +201,9 @@ public class NuxeoCmisService extends AbstractCmisService
 
     public static final String PERMISSION_NOTHING = "Nothing";
 
-    /** Synthetic property for change log entries recording the log entry id. */
+    /**
+     * Synthetic property for change log entries recording the log entry id.
+     */
     public static final String NX_CHANGE_LOG_ID = "nuxeo:changeLogId";
 
     public static final String ES_AUDIT_ID = "id";
@@ -226,10 +225,14 @@ public class NuxeoCmisService extends AbstractCmisService
 
     protected CallContext callContext;
 
-    /** @since 11.1 */
+    /**
+     * @since 11.1
+     */
     protected boolean responseAlreadySent;
 
-    /** Filter that hides HiddenInNavigation and deleted objects. */
+    /**
+     * Filter that hides HiddenInNavigation and deleted objects.
+     */
     protected final Filter documentFilter;
 
     protected final Set<String> readPermissions;
@@ -373,7 +376,9 @@ public class NuxeoCmisService extends AbstractCmisService
         }
     }
 
-    /** Gets the filter that hides HiddenInNavigation and deleted objects. */
+    /**
+     * Gets the filter that hides HiddenInNavigation and deleted objects.
+     */
     protected Filter getDocumentFilter() {
         Filter facetFilter = new FacetFilter(FacetNames.HIDDEN_IN_NAVIGATION, false);
         Filter trashedFilter = docModel -> !docModel.isTrashed();
@@ -487,7 +492,9 @@ public class NuxeoCmisService extends AbstractCmisService
         return !documentFilter.accept(doc);
     }
 
-    /** Creates bare unsaved document model. */
+    /**
+     * Creates bare unsaved document model.
+     */
     protected DocumentModel createDocumentModel(ObjectId folder, TypeDefinition type) {
         DocumentModel doc;
         String typeId = type.getId();
@@ -512,7 +519,9 @@ public class NuxeoCmisService extends AbstractCmisService
         return doc;
     }
 
-    /** Creates and save document model. */
+    /**
+     * Creates and save document model.
+     */
     protected DocumentModel createDocumentModel(ObjectId folder, ContentStream contentStream, String name) {
         FileManager fileManager = Framework.getService(FileManager.class);
         MimetypeRegistryService mtr = (MimetypeRegistryService) Framework.getService(MimetypeRegistry.class);
@@ -571,18 +580,18 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         if (typeId == null) {
             switch (baseType) {
-            case CMIS_DOCUMENT:
-                typeId = BaseTypeId.CMIS_DOCUMENT.value();
-                break;
-            case CMIS_FOLDER:
-                typeId = BaseTypeId.CMIS_FOLDER.value();
-                break;
-            case CMIS_POLICY:
-                throw new CmisRuntimeException("Cannot create policy");
-            case CMIS_RELATIONSHIP:
-                throw new CmisRuntimeException("Cannot create relationship");
-            default:
-                throw new CmisRuntimeException("No base type");
+                case CMIS_DOCUMENT:
+                    typeId = BaseTypeId.CMIS_DOCUMENT.value();
+                    break;
+                case CMIS_FOLDER:
+                    typeId = BaseTypeId.CMIS_FOLDER.value();
+                    break;
+                case CMIS_POLICY:
+                    throw new CmisRuntimeException("Cannot create policy");
+                case CMIS_RELATIONSHIP:
+                    throw new CmisRuntimeException("Cannot create relationship");
+                default:
+                    throw new CmisRuntimeException("No base type");
             }
         }
         if (type == null) {
@@ -718,7 +727,9 @@ public class NuxeoCmisService extends AbstractCmisService
         np.setValue(value);
     }
 
-    /** Sets initial versioning state and returns its id. */
+    /**
+     * Sets initial versioning state and returns its id.
+     */
     protected String setInitialVersioningState(NuxeoObjectData object, VersioningState versioningState) {
         if (versioningState == null) {
             // default is MAJOR, per spec
@@ -726,26 +737,26 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         String id;
         switch (versioningState) {
-        case NONE: // cannot be made non-versionable in Nuxeo
-        case CHECKEDOUT:
-            object.doc.setLock();
-            save();
-            id = object.getId();
-            break;
-        case MINOR:
-            object.doc.checkIn(VersioningOption.MINOR, null);
-            save();
-            // id = ref.toString();
-            id = object.getId();
-            break;
-        case MAJOR:
-            object.doc.checkIn(VersioningOption.MAJOR, null);
-            save();
-            // id = ref.toString();
-            id = object.getId();
-            break;
-        default:
-            throw new AssertionError(versioningState);
+            case NONE: // cannot be made non-versionable in Nuxeo
+            case CHECKEDOUT:
+                object.doc.setLock();
+                save();
+                id = object.getId();
+                break;
+            case MINOR:
+                object.doc.checkIn(VersioningOption.MINOR, null);
+                save();
+                // id = ref.toString();
+                id = object.getId();
+                break;
+            case MAJOR:
+                object.doc.checkIn(VersioningOption.MAJOR, null);
+                save();
+                // id = ref.toString();
+                id = object.getId();
+                break;
+            default:
+                throw new AssertionError(versioningState);
         }
         return id;
     }
@@ -936,7 +947,9 @@ public class NuxeoCmisService extends AbstractCmisService
         }
     }
 
-    /** @deprecated since 11.1, now unused */
+    /**
+     * @deprecated since 11.1, now unused
+     */
     @Deprecated
     protected void setResponseHeader(String headerName, Blob blob, CallContext callContext) {
         String digest = NuxeoPropertyData.transcodeHexToBase64(blob.getDigest());
@@ -947,7 +960,9 @@ public class NuxeoCmisService extends AbstractCmisService
         response.setHeader(headerName, digest);
     }
 
-    /** @deprecated since 11.1, now unused */
+    /**
+     * @deprecated since 11.1, now unused
+     */
     @Deprecated
     protected ContentStream getRenditionServiceStream(String objectId, String renditionName) {
         RenditionService renditionService = Framework.getService(RenditionService.class);
@@ -1292,27 +1307,27 @@ public class NuxeoCmisService extends AbstractCmisService
 
     protected static String permissionToNuxeo(String permission) {
         switch (permission) {
-        case BasicPermissions.READ:
-            return SecurityConstants.READ;
-        case BasicPermissions.WRITE:
-            return SecurityConstants.READ_WRITE;
-        case BasicPermissions.ALL:
-            return SecurityConstants.EVERYTHING;
-        default:
-            return permission;
+            case BasicPermissions.READ:
+                return SecurityConstants.READ;
+            case BasicPermissions.WRITE:
+                return SecurityConstants.READ_WRITE;
+            case BasicPermissions.ALL:
+                return SecurityConstants.EVERYTHING;
+            default:
+                return permission;
         }
     }
 
     protected static String permissionFromNuxeo(String permission) {
         switch (permission) {
-        case SecurityConstants.READ:
-            return BasicPermissions.READ;
-        case SecurityConstants.READ_WRITE:
-            return BasicPermissions.WRITE;
-        case SecurityConstants.EVERYTHING:
-            return BasicPermissions.ALL;
-        default:
-            return permission;
+            case SecurityConstants.READ:
+                return BasicPermissions.READ;
+            case SecurityConstants.READ_WRITE:
+                return BasicPermissions.WRITE;
+            case SecurityConstants.EVERYTHING:
+                return BasicPermissions.ALL;
+            default:
+                return permission;
         }
     }
 
@@ -1375,7 +1390,7 @@ public class NuxeoCmisService extends AbstractCmisService
             ods = ods.subList(0, max);
         }
         String latestChangeLogToken;
-        if (ods.size() == 0) {
+        if (ods.isEmpty()) {
             latestChangeLogToken = null;
         } else {
             ObjectData last = ods.get(ods.size() - 1);
@@ -2174,7 +2189,7 @@ public class NuxeoCmisService extends AbstractCmisService
         if (doc.isFolder()) {
             // check that there are no children left
             DocumentModelList docs = coreSession.getChildren(new IdRef(objectId), null, documentFilter, null);
-            if (docs.size() > 0) {
+            if (!docs.isEmpty()) {
                 throw new CmisConstraintException("Cannot delete non-empty folder: " + objectId);
             }
         }

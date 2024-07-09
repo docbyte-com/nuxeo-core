@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json;
 
 import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -153,8 +152,7 @@ public abstract class AbstractJsonWriter<EntityType> implements Writer<EntityTyp
      * @since 7.2
      */
     protected JsonGenerator getGenerator(OutputStream out, boolean getCurrentIfAvailable) throws IOException {
-        if (getCurrentIfAvailable && out instanceof OutputStreamWithJsonWriter) {
-            OutputStreamWithJsonWriter casted = (OutputStreamWithJsonWriter) out;
+        if (getCurrentIfAvailable && out instanceof OutputStreamWithJsonWriter casted) {
             return casted.getJsonGenerator();
         }
         return JsonFactoryProvider.get().createGenerator(out);

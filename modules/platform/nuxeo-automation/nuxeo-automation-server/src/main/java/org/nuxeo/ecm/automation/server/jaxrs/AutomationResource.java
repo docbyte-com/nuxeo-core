@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,7 @@ public class AutomationResource extends ModuleRoot {
             if (obj == null) {
                 return ResponseHelper.notFound();
             }
-            if (obj instanceof List<?>) {
-                List<?> list = (List<?>) obj;
+            if (obj instanceof List<?> list) {
                 if (list.isEmpty()) {
                     return ResponseHelper.notFound();
                 }
@@ -124,8 +123,7 @@ public class AutomationResource extends ModuleRoot {
     @Path("/login")
     public Object login(@Context HttpServletRequest request) {
         Principal p = request.getUserPrincipal();
-        if (p instanceof NuxeoPrincipal) {
-            NuxeoPrincipal np = (NuxeoPrincipal) p;
+        if (p instanceof NuxeoPrincipal np) {
             List<String> groups = np.getAllGroups();
             HashSet<String> set = new HashSet<>(groups);
             return new LoginInfo(np.getName(), set, np.isAdministrator());

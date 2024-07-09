@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -98,7 +98,7 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     public void walk() {
-        if (expression instanceof MultiExpression && ((MultiExpression) expression).predicates.isEmpty()) {
+        if (expression instanceof MultiExpression multiExpression && multiExpression.predicates.isEmpty()) {
             // special-case empty query
             query = new Document();
         } else {
@@ -192,17 +192,16 @@ public abstract class MongoDBAbstractQueryBuilder {
     public Document walkNot(Operand value) {
         Object val = walkOperand(null, value);
         Object not = pushDownNot(val);
-        if (!(not instanceof Document)) {
+        if (!(not instanceof Document notDoc)) {
             throw new QueryParseException("Cannot do NOT on: " + val);
         }
-        return (Document) not;
+        return notDoc;
     }
 
     protected Object pushDownNot(Object object) {
-        if (!(object instanceof Document)) {
+        if (!(object instanceof Document ob)) {
             throw new QueryParseException("Cannot do NOT on: " + object);
         }
-        Document ob = (Document) object;
         Set<String> keySet = ob.keySet();
         if (keySet.size() != 1) {
             throw new QueryParseException("Cannot do NOT on: " + ob);
@@ -218,37 +217,32 @@ public abstract class MongoDBAbstractQueryBuilder {
                 return new Document(key, new Document(MongoDBOperators.NE, value));
             }
         }
-        if (MongoDBOperators.NE.equals(key)) {
+        return switch (key) {
             // NOT k != v -> k = v
-            return value;
-        }
-        if (MongoDBOperators.NOT.equals(key)) {
+            case MongoDBOperators.NE -> value;
             // NOT NOT v -> v
-            return value;
-        }
-        if (MongoDBOperators.AND.equals(key) || MongoDBOperators.OR.equals(key)) {
+            case MongoDBOperators.NOT -> value;
             // boolean algebra
             // NOT (v1 AND v2) -> NOT v1 OR NOT v2
             // NOT (v1 OR v2) -> NOT v1 AND NOT v2
-            String op = MongoDBOperators.AND.equals(key) ? MongoDBOperators.OR : MongoDBOperators.AND;
-            List<Object> list = (List<Object>) value;
-            for (int i = 0; i < list.size(); i++) {
-                list.set(i, pushDownNot(list.get(i)));
+            case MongoDBOperators.AND, MongoDBOperators.OR -> {
+                String op = MongoDBOperators.AND.equals(key) ? MongoDBOperators.OR : MongoDBOperators.AND;
+                @SuppressWarnings("unchecked")
+                List<Object> list = (List<Object>) value;
+                list.replaceAll(this::pushDownNot);
+                yield new Document(op, list);
             }
-            return new Document(op, list);
-        }
-        if (MongoDBOperators.IN.equals(key) || MongoDBOperators.NIN.equals(key)) {
             // boolean algebra
             // IN <-> NIN
-            String op = MongoDBOperators.IN.equals(key) ? MongoDBOperators.NIN : MongoDBOperators.IN;
-            return new Document(op, value);
-        }
-        if (MongoDBOperators.LT.equals(key) || MongoDBOperators.GT.equals(key) || MongoDBOperators.LTE.equals(key)
-                || MongoDBOperators.GTE.equals(key)) {
+            case MongoDBOperators.IN, MongoDBOperators.NIN -> {
+                String op = MongoDBOperators.IN.equals(key) ? MongoDBOperators.NIN : MongoDBOperators.IN;
+                yield new Document(op, value);
+            }
             // TODO use inverse operators?
-            return new Document(MongoDBOperators.NOT, ob);
-        }
-        throw new QueryParseException("Unknown operator for NOT: " + key);
+            case MongoDBOperators.LT, MongoDBOperators.GT, MongoDBOperators.LTE, MongoDBOperators.GTE ->
+                new Document(MongoDBOperators.NOT, ob);
+            default -> throw new QueryParseException("Unknown operator for NOT: " + key);
+        };
     }
 
     protected Document newDocumentWithField(FieldInfo fieldInfo, Object value) {
@@ -394,6 +388,7 @@ public abstract class MongoDBAbstractQueryBuilder {
             throw new QueryParseException("Invalid IN, right hand side must be a list: " + rvalue);
         }
         // TODO check list fields
+        @SuppressWarnings("unchecked")
         List<Object> list = (List<Object>) right;
         return newDocumentWithField(fieldInfo,
                 new Document(positive ? MongoDBOperators.IN : MongoDBOperators.NIN, list));

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.core.storage.sql;
 
 import java.io.Serializable;
@@ -104,51 +103,51 @@ public enum PropertyType {
             return null;
         }
         switch (this) {
-        case STRING:
-            if (value instanceof String) {
-                return (String) value;
-            }
-            throw new IllegalArgumentException("value is not a String: " + value);
-        case BOOLEAN:
-            if (value instanceof Boolean) {
-                return (Boolean) value;
-            }
-            throw new IllegalArgumentException("value is not a Boolean: " + value);
-        case LONG:
-            if (value instanceof Long) {
-                return (Long) value;
-            }
-            if (value instanceof DeltaLong) {
-                return (DeltaLong) value;
-            }
-            throw new IllegalArgumentException("value is not a Long: " + value);
-        case DOUBLE:
-            if (value instanceof Double) {
-                return (Double) value;
-            }
-            throw new IllegalArgumentException("value is not a Double: " + value);
-        case DATETIME:
-            if (value instanceof Calendar) {
-                return (Calendar) value;
-            }
-            if (value instanceof Date) {
-                Calendar cal = new GregorianCalendar(); // XXX timezone
-                cal.setTime((Date) value);
-                return cal;
-            }
-            throw new IllegalArgumentException("value is not a Calendar: " + value);
-        case BINARY:
-            if (value instanceof String) {
-                return (String) value;
-            }
-            throw new IllegalArgumentException("value is not a binary String: " + value);
-        case ACL:
-            if (value instanceof ACLRow) {
-                return (ACLRow) value;
-            }
-            throw new IllegalArgumentException("value is not a ACLRow: " + value);
-        default:
-            throw new RuntimeException(this.toString());
+            case STRING:
+                if (value instanceof String) {
+                    return (String) value;
+                }
+                throw new IllegalArgumentException("value is not a String: " + value);
+            case BOOLEAN:
+                if (value instanceof Boolean) {
+                    return (Boolean) value;
+                }
+                throw new IllegalArgumentException("value is not a Boolean: " + value);
+            case LONG:
+                if (value instanceof Long) {
+                    return (Long) value;
+                }
+                if (value instanceof DeltaLong) {
+                    return (DeltaLong) value;
+                }
+                throw new IllegalArgumentException("value is not a Long: " + value);
+            case DOUBLE:
+                if (value instanceof Double) {
+                    return (Double) value;
+                }
+                throw new IllegalArgumentException("value is not a Double: " + value);
+            case DATETIME:
+                if (value instanceof Calendar) {
+                    return (Calendar) value;
+                }
+                if (value instanceof Date) {
+                    Calendar cal = new GregorianCalendar(); // XXX timezone
+                    cal.setTime((Date) value);
+                    return cal;
+                }
+                throw new IllegalArgumentException("value is not a Calendar: " + value);
+            case BINARY:
+                if (value instanceof String) {
+                    return (String) value;
+                }
+                throw new IllegalArgumentException("value is not a binary String: " + value);
+            case ACL:
+                if (value instanceof ACLRow) {
+                    return (ACLRow) value;
+                }
+                throw new IllegalArgumentException("value is not a ACLRow: " + value);
+            default:
+                throw new RuntimeException(this.toString());
         }
     }
 
@@ -165,9 +164,9 @@ public enum PropertyType {
             return emptyArray;
         }
         Serializable[] newValue;
-        if (value instanceof Serializable[]) {
+        if (value instanceof Serializable[] values) {
             // update in place
-            newValue = (Serializable[]) value;
+            newValue = values;
         } else {
             newValue = new Serializable[value.length];
         }

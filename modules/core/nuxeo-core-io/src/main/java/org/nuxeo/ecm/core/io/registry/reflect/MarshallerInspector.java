@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.registry.reflect;
 
 import java.lang.reflect.Constructor;
@@ -270,16 +269,11 @@ public class MarshallerInspector implements Comparable<MarshallerInspector> {
     @SuppressWarnings("unchecked")
     public <T> T getInstance(RenderingContext ctx) {
         RenderingContext realCtx = getRealContext(ctx);
-        switch (instantiation) {
-        case SINGLETON:
-            return (T) getSingletonInstance(realCtx);
-        case PER_THREAD:
-            return (T) getThreadInstance(realCtx);
-        case EACH_TIME:
-            return (T) getNewInstance(realCtx, false);
-        default:
-            throw new NuxeoException("unable to create a marshaller instance for clazz " + clazz.getName());
-        }
+        return (T) switch (instantiation) {
+            case SINGLETON -> getSingletonInstance(realCtx);
+            case PER_THREAD -> getThreadInstance(realCtx);
+            case EACH_TIME -> getNewInstance(realCtx, false);
+        };
     }
 
     /**
@@ -537,10 +531,9 @@ public class MarshallerInspector implements Comparable<MarshallerInspector> {
         if (obj == null) {
             return false;
         }
-        if (!(obj instanceof MarshallerInspector)) {
+        if (!(obj instanceof MarshallerInspector other)) {
             return false;
         }
-        MarshallerInspector other = (MarshallerInspector) obj;
         return clazz.equals(other.clazz);
     }
 

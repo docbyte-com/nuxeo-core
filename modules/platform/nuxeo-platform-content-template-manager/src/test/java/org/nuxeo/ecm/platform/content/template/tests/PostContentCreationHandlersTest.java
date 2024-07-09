@@ -58,7 +58,7 @@ public class PostContentCreationHandlersTest {
     protected CoreSession session;
 
     @Test
-    public void testHandler() throws Exception {
+    public void testHandler() {
         DocumentModel root = session.getRootDocument();
         DocumentModelList rootChildren = session.getChildren(root.getRef());
         assertEquals(2, rootChildren.size());

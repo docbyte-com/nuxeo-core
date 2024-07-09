@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2021 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.directory.ldap;
 
 import java.io.IOException;
@@ -68,7 +66,7 @@ public class LDAPFilterMatcher {
      * @return true if the ldap entry matches the filter
      */
     public boolean match(Attributes attributes, String filter) {
-        if (filter == null || "".equals(filter)) {
+        if (filter == null || filter.isEmpty()) {
             return true;
         }
         try {
@@ -117,13 +115,12 @@ public class LDAPFilterMatcher {
             try {
                 while (rawValues.hasMore()) {
                     String rawValue = rawValues.next().toString();
-                    if (isCaseSensitive || !(simpleElement.getValue() instanceof String)) {
-                        if (simpleElement.getValue().equals(rawValue)) {
+                    if (!isCaseSensitive && simpleElement.getValue() instanceof String stringValue) {
+                        if (stringValue.equalsIgnoreCase(rawValue)) {
                             return true;
                         }
                     } else {
-                        String stringElementValue = (String) simpleElement.getValue();
-                        if (stringElementValue.equalsIgnoreCase(rawValue)) {
+                        if (simpleElement.getValue().equals(rawValue)) {
                             return true;
                         }
                     }
@@ -196,8 +193,8 @@ public class LDAPFilterMatcher {
                             pattern = Pattern.compile(sb.toString(), Pattern.CASE_INSENSITIVE);
                         }
                     } catch (PatternSyntaxException e) {
-                        throw new DirectoryException("could not build regexp for substring: "
-                                + substringElement.toString());
+                        throw new DirectoryException(
+                                "could not build regexp for substring: " + substringElement.toString());
                     }
                     if (pattern.matcher(rawValue).matches()) {
                         return true;
