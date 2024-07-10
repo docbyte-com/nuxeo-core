@@ -2,9 +2,9 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "2021", "2023" ]
+    branches: [ "2021", "2023", "2025" ]
   pull_request:
-    branches: [ "2021", "2023" ]
+    branches: [ "2021", "2023", "2025" ]
   schedule:
     # At 01:00 on Sunday
     - cron: '0 1 * * SUN'
