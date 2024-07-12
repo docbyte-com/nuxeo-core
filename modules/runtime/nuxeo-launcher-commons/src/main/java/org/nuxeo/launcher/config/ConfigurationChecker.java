@@ -78,7 +78,7 @@ public class ConfigurationChecker {
 
     protected static final String DEFAULT_CONTEXT_NAME = "/nuxeo";
 
-    protected static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "17" };
+    protected static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "21" };
 
     protected static final String JVMCHECK_PROP = "jvmcheck";
 
