@@ -19,9 +19,11 @@
  */
 package org.nuxeo.ecm.platform.routing.test;
 
+import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.DOCUMENT_ROUTE_DOCUMENT_TYPE;
 import static org.nuxeo.ecm.platform.task.TaskConstants.TASK_PROCESS_ID_PROPERTY_NAME;
@@ -43,6 +45,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
@@ -272,6 +275,13 @@ public class TestDocumentRoutingService extends DocumentRoutingTestCase {
         session.save();
         List<DocumentRoute> routes = service.getAvailableDocumentRoute(session);
         assertEquals(1, routes.size());
+    }
+
+    @Test
+    public void testGetNonExistentDocumentRouteModel() {
+        var t = assertThrows(NuxeoException.class, () -> service.getRouteModelWithId(session, "nonExistent"));
+        assertEquals("No route found for id: nonExistent", t.getMessage());
+        assertEquals(SC_NOT_FOUND, t.getStatusCode());
     }
 
     @Test
