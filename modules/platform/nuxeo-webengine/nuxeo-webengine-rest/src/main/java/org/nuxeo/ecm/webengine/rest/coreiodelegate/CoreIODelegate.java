@@ -49,7 +49,7 @@ import org.nuxeo.ecm.platform.web.common.RequestContext;
  */
 @Singleton
 @Provider
-@Produces({ APPLICATION_JSON, "text/csv" })
+@Produces({ APPLICATION_JSON, "text/csv", "application/scim+json" })
 public class CoreIODelegate extends PartialCoreIODelegate implements Feature {
 
     @Override

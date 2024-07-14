@@ -14,37 +14,50 @@
  * limitations under the License.
  *
  * Contributors:
- *     Thierry Delprat
- *     Antoine Taillefer
+ *     Guillaume Renard
  */
 package org.nuxeo.scim.v2.rest.marshalling;
 
+import static com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Type;
 
-import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonReader;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
+import org.nuxeo.ecm.core.io.registry.reflect.Supports;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.unboundid.scim2.common.types.UserResource;
+import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.utils.JsonUtils;
 
 /**
- * SCIM 2.0 {@link UserResource} JSON reader.
+ * SCIM 2.0 {@link ScimResource} JSON reader.
  *
- * @since 2023.14
+ * @since 2023.15
  */
-@Provider
 @Setup(mode = SINGLETON, priority = REFERENCE)
-public class UserResourceReader extends AbstractJsonReader<UserResource> {
+@Supports({ MEDIA_TYPE_SCIM, APPLICATION_JSON })
+public class ScimResourceReader extends AbstractJsonReader<ScimResource> {
 
     @Override
-    public UserResource read(JsonNode jn) throws IOException {
-        return JsonUtils.nodeToValue(jn, UserResource.class);
+    @SuppressWarnings("unchecked")
+    public ScimResource read(Class<?> clazz, Type genericType, MediaType mediaType, InputStream in) throws IOException {
+        JsonNode jn = getNode(in, true);
+        return JsonUtils.nodeToValue(jn, (Class<? extends ScimResource>) clazz);
+    }
+
+    @Override
+    public ScimResource read(JsonNode jn) {
+        // abstract method to implement called by read(Class, Type, MediaType, InputStream) in super
+        // no need to implement it because we override read(Class, Type, MediaType, InputStream)
+        return null;
     }
 
 }

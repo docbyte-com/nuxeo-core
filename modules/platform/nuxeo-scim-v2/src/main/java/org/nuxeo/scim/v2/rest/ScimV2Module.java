@@ -22,21 +22,38 @@ package org.nuxeo.scim.v2.rest;
 import java.util.Set;
 
 import org.nuxeo.ecm.webengine.app.JsonNuxeoExceptionWriter;
-import org.nuxeo.ecm.webengine.app.WebEngineExceptionMapper;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
+import org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet;
 import org.nuxeo.ecm.webengine.rest.coreiodelegate.CoreIODelegate;
 
+import com.unboundid.scim2.server.providers.DotSearchFilter;
+import com.unboundid.scim2.server.resources.ResourceTypesEndpoint;
+import com.unboundid.scim2.server.resources.SchemasEndpoint;
+
 /**
+ * WebEngine module for SCIM 2.0.
+ * <p>
+ * The {@link WebEngineServlet} is mapped to /scim/v2/* in deployment-fragment.xml.
+ * <p>
+ * ScimV2 only uses the scanning and declaring mechanisms of WebEngine, otherwise it is a standard Jakarta RS
+ * application.
+ *
  * @since 2023.14
  */
 public class ScimV2Module extends WebEngineModule {
 
     @Override
     public Set<Class<?>> getClasses() {
+        // result contains scimV2 resources from module scanning
         Set<Class<?>> result = super.getClasses();
+        // filter
+        result.add(DotSearchFilter.class); // allow to convert POST /.search requests to GET search requests
+        // marshalling
         result.add(CoreIODelegate.class);
         result.add(JsonNuxeoExceptionWriter.class);
-        result.add(WebEngineExceptionMapper.class);
+        // resources
+        result.add(SchemasEndpoint.class);
+        result.add(ResourceTypesEndpoint.class);
         return result;
     }
 
