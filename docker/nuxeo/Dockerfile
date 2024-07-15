@@ -4,7 +4,8 @@
 #
 # It uses a multi-stage build to copy and unzip the Nuxeo server ZIP file.
 ARG EL_VERSION=9
-ARG ORACLE_LINUX_TAG=$EL_VERSION-slim
+# the docker-maven-plugin doesn't support args in fromArgs
+ARG ORACLE_LINUX_TAG=${EL_VERSION}-slim
 
 # ------------------------------------------------------------------------
 # Build stage
