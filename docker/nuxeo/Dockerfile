@@ -64,18 +64,20 @@ RUN rpm --import http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems \
   && rpm --install https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
 
 # Install required software
-RUN microdnf -y update \
+# mount nuxeo-public as secret even if it is not secret in order to not leave the file in the image
+RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.repo \
+  microdnf -y update \
   # Required by Remi's RPM repository, also, it provides dnf
   && microdnf -y install epel-release \
-  # ol9-codeready-builder repository is required for libwpd-devel
-  && dnf -y --enablerepo=ol${EL_VERSION}_codeready_builder install \
+  && dnf -y install \
     # find is not included in the oraclelinux slim base image
     findutils \
     ghostscript \
     glibc-langpack-en \
     # Add CJK fonts
     google-noto-cjk-fonts-common \
-    libwpd-devel \
+    # provided by yum-public from packages.nuxeo.com
+    libwpd-tools \
     # Required by ExifTool to extract binary metadata from LibreOffice documents
     perl-Archive-Zip \
     perl-Image-ExifTool \
