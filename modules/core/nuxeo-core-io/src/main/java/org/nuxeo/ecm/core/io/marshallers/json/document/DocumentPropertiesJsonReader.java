@@ -294,7 +294,7 @@ public class DocumentPropertiesJsonReader extends AbstractJsonReader<List<Proper
             value = jn.binaryValue();
         } else if (jn.isTextual()) {
             value = switch (type) {
-                case BooleanType ignored -> tryParse(Boolean::parseBoolean, jn.asText(), property);
+                case BooleanType booleanType -> tryParse(booleanType::decode, jn.asText(), property);
                 case LongType ignored -> tryParse(Long::parseLong, jn.asText(), property);
                 case DoubleType ignored -> tryParse(Double::parseDouble, jn.asText(), property);
                 case IntegerType ignored -> tryParse(Integer::parseInt, jn.asText(), property);
