@@ -23,7 +23,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
-import java.io.IOException;
 import java.util.List;
 
 import jakarta.inject.Inject;
@@ -109,7 +108,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testIntegerTypeStrictValidation() throws IOException {
+    public void testIntegerTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("integerField");
     }
 
@@ -120,7 +119,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testLongTypeStrictValidation() throws IOException {
+    public void testLongTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("longField");
     }
 
@@ -135,7 +134,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testFloatTypeStrictValidation() throws IOException {
+    public void testFloatTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("floatField");
     }
 
@@ -146,7 +145,7 @@ public class SearchPrimitiveTypePredicatesTest {
 
     @Test
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
-    public void testDoubleTypeStrictValidation() throws IOException {
+    public void testDoubleTypeStrictValidation() {
         testPrimitiveTypeStrictValidation("doubleField");
     }
 
@@ -157,7 +156,7 @@ public class SearchPrimitiveTypePredicatesTest {
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
-                      JsonNode entry = entries.get(0);
+                      JsonNode entry = entries.getFirst();
                       assertEquals(doc1.getId(), entry.get("uid").asText());
                   });
 
@@ -174,7 +173,7 @@ public class SearchPrimitiveTypePredicatesTest {
                       .executeAndConsume(new JsonNodeHandler(), node -> {
                           List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                           assertEquals(1, entries.size());
-                          JsonNode entry = entries.get(0);
+                          JsonNode entry = entries.getFirst();
                           assertEquals(doc1.getId(), entry.get("uid").asText());
                       });
 
@@ -191,7 +190,7 @@ public class SearchPrimitiveTypePredicatesTest {
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> entries = JsonNodeHelper.getEntries(node);
                       assertEquals(1, entries.size());
-                      JsonNode entry = entries.get(0);
+                      JsonNode entry = entries.getFirst();
                       assertEquals(doc0.getId(), entry.get("uid").asText());
                   });
     }
@@ -203,7 +202,9 @@ public class SearchPrimitiveTypePredicatesTest {
                   .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
                       assertEquals("exception", node.get("entity-type").asText());
                       assertEquals("400", node.get("status").asText());
-                      assertTrue(node.get("message").asText().startsWith("java.lang.NumberFormatException"));
+                      var errorMessage = node.get("message").asText();
+                      assertTrue("Exception is not an <java.lang.NumberFormatException> but was<%s>".formatted(
+                              errorMessage), errorMessage.startsWith("java.lang.NumberFormatException"));
                   });
     }
 
