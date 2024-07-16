@@ -294,7 +294,7 @@ public class DocumentPropertiesJsonReader extends AbstractJsonReader<List<Proper
             value = jn.binaryValue();
         } else if (jn.isTextual()) {
             if (type instanceof BooleanType) {
-                value = tryParse(Boolean::parseBoolean, jn.asText(), property);
+                value = tryParse(type::decode, jn.asText(), property);
             } else if (type instanceof LongType) {
                 value = tryParse(Long::parseLong, jn.asText(), property);
             } else if (type instanceof DoubleType) {
