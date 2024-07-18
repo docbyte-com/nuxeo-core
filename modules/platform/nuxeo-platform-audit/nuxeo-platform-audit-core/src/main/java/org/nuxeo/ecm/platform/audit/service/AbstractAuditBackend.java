@@ -26,7 +26,6 @@ import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
 import static org.nuxeo.ecm.platform.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
-import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_AUDIT_ENABLED_PROP;
 import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_NAME;
 
 import java.io.Serializable;
@@ -44,8 +43,8 @@ import java.util.concurrent.TimeUnit;
 import jakarta.el.ELException;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.logging.log4j.Logger;
 import org.apache.el.ExpressionFactoryImpl;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -352,17 +351,6 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         return nbSyncedEntries;
     }
 
-    @Override
-    @Deprecated
-    public void logEvents(EventBundle bundle) {
-        if (!isAuditable(bundle)) {
-            return;
-        }
-        for (Event event : bundle) {
-            logEvent(event);
-        }
-    }
-
     protected boolean isAuditable(EventBundle eventBundle) {
         for (String name : getAuditableEventNames()) {
             if (eventBundle.containsEventName(name)) {
@@ -372,42 +360,21 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         return false;
     }
 
-    @Override
-    @Deprecated
-    public void logEvent(Event event) {
-        if (!getAuditableEventNames().contains(event.getName())) {
-            return;
-        }
-        LogEntry entry = buildEntryFromEvent(event);
-        if (entry == null) {
-            return;
-        }
-        if (Framework.isBooleanPropertyFalse(STREAM_AUDIT_ENABLED_PROP)) {
-            component.bulker.offer(entry);
-        } else {
-            log.error("Usage of AuditLogger#logEvent while AuditBulker is disabled", new Exception());
-        }
-    }
-
     @SuppressWarnings("resource") // LogManager not ours to close
     @Override
     public boolean await(long time, TimeUnit unit) throws InterruptedException {
-        if (Framework.isBooleanPropertyFalse(STREAM_AUDIT_ENABLED_PROP)) {
-            return component.bulker.await(time, unit);
-        } else {
-            StreamService service = Framework.getService(StreamService.class);
-            LogManager logManager = service.getLogManager();
-            // when there is no lag between producer and consumer we are done
-            long deadline = System.currentTimeMillis() + unit.toMillis(time);
-            while (logManager.getLag(Name.ofUrn(STREAM_NAME), Name.ofUrn(COMPUTATION_NAME)).lag() > 0) {
-                if (System.currentTimeMillis() > deadline) {
-                    log.warn("await timeout on audit/writer");
-                    return false;
-                }
-                Thread.sleep(50);
+        StreamService service = Framework.getService(StreamService.class);
+        LogManager logManager = service.getLogManager();
+        // when there is no lag between producer and consumer we are done
+        long deadline = System.currentTimeMillis() + unit.toMillis(time);
+        while (logManager.getLag(Name.ofUrn(STREAM_NAME), Name.ofUrn(COMPUTATION_NAME)).lag() > 0) {
+            if (System.currentTimeMillis() > deadline) {
+                log.warn("await timeout on audit/writer");
+                return false;
             }
-            return true;
+            Thread.sleep(50);
         }
+        return true;
     }
 
     @Override

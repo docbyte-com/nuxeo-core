@@ -101,15 +101,6 @@
     <object class="org.nuxeo.ecm.platform.audit.service.extension.AuditStorageDescriptor" />
   </extension-point>
 
-  <extension-point name="bulk">
-    <documentation>
-      CAUTION: Deprecated since 10.10, audit bulker is now handled with nuxeo-stream, no replacement
-      Allows to configure bulk processing
-    </documentation>
-
-    <object class="org.nuxeo.ecm.platform.audit.service.extension.AuditBulkerDescriptor" />
-  </extension-point>
-
   <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
     <documentation>
       Those default auditable events match Nuxeo core base events.

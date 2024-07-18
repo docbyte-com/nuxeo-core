@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.platform.audit.service;
 
-import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_AUDIT_ENABLED_PROP;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,14 +33,10 @@ import org.nuxeo.ecm.platform.audit.api.DocumentHistoryReader;
 import org.nuxeo.ecm.platform.audit.api.document.DocumentHistoryReaderImpl;
 import org.nuxeo.ecm.platform.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.AuditBackendDescriptor;
-import org.nuxeo.ecm.platform.audit.service.extension.AuditBulkerDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.AuditStorageDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.EventDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.ExtendedInfoDescriptor;
-import org.nuxeo.runtime.RuntimeMessage.Level;
-import org.nuxeo.runtime.RuntimeMessage.Source;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.logging.DeprecationLogger;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentManager;
@@ -89,18 +83,6 @@ public class NXAuditEventsService extends DefaultComponent {
 
     protected AuditBackendDescriptor backendConfig = new AuditBackendDescriptor();
 
-    /**
-     * @deprecated since 10.10, audit bulker is now handled with nuxeo-stream, no replacement
-     */
-    @Deprecated
-    protected AuditBulker bulker;
-
-    /**
-     * @deprecated since 10.10, audit bulker is now handled with nuxeo-stream, no replacement
-     */
-    @Deprecated
-    protected AuditBulkerDescriptor bulkerConfig = new AuditBulkerDescriptor();
-
     protected Map<String, AuditStorageDescriptor> auditStorageDescriptors = new HashMap<>();
 
     protected Map<String, AuditStorage> auditStorages = new HashMap<>();
@@ -111,14 +93,9 @@ public class NXAuditEventsService extends DefaultComponent {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void start(ComponentContext context) {
         backend = backendConfig.newInstance(this);
         backend.onApplicationStarted();
-        if (Framework.isBooleanPropertyFalse(STREAM_AUDIT_ENABLED_PROP)) {
-            bulker = bulkerConfig.newInstance(backend);
-            bulker.onApplicationStarted();
-        }
         // init storages after runtime was started (as we don't have started order for storages which are backends)
         Framework.getRuntime().getComponentManager().addListener(new Listener() {
 
@@ -142,22 +119,15 @@ public class NXAuditEventsService extends DefaultComponent {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void stop(ComponentContext context) {
-        try {
-            if (bulker != null) {
-                bulker.onApplicationStopped();
+        backend.onApplicationStopped();
+        // clear storages
+        auditStorages.values().forEach(storage -> {
+            if (storage instanceof AuditBackend) {
+                ((AuditBackend) storage).onApplicationStopped();
             }
-        } finally {
-            backend.onApplicationStopped();
-            // clear storages
-            auditStorages.values().forEach(storage -> {
-                if (storage instanceof AuditBackend) {
-                    ((AuditBackend) storage).onApplicationStopped();
-                }
-            });
-            auditStorages.clear();
-        }
+        });
+        auditStorages.clear();
     }
 
     protected void doRegisterAdapter(AdapterDescriptor desc) {
@@ -253,7 +223,6 @@ public class NXAuditEventsService extends DefaultComponent {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         if (extensionPoint.equals(EVENT_EXT_POINT)) {
             doRegisterEvent((EventDescriptor) contribution);
@@ -263,14 +232,6 @@ public class NXAuditEventsService extends DefaultComponent {
             doRegisterAdapter((AdapterDescriptor) contribution);
         } else if (contribution instanceof AuditBackendDescriptor) {
             backendConfig = (AuditBackendDescriptor) contribution;
-        } else if (contribution instanceof AuditBulkerDescriptor) {
-            bulkerConfig = (AuditBulkerDescriptor) contribution;
-            ComponentName compName = contributor.getName();
-            String message = String.format(
-                    "AuditBulker on component %s is deprecated because it is now handled with nuxeo-stream, no replacement.",
-                    compName);
-            DeprecationLogger.log(message, "10.10");
-            addRuntimeMessage(Level.WARNING, message, Source.EXTENSION, compName.getName());
         } else if (contribution instanceof AuditStorageDescriptor) {
             AuditStorageDescriptor auditStorageDesc = (AuditStorageDescriptor) contribution;
             auditStorageDescriptors.put(auditStorageDesc.getId(), auditStorageDesc);

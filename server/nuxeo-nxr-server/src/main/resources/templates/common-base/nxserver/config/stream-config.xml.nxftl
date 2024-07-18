@@ -73,7 +73,6 @@
   </#if>
 </#if>
   <require>org.nuxeo.ecm.platform.audit.service.NXAuditEventsService</require>
-<#if "${nuxeo.stream.audit.enabled}" == "true">
   <extension target="org.nuxeo.runtime.stream.service" point="logConfig">
   <#if "${kafka.enabled}" == "true">
      <logConfig name="audit" type="kafka">
@@ -86,14 +85,8 @@
      </logConfig>
   </#if>
   </extension>
-<#else>
-  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
-    <listener name="auditLoggerListener" async="false"
-              class="org.nuxeo.ecm.platform.audit.listener.AuditEventLogger" />
-  </extension>
-</#if>
 <#if "${nuxeo.pubsub.provider}" == "stream">
- <extension target="org.nuxeo.runtime.stream.service" point="logConfig">
+  <extension target="org.nuxeo.runtime.stream.service" point="logConfig">
   <#if "${kafka.enabled}" == "true">
      <logConfig name="pubsub" type="kafka">
        <option name="kafkaConfig">default</option>
