@@ -17,7 +17,7 @@
  *     Nuxeo - initial API and implementation
  *
  */
-package org.nuxeo.audit.job;
+package org.nuxeo.audit.sql.job;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -31,14 +31,14 @@ import org.apache.commons.lang3.SystemUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.api.job.JobHistoryHelper;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
+@Features(SQLAuditFeature.class)
 public class TestJobHistoryHelper {
 
     @Test
@@ -48,9 +48,9 @@ public class TestJobHistoryHelper {
         query.append("MyExport");
         query.append("'  ORDER BY log.eventDate DESC");
 
-        AuditReader reader = Framework.getService(AuditReader.class);
+        var backend = Framework.getService(AuditBackend.class);
 
-        List<?> result = reader.nativeQuery(query.toString(), 1, 1);
+        List<?> result = backend.nativeQuery(query.toString(), 1, 1);
         assertEquals(0, result.size());
 
         JobHistoryHelper helper = new JobHistoryHelper("MyExport");
@@ -59,7 +59,7 @@ public class TestJobHistoryHelper {
         helper.logJobFailed("some error");
         helper.logJobEnded();
 
-        result = reader.nativeQuery(query.toString(), 1, 10);
+        result = backend.nativeQuery(query.toString(), 1, 10);
         assertEquals(3, result.size());
 
     }

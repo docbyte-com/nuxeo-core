@@ -16,7 +16,7 @@
  * Contributors:
  *     Stephane Lacoin
  */
-package org.nuxeo.audit;
+package org.nuxeo.audit.sql;
 
 import java.net.URL;
 
@@ -46,7 +46,7 @@ public abstract class PersistenceTestCase {
 
     @Before
     public void setUp() throws Exception {
-        URL resource = getClass().getResource("/hibernate-tests.xml");
+        URL resource = getClass().getResource("/sql-audit-hibernate-tests.xml");
         HibernateConfiguration config = HibernateConfiguration.load(resource);
         persistenceProvider = new PersistenceProvider(config);
         handleBeforeSetup(config);

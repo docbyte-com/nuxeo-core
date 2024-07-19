@@ -23,7 +23,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import org.nuxeo.audit.api.document.DocumentHistoryPageProvider;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.audit.api.DocumentHistoryReader;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
@@ -33,7 +32,7 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  * Implementation of the {@link DocumentHistoryReader} interface. This is mainly a wrapper around the
- * {@link DocumentHistoryPageProvider}
+ * {@code DocumentHistoryPageProvider}
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  * @deprecated since 2025.0, use the {@link org.nuxeo.ecm.platform.query.api.PageProviderService} instead

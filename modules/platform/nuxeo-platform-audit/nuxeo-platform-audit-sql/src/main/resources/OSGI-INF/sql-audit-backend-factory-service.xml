@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.sql.backend.factory">
+
+  <implementation class="org.nuxeo.audit.sql.SQLAuditBackendFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.audit.sql.SQLAuditBackendFactory" />
+  </service>
+
+</component>

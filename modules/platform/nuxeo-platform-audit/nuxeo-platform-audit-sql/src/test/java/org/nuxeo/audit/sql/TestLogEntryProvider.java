@@ -17,7 +17,7 @@
  *     Nuxeo - initial API and implementation
  *
  */
-package org.nuxeo.audit;
+package org.nuxeo.audit.sql;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -45,7 +45,10 @@ import org.nuxeo.ecm.platform.audit.service.LogEntryProvider;
  * Test the log entries persistence
  *
  * @author Stephane Lacoin (Nuxeo EP Software Engineer)
+ * @deprecated since 2025.0, follow {@link LogEntryProvider} deprecation
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class TestLogEntryProvider extends PersistenceTestCase {
 
     private LogEntryProvider providerUnderTest;

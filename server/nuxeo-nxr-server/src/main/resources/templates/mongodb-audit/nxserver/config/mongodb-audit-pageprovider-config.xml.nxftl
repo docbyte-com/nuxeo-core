@@ -4,7 +4,6 @@
   <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.mongodb.contrib</alias>
 
   <require>org.nuxeo.audit.PageProviderService.contrib</require>
-  <require>org.nuxeo.admin.pageproviders</require>
 <#if ((elasticsearch.enabled)!"false") == "true" && ((audit.elasticsearch.enabled)!"false") == "true">
   <require>org.nuxeo.audit.elasticsearch.PageProviderService.contrib</require>
 </#if>

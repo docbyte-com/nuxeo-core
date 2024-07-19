@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.sql.backend.contrib">
+
+  <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent" point="hibernate">
+    <hibernateConfiguration name="nxaudit-logs">
+      <datasource>nxaudit-logs</datasource>
+      <properties>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+      </properties>
+    </hibernateConfiguration>
+  </extension>
+
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
+    <backend name="default" factory="org.nuxeo.audit.sql.SQLAuditBackendFactory" />
+  </extension>
+
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
+    <event name="search" enabled="false" />
+  </extension>
+
+</component>

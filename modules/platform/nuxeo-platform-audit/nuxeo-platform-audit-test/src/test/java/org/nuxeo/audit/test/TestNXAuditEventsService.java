@@ -23,15 +23,11 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
-import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
 import static org.nuxeo.audit.test.TestNXAuditEventsService.MyInit.YOUPS_PATH;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_REMOVE_LEGAL_HOLD;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_SET_LEGAL_HOLD;
 
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import jakarta.inject.Inject;
 
@@ -41,24 +37,15 @@ import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.impl.UserPrincipal;
-import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
-import org.nuxeo.ecm.core.event.impl.EventContextImpl;
-import org.nuxeo.ecm.core.event.impl.UnboundEventContext;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.api.Logs;
-import org.nuxeo.ecm.platform.audit.service.DefaultAuditBackend;
-import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -104,10 +91,6 @@ public class TestNXAuditEventsService {
 
     public void waitForAsyncCompletion() {
         txFeature.nextTransaction(Duration.ofSeconds(20));
-    }
-
-    public boolean extendedInfosComputedWithFullDocumentModel() {
-        return true;
     }
 
     @Test
@@ -160,120 +143,6 @@ public class TestNXAuditEventsService {
         assertEquals("File", entry.getDocType());
         assertEquals("Administrator", entry.getPrincipalName());
         assertEquals("test", entry.getRepositoryId());
-    }
-
-    @Test
-    public void testLogMiscMessage() {
-
-        DefaultAuditBackend backend = (DefaultAuditBackend) Framework.getService(Logs.class);
-
-        List<String> eventIds = backend.getLoggedEventIds();
-        int n = eventIds.size();
-
-        EventContext ctx = new EventContextImpl(); // not:DocumentEventContext
-        Event event = ctx.newEvent("documentDuplicated"); // auditable
-        event.setInline(false);
-        event.setImmediate(true);
-        eventService.fireEvent(event);
-        waitForAsyncCompletion();
-
-        eventIds = backend.getLoggedEventIds();
-        assertEquals(n + 1, eventIds.size());
-    }
-
-    @Test
-    public void testsyncLogCreation() {
-        DocumentModel rootDocument = session.getRootDocument();
-        long count = backend.syncLogCreationEntries(session.getRepositoryName(), rootDocument.getPathAsString(), true);
-        assertEquals(14, count);
-
-        String query = String.format("log.docUUID = '%s' and log.eventId = 'documentCreated'", rootDocument.getId());
-
-        var entries = backend.nativeQueryLogs(query, 1, 1);
-        assertEquals(1, entries.size());
-
-        var entry = entries.getFirst();
-        assertEquals("eventDocumentCategory", entry.getCategory());
-        assertNull(entry.getComment());
-        assertEquals("/", entry.getDocPath());
-        assertEquals("Root", entry.getDocType());
-        assertEquals("documentCreated", entry.getEventId());
-        assertEquals(SecurityConstants.SYSTEM_USERNAME, entry.getPrincipalName());
-
-    }
-
-    @Test
-    public void setSimplePrincipalNameIsLoggedAsPrincipalName() {
-        // Given a simple principal
-        NuxeoPrincipal principal = new UserPrincipal("testuser", null, false, false);
-        // I get it in the logs
-        doTestPrincipalName("testuser", principal);
-    }
-
-    @Test
-    public void testPrincipalNameIsActingUser() {
-        // Given a Nuxeo principal with an acting user
-        NuxeoPrincipal principal = new NuxeoPrincipalImpl("mysystem", false, true);
-        principal.setOriginatingUser("actualuser");
-        // I get it in the logs
-        doTestPrincipalName("actualuser", principal);
-    }
-
-    protected void doTestPrincipalName(String expected, NuxeoPrincipal principal) {
-        // Given a principal
-        // When i fire an event with it
-        int oldCount = backend.getEventsCount("loginSuccess").intValue();
-        EventContext ctx = new UnboundEventContext(principal, new HashMap<>());
-        eventService.fireEvent(ctx.newEvent("loginSuccess"));
-        waitForAsyncCompletion();
-
-        // Then the event is logged with the originating principal's name
-        assertEquals(1, backend.getEventsCount("loginSuccess").intValue() - oldCount);
-        var logEntry = backend.nativeQueryLogs("log.eventId = 'loginSuccess' order by log.id desc", 1, 1).getFirst();
-        assertEquals(expected, logEntry.getPrincipalName());
-    }
-
-    @Test
-    public void testExtendedInfos() {
-        DocumentModel rootDocument = session.getRootDocument();
-        DocumentModel model = session.createDocumentModel(rootDocument.getPathAsString(), "youps", "File");
-        model.setProperty("dublincore", "title", "huum");
-        model = session.createDocument(model);
-        long count = backend.syncLogCreationEntries(session.getRepositoryName(), model.getPathAsString(), true);
-        assertEquals(1, count);
-
-        String query = String.format("log.docUUID = '%s' and log.eventId = 'documentCreated'", model.getId());
-
-        var entries = backend.nativeQueryLogs(query, 1, 1);
-        assertEquals(1, entries.size());
-
-        var entry = entries.getFirst();
-        assertEquals("eventDocumentCategory", entry.getCategory());
-        assertEquals("test", entry.getRepositoryId());
-        assertEquals("huum", entry.getExtendedValue("title"));
-        assertEquals("/", entry.getExtendedValue("parentPath"));
-
-        session.removeDocument(model.getRef());
-        session.save();
-
-        waitForAsyncCompletion();
-
-        entries = backend.queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_DOC_UUID, model.getId()))
-                                                           .and(Predicates.eq(LOG_EVENT_ID, "documentRemoved"))
-                                                           .defaultOrder());
-        assertEquals(1, entries.size());
-        Map<String, Object> infos = entries.getFirst().getExtended();
-        assertEquals("/", infos.get("parentPath"));
-        // For the original audit implementation using a post-commit event listeners,
-        // we only have a DeletedDocumentModel so no title available.
-        // For the Stream-based audit implementation, extended infos are computed early with
-        // the full DocumentModel so we have actual values.
-        var title = (String) infos.get("title");
-        if (extendedInfosComputedWithFullDocumentModel()) {
-            assertEquals("huum", title);
-        } else {
-            assertNull(title);
-        }
     }
 
     @Test

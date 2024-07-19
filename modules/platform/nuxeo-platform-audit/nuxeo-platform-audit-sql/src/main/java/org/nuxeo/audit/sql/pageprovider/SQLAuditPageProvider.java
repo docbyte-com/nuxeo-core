@@ -16,9 +16,8 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-package org.nuxeo.audit.api;
+package org.nuxeo.audit.sql.pageprovider;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -28,12 +27,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.SortInfo;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.comment.CommentProcessorHelper;
 import org.nuxeo.ecm.platform.query.api.AbstractPageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
@@ -47,7 +44,7 @@ import org.nuxeo.runtime.api.Framework;
  * @author Tiry (tdelprat@nuxeo.com)
  * @since 5.4.2
  */
-public class AuditPageProvider extends AbstractPageProvider<LogEntry> implements PageProvider<LogEntry> {
+public class SQLAuditPageProvider extends AbstractPageProvider<LogEntry> implements PageProvider<LogEntry> {
 
     private static final long serialVersionUID = 1L;
 
@@ -57,6 +54,10 @@ public class AuditPageProvider extends AbstractPageProvider<LogEntry> implements
 
     public static final String CORE_SESSION_PROPERTY = "coreSession";
 
+    /**
+     * @deprecated since 2025.0, unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final String UICOMMENTS_PROPERTY = "generateUIComments";
 
     @Override
@@ -77,24 +78,13 @@ public class AuditPageProvider extends AbstractPageProvider<LogEntry> implements
         return sb.toString();
     }
 
-    protected void preprocessCommentsIfNeeded(List<LogEntry> entries) {
-        Serializable preprocess = getProperties().get(UICOMMENTS_PROPERTY);
-        CoreSession session = (CoreSession) getProperties().get(CORE_SESSION_PROPERTY);
-        if (session != null && preprocess != null && "true".equalsIgnoreCase(preprocess.toString())) {
-            CommentProcessorHelper cph = new CommentProcessorHelper(session);
-            cph.processComments(entries);
-        }
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public List<LogEntry> getCurrentPage() {
-        AuditReader reader = Framework.getService(AuditReader.class);
+        var backend = Framework.getService(AuditBackend.class);
         buildAuditQuery(true);
-        List<LogEntry> entries = (List<LogEntry>) reader.nativeQuery(auditQuery, auditQueryParams,
-                (int) getCurrentPageIndex() + 1, (int) getMinMaxPageSize());
-        preprocessCommentsIfNeeded(entries);
-        return entries;
+        return (List<LogEntry>) backend.nativeQuery(auditQuery, auditQueryParams, (int) getCurrentPageIndex() + 1,
+                (int) getMinMaxPageSize());
     }
 
     protected String getSortPart() {
@@ -329,8 +319,8 @@ public class AuditPageProvider extends AbstractPageProvider<LogEntry> implements
     public long getResultsCount() {
         if (resultsCount == PageProvider.UNKNOWN_SIZE) {
             buildAuditQuery(false);
-            AuditReader reader = Framework.getService(AuditReader.class);
-            List<Long> res = (List<Long>) reader.nativeQuery("select count(log.id) " + auditQuery, auditQueryParams, 1,
+            var backend = Framework.getService(AuditBackend.class);
+            List<Long> res = (List<Long>) backend.nativeQuery("select count(log.id) " + auditQuery, auditQueryParams, 1,
                     20);
             resultsCount = res.get(0).longValue();
         }

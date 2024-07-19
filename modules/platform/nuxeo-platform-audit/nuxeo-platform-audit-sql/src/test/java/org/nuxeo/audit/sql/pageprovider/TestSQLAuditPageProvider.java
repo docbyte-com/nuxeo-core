@@ -16,20 +16,17 @@
  * Contributors:
  *     Thierry Delprat
  */
-package org.nuxeo.audit;
+package org.nuxeo.audit.sql.pageprovider;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.nuxeo.audit.api.AuditPageProvider.CORE_SESSION_PROPERTY;
 import static org.nuxeo.audit.provider.LatestCreatedUsersOrGroupsPageProvider.LATEST_CREATED_USERS_OR_GROUPS_PROVIDER;
+import static org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider.CORE_SESSION_PROPERTY;
 
 import java.io.Serializable;
-import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,21 +35,18 @@ import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.audit.api.AuditPageProvider;
-import org.nuxeo.audit.api.document.DocumentHistoryPageProvider;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.provider.LatestCreatedUsersOrGroupsPageProvider;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.core.GenericPageProviderDescriptor;
+import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -61,71 +55,55 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
- * Tests the {@link AuditPageProvider}
+ * Tests the {@link SQLAuditPageProvider}
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
-@Deploy("org.nuxeo.ecm.platform.audit:test-audit-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.audit:test-pageprovider-contrib.xml")
-public class TestPageProvider {
+@Features({ SQLAuditFeature.class, UserManagerFeature.class })
+@Deploy("org.nuxeo.audit.sql.test:OSGI-INF/sql-audit-pageprovider-test-contrib.xml")
+public class TestSQLAuditPageProvider {
 
-    protected static final List<String> entriesIdx = Arrays.asList(
-            new String[] { "3", "7", "7", "8", "1", "8", "7", "9" });
+    protected static final List<String> entriesIdx = List.of("3", "7", "7", "8", "1", "8", "7", "9");
 
     protected static final Calendar testDate = Calendar.getInstance();
 
     @Inject
-    AuditFeature audit;
+    protected CoreSession session;
 
     @Inject
-    CoreSession session;
+    protected UserManager userManager;
 
     @Inject
-    UserManager userManager;
-
-    @Inject
-    TransactionalFeature txFeature;
-
-    public void waitForAsyncCompletion() throws InterruptedException {
-        txFeature.nextTransaction(Duration.ofSeconds(20));
-    }
+    protected TransactionalFeature txFeature;
 
     @Before
     public void createTestEntries() {
-
-        AuditReader reader = Framework.getService(AuditReader.class);
-        assertNotNull(reader);
-
-        AuditLogger logger = Framework.getService(AuditLogger.class);
-        assertNotNull(logger);
+        var backend = Framework.getService(AuditBackend.class);
+        assertNotNull(backend);
         List<LogEntry> entries = new ArrayList<>();
 
         for (String suffix : entriesIdx) {
-            LogEntry entry = new LogEntryImpl();
-            entry.setCategory("category" + suffix);
-            entry.setEventId("event" + suffix);
             Calendar eventDate = (Calendar) testDate.clone();
             eventDate.add(Calendar.DAY_OF_YEAR, Integer.parseInt(suffix));
-            entry.setEventDate(eventDate.getTime());
-            entry.setDocType("docType" + suffix);
-            entry.setDocUUID("uuid");
-
-            entries.add(entry);
+            entries.add(LogEntry.builder("event" + suffix, eventDate.getTime())
+                                .category("category" + suffix)
+                                .docType("docType" + suffix)
+                                .docUUID("uuid")
+                                .build());
         }
 
-        logger.addLogEntries(entries);
+        backend.addLogEntries(entries);
 
-        List<?> res = reader.nativeQuery("select count(log.eventId) from LogEntry log", 1, 20);
-        int count = ((Long) res.get(0)).intValue();
+        List<?> res = backend.nativeQuery("select count(log.eventId) from LogEntry log", 1, 20);
+        int count = ((Long) res.getFirst()).intValue();
         assertEquals(entries.size(), count);
 
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testSimpleProvider() throws Exception {
+    public void testSimpleProvider() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -134,11 +112,9 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(AuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLAuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
 
-        PageProvider<?> pp = pps.getPageProvider("GetAllEntries", null, Long.valueOf(5), Long.valueOf(0),
-                new HashMap<String, Serializable>());
-
+        PageProvider<?> pp = pps.getPageProvider("GetAllEntries", null, 5L, 0L, Map.of());
         assertNotNull(pp);
 
         List<LogEntry> entries = (List<LogEntry>) pp.getCurrentPage();
@@ -164,7 +140,7 @@ public class TestPageProvider {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testProviderWithParams() throws Exception {
+    public void testProviderWithParams() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -173,10 +149,10 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(AuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLAuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
 
         PageProvider<?> pp = pps.getPageProvider("GetAllEntriesInCategory", null, Long.valueOf(2), Long.valueOf(0),
-                new HashMap<String, Serializable>(), "category7");
+                Map.of(), "category7");
 
         assertNotNull(pp);
 
@@ -203,7 +179,7 @@ public class TestPageProvider {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testProviderWithWhereClause() throws Exception {
+    public void testProviderWithWhereClause() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -212,10 +188,10 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(AuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLAuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
 
-        PageProvider<?> pp = pps.getPageProvider("GetAllEntriesForDocumentInCategory", (DocumentModel) null, null,
-                Long.valueOf(2), Long.valueOf(0), new HashMap<String, Serializable>(), "uuid");
+        PageProvider<?> pp = pps.getPageProvider("GetAllEntriesForDocumentInCategory", null, null, Long.valueOf(2),
+                Long.valueOf(0), Map.of(), "uuid");
 
         DocumentModel searchDoc = session.createDocumentModel("File");
         searchDoc.setPathInfo("/", "dummy");
@@ -249,7 +225,7 @@ public class TestPageProvider {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testProviderWithWhereClause2() throws Exception {
+    public void testProviderWithWhereClause2() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -258,10 +234,10 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(AuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLAuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
 
         PageProvider<?> pp = pps.getPageProvider("GetAllEntriesForDocumentInCategories", null, Long.valueOf(2),
-                Long.valueOf(0), new HashMap<String, Serializable>(), "uuid");
+                Long.valueOf(0), Map.of(), "uuid");
 
         DocumentModel searchDoc = session.createDocumentModel("File");
         searchDoc.setPathInfo("/", "dummy");
@@ -292,7 +268,7 @@ public class TestPageProvider {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testProviderWithBetweenDates() throws Exception {
+    public void testProviderWithBetweenDates() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -301,10 +277,10 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(AuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLAuditPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
 
         PageProvider<?> pp = pps.getPageProvider("GetAllEntriesBetween2Dates", null, Long.valueOf(6), Long.valueOf(0),
-                new HashMap<String, Serializable>(), "uuid");
+                Map.of(), "uuid");
 
         DocumentModel searchDoc = session.createDocumentModel("File");
         searchDoc.setPathInfo("/", "dummy");
@@ -389,7 +365,7 @@ public class TestPageProvider {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testDocumentHistoryPageProvider() throws Exception {
+    public void testDocumentHistoryPageProvider() {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
@@ -398,10 +374,11 @@ public class TestPageProvider {
         assertNotNull(ppdef);
 
         GenericPageProviderDescriptor gppdef = (GenericPageProviderDescriptor) ppdef;
-        assertEquals(DocumentHistoryPageProvider.class.getSimpleName(), gppdef.getPageProviderClass().getSimpleName());
+        assertEquals(SQLDocumentHistoryPageProvider.class.getSimpleName(),
+                gppdef.getPageProviderClass().getSimpleName());
 
         PageProvider<?> pp = pps.getPageProvider("DOCUMENT_HISTORY_PROVIDER", null, Long.valueOf(6), Long.valueOf(0),
-                new HashMap<String, Serializable>(), "uuid");
+                Map.of(), "uuid");
 
         DocumentModel searchDoc = session.createDocumentModel("BasicAuditSearch");
         searchDoc.setPathInfo("/", "auditsearch");
@@ -434,7 +411,7 @@ public class TestPageProvider {
      */
     @SuppressWarnings("unchecked")
     @Test
-    public void testLatestUserGroupPageProvider() throws Exception {
+    public void testLatestUserGroupPageProvider() {
 
         String testUsername = "Foo";
         DocumentModel userModel = userManager.getBareUserModel();
@@ -447,7 +424,7 @@ public class TestPageProvider {
         userModel2.setProperty(schemaName, "username", "Bar");
         userModel2 = userManager.createUser(userModel2);
 
-        waitForAsyncCompletion();
+        txFeature.nextTransaction();
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);

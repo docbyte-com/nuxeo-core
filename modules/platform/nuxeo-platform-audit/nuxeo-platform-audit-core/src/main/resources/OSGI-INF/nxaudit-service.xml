@@ -17,9 +17,6 @@
     org.nuxeo.audit.
   </documentation>
 
-  <!-- needed so that activation has access to persistence -->
-  <require>org.nuxeo.audit.service.persistence</require>
-
   <implementation class="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" />
 
   <service>

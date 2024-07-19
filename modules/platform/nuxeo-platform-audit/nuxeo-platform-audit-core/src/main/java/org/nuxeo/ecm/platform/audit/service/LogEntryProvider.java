@@ -45,7 +45,9 @@ import org.nuxeo.ecm.core.query.sql.model.Predicate;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.query.sql.model.Reference;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
+import org.nuxeo.ecm.platform.audit.api.LogEntryList2;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.ecm.platform.query.api.PageProvider;
 
 /**
  * @deprecated since 2025.0, {@link org.nuxeo.audit.service.AuditBackend} has all necessary APIs
@@ -240,9 +242,19 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             if (operator == Operator.IN) {
                 queryStr.append("("); // parentheses needed in old HQL for IN
             }
-            queryStr.append(":");
-            queryStr.append(param);
-            params.put(param, value);
+            if (operator == Operator.BETWEEN) {
+                var values = (List<ZonedDateTime>) value;
+                queryStr.append(":").append(param).append("Start");
+                // The ZonedDateTime representation is not compatible with Hibernate query
+                params.put(param + "Start", Date.from(values.getFirst().toInstant()));
+                queryStr.append(" AND ");
+                queryStr.append(":").append(param).append("End");
+                // The ZonedDateTime representation is not compatible with Hibernate query
+                params.put(param + "End", Date.from(values.getLast().toInstant()));
+            } else {
+                queryStr.append(":").append(param);
+                params.put(param, value);
+            }
             if (operator == Operator.IN) {
                 queryStr.append(")");
             }
@@ -268,7 +280,8 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             }
         }
 
-        Query query = em.createQuery(queryStr.toString());
+        String queryString = queryStr.toString();
+        Query query = em.createQuery(queryString);
         params.forEach(query::setParameter);
 
         // add offset clause
@@ -281,7 +294,18 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             query.setMaxResults((int) limit);
         }
 
-        return doPublish(query.getResultList());
+        List<LogEntry> resultList = doPublish(query.getResultList());
+
+        // now compute total size
+        long totalSize = PageProvider.UNKNOWN_SIZE;
+        if (builder.countTotal()) {
+            Query countQuery = em.createQuery("select count(log.id) " + queryString.replaceAll(" ORDER BY.*$", ""));
+            params.forEach(countQuery::setParameter);
+            countQuery.setMaxResults(20);
+            totalSize = (long) countQuery.getResultList().getFirst();
+        }
+
+        return new LogEntryList2(resultList, totalSize);
     }
 
     /**

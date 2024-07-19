@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.platform.audit.service;
 
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.service.LogEntryProvider.createProvider;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -60,8 +59,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Contains the Hibernate based (legacy) implementation
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@code org.nuxeo.sql.audit.SQLAuditBackend} instead
  */
 @SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class DefaultAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -131,13 +132,13 @@ public class DefaultAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     protected <T> T apply(boolean needActivateSession, Function<LogEntryProvider, T> function) {
         return getOrCreatePersistenceProvider().run(Boolean.valueOf(needActivateSession), em -> {
-            return function.apply(createProvider(em));
+            return function.apply(LogEntryProvider.createProvider(em));
         });
     }
 
     protected void accept(boolean needActivateSession, Consumer<LogEntryProvider> consumer) {
         getOrCreatePersistenceProvider().run(Boolean.valueOf(needActivateSession), em -> {
-            consumer.accept(createProvider(em));
+            consumer.accept(LogEntryProvider.createProvider(em));
         });
     }
 

@@ -17,7 +17,7 @@
  *     Funsho David
  *
  */
-package org.nuxeo.ecm.platform.audit.io;
+package org.nuxeo.audit.sql.io;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -37,14 +37,16 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.ecm.platform.audit.io.ExtendedInfoDeserializer;
+import org.nuxeo.ecm.platform.audit.io.ExtendedInfoSerializer;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -61,7 +63,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @SuppressWarnings("removal")
 @Deprecated(since = "2025.0", forRemoval = true)
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
+@Features(SQLAuditFeature.class)
 public class LogEntrySerializationTest {
 
     protected static final String STRING_INFO = "stringInfo";

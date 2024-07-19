@@ -97,15 +97,18 @@ public class TestAuditBackend {
         assertEquals(2, trail.size());
 
         LogEntry entry = trail.get(0);
-        // TODO for SQL, the increment counter on SQL side is shifted by 1 if the test is not the first one running
-        // TODO this is due to a remaining events happening between core session cleanup and next framework start
-        assertEquals(2L, entry.getId());
+        // the hibernate sequencer is not reset so the assertion will fail if the test is not the first one to run
+        if (!auditFeature.isBackendSql()) {
+            assertEquals(2L, entry.getId());
+        }
         assertEquals("documentModified", entry.getEventId());
         assertEquals("eventDocumentCategory", entry.getCategory());
         assertEquals("A modified File", entry.getExtendedValue("title"));
 
         entry = trail.get(1);
-        assertEquals(1L, entry.getId());
+        if (!auditFeature.isBackendSql()) {
+            assertEquals(1L, entry.getId());
+        }
         assertEquals("documentCreated", entry.getEventId());
         assertEquals("eventDocumentCategory", entry.getCategory());
         assertEquals("A File", entry.getExtendedValue("title"));

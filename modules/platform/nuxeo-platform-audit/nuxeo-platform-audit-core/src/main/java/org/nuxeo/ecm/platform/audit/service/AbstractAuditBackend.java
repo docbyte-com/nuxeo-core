@@ -24,6 +24,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -127,6 +128,8 @@ public abstract class AbstractAuditBackend<L extends LogEntry> implements AuditB
         Calendar creationDate = (Calendar) doc.getProperty("dublincore", "created");
         if (creationDate != null) {
             entry.setEventDate(creationDate.getTime());
+        } else {
+            entry.setEventDate(new Date());
         }
 
         doPutExtendedInfos(entry, null, doc, principal);

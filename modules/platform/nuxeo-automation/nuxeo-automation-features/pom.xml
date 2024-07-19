@@ -59,9 +59,11 @@
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-query</artifactId>
     </dependency>
+    <!-- Dependency needed when using SQL audit implementation -->
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-persistence</artifactId>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.automation</groupId>

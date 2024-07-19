@@ -24,7 +24,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
-import org.nuxeo.audit.api.AuditPageProvider;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.platform.audit.api.comment.UIAuditComment;

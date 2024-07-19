@@ -17,14 +17,15 @@
  *     Nuxeo - initial API and implementation
  *
  */
-package org.nuxeo.audit.api.document;
+package org.nuxeo.audit.sql.pageprovider;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.audit.api.AuditPageProvider;
+import org.nuxeo.audit.api.document.AdditionalDocumentAuditParams;
+import org.nuxeo.audit.api.document.DocumentAuditHelper;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.SortInfo;
@@ -45,11 +46,11 @@ import org.nuxeo.ecm.platform.query.api.PageProvider;
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-public class DocumentHistoryPageProvider extends AuditPageProvider {
+public class SQLDocumentHistoryPageProvider extends SQLAuditPageProvider {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Logger log = LogManager.getLogger(DocumentHistoryPageProvider.class);
+    private static final Logger log = LogManager.getLogger(SQLDocumentHistoryPageProvider.class);
 
     protected Object[] newParams;
 
@@ -100,7 +101,7 @@ public class DocumentHistoryPageProvider extends AuditPageProvider {
                 AdditionalDocumentAuditParams additionalParams = DocumentAuditHelper.getAuditParamsForUUID(uuid,
                         session);
                 if (additionalParams != null) {
-                    newParams = new Object[] { uuid, additionalParams.targetUUID, additionalParams.maxDate };
+                    newParams = new Object[] { uuid, additionalParams.getTargetUUID(), additionalParams.getMaxDate() };
                 } else {
                     newParams = new Object[] { uuid };
                 }

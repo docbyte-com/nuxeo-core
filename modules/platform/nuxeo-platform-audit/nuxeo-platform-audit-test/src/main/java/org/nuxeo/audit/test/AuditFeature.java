@@ -20,6 +20,7 @@ package org.nuxeo.audit.test;
 
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.AUDIT_SERVICE_VALUE;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import java.util.function.IntFunction;
@@ -32,6 +33,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.mem.MemAuditFeature;
+import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
@@ -57,6 +59,7 @@ public class AuditFeature implements RunnerFeature {
     public AuditFeature(DynamicFeaturesLoader loader) {
         var feature = switch (AUDIT_SERVICE_VALUE) {
             case STORAGE_MEM -> MemAuditFeature.class;
+            case STORAGE_SQL -> SQLAuditFeature.class;
             default ->
                 throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
         };
@@ -67,6 +70,10 @@ public class AuditFeature implements RunnerFeature {
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Audit using {}",
                 () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
+    }
+
+    public boolean isBackendSql() {
+        return STORAGE_SQL.equals(AUDIT_SERVICE_VALUE);
     }
 
     public void generateLogEntries(String docName, String eventPrefix, String categoryPrefix, int max) {

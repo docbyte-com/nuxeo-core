@@ -46,8 +46,6 @@
     <operation
       class="org.nuxeo.ecm.automation.core.operations.services.AuditLog" />
     <operation
-      class="org.nuxeo.ecm.automation.core.operations.services.AuditQuery" />
-    <operation
       class="org.nuxeo.ecm.automation.core.operations.services.AuditPageProviderOperation" />
     <operation
       class="org.nuxeo.ecm.automation.core.operations.services.AuditRestore" />
