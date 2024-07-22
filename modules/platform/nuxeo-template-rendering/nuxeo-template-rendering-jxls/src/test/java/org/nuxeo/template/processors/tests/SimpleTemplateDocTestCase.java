@@ -68,11 +68,6 @@ public abstract class SimpleTemplateDocTestCase {
     @Inject
     protected CoreSession session;
 
-    protected boolean useJXLS1() {
-        return Framework.getService(ConfigurationService.class)
-                        .isBooleanTrue(JXLSTemplateProcessor.USE_JXLS1_CONFIG_PROP);
-    }
-
     protected TemplateBasedDocument setupTestDocs() throws Exception {
 
         DocumentModel root = session.getRootDocument();

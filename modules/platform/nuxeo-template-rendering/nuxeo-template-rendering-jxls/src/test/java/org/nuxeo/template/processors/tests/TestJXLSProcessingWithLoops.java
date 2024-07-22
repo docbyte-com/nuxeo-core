@@ -18,11 +18,9 @@
  */
 package org.nuxeo.template.processors.tests;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -41,11 +39,6 @@ import org.nuxeo.template.context.extensions.AuditExtensionFactory;
 import org.nuxeo.template.processors.jxls.JXLSTemplateProcessor;
 
 public class TestJXLSProcessingWithLoops extends SimpleTemplateDocTestCase {
-
-    @Test
-    public void testJXLSVersion() {
-        assertFalse(useJXLS1());
-    }
 
     @Test
     public void testLoops() throws Exception {
@@ -67,18 +60,14 @@ public class TestJXLSProcessingWithLoops extends SimpleTemplateDocTestCase {
         DocumentModel testDoc = adapter.getAdaptedDoc();
         assertNotNull(testDoc);
 
-        JXLSTemplateProcessor processor = new JXLSTemplateProcessor();
+        var processor = new JXLSTemplateProcessor();
 
         Blob newBlob = processor.renderTemplate(adapter, TEMPLATE_NAME);
-
-        // System.out.println(((FileBlob) newBlob).getFile().getAbsolutePath());
 
         XL2TextConverter xlConverter = new XL2TextConverter();
         BlobHolder textBlob = xlConverter.convert(new SimpleBlobHolder(newBlob), null);
 
         String xlContent = textBlob.getBlob().getString();
-
-        // System.out.println(xlContent);
 
         assertTrue(xlContent.contains(testDoc.getId()));
         assertTrue(xlContent.contains(testDoc.getTitle()));
@@ -98,9 +87,9 @@ public class TestJXLSProcessingWithLoops extends SimpleTemplateDocTestCase {
 
     @Override
     protected Blob getTemplateBlob() throws IOException {
-        String filename = useJXLS1() ? "jxls_simpleloop.xls" : "jxls2_simpleloop.xls";
-        File file = FileUtils.getResourceFileFromContext("data/" + filename);
-        Blob blob = Blobs.createBlob(file);
+        var filename = "jxls_simpleloop.xls";
+        var file = FileUtils.getResourceFileFromContext("data/" + filename);
+        var blob = Blobs.createBlob(file);
         blob.setFilename(filename);
         return blob;
     }

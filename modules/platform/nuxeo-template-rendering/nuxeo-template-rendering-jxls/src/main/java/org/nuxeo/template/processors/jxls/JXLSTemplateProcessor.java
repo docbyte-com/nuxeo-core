@@ -18,32 +18,19 @@
  */
 package org.nuxeo.template.processors.jxls;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.sf.jxls.exception.ParsePropertyException;
-import net.sf.jxls.transformer.XLSTransformer;
-
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.jxls.common.Context;
-import org.jxls.util.JxlsHelper;
+import org.jxls.transform.poi.JxlsPoiTemplateFillerBuilder;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.template.api.TemplateInput;
 import org.nuxeo.template.api.TemplateProcessor;
 import org.nuxeo.template.api.adapters.TemplateBasedDocument;
@@ -57,20 +44,13 @@ import org.nuxeo.template.processors.AbstractTemplateProcessor;
  */
 public class JXLSTemplateProcessor extends AbstractTemplateProcessor {
 
+    /**
+     * @deprecated since 2025.0, unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final String TEMPLATE_TYPE = "JXLS";
 
-    /**
-     * Configuration property to use the old JXLS 1 instead of JXLS 2.
-     *
-     * @since 11.1
-     */
-    public static final String USE_JXLS1_CONFIG_PROP = "org.nuxeo.template.rendering.jxls1";
-
     protected SimpleContextBuilder contextBuilder = new SimpleContextBuilder();
-
-    protected boolean useJXLS1() {
-        return Framework.getService(ConfigurationService.class).isBooleanTrue(USE_JXLS1_CONFIG_PROP);
-    }
 
     @Override
     public Blob renderTemplate(TemplateBasedDocument templateBasedDocument, String templateName) throws IOException {
@@ -87,31 +67,12 @@ public class JXLSTemplateProcessor extends AbstractTemplateProcessor {
 
         File workingDir = getWorkingDir();
         File generated = new File(workingDir, "JXLSresult-" + System.currentTimeMillis());
-        generated.createNewFile();
 
         File input = new File(workingDir, "JXLSInput-" + System.currentTimeMillis());
-        input.createNewFile();
 
         sourceTemplateBlob.transferTo(input);
 
-        if (useJXLS1()) {
-            XLSTransformer transformer = new XLSTransformer();
-            configureTransformer(transformer);
-            try {
-                transformer.transformXLS(input.getAbsolutePath(), ctx, generated.getAbsolutePath());
-            } catch (InvalidFormatException | ParsePropertyException e) {
-                throw new NuxeoException(e);
-            }
-        } else {
-            try (InputStream is = new BufferedInputStream(new FileInputStream(input));
-                    OutputStream os = new BufferedOutputStream(new FileOutputStream(generated))) {
-                JxlsHelper.getInstance().processTemplate(is, os, new Context(ctx));
-            } catch (IllegalStateException | IOException e) {
-                throw new NuxeoException(e);
-            }
-        }
-
-        input.delete();
+        JxlsPoiTemplateFillerBuilder.newInstance().withTemplate(input).buildAndFill(ctx, generated);
 
         Blob newBlob = Blobs.createBlob(generated);
 
@@ -129,11 +90,6 @@ public class JXLSTemplateProcessor extends AbstractTemplateProcessor {
         Framework.trackFile(generated, newBlob);
         return newBlob;
 
-    }
-
-    protected void configureTransformer(XLSTransformer transformer) {
-        // NOP but subclass may use this to register a CellProcessor or a
-        // RowProcessor
     }
 
     @Override

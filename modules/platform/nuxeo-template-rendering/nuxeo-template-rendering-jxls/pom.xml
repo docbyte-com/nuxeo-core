@@ -37,10 +37,6 @@
     </dependency>
 
     <dependency>
-      <groupId>net.sf.jxls</groupId>
-      <artifactId>jxls-core</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi-ooxml</artifactId>
       <scope>compile</scope>
