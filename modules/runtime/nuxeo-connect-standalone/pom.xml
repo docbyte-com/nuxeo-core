@@ -21,8 +21,8 @@
       <artifactId>commons-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>commons-jexl</groupId>
-      <artifactId>commons-jexl</artifactId>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-jexl3</artifactId>
     </dependency>
     <!-- Upgrade commons-lang when connect client will update -->
     <dependency>
