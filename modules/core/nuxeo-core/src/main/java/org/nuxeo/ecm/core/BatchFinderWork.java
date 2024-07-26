@@ -44,6 +44,9 @@ public abstract class BatchFinderWork extends AbstractWork {
 
     protected String nxql;
 
+    /** @since 2023.17 */
+    protected static final int TRANSACTION_TIMEOUT_SECONDS = 3_600 * 48; // 2 days
+
     public BatchFinderWork(String repositoryName, String nxql, String originatingUsername) {
         this.repositoryName = repositoryName;
         this.nxql = nxql;
@@ -69,9 +72,13 @@ public abstract class BatchFinderWork extends AbstractWork {
             log.debug(getTitle() + ": Starting batch find for query: " + nxql + " with batch size: " + batchSize);
         }
         openSystemSession();
+        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
+            TransactionHelper.commitOrRollbackTransaction();
+            // Use a long transaction for the duration of the scroll
+            TransactionHelper.startTransaction(TRANSACTION_TIMEOUT_SECONDS);
+        }
         setProgress(Progress.PROGRESS_INDETERMINATE);
         setStatus("Searching");
-
         long batchCount = 0;
         long documentCount = 0;
         ScrollResult<String> scroll = session.scroll(nxql, batchSize, SCROLL_KEEPALIVE_SECONDS);
@@ -84,10 +91,7 @@ public abstract class BatchFinderWork extends AbstractWork {
             batchCount += 1;
             documentCount += docIds.size();
             setProgress(new Progress(documentCount, -1));
-            // next batch
             scroll = session.scroll(scroll.getScrollId());
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
         }
 
         if (log.isDebugEnabled()) {
