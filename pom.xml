@@ -4353,17 +4353,6 @@
       </dependency>
 
       <dependency>
-        <groupId>com.ericdaugherty.mail</groupId>
-        <artifactId>jes</artifactId>
-        <version>1.6.1</version>
-      </dependency>
-      <dependency>
-        <groupId>dnsjava</groupId>
-        <artifactId>dnsjava</artifactId>
-        <version>2.1.9</version>
-      </dependency>
-
-      <dependency>
         <groupId>org.glassfish.embedded</groupId>
         <artifactId>glassfish-embedded-all</artifactId>
         <version>3.0-b38-nxp-web-210</version>
