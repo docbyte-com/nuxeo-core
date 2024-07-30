@@ -29,6 +29,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -39,8 +42,10 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.concurrent.ThreadFactories;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.convert.api.ConversionException;
@@ -50,9 +55,10 @@ import org.nuxeo.ecm.core.convert.api.ConverterCheckResult;
 import org.nuxeo.ecm.core.convert.api.ConverterNotAvailable;
 import org.nuxeo.ecm.core.convert.api.ConverterNotRegistered;
 import org.nuxeo.ecm.core.convert.cache.CacheKeyGenerator;
+import org.nuxeo.ecm.core.convert.cache.ConversionCacheGCTask;
 import org.nuxeo.ecm.core.convert.cache.ConversionCacheHolder;
-import org.nuxeo.ecm.core.convert.cache.GCTask;
 import org.nuxeo.ecm.core.convert.extension.ChainedConverter;
+import org.nuxeo.ecm.core.convert.extension.ConvertCacheDescriptor;
 import org.nuxeo.ecm.core.convert.extension.Converter;
 import org.nuxeo.ecm.core.convert.extension.ConverterDescriptor;
 import org.nuxeo.ecm.core.convert.extension.ExternalConverter;
@@ -63,10 +69,12 @@ import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeEntry;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
+import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
@@ -89,24 +97,21 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
 
     protected final MimeTypeTranslationHelper translationHelper = new MimeTypeTranslationHelper();
 
-    protected final GlobalConfigDescriptor config = new GlobalConfigDescriptor();
-
-    protected Thread gcThread;
-
-    protected GCTask gcTask;
+    /**
+     * @since 2025.0
+     */
+    protected ScheduledExecutorService gcExecutor;
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         converterDescriptors.clear();
         translationHelper.clear();
-        config.clearCachingDirectory();
     }
 
     @Override
     public void deactivate(ComponentContext context) {
-        if (config.isCacheEnabled()) {
-            ConversionCacheHolder.deleteCache();
-        }
+        super.deactivate(context);
         converterDescriptors.clear();
         translationHelper.clear();
     }
@@ -115,15 +120,25 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
      * Component implementation.
      */
     @Override
+    @SuppressWarnings("removal")
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
 
         if (CONVERTER_EP.equals(extensionPoint)) {
             ConverterDescriptor desc = (ConverterDescriptor) contribution;
             registerConverter(desc);
         } else if (CONFIG_EP.equals(extensionPoint)) {
-            GlobalConfigDescriptor desc = (GlobalConfigDescriptor) contribution;
-            config.update(desc);
-            config.clearCachingDirectory();
+            ConvertCacheDescriptor descriptor;
+            if (contribution instanceof ConvertCacheDescriptor convertCacheDescriptor) {
+                descriptor = convertCacheDescriptor;
+            } else if (contribution instanceof GlobalConfigDescriptor globalConfigDescriptor) {
+                addRuntimeMessage(RuntimeMessage.Level.WARNING,
+                        "Global configuration is no more supported, please convert it to convert cache descriptor",
+                        RuntimeMessage.Source.EXTENSION, name);
+                descriptor = globalConfigDescriptor.toConvertCacheDescriptor();
+            } else {
+                throw new NuxeoException("Unexpected contribution type: " + contribution);
+            }
+            register(CONFIG_EP, descriptor);
         } else {
             log.error("Unable to handle unknown extensionPoint {}", extensionPoint);
         }
@@ -131,6 +146,13 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
+        if (contribution instanceof ConvertCacheDescriptor descriptor) {
+            unregister(CONVERTER_EP, descriptor);
+        }
+    }
+
+    protected ConvertCacheDescriptor getConvertCacheDescriptor() {
+        return getDescriptor(CONFIG_EP, Descriptor.UNIQUE_DESCRIPTOR_ID);
     }
 
     /* Component API */
@@ -151,12 +173,20 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         return getConversionService().converterDescriptors.get(converterName);
     }
 
+    /**
+     * @deprecated since 2025.0, not used anymore
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static long getGCIntervalInMinutes() {
-        return getConversionService().config.getGCInterval();
+        return getConversionService().getConvertCacheDescriptor().getGcRate().toMinutes();
     }
 
+    /**
+     * @deprecated since 2025.0, such setting should be done with contribution
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static void setGCIntervalInMinutes(long interval) {
-        getConversionService().config.setGCInterval(interval);
+        log.warn("setGCIntervalInMinutes is deprecated and does nothing anymore");
     }
 
     public static void registerConverter(ConverterDescriptor desc) {
@@ -172,20 +202,43 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         self.converterDescriptors.put(desc.getConverterName(), desc);
     }
 
+    /**
+     * @deprecated since 2025.0, not used anymore
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static int getMaxCacheSizeInKB() {
-        return getConversionService().config.getDiskCacheSize();
+        return (int) getConversionService().getConvertCacheDescriptor().getMaxSizeKB();
     }
 
+    /**
+     * @deprecated since 2025.0, such setting should be done with contribution
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static void setMaxCacheSizeInKB(int size) {
-        getConversionService().config.setDiskCacheSize(size);
+        log.warn("setMaxCacheSizeInKB is deprecated and does nothing anymore");
     }
 
+    /**
+     * @deprecated since 2025.0, not used anymore
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static boolean isCacheEnabled() {
-        return getConversionService().config.isCacheEnabled();
+        return getConversionService().getConvertCacheDescriptor().isEnabled();
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link #getConvertCacheDirectory()} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String getCacheBasePath() {
-        return getConversionService().config.getCachingDirectory();
+        return getConvertCacheDirectory().toString();
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public static Path getConvertCacheDirectory() {
+        return getConversionService().getConvertCacheDescriptor().getDirectory();
     }
 
     /* Service API */
@@ -336,7 +389,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
             Converter converter = desc.getConverterInstance();
             result = converter.convert(blobHolder, parameters);
 
-            if (config.isCacheEnabled()) {
+            if (getConvertCacheDescriptor().isEnabled()) {
                 ConversionCacheHolder.addToCache(cacheKey, result);
             }
         } else if (result.getBlobs() != null && result.getBlobs().size() == 1) {
@@ -541,33 +594,37 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
 
     @Override
     public void start(ComponentContext context) {
-        startGC();
+        var cacheDescriptor = getConvertCacheDescriptor();
+        if (cacheDescriptor.isEnabled()) {
+            // ensure cache directory exists
+            ConversionCacheHolder.clearCache();
+            startGC(cacheDescriptor);
+        }
     }
 
     @Override
     public void stop(ComponentContext context) {
-        endGC();
+        if (getConvertCacheDescriptor().isEnabled()) {
+            endGC();
+            ConversionCacheHolder.clearCache();
+        }
     }
 
-    protected void startGC() {
-        log.debug("CacheGCTaskActivator activated starting GC thread");
-        gcTask = new GCTask();
-        gcThread = new Thread(gcTask, "Nuxeo-Convert-GC");
-        gcThread.setDaemon(true);
-        gcThread.start();
-        log.debug("GC Thread started");
-
+    protected void startGC(ConvertCacheDescriptor cacheDescriptor) {
+        log.debug("Convert cache enabled, starting GC executor");
+        gcExecutor = Executors.newSingleThreadScheduledExecutor(
+                ThreadFactories.newThreadFactory("Nuxeo-Convert-GC", true));
+        long rateInSeconds = cacheDescriptor.getGcRate().toSeconds();
+        gcExecutor.scheduleAtFixedRate(new ConversionCacheGCTask(cacheDescriptor.getMaxSizeKB()), rateInSeconds,
+                rateInSeconds, TimeUnit.SECONDS);
     }
 
     public void endGC() {
-        if (gcTask == null) {
-            return;
+        if (gcExecutor != null) {
+            log.debug("Shutdown GC executor");
+            gcExecutor.shutdown();
+            gcExecutor = null;
         }
-        log.debug("Stopping GC Thread");
-        gcTask.GCEnabled = false;
-        gcTask = null;
-        gcThread.interrupt();
-        gcThread = null;
     }
 
 }

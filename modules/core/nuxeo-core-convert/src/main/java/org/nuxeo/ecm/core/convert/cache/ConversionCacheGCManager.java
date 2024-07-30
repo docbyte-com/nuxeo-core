@@ -35,7 +35,9 @@ import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
  * Manages GC processing to clean up disk cache.
  *
  * @author tiry
+ * @deprecated since 2025.0, {@link ConversionCacheGCTask} handles everything
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ConversionCacheGCManager {
 
     private static final Logger log = LogManager.getLogger(ConversionCacheGCManager.class);

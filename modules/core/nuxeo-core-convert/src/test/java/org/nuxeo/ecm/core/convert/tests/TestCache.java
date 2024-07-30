@@ -50,7 +50,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-config-enabled.xml")
 @Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib3.xml")
 public class TestCache {
 

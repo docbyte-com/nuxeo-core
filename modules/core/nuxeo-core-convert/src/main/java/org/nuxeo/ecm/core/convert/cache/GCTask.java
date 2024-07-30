@@ -28,7 +28,9 @@ import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
  * Task for GC dedicated Thread.
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@link ConversionCacheGCTask} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class GCTask implements Runnable {
 
     private static final Logger log = LogManager.getLogger(GCTask.class);

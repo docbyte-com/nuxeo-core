@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.convert.tests;
 
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.not;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -39,7 +38,6 @@ import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
 import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
-import org.nuxeo.ecm.core.convert.cache.ConversionCacheGCManager;
 import org.nuxeo.ecm.core.convert.cache.ConversionCacheHolder;
 import org.nuxeo.ecm.core.convert.extension.Converter;
 import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
@@ -49,7 +47,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-config-enabled-gc.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-frequent-gc-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib3.xml")
 public class TestCGCache {
 
@@ -62,24 +60,17 @@ public class TestCGCache {
         Converter cv = deployConverter();
         assertNotNull(cv);
 
-        int cacheSize1 = ConversionCacheHolder.getNbCacheEntries();
         BlobHolder bh = getBlobHolder();
         BlobHolder result = cs.convert("identity", bh, null);
         assertNotNull(result);
 
-        int cacheSize2 = ConversionCacheHolder.getNbCacheEntries();
         // check new cache entry was created
-        assertEquals(1, cacheSize2 - cacheSize1);
+        assertEquals(1, ConversionCacheHolder.getNbCacheEntries());
 
-        // wait for the GCThread to run
-        int noRuns = ConversionCacheGCManager.getGCRuns();
-        await().atMost(Duration.TEN_SECONDS)
+        // wait for the GCThread to run - 1s configured
+        await().atMost(Duration.TWO_SECONDS)
                .pollInterval(Duration.ONE_SECOND)
-               .until(ConversionCacheGCManager::getGCRuns, not(noRuns));
-        assertTrue(ConversionCacheGCManager.getGCRuns() > 0);
-
-        int cacheSize3 = ConversionCacheHolder.getNbCacheEntries();
-        assertEquals(0, cacheSize3 - cacheSize1);
+               .until(() -> ConversionCacheHolder.getNbCacheEntries() == 0);
     }
 
     private Converter deployConverter() {

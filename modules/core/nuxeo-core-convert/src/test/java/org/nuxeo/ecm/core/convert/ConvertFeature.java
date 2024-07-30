@@ -18,12 +18,8 @@
  */
 package org.nuxeo.ecm.core.convert;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.ecm.core.convert.cache.ConversionCacheHolder;
-import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,15 +33,13 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @Deploy("org.nuxeo.ecm.core.convert.api")
 @Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.mimetype")
-@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-default-test-config.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-test-contrib.xml")
 @Features(RuntimeFeature.class)
 public class ConvertFeature implements RunnerFeature {
 
     @Override
     public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) throws Exception {
         // delete cache entry and cache directory
-        ConversionCacheHolder.deleteCache();
-        // ensure cache directory exists
-        Files.createDirectories(Path.of(ConversionServiceImpl.getCacheBasePath()));
+        ConversionCacheHolder.clearCache();
     }
 }

@@ -25,6 +25,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 import org.apache.commons.io.FileUtils;
 import org.nuxeo.common.Environment;
@@ -34,8 +35,11 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 
 /**
  * XMap Descriptor for the {@link org.nuxeo.ecm.core.convert.api.ConversionService} configuration.
+ *
+ * @deprecated since 2025.0, use {@link ConvertCacheDescriptor} instead
  */
 @XObject("configuration")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class GlobalConfigDescriptor {
 
     public static final boolean DEFAULT_CACHE_ENABLED = true;
@@ -115,4 +119,24 @@ public class GlobalConfigDescriptor {
         }
     }
 
+    /**
+     * @since 2025.0
+     */
+    public ConvertCacheDescriptor toConvertCacheDescriptor() {
+        var descriptor = new ConvertCacheDescriptor();
+        descriptor.enabled = enableCache;
+        descriptor.directory = cachingDirectory;
+        if (gcInterval != null) {
+            if (gcInterval < 0) {
+                // keep unclear behavior for test backward compatibility
+                descriptor.gcRate = Duration.ofMillis(-gcInterval);
+            } else {
+                descriptor.gcRate = Duration.ofMinutes(gcInterval);
+            }
+        }
+        if (diskCacheSize != null) {
+            descriptor.maxSizeKB = diskCacheSize.longValue();
+        }
+        return descriptor;
+    }
 }

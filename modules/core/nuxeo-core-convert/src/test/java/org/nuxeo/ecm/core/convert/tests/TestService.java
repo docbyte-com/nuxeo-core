@@ -253,24 +253,6 @@ public class TestService {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-test.xml")
-    public void testServiceConfig() throws Exception {
-        assertNotNull(cs);
-
-        assertEquals(12, ConversionServiceImpl.getGCIntervalInMinutes());
-        assertEquals(132, ConversionServiceImpl.getMaxCacheSizeInKB());
-        assertFalse(ConversionServiceImpl.isCacheEnabled());
-
-        // override
-        deployer.deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-override.xml");
-
-        assertEquals(34, ConversionServiceImpl.getGCIntervalInMinutes());
-        assertEquals(10, ConversionServiceImpl.getMaxCacheSizeInKB());
-        assertTrue(ConversionServiceImpl.isCacheEnabled());
-        assertEquals("/tmp/nosuchdirforcache", ConversionServiceImpl.getCacheBasePath());
-    }
-
-    @Test
     @Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/converters-test-contrib1.xml")
     public void testSupportedSourceMimeType() {
         assertTrue(cs.isSourceMimeTypeSupported("dummy1", "text/plain"));
