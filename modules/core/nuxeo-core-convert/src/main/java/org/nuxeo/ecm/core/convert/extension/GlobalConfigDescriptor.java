@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
  *     Florent Guillaume
  */
 package org.nuxeo.ecm.core.convert.extension;
+
+import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,12 +49,16 @@ public class GlobalConfigDescriptor {
     @XNode("enableCache")
     protected Boolean enableCache;
 
-    public boolean isCacheEnabled() {
-        return enableCache == null ? DEFAULT_CACHE_ENABLED : enableCache.booleanValue();
-    }
-
     @XNode("cachingDirectory")
     protected String cachingDirectory;
+
+    protected Long gcInterval;
+
+    protected Integer diskCacheSize;
+
+    public boolean isCacheEnabled() {
+        return toBooleanDefaultIfNull(enableCache, DEFAULT_CACHE_ENABLED);
+    }
 
     public String getCachingDirectory() {
         return cachingDirectory == null ? getDefaultCachingDirectory() : cachingDirectory;
@@ -75,18 +82,14 @@ public class GlobalConfigDescriptor {
         cache.mkdirs();
     }
 
-    protected Long GCInterval;
-
     @XNode("gcInterval")
     public void setGCInterval(long value) {
-        GCInterval = value == 0 ? null : Long.valueOf(value);
+        gcInterval = value == 0 ? null : Long.valueOf(value);
     }
 
     public long getGCInterval() {
-        return GCInterval == null ? DEFAULT_GC_INTERVAL_IN_MIN : GCInterval.longValue();
+        return requireNonNullElse(gcInterval, DEFAULT_GC_INTERVAL_IN_MIN);
     }
-
-    protected Integer diskCacheSize;
 
     @XNode("diskCacheSize")
     public void setDiskCacheSize(int size) {
@@ -94,15 +97,15 @@ public class GlobalConfigDescriptor {
     }
 
     public int getDiskCacheSize() {
-        return diskCacheSize == null ? DEFAULT_DISK_CACHE_IN_KB : diskCacheSize.intValue();
+        return requireNonNullElse(diskCacheSize, DEFAULT_DISK_CACHE_IN_KB);
     }
 
     public void update(GlobalConfigDescriptor other) {
         if (other.enableCache != null) {
             enableCache = other.enableCache;
         }
-        if (other.GCInterval != null) {
-            GCInterval = other.GCInterval;
+        if (other.gcInterval != null) {
+            gcInterval = other.gcInterval;
         }
         if (other.diskCacheSize != null) {
             diskCacheSize = other.diskCacheSize;

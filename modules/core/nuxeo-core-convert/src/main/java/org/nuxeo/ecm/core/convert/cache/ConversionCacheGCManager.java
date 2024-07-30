@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
 package org.nuxeo.ecm.core.convert.cache;
 
@@ -117,8 +114,7 @@ public class ConversionCacheGCManager {
             sortingMap.put(cacheEntry.getLastAccessedTime(), key);
         }
 
-        List<Date> accessTimeList = new ArrayList<>();
-        accessTimeList.addAll(sortingMap.keySet());
+        List<Date> accessTimeList = new ArrayList<>(sortingMap.keySet());
         Collections.sort(accessTimeList);
 
         long deletedVolume = 0;

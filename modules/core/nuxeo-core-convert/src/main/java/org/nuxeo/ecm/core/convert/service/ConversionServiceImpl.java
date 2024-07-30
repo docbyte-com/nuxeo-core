@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -264,7 +264,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         // Find images links in the blob
         Pattern pattern = Pattern.compile("(src=([\"']))(.*?)(\\2)");
         Matcher matcher = pattern.matcher(initialBlobContent);
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         while (matcher.find()) {
             // Retrieve the image from the URL
             String url = matcher.group(3);
@@ -392,7 +392,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
                 List<String> extensions = mimeTypeEntry.getExtensions();
                 String extension;
                 if (!extensions.isEmpty()) {
-                    extension = extensions.get(0);
+                    extension = extensions.getFirst();
                 } else {
                     extension = FilenameUtils.getExtension(filename);
                     if (extension == null) {
@@ -460,11 +460,9 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         Converter converter = descriptor.getConverterInstance();
 
         ConverterCheckResult result;
-        if (converter instanceof ExternalConverter) {
-            ExternalConverter exConverter = (ExternalConverter) converter;
+        if (converter instanceof ExternalConverter exConverter) {
             result = exConverter.isConverterAvailable();
-        } else if (converter instanceof ChainedConverter) {
-            ChainedConverter chainedConverter = (ChainedConverter) converter;
+        } else if (converter instanceof ChainedConverter chainedConverter) {
             result = new ConverterCheckResult();
             if (chainedConverter.isSubConvertersBased()) {
                 for (String subConverterName : chainedConverter.getSubConverters()) {
@@ -552,7 +550,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
     }
 
     protected void startGC() {
-        log.debug("CasheCGTaskActivator activated starting GC thread");
+        log.debug("CacheGCTaskActivator activated starting GC thread");
         gcTask = new GCTask();
         gcThread = new Thread(gcTask, "Nuxeo-Convert-GC");
         gcThread.setDaemon(true);
