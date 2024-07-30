@@ -232,8 +232,6 @@ nuxeo.work.queue.renditionBuilder.threads=2
 nuxeo.transientstore.rendition.cache.ttl=240
 nuxeo.transientstore.rendition.cache.ttl2=10
 
-# deprecated we don't use anymore zookeeper
-kafka.zkServers=localhost:2181
 # Confluent Avro Schema Registry
 confluent.schema_registry.enabled=false
 confluent.schema_registry.urls=http://localhost:8081
