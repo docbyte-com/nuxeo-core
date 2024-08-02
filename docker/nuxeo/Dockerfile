@@ -65,7 +65,7 @@ RUN rpm --import http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems \
 # Install required software
 RUN yum -y update \
   && yum -y --setopt=skip_missing_names_on_install=False install \
-    https://dl.fedoraproject.org/pub/epel/epel-release-latest-${EL_VERSION}.noarch.rpm \
+    https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm \
     gzip \
     # Install java first to provide it for depend packages (such as libreoffice)
     zulu11-jdk \
