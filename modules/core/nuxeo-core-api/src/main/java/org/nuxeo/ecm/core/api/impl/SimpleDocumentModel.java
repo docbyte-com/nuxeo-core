@@ -602,16 +602,6 @@ public class SimpleDocumentModel implements DocumentModel {
     }
 
     @Override
-    public boolean isPrefetched(String xpath) {
-        return false;
-    }
-
-    @Override
-    public boolean isPrefetched(String schemaName, String name) {
-        return false;
-    }
-
-    @Override
     public void prefetchCurrentLifecycleState(String lifecycle) {
         throw new UnsupportedOperationException();
     }

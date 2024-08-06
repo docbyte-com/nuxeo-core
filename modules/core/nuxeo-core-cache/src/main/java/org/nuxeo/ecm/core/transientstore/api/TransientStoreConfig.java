@@ -68,7 +68,7 @@ public class TransientStoreConfig implements Descriptor {
     public Class<? extends TransientStoreProvider> implClass;
 
     @XNodeMap(value = "property", key = "@name", type = HashMap.class, componentType = String.class, nullByDefault = true)
-    protected Map<String, String> properties  = new HashMap<>();
+    protected Map<String, String> properties = new HashMap<>();
 
     public TransientStoreConfig() {
     }
@@ -126,40 +126,16 @@ public class TransientStoreConfig implements Descriptor {
         return targetMaxSizeMB == null ? DEFAULT_TARGET_MAX_SIZE_MB : targetMaxSizeMB.intValue();
     }
 
-    /** @deprecated since 10.10, unused */
-    @Deprecated
-    public void setTargetMaxSizeMB(int targetMaxSizeMB) {
-        this.targetMaxSizeMB = Integer.valueOf(targetMaxSizeMB);
-    }
-
     public int getAbsoluteMaxSizeMB() {
         return absoluteMaxSizeMB == null ? DEFAULT_ABSOLUTE_MAX_SIZE_MB : absoluteMaxSizeMB.intValue();
-    }
-
-    /** @deprecated since 10.10, unused */
-    @Deprecated
-    public void setAbsoluteMaxSizeMB(int absoluteMaxSizeMB) {
-        this.absoluteMaxSizeMB = Integer.valueOf(absoluteMaxSizeMB);
     }
 
     public int getFirstLevelTTL() {
         return firstLevelTTL == null ? DEFAULT_FIRST_LEVEL_TTL : firstLevelTTL.intValue();
     }
 
-    /** @deprecated since 10.10, unused */
-    @Deprecated
-    public void setFirstLevelTTL(int firstLevelTTL) {
-        this.firstLevelTTL = Integer.valueOf(firstLevelTTL);
-    }
-
     public int getSecondLevelTTL() {
         return secondLevelTTL == null ? DEFAULT_SECOND_LEVEL_TTL : secondLevelTTL.intValue();
-    }
-
-    /** @deprecated since 10.10, unused */
-    @Deprecated
-    public void setSecondLevelTTL(int secondLevelTTL) {
-        this.secondLevelTTL = Integer.valueOf(secondLevelTTL);
     }
 
     /**

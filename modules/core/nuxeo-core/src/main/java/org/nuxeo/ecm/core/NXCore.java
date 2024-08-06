@@ -20,7 +20,6 @@
 package org.nuxeo.ecm.core;
 
 import org.nuxeo.ecm.core.lifecycle.LifeCycleService;
-import org.nuxeo.ecm.core.lifecycle.impl.LifeCycleServiceImpl;
 import org.nuxeo.ecm.core.security.SecurityService;
 import org.nuxeo.runtime.api.Framework;
 
@@ -38,18 +37,6 @@ import org.nuxeo.runtime.api.Framework;
 public final class NXCore {
 
     private NXCore() {
-    }
-
-    /**
-     * Returns the life cycle service.
-     *
-     * @see LifeCycleServiceImpl
-     * @return the life cycle service
-     * @deprecated since 10.3, use directly {@link Framework#getService(Class)} with {@link LifeCycleService}
-     */
-    @Deprecated
-    public static LifeCycleService getLifeCycleService() {
-        return Framework.getService(LifeCycleService.class);
     }
 
     /**

@@ -147,12 +147,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
 
     public static final String LIMIT_RESULTS_PROPERTY = "org.nuxeo.ecm.core.limit.results";
 
-    /**
-     * @deprecated since 10.1, new trash behavior is: always keep checkedIn state
-     */
-    @Deprecated
-    public static final String TRASH_KEEP_CHECKED_IN_PROPERTY = "org.nuxeo.trash.keepCheckedIn";
-
     // @since 9.1 disable ecm:isLatestVersion and ecm:isLatestMajorVersion updates for performance purpose
     public static final String DISABLED_ISLATESTVERSION_PROPERTY = "org.nuxeo.core.isLatestVersion.disabled";
 
@@ -2496,8 +2490,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         }
 
         if (!doc.isVersion() && !doc.isProxy() && !doc.isCheckedOut()) {
-            if (!deleteTransitions || Framework.getService(ConfigurationService.class)
-                                               .isBooleanFalse(TRASH_KEEP_CHECKED_IN_PROPERTY)) {
+            if (!deleteTransitions) {
                 checkOut(docRef);
                 doc = resolveReference(docRef);
             }

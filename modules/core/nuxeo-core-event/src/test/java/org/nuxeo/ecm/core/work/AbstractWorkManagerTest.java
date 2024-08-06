@@ -115,22 +115,6 @@ public abstract class AbstractWorkManagerTest {
             super(durationMillis);
         }
 
-        /**
-         * @deprecated since 10.2 debug flag is unused
-         */
-        @Deprecated(since = "10.2")
-        public SleepAndFailWork(long durationMillis, boolean debug) {
-            super(durationMillis, debug);
-        }
-
-        /**
-         * @deprecated since 10.2 debug flag is unused
-         */
-        @Deprecated(since = "10.2")
-        public SleepAndFailWork(long durationMillis, boolean debug, String id) {
-            super(durationMillis, debug, id);
-        }
-
         @Override
         public void work() {
             super.work();
@@ -408,9 +392,9 @@ public abstract class AbstractWorkManagerTest {
     @Ignore
     public void testWorkManagerShutdown() throws InterruptedException {
         int duration = getDurationMillis() * 2;
-        SleepWork work1 = new SleepWork(duration, false);
-        SleepWork work2 = new SleepWork(duration, false);
-        SleepWork work3 = new SleepWork(duration, false);
+        SleepWork work1 = new SleepWork(duration);
+        SleepWork work2 = new SleepWork(duration);
+        SleepWork work3 = new SleepWork(duration);
         service.schedule(work1);
         service.schedule(work2);
         service.schedule(work3);

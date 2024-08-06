@@ -21,12 +21,10 @@
 package org.nuxeo.ecm.core.io.upload.batch;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
 
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 
 /**
  * Service interface to collect inputs (Blobs) for an operation or operation chain.
@@ -36,42 +34,11 @@ import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 public interface BatchManager {
 
     /**
-     * Returns the {@link TransientStore} backing the batches of the default handler.
-     *
-     * @since 7.4
-     * @deprecated since 10.10, each batch handler has its own transient store
-     */
-    @Deprecated
-    TransientStore getTransientStore();
-
-    /**
-     * Adds an inputStream as a blob to a batch. Will create a new {@link Batch} if needed.
-     * <p>
-     * Streams are persisted as temporary files.
-     *
-     * @deprecated since 10.1, use {@link #addBlob(String, String, Blob, String, String)} instead
-     */
-    @Deprecated
-    void addStream(String batchId, String index, InputStream is, String name, String mime) throws IOException;
-
-    /**
      * Adds a blob to a batch. Will create a new {@link Batch} if needed.
      *
      * @since 10.1
      */
     void addBlob(String batchId, String index, Blob blob, String name, String mime) throws IOException;
-
-    /**
-     * Adds an inputStream as a chunk to a batch. Will create a new {@link Batch} if needed.
-     * <p>
-     * Streams are persisted as temporary files.
-     *
-     * @since 7.4
-     * @deprecated since 10.1, use {@link #addBlob(String, String, Blob, int, int, String, String, long)} instead
-     */
-    @Deprecated
-    void addStream(String batchId, String index, InputStream is, int chunkCount, int chunkIndex, String name,
-            String mime, long fileSize) throws IOException;
 
     /**
      * Adds a blob as a chunk to a batch. Will create a new {@link Batch} if needed.

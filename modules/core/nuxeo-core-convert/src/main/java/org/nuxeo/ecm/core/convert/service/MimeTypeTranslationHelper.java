@@ -210,40 +210,6 @@ public class MimeTypeTranslationHelper {
                           .collect(Collectors.toList());
     }
 
-    /**
-     * @deprecated since 10.3. Not used.
-     */
-    @Deprecated
-    public List<String> getDestinationMimeTypes(String sourceMimeType) {
-        List<String> dst = new ArrayList<>();
-
-        List<ConvertOption> sco = srcMappings.get(sourceMimeType);
-
-        if (sco != null) {
-            for (ConvertOption co : sco) {
-                dst.add(co.getMimeType());
-            }
-        }
-        return dst;
-    }
-
-    /**
-     * @deprecated since 10.3. Not used.
-     */
-    @Deprecated
-    public List<String> getSourceMimeTypes(String destinationMimeType) {
-        List<String> src = new ArrayList<>();
-
-        List<ConvertOption> dco = dstMappings.get(destinationMimeType);
-
-        if (dco != null) {
-            for (ConvertOption co : dco) {
-                src.add(co.getMimeType());
-            }
-        }
-        return src;
-    }
-
     public void clear() {
         dstMappings.clear();
         srcMappings.clear();

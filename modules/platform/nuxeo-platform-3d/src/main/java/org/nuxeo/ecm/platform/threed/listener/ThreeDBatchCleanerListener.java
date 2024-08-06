@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.platform.threed.listener;
 
+import static org.nuxeo.ecm.platform.threed.ThreeDConstants.THREED_FACET;
+
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.Property;
@@ -27,8 +29,6 @@ import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.platform.threed.service.ThreeDService;
 import org.nuxeo.runtime.api.Framework;
-
-import static org.nuxeo.ecm.platform.threed.ThreeDConstants.THREED_FACET;
 
 /**
  * Listener cleaning batch date when batch update is scheduled.

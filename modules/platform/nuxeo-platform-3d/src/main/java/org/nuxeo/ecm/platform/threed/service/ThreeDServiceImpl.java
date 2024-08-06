@@ -102,28 +102,28 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-        case RENDER_VIEWS_EP:
-            renderViews.addContribution((RenderView) contribution);
-            break;
-        case DEFAULT_RENDER_VIEWS_EP:
-            automaticRenderViews.addContribution((AutomaticRenderView) contribution);
-            break;
-        case DEFAULT_LODS_EP:
-            automaticLODs.addContribution((AutomaticLOD) contribution);
+            case RENDER_VIEWS_EP:
+                renderViews.addContribution((RenderView) contribution);
+                break;
+            case DEFAULT_RENDER_VIEWS_EP:
+                automaticRenderViews.addContribution((AutomaticRenderView) contribution);
+                break;
+            case DEFAULT_LODS_EP:
+                automaticLODs.addContribution((AutomaticLOD) contribution);
         }
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-        case RENDER_VIEWS_EP:
-            renderViews.removeContribution((RenderView) contribution);
-            break;
-        case DEFAULT_RENDER_VIEWS_EP:
-            automaticRenderViews.removeContribution((AutomaticRenderView) contribution);
-            break;
-        case DEFAULT_LODS_EP:
-            automaticLODs.removeContribution((AutomaticLOD) contribution);
+            case RENDER_VIEWS_EP:
+                renderViews.removeContribution((RenderView) contribution);
+                break;
+            case DEFAULT_RENDER_VIEWS_EP:
+                automaticRenderViews.removeContribution((AutomaticRenderView) contribution);
+                break;
+            case DEFAULT_LODS_EP:
+                automaticLODs.removeContribution((AutomaticLOD) contribution);
         }
     }
 
@@ -265,12 +265,9 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
     public ThreeDBatchProgress getBatchProgress(String repositoryName, String docId) {
         WorkManager workManager = Framework.getService(WorkManager.class);
         Work work = new ThreeDBatchUpdateWork(repositoryName, docId);
-        Work workRunning = workManager.find(work.getId(), State.RUNNING);
-        if (workRunning != null) {
-            return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_RUNNING, workRunning.getStatus());
-        }
-        Work workScheduled = workManager.find(work.getId(), State.SCHEDULED);
-        if (workScheduled != null) {
+        if (State.RUNNING == workManager.getWorkState(work.getId())) {
+            return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_RUNNING, work.getStatus());
+        } else if (State.SCHEDULED == workManager.getWorkState(work.getId())) {
             return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_QUEUED, "");
         }
         return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_UNKNOWN, "");

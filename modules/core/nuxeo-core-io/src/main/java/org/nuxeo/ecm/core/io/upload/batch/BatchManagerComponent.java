@@ -24,7 +24,6 @@ package org.nuxeo.ecm.core.io.upload.batch;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
@@ -88,12 +86,6 @@ public class BatchManagerComponent extends DefaultComponent implements BatchMana
     }
 
     @Override
-    @Deprecated
-    public TransientStore getTransientStore() {
-        return getHandler(DEFAULT_BATCH_HANDLER).getTransientStore();
-    }
-
-    @Override
     public Set<String> getSupportedHandlers() {
         return Collections.unmodifiableSet(handlers.keySet());
     }
@@ -137,12 +129,6 @@ public class BatchManagerComponent extends DefaultComponent implements BatchMana
     }
 
     @Override
-    public void addStream(String batchId, String index, InputStream is, String name, String mime) throws IOException {
-        Blob blob = Blobs.createBlob(is);
-        addBlob(batchId, index, blob, name, mime);
-    }
-
-    @Override
     public void addBlob(String batchId, String index, Blob blob, String name, String mime) throws IOException {
         uploadInProgress.incrementAndGet();
         try {
@@ -155,13 +141,6 @@ public class BatchManagerComponent extends DefaultComponent implements BatchMana
         } finally {
             uploadInProgress.decrementAndGet();
         }
-    }
-
-    @Override
-    public void addStream(String batchId, String index, InputStream is, int chunkCount, int chunkIndex, String name,
-            String mime, long fileSize) throws IOException {
-        Blob blob = Blobs.createBlob(is);
-        addBlob(batchId, index, blob, chunkCount, chunkIndex, name, mime, fileSize);
     }
 
     @Override

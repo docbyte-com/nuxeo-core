@@ -18,6 +18,9 @@
  */
 package org.nuxeo.ecm.platform.threed.listener;
 
+import static org.nuxeo.ecm.platform.threed.ThreeDConstants.THREED_FACET;
+import static org.nuxeo.ecm.platform.threed.listener.ThreeDBatchCleanerListener.GENERATE_BATCH_DATA;
+
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
@@ -27,9 +30,6 @@ import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.threed.service.ThreeDBatchUpdateWork;
 import org.nuxeo.runtime.api.Framework;
-
-import static org.nuxeo.ecm.platform.threed.ThreeDConstants.THREED_FACET;
-import static org.nuxeo.ecm.platform.threed.listener.ThreeDBatchCleanerListener.GENERATE_BATCH_DATA;
 
 /**
  * Listener batch updating transmission formats and renders if the main Blob has changed.
@@ -56,14 +56,10 @@ public class ThreeDBatchGenerationListener implements EventListener {
             ThreeDBatchUpdateWork work = new ThreeDBatchUpdateWork(doc.getRepositoryName(), doc.getId());
             WorkManager manager = Framework.getService(WorkManager.class);
 
-            ThreeDBatchUpdateWork running = (ThreeDBatchUpdateWork) manager.find(work.getId(), Work.State.RUNNING);
-            ThreeDBatchUpdateWork scheduled = (ThreeDBatchUpdateWork) manager.find(work.getId(), Work.State.SCHEDULED);
-            if (running != null) {
-                running.suspended();
-                running.setStatus("Suspended");
-            } else if (scheduled != null) {
-                scheduled.suspended();
-                scheduled.setStatus("Suspended");
+            var state = manager.getWorkState(work.getId());
+            if (Work.State.RUNNING == state || Work.State.SCHEDULED == state) {
+                work.suspended();
+                work.setStatus("Suspended");
             }
 
             manager.schedule(work, WorkManager.Scheduling.ENQUEUE, true);

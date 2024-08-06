@@ -123,48 +123,12 @@ public final class MarshallerHelper {
     }
 
     /**
-     * Read an object of the given type from given json.
-     *
-     * @param type The type of the read object.
-     * @param json The json to parse.
-     * @param ctx May be null - otherwise, use {@link CtxBuilder} to create the context.
-     * @return the resulting object.
-     * @since 7.2
-     * @deprecated since 10.2 use {@link #jsonToObject(Class, String, RenderingContext)} instead.
-     */
-    @Deprecated
-    public static <T> T objectToJson(Class<T> type, String json, RenderingContext ctx) throws IOException {
-        return jsonToObject(type, json, ctx);
-    }
-
-    /**
      * @since 10.2
      */
     public static <T> T jsonToObject(Class<T> type, String json, RenderingContext ctx) throws IOException {
         Reader<T> reader = getService().getReader(ctx, type, APPLICATION_JSON_TYPE);
         checkMarshaller(type, reader);
         return reader.read(type, type, APPLICATION_JSON_TYPE, new ByteArrayInputStream(json.getBytes()));
-    }
-
-    /**
-     * Read an object of the given type from given json.
-     * <p>
-     * Specify its generic type to be sure to get the best marshaller to manage it.
-     * </p>
-     *
-     * @param type The type of the read object.
-     * @param genericType The generic type of the object. You can easily create parametrize type using
-     *            {@link TypeUtils#parameterize(Class, Type...)}
-     * @param json The json to parse.
-     * @param ctx May be null - otherwise, use {@link CtxBuilder} to create the context.
-     * @return the resulting object.
-     * @since 7.2
-     * @deprecated since 10.2, use {@link #jsonToObject(Class, Type, String, RenderingContext)} instead.
-     */
-    @Deprecated
-    public static <T> T objectToJson(Class<T> type, Type genericType, String json, RenderingContext ctx)
-            throws IOException {
-        return jsonToObject(type, genericType, json, ctx);
     }
 
     /**
@@ -175,25 +139,6 @@ public final class MarshallerHelper {
         Reader<T> reader = getService().getReader(ctx, type, genericType, APPLICATION_JSON_TYPE);
         checkMarshaller(genericType, reader);
         return reader.read(type, genericType, APPLICATION_JSON_TYPE, new ByteArrayInputStream(json.getBytes()));
-    }
-
-    /**
-     * Read an object of the given type from given json.
-     * <p>
-     * Specify the list element type to get the best marshaller to manage conversion.
-     * </p>
-     *
-     * @param elementType The element type of the list.
-     * @param json The json to parse.
-     * @param ctx May be null - otherwise, use {@link CtxBuilder} to create the context.
-     * @return the resulting list.
-     * @since 7.2
-     * @deprecated since 10.2, use {@link #jsonToList(Class, String, RenderingContext)} instead.
-     */
-    @Deprecated
-    @SuppressWarnings("unchecked")
-    public static <T> List<T> listToJson(Class<T> elementType, String json, RenderingContext ctx) throws IOException {
-        return jsonToList(elementType, json, ctx);
     }
 
     /**

@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.work;
 
 import static java.lang.Math.min;
-import static java.util.Objects.requireNonNullElse;
 import static org.nuxeo.ecm.core.work.BaseOverflowRecordFilter.PREFIX_OPTION;
 import static org.nuxeo.ecm.core.work.BaseOverflowRecordFilter.STORE_NAME_OPTION;
 import static org.nuxeo.ecm.core.work.BaseOverflowRecordFilter.STORE_TTL_OPTION;
@@ -557,35 +556,6 @@ public class StreamWorkManager extends WorkManagerImpl {
         return false;
     }
 
-    /**
-     * @deprecated since 10.2 because unused
-     */
-    @Deprecated
-    public boolean awaitCompletionWithWaterMark(String queueId, long duration, TimeUnit unit)
-            throws InterruptedException {
-        if (!isStarted()) {
-            return true;
-        }
-        // wait that the low watermark get stable
-        long durationMs = min(unit.toMillis(duration), TimeUnit.DAYS.toMillis(1)); // prevent overflow
-        long deadline = System.currentTimeMillis() + durationMs;
-        long lowWatermark = getLowWaterMark(queueId);
-        while (System.currentTimeMillis() < deadline) {
-            Thread.sleep(100);
-            long wm = getLowWaterMark(queueId);
-            if (wm == lowWatermark) {
-                log.debug("awaitCompletion for {} completed {}", () -> requireNonNullElse(queueId, "all"), () -> wm);
-                return true;
-            }
-            var lowWatermarkF = lowWatermark;
-            log.debug("awaitCompletion low wm for {}: {} diff: {}", () -> requireNonNullElse(queueId, "all"), () -> wm,
-                    () -> wm - lowWatermarkF);
-            lowWatermark = wm;
-        }
-        log.warn(String.format("%s timeout after: %.2fs", queueId, durationMs / 1000.0));
-        return false;
-    }
-
     protected long getLowWaterMark(String queueId) {
         if (streamProcessor == null) {
             return -1L;
@@ -594,30 +564,6 @@ public class StreamWorkManager extends WorkManagerImpl {
             return streamProcessor.getLowWatermark(queueId);
         }
         return streamProcessor.getLowWatermark();
-    }
-
-    @Override
-    public Work.State getWorkState(String workId) {
-        if (!storeState) {
-            return null;
-        }
-        return WorkStateHelper.getState(workId);
-    }
-
-    @Override
-    public Work find(String s, Work.State state) {
-        // always not found
-        return null;
-    }
-
-    @Override
-    public List<Work> listWork(String s, Work.State state) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<String> listWorkIds(String s, Work.State state) {
-        return Collections.emptyList();
     }
 
     @Override

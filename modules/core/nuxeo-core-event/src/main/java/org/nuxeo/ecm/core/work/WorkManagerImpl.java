@@ -521,26 +521,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         return true;
     }
 
-    /**
-     * @deprecated since 10.2 because unused
-     */
-    @Deprecated
-    protected long remainingMillis(long t0, long delay) {
-        long d = System.currentTimeMillis() - t0;
-        if (d > delay) {
-            return 0;
-        }
-        return delay - d;
-    }
-
-    /**
-     * @deprecated since 10.2 because unused
-     */
-    @Deprecated
-    protected synchronized void removeExecutor(String queueId) {
-        executors.remove(queueId);
-    }
-
     @Override
     public boolean shutdown(long timeout, TimeUnit unit) throws InterruptedException {
         shutdownInProgress = true;
@@ -681,19 +661,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         @Override
         public void execute(Runnable r) {
             throw new UnsupportedOperationException("use other api");
-        }
-
-        /**
-         * Executes the given task sometime in the future.
-         *
-         * @param work the work to execute
-         * @see #execute(Runnable)
-         * @deprecated since 10.2 because unused
-         */
-        @Deprecated
-        public void execute(Work work) {
-            scheduledCount.inc();
-            submit(work);
         }
 
         /**
@@ -876,11 +843,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         }
     }
 
-    @Override
-    public Work find(String workId, State state) {
-        return queuing.find(workId, state);
-    }
-
     /**
      * @param state SCHEDULED, RUNNING or null for both
      */
@@ -891,17 +853,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
     @Override
     public State getWorkState(String workId) {
         return queuing.getWorkState(workId);
-    }
-
-    @Override
-    public List<Work> listWork(String queueId, State state) {
-        // don't return scheduled after commit
-        return queuing.listWork(queueId, state);
-    }
-
-    @Override
-    public List<String> listWorkIds(String queueId, State state) {
-        return queuing.listWorkIds(queueId, state);
     }
 
     @Override

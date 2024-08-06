@@ -21,8 +21,6 @@
  */
 package org.nuxeo.ecm.core.io.upload.batch;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -34,7 +32,6 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 
 /**
@@ -164,18 +161,6 @@ public class Batch {
      * Adds a file with the given {@code index} to the batch.
      *
      * @return The key of the new {@link BatchFileEntry}.
-     * @deprecated since 10.1, use the {@link Blob}-based signature instead
-     */
-    @Deprecated
-    public String addFile(String index, InputStream is, String name, String mime) throws IOException {
-        Blob blob = Blobs.createBlob(is);
-        return addFile(index, blob, name, mime);
-    }
-
-    /**
-     * Adds a file with the given {@code index} to the batch.
-     *
-     * @return The key of the new {@link BatchFileEntry}.
      * @since 10.1
      */
     public String addFile(String index, Blob blob, String name, String mime) {
@@ -186,20 +171,6 @@ public class Batch {
         transientStore.putParameter(fileEntryKey, CHUNKED_PARAM_NAME, String.valueOf(false));
         transientStore.putParameter(key, index, fileEntryKey);
         return fileEntryKey;
-    }
-
-    /**
-     * Adds a chunk with the given {@code chunkIndex} to the batch file with the given {@code index}.
-     *
-     * @return The key of the {@link BatchFileEntry}.
-     * @since 7.4
-     * @deprecated since 10.1, use the {@link Blob}-based signature instead
-     */
-    @Deprecated
-    public String addChunk(String index, InputStream is, int chunkCount, int chunkIndex, String fileName,
-            String mimeType, long fileSize) throws IOException {
-        Blob blob = Blobs.createBlob(is);
-        return addChunk(index, blob, chunkCount, chunkIndex, fileName, mimeType, fileSize);
     }
 
     /**

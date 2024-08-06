@@ -1223,16 +1223,6 @@ public class DocumentModelImpl implements DocumentModel, Cloneable {
     }
 
     @Override
-    public boolean isPrefetched(String xpath) {
-        return false;
-    }
-
-    @Override
-    public boolean isPrefetched(String schemaName, String name) {
-        return false;
-    }
-
-    @Override
     public void prefetchCurrentLifecycleState(String lifecycle) {
         currentLifeCycleState = lifecycle;
     }
