@@ -27,24 +27,12 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static jakarta.ws.rs.core.Response.Status.CREATED;
 import static org.nuxeo.scim.v2.api.ScimV2QueryContext.FETCH_GROUP_MEMBERS_CTX_PARAM;
 
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.core.Context;
-import jakarta.ws.rs.core.Response;
-
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.query.sql.model.Predicates;
-import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebContext;
+import org.nuxeo.scim.v2.api.ScimV2Helper;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
-import org.nuxeo.scim.v2.rest.marshalling.ResponseUtils;
 
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
@@ -56,6 +44,16 @@ import com.unboundid.scim2.server.annotations.ResourceType;
 import com.unboundid.scim2.server.utils.ResourcePreparer;
 import com.unboundid.scim2.server.utils.ResourceTypeDefinition;
 import com.unboundid.scim2.server.utils.ServerUtils;
+
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 /**
  * SCIM 2.0 Group object.
@@ -113,19 +111,7 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     }
 
     protected GroupResource resolveGroupResource(String uid) throws ScimException {
-        DocumentModel groupModel = null;
-        if (isFetchMembers()) {
-            groupModel = um.getGroupModel(uid);
-        } else {
-            // searchGroups lazy fetches attributes such as members
-            var groups = um.searchGroups(new QueryBuilder().predicate(Predicates.like("groupname", uid)).limit(1));
-            if (!groups.isEmpty()) {
-                groupModel = groups.get(0);
-            }
-        }
-        if (groupModel == null) {
-            throw new ResourceNotFoundException("Cannot find group: " + uid); // NOSONAR
-        }
+        DocumentModel groupModel = ScimV2Helper.getGroupModel(uid, isFetchMembers());
         return mappingService.getGroupResourceFromNuxeoGroup(groupModel, baseURL);
     }
 
@@ -162,11 +148,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
         var uriInfo = webContext.getUriInfo();
         var excludedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_EXCLUDED_ATTRIBUTES);
         var includedAttributes = uriInfo.getQueryParameters().getFirst(QUERY_PARAMETER_ATTRIBUTES);
-        if ((excludedAttributes != null && excludedAttributes.contains("members"))
-                || includedAttributes != null && !includedAttributes.contains("members")) {
-            return false;
-        }
-        return true;
+        return (excludedAttributes == null || !excludedAttributes.contains("members"))
+                && (includedAttributes == null || includedAttributes.contains("members"));
     }
 
 }

@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThrows;
 
 import java.util.Objects;
 
-import jakarta.inject.Inject;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -45,6 +43,8 @@ import com.unboundid.scim2.common.messages.PatchOpType;
 import com.unboundid.scim2.common.messages.PatchOperation;
 import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.utils.JsonUtils;
+
+import jakarta.inject.Inject;
 
 /**
  * Tests the SCIM 2.0 patch feature for User resources.
