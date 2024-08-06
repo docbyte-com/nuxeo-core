@@ -2845,11 +2845,6 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-jcl</artifactId> <!-- redirect commons-logging to log4j2 -->
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
         <artifactId>log4j-slf4j-impl</artifactId> <!-- use log4j-slf4j18-impl when upgrading SLF4j to 1.8 -->
         <version>${org.apache.log4j.version}</version>
       </dependency>
@@ -4411,11 +4406,6 @@
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-jcl</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-slf4j-impl</artifactId>
       <scope>runtime</scope>
     </dependency>
@@ -4741,7 +4731,6 @@
             <ignoredUnusedDeclaredDependencies>
               <artifact>org.apache.logging.log4j:log4j-api</artifact>
               <artifact>org.apache.logging.log4j:log4j-core</artifact>
-              <artifact>org.apache.logging.log4j:log4j-jcl</artifact>
               <artifact>org.apache.logging.log4j:log4j-slf4j-impl</artifact>
               <artifact>org.apache.logging.log4j:log4j-1.2-api</artifact>
               <artifact>junit:junit</artifact>
