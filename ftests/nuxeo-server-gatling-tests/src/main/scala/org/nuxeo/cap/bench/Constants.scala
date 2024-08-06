@@ -33,7 +33,7 @@ object Constants {
   val GAT_FOLDER_IMPORT_NAME = "import"
   val GAT_FOLDER_IMPORT_PATH = GAT_WS_PATH + "/" + GAT_FOLDER_IMPORT_NAME
   val GAT_FOLDER_NAME = "Common"
-  val GAT_USER_FOLDER_NAME = "Folder_${user}"
+  val GAT_USER_FOLDER_NAME = "Folder_#{user}"
   val GAT_GROUP_NAME = "gatling"
   val GAT_API_PATH = API_PATH + GAT_WS_PATH
 

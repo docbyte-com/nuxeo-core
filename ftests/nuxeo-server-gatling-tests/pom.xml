@@ -47,6 +47,22 @@
             <goals>
               <goal>compile</goal>
             </goals>
+            <configuration>
+              <args>
+                <arg>-deprecation</arg>
+              </args>
+            </configuration>
+          </execution>
+          <execution>
+            <id>scala-testCompile</id>
+            <goals>
+              <goal>testCompile</goal>
+            </goals>
+            <configuration>
+              <args>
+                <arg>-deprecation</arg>
+              </args>
+            </configuration>
           </execution>
         </executions>
       </plugin>

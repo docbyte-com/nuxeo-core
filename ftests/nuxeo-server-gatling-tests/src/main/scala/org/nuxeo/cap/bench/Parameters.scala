@@ -18,7 +18,7 @@
  */
 package org.nuxeo.cap.bench
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 object Parameters {
 
@@ -35,9 +35,9 @@ object Parameters {
     FiniteDuration(pauseMs, "millisecond")
   }
 
-  def getSimulationDuration(default: Integer = 120): Duration = {
+  def getSimulationDuration(default: Integer = 120): FiniteDuration = {
     val duration: Long = 0L + Integer.getInteger("duration", default)
-    Duration(duration, "second")
+    FiniteDuration(duration, "second")
   }
 
   def getRampDuration(default: Integer = 2, prefix: String = ""): FiniteDuration = {
