@@ -19,82 +19,24 @@
  */
 package org.nuxeo.ecm.core.trash;
 
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.migration.MigrationService;
-import org.nuxeo.runtime.migration.MigrationService.MigrationStatus;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 public class TrashServiceImpl extends DefaultComponent {
 
     /** @since 10.2 */
-    public static final ComponentName NAME = new ComponentName("org.nuxeo.ecm.core.trash.TrashService");
+    public static final ComponentName NAME = new ComponentName("org.nuxeo.ecm.core.api.trash.TrashService");
 
-    /** @since 10.1 */
-    public static final String MIGRATION_ID = "trash-storage"; // also in XML
-
-    /** @since 10.1 */
-    public static final String MIGRATION_STATE_LIFECYCLE = "lifecycle"; // also in XML
-
-    /** @since 10.1 */
-    public static final String MIGRATION_STATE_PROPERTY = "property"; // also in XML
-
-    /** @since 10.1 */
-    public static final String MIGRATION_STEP_LIFECYCLE_TO_PROPERTY = "lifecycle-to-property"; // also in XML
-
-    protected volatile TrashService trashService;
-
-    // called under synchronized (this)
-    @SuppressWarnings("deprecation")
-    protected TrashService recomputeTrashService() {
-        MigrationService migrationService = Framework.getService(MigrationService.class);
-        MigrationStatus status = migrationService.getStatus(MIGRATION_ID);
-        if (status == null) {
-            throw new IllegalStateException("Unknown migration status for: " + MIGRATION_ID);
-        }
-        if (status.isRunning()) {
-            String step = status.getStep();
-            if (MIGRATION_STEP_LIFECYCLE_TO_PROPERTY.equals(step)) {
-                return new BridgeTrashService(new LifeCycleTrashService(), new PropertyTrashService());
-            } else {
-                throw new IllegalStateException("Unknown migration step: " + step);
-            }
-        } else {
-            String state = status.getState();
-            if (MIGRATION_STATE_LIFECYCLE.equals(state)) {
-                return new LifeCycleTrashService();
-            } else if (MIGRATION_STATE_PROPERTY.equals(state)) {
-                return new PropertyTrashService();
-            } else {
-                throw new IllegalStateException("Unknown migration state: " + state);
-            }
-        }
-    }
+    protected TrashService trashService = new PropertyTrashService();
 
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getAdapter(Class<T> adapter) {
         if (adapter == TrashServiceImpl.class) {
             return adapter.cast(this);
-        } else if (trashService == null) {
-            synchronized (this) {
-                if (trashService == null) {
-                    trashService = recomputeTrashService();
-                }
-            }
         }
         return (T) trashService;
-    }
-
-    /**
-     * Called when the migration status changes, to recompute the new service.
-     *
-     * @since 10.2
-     */
-    public void invalidateTrashServiceImplementation() {
-        synchronized (this) {
-            trashService = recomputeTrashService();
-        }
     }
 
 }

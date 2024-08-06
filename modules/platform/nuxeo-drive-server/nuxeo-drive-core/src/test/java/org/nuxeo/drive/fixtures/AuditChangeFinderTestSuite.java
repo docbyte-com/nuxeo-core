@@ -30,7 +30,6 @@ import static org.nuxeo.drive.service.NuxeoDriveEvents.SECURITY_UPDATED_EVENT;
 import static org.nuxeo.ecm.collections.api.CollectionConstants.ADDED_TO_COLLECTION;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -206,15 +205,11 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             expectedChanges.add(new SimpleFileSystemItemChange(folder2.getId(), ROOT_REGISTERED, TEST_REPOSITORY,
                     DEFAULT_SYNC_ROOT_FOLDER_ITEM_FACTORY_PREFIX + folder2.getId()));
             expectedChanges.add(new SimpleFileSystemItemChange(doc3.getId(), "documentMoved", TEST_REPOSITORY));
-            if (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-                expectedChanges.add(
-                        new SimpleFileSystemItemChange(doc1.getId(), "lifecycle_transition_event", TEST_REPOSITORY));
-            } else {
-                expectedChanges.add(new SimpleFileSystemItemChange(doc1.getId(), "documentUntrashed", TEST_REPOSITORY));
-            }
+            expectedChanges.add(new SimpleFileSystemItemChange(doc1.getId(), "documentUntrashed", TEST_REPOSITORY));
+
             assertTrue(CollectionUtils.isEqualCollection(expectedChanges, toSimpleFileSystemItemChanges(changes)));
 
-            log.trace("Physical deletion without triggering the delete transition first");
+            log.trace("Physical deletion");
             session.removeDocument(doc3.getRef());
         } finally {
             commitAndWaitForAsyncCompletion();

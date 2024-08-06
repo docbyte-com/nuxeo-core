@@ -27,12 +27,6 @@ import java.util.concurrent.TimeUnit;
 import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchType;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -52,6 +46,12 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
  * Test that NXQL can be used to generate ES queries
@@ -59,7 +59,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features({RepositoryElasticSearchFeature.class})
+@Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-hints-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-nested-contrib.xml")
 public class TestNxqlConversion {
@@ -98,13 +98,13 @@ public class TestNxqlConversion {
 
     protected SearchResponse searchAll() {
         SearchRequest request = new SearchRequest(IDX_NAME).searchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .source(new SearchSourceBuilder().from(0).size(60));
+                                                           .source(new SearchSourceBuilder().from(0).size(60));
         return esa.getClient().search(request);
     }
 
     protected SearchResponse search(QueryBuilder query) {
         SearchRequest request = new SearchRequest(IDX_NAME).searchType(SearchType.DFS_QUERY_THEN_FETCH)
-                .source(new SearchSourceBuilder().from(0).size(60));
+                                                           .source(new SearchSourceBuilder().from(0).size(60));
         request.source(new SearchSourceBuilder().query(query));
         return esa.getClient().search(request);
     }
@@ -114,8 +114,8 @@ public class TestNxqlConversion {
 
         buildDocs();
 
-        SearchResponse searchResponse = search(QueryBuilders.queryStringQuery(
-                " dc\\:nature:\"Nature1\" AND dc\\:title:\"File1\""));
+        SearchResponse searchResponse = search(
+                QueryBuilders.queryStringQuery(" dc\\:nature:\"Nature1\" AND dc\\:title:\"File1\""));
         Assert.assertEquals(1, searchResponse.getHits().getTotalHits().value);
 
         searchResponse = search(QueryBuilders.queryStringQuery(" dc\\:nature:\"Nature2\" AND dc\\:title:\"File1\""));
@@ -913,22 +913,6 @@ public class TestNxqlConversion {
                 + "    \"boost\" : 1.0\n" //
                 + "  }\n" //
                 + "}", es);
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testConverterIsTrashedWithLifeCycle() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 0";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 1";
-        doTestTrashedWithLifeCycle(sqlNotTrashed, sqlTrashed);
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml") // for consistency
-    public void testConverterLifeCycleStateDeleted() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState <> 'deleted'";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState = 'deleted'";
-        doTestTrashedWithLifeCycle(sqlNotTrashed, sqlTrashed);
     }
 
     protected void doTestTrashedWithLifeCycle(String sqlNotTrashed, String sqlTrashed) {

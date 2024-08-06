@@ -265,9 +265,10 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
     public ThreeDBatchProgress getBatchProgress(String repositoryName, String docId) {
         WorkManager workManager = Framework.getService(WorkManager.class);
         Work work = new ThreeDBatchUpdateWork(repositoryName, docId);
-        if (State.RUNNING == workManager.getWorkState(work.getId())) {
+        var workState = workManager.getWorkState(work.getId());
+        if (State.RUNNING == workState) {
             return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_RUNNING, work.getStatus());
-        } else if (State.SCHEDULED == workManager.getWorkState(work.getId())) {
+        } else if (State.SCHEDULED == workState) {
             return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_QUEUED, "");
         }
         return new ThreeDBatchProgress(ThreeDBatchProgress.STATUS_CONVERSION_UNKNOWN, "");

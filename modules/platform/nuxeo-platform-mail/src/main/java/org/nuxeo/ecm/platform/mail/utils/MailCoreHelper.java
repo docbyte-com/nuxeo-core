@@ -81,12 +81,6 @@ public final class MailCoreHelper {
 
     public static final String INBOX = "INBOX";
 
-    /**
-     * @deprecated since 10.3, use {@link TrashService} instead
-     */
-    @Deprecated
-    public static final String DELETED_LIFECYCLE_STATE = "deleted";
-
     public static final long EMAILS_LIMIT_DEFAULT = 100;
 
     public static final String IMAP_DEBUG = "org.nuxeo.mail.imap.debug";

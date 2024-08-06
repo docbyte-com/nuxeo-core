@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.core.lifecycle.event;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -29,14 +27,11 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
-import org.nuxeo.ecm.core.api.event.DocumentEventCategories;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
-import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventBundle;
 import org.nuxeo.ecm.core.event.EventContext;
-import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.PostCommitEventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.lifecycle.LifeCycleService;
@@ -48,12 +43,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * Listener for life cycle change events.
  * <p>
  * If event occurs on a folder, it will recurse on children to perform the same transition if possible.
- * <p>
- * If the transition event is about marking documents as "deleted", and a child cannot perform the transition, it will
- * be removed.
- * <p>
- * Undelete transitions are not processed, but this listener instead looks for a specific documentUndeleted event. This
- * is because we want to undelete documents (parents) under which we don't want to recurse.
  * <p>
  * Reinit document copy lifeCycle (BulkLifeCycleChangeListener is bound to the event documentCreatedByCopy)
  */
@@ -74,13 +63,12 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
     @Override
     public void handleEvent(EventBundle events) {
         if (!events.containsEventName(LifeCycleConstants.TRANSITION_EVENT)
-                && !events.containsEventName(LifeCycleConstants.DOCUMENT_UNDELETED)
                 && !events.containsEventName(DocumentEventTypes.DOCUMENT_CREATED_BY_COPY)) {
             return;
         }
         for (Event event : events) {
             String name = event.getName();
-            if (LifeCycleConstants.TRANSITION_EVENT.equals(name) || LifeCycleConstants.DOCUMENT_UNDELETED.equals(name)
+            if (LifeCycleConstants.TRANSITION_EVENT.equals(name)
                     || DocumentEventTypes.DOCUMENT_CREATED_BY_COPY.equals(name)) {
                 processTransition(event);
             }
@@ -115,23 +103,13 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
                 reinitDocumentsLifeCyle(session, docs);
                 session.save();
             }
-        } else {
-            if (LifeCycleConstants.TRANSITION_EVENT.equals(event.getName())) {
-                transition = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION);
-                if (isNonRecursiveTransition(transition, doc.getType())) {
-                    // transition should not recurse into children
-                    return;
-                }
-                if (LifeCycleConstants.UNDELETE_TRANSITION.equals(transition)) {
-                    // not processed (as we can undelete also parents)
-                    // a specific event documentUndeleted will be used instead
-                    return;
-                }
-                targetState = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TO);
-            } else { // LifeCycleConstants.DOCUMENT_UNDELETED
-                transition = LifeCycleConstants.UNDELETE_TRANSITION;
-                targetState = ""; // unused
+        } else if (LifeCycleConstants.TRANSITION_EVENT.equals(event.getName())) {
+            transition = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION);
+            if (isNonRecursiveTransition(transition, doc.getType())) {
+                // transition should not recurse into children
+                return;
             }
+            targetState = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TO);
             changeChildrenState(session, transition, targetState, doc);
         }
     }
@@ -165,7 +143,7 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
             // execute a first query to know total size
             String query = String.format("SELECT * FROM Document where ecm:parentId ='%s'", doc.getId());
             DocumentModelList documents = session.query(query, null, pageSize, 0, true);
-            changeDocumentsState(session, transition, targetState, documents);
+            changeDocumentsState(transition, targetState, documents);
             session.save();
             // commit the first page
             TransactionHelper.commitOrRollbackTransaction();
@@ -177,7 +155,7 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
                 // start a new transaction
                 TransactionHelper.runInTransaction(() -> {
                     DocumentModelList docs = session.query(query, null, pageSize, i, false);
-                    changeDocumentsState(session, transition, targetState, docs);
+                    changeDocumentsState(transition, targetState, docs);
                     session.save();
                 });
             }
@@ -186,7 +164,7 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
             TransactionHelper.startTransaction();
         } else {
             DocumentModelList documents = session.getChildren(doc.getRef());
-            changeDocumentsState(session, transition, targetState, documents);
+            changeDocumentsState(transition, targetState, documents);
             session.save();
         }
     }
@@ -197,40 +175,13 @@ public class BulkLifeCycleChangeListener implements PostCommitEventListener {
      *
      * @since 9.2
      */
-    protected void changeDocumentsState(CoreSession session, String transition, String targetState,
-            DocumentModelList docs) {
-        TrashService trashService = Framework.getService(TrashService.class);
+    protected void changeDocumentsState(String transition, String targetState, DocumentModelList docs) {
         for (DocumentModel doc : docs) {
-            if (doc.getCurrentLifeCycleState() == null) {
-                if (LifeCycleConstants.DELETED_STATE.equals(targetState)) {
-                    log.debug("Doc has no lifecycle, deleting ...");
-                    session.removeDocument(doc.getRef());
-                }
-            } else if (doc.getAllowedStateTransitions().contains(transition) && !doc.isProxy()) {
-                if (LifeCycleConstants.DELETE_TRANSITION.equals(transition)) {
-                    // just skip renaming for trash mechanism
-                    // here we leverage backward compatibility mechanism in AbstractSession#followTransition
-                    doc.putContextData(TrashService.DISABLE_TRASH_RENAMING, Boolean.TRUE);
-                } else if (LifeCycleConstants.UNDELETE_TRANSITION.equals(transition)
-                        && trashService.isMangledName(doc.getName())) {
-                    // mangled children names need to be explicitely unmangled
-                    session.move(doc.getRef(), doc.getParentRef(), trashService.unmangleName(doc));
-                }
+            if (doc.getAllowedStateTransitions().contains(transition) && !doc.isProxy()) {
                 doc.followTransition(transition);
-                // handle children if we're handling the technical documentUndeleted event
-                if (LifeCycleConstants.UNDELETE_TRANSITION.equals(transition) && isBlank(targetState)
-                        && doc.isFolder()) {
-                    DocumentEventContext ctx = new DocumentEventContext(session, session.getPrincipal(), doc);
-                    ctx.setCategory(DocumentEventCategories.EVENT_DOCUMENT_CATEGORY);
-                    Framework.getService(EventService.class)
-                             .fireEvent(ctx.newEvent(LifeCycleConstants.DOCUMENT_UNDELETED));
-                }
             } else {
                 if (targetState.equals(doc.getCurrentLifeCycleState())) {
                     log.debug("Document: {} is already in the target LifeCycle state", doc::getRef);
-                } else if (LifeCycleConstants.DELETED_STATE.equals(targetState)) {
-                    log.debug("Impossible to change state of {} :removing", doc::getRef);
-                    session.removeDocument(doc.getRef());
                 } else {
                     log.debug("Document {} has no transition to the target LifeCycle state", doc::getRef);
                 }

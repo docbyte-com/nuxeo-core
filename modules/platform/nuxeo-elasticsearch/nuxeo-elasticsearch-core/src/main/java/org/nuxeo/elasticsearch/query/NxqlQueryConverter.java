@@ -42,10 +42,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.IdRef;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.SortInfo;
-import org.nuxeo.ecm.core.api.trash.TrashService;
-import org.nuxeo.ecm.core.api.trash.TrashService.Feature;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.query.sql.SQLQueryParser;
@@ -372,18 +369,11 @@ public final class NxqlQueryConverter {
     }
 
     protected static QueryBuilder makeTrashedFilter(String op, String name, String value) {
-        boolean equalsDeleted;
-        switch (op) {
-            case "=":
-                equalsDeleted = true;
-                break;
-            case "<>":
-            case "!=":
-                equalsDeleted = false;
-                break;
-            default:
-                throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
-        }
+        boolean equalsDeleted = switch (op) {
+            case "=" -> true;
+            case "<>", "!=" -> false;
+            default -> throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
+        };
         if ("0".equals(value)) {
             equalsDeleted = !equalsDeleted;
         } else if ("1".equals(value)) {
@@ -391,18 +381,7 @@ public final class NxqlQueryConverter {
         } else {
             throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires literal 0 or 1 as right argument");
         }
-        TrashService trashService = Framework.getService(TrashService.class);
-        QueryBuilder filter = null;
-        if (trashService.hasFeature(Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-            filter = QueryBuilders.termQuery(NXQL.ECM_LIFECYCLESTATE, LifeCycleConstants.DELETED_STATE);
-        } else if (trashService.hasFeature(Feature.TRASHED_STATE_IN_MIGRATION)) {
-            filter = QueryBuilders.boolQuery()
-                                  .should(QueryBuilders.termQuery(NXQL.ECM_LIFECYCLESTATE,
-                                          LifeCycleConstants.DELETED_STATE))
-                                  .should(QueryBuilders.termQuery(name, true));
-        } else if (trashService.hasFeature(Feature.TRASHED_STATE_IS_DEDICATED_PROPERTY)) {
-            filter = QueryBuilders.termQuery(name, true);
-        }
+        QueryBuilder filter = QueryBuilders.termQuery(name, true);
         if (!equalsDeleted) {
             filter = QueryBuilders.boolQuery().mustNot(filter);
         }

@@ -248,6 +248,7 @@ public interface WorkManager {
      * @param workId the id of the work to find
      * @return the work state, or {@code null} if not found
      * @since 5.8
+     * @apiNote not a reliable way of orchestrating Works
      */
     State getWorkState(String workId);
 }

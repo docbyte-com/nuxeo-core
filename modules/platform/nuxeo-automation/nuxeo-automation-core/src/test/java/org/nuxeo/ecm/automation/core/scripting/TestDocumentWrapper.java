@@ -72,11 +72,6 @@ public class TestDocumentWrapper {
         String lifecycleState = session.getCurrentLifeCycleState(doc.getRef());
         assertEquals("At first, the document currentlifecycle state is", "project", lifecycleState);
 
-        // The automation chain should be similar to the following:
-        //
-        // session.followTransition(doc.getRef(), "delete");
-        // session.save();
-        //
         // Run the script operation:
         runChain(doc, "followTransitionApprove");
 

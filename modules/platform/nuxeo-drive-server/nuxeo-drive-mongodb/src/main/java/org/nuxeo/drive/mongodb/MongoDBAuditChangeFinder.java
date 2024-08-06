@@ -81,8 +81,6 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
         MongoCollection<Document> auditCollection = auditService.getAuditCollection();
 
         // Build intermediate filters
-        Bson lifeCycleEvent = and(eq("category", "eventLifeCycleCategory"), eq("eventId", "lifecycle_transition_event"),
-                ne("docLifeCycle", "deleted"));
         Bson documentEvent = and(eq("category", "eventDocumentCategory"),
                 in("eventId", "documentCreated", "documentModified", "documentMoved", "documentCreatedByCopy",
                         "documentRestored", "addedToCollection", "documentProxyPublished", "documentLocked",
@@ -90,7 +88,7 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
         Bson sessionRepository = eq("repositoryId", session.getRepositoryName());
         Bson driveCategory = eq("category", "NuxeoDrive");
         Bson notRootUnregistered = ne("eventId", "rootUnregistered");
-        Bson inEvents = or(documentEvent, lifeCycleEvent);
+        Bson inEvents = or(documentEvent);
         Bson isGeneral = addRoots(inEvents, activeRoots.getPaths(), collectionSyncRootMemberIds);
         Bson isDrive = and(driveCategory, notRootUnregistered);
         Bson idRange = and(gt("_id", lowerBound), lte("_id", upperBound));

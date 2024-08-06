@@ -210,7 +210,8 @@ public class TestLifeCycleService {
         String lifeCycleName = lifeCycleService.getLifeCycleNameFor("File");
         assertEquals("default", lifeCycleName);
         List<String> noRecursion = lifeCycleService.getNonRecursiveTransitionForDocType("File");
-        assertEquals(3, noRecursion.size());
+        assertEquals(2, noRecursion.size());
+        assertTrue(noRecursion.contains("toFoo"));
         assertTrue(noRecursion.contains("toBar"));
         noRecursion = lifeCycleService.getNonRecursiveTransitionForDocType("Folder");
         assertTrue(noRecursion.isEmpty());

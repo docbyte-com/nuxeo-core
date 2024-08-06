@@ -2552,16 +2552,14 @@ public class TestSQLRepositoryAPI {
         assertEquals("project", session.getCurrentLifeCycleState(childFile.getRef()));
 
         Collection<String> allowedStateTransitions = session.getAllowedStateTransitions(childFile.getRef());
-        assertEquals(3, allowedStateTransitions.size());
+        assertEquals(2, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("approve"));
         assertTrue(allowedStateTransitions.contains("obsolete"));
-        assertTrue(allowedStateTransitions.contains("delete"));
 
         assertTrue(session.followTransition(childFile.getRef(), "approve"));
         assertEquals("approved", session.getCurrentLifeCycleState(childFile.getRef()));
         allowedStateTransitions = session.getAllowedStateTransitions(childFile.getRef());
-        assertEquals(2, allowedStateTransitions.size());
-        assertTrue(allowedStateTransitions.contains("delete"));
+        assertEquals(1, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("backToProject"));
 
         session.reinitLifeCycleState(childFile.getRef());
@@ -2602,16 +2600,14 @@ public class TestSQLRepositoryAPI {
         assertEquals("project", childFile.getCurrentLifeCycleState());
 
         Collection<String> allowedStateTransitions = childFile.getAllowedStateTransitions();
-        assertEquals(3, allowedStateTransitions.size());
+        assertEquals(2, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("approve"));
         assertTrue(allowedStateTransitions.contains("obsolete"));
-        assertTrue(allowedStateTransitions.contains("delete"));
 
         assertTrue(childFile.followTransition("obsolete"));
         assertEquals("obsolete", childFile.getCurrentLifeCycleState());
         allowedStateTransitions = childFile.getAllowedStateTransitions();
-        assertEquals(2, allowedStateTransitions.size());
-        assertTrue(allowedStateTransitions.contains("delete"));
+        assertEquals(1, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("backToProject"));
     }
 

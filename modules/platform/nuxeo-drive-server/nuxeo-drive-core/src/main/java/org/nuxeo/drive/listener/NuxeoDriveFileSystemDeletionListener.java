@@ -18,8 +18,6 @@
  */
 package org.nuxeo.drive.listener;
 
-import static org.nuxeo.ecm.core.api.trash.TrashService.DOCUMENT_TRASHED;
-
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -38,7 +36,6 @@ import org.nuxeo.drive.service.NuxeoDriveEvents;
 import org.nuxeo.drive.service.impl.NuxeoDriveManagerImpl;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
@@ -102,11 +99,6 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
                 return;
             }
         }
-        // Fallback on the transition event check
-        if (!DOCUMENT_TRASHED.equals(event.getName()) && LifeCycleConstants.TRANSITION_EVENT.equals(event.getName())
-                && !handleLifeCycleTransition(ctx)) {
-            return;
-        }
         if (DocumentEventTypes.ABOUT_TO_REMOVE.equals(event.getName()) && !handleAboutToRemove(doc)) {
             return;
         }
@@ -148,13 +140,6 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
         } else {
             return null;
         }
-    }
-
-    protected boolean handleLifeCycleTransition(DocumentEventContext ctx) {
-        String transition = (String) ctx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION);
-        // Interested in 'deleted' life cycle transition only
-        return transition != null && LifeCycleConstants.DELETE_TRANSITION.equals(transition);
-
     }
 
     protected boolean handleAboutToRemove(DocumentModel doc) {

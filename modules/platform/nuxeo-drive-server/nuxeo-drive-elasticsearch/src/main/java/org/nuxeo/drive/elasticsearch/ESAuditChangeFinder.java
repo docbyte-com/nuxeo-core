@@ -138,17 +138,12 @@ public class ESAuditChangeFinder extends AuditChangeFinder {
             // log.eventId = 'documentMoved' or log.eventId =
             // 'documentCreatedByCopy' or log.eventId = 'documentRestored' or
             // log.eventId = 'addedToCollection’ or log.eventId = 'documentProxyPublished’ or log.eventId =
-            // 'documentLocked' or log.eventId = 'documentUnlocked') or log.category =
-            // 'eventLifeCycleCategory' and log.eventId =
-            // 'lifecycle_transition_event' and log.docLifeCycle != 'deleted' )
+            // 'documentLocked' or log.eventId = 'documentUnlocked'))
             String[] eventIds = { "documentCreated", "documentModified", "documentMoved", "documentCreatedByCopy",
                     "documentRestored", "addedToCollection", "documentProxyPublished", "documentLocked",
                     "documentUnlocked", "documentUntrashed", "blobDigestUpdated" };
             BoolQueryBuilder orEventsFilter = QueryBuilders.boolQuery();
             orEventsFilter.should(getEventsClause("eventDocumentCategory", eventIds, true));
-            orEventsFilter.should(
-                    getEventsClause("eventLifeCycleCategory", new String[] { "lifecycle_transition_event" }, true));
-            orEventsFilter.should(getEventsClause("eventLifeCycleCategory", new String[] { "deleted" }, false));
 
             // ROOT_PATHS log.docPath like :rootPath1
             if (collectionSyncRootMemberIds != null && !collectionSyncRootMemberIds.isEmpty()) {

@@ -18,10 +18,6 @@
  */
 package org.nuxeo.ecm.core.storage.sql.jdbc;
 
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IN_MIGRATION;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDICATED_PROPERTY;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
-
 import java.io.Serializable;
 import java.sql.Types;
 import java.time.ZonedDateTime;
@@ -43,9 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.FullTextUtils;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.impl.FacetFilter;
-import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.query.QueryFilter;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -89,7 +83,6 @@ import org.nuxeo.ecm.core.storage.sql.jdbc.db.TableAlias;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect.ArraySubQuery;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect.FulltextMatchInfo;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * Transformer of NXQL queries into underlying SQL queries to the actual database.
@@ -1324,6 +1317,7 @@ public class NXQLQueryMaker implements QueryMaker {
                     NXQL.ECM_VERSION_VERSIONABLEID.equals(name) || //
                     NXQL.ECM_ISLATESTVERSION.equals(name) || //
                     NXQL.ECM_ISLATESTMAJORVERSION.equals(name) || //
+                    NXQL.ECM_ISTRASHED.equals(name) || //
                     NXQL.ECM_ISVERSION_OLD.equals(name) || //
                     NXQL.ECM_ISVERSION.equals(name) || //
                     NXQL.ECM_ISCHECKEDIN.equals(name) || //
@@ -1337,14 +1331,6 @@ public class NXQLQueryMaker implements QueryMaker {
                     NXQL.ECM_PROXY_VERSIONABLEID.equals(name) || //
                     NXQL.ECM_FULLTEXT_JOBID.equals(name)) {
                 // ok
-            } else if (NXQL.ECM_ISTRASHED.equals(name)) {
-                TrashService trashService = Framework.getService(TrashService.class);
-                if (trashService.hasFeature(TRASHED_STATE_IS_DEDICATED_PROPERTY)
-                        || trashService.hasFeature(TRASHED_STATE_IN_MIGRATION)) {
-                    // ok
-                } else {
-                    name = NXQL.ECM_LIFECYCLESTATE; // column actually used
-                }
             } else if (NXQL.ECM_TAG.equals(name) || name.startsWith(ECM_TAG_STAR)) {
                 hasTag = true;
             } else if (NXQL.ECM_FULLTEXT_SCORE.equals(name)) {
@@ -1863,7 +1849,7 @@ public class NXQLQueryMaker implements QueryMaker {
                     || NXQL.ECM_ISLATESTMAJORVERSION.equals(name)) {
                 visitExpressionWhereFalseMayBeNull(node);
             } else if (NXQL.ECM_ISTRASHED.equals(name)) {
-                visitExpressionIsTrashed(node);
+                visitExpressionWhereFalseMayBeNull(node);
             } else if (NXQL.ECM_MIXINTYPE.equals(name)) {
                 visitExpressionMixinType(node);
             } else if (name != null && name.startsWith(NXQL.ECM_FULLTEXT) && !NXQL.ECM_FULLTEXT_JOBID.equals(name)) {
@@ -2111,30 +2097,6 @@ public class NXQLQueryMaker implements QueryMaker {
                 node.lvalue.accept(this);
                 sb.append(" IS NULL)");
             }
-        }
-
-        protected void visitExpressionIsTrashed(Expression node) {
-            TrashService trashService = Framework.getService(TrashService.class);
-            if (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-                visitExpressionIsTrashedOnLifeCycle(node);
-            } else if (trashService.hasFeature(TRASHED_STATE_IN_MIGRATION)) {
-                visitExpressionIsTrashedOnLifeCycle(node);
-                sb.append(" OR ");
-                visitExpressionWhereFalseMayBeNull(node);
-            } else if (trashService.hasFeature(TRASHED_STATE_IS_DEDICATED_PROPERTY)) {
-                visitExpressionWhereFalseMayBeNull(node);
-            } else {
-                throw new UnsupportedOperationException("TrashService is in an unknown state");
-            }
-        }
-
-        protected void visitExpressionIsTrashedOnLifeCycle(Expression node) {
-            String name = ((Reference) node.lvalue).name;
-            boolean bool = getBooleanRValue(name, node);
-            Operator op = bool ? Operator.EQ : Operator.NOTEQ;
-            visitReference(new Reference(NXQL.ECM_LIFECYCLESTATE));
-            visitOperator(op);
-            visitStringLiteral(LifeCycleConstants.DELETED_STATE);
         }
 
         private boolean getBooleanRValue(String name, Expression node) {

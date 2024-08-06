@@ -89,8 +89,8 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         // This event can be:
         // - a root registration
         // - a root unregistration
-        // - a "deleted" transition / documentTrashed event
-        // - an "undeleted" transition
+        // - a document trashing
+        // - a document untrashing
         // - a removal
         // - a move to an non synchronization root
         // - a security update
@@ -257,9 +257,6 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
             // TODO: don't hardcode event ids (contribute them?)
             auditQuerySb.append(
                     " and (log.eventId = 'documentCreated' or log.eventId = 'documentModified' or log.eventId = 'documentMoved' or log.eventId = 'documentCreatedByCopy' or log.eventId = 'documentRestored' or log.eventId = 'addedToCollection' or log.eventId = 'documentProxyPublished' or log.eventId = 'documentLocked' or log.eventId = 'documentUnlocked' or log.eventId = 'documentUntrashed' or log.eventId = 'blobDigestUpdated')");
-            auditQuerySb.append(" or ");
-            auditQuerySb.append("log.category = 'eventLifeCycleCategory'");
-            auditQuerySb.append(" and log.eventId = 'lifecycle_transition_event' and log.docLifeCycle != 'deleted' ");
             auditQuerySb.append(") and (");
             auditQuerySb.append("(");
             auditQuerySb.append(getCurrentRootFilteringClause(activeRoots.getPaths(), params));

@@ -26,24 +26,6 @@ package org.nuxeo.ecm.core.api;
 public interface LifeCycleConstants {
 
     /**
-     * @since 10.3, use trash service instead
-     */
-    @Deprecated
-    String DELETED_STATE = "deleted";
-
-    /**
-     * @since 10.3, use trash service instead
-     */
-    @Deprecated
-    String DELETE_TRANSITION = "delete";
-
-    /**
-     * @since 10.3, use trash service instead
-     */
-    @Deprecated
-    String UNDELETE_TRANSITION = "undelete";
-
-    /**
      * Event for a lifecycle transition.
      */
     String TRANSITION_EVENT = "lifecycle_transition_event";
@@ -53,14 +35,6 @@ public interface LifeCycleConstants {
     String TRANSTION_EVENT_OPTION_TO = "to";
 
     String TRANSTION_EVENT_OPTION_TRANSITION = "transition";
-
-    /**
-     * Event for a document undeleted by the user. Triggers an async listener that undeletes its children too.
-     *
-     * @deprecated since 11.1, technical event used by former trash mechanism
-     */
-    @Deprecated(since = "11.1")
-    String DOCUMENT_UNDELETED = "documentUndeleted";
 
     /**
      * Key in context map to specify initial lifecycle state on document creation.

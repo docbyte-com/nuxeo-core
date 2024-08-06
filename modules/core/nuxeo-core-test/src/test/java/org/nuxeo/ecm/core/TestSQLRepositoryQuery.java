@@ -2114,22 +2114,6 @@ public class TestSQLRepositoryQuery {
         doTestTrashed(sqlNotTrashed, sqlTrashed);
     }
 
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testIsTrashedWithLifeCycle() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 0";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 1";
-        doTestTrashed(sqlNotTrashed, sqlTrashed);
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testLifeCycleStateDeletedForTrash() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState <> 'deleted'";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState = 'deleted'";
-        doTestTrashed(sqlNotTrashed, sqlTrashed);
-    }
-
     protected void doTestTrashed(String sqlNotTrashed, String sqlTrashed) {
         DocumentModelList dml;
         createDocs();

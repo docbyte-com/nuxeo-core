@@ -31,6 +31,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.DocumentSecurityException;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.runtime.api.Framework;
@@ -94,13 +95,12 @@ public class PropertyTrashService extends AbstractTrashService {
     }
 
     @Override
-    public Set<DocumentRef> undeleteDocuments(List<DocumentModel> docs) {
+    public void untrashDocuments(List<DocumentModel> docs) {
         Set<DocumentRef> docRefs = new HashSet<>();
         for (DocumentModel doc : docs) {
             docRefs.addAll(doUntrashDocument(doc, true));
         }
         docs.stream().map(DocumentModel::getCoreSession).findFirst().ifPresent(CoreSession::save);
-        return docRefs;
     }
 
     protected Set<DocumentRef> doUntrashDocument(DocumentModel doc, boolean processChildren) {
@@ -147,19 +147,6 @@ public class PropertyTrashService extends AbstractTrashService {
                 new BulkCommand.Builder(ACTION_NAME, nxql, user).repository(session.getRepositoryName())
                                                                 .param(PARAM_NAME, value)
                                                                 .build());
-    }
-
-    @Override
-    public boolean hasFeature(Feature feature) {
-        switch (feature) {
-        case TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE:
-        case TRASHED_STATE_IN_MIGRATION:
-            return false;
-        case TRASHED_STATE_IS_DEDICATED_PROPERTY:
-            return true;
-        default:
-            throw new UnsupportedOperationException(feature.name());
-        }
     }
 
 }
