@@ -66,7 +66,7 @@
     <ant.assembly.version>2.1.6</ant.assembly.version>
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
-    <tomcat.version>10.1.26</tomcat.version>
+    <tomcat.version>10.1.28</tomcat.version>
     <opensearch.version>1.3.17</opensearch.version>
     <netty.version>4.1.111.Final</netty.version>
     <netty.boringssl.version>2.0.65.Final</netty.boringssl.version>
