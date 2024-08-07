@@ -248,7 +248,7 @@ public class CoreProviderTest {
     @Test
     public void testRunOnPageProviderOperation() throws Exception {
         try (OperationContext context = new OperationContext(session)) {
-            service.run(context, "runOnProviderTestchain");
+            service.run(context, "runOnProviderTestChain");
             DocumentModelList list = (DocumentModelList) context.get("result");
             assertEquals(3, list.size());
         }
