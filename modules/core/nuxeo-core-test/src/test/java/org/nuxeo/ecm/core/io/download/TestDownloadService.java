@@ -445,7 +445,6 @@ public class TestDownloadService {
      * @since 9.3
      */
     @Test
-    @SuppressWarnings("deprecation")
     public void testAsyncDownload() throws IOException {
         // blob to download
         String blobValue = "Hello World";
@@ -461,7 +460,6 @@ public class TestDownloadService {
         // mock response
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = new DummyServletOutputStream(out);
-        @SuppressWarnings("resource")
         PrintWriter printWriter = new PrintWriter(sos);
         when(response.getOutputStream()).thenReturn(sos);
         when(response.getWriter()).thenReturn(printWriter);
@@ -476,12 +474,7 @@ public class TestDownloadService {
         // do tests while logged in
         LoginComponent.pushPrincipal(principal);
         try {
-            // send status request for not complete stored blob, should be in progress
-            downloadService.downloadBlobStatus(request, response, key, "download");
-            assertEquals("{\"key\":\"" + key + "\",\"completed\":false,\"progress\":-1}", out.toString());
-
             // send download request for not completed stored blob, should be accepted
-            out.reset();
             downloadService.downloadBlob(request, response, key, "download");
             assertEquals("", out.toString());
             verify(response, atLeastOnce()).setStatus(202);
@@ -489,11 +482,7 @@ public class TestDownloadService {
             ts.setCompleted(key, true);
             ts.putParameter(key, DownloadService.TRANSIENT_STORE_PARAM_PROGRESS, 100);
             out.reset();
-            // send status request for complete stored blob, should be complete
-            downloadService.downloadBlobStatus(request, response, key, "download");
-            assertEquals("{\"key\":\"" + key + "\",\"completed\":true,\"progress\":100}", out.toString());
 
-            out.reset();
             // send download request for complete stored blob
             downloadService.downloadBlob(request, response, key, "download");
             assertEquals(blobValue, out.toString());
@@ -522,11 +511,11 @@ public class TestDownloadService {
         // do tests while logged in
         LoginComponent.pushPrincipal(principal);
         try {
-            // send download request for non existing key, should be not found
+            // send download request for non-existing key, should be not found
             downloadService.downloadBlob(request, response, "undefinedKey", "download");
             verify(response, atLeastOnce()).sendError(404);
 
-            // send download request for non existing blob, should be not found
+            // send download request for non-existing blob, should be not found
             out.reset();
             downloadService.downloadBlob(request, response, key, "download");
             verify(response, atLeastOnce()).sendError(404);
