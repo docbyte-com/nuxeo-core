@@ -164,7 +164,7 @@ public class TestFilesystemBlobProvider {
         descr.klass = FilesystemBlobProvider.class;
         descr.name = PROVIDER_ID2;
         descr.properties = Collections.singletonMap(FilesystemBlobProvider.ROOT_PROP, tmpFile.getParent().toString());
-        ((BlobManagerComponent) blobManager).registerBlobProvider(descr);
+        ((BlobManagerComponent) blobManager).registerContribution(descr, BlobManagerComponent.XP, null);
         try {
             // use relative path under root
             String key = PROVIDER_ID2 + ":" + tmpFile.getFileName().toString();
@@ -175,7 +175,7 @@ public class TestFilesystemBlobProvider {
                 assertEquals(CONTENT, IOUtils.toString(in, UTF_8));
             }
         } finally {
-            ((BlobManagerComponent) blobManager).unregisterBlobProvider(descr);
+            ((BlobManagerComponent) blobManager).unregisterContribution(descr, BlobManagerComponent.XP, null);
         }
     }
 

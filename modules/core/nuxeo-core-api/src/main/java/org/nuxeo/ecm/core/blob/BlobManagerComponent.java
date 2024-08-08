@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -42,9 +43,8 @@ import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
 import org.nuxeo.runtime.kv.KeyValueStoreProvider;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.SimpleContributionRegistry;
+import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
@@ -58,8 +58,6 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
     private static final Logger log = LogManager.getLogger(BlobManagerComponent.class);
 
     protected static final String XP = "configuration";
-
-    public static final String DEFAULT_ID = "default";
 
     /**
      * Blob providers whose id starts with this prefix are automatically marked transient.
@@ -80,81 +78,21 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
 
     protected static final Duration BLOB_DELETION_DELAY_DEFAULT = Duration.ofHours(1);
 
-    protected BlobProviderDescriptorRegistry blobProviderDescriptorsRegistry = new BlobProviderDescriptorRegistry();
-
     protected Map<String, BlobProvider> blobProviders = new HashMap<>();
 
-    protected static class BlobProviderDescriptorRegistry extends SimpleContributionRegistry<BlobProviderDescriptor> {
-
-        @Override
-        public String getContributionId(BlobProviderDescriptor contrib) {
-            return contrib.name;
-        }
-
-        @Override
-        public BlobProviderDescriptor clone(BlobProviderDescriptor orig) {
-            return new BlobProviderDescriptor(orig);
-        }
-
-        @Override
-        public void merge(BlobProviderDescriptor src, BlobProviderDescriptor dst) {
-            dst.merge(src);
-        }
-
-        @Override
-        public boolean isSupportingMerge() {
-            return true;
-        }
-
-        public void clear() {
-            currentContribs.clear();
-        }
-
-        public BlobProviderDescriptor getBlobProviderDescriptor(String id) {
-            return getCurrentContribution(id);
-        }
-
-        public Set<String> getBlobProviderIds() {
-            return currentContribs.keySet();
-        }
-    }
-
     @Override
-    public void deactivate(ComponentContext context) {
-        blobProviderDescriptorsRegistry.clear();
-        // close each blob provider
+    public void stop(ComponentContext context) throws InterruptedException {
+        super.stop(context);
         for (BlobProvider blobProvider : blobProviders.values()) {
             blobProvider.close();
         }
         blobProviders.clear();
     }
 
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP.equals(extensionPoint)) {
-            if (contribution instanceof BlobProviderDescriptor) {
-                registerBlobProvider((BlobProviderDescriptor) contribution);
-            } else {
-                throw new NuxeoException("Invalid descriptor: " + contribution.getClass());
-            }
-        } else {
-            throw new NuxeoException("Invalid extension point: " + extensionPoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP.equals(extensionPoint)) {
-            if (contribution instanceof BlobProviderDescriptor) {
-                unregisterBlobProvider((BlobProviderDescriptor) contribution);
-            }
-        }
-    }
-
     // public for tests
     public void registerBlobProvider(BlobProviderDescriptor descr) {
         closeOldBlobProvider(descr.name);
-        blobProviderDescriptorsRegistry.addContribution(descr);
+        register(XP, descr);
         // We can't look up the blob provider right now to initialize it, the platform has not started yet
         // and the blob provider initialization may require a connection that has not been registered yet.
     }
@@ -162,7 +100,7 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
     // public for tests
     public void unregisterBlobProvider(BlobProviderDescriptor descr) {
         closeOldBlobProvider(descr.name);
-        blobProviderDescriptorsRegistry.removeContribution(descr);
+        unregister(XP, descr);
     }
 
     /**
@@ -179,7 +117,7 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
     public synchronized BlobProvider getBlobProvider(String providerId) {
         BlobProvider blobProvider = blobProviders.get(providerId);
         if (blobProvider == null) {
-            BlobProviderDescriptor descr = blobProviderDescriptorsRegistry.getBlobProviderDescriptor(providerId);
+            BlobProviderDescriptor descr = getDescriptor(XP, providerId);
             if (descr == null) {
                 return null;
             }
@@ -222,7 +160,7 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
             return blobProvider;
         }
         // create and register a blob provider from the "default" configuration
-        BlobProviderDescriptor defaultDescr = blobProviderDescriptorsRegistry.getBlobProviderDescriptor(defaultId);
+        BlobProviderDescriptor defaultDescr = getDescriptor(XP, defaultId);
         if (defaultDescr == null) {
             throw new NuxeoException("Missing configuration for blob provider: " + defaultId);
         }
@@ -232,7 +170,7 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
         descr.name = providerId;
         descr.properties.put(BlobProviderDescriptor.NAMESPACE, providerId);
         // register and return it
-        registerBlobProvider(descr);
+        register(XP, descr);
         return getBlobProvider(providerId);
     }
 
@@ -286,7 +224,7 @@ public class BlobManagerComponent extends DefaultComponent implements BlobManage
 
     @Override
     public synchronized Map<String, BlobProvider> getBlobProviders() {
-        Set<String> blobProviderIds = blobProviderDescriptorsRegistry.getBlobProviderIds();
+        Set<String> blobProviderIds = getDescriptors(XP).stream().map(Descriptor::getId).collect(Collectors.toSet());
         if (blobProviders.size() != blobProviderIds.size()) {
             // register all providers
             for (String id : blobProviderIds) {
