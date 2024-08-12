@@ -150,6 +150,15 @@ public class ScimV2PatchUserTest {
         checkUserModel(userModel, "joe", "Joe", null);
     }
 
+    // Not explicit in RFC: path field for add operations must not include any value selection filters if no
+    // sub-attribute is specified
+    @Test
+    public void testAdd9() throws JsonProcessingException, ScimException {
+        newUserModel("joe", null, null);
+        var patch = newPatchRequest(ADD, "emails[type eq \"work\"]", "{\"value\":\"joe@devnull.com\"}"); // NOSONAR
+        assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoUser("joe", patch));
+    }
+
     // ------------------------------ Remove ------------------------------
     // See https://datatracker.ietf.org/doc/html/rfc7644#section-3.5.2.2
 

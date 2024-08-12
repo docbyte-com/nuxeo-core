@@ -18,22 +18,19 @@
  */
 package org.nuxeo.ecm.restapi.server.usermanager;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.nuxeo.ecm.core.api.NuxeoGroup;
+import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.ecm.platform.usermanager.UserManagerHelper;
+import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
+import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
+import org.nuxeo.runtime.api.Framework;
 
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.Response.Status;
-
-import org.nuxeo.ecm.core.api.NuxeoGroup;
-import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.directory.BaseSession;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.ecm.webengine.model.WebObject;
-import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
-import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 5.7.3
@@ -79,61 +76,11 @@ public class UserToGroupObject extends DefaultObject {
     }
 
     protected void addUserToGroup(NuxeoPrincipal principal, NuxeoGroup group) {
-        UserManager userManager = Framework.getService(UserManager.class);
-        if (!BaseSession.isReadOnlyEntry(principal.getModel())) {
-            // we can write to the principal
-            List<String> groups = principal.getGroups();
-            if (groups == null) {
-                groups = new ArrayList<>();
-            }
-            String groupName = group.getName();
-            if (!groups.contains(groupName)) {
-                groups.add(groupName);
-                principal.setGroups(groups);
-                userManager.updateUser(principal.getModel());
-            }
-        } else {
-            // principal is read-only, update through the group instead
-            List<String> users = group.getMemberUsers();
-            if (users == null) {
-                users = new ArrayList<>();
-            }
-            String userName = principal.getName();
-            if (!users.contains(userName)) {
-                users.add(userName);
-                group.setMemberUsers(users);
-                userManager.updateGroup(group.getModel());
-            }
-        }
+        UserManagerHelper.addUserToGroup(principal, group);
     }
 
     protected void removeUserFromGroup(NuxeoPrincipal principal, NuxeoGroup group) {
-        UserManager userManager = Framework.getService(UserManager.class);
-        if (!BaseSession.isReadOnlyEntry(principal.getModel())) {
-            // we can write to the principal
-            List<String> groups = principal.getGroups();
-            if (groups == null) {
-                groups = new ArrayList<>();
-            }
-            String groupName = group.getName();
-            if (groups.contains(groupName)) {
-                groups.remove(groupName);
-                principal.setGroups(groups);
-                userManager.updateUser(principal.getModel());
-            }
-        } else {
-            // principal is read-only, update through the group instead
-            List<String> users = group.getMemberUsers();
-            if (users == null) {
-                users = new ArrayList<>();
-            }
-            String userName = principal.getName();
-            if (users.contains(userName)) {
-                users.remove(userName);
-                group.setMemberUsers(users);
-                userManager.updateGroup(group.getModel());
-            }
-        }
+        UserManagerHelper.removeUserFromGroup(principal, group);
     }
 
 }
