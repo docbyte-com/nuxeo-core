@@ -18,15 +18,18 @@
  */
 package org.nuxeo.ecm.core.storage.lock;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.lock.LockManager;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor of a {@link LockManager} for the {@link LockManagerService}.
  */
 @XObject(value = "lockmanager")
-public class LockManagerDescriptor {
+public class LockManagerDescriptor implements Descriptor {
 
     public LockManagerDescriptor() {
     }
@@ -43,18 +46,22 @@ public class LockManagerDescriptor {
         klass = other.klass;
     }
 
-    public void merge(LockManagerDescriptor other) {
-        if (other.name != null) {
-            name = other.name;
-        }
-        if (other.klass != null) {
-            klass = other.klass;
-        }
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    @Override
+    public LockManagerDescriptor merge(Descriptor o) {
+        var other = (LockManagerDescriptor) o;
+        var merged = new LockManagerDescriptor(this);
+        // we merge based on name, so no name merging needed
+        merged.klass = defaultIfNull(other.klass, klass);
+        return merged;
     }
 
     @Override
     public String toString() {
         return getClass().getSimpleName() + '(' + name + ',' + klass.getName() + ')';
     }
-
 }

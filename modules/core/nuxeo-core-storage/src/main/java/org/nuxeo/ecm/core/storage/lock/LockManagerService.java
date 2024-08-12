@@ -23,14 +23,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.lock.LockManager;
-import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.SimpleContributionRegistry;
 
 /**
  * Service holding the registered lock managers.
@@ -41,82 +36,9 @@ import org.nuxeo.runtime.model.SimpleContributionRegistry;
  */
 public class LockManagerService extends DefaultComponent {
 
-    private static final Logger log = LogManager.getLogger(LockManagerService.class);
-
     private static final String XP_LOCKMANAGER = "lockmanager";
 
-    protected LockManagerDescriptorRegistry registry = new LockManagerDescriptorRegistry();
-
     protected Map<String, LockManager> lockManagers = new ConcurrentHashMap<>();
-
-    protected static class LockManagerDescriptorRegistry extends SimpleContributionRegistry<LockManagerDescriptor> {
-
-        @Override
-        public String getContributionId(LockManagerDescriptor contrib) {
-            return contrib.name;
-        }
-
-        @Override
-        public LockManagerDescriptor clone(LockManagerDescriptor orig) {
-            return new LockManagerDescriptor(orig);
-        }
-
-        @Override
-        public void merge(LockManagerDescriptor src, LockManagerDescriptor dst) {
-            dst.merge(src);
-        }
-
-        @Override
-        public boolean isSupportingMerge() {
-            return true;
-        }
-
-        public void clear() {
-            currentContribs.clear();
-        }
-
-        public LockManagerDescriptor getLockManagerDescriptor(String id) {
-            return getCurrentContribution(id);
-        }
-    }
-
-    @Override
-    public void activate(ComponentContext context) {
-        registry.clear();
-    }
-
-    @Override
-    public void deactivate(ComponentContext context) {
-        registry.clear();
-    }
-
-    @Override
-    public void registerContribution(Object contrib, String xpoint, ComponentInstance contributor) {
-        if (XP_LOCKMANAGER.equals(xpoint)) {
-            addContribution((LockManagerDescriptor) contrib);
-        } else {
-            throw new NuxeoException("Unknown extension point: " + xpoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contrib, String xpoint, ComponentInstance contributor) {
-        if (XP_LOCKMANAGER.equals(xpoint)) {
-            removeContribution((LockManagerDescriptor) contrib);
-        } else {
-            throw new NuxeoException("Unknown extension point: " + xpoint);
-        }
-    }
-
-    protected void addContribution(LockManagerDescriptor descriptor) {
-        log.info("Registered: {}", descriptor);
-        registry.addContribution(descriptor);
-    }
-
-    protected void removeContribution(LockManagerDescriptor descriptor) {
-        log.info("Unregistered: {}", descriptor);
-        registry.removeContribution(descriptor);
-    }
 
     /**
      * Returns the lock manager registered with the given name.
@@ -130,7 +52,7 @@ public class LockManagerService extends DefaultComponent {
     public synchronized LockManager getLockManager(String name) {
         LockManager lockManager = lockManagers.get(name);
         if (lockManager == null) {
-            LockManagerDescriptor descriptor = registry.getLockManagerDescriptor(name);
+            LockManagerDescriptor descriptor = getDescriptor(XP_LOCKMANAGER, name);
             if (descriptor == null) {
                 return null;
             }
@@ -146,7 +68,6 @@ public class LockManagerService extends DefaultComponent {
         return lockManager;
     }
 
-    // used by unit tests
     public void registerLockManager(String name, LockManager lockManager) {
         lockManagers.put(name, lockManager);
     }
