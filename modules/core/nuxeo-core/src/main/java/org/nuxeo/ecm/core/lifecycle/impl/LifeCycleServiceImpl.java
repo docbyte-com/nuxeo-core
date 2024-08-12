@@ -23,8 +23,11 @@ package org.nuxeo.ecm.core.lifecycle.impl;
 import static java.util.function.Predicate.isEqual;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,9 +38,10 @@ import org.nuxeo.ecm.core.lifecycle.LifeCycleState;
 import org.nuxeo.ecm.core.lifecycle.extensions.LifeCycleDescriptor;
 import org.nuxeo.ecm.core.lifecycle.extensions.LifeCycleTypesDescriptor;
 import org.nuxeo.ecm.core.model.Document;
+import org.nuxeo.runtime.RuntimeMessage.Level;
+import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.Extension;
 
 /**
  * Life cycle service implementation.
@@ -52,42 +56,72 @@ public class LifeCycleServiceImpl extends DefaultComponent implements LifeCycleS
 
     public static final ComponentName NAME = new ComponentName("org.nuxeo.ecm.core.lifecycle.LifeCycleService");
 
-    protected LifeCycleRegistry lifeCycles = new LifeCycleRegistry();
+    protected static final String XP_LIFECYCLE = "lifecycle";
 
-    protected LifeCycleTypeRegistry lifeCycleTypes = new LifeCycleTypeRegistry();
+    protected static final String XP_TYPES = "types";
 
-    public LifeCycleServiceImpl() {
+    @Override
+    public void start(ComponentContext context) {
+        super.start(context);
+        for (Object contrib : getDescriptors(XP_LIFECYCLE)) {
+            var desc = (LifeCycleDescriptor) contrib;
+            // look for delete state to warn about usage
+            if (!"default".equals(desc.getName())
+                    && desc.getStates().stream().map(LifeCycleState::getName).anyMatch(isEqual("deleted"))) {
+                String msg = "The 'deleted' state was removed after deprecation."
+                        + " Please remove it from your life cycle policy and use the trash service instead.";
+                log.warn(msg);
+                addRuntimeMessage(Level.WARNING, msg);
+                return;
+            }
+        }
     }
 
     @Override
     public LifeCycle getLifeCycleByName(String name) {
-        return lifeCycles.getLifeCycle(name);
+        var descriptor = this.<LifeCycleDescriptor> getDescriptor(XP_LIFECYCLE, name);
+        return descriptor != null && descriptor.isEnabled() ? instantiateLifeCycle(descriptor) : null;
     }
 
     @Override
     public LifeCycle getLifeCycleFor(Document doc) {
-        String lifeCycleName = getLifeCycleNameFor(doc.getType().getName());
-        return getLifeCycleByName(lifeCycleName);
+        return getLifeCycleByName(getLifeCycleNameFor(doc.getType().getName()));
     }
 
     @Override
     public String getLifeCycleNameFor(String typeName) {
-        return lifeCycleTypes.getLifeCycleNameForType(typeName);
+        return this.<LifeCycleTypesDescriptor> getDescriptors(XP_TYPES)
+                   .stream()
+                   .filter(d -> d.getDocumentType().equals(typeName))
+                   .findFirst()
+                   .map(LifeCycleTypesDescriptor::getLifeCycleName)
+                   .orElse(null);
     }
 
     @Override
     public Collection<LifeCycle> getLifeCycles() {
-        return lifeCycles.getLifeCycles();
+        return this.<LifeCycleDescriptor> getDescriptors(XP_LIFECYCLE)
+                   .stream()
+                   .filter(LifeCycleDescriptor::isEnabled)
+                   .map(this::instantiateLifeCycle)
+                   .collect(Collectors.toSet());
     }
 
     @Override
     public Collection<String> getTypesFor(String lifeCycleName) {
-        return lifeCycleTypes.getTypesFor(lifeCycleName);
+        return this.<LifeCycleTypesDescriptor> getDescriptors(XP_TYPES)
+                   .stream()
+                   .filter(d -> d.getLifeCycleName().equals(lifeCycleName))
+                   .map(LifeCycleTypesDescriptor::getDocumentType)
+                   .collect(Collectors.toList());
     }
 
     @Override
     public Map<String, String> getTypesMapping() {
-        return lifeCycleTypes.getTypesMapping();
+        return this.<LifeCycleTypesDescriptor> getDescriptors(XP_TYPES)
+                   .stream()
+                   .collect(Collectors.toMap(LifeCycleTypesDescriptor::getDocumentType,
+                           LifeCycleTypesDescriptor::getLifeCycleName));
     }
 
     @Override
@@ -145,63 +179,44 @@ public class LifeCycleServiceImpl extends DefaultComponent implements LifeCycleS
         doc.setCurrentLifeCycleState(documentLifeCycle.getDefaultInitialStateName());
     }
 
-    /**
-     * Register extensions.
-     */
-    @Override
-    public void registerExtension(Extension extension) {
-        Object[] contributions = extension.getContributions();
-        if (contributions != null) {
-            String point = extension.getExtensionPoint();
-            if (point.equals("lifecycle")) {
-                for (Object contribution : contributions) {
-                    LifeCycleDescriptor desc = (LifeCycleDescriptor) contribution;
-                    lifeCycles.addContribution(desc);
-                    // look for delete state to warn about usage
-                    if (!"default".equals(desc.getName())
-                            && desc.getStates().stream().map(LifeCycleState::getName).anyMatch(isEqual("deleted"))) {
-                        log.warn("The 'deleted' state was removed after deprecation."
-                                + " Please remove it from your life cycle policy and use the trash service instead.");
-                    }
-                }
-            } else if (point.equals("lifecyclemanager")) {
-                log.warn("Ignoring deprecated lifecyclemanager extension point");
-            } else if (point.equals("types")) {
-                for (Object mapping : contributions) {
-                    LifeCycleTypesDescriptor desc = (LifeCycleTypesDescriptor) mapping;
-                    lifeCycleTypes.addContribution(desc);
-                }
-            }
-        }
-    }
-
-    /**
-     * Unregisters an extension.
-     */
-    @Override
-    public void unregisterExtension(Extension extension) {
-        super.unregisterExtension(extension);
-        Object[] contributions = extension.getContributions();
-        if (contributions != null) {
-            String point = extension.getExtensionPoint();
-            if (point.equals("lifecycle")) {
-                for (Object lifeCycle : contributions) {
-                    LifeCycleDescriptor lifeCycleDescriptor = (LifeCycleDescriptor) lifeCycle;
-                    lifeCycles.removeContribution(lifeCycleDescriptor);
-                }
-            } else if (point.equals("types")) {
-                for (Object contrib : contributions) {
-                    LifeCycleTypesDescriptor desc = (LifeCycleTypesDescriptor) contrib;
-                    lifeCycleTypes.removeContribution(desc);
-                }
-
-            }
-        }
-    }
-
     @Override
     public List<String> getNonRecursiveTransitionForDocType(String docTypeName) {
-        return lifeCycleTypes.getNonRecursiveTransitionForDocType(docTypeName);
+        return this.<LifeCycleTypesDescriptor> getDescriptors(XP_TYPES)
+                   .stream()
+                   .filter(d -> Objects.equals(docTypeName, d.getDocumentType()))
+                   .map(LifeCycleTypesDescriptor::getNoRecursionForTransitions)
+                   .filter(Objects::nonNull)
+                   .map(t -> List.of(t.split(",")))
+                   .findFirst()
+                   .orElse(List.of());
     }
 
+    protected LifeCycle instantiateLifeCycle(LifeCycleDescriptor desc) {
+        String name = desc.getName();
+        String initialStateName = desc.getInitialStateName();
+        String defaultInitialStateName = desc.getDefaultInitialStateName();
+        if (initialStateName != null) {
+            defaultInitialStateName = initialStateName;
+            log.warn(
+                    "Lifecycle registration of default initial state has changed, change initial=\"{}\" to defaultInitial=\"{}\" in lifecyle '{}' definition",
+                    defaultInitialStateName, defaultInitialStateName, name);
+        }
+        boolean defaultInitialStateFound = false;
+        Collection<String> initialStateNames = new HashSet<>();
+        Collection<LifeCycleState> states = desc.getStates();
+        for (LifeCycleState state : states) {
+            String stateName = state.getName();
+            if (defaultInitialStateName.equals(stateName)) {
+                defaultInitialStateFound = true;
+                initialStateNames.add(stateName);
+            }
+            if (state.isInitial()) {
+                initialStateNames.add(stateName);
+            }
+        }
+        if (!defaultInitialStateFound) {
+            log.error("Default initial state {} not found on lifecycle {}", defaultInitialStateName, name);
+        }
+        return new LifeCycleImpl(name, defaultInitialStateName, initialStateNames, states, desc.getTransitions());
+    }
 }
