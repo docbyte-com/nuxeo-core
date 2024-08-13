@@ -18,6 +18,9 @@
  */
 package org.nuxeo.ecm.core.storage.sql;
 
+import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,12 +38,13 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.repository.PoolConfiguration;
 import org.nuxeo.ecm.core.storage.FulltextDescriptor;
 import org.nuxeo.ecm.core.storage.FulltextDescriptor.FulltextIndexDescriptor;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Low-level VCS Repository Descriptor.
  */
 @XObject(value = "repository", order = { "@name" })
-public class RepositoryDescriptor {
+public class RepositoryDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(RepositoryDescriptor.class);
 
@@ -145,6 +149,11 @@ public class RepositoryDescriptor {
     }
 
     public String name;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     @XNode("@name")
     public void setName(String name) {
@@ -428,100 +437,59 @@ public class RepositoryDescriptor {
         changeTokenEnabled = other.changeTokenEnabled;
     }
 
-    public void merge(RepositoryDescriptor other) {
-        if (other.name != null) {
-            name = other.name;
-        }
-        if (other.label != null) {
-            label = other.label;
-        }
-        if (other.isDefault != null) {
-            isDefault = other.isDefault;
-        }
-        if (other.headless != null) {
-            headless = other.headless;
-        }
+    @Override
+    public RepositoryDescriptor merge(Descriptor o) {
+        var other = (RepositoryDescriptor) o;
+        var merged = new RepositoryDescriptor(this);
+        merged.name = defaultIfNull(other.name, merged.name);
+        merged.label = defaultIfNull(other.label, merged.label);
+        merged.isDefault = defaultIfNull(other.isDefault, merged.isDefault);
+        merged.headless = defaultIfNull(other.headless, merged.headless);
         if (other.pool != null) {
-            if (pool == null) {
-                pool = new PoolConfiguration(other.pool);
+            if (merged.pool == null) {
+                merged.pool = new PoolConfiguration(other.pool);
             } else {
-                pool.merge(other.pool);
+                merged.pool.merge(other.pool);
             }
         }
-        if (other.clusterInvalidatorClass != null) {
-            clusterInvalidatorClass = other.clusterInvalidatorClass;
-        }
-        if (other.cachingMapperClass != null) {
-            cachingMapperClass = other.cachingMapperClass;
-        }
-        if (other.cachingMapperEnabled != null) {
-            cachingMapperEnabled = other.cachingMapperEnabled;
-        }
-        cachingMapperProperties.putAll(other.cachingMapperProperties);
-        if (other.noDDL != null) {
-            noDDL = other.noDDL;
-        }
-        if (other.ddlMode != null) {
-            ddlMode = other.ddlMode;
-        }
-        sqlInitFiles.addAll(other.sqlInitFiles);
-        if (other.softDeleteEnabled != null) {
-            softDeleteEnabled = other.softDeleteEnabled;
-        }
-        if (other.proxiesEnabled != null) {
-            proxiesEnabled = other.proxiesEnabled;
-        }
-        if (other.idType != null) {
-            idType = other.idType;
-        }
+        merged.clusterInvalidatorClass = defaultIfNull(other.clusterInvalidatorClass, merged.clusterInvalidatorClass);
+        merged.cachingMapperClass = defaultIfNull(other.cachingMapperClass, merged.cachingMapperClass);
+        merged.cachingMapperEnabled = defaultIfNull(other.cachingMapperEnabled, merged.cachingMapperEnabled);
+        merged.cachingMapperProperties.putAll(other.cachingMapperProperties);
+        merged.noDDL = defaultIfNull(other.noDDL, merged.noDDL);
+        merged.ddlMode = defaultIfNull(other.ddlMode, merged.ddlMode);
+        merged.sqlInitFiles.addAll(other.sqlInitFiles);
+        merged.softDeleteEnabled = defaultIfNull(other.softDeleteEnabled, merged.softDeleteEnabled);
+        merged.proxiesEnabled = defaultIfNull(other.proxiesEnabled, merged.proxiesEnabled);
+        merged.idType = defaultIfNull(other.idType, merged.idType);
+        Map<String, FieldDescriptor> mappedFields = merged.schemaFields.stream().collect(toMap(f -> f.field, f -> f));
         for (FieldDescriptor of : other.schemaFields) {
-            boolean append = true;
-            for (FieldDescriptor f : schemaFields) {
-                if (f.field.equals(of.field)) {
-                    f.merge(of);
-                    append = false;
-                    break;
-                }
-            }
-            if (append) {
-                schemaFields.add(of);
+            FieldDescriptor f = mappedFields.get(of.field);
+            if (f != null) {
+                f.merge(of);
+            } else {
+                merged.schemaFields.add(of);
             }
         }
-        if (other.arrayColumns != null) {
-            arrayColumns = other.arrayColumns;
-        }
-        if (other.childNameUniqueConstraintEnabled != null) {
-            childNameUniqueConstraintEnabled = other.childNameUniqueConstraintEnabled;
-        }
-        if (other.collectionUniqueConstraintEnabled != null) {
-            collectionUniqueConstraintEnabled = other.collectionUniqueConstraintEnabled;
-        }
-        if (other.fulltextAnalyzer != null) {
-            fulltextAnalyzer = other.fulltextAnalyzer;
-        }
-        if (other.fulltextCatalog != null) {
-            fulltextCatalog = other.fulltextCatalog;
-        }
-        fulltextDescriptor.merge(other.fulltextDescriptor);
-        neverPerInstanceMixins.addAll(other.neverPerInstanceMixins);
-        if (other.pathOptimizationsEnabled != null) {
-            pathOptimizationsEnabled = other.pathOptimizationsEnabled;
-        }
-        if (other.pathOptimizationsVersion != null) {
-            pathOptimizationsVersion = other.pathOptimizationsVersion;
-        }
-        if (other.aclOptimizationsEnabled != null) {
-            aclOptimizationsEnabled = other.aclOptimizationsEnabled;
-        }
-        if (other.readAclMaxSize != null) {
-            readAclMaxSize = other.readAclMaxSize;
-        }
-        if (other.usersSeparatorKey != null) {
-            usersSeparatorKey = other.usersSeparatorKey;
-        }
-        if (other.changeTokenEnabled != null) {
-            changeTokenEnabled = other.changeTokenEnabled;
-        }
+        merged.arrayColumns = defaultIfNull(other.arrayColumns, merged.arrayColumns);
+        merged.childNameUniqueConstraintEnabled = defaultIfNull(other.childNameUniqueConstraintEnabled,
+                merged.childNameUniqueConstraintEnabled);
+        merged.collectionUniqueConstraintEnabled = defaultIfNull(other.collectionUniqueConstraintEnabled,
+                merged.collectionUniqueConstraintEnabled);
+        merged.fulltextAnalyzer = defaultIfNull(other.fulltextAnalyzer, merged.fulltextAnalyzer);
+        merged.fulltextCatalog = defaultIfNull(other.fulltextCatalog, merged.fulltextCatalog);
+        merged.fulltextDescriptor.merge(other.fulltextDescriptor);
+        merged.neverPerInstanceMixins.addAll(other.neverPerInstanceMixins);
+        merged.pathOptimizationsEnabled = defaultIfNull(other.pathOptimizationsEnabled,
+                merged.pathOptimizationsEnabled);
+
+        merged.pathOptimizationsVersion = defaultIfNull(other.pathOptimizationsVersion,
+                merged.pathOptimizationsVersion);
+        merged.aclOptimizationsEnabled = defaultIfNull(other.aclOptimizationsEnabled, merged.aclOptimizationsEnabled);
+        merged.readAclMaxSize = defaultIfNull(other.readAclMaxSize, merged.readAclMaxSize);
+        merged.usersSeparatorKey = defaultIfNull(other.usersSeparatorKey, merged.usersSeparatorKey);
+        merged.changeTokenEnabled = defaultIfNull(other.changeTokenEnabled, merged.changeTokenEnabled);
+        return merged;
     }
 
 }

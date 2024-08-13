@@ -18,9 +18,12 @@
  */
 package org.nuxeo.ecm.core.storage.mongodb;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.storage.dbs.DBSRepositoryDescriptor;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * MongoDB Repository Descriptor.
@@ -52,21 +55,14 @@ public class MongoDBRepositoryDescriptor extends DBSRepositoryDescriptor {
     }
 
     @Override
-    public void merge(DBSRepositoryDescriptor o) {
-        super.merge(o);
-        if (!(o instanceof MongoDBRepositoryDescriptor)) {
-            return;
-        }
-        MongoDBRepositoryDescriptor other = (MongoDBRepositoryDescriptor) o;
-        if (other.nativeId != null) {
-            nativeId = other.nativeId;
-        }
-        if (other.sequenceBlockSize != null) {
-            sequenceBlockSize = other.sequenceBlockSize;
-        }
-        if (other.childNameUniqueConstraintEnabled != null) {
-            childNameUniqueConstraintEnabled = other.childNameUniqueConstraintEnabled;
-        }
+    public MongoDBRepositoryDescriptor merge(Descriptor o) {
+        var other = (MongoDBRepositoryDescriptor) o;
+        var merged = (MongoDBRepositoryDescriptor) super.merge(other);
+        merged.nativeId = defaultIfNull(other.nativeId, nativeId);
+        merged.sequenceBlockSize = defaultIfNull(other.sequenceBlockSize, sequenceBlockSize);
+        merged.childNameUniqueConstraintEnabled = defaultIfNull(other.childNameUniqueConstraintEnabled,
+                childNameUniqueConstraintEnabled);
+        return merged;
     }
 
 }

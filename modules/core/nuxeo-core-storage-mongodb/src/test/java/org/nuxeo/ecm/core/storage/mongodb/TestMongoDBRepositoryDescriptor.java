@@ -21,7 +21,6 @@ package org.nuxeo.ecm.core.storage.mongodb;
 import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
-import org.nuxeo.ecm.core.storage.dbs.DBSRepositoryDescriptor;
 
 public class TestMongoDBRepositoryDescriptor {
 
@@ -36,9 +35,9 @@ public class TestMongoDBRepositoryDescriptor {
 
         // call merge using the generic signature (to check it's correctly overridden)
         // this is how DBSRepositoryDescriptorRegistry calls it
-        desc1.merge((DBSRepositoryDescriptor) desc2);
-        assertEquals("2", desc1.label);
-        assertEquals(Integer.valueOf(2), desc1.sequenceBlockSize);
+        var merged = desc1.merge(desc2);
+        assertEquals("2", merged.label);
+        assertEquals(Integer.valueOf(2), merged.sequenceBlockSize);
     }
 
 }
