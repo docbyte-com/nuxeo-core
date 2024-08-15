@@ -108,6 +108,13 @@
       <artifactId>nuxeo-core-schema</artifactId>
     </dependency>
 
+    <!-- Test libraries -->
+    <dependency>
+      <groupId>org.skyscreamer</groupId>
+      <artifactId>jsonassert</artifactId>
+      <scope>test</scope>
+    </dependency>
+
     <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
@@ -121,12 +128,22 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-api</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-cache</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-event</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-schema</artifactId>
       <type>test-jar</type>
     </dependency>
   </dependencies>

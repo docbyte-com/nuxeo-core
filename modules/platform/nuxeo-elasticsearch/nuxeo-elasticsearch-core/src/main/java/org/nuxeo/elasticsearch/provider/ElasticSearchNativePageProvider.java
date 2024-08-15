@@ -19,6 +19,19 @@
 
 package org.nuxeo.elasticsearch.provider;
 
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_AVG;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_CARDINALITY;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_COUNT;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_MAX;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_MIN;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_MISSING;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_SUM;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_DATE_HISTOGRAM;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_DATE_RANGE;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_HISTOGRAM;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_RANGE;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_TERMS;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,16 +54,25 @@ import org.nuxeo.ecm.platform.query.api.Bucket;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.QuickFilter;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
+import org.nuxeo.ecm.platform.query.core.AggregateAvg;
+import org.nuxeo.ecm.platform.query.core.AggregateCardinality;
+import org.nuxeo.ecm.platform.query.core.AggregateCount;
+import org.nuxeo.ecm.platform.query.core.AggregateDateHistogram;
+import org.nuxeo.ecm.platform.query.core.AggregateDateRange;
+import org.nuxeo.ecm.platform.query.core.AggregateHistogram;
+import org.nuxeo.ecm.platform.query.core.AggregateMax;
+import org.nuxeo.ecm.platform.query.core.AggregateMin;
+import org.nuxeo.ecm.platform.query.core.AggregateMissing;
+import org.nuxeo.ecm.platform.query.core.AggregateRange;
+import org.nuxeo.ecm.platform.query.core.AggregateSum;
+import org.nuxeo.ecm.platform.query.core.AggregateTerm;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
-import org.nuxeo.elasticsearch.aggregate.AggregateEsBase;
-import org.nuxeo.elasticsearch.aggregate.AggregateFactory;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.query.PageProviderQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.search.aggregations.Aggregation;
 
 public class ElasticSearchNativePageProvider extends AbstractPageProvider<DocumentModel> {
 
@@ -130,16 +152,28 @@ public class ElasticSearchNativePageProvider extends AbstractPageProvider<Docume
         return currentPageDocuments;
     }
 
-    private List<AggregateEsBase<? extends Aggregation, ? extends Bucket>> buildAggregates() {
-        ArrayList<AggregateEsBase<? extends Aggregation, ? extends Bucket>> ret = new ArrayList<>(
-                getAggregateDefinitions().size());
+    private ArrayList<Aggregate<? extends Bucket>> buildAggregates() {
+        ArrayList<Aggregate<? extends Bucket>> ret = new ArrayList<>(getAggregateDefinitions().size());
         boolean skip = isSkipAggregates();
         for (AggregateDefinition def : getAggregateDefinitions()) {
-            AggregateEsBase<? extends Aggregation, ? extends Bucket> agg = AggregateFactory.create(def,
-                    getSearchDocumentModel());
+            Aggregate<? extends Bucket> agg = switch (def.getType()) {
+                case AGG_TYPE_TERMS -> new AggregateTerm(def, getSearchDocumentModel());
+                case AGG_TYPE_RANGE -> new AggregateRange(def, getSearchDocumentModel());
+                case AGG_TYPE_DATE_RANGE -> new AggregateDateRange(def, getSearchDocumentModel());
+                case AGG_TYPE_HISTOGRAM -> new AggregateHistogram(def, getSearchDocumentModel());
+                case AGG_TYPE_DATE_HISTOGRAM -> new AggregateDateHistogram(def, getSearchDocumentModel());
+                case AGG_CARDINALITY -> new AggregateCardinality(def, getSearchDocumentModel());
+                case AGG_SUM -> new AggregateSum(def, getSearchDocumentModel());
+                case AGG_MIN -> new AggregateMin(def, getSearchDocumentModel());
+                case AGG_MAX -> new AggregateMax(def, getSearchDocumentModel());
+                case AGG_AVG -> new AggregateAvg(def, getSearchDocumentModel());
+                case AGG_COUNT -> new AggregateCount(def, getSearchDocumentModel());
+                case AGG_MISSING -> new AggregateMissing(def, getSearchDocumentModel());
+                default -> throw new IllegalArgumentException("Invalid aggregate type: " + def.getType() + ", " + def);
+            };
             if (!skip || !agg.getSelection().isEmpty()) {
                 // if we want to skip aggregates but one is selected, it has to be computed to filter the result set
-                ret.add(AggregateFactory.create(def, getSearchDocumentModel()));
+                ret.add(agg);
             }
         }
         return ret;

@@ -62,7 +62,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeaturesFeature.class, RepositoryElasticSearchFeature.class, CoreBulkFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:schemas-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestBulkActionWithAggregates {
 

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.opensearch1.test.dynamic-mapping">
+  <require>org.nuxeo.ecm.core.search.opensearch1.test</require>
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="nxutest">
+      <mapping file="OSGI-INF/search/test-opensearch1-dynamic-mapping.json" append="true"/>
+    </index>
+  </extension>
+  <!-- custom writer to be used with the dynamic mapper -->
+  <!-- TODO no merge on searchClient descriptor for now, redefine everything -->
+  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
+    <searchClient name="opensearch" default="true"
+                  class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
+      <connection>
+        <option name="clientId">search/default</option>
+      </connection>
+      <index name="nxutest" repository="test" create="false" default="true"
+        writerClass="org.nuxeo.ecm.core.search.client.opensearch1.CustomOpensearch1IndexingJsonWriter" />
+    </searchClient>
+  </extension>
+</component>

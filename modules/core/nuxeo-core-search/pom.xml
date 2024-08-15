@@ -11,6 +11,12 @@
   <name>Nuxeo Core Search module</name>
 
   <dependencies>
+    <!-- Java specifications -->
+    <dependency>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
+    </dependency>
+
     <!-- Libraries -->
     <dependency>
       <groupId>org.apache.avro</groupId>
@@ -83,6 +89,11 @@
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-io</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-schema</artifactId>
       <type>test-jar</type>
     </dependency>
   </dependencies>

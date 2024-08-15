@@ -25,12 +25,11 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
+import org.nuxeo.ecm.core.search.client.opensearch1.ESResponseTransformer;
 import org.nuxeo.ecm.platform.query.api.Aggregate;
 import org.nuxeo.ecm.platform.query.api.Bucket;
-import org.nuxeo.elasticsearch.aggregate.AggregateEsBase;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.api.EsScrollResult;
@@ -44,8 +43,6 @@ import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchScrollRequest;
 import org.opensearch.action.search.SearchType;
 import org.opensearch.common.unit.TimeValue;
-import org.opensearch.search.aggregations.Aggregation;
-import org.opensearch.search.aggregations.bucket.filter.Filter;
 import org.opensearch.search.builder.SearchSourceBuilder;
 
 import io.dropwizard.metrics5.MetricName;
@@ -84,16 +81,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         fetchTimer = registry.timer(MetricName.build("nuxeo.elasticsearch.service.timer").tagged("service", "fetch"));
     }
 
-    @Override
-    public DocumentModelList query(NxQueryBuilder queryBuilder) {
-        return queryAndAggregate(queryBuilder).getDocuments();
-    }
-
     @SuppressWarnings("resource") // IterableQueryResult closed by EsResult.getRows().close()
     @Override
     public EsResult queryAndAggregate(NxQueryBuilder queryBuilder) {
         SearchResponse response = search(queryBuilder);
-        List<Aggregate<Bucket>> aggs = getAggregates(queryBuilder, response);
+        List<Aggregate<Bucket>> aggs = ESResponseTransformer.getAggregates(queryBuilder, response);
         if (queryBuilder.returnsDocuments()) {
             DocumentModelListImpl docs = getDocumentModels(queryBuilder, response);
             return new EsResult(docs, aggs, response);
@@ -176,23 +168,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         }
     }
 
-    protected List<Aggregate<Bucket>> getAggregates(NxQueryBuilder queryBuilder, SearchResponse response) {
-        for (AggregateEsBase<Aggregation, Bucket> agg : queryBuilder.getAggregates()) {
-            Filter filter = response.getAggregations().get(NxQueryBuilder.getAggregateFilterId(agg));
-            if (filter == null) {
-                continue;
-            }
-            Aggregation aggregation = filter.getAggregations().get(agg.getId());
-            if (aggregation == null) {
-                continue;
-            }
-            agg.parseAggregation(aggregation);
-        }
-        @SuppressWarnings("unchecked")
-        List<Aggregate<Bucket>> ret = (List<Aggregate<Bucket>>) (List<?>) queryBuilder.getAggregates();
-        return ret;
-    }
-
     private IterableQueryResult getRows(NxQueryBuilder queryBuilder, SearchResponse response) {
         return new EsResultSetImpl(response, queryBuilder.getSelectFieldsAndTypes());
     }
@@ -234,10 +209,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         SearchSourceBuilder search = new SearchSourceBuilder();
         query.updateRequest(search);
         request.source(search);
-        if (query.isFetchFromElasticsearch()) {
-            // fetch the _source without the binaryfulltext field
-            search.fetchSource(esa.getIncludeSourceFields(), esa.getExcludeSourceFields());
-        }
         return request;
     }
 

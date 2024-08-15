@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<component name="org.nuxeo.elasticsearch.test.nested.mapping.contrib">
-  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
-    <index name="nxutest">
-      <mapping file="nested-mapping.json" />
-    </index>
-  </extension>
-</component>

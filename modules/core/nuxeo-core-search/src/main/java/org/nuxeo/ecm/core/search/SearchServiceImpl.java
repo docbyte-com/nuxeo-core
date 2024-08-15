@@ -172,6 +172,16 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     @Override
+    public SearchResponse search(SearchQuery query) {
+        // TODO: handle search on multiple indexes/repository
+        log.debug("Searching: {}", query);
+        var client = searchClients.get(query.getSearchIndex().client());
+        SearchResponse response = client.search(query);
+        log.debug("Response: {}", response);
+        return response;
+    }
+
+    @Override
     public void indexDocuments(BulkIndexingRequest request) {
         loadSources(request);
         try {

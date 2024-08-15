@@ -88,6 +88,11 @@ public interface Aggregate<B extends Bucket> {
      * implementation defines a field as `file:content.mime-type`, this method should return `file:content/mime-type`.
      *
      * @since 11.1
+     * @deprecated since 2025.0, since the SearchService introduction, aggregate fields are always in Nuxeo format, use
+     *             {@link #getField()} instead
      */
-    String getXPathField();
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default String getXPathField() {
+        return getField();
+    };
 }

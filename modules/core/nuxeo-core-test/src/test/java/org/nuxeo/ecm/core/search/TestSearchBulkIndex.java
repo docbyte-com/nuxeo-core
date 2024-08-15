@@ -25,14 +25,19 @@ import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.index.IndexingBackgroundAction.ACTION_NAME;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.SortInfo;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
@@ -54,6 +59,9 @@ public class TestSearchBulkIndex {
 
     @Inject
     protected BulkService bulkService;
+
+    @Inject
+    protected SearchService searchService;
 
     @Inject
     protected CoreSearchFeature coreSearchFeature;
@@ -95,13 +103,15 @@ public class TestSearchBulkIndex {
     }
 
     protected void checkSearchOrder() {
-        // TODO uncomment when search is implemented
-        // EsResult res = ess.queryAndAggregate(
-        // new NxQueryBuilder(session).nxql("SELECT * FROM File").addSort(new SortInfo("dc:title", false)));
-        // assertFalse(CollectionUtils.isEmpty(res.getDocuments().isEmpty()));
-        // List<String> ids = res.getDocuments().stream().map(DocumentModel::getTitle).toList();
-        // List<String> ordered = new ArrayList<>(ids);
-        // ordered.sort(Comparator.reverseOrder());
-        // assertEquals(ordered, ids);
+        SearchQuery query = SearchQuery.builder(session, "SELECT * FROM File")
+                                       .addSort(new SortInfo("dc:title", false))
+                                       .build();
+        var response = searchService.search(query);
+        var documents = response.loadDocuments(session);
+        assertTrue(CollectionUtils.isNotEmpty(documents));
+        List<String> ids = documents.stream().map(DocumentModel::getTitle).toList();
+        List<String> ordered = new ArrayList<>(ids);
+        ordered.sort(Comparator.reverseOrder());
+        assertEquals(ordered, ids);
     }
 }

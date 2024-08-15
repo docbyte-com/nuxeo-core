@@ -20,7 +20,6 @@ package org.nuxeo.elasticsearch.query;
 
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSUPPORTED_ACL;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.ACL_FIELD;
-import static org.nuxeo.elasticsearch.ElasticSearchConstants.ES_SCORE_FIELD;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.FETCH_DOC_FROM_ES_PROPERTY;
 
 import java.util.ArrayList;
@@ -29,34 +28,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.index.query.BoolQueryBuilder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.aggregations.AbstractAggregationBuilder;
-import org.opensearch.search.aggregations.Aggregation;
-import org.opensearch.search.aggregations.bucket.filter.FilterAggregationBuilder;
-import org.opensearch.search.builder.SearchSourceBuilder;
-import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.opensearch.search.sort.FieldSortBuilder;
-import org.opensearch.search.sort.SortBuilder;
-import org.opensearch.search.sort.SortOrder;
-import org.nuxeo.ecm.core.api.CoreInstance;
+import org.apache.commons.collections4.ListUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.SortInfo;
-import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Type;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.client.opensearch1.ESQueryTransformer;
 import org.nuxeo.ecm.core.security.SecurityService;
 import org.nuxeo.ecm.platform.query.api.Aggregate;
 import org.nuxeo.ecm.platform.query.api.Bucket;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.aggregate.AggregateEsBase;
 import org.nuxeo.elasticsearch.api.EsResult;
-import org.nuxeo.elasticsearch.fetcher.EsFetcher;
 import org.nuxeo.elasticsearch.fetcher.Fetcher;
 import org.nuxeo.elasticsearch.fetcher.VcsFetcher;
 import org.nuxeo.runtime.api.Framework;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.aggregations.AbstractAggregationBuilder;
+import org.opensearch.search.builder.SearchSourceBuilder;
+import org.opensearch.search.sort.FieldSortBuilder;
+import org.opensearch.search.sort.SortBuilder;
+import org.opensearch.search.sort.SortOrder;
 
 /**
  * Elasticsearch query builder for the Nuxeo ES api.
@@ -67,15 +61,13 @@ public class NxQueryBuilder {
 
     protected static final int DEFAULT_LIMIT = 10;
 
-    protected static final String AGG_FILTER_SUFFIX = "_filter";
-
     protected final CoreSession session;
 
     protected final List<SortInfo> sortInfos = new ArrayList<>();
 
     protected final List<String> repositories = new ArrayList<>();
 
-    protected final List<AggregateEsBase<Aggregation, Bucket>> aggregates = new ArrayList<>();
+    protected final List<Aggregate<? extends Bucket>> aggregates = new ArrayList<>();
 
     protected int limit = DEFAULT_LIMIT;
 
@@ -99,18 +91,10 @@ public class NxQueryBuilder {
 
     protected List<String> highlightFields;
 
-    protected EsFetcher.HitDocConsumer hitDocConsumer;
-
-    protected boolean useUnrestrictedSession;
-
     public NxQueryBuilder(CoreSession coreSession) {
         session = coreSession;
         repositories.add(coreSession.getRepositoryName());
         fetchFromElasticsearch = Boolean.parseBoolean(Framework.getProperty(FETCH_DOC_FROM_ES_PROPERTY, "false"));
-    }
-
-    public static String getAggregateFilterId(Aggregate<?> agg) {
-        return agg.getId() + AGG_FILTER_SUFFIX;
     }
 
     /**
@@ -162,40 +146,6 @@ public class NxQueryBuilder {
     }
 
     /**
-     * Ask for the Elasticsearch _source field, use it to build documents.
-     */
-    public NxQueryBuilder fetchFromElasticsearch() {
-        fetchFromElasticsearch = true;
-        return this;
-    }
-
-    /**
-     * If search results are found, use this SearchHit and DocumentModel consumer on each hit.
-     *
-     * @since 10.2
-     */
-    public NxQueryBuilder hitDocConsumer(EsFetcher.HitDocConsumer consumer) {
-        hitDocConsumer = consumer;
-        return this;
-    }
-
-    /**
-     * @since 11.1
-     */
-    public NxQueryBuilder useUnrestrictedSession(boolean useUnrestrictedSession) {
-        this.useUnrestrictedSession = useUnrestrictedSession;
-        return this;
-    }
-
-    /**
-     * Fetch the documents using VCS (database) engine. This is done by default
-     */
-    public NxQueryBuilder fetchFromDatabase() {
-        fetchFromElasticsearch = false;
-        return this;
-    }
-
-    /**
      * Don't return document model list, aggregates or rows, only the original Elasticsearch response is accessible from
      * {@link EsResult#getElasticsearchResponse()}
      *
@@ -207,12 +157,12 @@ public class NxQueryBuilder {
     }
 
     @SuppressWarnings("unchecked")
-    public NxQueryBuilder addAggregate(AggregateEsBase<? extends Aggregation, ? extends Bucket> aggregate) {
-        aggregates.add((AggregateEsBase<Aggregation, Bucket>) aggregate);
+    public NxQueryBuilder addAggregate(Aggregate<? extends Bucket> aggregate) {
+        aggregates.add(aggregate);
         return this;
     }
 
-    public NxQueryBuilder addAggregates(List<AggregateEsBase<? extends Aggregation, ? extends Bucket>> aggregates) {
+    public NxQueryBuilder addAggregates(List<Aggregate<? extends Bucket>> aggregates) {
         if (aggregates != null && !aggregates.isEmpty()) {
             aggregates.forEach(this::addAggregate);
         }
@@ -258,19 +208,18 @@ public class NxQueryBuilder {
     public QueryBuilder makeQuery() {
         if (esQueryBuilder == null) {
             if (nxql != null) {
-                esQueryBuilder = NxqlQueryConverter.toESQueryBuilder(nxql, session);
+                esQueryBuilder = ESQueryTransformer.toESQueryBuilder(nxql, session);
                 // handle the built-in order by clause
                 if (nxql.toLowerCase().contains("order by")) {
-                    List<SortInfo> builtInSortInfos = NxqlQueryConverter.getSortInfo(nxql);
+                    List<SortInfo> builtInSortInfos = ESQueryTransformer.getSortInfo(nxql);
                     sortInfos.addAll(builtInSortInfos);
                 }
                 if (nxqlHasSelectClause(nxql)) {
-                    selectFieldsAndTypes = NxqlQueryConverter.getSelectClauseFields(nxql);
+                    selectFieldsAndTypes = ESQueryTransformer.getSelectClauseFields(nxql);
                     Set<String> keySet = selectFieldsAndTypes.keySet();
                     selectFields = keySet.toArray(new String[0]);
                     returnsDocuments = false;
                 }
-                esQueryBuilder = addSecurityFilter(esQueryBuilder);
             }
         }
         return esQueryBuilder;
@@ -289,7 +238,7 @@ public class NxQueryBuilder {
         ret = new SortBuilder[sortInfos.size()];
         int i = 0;
         for (SortInfo sortInfo : sortInfos) {
-            String fieldType = guessFieldType(sortInfo.getSortColumn());
+            String fieldType = ESQueryTransformer.guessFieldType(sortInfo.getSortColumn());
             ret[i++] = new FieldSortBuilder(sortInfo.getSortColumn())
                                                                      .order(sortInfo.getSortAscending() ? SortOrder.ASC
                                                                              : SortOrder.DESC)
@@ -298,75 +247,15 @@ public class NxQueryBuilder {
         return ret;
     }
 
-    protected String guessFieldType(String field) {
-        String fieldType;
-        if (ES_SCORE_FIELD.equals(field)) {
-            // this special field should not have an unmappedType
-            return null;
-        }
-        try {
-            SchemaManager schemaManager = Framework.getService(SchemaManager.class);
-            fieldType = schemaManager.getField(field).getType().getName();
-        } catch (NullPointerException e) {
-            // probably an internal field without schema
-            fieldType = "keyword";
-        }
-        switch (fieldType) {
-        case "integer":
-        case "long":
-        case "boolean":
-        case "date":
-            return fieldType;
-        }
-        return "keyword";
-    }
-
-    protected QueryBuilder getAggregateFilter() {
-        BoolQueryBuilder ret = QueryBuilders.boolQuery();
-        for (AggregateEsBase<?, ?> agg : aggregates) {
-            QueryBuilder filter = agg.getEsFilter();
-            if (filter != null) {
-                ret.must(filter);
-            }
-        }
-        if (!ret.hasClauses()) {
-            return null;
-        }
-        return ret;
-    }
-
-    protected QueryBuilder getAggregateFilterExceptFor(String id) {
-        BoolQueryBuilder ret = QueryBuilders.boolQuery();
-        for (AggregateEsBase<?, ?> agg : aggregates) {
-            if (!agg.getId().equals(id)) {
-                QueryBuilder filter = agg.getEsFilter();
-                if (filter != null) {
-                    ret.must(filter);
-                }
-            }
-        }
-        if (!ret.hasClauses()) {
-            return QueryBuilders.matchAllQuery();
-        }
-        return ret;
-    }
-
-    public List<AggregateEsBase<Aggregation, Bucket>> getAggregates() {
+    public List<Aggregate<? extends Bucket>> getAggregates() {
         return aggregates;
     }
 
-    public List<FilterAggregationBuilder> getEsAggregates() {
-        List<FilterAggregationBuilder> ret = new ArrayList<>(aggregates.size());
-        for (AggregateEsBase<?, ?> agg : aggregates) {
-            FilterAggregationBuilder fagg = null;
-            fagg = new FilterAggregationBuilder(getAggregateFilterId(agg), getAggregateFilterExceptFor(agg.getId()));
-            fagg.subAggregation(agg.getEsAggregate());
-            ret.add(fagg);
-        }
-        return ret;
-    }
-
     public void updateRequest(SearchSourceBuilder request) {
+        var searchQuery = SearchQuery.builder(session, nxql)
+                                     .addAggregates(aggregates)
+                                     .addHighlights(ListUtils.emptyIfNull(highlightFields))
+                                     .build();
         // Set limits
         request.from(getOffset()).size(getLimit());
         // Build query with security checks
@@ -378,34 +267,25 @@ public class NxQueryBuilder {
         // Ask for total hits
         request.trackTotalHits(true);
         // Add Aggregate
-        for (AbstractAggregationBuilder<?> aggregate : getEsAggregates()) {
+        for (AbstractAggregationBuilder<?> aggregate : ESQueryTransformer.getEsAggregates(searchQuery)) {
             request.aggregation(aggregate);
         }
         // Add Aggregate post filter
-        QueryBuilder aggFilter = getAggregateFilter();
+        QueryBuilder aggFilter = ESQueryTransformer.getAggregateFilter(searchQuery);
         if (aggFilter != null) {
             request.postFilter(aggFilter);
         }
 
         // Add highlighting
-        if (highlightFields != null && !highlightFields.isEmpty()) {
-            HighlightBuilder hb = new HighlightBuilder();
-            for (String field : highlightFields) {
-                hb.field(field);
-            }
-            hb.requireFieldMatch(false);
-            request.highlighter(hb);
-        }
+        request.highlighter(ESQueryTransformer.makeHighlighter(searchQuery));
         // Fields selection
-        if (!isFetchFromElasticsearch()) {
-            request.fetchSource(getSelectFields(), null);
-        }
+        request.fetchSource(getSelectFields(), null);
 
     }
 
     protected QueryBuilder addSecurityFilter(QueryBuilder query) {
         NuxeoPrincipal principal = session.getPrincipal();
-        if (principal == null || principal.isAdministrator() || useUnrestrictedSession) {
+        if (principal == null || principal.isAdministrator()) {
             return query;
         }
         String[] principals = SecurityService.getPrincipalsToCheck(principal);
@@ -453,18 +333,10 @@ public class NxQueryBuilder {
      * @since 6.0
      */
     public Fetcher getFetcher(SearchResponse response, Map<String, String> repoNames) {
-        if (useUnrestrictedSession) {
-            return CoreInstance.doPrivileged(session, s -> {
-                return getFetcher(s, response, repoNames);
-            });
-        }
         return getFetcher(session, response, repoNames);
     }
 
     protected Fetcher getFetcher(CoreSession session, SearchResponse response, Map<String, String> repoNames) {
-        if (isFetchFromElasticsearch()) {
-            return new EsFetcher(session, response, repoNames, hitDocConsumer);
-        }
         return new VcsFetcher(session, response, repoNames);
     }
 

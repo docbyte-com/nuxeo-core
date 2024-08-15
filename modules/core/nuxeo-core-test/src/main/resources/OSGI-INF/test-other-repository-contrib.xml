@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.core.test.multi-repository">
 
+  <!-- require the test repository to make it the default one -->
+  <require>org.nuxeo.ecm.core.test.repository</require>
+
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="other">
       <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>

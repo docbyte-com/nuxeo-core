@@ -20,7 +20,6 @@
 
 package org.nuxeo.elasticsearch.api;
 
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 
 /**
@@ -29,13 +28,6 @@ import org.nuxeo.elasticsearch.query.NxQueryBuilder;
  * @since 5.9.3
  */
 public interface ElasticSearchService {
-
-    /**
-     * Returns a document list using an {@link NxQueryBuilder}.
-     *
-     * @since 5.9.5
-     */
-    DocumentModelList query(NxQueryBuilder queryBuilder);
 
     /**
      * Returns documents and aggregates.

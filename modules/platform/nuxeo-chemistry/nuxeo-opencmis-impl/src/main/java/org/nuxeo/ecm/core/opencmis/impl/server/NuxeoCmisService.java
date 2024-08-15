@@ -165,6 +165,9 @@ import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.schema.FacetNames;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.security.SecurityService;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
@@ -175,13 +178,10 @@ import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionService;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsIterableQueryResultImpl;
-import org.nuxeo.elasticsearch.core.EsSearchHitConverter;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.search.SearchHits;
 
 /**
  * Nuxeo implementation of the CMIS Services, on top of a {@link CoreSession}.
@@ -1674,17 +1674,13 @@ public class NuxeoCmisService extends AbstractCmisService
             PartialList<Map<String, Serializable>> pl;
             try {
                 if (useElasticsearch) {
-                    ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-                    NxQueryBuilder qb = new NxQueryBuilder(coreSession).nxql(nxql)
-                                                                       .limit((int) limit)
-                                                                       .offset((int) offset)
-                                                                       .onlyElasticsearchResponse();
-                    SearchResponse esResponse = ess.queryAndAggregate(qb).getElasticsearchResponse();
-                    // Convert response
-                    SearchHits esHits = esResponse.getHits();
-                    List<Map<String, Serializable>> list = new EsSearchHitConverter(
-                            qb.getSelectFieldsAndTypes()).convert(esHits.getHits());
-                    pl = new PartialList<>(list, esHits.getTotalHits().value);
+                    SearchService searchService = Framework.getService(SearchService.class);
+                    SearchQuery searchQuery = SearchQuery.builder(coreSession, nxql)
+                                                         .limit((int) limit)
+                                                         .offset((int) offset)
+                                                         .build();
+                    SearchResponse response = searchService.search(searchQuery);
+                    pl = response.getHitsAsMap();
                 } else {
                     // distinct documents
                     pl = coreSession.queryProjection(nxql, NXQL.NXQL, true, limit, offset, -1);

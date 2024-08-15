@@ -26,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
+import org.nuxeo.ecm.core.search.client.opensearch1.ESQueryTransformer;
+import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchQueryTransformer;
 import org.nuxeo.ecm.platform.query.api.PredicateDefinition;
 import org.nuxeo.ecm.platform.query.api.PredicateFieldDefinition;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
@@ -55,7 +57,7 @@ public class PageProviderQueryBuilder {
         if (useNativeQuery) {
             return QueryBuilders.queryStringQuery(query);
         } else {
-            return NxqlQueryConverter.toESQueryBuilder(query);
+            return ESQueryTransformer.toESQueryBuilder(query);
         }
     }
 
@@ -74,7 +76,7 @@ public class PageProviderQueryBuilder {
             final String additionalFixedPart, final Object[] params, final boolean useNativeQuery) {
         assert (model != null);
         assert (whereClause != null);
-        NxqlQueryConverter.ExpressionBuilder eb = new NxqlQueryConverter.ExpressionBuilder("AND");
+        OpenSearchQueryTransformer.ExpressionBuilder eb = new OpenSearchQueryTransformer.ExpressionBuilder("AND");
         String fixedPart = whereClause.getFixedPart();
         if (!StringUtils.isBlank(additionalFixedPart)) {
             fixedPart = (!StringUtils.isBlank(fixedPart))
@@ -89,7 +91,7 @@ public class PageProviderQueryBuilder {
                 // Fixed part handled as query_string
                 eb.add(QueryBuilders.queryStringQuery(fixedPart));
             } else {
-                eb.add(NxqlQueryConverter.toESQueryBuilder(fixedPart));
+                eb.add(ESQueryTransformer.toESQueryBuilder(fixedPart, model.getCoreSession()));
             }
         }
         // Process predicates
@@ -121,7 +123,7 @@ public class PageProviderQueryBuilder {
                     name = NXQL.ECM_FULLTEXT + "." + name;
                 }
             }
-            eb.add(NxqlQueryConverter.makeQueryFromSimpleExpression(operator, name, value, values, null, null));
+            eb.add(ESQueryTransformer.makeQueryFromSimpleExpression(operator, name, value, values, null));
         }
         return eb.get();
     }

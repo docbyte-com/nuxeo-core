@@ -39,5 +39,12 @@
       <groupId>org.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-schema</artifactId>
     </dependency>
+
+    <!-- Nuxeo test libraries -->
+    <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-query</artifactId>
+      <type>test-jar</type>
+    </dependency>
   </dependencies>
 </project>

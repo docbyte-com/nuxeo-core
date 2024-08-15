@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.automation.core.operations.services.search;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
@@ -40,6 +41,8 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -69,6 +72,9 @@ public class TestSearchAutomation {
 
     @Inject
     protected BulkService bulkService;
+
+    @Inject
+    protected SearchService searchService;
 
     protected DocumentRef rootRef;
 
@@ -101,26 +107,23 @@ public class TestSearchAutomation {
         coreSession.save();
         txFeature.nextTransaction();
         // nothing indexed because of disable indexing flag
-        // TODO uncomment when search is implemented
-        // assertEquals(0, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(0, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
     @Test
     public void testIndexingAll() throws Exception {
         automationService.run(ctx, INDEX_CHAIN);
-        // TODO uncomment when search is implemented
-        // assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
     @Test
     public void testIndexingFromRoot() throws Exception {
         ctx.setInput(rootRef);
         automationService.run(ctx, INDEX_CHAIN);
-        // TODO uncomment when search is implemented
-        // assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
     @Test
@@ -130,18 +133,16 @@ public class TestSearchAutomation {
         // then reindex from path, so we have 2 commands: delete + insert
         ctx.setInput(rootRef);
         automationService.run(ctx, INDEX_CHAIN);
-        // TODO uncomment when search is implemented
-        // assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
     @Test
     public void testIndexingFromNxql() throws Exception {
         ctx.setInput("SELECT ecm:uuid FROM Document WHERE ecm:primaryType = 'File'");
         automationService.run(ctx, INDEX_CHAIN);
-        // TODO uncomment when search is implemented
-        // assertEquals(1, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(1, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
     @Test
@@ -153,9 +154,8 @@ public class TestSearchAutomation {
         assertTrue("Bulk action didn't finish", waitResult);
         // indexing is done but refresh is processed just after, do it sync
         forceRefresh();
-        // TODO uncomment when search is implemented
-        // assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
-        // .getHitsCount());
+        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+                                     .getHitsCount());
     }
 
 }

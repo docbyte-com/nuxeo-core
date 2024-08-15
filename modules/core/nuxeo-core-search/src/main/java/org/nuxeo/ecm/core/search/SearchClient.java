@@ -79,10 +79,15 @@ public interface SearchClient extends AutoCloseable {
      */
     Long getDocumentVersion(String indexName, String documentId);
 
+    /**
+     * Executes a search query.
+     */
+    SearchResponse search(SearchQuery query);
+
     @Override
     void close();
 
     enum Capability {
-        INDEXING
+        INDEXING, HIGHLIGHT, AGGREGATE
     }
 }

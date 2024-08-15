@@ -19,13 +19,13 @@
  */
 package org.nuxeo.ecm.automation.core.operations.services.search;
 
+import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
@@ -33,16 +33,15 @@ import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchService;
+import org.nuxeo.ecm.core.test.MultiRepositorySearchFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ AutomationFeaturesFeature.class, MultiRepositoryFeature.class })
-@Deploy("org.nuxeo.ecm.automation.features.tests:test-search-client-second-repository-contrib.xml")
-@Ignore("TODO NXP-32863 fix once multi-repo search is supported")
+@Features({ AutomationFeaturesFeature.class, MultiRepositorySearchFeature.class })
 public class TestSearchAutomationMultiRepo {
 
     @Inject
@@ -57,6 +56,9 @@ public class TestSearchAutomationMultiRepo {
 
     @Inject
     protected AutomationService automationService;
+
+    @Inject
+    protected SearchService searchService;
 
     @Before
     public void init() {
@@ -79,9 +81,8 @@ public class TestSearchAutomationMultiRepo {
         txFeature.nextTransaction();
 
         // nothing indexed because of disabled indexing flag
-        // TODO uncomment when search is implemented
-        // assertEquals(0,
-        // searchService.search(SearchQuery.builder(session, "SELECT * from Document").build()).getHitsCount());
+        assertEquals(0,
+                searchService.search(SearchQuery.builder(session, "SELECT * from Document").build()).getHitsCount());
     }
 
     @Test
@@ -94,13 +95,10 @@ public class TestSearchAutomationMultiRepo {
             // will wait for bulk, wait for search indexing
             txFeature.nextTransaction();
 
-            // TODO uncomment when search is implemented
-            // assertEquals(2, searchService.search(SearchQuery.builder(defaultSession, "SELECT * from
-            // Document").build())
-            // .getHitsCount());
-            // assertEquals(2, searchService.search(SearchQuery.builder(secondSession, "SELECT * from
-            // Document").build())
-            // .getHitsCount());
+            assertEquals(2, searchService.search(SearchQuery.builder(defaultSession, "SELECT * from Document").build())
+                                         .getHitsCount());
+            assertEquals(2, searchService.search(SearchQuery.builder(otherSession, "SELECT * from Document").build())
+                                         .getHitsCount());
         }
     }
 

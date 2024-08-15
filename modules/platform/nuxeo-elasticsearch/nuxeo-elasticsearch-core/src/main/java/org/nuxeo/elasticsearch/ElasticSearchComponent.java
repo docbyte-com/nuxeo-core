@@ -31,7 +31,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
@@ -276,10 +275,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
     }
 
     // ES Search ===============================================================
-    @Override
-    public DocumentModelList query(NxQueryBuilder queryBuilder) {
-        return ess.query(queryBuilder);
-    }
 
     @Override
     public EsResult queryAndAggregate(NxQueryBuilder queryBuilder) {

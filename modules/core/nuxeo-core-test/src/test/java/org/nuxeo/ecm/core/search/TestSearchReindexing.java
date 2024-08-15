@@ -18,9 +18,12 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
+import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 
 import java.util.List;
 
@@ -56,6 +59,9 @@ public class TestSearchReindexing {
     protected CoreSession session;
 
     @Inject
+    protected SearchService searchService;
+
+    @Inject
     protected SearchIndexingService searchIndexingService;
 
     @Inject
@@ -76,22 +82,22 @@ public class TestSearchReindexing {
 
         String nxql = "SELECT * FROM Document ORDER BY ecm:uuid";
         DocumentModelList coreDocs = session.query(nxql);
-        // TODO uncomment when search is implemented
-        // DocumentModelList docs = ess.query(new NxQueryBuilder(session).nxql(nxql).limit(100));
+        DocumentModelList docs = searchService.search(newSearchQuery(session, nxql)).loadDocuments(session);
 
-        // assertEquals(coreDocs.totalSize(), docs.totalSize());
-        // assertEquals(getDigest(coreDocs), getDigest(docs));
+        assertEquals(coreDocs.totalSize(), docs.totalSize());
+        assertEquals(getDigest(coreDocs), getDigest(docs));
 
         assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
-        // TODO uncomment when search is implemented
-        // DocumentModelList docs2 = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document"));
-        // assertEquals(0, docs2.totalSize());
+        DocumentModelList docs2 = searchService.search(newSearchQuery(session, "SELECT * FROM Document"))
+                                               .loadDocuments(session);
+        assertEquals(0, docs2.totalSize());
 
         searchIndexingService.reindexRepository(session.getRepositoryName());
         txFeature.nextTransaction();
-        // TODO uncomment when search is implemented
-        // docs2 = ess.query(new NxQueryBuilder(session).nxql(nxql).limit(100));
-        // assertEquals(getDigest(coreDocs), getDigest(docs2));
+        forceRefresh();
+
+        docs2 = searchService.search(newSearchQuery(session, nxql)).loadDocuments(session);
+        assertEquals(getDigest(coreDocs), getDigest(docs2));
     }
 
     private void buildDocs() {

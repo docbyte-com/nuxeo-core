@@ -54,4 +54,12 @@ public interface SearchService {
      * Gets the list of {@link SearchIndex} for a given repository.
      */
     List<SearchIndex> getSearchIndexForRepository(String repository);
+
+    /**
+     * Executes a search query.
+     * {@snippet :
+     * var response = searchService.search(SearchQuery.builder(session, "SELECT * FROM Document").build());
+     * }
+     */
+    SearchResponse search(SearchQuery query);
 }

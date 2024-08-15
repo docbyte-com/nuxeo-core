@@ -60,6 +60,8 @@ import net.htmlparser.jericho.TextExtractor;
  */
 public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
 
+    public static final String REPOSITORY_PROP = "ecm:repository";
+
     public static final String TAG_FACET = "NXTag";
 
     public static final String TAG_PROP = "nxtag:tags";
@@ -81,7 +83,7 @@ public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
     protected void writeSystemProperties(JsonGenerator jg, DocumentModel doc) throws IOException {
         String docId = doc.getId();
         CoreSession session = doc.getCoreSession();
-        jg.writeStringField("ecm:repository", doc.getRepositoryName());
+        jg.writeStringField(REPOSITORY_PROP, doc.getRepositoryName());
         jg.writeStringField("ecm:uuid", docId);
         jg.writeStringField("ecm:name", doc.getName());
         jg.writeStringField("ecm:title", doc.getTitle());

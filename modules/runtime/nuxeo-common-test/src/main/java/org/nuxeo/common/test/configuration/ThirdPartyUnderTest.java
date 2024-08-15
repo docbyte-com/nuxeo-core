@@ -57,7 +57,8 @@ public final class ThirdPartyUnderTest {
     public static final SystemProperty DIRECTORY_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.directory",
             STORAGE_SQL);
 
-    public static final SystemProperty SEARCH_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.search", STORAGE_MEM);
+    public static final SystemProperty SEARCH_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.search",
+            STORAGE_OPENSEARCH_1);
 
     public static final SystemProperty STREAM_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.stream", STREAM_MEM);
 

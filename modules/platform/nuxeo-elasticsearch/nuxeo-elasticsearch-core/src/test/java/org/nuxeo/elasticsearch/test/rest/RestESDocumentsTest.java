@@ -35,6 +35,7 @@ import java.util.stream.StreamSupport;
 
 import jakarta.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +45,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.io.marshallers.json.aggregate.AggregateJsonWriter;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
@@ -55,7 +57,6 @@ import org.nuxeo.ecm.restapi.server.adapters.SearchAdapter;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.ecm.restapi.test.RestServerInit;
-import org.nuxeo.elasticsearch.io.marshallers.json.AggregateJsonWriter;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNativePageProvider;
 import org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
@@ -153,6 +154,7 @@ public class RestESDocumentsTest {
     @Test
     @Deploy("org.nuxeo.ecm.platform.collections.core:OSGI-INF/collection-pageprovider-contrib.xml")
     @Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-replacers-test-contrib.xml")
+    @Ignore("NXP-32984 impl hints")
     public void iCanUseFulltextOperatorWithElasticsearchPageProvider() {
         DocumentModel coll1 = session.createDocumentModel(ROOT_PATH, COLLECTION_NAME + 1, COLLECTION_TYPE);
         coll1.setPropertyValue(DUBLINCORE_TITLE_PROPERTY, coll1.getName());

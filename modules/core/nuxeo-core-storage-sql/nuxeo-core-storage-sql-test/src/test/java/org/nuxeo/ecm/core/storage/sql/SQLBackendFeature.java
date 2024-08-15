@@ -34,7 +34,7 @@ import org.nuxeo.runtime.test.runner.TransactionalConfig;
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-repo-ds.xml")
 @Features({ BlobManagerFeature.class, VCSRepositoryFeature.class })
 // don't deploy the vcs repository, tests are deploying a repository in the code
-@BlacklistComponent("org.nuxeo.ecm.core.storage.sql.test.repo.repository")
+@BlacklistComponent("org.nuxeo.ecm.core.test.repository")
 @TransactionalConfig(autoStart = false)
 public class SQLBackendFeature implements RunnerFeature {
 

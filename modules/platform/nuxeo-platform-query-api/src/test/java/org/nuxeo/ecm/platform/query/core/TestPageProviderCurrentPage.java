@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,8 +56,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.platform.query.api.test:test-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api.test:test-pageprovider-contrib.xml")
 public class TestPageProviderCurrentPage {
 

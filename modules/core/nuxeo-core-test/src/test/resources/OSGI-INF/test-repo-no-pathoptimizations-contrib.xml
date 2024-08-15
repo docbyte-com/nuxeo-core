@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ecm.core.storage.sql.test.repo.override.indexing">
-  <require>org.nuxeo.ecm.core.storage.sql.test.repo.repository</require>
+<component name="org.nuxeo.ecm.core.test.repository.override.indexing">
+  <require>org.nuxeo.ecm.core.test.repository</require>
   <extension target="org.nuxeo.ecm.core.storage.sql.RepositoryService" point="repository">
     <repository name="test">
       <pathOptimizations enabled="false"/>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,17 +44,17 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.query.api.test:test-pageprovider-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api.test:test-pageprovider-classreplacer-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.query.api.test:test-schemas-contrib.xml")
 public class TestPageProviderClassReplacer {
 
     @Inject
     protected PageProviderService pps;
 
     @Test
-    public void testReplacer() throws Exception {
+    public void testReplacer() {
         PageProviderService pps = Framework.getService(PageProviderService.class);
         assertNotNull(pps);
 

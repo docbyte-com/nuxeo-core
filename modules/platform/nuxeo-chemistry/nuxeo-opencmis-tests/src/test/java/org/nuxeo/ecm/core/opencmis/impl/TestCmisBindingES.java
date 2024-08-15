@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
+import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -29,6 +31,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
  */
 @Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
+@ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
 public class TestCmisBindingES extends TestCmisBinding {
 
     @Override

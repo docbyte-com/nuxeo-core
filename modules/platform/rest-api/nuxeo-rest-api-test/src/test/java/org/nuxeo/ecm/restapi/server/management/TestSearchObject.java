@@ -39,6 +39,8 @@ import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
@@ -62,6 +64,9 @@ public class TestSearchObject extends ManagementBaseTest {
     protected CoreSession coreSession;
 
     @Inject
+    protected SearchService searchService;
+
+    @Inject
     protected CoreSearchFeature coreSearchFeature;
 
     @Test
@@ -73,21 +78,15 @@ public class TestSearchObject extends ManagementBaseTest {
         long initialDocCount = coreSession.query(GET_ALL_DOCUMENTS_QUERY).totalSize();
 
         // Nothing indexed because the index was dropped
-        // TODO uncomment when search is implemented
-        // assertEquals(0,
-        // searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
+        assertEquals(0,
+                searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
 
         // Create new documents without indexing them
         createDocuments();
 
-        // Wait for an eventual indexing
-        txFeature.nextTransaction();
-        forceRefresh();
-
         // Nothing indexed because of disable indexing flag
-        // TODO uncomment when search is implemented
-        // assertEquals(0,
-        // searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
+        assertEquals(0,
+                searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
 
         // Start the ES indexing of all document of the coreSession repository
         httpClient.buildPostRequest("/management/search/reindex")
@@ -181,9 +180,8 @@ public class TestSearchObject extends ManagementBaseTest {
         // Wait until the end of the ES indexing and then assert our expected indexed documents
         txFeature.nextTransaction();
         forceRefresh();
-        // TODO uncomment when search is implemented
-        // var response = searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build());
-        // assertEquals(expectedHits, response.getHitsCount());
+        var response = searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build());
+        assertEquals(expectedHits, response.getHitsCount());
     }
 
     /**
@@ -205,7 +203,5 @@ public class TestSearchObject extends ManagementBaseTest {
         coreSession.save();
         // Commit the transaction
         txFeature.nextTransaction();
-        // force async indexing refresh
-        forceRefresh();
     }
 }

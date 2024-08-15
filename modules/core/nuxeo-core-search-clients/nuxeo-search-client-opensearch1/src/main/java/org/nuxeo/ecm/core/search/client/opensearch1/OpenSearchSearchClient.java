@@ -26,6 +26,8 @@ import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchClientRetryableException;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.runtime.RetryableException;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
@@ -39,7 +41,6 @@ import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.search.ClearScrollRequest;
 import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchScrollRequest;
 import org.opensearch.action.support.WriteRequest;
 import org.opensearch.common.unit.TimeValue;
@@ -58,6 +59,10 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
 
     public static final String ECM_ANCESTOR_FIELDS = "ecm:ancestorId";
 
+    protected static final OpenSearchQueryTransformer QUERY_TRANSFORMER = new OpenSearchQueryTransformer();
+
+    protected static final OpenSearchResponseTransformer RESPONSE_TRANSFORMER = new OpenSearchResponseTransformer();
+
     protected final OpenSearchClient client;
 
     public OpenSearchSearchClient(SearchClientDescriptor descriptor) {
@@ -75,6 +80,8 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     public boolean hasCapability(Capability capability) {
         return switch (capability) {
             case INDEXING -> true;
+            case HIGHLIGHT -> true;
+            case AGGREGATE -> true;
         };
     }
 
@@ -145,7 +152,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             SearchRequest request = new SearchRequest(indexName).scroll(keepAlive).source(search);
             request.scroll(TimeValue.timeValueMinutes(1));
 
-            SearchResponse response;
+            org.opensearch.action.search.SearchResponse response;
             for (response = client.search(request); //
                     response.getHits().getHits().length > 0; //
                     response = client.scroll(new SearchScrollRequest(response.getScrollId()).scroll(keepAlive))) {
@@ -191,6 +198,18 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             }
             return null;
         } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
+    }
+
+    @Override
+    public SearchResponse search(SearchQuery query) {
+        try {
+            var osSearchRequest = QUERY_TRANSFORMER.apply(query);
+            var osSearchResponse = client.search(osSearchRequest);
+            return RESPONSE_TRANSFORMER.apply(query, osSearchResponse);
+        } catch (RuntimeServiceException e) {
+            // OpenSearchStatusException is raised when using phrase prefix on keyword type
             throw new SearchClientException(e);
         }
     }

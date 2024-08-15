@@ -49,7 +49,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:schemas-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 public class TestEsIterableQueryResultImpl {
 
     @Inject

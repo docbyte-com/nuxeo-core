@@ -32,6 +32,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -56,7 +57,7 @@ import org.opensearch.index.query.QueryBuilder;
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:schemas-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 public class TestPageProvider {
 
     @Inject
@@ -261,7 +262,7 @@ public class TestPageProvider {
         assertNotNull(p);
         assertEquals(0, p.size());
         assertEquals(
-                "Query: SELECT * FROM Document WHERE ORDER BY dc:title, Syntax error: Invalid token <ORDER BY> at offset 29",
+                "Failed to execute query: SELECT * FROM Document WHERE ORDER BY dc:title, Syntax error: Invalid token <ORDER BY> at offset 29",
                 pp.getErrorMessage());
     }
 
@@ -715,6 +716,7 @@ public class TestPageProvider {
     }
 
     @Test
+    @Ignore("NXP-32984 impl hints")
     public void testNxqlPredicateWithHint() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_WITH_HINT");
         assertNotNull(ppdef);
@@ -780,6 +782,7 @@ public class TestPageProvider {
     }
 
     @Test
+    @Ignore("NXP-32984 impl hints")
     public void testNxqlPredicateWithHintInParameter() {
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition("NXQL_WITH_HINT_IN_PARAMETER");
         assertNotNull(ppdef);

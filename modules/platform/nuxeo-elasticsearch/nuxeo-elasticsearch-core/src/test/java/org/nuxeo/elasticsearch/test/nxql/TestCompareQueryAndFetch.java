@@ -20,9 +20,6 @@ package org.nuxeo.elasticsearch.test.nxql;
 
 import static java.util.Calendar.JANUARY;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_AVG;
-import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_CARDINALITY;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -49,11 +46,6 @@ import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
-import org.nuxeo.ecm.platform.query.core.AggregateDescriptor;
-import org.nuxeo.elasticsearch.aggregate.AggregateFactory;
-import org.nuxeo.elasticsearch.aggregate.SingleValueMetricAggregate;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.core.EsResultSetImpl;
@@ -76,9 +68,6 @@ public class TestCompareQueryAndFetch {
 
     @Inject
     protected ElasticSearchService ess;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
 
     @Inject
     protected TrashService trashService;
@@ -151,7 +140,10 @@ public class TestCompareQueryAndFetch {
                     // ISO 8601
                     value = String.format("%tFT%<tT.%<tL%<tz", (Calendar) value);
                 }
-                if (coreFeature.getStorageConfiguration().isDBS()) {
+                if (key.equals("ecm:repository")) {
+                    // search service has extra key in the result set, ignore it
+                    continue;
+                } else if (coreFeature.getStorageConfiguration().isDBS()) {
                     if (key.equals("ecm:name") || key.equals("ecm:parentId")) {
                         // MongoDB has extra keys in the result set, ignore them
                         continue;
@@ -163,7 +155,7 @@ public class TestCompareQueryAndFetch {
                 }
                 sortedMap.put(key, value);
             }
-            sb.append(sortedMap.entrySet().toString());
+            sb.append(sortedMap.entrySet());
             sb.append("\n");
         }
         return sb.toString();
@@ -203,29 +195,4 @@ public class TestCompareQueryAndFetch {
             assertEquals(20, ((EsResultSetImpl) res).totalSize());
         }
     }
-
-    @Test
-    public void testAggregates() {
-        AggregateDefinition aggDef = new AggregateDescriptor();
-        aggDef.setId("cardinal");
-        aggDef.setType(AGG_CARDINALITY);
-        aggDef.setDocumentField("dc:title");
-
-        AggregateDefinition avggDef = new AggregateDescriptor();
-        avggDef.setId("average");
-        avggDef.setType(AGG_AVG);
-        avggDef.setDocumentField("dc:created");
-
-        SingleValueMetricAggregate cardinality = (SingleValueMetricAggregate) AggregateFactory.create(aggDef, null);
-        SingleValueMetricAggregate average = (SingleValueMetricAggregate) AggregateFactory.create(avggDef, null);
-
-        NxQueryBuilder qb = new NxQueryBuilder(session).nxql("SELECT * FROM Document")
-                                                       .limit(0)
-                                                       .addAggregate(cardinality)
-                                                       .addAggregate(average)
-                                                       .onlyElasticsearchResponse();
-        ess.queryAndAggregate(qb);
-        assertNotNull(cardinality.getValue());
-    }
-
 }

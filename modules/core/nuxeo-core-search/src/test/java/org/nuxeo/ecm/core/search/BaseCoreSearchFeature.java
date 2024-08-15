@@ -29,6 +29,7 @@ import java.time.Duration;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.ecm.core.search.index.commands.ThreadLocalIndexingCommandsStacker;
@@ -62,7 +63,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     protected boolean awaitIndexing(Duration duration) throws InterruptedException {
-        return Framework.getService(SearchIndexingService.class).await(duration);
+        boolean await = Framework.getService(SearchIndexingService.class).await(duration);
+        if (await) {
+            forceRefresh();
+        }
+        return await;
     }
 
     // --------------
@@ -70,8 +75,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     // --------------
 
     public static void forceRefresh() {
-        Framework.getService(SearchIndexingService.class)
-                 .refresh(Framework.getService(SearchService.class).getDefaultSearchIndex());
+        var searchService = Framework.getService(SearchService.class);
+        searchService.getRepositoryNames()
+                     .stream()
+                     .map(searchService::getDefaultSearchIndexForRepository)
+                     .forEach(Framework.getService(SearchIndexingService.class)::refresh);
     }
 
     public static void assertNotIndexed(String documentId) {
@@ -147,5 +155,9 @@ public class BaseCoreSearchFeature implements RunnerFeature {
         } catch (IllegalArgumentException | JsonProcessingException e) {
             return doc;
         }
+    }
+
+    public static SearchQuery newSearchQuery(CoreSession session, String nxql) {
+        return SearchQuery.builder(session, nxql).limit(1_000).build();
     }
 }

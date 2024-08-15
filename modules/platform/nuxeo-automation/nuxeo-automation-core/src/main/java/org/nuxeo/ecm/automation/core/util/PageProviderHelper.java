@@ -362,7 +362,7 @@ public class PageProviderHelper {
                     String aggClause = aggregate.getExtendedBuckets()
                                                 .stream()
                                                 .filter(bucket -> keys.contains(bucket.getKey()))
-                                                .map(bucket -> getClauseFromBucket(bucket, aggregate.getXPathField()))
+                                                .map(bucket -> getClauseFromBucket(bucket, aggregate.getField()))
                                                 .collect(Collectors.joining(" OR "));
                     if (StringUtils.isNotEmpty(aggClause)) {
                         aggClause = "(" + aggClause + ")";

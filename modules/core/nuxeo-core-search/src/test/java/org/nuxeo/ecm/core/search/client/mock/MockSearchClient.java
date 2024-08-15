@@ -30,6 +30,8 @@ import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -61,6 +63,8 @@ public class MockSearchClient extends AbstractSearchClient {
     public boolean hasCapability(Capability capability) {
         return switch (capability) {
             case INDEXING -> true;
+            case HIGHLIGHT -> false;
+            case AGGREGATE -> false;
         };
     }
 
@@ -142,6 +146,11 @@ public class MockSearchClient extends AbstractSearchClient {
     @Override
     public Long getDocumentVersion(String indexName, String documentId) {
         return indexTime.getOrDefault(keyOf(indexName, documentId), null);
+    }
+
+    @Override
+    public SearchResponse search(SearchQuery query) {
+        return SearchResponse.builder(501, getName() + ": Search not implemented", 0).build();
     }
 
     @Override

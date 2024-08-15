@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<component name="org.nuxeo.elasticsearch.test.mapping.contrib">
-  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
-    <index name="nxutest">
-      <mapping file="ngram-mapping.json" />
-    </index>
-  </extension>
-</component>

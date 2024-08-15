@@ -24,6 +24,8 @@
     <register class="org.nuxeo.ecm.core.io.marshallers.json.types.FacetListJsonWriter" enable="true" />
     <register class="org.nuxeo.ecm.core.io.marshallers.json.types.SchemaJsonWriter" enable="true" />
     <register class="org.nuxeo.ecm.core.io.marshallers.json.types.SchemaListJsonWriter" enable="true" />
+    <!-- aggregate -->
+    <register class="org.nuxeo.ecm.core.io.marshallers.json.aggregate.AggregateJsonWriter" enable="true" />
     <!-- enrichers -->
     <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.FirstAccessibleAncestorJsonEnricher" enable="true" />
     <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.BasePermissionsJsonEnricher" enable="true" />
@@ -33,5 +35,6 @@
     <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.ContextualParametersJsonEnricher" enable="true" />
     <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.UserVisiblePermissionsJsonEnricher" enable="true" />
     <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.BlobAppLinksJsonEnricher" enable="true" />
+    <register class="org.nuxeo.ecm.core.io.marshallers.json.enrichers.HighlightJsonEnricher" enable="true" />
   </extension>
 </component>
