@@ -33,7 +33,7 @@
       <artifactId>nuxeo-launcher-commons</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.lib.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
       <artifactId>nuxeo-runtime-log4j</artifactId>
     </dependency>
     <dependency>

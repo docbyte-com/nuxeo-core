@@ -1940,13 +1940,13 @@
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mail-amazon-ses-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mariadb-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -1964,7 +1964,7 @@
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-multi-tenant-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -1976,7 +1976,7 @@
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-openid-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -1988,7 +1988,7 @@
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-quota-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
