@@ -244,7 +244,7 @@ nuxeo.stream.work.log.codec=avro
 nuxeo.stream.work.over.provisioning.factor=3
 
 # Filter big work to be stored outside of the stream
-nuxeo.stream.work.computation.filter.enabled=false
+nuxeo.stream.work.computation.filter.enabled=true
 nuxeo.stream.work.computation.filter.thresholdSize=1000000
 nuxeo.stream.work.computation.filter.class=org.nuxeo.ecm.core.transientstore.computation.TransientStoreOverflowRecordFilter
 #nuxeo.stream.work.computation.filter.class=org.nuxeo.ecm.core.work.KeyValueStoreOverflowRecordFilter
@@ -282,6 +282,7 @@ nuxeo.jwt.defaultTTL=3600
 
 # Metrics
 metrics.enabled=false
+metrics.filter.name=default
 
 ## Instrumentation
 metrics.streams.enabled=true
@@ -314,6 +315,7 @@ metrics.datadog.hostname=
 metrics.datadog.udp=false
 metrics.datadog.host=localhost
 metrics.datadog.port=8125
+metrics.datadog.emptyTimerAsCount=false
 
 ## Prometheus reporter
 metrics.prometheus.enabled=false
@@ -389,6 +391,10 @@ nuxeo.bulk.action.recomputeThumbnails.maxRetries=1
 nuxeo.bulk.action.recomputeViews.defaultConcurrency=2
 nuxeo.bulk.action.recomputeViews.defaultPartitions=6
 nuxeo.bulk.action.recomputeViews.maxRetries=1
+nuxeo.bulk.action.recomputeViewsBackground.enabled=false
+nuxeo.bulk.action.recomputeViewsBackground.defaultConcurrency=2
+nuxeo.bulk.action.recomputeViewsBackground.defaultPartitions=12
+nuxeo.bulk.action.recomputeViewsBackground.maxRetries=1
 nuxeo.bulk.action.recomputeVideoConversions.defaultConcurrency=2
 nuxeo.bulk.action.recomputeVideoConversions.defaultPartitions=6
 nuxeo.bulk.action.recomputeVideoConversions.maxRetries=1
@@ -416,3 +422,6 @@ nuxeo.bulk.action.unholdDocumentsAction.defaultConcurrency=2
 nuxeo.bulk.action.unholdDocumentsAction.defaultPartitions=4
 nuxeo.bulk.action.updateReadAcls.defaultConcurrency=1
 nuxeo.bulk.action.updateReadAcls.defaultPartitions=1
+
+# Primitive type strict validation
+nuxeo.primitive.type.strict.validation=false

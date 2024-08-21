@@ -27,10 +27,8 @@ import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.Calendar;
 import java.util.Collections;
@@ -57,8 +55,6 @@ import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
 import org.nuxeo.ecm.core.blob.KeyStrategyDocId;
 import org.nuxeo.ecm.core.blob.PathStrategy;
-import org.nuxeo.ecm.core.blob.PathStrategyFlat;
-import org.nuxeo.ecm.core.blob.PathStrategySubDirs;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.io.download.DownloadHelper;
 import org.nuxeo.ecm.core.model.Repository;
@@ -146,15 +142,8 @@ public class S3BlobStore extends AbstractBlobStore {
         amazonS3 = config.amazonS3;
         bucketName = config.bucketName;
         bucketPrefix = config.bucketPrefix;
-        Path p = Paths.get(bucketPrefix);
-        int subDirsDepth = config.getSubDirsDepth();
-        if (subDirsDepth == 0) {
-            // pathStrategy is not used when subDirsDepth=0 because a bucketPrefix could be in the key - NXP-30632
-            pathStrategy = new PathStrategyFlat(p);
-        } else {
-            pathStrategy = new PathStrategySubDirs(p, subDirsDepth);
-        }
-        pathSeparatorIsBackslash = FileSystems.getDefault().getSeparator().equals("\\");
+        pathStrategy = config.pathStrategy;
+        pathSeparatorIsBackslash = config.pathSeparatorIsBackslash;
         allowByteRange = config.getBooleanProperty(ALLOW_BYTE_RANGE);
         // don't use versions if we use deduplication (including managed case)
         useVersion = keyStrategy instanceof KeyStrategyDocId && isBucketVersioningEnabled();
@@ -220,17 +209,7 @@ public class S3BlobStore extends AbstractBlobStore {
     }
 
     protected String bucketKey(String key) {
-        // this allows to retrieve blobs created with a bucketPrefix in the key - NXP-30632
-        // this is a workaround for incorrectly written keys
-        if (config.getSubDirsDepth() == 0) {
-            return bucketPrefix + key;
-        }
-        String path = pathStrategy.getPathForKey(key).toString();
-        if (pathSeparatorIsBackslash) {
-            // correct for our abuse of Path under Windows
-            path = path.replace("\\", DELIMITER);
-        }
-        return path;
+        return config.bucketKey(key);
     }
 
     @Override
@@ -562,28 +541,30 @@ public class S3BlobStore extends AbstractBlobStore {
 
     @Override
     public boolean copyBlobIsOptimized(BlobStore sourceStore) {
-        return sourceStore.unwrap() instanceof S3BlobStore;
+        return !config.useClientSideEncryption && sourceStore.unwrap() instanceof S3BlobStore s3SrcStore
+                && !s3SrcStore.config.useClientSideEncryption;
     }
 
     @Override
     public String copyOrMoveBlob(String key, BlobStore sourceStore, String sourceKey, boolean atomicMove)
             throws IOException {
         BlobStore unwrappedSourceStore = sourceStore.unwrap();
-        if (unwrappedSourceStore instanceof S3BlobStore) {
-            // attempt direct S3-level copy
-            S3BlobStore sourceS3BlobStore = (S3BlobStore) unwrappedSourceStore;
-            try {
-                String returnedKey = copyOrMoveBlob(key, sourceS3BlobStore, sourceKey, atomicMove);
-                if (returnedKey != null) {
-                    return returnedKey;
+        if (unwrappedSourceStore instanceof S3BlobStore srcS3Store) {
+            if (!config.useClientSideEncryption && !srcS3Store.config.useClientSideEncryption) {
+                // attempt direct S3-level copy
+                try {
+                    String returnedKey = copyOrMoveBlob(key, srcS3Store, sourceKey, atomicMove);
+                    if (returnedKey != null) {
+                        return returnedKey;
+                    }
+                } catch (AmazonServiceException e) {
+                    if (isMissingKey(e)) {
+                        logTrace("<--", "missing");
+                        // source not found
+                        return null;
+                    }
+                    throw new IOException(e);
                 }
-            } catch (AmazonServiceException e) {
-                if (isMissingKey(e)) {
-                    logTrace("<--", "missing");
-                    // source not found
-                    return null;
-                }
-                throw new IOException(e);
             }
             // fall through if not copied
         }
@@ -859,7 +840,8 @@ public class S3BlobStore extends AbstractBlobStore {
                 logTrace("->", "updateStorageClass");
                 logTrace("hnote right: " + bucketKey + "@" + versionId);
                 logTrace("rnote right: " + storageClass);
-                amazonS3.copyObject(copyObjectRequest);
+                config.transferManager.copy(copyObjectRequest, amazonS3, null);
+                // No need to waitForCopyResult when changing storage class
             }
             if (blobUpdateContext.restoreForDuration != null) {
                 Duration duration = blobUpdateContext.restoreForDuration.duration;

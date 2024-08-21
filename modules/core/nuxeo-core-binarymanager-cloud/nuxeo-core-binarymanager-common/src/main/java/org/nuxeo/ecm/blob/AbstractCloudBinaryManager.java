@@ -39,6 +39,7 @@ import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.BlobProviderDescriptor;
+import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.binary.BinaryBlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
@@ -51,7 +52,9 @@ import org.nuxeo.runtime.api.Framework;
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 7.10
+ * @deprecated since 2023.9, use {@link BlobStoreBlobProvider} instead
  */
+@Deprecated(since = "2023.9")
 public abstract class AbstractCloudBinaryManager extends CachingBinaryManager implements BlobProvider {
 
     private static final Logger log = LogManager.getLogger(AbstractCloudBinaryManager.class);
@@ -93,11 +96,23 @@ public abstract class AbstractCloudBinaryManager extends CachingBinaryManager im
 
     public static final String DEFAULT_CACHE_MIN_AGE = "3600"; // 1h
 
-    public static final String DIRECTDOWNLOAD_PROPERTY = "directdownload";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY;
 
+    /**
+     * @deprecated since 2023.7, unused.
+     */
+    @Deprecated
     public static final String DEFAULT_DIRECTDOWNLOAD = "false";
 
-    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = "directdownload.expire";
+    /**
+     * @deprecated since 2023.7, use {@link BlobProviderDescriptor#DIRECTDOWNLOAD_EXPIRE_PROPERTY} instead.
+     */
+    @Deprecated
+    public static final String DIRECTDOWNLOAD_EXPIRE_PROPERTY = BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY;
 
     public static final int DEFAULT_DIRECTDOWNLOAD_EXPIRE = 60 * 60; // 1h
 
@@ -108,8 +123,8 @@ public abstract class AbstractCloudBinaryManager extends CachingBinaryManager im
         super.initialize(blobProviderId, properties);
 
         // Enable direct download from the remote binary store
-        directDownload = Boolean.parseBoolean(getProperty(DIRECTDOWNLOAD_PROPERTY, DEFAULT_DIRECTDOWNLOAD));
-        directDownloadExpire = getIntProperty(DIRECTDOWNLOAD_EXPIRE_PROPERTY);
+        directDownload = Boolean.parseBoolean(getProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY));
+        directDownloadExpire = getIntProperty(BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY);
         if (directDownloadExpire < 0) {
             directDownloadExpire = DEFAULT_DIRECTDOWNLOAD_EXPIRE;
         }

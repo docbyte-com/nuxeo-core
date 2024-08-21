@@ -4537,6 +4537,7 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testBinaryGC() throws InterruptedException {
+        assumeTrue("DBS repository has incremental GC", !coreFeature.getStorageConfiguration().isDBS());
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
         runBinariesGC(true, false);

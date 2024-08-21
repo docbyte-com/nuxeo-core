@@ -16,7 +16,7 @@
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.25"
+library identifier: "platform-ci-shared-library@v0.0.32"
 
 void getCurrentVersion() {
   return readMavenPom().getVersion()
@@ -27,7 +27,9 @@ void promoteDockerImage(String dockerRegistry, String imageName, String buildVer
   String releaseImage = "${dockerRegistry}/${DOCKER_NAMESPACE}/${imageName}:${releaseVersion}"
   String latestImage = "${dockerRegistry}/${DOCKER_NAMESPACE}/${imageName}:${latestVersion}"
 
-  nxDocker.copy(from: buildImage, tos: [releaseImage, latestImage])
+  // the source image is multi-platform, so the manifest is a list of images
+  // copy all of the images in the list and the list itself
+  nxDocker.copy(from: buildImage, tos: [releaseImage, latestImage], options: '--all')
 }
 
 pipeline {
@@ -42,7 +44,7 @@ pipeline {
     CURRENT_VERSION = getCurrentVersion()
     RELEASE_VERSION = nxUtils.getMajorDotMinorVersion(version: env.CURRENT_VERSION)
     LATEST_VERSION = nxUtils.getMajorVersion(version: env.RELEASE_VERSION)
-    MAVEN_ARGS = '-B -nsu -Dnuxeo.skip.enforcer=true -P-nexus,nexus-private'
+    MAVEN_CLI_ARGS = '-B -nsu -Dnuxeo.skip.enforcer=true -P-nexus,nexus-private'
     DOCKER_NAMESPACE = 'nuxeo'
     NUXEO_IMAGE_NAME = 'nuxeo'
   }
@@ -82,8 +84,8 @@ pipeline {
             sh """
               git checkout v${NUXEO_BUILD_VERSION}
 
-              mvn ${MAVEN_ARGS} -f parent/pom.xml versions:set -DnewVersion=${RELEASE_VERSION} -DgenerateBackupPoms=false
-              mvn ${MAVEN_ARGS} -f parent/pom.xml validate
+              mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml versions:set -DnewVersion=${RELEASE_VERSION} -DgenerateBackupPoms=false
+              mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml validate
             """
             nxGit.commitTagPush(version: env.RELEASE_VERSION)
           }
@@ -101,7 +103,7 @@ pipeline {
           ----------------------------------------
           Deploy nuxeo-parent POM
           ----------------------------------------"""
-          sh "mvn ${MAVEN_ARGS} -f parent/pom.xml deploy"
+          sh "mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml deploy"
         }
       }
     }
@@ -116,7 +118,7 @@ pipeline {
           script {
             sh """
               # Fetch Nuxeo packages with Maven
-              mvn ${MAVEN_ARGS} -f ci/release/pom.xml process-resources
+              mvn ${MAVEN_CLI_ARGS} -f ci/release/pom.xml process-resources
             """
             def nxPackages = findFiles(glob: 'ci/release/target/packages/nuxeo-*-package-*.zip')
             for (nxPackage in nxPackages) {
@@ -159,7 +161,7 @@ pipeline {
             """
             sh """
               # root POM
-              mvn ${MAVEN_ARGS} -Pdistrib,docker versions:set -DnewVersion=${nextVersion} -DgenerateBackupPoms=false
+              mvn ${MAVEN_CLI_ARGS} -Pdistrib,docker versions:set -DnewVersion=${nextVersion} -DgenerateBackupPoms=false
               perl -i -pe 's|<nuxeo.platform.version>.*?</nuxeo.platform.version>|<nuxeo.platform.version>${nextVersion}</nuxeo.platform.version>|' pom.xml
               perl -i -pe 's|org.nuxeo.ecm.product.version=.*|org.nuxeo.ecm.product.version=${nextVersion}|' server/nuxeo-nxr-server/src/main/resources/templates/nuxeo.defaults
 

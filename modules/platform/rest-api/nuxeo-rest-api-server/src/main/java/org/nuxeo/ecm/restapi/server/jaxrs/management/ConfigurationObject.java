@@ -21,6 +21,8 @@ import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.Properties;
 
 import javax.ws.rs.GET;
@@ -33,6 +35,7 @@ import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
 import org.nuxeo.launcher.config.ConfigurationConstants;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
  * Dumps the configuration properties and runtime properties.
@@ -49,12 +52,22 @@ import org.nuxeo.runtime.api.Framework;
 @Produces(APPLICATION_JSON)
 public class ConfigurationObject extends AbstractResource<ResourceTypeImpl> {
 
+    protected static final String OS_TIMEZONE_ID_KEY = "os.timezone.id";
+
+    protected static final String OS_TIMEZONE_OFFSET_KEY = "os.timezone.offset";
+
     protected Properties configurationProps;
+
+    protected Properties configurationServiceProps;
+
+    protected Properties miscProps;
 
     @GET
     public ConfigurationProperties doGet() throws IOException {
         var runtimeProps = Framework.getProperties();
-        return new ConfigurationProperties(getConfigurationProperties(), runtimeProps);
+        var jvmProps = System.getProperties();
+        return new ConfigurationProperties(getConfigurationProperties(), runtimeProps,
+                getConfigurationServiceProperties(), jvmProps, getMiscProperties());
     }
 
     protected Properties getConfigurationProperties() throws IOException {
@@ -67,5 +80,22 @@ public class ConfigurationObject extends AbstractResource<ResourceTypeImpl> {
             }
         }
         return configurationProps;
+    }
+
+    protected Properties getConfigurationServiceProperties() {
+        if (configurationServiceProps == null) {
+            configurationServiceProps = new Properties();
+            configurationServiceProps.putAll(Framework.getService(ConfigurationService.class).getProperties());
+        }
+        return configurationServiceProps;
+    }
+
+    protected Properties getMiscProperties() {
+        if (miscProps == null) {
+            miscProps = new Properties();
+            miscProps.setProperty(OS_TIMEZONE_ID_KEY, ZoneId.systemDefault().toString());
+            miscProps.setProperty(OS_TIMEZONE_OFFSET_KEY, OffsetDateTime.now().getOffset().toString());
+        }
+        return miscProps;
     }
 }

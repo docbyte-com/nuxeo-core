@@ -169,6 +169,13 @@ public class BulkScrollerComputation extends AbstractComputation {
         try {
             command = BulkCodecs.getCommandCodec().decode(record.getData());
             commandId = command.getId();
+
+            if (detectRetryOnFlushedScroll(commandId)) {
+                log.warn("Aborting scroll computation for command: {} as it already has downstream records.", commandId);
+                Framework.getService(BulkService.class).abort(commandId);
+                return;
+            }
+
             getCommandConfiguration(command);
             updateStatusAsScrolling(context, commandId);
 
@@ -177,10 +184,11 @@ public class BulkScrollerComputation extends AbstractComputation {
             final long queryLimit = getQueryLimit(command);
             boolean limitReached = false;
             boolean bigBulkCommand = false;
+            String action = command.getAction();
             scrollLoop: try (Scroll scroll = buildScroll(command)) {
                 while (scroll.hasNext()) {
                     if (isAbortedCommand(commandId)) {
-                        log.debug("Skipping aborted command: {}", commandId);
+                        log.warn("Stop scrolling aborted command: {}", command);
                         context.askForCheckpoint();
                         return;
                     }
@@ -199,8 +207,9 @@ public class BulkScrollerComputation extends AbstractComputation {
                     }
                     documentCount += scrollCount;
                     if (!bigBulkCommand && documentCount > BIG_BULK_COMMAND_THRESHOLD) {
-                        log.warn("BBC: {} (Big Bulk Command) detected, scrolling more than {} items: {}.", commandId,
-                                BIG_BULK_COMMAND_THRESHOLD, command);
+                        log.warn(
+                                "BBC: {} (Big Bulk Command) detected for action: {}, scrolling more than {} items: {}.",
+                                commandId, action, BIG_BULK_COMMAND_THRESHOLD, command);
                         bigBulkCommand = true;
                     }
                     if (limitReached) {
@@ -220,7 +229,7 @@ public class BulkScrollerComputation extends AbstractComputation {
                 updateStatusAfterScroll(context, commandId, documentCount, limitReached);
             }
             if (bigBulkCommand) {
-                log.warn("BBC: {} scroll done: {} items.", commandId, documentCount);
+                log.warn("BBC: {} for action: {} scroll done: {} items.", commandId, action, documentCount);
             }
         } catch (IllegalArgumentException | QueryParseException | DocumentNotFoundException e) {
             log.error("Invalid query results in an empty document set: {}", command, e);
@@ -234,6 +243,10 @@ public class BulkScrollerComputation extends AbstractComputation {
             }
         }
         context.askForCheckpoint();
+    }
+
+    protected boolean detectRetryOnFlushedScroll(String commandId) {
+        return Framework.getService(BulkService.class).getStatus(commandId).getProcessingStartTime() != null;
     }
 
     private long getQueryLimit(BulkCommand command) {
@@ -295,6 +308,14 @@ public class BulkScrollerComputation extends AbstractComputation {
         BulkService bulkService = Framework.getService(BulkService.class);
         BulkStatus status = bulkService.getStatus(commandId);
         return ABORTED.equals(status.getState());
+    }
+
+    protected void updateStatusAsFlushing(ComputationContext context, String commandId) {
+        BulkStatus delta = BulkStatus.deltaOf(commandId);
+        // TODO add a flushed flag to the avro schema on next update and use it instead.
+        delta.setProcessingStartTime(Instant.now());
+        ((ComputationContextImpl) context).produceRecordImmediate(STATUS_STREAM, commandId,
+                BulkCodecs.getStatusCodec().encode(delta));
     }
 
     protected void updateStatusAsScrolling(ComputationContext context, String commandId) {
@@ -365,6 +386,7 @@ public class BulkScrollerComputation extends AbstractComputation {
     protected void flushRecords(ComputationContextImpl contextImpl, String commandId) {
         log.warn("Scroller records threshold reached ({}) for action: {} on command: {}, flushing records downstream",
                 produceImmediateThreshold, actionStream, commandId);
+        updateStatusAsFlushing(contextImpl, commandId);
         contextImpl.getRecords(actionStream)
                    .forEach(record -> contextImpl.produceRecordImmediate(actionStream, record));
         contextImpl.getRecords(actionStream).clear();

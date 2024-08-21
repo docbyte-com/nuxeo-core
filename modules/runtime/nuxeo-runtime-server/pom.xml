@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.5-SNAPSHOT</version>
+    <version>2023.13-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-runtime-server</artifactId>
@@ -46,6 +46,10 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.tomcat</groupId>
+      <artifactId>tomcat-util-scan</artifactId>
     </dependency>
   </dependencies>
 

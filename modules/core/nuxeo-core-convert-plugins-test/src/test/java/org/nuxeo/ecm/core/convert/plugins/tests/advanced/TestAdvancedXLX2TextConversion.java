@@ -19,15 +19,17 @@
 
 package org.nuxeo.ecm.core.convert.plugins.tests.advanced;
 
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
+import java.util.function.Consumer;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.convert.plugins.tests.SimpleConverterTest;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @since 9.1
@@ -42,10 +44,21 @@ public class TestAdvancedXLX2TextConversion extends SimpleConverterTest {
                 "advanced/cell_separator.xlsx");
     }
 
+    @Test
+    public void testFormulaValue() throws Exception {
+        Consumer<String> assertionsToMake = (textContent -> {
+            String[] cells = textContent.trim().split(" ");
+            assertEquals(2, cells.length);
+            assertArrayEquals(cells, new String[] { "900.0", "70.0" });
+        });
+        doTestTextConverter("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "xlx2text",
+                "advanced/formula_value.xlsx", assertionsToMake);
+    }
+
     @Override
     protected void checkTextConversion(String textContent) {
         String[] cells = textContent.trim().split(" ");
-        assertTrue(cells.length == 2);
+        assertEquals(2, cells.length);
         assertArrayEquals(cells, new String[] { "hello", "world" });
     }
 }

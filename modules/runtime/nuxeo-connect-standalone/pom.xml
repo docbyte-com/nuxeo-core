@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.5-SNAPSHOT</version>
+    <version>2023.13-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-connect-standalone</artifactId>
@@ -67,7 +67,7 @@
     </dependency>
     <dependency>
       <groupId>javax.annotation</groupId>
-      <artifactId>jsr250-api</artifactId>
+      <artifactId>javax.annotation-api</artifactId>
     </dependency>
   </dependencies>
 

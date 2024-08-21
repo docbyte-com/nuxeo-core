@@ -198,7 +198,7 @@ public class SignatureServiceTest {
         PdfReader reader = new PdfReader(blob.getStream());
         try {
             @SuppressWarnings("unchecked")
-            List<String> names = reader.getAcroFields().getSignatureNames();
+            List<String> names = reader.getAcroFields().getSignedFieldNames();
             return names;
         } finally {
             reader.close();
@@ -414,7 +414,8 @@ public class SignatureServiceTest {
         assertEquals(Arrays.asList("Signature2", "Signature1"), getSignatureNames(signedBlob));
     }
 
-    @Test public void testGetDefaultSignatureAppearance() throws Exception {
+    @Test
+    public void testGetDefaultSignatureAppearance() throws Exception {
         SignatureServiceImpl ssi = (SignatureServiceImpl) signatureService;
         assertNotNull(ssi.getSignatureAppearanceFactory());
     }

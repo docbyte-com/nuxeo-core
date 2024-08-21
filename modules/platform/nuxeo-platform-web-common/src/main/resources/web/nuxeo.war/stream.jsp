@@ -50,6 +50,8 @@
       for (i = 0; i < arr.length; i++) {
         out += '<option value="' + arr[i].name + '">' + arr[i].name + ' (' + arr[i].partitions + ' partitions)</option>\n';
       }
+      // Explicitly add log4j stream, because it is not part of a stream processor
+      out += '<option value="source/log4j">source/log4j</option>\n';
       let select = document.getElementById("streams");
       select.innerHTML = out;
       select.value = arr[0].name;
@@ -80,6 +82,8 @@
       } else if (document.getElementById("fromOffset").checked) {
         url = url + "&fromOffset=" + document.getElementById("offset").value;
         url = url + "&partition=" + document.getElementById("partition").value;
+      } else if (document.getElementById("fromTail").checked) {
+        url = url + "&fromTail=true"
       }
       url = url + "&rewind=" + document.getElementById("rewind").value;
       url = url + "&timeout=" + document.getElementById("timeout").value;
@@ -137,7 +141,11 @@ Streams:
   </div>
   <div>
     <input type="radio" name="from" id="fromBeginning">
-    <label for="fromBeginning">From beginning</label></li>
+    <label for="fromBeginning">From beginning</label>
+  </div>
+  <div>
+    <input type="radio" name="from" id="fromTail">
+    <label for="fromTail">From tail</label>
   </div>
   <div>
     <input type="radio" name="from" id="fromOffset">

@@ -29,9 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
-import org.nuxeo.ecm.core.api.DataModel;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.DocumentPart;
 import org.nuxeo.ecm.core.api.model.Property;
@@ -91,12 +89,12 @@ public class DocumentValidationServiceImpl extends DefaultComponent implements D
             Forcing flag = (Forcing) contextMap.get(DocumentValidationService.CTX_MAP_KEY);
             if (flag != null) {
                 switch (flag) {
-                case TURN_ON:
-                    return true;
-                case TURN_OFF:
-                    return false;
-                case USUAL:
-                    break;
+                    case TURN_ON:
+                        return true;
+                    case TURN_OFF:
+                        return false;
+                    case USUAL:
+                        break;
                 }
             }
         }
@@ -114,7 +112,14 @@ public class DocumentValidationServiceImpl extends DefaultComponent implements D
         List<ValidationViolation> violations = new ArrayList<>();
         DocumentType docType = document.getDocumentType();
         if (dirtyOnly) {
-            for (DataModel dataModel : document.getDataModels().values()) {
+            // avoid possible concurrency on the dataModels map
+            var dataModels = document.getDataModels();
+            var dataModelsKeys = new ArrayList<>(dataModels.keySet());
+            for (var key : dataModelsKeys) {
+                var dataModel = dataModels.get(key);
+                if (dataModel == null) {
+                    continue;
+                }
                 Schema schemaDef = getSchemaManager().getSchema(dataModel.getSchema());
                 for (String fieldName : dataModel.getDirtyFields()) {
                     Field field = schemaDef.getField(fieldName);

@@ -21,10 +21,10 @@ package org.nuxeo.elasticsearch.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.SocketTimeoutException;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.http.HttpStatus;
@@ -90,9 +90,11 @@ public class ESRestClient implements ESClient {
     protected RestHighLevelClient client;
 
     protected RequestOptions COMPAT_ES_OPTIONS = RequestOptions.DEFAULT.toBuilder()
-            .addHeader("Accept", "application/json; compatible-with=7; charset=UTF-8")
-            .addHeader("Content-Type", "application/json; compatible-with=7; charset=UTF-8")
-            .build();
+                                                                       .addHeader("Accept",
+                                                                               "application/json; compatible-with=7; charset=UTF-8")
+                                                                       .addHeader("Content-Type",
+                                                                               "application/json; compatible-with=7; charset=UTF-8")
+                                                                       .build();
 
     public ESRestClient(RestClient lowLevelRestClient, RestHighLevelClient client) {
         this.lowLevelClient = lowLevelRestClient;
@@ -115,16 +117,16 @@ public class ESRestClient implements ESClient {
             throw new NuxeoException(e);
         }
         switch (healthStatus) {
-        case GREEN:
-            log.info("Elasticsearch Cluster ready: {}", response);
-            return true;
-        case YELLOW:
-            log.warn("Elasticsearch Cluster ready but not GREEN: {}", response);
-            return false;
-        default:
-            String error = "Elasticsearch Cluster health status: " + healthStatus + ", not Yellow after "
-                    + timeoutSecond + " give up: " + response;
-            throw new IllegalStateException(error);
+            case GREEN:
+                log.info("Elasticsearch Cluster ready: {}", response);
+                return true;
+            case YELLOW:
+                log.warn("Elasticsearch Cluster ready but not GREEN: {}", response);
+                return false;
+            default:
+                String error = "Elasticsearch Cluster health status: " + healthStatus + ", not Yellow after "
+                        + timeoutSecond + " give up: " + response;
+                throw new IllegalStateException(error);
         }
     }
 
@@ -173,12 +175,12 @@ public class ESRestClient implements ESClient {
     public boolean indexExists(String indexName) {
         Response response = performRequestWithTracing(new Request("HEAD", "/" + indexName));
         switch (response.getStatusLine().getStatusCode()) {
-        case HttpStatus.SC_OK:
-            return true;
-        case HttpStatus.SC_NOT_FOUND:
-            return false;
-        default:
-            throw new IllegalStateException(String.format("Checking index %s returns: %s", indexName, response));
+            case HttpStatus.SC_OK:
+                return true;
+            case HttpStatus.SC_NOT_FOUND:
+                return false;
+            default:
+                throw new IllegalStateException(String.format("Checking index %s returns: %s", indexName, response));
         }
     }
 
@@ -187,12 +189,12 @@ public class ESRestClient implements ESClient {
         // HEAD is not supported anymore since elastic 7.x
         Response response = performRequestWithTracing(new Request("GET", String.format("/%s/_mapping", indexName)));
         switch (response.getStatusLine().getStatusCode()) {
-        case HttpStatus.SC_OK:
-            return true;
-        case HttpStatus.SC_NOT_FOUND:
-            return false;
-        default:
-            throw new IllegalStateException(String.format("Checking mapping %s returns: %s", indexName, response));
+            case HttpStatus.SC_OK:
+                return true;
+            case HttpStatus.SC_NOT_FOUND:
+                return false;
+            default:
+                throw new IllegalStateException(String.format("Checking mapping %s returns: %s", indexName, response));
         }
     }
 
@@ -293,12 +295,12 @@ public class ESRestClient implements ESClient {
     public boolean aliasExists(String aliasName) {
         Response response = performRequestWithTracing(new Request("HEAD", String.format("/_alias/%s", aliasName)));
         switch (response.getStatusLine().getStatusCode()) {
-        case HttpStatus.SC_OK:
-            return true;
-        case HttpStatus.SC_NOT_FOUND:
-            return false;
-        default:
-            throw new IllegalStateException(String.format("Checking alias %s returns: %s", aliasName, response));
+            case HttpStatus.SC_OK:
+                return true;
+            case HttpStatus.SC_NOT_FOUND:
+                return false;
+            default:
+                throw new IllegalStateException(String.format("Checking alias %s returns: %s", aliasName, response));
         }
     }
 
@@ -361,16 +363,18 @@ public class ESRestClient implements ESClient {
         // retry 1: 30s +/-15 [t+15, t+45]
         // retry 2: 60s +/-30 [t+45, t+135]
         // retry 3: 120 +/-60 [t+105, t+315]
-        RetryPolicy policy = new RetryPolicy().withMaxRetries(3)
-                                              .withBackoff(30, 200, TimeUnit.SECONDS)
-                                              .withJitter(0.5)
-                                              .retryOn(TooManyRequestsRetryableException.class);
+        var maxRetries = 3;
+        RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(maxRetries)
+                                                        .withBackoff(30, 200, ChronoUnit.SECONDS)
+                                                        .withJitter(0.5)
+                                                        .onRetry(failure -> log.warn("Retrying bulk index ... {}",
+                                                                request::getDescription))
+                                                        .onRetriesExceeded(evt -> log.warn(
+                                                                "Give up bulk index after {} retries: {}",
+                                                                () -> maxRetries, request::getDescription))
+                                                        .handle(TooManyRequestsRetryableException.class);
         AtomicReference<BulkResponse> response = new AtomicReference<>();
-        Failsafe.with(policy)
-                .onRetry(failure -> log.warn("Retrying bulk index ... {}", request.getDescription()))
-                .onRetriesExceeded(failure -> log.warn("Give up bulk index after {} retries: {}", policy::getMaxRetries,
-                        request::getDescription))
-                .run(() -> response.set(doBulk(request)));
+        Failsafe.with(policy).run(() -> response.set(doBulk(request)));
         return response.get();
     }
 
@@ -421,15 +425,20 @@ public class ESRestClient implements ESClient {
         // retry 1: 20s +/-10 [t+10, t+30]
         // retry 2: 40s +/-20 [t+30 t+90]
         // retry 3: 80S +/-40 [t+70, t+210]
-        RetryPolicy policy = new RetryPolicy().withMaxRetries(3)
-                                              .withBackoff(20, 200, TimeUnit.SECONDS)
-                                              .withJitter(0.5)
-                                              .retryOn(TooManyRequestsRetryableException.class);
+        var maxRetries = 3;
+        RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(maxRetries)
+                                                        .withBackoff(20, 200, ChronoUnit.SECONDS)
+                                                        .withJitter(0.5)
+                                                        .onRetry(failure -> log.warn("Retrying delete ... {}",
+                                                                request::getDescription))
+                                                        .onRetriesExceeded(failure -> log.warn(
+                                                                "Give up delete after {} retries: {}", () -> maxRetries,
+                                                                request::getDescription))
+                                                        .handle(TooManyRequestsRetryableException.class);
+
         AtomicReference<DeleteResponse> response = new AtomicReference<>();
         Failsafe.with(policy)
-                .onRetry(failure -> log.warn("Retrying delete ... " + request.getDescription()))
-                .onRetriesExceeded(failure -> log.warn(
-                        "Give up delete after " + policy.getMaxRetries() + " retries: " + request.getDescription()))
+
                 .run(() -> response.set(doDelete(request)));
         return response.get();
     }
@@ -483,16 +492,18 @@ public class ESRestClient implements ESClient {
         // retry 1: 20s +/-10 [t+10, t+30]
         // retry 2: 40s +/-20 [t+30 t+90]
         // retry 3: 80S +/-40 [t+70, t+210]
-        RetryPolicy policy = new RetryPolicy().withMaxRetries(3)
-                                              .withBackoff(20, 200, TimeUnit.SECONDS)
-                                              .withJitter(0.5)
-                                              .retryOn(TooManyRequestsRetryableException.class);
+        var maxRetries = 3;
+        RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(maxRetries)
+                                                        .withBackoff(20, 200, ChronoUnit.SECONDS)
+                                                        .withJitter(0.5)
+                                                        .onRetry(failure -> log.warn("Retrying index ... {}",
+                                                                request::getDescription))
+                                                        .onRetriesExceeded(failure -> log.warn(
+                                                                "Give up index after {} retries: {}", () -> maxRetries,
+                                                                request::getDescription))
+                                                        .handle(TooManyRequestsRetryableException.class);
         AtomicReference<IndexResponse> response = new AtomicReference<>();
-        Failsafe.with(policy)
-                .onRetry(failure -> log.warn("Retrying index ... {}", request::getDescription))
-                .onRetriesExceeded(failure -> log.warn("Give up index after {} retries: {}", policy::getMaxRetries,
-                        request::getDescription))
-                .run(() -> response.set(doIndex(request)));
+        Failsafe.with(policy).run(() -> response.set(doIndex(request)));
         return response.get();
     }
 
@@ -570,6 +581,8 @@ public class ESRestClient implements ESClient {
      * @since 2021.16
      */
     public static class TooManyRequestsRetryableException extends Exception {
+
+        private static final long serialVersionUID = 1L;
 
         public TooManyRequestsRetryableException(String message) {
             super(message);

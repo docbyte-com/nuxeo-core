@@ -41,11 +41,18 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class StreamIntrospectionConverter {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
+    protected static final long ACTIVE_THRESHOLD_SECONDS = 300L;
+
+    protected static final String EMPTY_JSON_ARRAY = "[]";
+
     protected final String json;
 
     protected final JsonNode root;
 
     public StreamIntrospectionConverter(String json) {
+        if (StringUtils.isBlank(json)) {
+            throw new IllegalArgumentException("Cannot convert blank JSON");
+        }
         this.json = json;
         try {
             this.root = OBJECT_MAPPER.readTree(json);
@@ -55,17 +62,20 @@ public class StreamIntrospectionConverter {
     }
 
     public String getStreams() {
-        return root.get("streams").toString();
+        if (root.has("streams")) {
+            return root.get("streams").toString();
+        }
+        return EMPTY_JSON_ARRAY;
     }
 
     public String getConsumers(String stream) {
         if (StringUtils.isBlank(stream)) {
-            return "[]";
+            return EMPTY_JSON_ARRAY;
         }
         String match = "stream:" + stream;
         JsonNode node = root.get("processors");
         Set<String> consumers = new HashSet<>();
-        if (node.isArray()) {
+        if (node != null && node.isArray()) {
             for (JsonNode item : node) {
                 JsonNode topologies = item.get("topology");
                 for (JsonNode topo : topologies) {
@@ -90,14 +100,14 @@ public class StreamIntrospectionConverter {
         Map<String, String> streamMetrics = parseMetrics();
         ret.append(getPumlHeader("Stream Introspection at " + streamMetrics.get("date")));
         JsonNode node = root.get("streams");
-        if (node.isArray()) {
+        if (node != null && node.isArray()) {
             for (JsonNode item : node) {
                 dumpStream(ret, item, streamMetrics);
             }
         }
 
         node = root.get("processors");
-        if (node.isArray()) {
+        if (node != null && node.isArray()) {
             for (JsonNode item : node) {
                 String host = item.at("/metadata/nodeId").asText();
                 String created = Instant.ofEpochSecond(item.at("/metadata/created").asLong()).toString();
@@ -143,7 +153,7 @@ public class StreamIntrospectionConverter {
         Map<String, String> streamMetrics = new HashMap<>();
         JsonNode node = root.get("metrics");
         long timestamp = 0;
-        if (node.isArray()) {
+        if (node != null && node.isArray()) {
             for (JsonNode host : node) {
                 String nodeId = host.get("nodeId").asText();
                 long metricTimestamp = host.get("timestamp").asLong();
@@ -340,16 +350,20 @@ public class StreamIntrospectionConverter {
     }
 
     public String getActivity() {
+        return getActivity(System.currentTimeMillis() / 1000);
+    }
+
+    public String getActivity(long atTimestamp) {
         ObjectMapper mapper = new ObjectMapper();
         ObjectNode ret = mapper.getNodeFactory().objectNode();
-        JsonNode nodes = getClusterNodes();
+        JsonNode nodes = getClusterNodes(atTimestamp);
         int workerCount = 0;
         for (JsonNode node : nodes) {
             if ("worker".equals(node.at("/type").asText())) {
                 workerCount++;
             }
         }
-        JsonNode computations = getActiveComputations();
+        JsonNode computations = getActiveComputations(atTimestamp);
         JsonNode scale = getScaleMetrics(workerCount, (ArrayNode) computations);
         ret.set("scale", scale);
         ret.set("nodes", nodes);
@@ -358,34 +372,36 @@ public class StreamIntrospectionConverter {
     }
 
     protected JsonNode getScaleMetrics(int workerCount, ArrayNode computations) {
-        int scale = 1; // always keep a worker nodes
-        int current = workerCount > 0 ? workerCount : 1;
+        int current = workerCount > 0 ? workerCount : -1;
+        int bestNodes = workerCount > 0 ? 1 : -1;
         for (JsonNode computation : computations) {
             int nodes = computation.at("/current/nodes").asInt();
-            int bNodes = computation.at("/best/nodes").asInt();
-            if (bNodes > nodes && bNodes > scale) {
+            if (nodes > current) {
                 current = nodes;
-                scale = bNodes;
+            }
+            int bNodes = computation.at("/best/nodes").asInt();
+            if (bNodes > bestNodes) {
+                bestNodes = bNodes;
             }
         }
         ObjectNode ret = new ObjectMapper().getNodeFactory().objectNode();
         ret.put("currentNodes", current);
-        ret.put("bestNodes", scale);
-        ret.put("metric", scale - current);
+        ret.put("bestNodes", bestNodes);
+        ret.put("metric", bestNodes - current);
         return ret;
     }
 
-    protected JsonNode getActiveComputations() {
+    protected JsonNode getActiveComputations(long atTimestamp) {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode ret = mapper.getNodeFactory().arrayNode();
         Map<JsonNode, ObjectNode> computations = new HashMap<>();
         JsonNode metrics = root.get("metrics");
-        if (!metrics.isArray()) {
+        if (metrics == null || !metrics.isArray() || metrics.isEmpty()) {
             // no data available ?
             return ret;
         }
         JsonNode processors = root.get("processors");
-        if (!processors.isArray()) {
+        if (processors == null || !processors.isArray() || processors.isEmpty()) {
             // no data available
             return ret;
         }
@@ -405,6 +421,10 @@ public class StreamIntrospectionConverter {
         }
         // find computation with lag
         for (JsonNode node : metrics) {
+            long ts = node.get("timestamp").asLong();
+            if (atTimestamp - ts > ACTIVE_THRESHOLD_SECONDS) {
+                continue;
+            }
             for (JsonNode metric : node.at("/metrics")) {
                 if ("nuxeo.streams.global.stream.group.lag".equals(metric.get("k").asText())
                         && (metric.get("v").asInt() > 0)) {
@@ -427,6 +447,10 @@ public class StreamIntrospectionConverter {
         }
         // get latency, end
         for (JsonNode node : metrics) {
+            long ts = node.get("timestamp").asLong();
+            if (atTimestamp - ts > ACTIVE_THRESHOLD_SECONDS) {
+                continue;
+            }
             for (JsonNode metric : node.at("/metrics")) {
                 if ("nuxeo.streams.global.stream.group.latency".equals(metric.get("k").asText())
                         && (metric.get("v").asInt() > 0)) {
@@ -450,8 +474,11 @@ public class StreamIntrospectionConverter {
         }
         // then metrics per node
         for (JsonNode node : metrics) {
-            JsonNode nodeId = node.get("nodeId");
             JsonNode ts = node.get("timestamp");
+            if (atTimestamp - ts.asLong() > ACTIVE_THRESHOLD_SECONDS) {
+                continue;
+            }
+            JsonNode nodeId = node.get("nodeId");
             for (JsonNode metric : node.at("/metrics")) {
                 if ("nuxeo.streams.computation.processRecord".equals(metric.get("k").asText())
                         && (metric.get("count").asInt() > 0)) {
@@ -459,7 +486,7 @@ public class StreamIntrospectionConverter {
                     if (comp != null) {
                         ObjectNode compInstance = mapper.getNodeFactory().objectNode();
                         compInstance.set("nodeId", nodeId);
-                        compInstance.put("threads", threads.get(metric.get("computation").asText()));
+                        compInstance.put("threads", threads.getOrDefault(metric.get("computation").asText(), 1));
                         compInstance.set("timestamp", ts);
                         compInstance.set("count", metric.get("count"));
                         compInstance.set("sum", metric.get("sum"));
@@ -521,27 +548,32 @@ public class StreamIntrospectionConverter {
         return ret;
     }
 
-    protected JsonNode getClusterNodes() {
-        Map<JsonNode, ObjectNode> nodes = new HashMap<>();
+    protected JsonNode getClusterNodes(long atTimestamp) {
+        Map<String, ObjectNode> nodes = new HashMap<>();
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode ret = mapper.getNodeFactory().arrayNode();
         JsonNode processors = root.get("processors");
-        if (processors.isArray()) {
+        if (processors != null && processors.isArray()) {
             for (JsonNode item : processors) {
-
-                nodes.put(item.at("/metadata/nodeId"), item.at("/metadata").deepCopy());
+                ObjectNode node = item.at("/metadata").deepCopy();
+                node.remove("processorName");
+                node.put("created", Instant.ofEpochSecond(node.at("/created").asLong()).toString());
+                nodes.put(item.at("/metadata/nodeId").asText(), node);
             }
         }
         JsonNode metrics = root.get("metrics");
-        if (processors.isArray()) {
+        Set<String> activeNodes = new HashSet<>();
+        if (metrics != null && metrics.isArray()) {
             for (JsonNode item : metrics) {
-                ObjectNode node = nodes.get(item.at("/nodeId"));
+                ObjectNode node = nodes.get(item.at("/nodeId").asText());
                 if (node == null) {
                     continue;
                 }
-                node.put("alive", Instant.ofEpochSecond(item.at("/timestamp").asLong()).toString());
-                node.put("created", Instant.ofEpochSecond(node.at("/created").asLong()).toString());
-                node.remove("processorName");
+                long timestamp = item.at("/timestamp").asLong();
+                if (atTimestamp - timestamp <= ACTIVE_THRESHOLD_SECONDS) {
+                    activeNodes.add(item.at("/nodeId").asText());
+                }
+                node.put("alive", Instant.ofEpochSecond(timestamp).toString());
                 JsonNode hostMetrics = item.get("metrics");
                 if (hostMetrics.isArray()) {
                     String nodeType = "front";
@@ -558,7 +590,11 @@ public class StreamIntrospectionConverter {
                 }
             }
         }
-        nodes.values().forEach(ret::add);
+        nodes.forEach((nodeId, node) -> {
+            if (activeNodes.contains(nodeId)) {
+                ret.add(node);
+            }
+        });
         return ret;
     }
 

@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.29"
+library identifier: "platform-ci-shared-library@v0.0.32"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -27,7 +27,7 @@ testEnvironments = [
   'postgresql',
 ]
 
-String getMavenArgs() {
+String getMavenCLIArgs() {
   def args = '-B -nsu -Dnuxeo.skip.enforcer=true -P-nexus,nexus-private'
   if (!nxUtils.isPullRequest()) {
     args += ' -Prelease'
@@ -52,7 +52,7 @@ void runFunctionalTests(String baseDir, String tier) {
   try {
     retry(2) {
       echo "MAVEN_OPTS=$MAVEN_OPTS"
-      sh "mvn ${MAVEN_ARGS} -D${tier} -f ${baseDir}/pom.xml verify"
+      sh "mvn ${MAVEN_CLI_ARGS} -D${tier} -f ${baseDir}/pom.xml verify"
       nxUtils.lookupText(regexp: ".*ERROR.*(?=(?:\\n.*)*\\[.*FrameworkLoader\\] Nuxeo Platform is Trying to Shut Down)",
         fileSet: "ftests/**/log/server.log")
     }
@@ -118,7 +118,7 @@ def buildUnitTestStage(env) {
           // - for the given environment (see the customEnvironment profile in pom.xml):
           //   - in an alternative build directory
           //   - loading some test framework system properties
-          def mvnCommand = "mvn ${MAVEN_ARGS} -rf :nuxeo-core-parent test"
+          def mvnCommand = "mvn ${MAVEN_CLI_ARGS} -rf :nuxeo-core-parent test"
           mvnCommand += " -Dcustom.environment=${env} -Dcustom.environment.log.dir=target-${env}"
           mvnCommand += " -Dnuxeo.test.core=${env == 'mongodb' ? 'mongodb' : 'vcs'}"
 
@@ -138,6 +138,8 @@ def buildUnitTestStage(env) {
               cat ci/mvn/nuxeo-test-${env}.properties \
                 ci/mvn/nuxeo-test-opensearch.properties \
                 ci/mvn/nuxeo-test-s3.properties \
+                ci/mvn/nuxeo-test-gcp.properties \
+                ci/mvn/nuxeo-test-azure.properties \
                 > ci/mvn/nuxeo-test-${env}.properties~gen
               BUCKET_PREFIX=${bucketPrefix} \
                 TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
@@ -157,11 +159,14 @@ def buildUnitTestStage(env) {
               // credentials rotation is disabled in platform-staging to prevent double rotation on the same keys
               def awsAccessKeyId = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'access_key_id')
               def awsSecretAccessKey = nxK8s.getSecretData(namespace: 'platform', name: "${AWS_CREDENTIALS_SECRET}", key: 'secret_access_key')
+              def azureAccountKey = nxK8s.getSecretData(namespace: 'platform', name: "${AZURE_CREDENTIALS_SECRET}", key: 'account_key')
               withEnv([
                   "AWS_ACCESS_KEY_ID=${awsAccessKeyId}",
                   "AWS_SECRET_ACCESS_KEY=${awsSecretAccessKey}",
                   "AWS_REGION=${AWS_REGION}",
-                  "AWS_ROLE_ARN=${AWS_ROLE_ARN}"
+                  "AWS_ROLE_ARN=${AWS_ROLE_ARN}",
+                  "GCP_CREDENTIALS_PATH=/home/jenkins/.config/gcloud/credentials.json",
+                  "AZURE_STORAGE_ACCESS_KEY=${azureAccountKey}"
               ]) {
                 executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
               }
@@ -185,6 +190,20 @@ def executeUnitTestsMvnCommandWithRetry(mvnCommand, env) {
   }
 }
 
+def auditNuxeo(namespace) {
+  try {
+    // check running status
+    int retryCount = 5
+    sh "ci/scripts/running-status.sh nuxeo.${namespace}.svc.cluster.local/nuxeo ${retryCount}"
+    echo "Deployed Nuxeo $VERSION"
+  } catch (err) {
+    // log only the nuxeo pod
+    nxK8s.describePod(namespace: namespace, pod: 'nuxeo')
+    nxK8s.getPodLogs(namespace: namespace, selector: 'app.kubernetes.io/instance=nuxeo', file: "${namespace}_nuxeo.log")
+    throw err
+  }
+}
+
 pipeline {
   agent {
     label 'jenkins-nuxeo-platform-lts-2023'
@@ -200,13 +219,14 @@ pipeline {
     HOME = '/root'
     CURRENT_NAMESPACE = nxK8s.getCurrentNamespace()
     TEST_NAMESPACE_PREFIX = "$CURRENT_NAMESPACE-nuxeo-unit-tests-$BRANCH_NAME-$BUILD_NUMBER".toLowerCase()
+    TEST_UPGRADE_NAMESPACE = "$CURRENT_NAMESPACE-nuxeo-upgrade-test-$BRANCH_NAME-$BUILD_NUMBER".toLowerCase()
     TEST_SERVICE_DOMAIN_SUFFIX = 'svc.cluster.local'
     TEST_KAFKA_K8S_OBJECT = 'kafka'
     TEST_KAFKA_PORT = '9092'
     NUXEO_IMAGE_NAME = 'nuxeo'
     NUXEO_BENCHMARK_IMAGE_NAME = 'nuxeo-benchmark'
     MAVEN_OPTS = "$MAVEN_OPTS -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-    MAVEN_ARGS = getMavenArgs()
+    MAVEN_CLI_ARGS = getMavenCLIArgs()
     MAVEN_FAIL_ARGS = getMavenFailArgs()
     CURRENT_VERSION = getCurrentVersion()
     VERSION = nxUtils.getVersion()
@@ -218,6 +238,7 @@ pipeline {
     AWS_REGION = 'eu-west-3'
     AWS_ROLE_ARN = 'arn:aws:iam::783725821734:role/nuxeo-s3directupload-role'
     AWS_CREDENTIALS_SECRET = 'aws-credentials'
+    AZURE_CREDENTIALS_SECRET = 'azure-credentials'
     AWS_SES_MAIL_SENDER = 'platform@hyland.com'
     GITHUB_WORKFLOW_DOCKER_SCAN = 'docker-image-scan.yaml'
   }
@@ -244,7 +265,7 @@ pipeline {
           """
           sh """
             # root POM
-            mvn ${MAVEN_ARGS} -Pdistrib,docker versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false
+            mvn ${MAVEN_CLI_ARGS} -Pdistrib,docker versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false
             perl -i -pe 's|<nuxeo.platform.version>.*?</nuxeo.platform.version>|<nuxeo.platform.version>${VERSION}</nuxeo.platform.version>|' pom.xml
             perl -i -pe 's|org.nuxeo.ecm.product.version=.*|org.nuxeo.ecm.product.version=${VERSION}|' server/nuxeo-nxr-server/src/main/resources/templates/nuxeo.defaults
 
@@ -281,7 +302,14 @@ pipeline {
       steps {
         container('maven') {
           script {
-            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: env.CHANGE_TARGET, relativePath: 'nuxeo-patches')
+            def branch = env.CHANGE_TARGET
+            // retrieve reference branch (ie: 202x) if PR targets another PR
+            if (nxUtils.isPullRequest()) {
+              withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                branch = sh(returnStdout: true, script: "gh pr view ${branch} --json baseRefName -q .baseRefName 2>/dev/null || echo '${branch}'")
+              }
+            }
+            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: branch, relativePath: 'nuxeo-patches')
           }
           dir('nuxeo-patches') {
             sh './prepare-patches'
@@ -292,7 +320,7 @@ pipeline {
 
     stage('Build') {
       environment {
-        MAVEN_ARGS = "${MAVEN_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
+        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
         MAVEN_OPTS = "${MAVEN_OPTS} ${nxUtils.isPullRequest() ? '-Xms6g -Xmx6g' : '-Xms3g -Xmx3g'}"
       }
       steps {
@@ -303,8 +331,8 @@ pipeline {
             Compile
             ----------------------------------------"""
             echo "MAVEN_OPTS=$MAVEN_OPTS"
-            sh "mvn ${MAVEN_ARGS} -V -T4C -DskipTests install"
-            sh "mvn ${MAVEN_ARGS} -f server/pom.xml -DskipTests install"
+            sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -DskipTests install"
+            sh "mvn ${MAVEN_CLI_ARGS} -f server/pom.xml -DskipTests install"
           }
         }
       }
@@ -324,7 +352,7 @@ pipeline {
 
               dir('docker/nuxeo') {
                 echo 'Fetch locally built Nuxeo Tomcat Server with Maven'
-                sh "mvn ${MAVEN_ARGS} -T4C process-resources"
+                sh "mvn ${MAVEN_CLI_ARGS} -T4C process-resources"
 
                 echo "Build and push Nuxeo Docker image to internal Docker registry ${DOCKER_REGISTRY}"
                 sh 'skaffold build -f skaffold.yaml'
@@ -333,12 +361,12 @@ pipeline {
               // build packages defined in the pom and nuxeo-packages as it is needed when processing resources
               sh """
                 benchmark_packages=\$(sed -n '/<dependency>/,/<\\/dependency>/{//b;p}' docker/nuxeo-benchmark/pom.xml | grep artifactId | sed -E 's/\\s*<artifactId>(.*)<\\/artifactId>/:\\1/' |  tr '\\n' ','  | head -c -1);
-                mvn ${MAVEN_ARGS} -Pdistrib -pl :nuxeo-packages,\${benchmark_packages} install
+                mvn ${MAVEN_CLI_ARGS} -Pdistrib -pl :nuxeo-packages,\${benchmark_packages} install
               """
 
               dir('docker/nuxeo-benchmark') {
                 echo 'Fetch locally built Nuxeo Packages with Maven'
-                sh "mvn ${MAVEN_ARGS} -T4C process-resources"
+                sh "mvn ${MAVEN_CLI_ARGS} -T4C process-resources"
 
                 echo "Build and push Benchmark Docker image to internal Docker registry ${DOCKER_REGISTRY}"
                 sh 'skaffold build -f skaffold.yaml'
@@ -354,62 +382,97 @@ pipeline {
       }
     }
 
-    stage('Test Docker image') {
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'docker/test', message: 'Test Docker image') {
-            echo """
-            ----------------------------------------
-            Test Docker image
-            ----------------------------------------
-            """
-            script {
-              image = "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
-              echo "Test ${image}"
-              dockerPull(image)
-              echo 'Run image as root (0)'
-              dockerRun(image, 'nuxeoctl start')
-              echo 'Run image as an arbitrary user (800)'
-              dockerRun(image, 'nuxeoctl start', '800')
+    stage('Verify Docker image') {
+      parallel {
+        stage('Run upgrade test') {
+          when {
+            expression { nxUtils.getMinorVersion().toInteger() > 0 }
+          }
+          steps {
+            container('maven') {
+              script {
+                nxWithGitHubStatus(context: "docker/upgrade", message: "Run minor version upgrade test") {
+                  try {
+                    def helmEnv = "upgradeTest"
+                    // first deploy previous version
+                    withEnv([
+                      "DOCKER_REGISTRY=${PRIVATE_DOCKER_REGISTRY}",
+                      "VERSION=${nxUtils.getPreviousMajorDotMinorVersion()}"
+                    ]) {
+                      nxHelmfile.deploy(namespace: TEST_UPGRADE_NAMESPACE, environment: helmEnv)
+                      auditNuxeo(TEST_UPGRADE_NAMESPACE)
+                    }
+                    // then upgrade to actual version
+                    nxHelmfile.deploy(namespace: TEST_UPGRADE_NAMESPACE, environment: helmEnv)
+                    auditNuxeo(TEST_UPGRADE_NAMESPACE)
+                  } finally {
+                    // clean up
+                    nxK8s.deleteNamespace(TEST_UPGRADE_NAMESPACE)
+                  }
+                }
+              }
             }
           }
         }
-      }
-    }
 
-    stage('Scan Docker image') {
-      when {
-        anyOf {
-          expression {
-            !nxUtils.isPullRequest()
+        stage('Test Docker image') {
+          steps {
+            container('maven') {
+              nxWithGitHubStatus(context: 'docker/test', message: 'Test Docker image') {
+                echo """
+                ----------------------------------------
+                Test Docker image
+                ----------------------------------------
+                """
+                script {
+                  image = "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  echo "Test ${image}"
+                  dockerPull(image)
+                  echo 'Run image as root (0)'
+                  dockerRun(image, 'nuxeoctl start')
+                  echo 'Run image as an arbitrary user (800)'
+                  dockerRun(image, 'nuxeoctl start', '800')
+                }
+              }
+            }
           }
-          expression {
-            pullRequest.labels.contains('docker-scan')
-          }
-          changeset "docker/**"
         }
-      }
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'docker/scan', message: 'Scan Docker image') {
-            script {
-              def imageName = "${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
-              echo """
-              ----------------------------------------
-              Scan Docker image
-              ----------------------------------------
-              Image full name: ${DOCKER_REGISTRY}/${imageName}
-              """
-              nxGitHub.runAndWatchWorkflow(
-                workflowId: "${GITHUB_WORKFLOW_DOCKER_SCAN}",
-                branch: "${CHANGE_BRANCH}",
-                rawFields: [
-                  internalRegistry: true,
-                  imageName: "${imageName}",
-                ],
-                sha: "${GIT_COMMIT}",
-                exitStatus: true
-              )
+
+        stage('Scan Docker image') {
+          when {
+            anyOf {
+              expression {
+                !nxUtils.isPullRequest()
+              }
+              expression {
+                pullRequest.labels.contains('docker-scan')
+              }
+              changeset "docker/**"
+            }
+          }
+          steps {
+            container('maven') {
+              nxWithGitHubStatus(context: 'docker/scan', message: 'Scan Docker image') {
+                script {
+                  def imageName = "${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  echo """
+                  ----------------------------------------
+                  Scan Docker image
+                  ----------------------------------------
+                  Image full name: ${DOCKER_REGISTRY}/${imageName}
+                  """
+                  nxGitHub.runAndWatchWorkflow(
+                    workflowId: "${GITHUB_WORKFLOW_DOCKER_SCAN}",
+                    branch: "${CHANGE_BRANCH}",
+                    rawFields: [
+                      internalRegistry: true,
+                      imageName: "${imageName}",
+                    ],
+                    sha: "${GIT_COMMIT}",
+                    exitStatus: true
+                  )
+                }
+              }
             }
           }
         }
@@ -445,7 +508,7 @@ pipeline {
 
     stage('Run runtime unit tests') {
       environment {
-        MAVEN_ARGS = "${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
+        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
         MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g"
       }
       steps {
@@ -466,7 +529,7 @@ pipeline {
                   dir('modules/runtime') {
                     retry(2) {
                       sh """
-                        mvn ${MAVEN_ARGS} \
+                        mvn ${MAVEN_CLI_ARGS} \
                           -Pkafka -Dkafka.bootstrap.servers=${kafkaHost} \
                           -Dkafka.version=3.4.1 \
                           install
@@ -485,7 +548,7 @@ pipeline {
 
     stage('Run unit tests') {
       environment {
-        MAVEN_ARGS = "${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
+        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
         MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g"
       }
       steps {
@@ -501,7 +564,7 @@ pipeline {
 
     stage('Run server unit tests') {
       environment {
-        MAVEN_ARGS = "${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
+        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms4g -Xmx4g\""
         MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g"
       }
       steps {
@@ -514,7 +577,7 @@ pipeline {
             // run server tests
             dir('server') {
               echo "MAVEN_OPTS=$MAVEN_OPTS"
-              sh "mvn ${MAVEN_ARGS} test"
+              sh "mvn ${MAVEN_CLI_ARGS} test"
             }
           }
         }
@@ -534,7 +597,7 @@ pipeline {
             ----------------------------------------
             Package
             ----------------------------------------"""
-            sh "mvn ${MAVEN_ARGS} -Dnuxeo.skip.enforcer=false -f packages/pom.xml -DskipTests install"
+            sh "mvn ${MAVEN_CLI_ARGS} -Dnuxeo.skip.enforcer=false -f packages/pom.xml -DskipTests install"
           }
         }
       }
@@ -542,7 +605,7 @@ pipeline {
 
     stage('Run "dev" functional tests') {
       environment {
-        MAVEN_ARGS = "${MAVEN_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms2g -Xmx2g\""
+        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${MAVEN_FAIL_ARGS} -Dit.memory.argLine=\"-Xms2g -Xmx2g\""
         MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g"
         NX_JAVA_OPTS = "\$JAVA_OPTS -Xms2g -Xmx2g"
       }
@@ -632,12 +695,12 @@ pipeline {
               sh './prepare-patches'
             }
             sh """
-              mvn ${MAVEN_ARGS} -Pdistrib -DskipTests deploy
-              mvn ${MAVEN_ARGS} -f parent/pom.xml deploy
-  
+              mvn ${MAVEN_CLI_ARGS} -Pdistrib -DskipTests deploy
+              mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml deploy
+
               # update back nuxeo-parent version to CURRENT_VERSION version
-              mvn ${MAVEN_ARGS} -f parent/pom.xml versions:set -DnewVersion=${CURRENT_VERSION} -DgenerateBackupPoms=false
-              mvn ${MAVEN_ARGS} -f parent/pom.xml deploy
+              mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml versions:set -DnewVersion=${CURRENT_VERSION} -DgenerateBackupPoms=false
+              mvn ${MAVEN_CLI_ARGS} -f parent/pom.xml deploy
             """
           }
         }

@@ -40,6 +40,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
 import org.nuxeo.jaxrs.test.JerseyClientHelper;
+import org.nuxeo.jaxrs.test.JerseyClientHelper.ApacheHttpClientBuilder;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -73,13 +74,13 @@ public class BaseTest {
     protected WebResource service;
 
     @Before
-    public void doBefore() throws Exception {
+    public void doBefore() {
         service = getServiceFor("Administrator", "Administrator");
         mapper = new ObjectMapper();
     }
 
     @After
-    public void doAfter() throws Exception {
+    public void doAfter() {
         client.destroy();
     }
 
@@ -114,8 +115,27 @@ public class BaseTest {
         if (client != null) {
             client.destroy();
         }
-        client = JerseyClientHelper.clientBuilder().setCredentials(username, password).build();
+        client = getClientBuilder().setCredentials(username, password).build();
         return client.resource(resource);
+    }
+
+    /**
+     * Can be overridden in subclasses to configure the Apache HTTP client, typically by setting a custom connection
+     * timeout with:
+     *
+     * <pre>{@code
+     * @Override
+     * protected ApacheHttpClientBuilder getClientBuilder() {
+     *     return super.getClientBuilder().setConnectionRequestTimeout(100000)
+     *                                    .setConnectTimeout(100000)
+     *                                    .setSocketTimeout(100000);
+     * }
+     * }</pre>
+     *
+     * @since 2023.7
+     */
+    protected ApacheHttpClientBuilder getClientBuilder() {
+        return JerseyClientHelper.clientBuilder();
     }
 
     @Inject
@@ -174,35 +194,35 @@ public class BaseTest {
         }
         ClientResponse response;
         switch (requestType) {
-        case GET:
-            response = builder.get(ClientResponse.class);
-            break;
-        case POST:
-        case POSTREQUEST:
-            if (mp != null) {
-                response = builder.type(MultiPartMediaTypes.createFormData()).post(ClientResponse.class, mp);
-            } else if (data != null) {
-                setJSONContentTypeIfAbsent(builder, headers);
-                response = builder.post(ClientResponse.class, data);
-            } else {
-                response = builder.post(ClientResponse.class);
-            }
-            break;
-        case PUT:
-            if (mp != null) {
-                response = builder.type(MultiPartMediaTypes.createFormData()).put(ClientResponse.class, mp);
-            } else if (data != null) {
-                setJSONContentTypeIfAbsent(builder, headers);
-                response = builder.put(ClientResponse.class, data);
-            } else {
-                response = builder.put(ClientResponse.class);
-            }
-            break;
-        case DELETE:
-            response = builder.delete(ClientResponse.class, data);
-            break;
-        default:
-            throw new UnsupportedOperationException("Type: " + requestType + " is not handled");
+            case GET:
+                response = builder.get(ClientResponse.class);
+                break;
+            case POST:
+            case POSTREQUEST:
+                if (mp != null) {
+                    response = builder.type(MultiPartMediaTypes.createFormData()).post(ClientResponse.class, mp);
+                } else if (data != null) {
+                    setJSONContentTypeIfAbsent(builder, headers);
+                    response = builder.post(ClientResponse.class, data);
+                } else {
+                    response = builder.post(ClientResponse.class);
+                }
+                break;
+            case PUT:
+                if (mp != null) {
+                    response = builder.type(MultiPartMediaTypes.createFormData()).put(ClientResponse.class, mp);
+                } else if (data != null) {
+                    setJSONContentTypeIfAbsent(builder, headers);
+                    response = builder.put(ClientResponse.class, data);
+                } else {
+                    response = builder.put(ClientResponse.class);
+                }
+                break;
+            case DELETE:
+                response = builder.delete(ClientResponse.class, data);
+                break;
+            default:
+                throw new UnsupportedOperationException("Type: " + requestType + " is not handled");
         }
 
         // Make the ClientResponse AutoCloseable by wrapping it in a CloseableClientResponse.
@@ -247,14 +267,14 @@ public class BaseTest {
         }
     }
 
-    protected void assertNodeEqualsDoc(JsonNode node, DocumentModel note) throws Exception {
+    protected void assertNodeEqualsDoc(JsonNode node, DocumentModel note) {
         assertEquals("document", node.get("entity-type").asText());
         assertEquals(note.getPathAsString(), node.get("path").asText());
         assertEquals(note.getId(), node.get("uid").asText());
         assertEquals(note.getTitle(), node.get("title").asText());
     }
 
-    protected List<JsonNode> getLogEntries(JsonNode node) {
+    protected List<JsonNode> getEntries(JsonNode node) {
         assertEquals("documents", node.get("entity-type").asText());
         assertTrue(node.get("entries").isArray());
         List<JsonNode> result = new ArrayList<>();
@@ -275,7 +295,7 @@ public class BaseTest {
         return node.get("message").asText();
     }
 
-    protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws Exception {
+    protected void assertEntityEqualsDoc(InputStream in, DocumentModel doc) throws IOException {
 
         JsonNode node = mapper.readTree(in);
         assertNodeEqualsDoc(node, doc);

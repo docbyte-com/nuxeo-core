@@ -18,7 +18,9 @@
  */
 package org.nuxeo.ecm.core.blob;
 
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.DIRECTDOWNLOAD_PROPERTY;
 import static org.nuxeo.ecm.core.blob.DigestConfiguration.DIGEST_ALGORITHM_PROPERTY;
+import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -33,7 +35,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.BlobStore.OptionalOrUnknown;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
-import org.nuxeo.ecm.core.blob.binary.BinaryManager;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -62,6 +63,11 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
 
     protected abstract BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException;
 
+    @Override
+    public boolean allowDirectDownload() {
+        return Boolean.parseBoolean(properties.get(DIRECTDOWNLOAD_PROPERTY));
+    }
+
     /** @since 11.2 */
     public KeyStrategy getKeyStrategy() {
         boolean hasDigest = properties.get(DIGEST_ALGORITHM_PROPERTY) != null;
@@ -72,7 +78,7 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
             String strKeyStrategy = properties.getOrDefault(KEY_STRATEGY_PROPERTY, DIGEST_KEY_STRATEGY);
             keyStrategy = new KeyStrategyDigest(getDigestAlgorithm());
             if (MANAGED_KEY_STRATEGY.equals(strKeyStrategy)) {
-               keyStrategy = new KeyStrategyManaged(keyStrategy);
+                keyStrategy = new KeyStrategyManaged(keyStrategy);
             }
         }
         return keyStrategy;
@@ -82,11 +88,6 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
     protected abstract String getDigestAlgorithm();
 
     @Override
-    public BinaryManager getBinaryManager() {
-        return null;
-    }
-
-    @Override
     public boolean supportsSync() {
         return supportsUserUpdate();
     }
@@ -94,6 +95,19 @@ public abstract class BlobStoreBlobProvider extends AbstractBlobProvider {
     @Override
     public BinaryGarbageCollector getBinaryGarbageCollector() {
         return store.getBinaryGarbageCollector();
+    }
+
+    /**
+     * Does the given key have the expected pattern for the provider's key strategy.
+     *
+     * @since 2023.5
+     */
+    public boolean isValidKey(String key) {
+        String blobKey = stripBlobKeyPrefix(key);
+        if (getKeyStrategy() instanceof KeyStrategyDocId ksdi && this.store.hasVersioning()) {
+            return blobKey.indexOf(VER_SEP) >= 0;
+        }
+        return getKeyStrategy().isValidKey(blobKey);
     }
 
     protected String stripBlobKeyPrefix(String key) {

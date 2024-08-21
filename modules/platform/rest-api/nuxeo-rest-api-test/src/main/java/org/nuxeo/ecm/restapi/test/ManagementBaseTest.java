@@ -66,17 +66,14 @@ public abstract class ManagementBaseTest {
 
     protected HttpClientTestRule httpClientRule;
 
-    protected HttpClientTestRule getRule() {
+    protected HttpClientTestRule.Builder getRuleBuilder() {
         String url = String.format("http://localhost:%d/api/v1", servletContainerFeature.getPort());
-        return new HttpClientTestRule.Builder().url(url)
-                                               .accept(WILDCARD)
-                                               .credentials("Administrator", "Administrator")
-                                               .build();
+        return new HttpClientTestRule.Builder().url(url).accept(WILDCARD).credentials("Administrator", "Administrator");
     }
 
     @Before
     public void before() {
-        httpClientRule = getRule();
+        httpClientRule = getRuleBuilder().build();
         httpClientRule.starting();
     }
 
@@ -100,7 +97,7 @@ public abstract class ManagementBaseTest {
     }
 
     protected void assertBulkStatusCompleted(JsonNode bulkStatus) {
-        assertEquals(BulkStatus.State.COMPLETED.name(), bulkStatus.get("state").asText());
+        assertEquals(bulkStatus.toString(), BulkStatus.State.COMPLETED.name(), bulkStatus.get("state").asText());
         Instant completed = Instant.parse(bulkStatus.get("completed").asText());
         assertTrue(completed.isBefore(Instant.now()));
         assertNotNull(bulkStatus.get("processingMillis"));

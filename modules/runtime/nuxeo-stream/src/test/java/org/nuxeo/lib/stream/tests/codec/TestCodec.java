@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.lib.stream.tests.TestUtils.getBuildDirectory;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +34,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.EnumSet;
 
-import org.apache.avro.message.MissingSchemaException;
 import org.apache.avro.reflect.ReflectData;
 import org.junit.Assume;
 import org.junit.Ignore;
@@ -49,14 +49,13 @@ import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.codec.FileAvroSchemaStore;
 import org.nuxeo.lib.stream.codec.SerializableCodec;
 import org.nuxeo.lib.stream.computation.Record;
-import org.nuxeo.lib.stream.tests.TestUtils;
 
 /**
  * @since 10.2
  */
 public class TestCodec {
     @Rule
-    public TemporaryFolder folder = new TemporaryFolder(new File(TestUtils.getBuildDirectory()));
+    public TemporaryFolder folder = new TemporaryFolder(new File(getBuildDirectory()));
 
     protected static final int MAX_DATA_SIZE = 1000;
 
@@ -100,7 +99,7 @@ public class TestCodec {
         try {
             codec2.decode(data1);
             fail("There is no schema store on codec2 so it can not decode a MessageV1");
-        } catch (MissingSchemaException e) {
+        } catch (IllegalArgumentException e) {
             // expected
         }
 
