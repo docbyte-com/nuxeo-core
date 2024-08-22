@@ -9,6 +9,7 @@ env:
     AWS_ACCOUNT_ID: "518241560725"
     SONAR_HOST: "http://54.229.164.107:9000"
     SONAR_PROJECT_KEY: "nuxeo-core"
+    LANG: en_US.utf8
 
 
 phases:
