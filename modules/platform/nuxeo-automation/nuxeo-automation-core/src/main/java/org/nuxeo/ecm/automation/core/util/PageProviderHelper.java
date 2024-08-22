@@ -63,6 +63,7 @@ import org.nuxeo.ecm.platform.query.core.BucketRangeDate;
 import org.nuxeo.ecm.platform.query.core.BucketTerm;
 import org.nuxeo.ecm.platform.query.core.CoreQueryPageProviderDescriptor;
 import org.nuxeo.ecm.platform.query.core.GenericPageProviderDescriptor;
+import org.nuxeo.ecm.platform.query.core.MockBucket;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryAndFetchPageProvider;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
@@ -356,7 +357,9 @@ public class PageProviderHelper {
                                                      .map(value -> value.asText().replaceAll("^\"|\"$", ""))
                                                      .toList();
                     // Build aggregate clause from given keys in the named parameters
-                    String aggClause = aggregate.getBuckets()
+                    // Use extended buckets to take into account buckets that match a selected value but are not
+                    // included in the list of regular buckets, because maximum bucket count is exceeded
+                    String aggClause = aggregate.getExtendedBuckets()
                                                 .stream()
                                                 .filter(bucket -> keys.contains(bucket.getKey()))
                                                 .map(bucket -> getClauseFromBucket(bucket, aggregate.getXPathField()))
@@ -378,12 +381,21 @@ public class PageProviderHelper {
         // Replace potential '.' path separator with '/' character
         field = field.replace("\\.", "/");
         return switch (bucket) {
-            case BucketTerm bucketTerm -> field + "='" + bucketTerm.getKey() + "'";
+            case BucketTerm bucketTerm -> getTermClause(field, bucketTerm.getKey());
+            // the best we can do is apply term clause
+            case MockBucket mockBucket -> getTermClause(field, mockBucket.getKey());
             case BucketRange bucketRange -> getRangeClause(field, bucketRange);
             case BucketRangeDate bucketRangeDate -> getRangeDateClause(field, bucketRangeDate);
             case null -> throw new NuxeoException("Unknown null bucket instance for NXQL translation");
             default -> throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
         };
+    }
+
+    /**
+     * @since 2023.18
+     */
+    protected static String getTermClause(String field, String key) {
+        return field + "='" + key + "'";
     }
 
     protected static String getRangeClause(String field, BucketRange bucketRange) {
