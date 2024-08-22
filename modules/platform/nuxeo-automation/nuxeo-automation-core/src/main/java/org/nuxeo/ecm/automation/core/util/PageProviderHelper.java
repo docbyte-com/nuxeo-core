@@ -376,7 +376,7 @@ public class PageProviderHelper {
 
     protected static String getClauseFromBucket(Bucket bucket, String field) {
         // Replace potential '.' path separator with '/' character
-        field = field.replaceAll("\\.", "/");
+        field = field.replace("\\.", "/");
         return switch (bucket) {
             case BucketTerm bucketTerm -> field + "='" + bucketTerm.getKey() + "'";
             case BucketRange bucketRange -> getRangeClause(field, bucketRange);
