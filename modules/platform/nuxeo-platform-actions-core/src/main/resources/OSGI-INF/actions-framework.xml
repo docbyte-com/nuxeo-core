@@ -96,7 +96,6 @@
     </documentation>
 
     <object class="org.nuxeo.ecm.platform.actions.DefaultActionFilter" />
-    <object class="org.nuxeo.ecm.platform.actions.FilterFactory" />
   </extension-point>
 
   <extension-point name="actions">

@@ -21,8 +21,11 @@
 
 package org.nuxeo.ecm.platform.actions;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 import jakarta.el.ELException;
 
@@ -34,6 +37,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -49,23 +53,40 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
     protected String id;
 
     @XNode("@append")
-    protected boolean append;
+    protected boolean append = true;
 
     @XNodeList(value = "rule", type = String[].class, componentType = FilterRule.class)
     protected FilterRule[] rules;
 
     public DefaultActionFilter() {
-        this(null, null, false);
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public DefaultActionFilter(String id, FilterRule[] rules) {
         this(id, rules, false);
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public DefaultActionFilter(String id, FilterRule[] rules, boolean append) {
         this.id = id;
         this.rules = rules;
-        this.append = append;
+    }
+
+    public DefaultActionFilter(DefaultActionFilter other) {
+        // the append field is only interesting when coming from a new descriptor to merge
+        id = other.id;
+        if (other.rules != null) {
+            rules = new FilterRule[other.rules.length];
+            for (int i = 0; i < other.rules.length; i++) {
+                rules[i] = other.rules[i].clone();
+            }
+        }
     }
 
     @Override
@@ -86,7 +107,6 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
         this.rules = rules;
     }
 
-    // FIXME: the parameter 'action' is not used!
     @Override
     public boolean accept(Action action, ActionContext context) {
         if (action == null) {
@@ -168,7 +188,7 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
                 precomputed = new HashMap<>();
                 context.putLocalVariable(PRECOMPUTED_KEY, precomputed);
             }
-            precomputed.put(rule, Boolean.valueOf(result));
+            precomputed.put(rule, result);
         }
         return result;
     }
@@ -317,6 +337,10 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
         return false;
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public boolean getAppend() {
         return append;
     }
@@ -325,18 +349,14 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
         this.append = append;
     }
 
+    /**
+     * @deprecated since 2025.0 This is not the purpose of clone. use
+     *             {@link DefaultActionFilter#DefaultActionFilter(DefaultActionFilter)} instead
+     */
     @Override
+    @Deprecated(since = "2025.0")
     public DefaultActionFilter clone() {
-        DefaultActionFilter clone = new DefaultActionFilter();
-        clone.id = id;
-        clone.append = append;
-        if (rules != null) {
-            clone.rules = new FilterRule[rules.length];
-            for (int i = 0; i < rules.length; i++) {
-                clone.rules[i] = rules[i].clone();
-            }
-        }
-        return clone;
+        return new DefaultActionFilter(this);
     }
 
     /**
@@ -352,29 +372,24 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof DefaultActionFilter)) {
+        if (!(obj instanceof DefaultActionFilter o)) {
             return false;
         }
-        final DefaultActionFilter o = (DefaultActionFilter) obj;
         String objId = o.getId();
-        if (objId == null && !(this.id == null)) {
+        if (objId == null && this.id != null) {
             return false;
         }
-        if (this.id == null && !(objId == null)) {
+        if (this.id == null && objId != null) {
             return false;
         }
         if (objId != null && !objId.equals(this.id)) {
             return false;
         }
-        boolean append = o.getAppend();
-        if (!append == this.append) {
-            return false;
-        }
         FilterRule[] objRules = o.getRules();
-        if (objRules == null && !(this.rules == null)) {
+        if (objRules == null && this.rules != null) {
             return false;
         }
-        if (this.rules == null && !(objRules == null)) {
+        if (this.rules == null && objRules != null) {
             return false;
         }
         if (objRules != null) {
@@ -382,17 +397,31 @@ public class DefaultActionFilter implements ActionFilter, Cloneable {
                 return false;
             }
             for (int i = 0; i < objRules.length; i++) {
-                if (objRules[i] == null && (!(this.rules[i] == null))) {
+                if (objRules[i] == null && this.rules[i] != null) {
                     return false;
                 }
-                if (this.rules[i] == null && (!(objRules[i] == null))) {
+                if (this.rules[i] == null && objRules[i] != null) {
                     return false;
                 }
+                assert objRules[i] != null;
                 if (!objRules[i].equals(this.rules[i])) {
                     return false;
                 }
             }
         }
         return true;
+    }
+
+    @Override
+    public DefaultActionFilter merge(Descriptor o) {
+        var other = (DefaultActionFilter) o;
+        var merged = new DefaultActionFilter(this);
+        Stream<FilterRule> newFilterRules = Stream.ofNullable(other.getRules()).flatMap(Arrays::stream);
+        if (other.append) {
+            Stream<FilterRule> existingFilterRules = Stream.ofNullable(getRules()).flatMap(Arrays::stream);
+            newFilterRules = Stream.concat(existingFilterRules, newFilterRules);
+        }
+        merged.setRules(newFilterRules.filter(Objects::nonNull).distinct().toArray(FilterRule[]::new));
+        return merged;
     }
 }
