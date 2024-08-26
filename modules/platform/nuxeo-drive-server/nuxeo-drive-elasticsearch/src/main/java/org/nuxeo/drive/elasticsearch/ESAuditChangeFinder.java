@@ -29,6 +29,16 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.drive.service.SynchronizationRoots;
+import org.nuxeo.drive.service.impl.AuditChangeFinder;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
+import org.nuxeo.ecm.platform.audit.api.LogEntry;
+import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.elasticsearch.ElasticSearchConstants;
+import org.nuxeo.elasticsearch.api.ESClient;
+import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
+import org.nuxeo.runtime.api.Framework;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchType;
@@ -41,16 +51,6 @@ import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchHits;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.sort.SortOrder;
-import org.nuxeo.drive.service.SynchronizationRoots;
-import org.nuxeo.drive.service.impl.AuditChangeFinder;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ESClient;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -163,8 +163,9 @@ public class ESAuditChangeFinder extends AuditChangeFinder {
                 orFilterBuilderIfActiveRoots.should(
                         QueryBuilders.boolQuery().must(orEventsFilter).must(rootsOrCollectionsFilter));
             } else {
-                orFilterBuilderIfActiveRoots.should(QueryBuilders.boolQuery().must(orEventsFilter).must(
-                        getCurrentRootsClause(activeRoots.getPaths())));
+                orFilterBuilderIfActiveRoots.should(QueryBuilders.boolQuery()
+                                                                 .must(orEventsFilter)
+                                                                 .must(getCurrentRootsClause(activeRoots.getPaths())));
             }
 
             orFilterBuilderIfActiveRoots.should(getDriveLogsQueryClause());
