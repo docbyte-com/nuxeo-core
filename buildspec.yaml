@@ -16,6 +16,7 @@ phases:
     runtime-versions:
       java: corretto17
     commands:
+      - yum -y install glibc-all-langpacks
       - export LC_ALL="en_US.UTF-8"
       - export LANG="en_US.UTF-8"
       - java -version
