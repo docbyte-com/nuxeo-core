@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -66,11 +67,11 @@ import net.sf.jmimemagic.MagicParseException;
  */
 public class MimetypeRegistryService extends DefaultComponent implements MimetypeRegistry {
 
-    public static final ComponentName NAME = new ComponentName(
+    public static final ComponentName NAME = new ComponentName( // NOSONAR
             "org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService");
 
     // 10 MB is the max size to allow full file scan
-    public static final long MAX_SIZE_FOR_SCAN = 10 * 1024 * 1024;
+    public static final long MAX_SIZE_FOR_SCAN = 10 * 1024 * 1024L;
 
     public static final String TMP_EXTENSION = "tmp";
 
@@ -305,7 +306,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
                 FileUtils.copyInputStreamToFile(is, file);
                 return getMimetypeFromFile(file);
             } finally {
-                file.delete();
+                Files.delete(file.toPath());
             }
         } catch (IOException e) {
             throw new MimetypeDetectionException(e.getMessage(), e);
@@ -363,7 +364,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
         } else if (blob.getFilename() == null) {
             blob.setFilename(filename);
         }
-        if (withBlobMimetypeFallback) {
+        if (Boolean.TRUE.equals(withBlobMimetypeFallback)) {
             blob.setMimeType(getMimetypeFromFilenameWithBlobMimetypeFallback(filename, blob, DEFAULT_MIMETYPE));
         } else {
             blob.setMimeType(getMimetypeFromFilenameAndBlobWithDefault(filename, blob, DEFAULT_MIMETYPE));
