@@ -30,7 +30,10 @@ import org.nuxeo.ecm.core.api.DocumentRef;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Operation(id = LockDocument.ID, category = Constants.CAT_DOCUMENT, label = "Lock", description = "Lock the input document for the current user. Returns back the locked document.")
+@Operation(id = LockDocument.ID,
+        category = Constants.CAT_DOCUMENT,
+        label = "Lock",
+        description = "Lock the input document for the current user. Returns back the locked document.")
 public class LockDocument {
 
     public static final String ID = "Document.Lock";

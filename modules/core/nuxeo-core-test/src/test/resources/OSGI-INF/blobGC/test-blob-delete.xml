@@ -3,9 +3,8 @@
   <require>org.nuxeo.ecm.core.test.blobmanager</require>
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="test">
-      <class>org.nuxeo.ecm.core.blob.InMemoryBlobProvider</class>
-      <property name="path">single</property>
-      <property name="emulateLocalFile">true</property>
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
+      <property name="path">default</property>
     </blobprovider>
   </extension>
 </component>

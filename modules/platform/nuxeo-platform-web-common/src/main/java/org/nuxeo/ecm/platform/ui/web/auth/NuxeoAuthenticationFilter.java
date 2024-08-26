@@ -525,16 +525,10 @@ public class NuxeoAuthenticationFilter implements Filter {
             if (principal != null) {
                 httpRequest.setAttribute(USERNAME_KEY, principal.getName());
                 if (targetPageURL != null && targetPageURL.length() > 0) {
-                    // forward to target page
-                    String baseURL = service.getBaseURL(request);
-
-                    // httpRequest.getRequestDispatcher(targetPageURL).forward(new
-                    // NuxeoSecuredRequestWrapper(httpRequest, principal),
-                    // response);
                     if (XMLHTTP_REQUEST_TYPE.equalsIgnoreCase(httpRequest.getHeader("X-Requested-With"))) {
-                        // httpResponse.setStatus(200);
                         return;
                     } else {
+                        String baseURL = service.getBaseURL(request);
                         String redirectUrl = URI.create(baseURL).resolve(targetPageURL).toString();
                         httpResponse.sendRedirect(redirectUrl);
                         return;
@@ -1155,8 +1149,8 @@ public class NuxeoAuthenticationFilter implements Filter {
     }
 
     /**
-     * Checks if the {@value NXAuthConstants#REQUESTED_URL} request parameter is an absolute URL, in which case, throws
-     * a NuxeoException with a 400 status code.
+     * Checks if the {@value NXAuthConstants#REQUESTED_URL} request parameter is an absolute URL or starts with "//", in
+     * which case, throws a NuxeoException with a 400 status code.
      *
      * @since 11.5
      */
@@ -1166,7 +1160,7 @@ public class NuxeoAuthenticationFilter implements Filter {
             return;
         }
         try {
-            if (URI.create(requestedURL).isAbsolute()) {
+            if (URI.create(requestedURL).isAbsolute() || requestedURL.startsWith("//")) {
                 throw new NuxeoException(SC_BAD_REQUEST);
             }
         } catch (IllegalArgumentException e) {

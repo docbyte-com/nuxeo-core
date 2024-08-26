@@ -10,13 +10,15 @@ env:
     SONAR_HOST: "http://54.229.164.107:9000"
     SONAR_PROJECT_KEY: "nuxeo-core"
 
-
 phases:
 
   install:
     runtime-versions:
       java: corretto17
     commands:
+      - yum -y install glibc-all-langpacks
+      - export LC_ALL="en_US.UTF-8"
+      - export LANG="en_US.UTF-8"
       - java -version
       - yum -y upgrade
       - java -version
@@ -48,7 +50,7 @@ phases:
 
   build:
     commands:
-      - mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy $MAVEN_ARGS -fae
+      - LANG=en_US.utf8 mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy $MAVEN_ARGS -fae
       - mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_ARGS
       - . ~/tools/codebuild-dependencytrack-results.sh
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy

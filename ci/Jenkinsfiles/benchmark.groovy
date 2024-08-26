@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.25"
+library identifier: "platform-ci-shared-library@v0.0.32"
 
 boolean isTriggeredByCron() {
   return currentBuild.getBuildCauses('org.jenkinsci.plugins.parameterizedscheduler.ParameterizedTimerTriggerCause')
@@ -59,7 +59,7 @@ String getBenchmarkCategory() {
 }
 
 void gatling(String parameters) {
-  sh "mvn ${MAVEN_ARGS} test gatling:test -Durl=https://${BENCHMARK_NAMESPACE}.platform.dev.nuxeo.com/nuxeo -Dgatling.simulationClass=${parameters} -DredisHost=localhost -DredisPort=6379 -DredisDb=0"
+  sh "mvn ${MAVEN_CLI_ARGS} test gatling:test -Durl=https://${BENCHMARK_NAMESPACE}.platform.dev.nuxeo.com/nuxeo -Dgatling.simulationClass=${parameters} -DredisHost=localhost -DredisPort=6379 -DredisDb=0"
 }
 
 pipeline {
@@ -91,7 +91,7 @@ pipeline {
     SERVICE_TAG = "benchmark-${BUILD_NUMBER}"
     BENCHMARK_NB_DOCS = '100000'
     HELMFILE_COMMAND = "helmfile --file ci/helm/helmfile.yaml --helm-binary /usr/bin/helm3"
-    MAVEN_ARGS = '-B -nsu -P-nexus,nexus-private,bench -Dnuxeo.bench.itests=false'
+    MAVEN_CLI_ARGS = '-B -nsu -P-nexus,nexus-private,bench -Dnuxeo.bench.itests=false'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
     NUXEO_DOCKER_IMAGE = "${NUXEO_DOCKER_IMAGE_WITH_VERSION.replaceAll(':.*', '')}"
     DATA_ARTIFACT_GROUP = "content.org.nuxeo.tools.testing"
@@ -173,6 +173,9 @@ pipeline {
                   gatling("org.nuxeo.cap.bench.Sim90FullGC")
                 }
               } finally {
+                // Redis is in the Jenkins agent pod. Not in the nuxeo-benchmark namespace and deployment.
+                nxK8s.describePod(namespace: "${CURRENT_NAMESPACE}", pod: "${JENKINS_AGENT_NAME}")
+                nxK8s.getPodLogs(namespace: "${CURRENT_NAMESPACE}", pod: "${JENKINS_AGENT_NAME} -c redis", file: "${namespace}_redis.log")
                 // archiveArtifacts doesn't support absolute path so do not use GATLING_TESTS_PATH
                 archiveArtifacts allowEmptyArchive: true, artifacts: 'ftests/nuxeo-server-gatling-tests/target/gatling/**/*'
                 if (params.DEBUG.toBoolean()) {

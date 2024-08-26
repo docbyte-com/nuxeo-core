@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.blob;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -27,15 +28,21 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.blob.AbstractBlobStore.BYTE_RANGE_SEP;
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.DIRECTDOWNLOAD_EXPIRE_PROPERTY;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import javax.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
+import org.awaitility.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -326,6 +333,51 @@ public abstract class TestAbstractBlobStore {
     }
 
     @Test
+    public void testDirectDownload() throws IOException {
+        assumeTrue(bp.allowDirectDownload());
+
+        int testExpiration = Integer.valueOf(bp.getProperties().get(DIRECTDOWNLOAD_EXPIRE_PROPERTY));
+        assertEquals(60, testExpiration);
+        URL urlOneMinute = storeBlobAndGetDirectDownloadURL("test");
+        // direct download link of provider "test" expires in 60 seconds
+        await().atMost(Duration.TEN_SECONDS).pollInterval(Duration.ONE_SECOND).untilAsserted(() -> {
+            try (InputStream in = urlOneMinute.openStream()) {
+                String actual = IOUtils.toString(in, Charset.defaultCharset());
+                assertEquals(FOO, actual);
+            }
+        });
+
+        BlobProvider otherProvider = blobManager.getBlobProvider("other");
+        assumeTrue("Define a 'other' provider with directdownload.expire=1 (seconds)", otherProvider != null);
+        int otherExpiration = Integer.valueOf(otherProvider.getProperties().get(DIRECTDOWNLOAD_EXPIRE_PROPERTY));
+        assertEquals(1, otherExpiration);
+        URL urlOneSecond = storeBlobAndGetDirectDownloadURL("other");
+        // direct download link of "other" provider expires in 1 second
+        await().atMost(Duration.ONE_MINUTE).pollDelay(Duration.ONE_SECOND).untilAsserted(() -> {
+            HttpURLConnection connection = (HttpURLConnection) urlOneSecond.openConnection();
+            connection.setRequestMethod("GET");
+            connection.connect();
+            assertEquals(403, connection.getResponseCode());
+        });
+    }
+
+    protected URL storeBlobAndGetDirectDownloadURL(String providerName) throws IOException {
+        BlobProvider provider = blobManager.getBlobProvider(providerName);
+        BlobStore store = ((BlobStoreBlobProvider) provider).store;
+        // store a blob
+        String key = store.writeBlob(blobContext(ID1, FOO));
+        assertKey(ID1, key);
+        // construct an actual Blob for it
+        BlobInfo blobInfo = new BlobInfo();
+        blobInfo.key = providerName + ":" + key;
+        ManagedBlob blob = (ManagedBlob) provider.readBlob(blobInfo);
+        blob.setFilename("foo.txt");
+        URI uri = provider.getURI(blob, BlobManager.UsageHint.DOWNLOAD, null);
+        assertNotNull(uri);
+        return uri.toURL();
+    }
+
+    @Test
     public void testWriteFromSameBlobProvier() throws IOException {
         // store blob
         String key1 = bs.writeBlob(blobContext(ID1, FOO));
@@ -413,7 +465,7 @@ public abstract class TestAbstractBlobStore {
 
     @Test
     public void testGC() throws IOException {
-        // doesn't bring anything over the LocalBlobStore GC test;  avoid additional setup for this
+        // doesn't bring anything over the LocalBlobStore GC test; avoid additional setup for this
         assumeFalse("GC not tested in transactional blob store", bp.isTransactional());
 
         // store blob
@@ -503,7 +555,7 @@ public abstract class TestAbstractBlobStore {
 
     @Test
     public void testGCWithConcurrentCreation() throws IOException {
-        // doesn't bring anything over the LocalBlobStore GC test;  avoid additional setup for this
+        // doesn't bring anything over the LocalBlobStore GC test; avoid additional setup for this
         assumeFalse("GC not tested in transactional blob store", bp.isTransactional());
 
         // store blob

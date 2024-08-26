@@ -26,8 +26,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.mockito.Matchers.any;
 import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Matchers.anyString;
@@ -60,8 +60,6 @@ import java.io.PrintWriter;
 import java.net.URLEncoder;
 import java.security.Principal;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,8 +67,6 @@ import java.util.Map;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -131,35 +127,6 @@ public class TestNuxeoAuthenticationFilter {
 
     protected ArgumentCaptor<Event> eventCaptor;
 
-    public static class DummyFilterConfig implements FilterConfig {
-
-        protected final Map<String, String> initParameters;
-
-        public DummyFilterConfig(Map<String, String> initParameters) {
-            this.initParameters = initParameters;
-        }
-
-        @Override
-        public String getFilterName() {
-            return "NuxeoAuthenticationFilter";
-        }
-
-        @Override
-        public ServletContext getServletContext() {
-            return null;
-        }
-
-        @Override
-        public String getInitParameter(String name) {
-            return initParameters.get(name);
-        }
-
-        @Override
-        public Enumeration<String> getInitParameterNames() {
-            return Collections.enumeration(initParameters.keySet());
-        }
-    }
-
     public static class DummyFilterChain implements FilterChain {
 
         protected boolean called;
@@ -175,11 +142,8 @@ public class TestNuxeoAuthenticationFilter {
 
     @Before
     public void setUp() throws Exception {
-        // filter config
-        FilterConfig config = new DummyFilterConfig(Collections.emptyMap());
         // filter
         filter = new NuxeoAuthenticationFilter();
-        filter.init(config);
         // filter chain
         chain = new DummyFilterChain();
 
@@ -1088,26 +1052,19 @@ public class TestNuxeoAuthenticationFilter {
 
         // invalid parameter
         when(request.getParameter(eq(REQUESTED_URL))).thenReturn(":joe");
-        try {
-            filter.checkRequestedURL(request);
-            fail("Invalid requestedUrl parameter should have thrown a NuxeoException");
-        } catch (NuxeoException e) {
-            assertEquals(400, e.getStatusCode());
-        }
+        assertEquals(400, assertThrows(NuxeoException.class, () -> filter.checkRequestedURL(request)).getStatusCode());
 
         // acceptable parameter
         when(request.getParameter(eq(REQUESTED_URL))).thenReturn("ui/");
         filter.checkRequestedURL(request);
 
-        // malicious redirect
-
+        // malicious redirects
         when(request.getParameter(eq(REQUESTED_URL))).thenReturn("https://yogosha.com");
-        try {
-            filter.checkRequestedURL(request);
-            fail("Bad requestedUrl parameter should have thrown a NuxeoException");
-        } catch (NuxeoException e) {
-            assertEquals(400, e.getStatusCode());
-        }
+        assertEquals(400, assertThrows(NuxeoException.class, () -> filter.checkRequestedURL(request)).getStatusCode());
+        when(request.getParameter(eq(REQUESTED_URL))).thenReturn("//yogosha.com");
+        assertEquals(400, assertThrows(NuxeoException.class, () -> filter.checkRequestedURL(request)).getStatusCode());
+        when(request.getParameter(eq(REQUESTED_URL))).thenReturn("////yogosha.com");
+        assertEquals(400, assertThrows(NuxeoException.class, () -> filter.checkRequestedURL(request)).getStatusCode());
     }
 
 }

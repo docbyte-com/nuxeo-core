@@ -20,8 +20,8 @@ package org.nuxeo.ecm.platform.ui.web.keycloak;
 
 import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Matchers.any;
 import static org.nuxeo.ecm.platform.ui.web.keycloak.KeycloakRequestAuthenticator.KEYCLOAK_ACCESS_TOKEN;
 
@@ -44,6 +44,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.spi.AuthOutcome;
+import org.keycloak.common.crypto.CryptoIntegration;
 import org.keycloak.representations.AccessToken;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -136,7 +137,7 @@ public class TestKeycloakAuthenticationPlugin {
 
         UserIdentificationInfo identity = keycloakAuthenticationPlugin.handleRetrieveIdentity(requestFacade,
                 responseFacade);
-        keycloakAuthenticationPlugin.handleLoginPrompt(requestFacade, responseFacade, null);
+        assertTrue(keycloakAuthenticationPlugin.handleLoginPrompt(requestFacade, responseFacade, null));
 
         assertNull(identity);
 
@@ -157,7 +158,7 @@ public class TestKeycloakAuthenticationPlugin {
 
         assertNull(identity);
 
-        keycloakAuthenticationPlugin.handleLoginPrompt(requestFacade, responseFacade, null);
+        assertTrue(keycloakAuthenticationPlugin.handleLoginPrompt(requestFacade, responseFacade, null));
 
         Mockito.verify(responseMock).setStatus(302);
         Mockito.verify(responseMock)
@@ -172,6 +173,11 @@ public class TestKeycloakAuthenticationPlugin {
         KeycloakAuthenticationPlugin keycloakAuthenticationPlugin = new KeycloakAuthenticationPlugin();
         initPlugin(keycloakAuthenticationPlugin);
 
+        KeycloakAuthenticatorProvider spyAuthProvider = Mockito.spy(
+                keycloakAuthenticationPlugin.keycloakAuthenticatorProvider);
+        Mockito.doReturn("wink").when(spyAuthProvider).getIdTokenHint();
+        keycloakAuthenticationPlugin.keycloakAuthenticatorProvider = spyAuthProvider;
+
         // We'll check the response is marked committed
         Mockito.when(responseMock.getCoyoteResponse()).thenReturn(coyoteResponseMock);
 
@@ -181,7 +187,7 @@ public class TestKeycloakAuthenticationPlugin {
         assertNotNull(result);
         assertEquals(true, result);
 
-        String location = "https://example.com/auth/realms/demo/protocol/openid-connect/logout?redirect_uri=https://example.com/foo/home.html";
+        String location = "https://example.com/auth/realms/demo/protocol/openid-connect/logout?post_logout_redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fhome.html&id_token_hint=wink";
         Mockito.verify(responseMock).sendRedirect(location);
     }
 
@@ -190,6 +196,7 @@ public class TestKeycloakAuthenticationPlugin {
         // Add more configuration parameters in a future version
         parameters.put(KeycloakAuthenticationPlugin.KEYCLOAK_CONFIG_FILE_KEY, "keycloak.json");
         parameters.put(KeycloakAuthenticationPlugin.KEYCLOAK_MAPPING_NAME_KEY, "keycloakTest");
+        CryptoIntegration.init(this.getClass().getClassLoader());
         keycloakAuthenticationPlugin.initPlugin(parameters);
         return keycloakAuthenticationPlugin;
     }
@@ -207,8 +214,8 @@ public class TestKeycloakAuthenticationPlugin {
         Mockito.when(requestMock.getAttribute(KEYCLOAK_ACCESS_TOKEN)).thenReturn(accessToken);
         Mockito.when(authenticatorMock.authenticate()).thenReturn(AuthOutcome.AUTHENTICATED);
 
-        Mockito.when(providerMock.provide(any(HttpServletRequest.class), any(HttpServletResponse.class))).thenReturn(
-                authenticatorMock);
+        Mockito.when(providerMock.provide(any(HttpServletRequest.class), any(HttpServletResponse.class)))
+               .thenReturn(authenticatorMock);
         KeycloakDeployment deployment = new KeycloakDeployment();
         deployment.setResourceName("test");
         Mockito.when(providerMock.getResolvedDeployment()).thenReturn(deployment);

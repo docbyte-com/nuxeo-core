@@ -18,6 +18,8 @@ package org.nuxeo.ecm.restapi.server.jaxrs.management;
 
 import static javax.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
+import static org.nuxeo.ecm.restapi.server.jaxrs.management.ConfigurationObject.OS_TIMEZONE_ID_KEY;
+import static org.nuxeo.ecm.restapi.server.jaxrs.management.ConfigurationObject.OS_TIMEZONE_OFFSET_KEY;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,6 +33,7 @@ import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.jaxrs.test.CloseableClientResponse;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
@@ -59,6 +62,7 @@ public class TestConfigurationObject extends ManagementBaseTest {
 
     @Test
     @WithFrameworkProperty(name = "superSecret", value = "myBFFname")
+    @Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-configuration-contrib.xml")
     public void testGet() throws IOException {
         try (CloseableClientResponse response = httpClientRule.get("/management/configuration")) {
             assertEquals(SC_OK, response.getStatus());
@@ -73,6 +77,21 @@ public class TestConfigurationObject extends ManagementBaseTest {
                            .isEquals(
                                    "org.apache.kafka.common.security.scram.ScramLoginModule required username\\=\"kafkaclient1\" password\\=***");
             jsonAssert.get("runtimeProperties").has("superSecret").isEquals("***");
+            var configurationServiceProps = jsonAssert.get("configurationServiceProperties");
+            configurationServiceProps.has("foo").isEquals("bar");
+            configurationServiceProps.has("foobar").isEquals("false");
+            var listProperty = configurationServiceProps.has("foolist").isArray().length(2);
+            listProperty.get(0).isEquals("dummyValue");
+            listProperty.get(1).isEquals("anotherDummyValue");
+            // get the Node to avoid json path confusion because of dots
+            var jvmProps = jsonAssert.get("jvmProperties").getNode();
+            // value depends on reference branch. Not checking for back/forward porting
+            jvmProps.has("java.specification.version");
+            assertEquals("UTF-8", jvmProps.get("sun.jnu.encoding").asText());
+            var miscProps = jsonAssert.get("miscProperties").getNode();
+            // those value will differ between dev workstations and ci/cd containers
+            miscProps.has(OS_TIMEZONE_ID_KEY);
+            miscProps.has(OS_TIMEZONE_OFFSET_KEY);
         }
     }
 }

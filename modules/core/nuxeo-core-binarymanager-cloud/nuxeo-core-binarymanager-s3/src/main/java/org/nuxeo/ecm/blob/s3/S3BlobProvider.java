@@ -73,7 +73,6 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
      */
     public static final String STORE_SCROLL_NAME = "s3BlobScroll";
 
-    // public for tests
     public S3BlobStoreConfiguration config;
 
     @Override
@@ -110,6 +109,19 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         return store;
     }
 
+    /**
+     * @since 2023.12
+     */
+    @Override
+    public boolean allowDirectDownload() {
+        var allow = super.allowDirectDownload();
+        if (allow && config.useClientSideEncryption) {
+            log.warn("Cannot allow s3 direct download with client side encryption enabled.");
+            return false;
+        }
+        return allow;
+    }
+
     protected S3BlobStoreConfiguration getConfiguration(Map<String, String> properties) throws IOException {
         return new S3BlobStoreConfiguration(properties);
     }
@@ -134,13 +146,47 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         return config.amazonS3.doesBucketExistV2(config.bucketName);
     }
 
+    /**
+     * Gets the blob length from the underlying s3 bucket.
+     *
+     * @return the blob length or -1 if the blob does not exist in storage
+     * @since 2023.9
+     */
+    public long lengthOfBlob(ManagedBlob blob) throws IOException {
+        String key = stripBlobKeyPrefix(blob.getKey());
+        String objectKey;
+        String versionId;
+        int seppos = key.indexOf(VER_SEP);
+        if (seppos < 0) {
+            objectKey = key;
+            versionId = null;
+        } else {
+            objectKey = key.substring(0, seppos);
+            versionId = key.substring(seppos + 1);
+        }
+        String bucketKey = config.bucketKey(objectKey);
+        GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey, versionId);
+        ObjectMetadata metadata;
+        try {
+            metadata = config.amazonS3.getObjectMetadata(request);
+        } catch (AmazonServiceException e) {
+            if (S3BlobStore.isMissingKey(e)) {
+                // don't crash for a missing blob, even though it means the storage is corrupted
+                log.debug("Failed to get information on blob: {}", key, e);
+                return -1;
+            }
+            throw new IOException(e);
+        }
+        return metadata.getContentLength();
+    }
+
     @Override
     public URI getURI(ManagedBlob blob, BlobManager.UsageHint hint, HttpServletRequest servletRequest)
             throws IOException {
         if (hint != BlobManager.UsageHint.DOWNLOAD || !config.directDownload) {
             return null;
         }
-        String bucketKey = config.bucketPrefix + stripBlobKeyPrefix(blob.getKey());
+        String bucketKey = config.bucketKey(stripBlobKeyPrefix(blob.getKey()));
         Date expiration = new Date(System.currentTimeMillis() + config.directDownloadExpire * 1000);
         try {
             if (config.cloudFront.enabled) {
@@ -223,7 +269,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             objectKey = key.substring(0, seppos);
             versionId = key.substring(seppos + 1);
         }
-        String bucketKey = config.bucketPrefix + objectKey;
+        String bucketKey = config.bucketKey(objectKey);
         GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey, versionId);
         ObjectMetadata metadata;
         try {

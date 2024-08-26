@@ -71,10 +71,28 @@ public class GarbageCollectOrphanBlobsAction implements StreamProcessorTopology 
 
     public static class GarbageCollectOrphanBlobsComputation extends AbstractBulkComputation {
 
+        /**
+         * @since 2023.8
+         */
+        public static final String SAMPLE_MODULO_PROPERTY = "nuxeo.bulk.action.garbageCollectOrphanBlobs.sample.modulo";
+
         protected boolean dryRun;
+
+        protected long sampleCounter;
+
+        protected long sampleModulo = Long.MAX_VALUE;
 
         public GarbageCollectOrphanBlobsComputation() {
             super(ACTION_FULL_NAME);
+            var sampleModuloPropValue = Framework.getProperty(SAMPLE_MODULO_PROPERTY);
+            if (sampleModuloPropValue != null) {
+                try {
+                    sampleModulo = Long.parseLong(sampleModuloPropValue);
+                } catch (NumberFormatException e) {
+                    log.error("Invalid {} value: {}:", SAMPLE_MODULO_PROPERTY, sampleModuloPropValue);
+                }
+            }
+
         }
 
         @Override
@@ -100,6 +118,17 @@ public class GarbageCollectOrphanBlobsAction implements StreamProcessorTopology 
                         deletedSize += size;
                     } else {
                         delta.incrementSkipCount();
+                    }
+                    if (++sampleCounter % sampleModulo == 0) {
+                        if (dryRun) {
+                            log.warn("Sample: dryRun GC {} blob: {} of size {}.",
+                                    () -> deleted ? "would have deleted" : "has kept", () -> key,
+                                    () -> FileUtils.byteCountToDisplaySize(size));
+                        } else {
+                            log.warn("Sample: GC has {} blob: {} of size {}.",
+                                    () -> deleted ? "deleted" : "kept", () -> key,
+                                    () -> FileUtils.byteCountToDisplaySize(size));
+                        }
                     }
                     log.trace("CommandId: {} Blob: {} of size: {} from repository: {} deleted: {} dryRun: {}",
                             () -> getCurrentCommand().getId(), () -> key, () -> FileUtils.byteCountToDisplaySize(size),

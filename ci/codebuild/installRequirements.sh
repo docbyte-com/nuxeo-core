@@ -17,7 +17,7 @@ yum install -y \
   google-noto-cjk-fonts
 
 
-export LIBREOFFICE_VERSION=7.1.5
+export LIBREOFFICE_VERSION=7.5.8
 
 curl -f -L https://packages.nuxeo.com/repository/document-foundation-raw/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz | tar -C /tmp -xzv
 yum -y localinstall /tmp/LibreOffice_${LIBREOFFICE_VERSION}*/RPMS/*.rpm
@@ -32,8 +32,8 @@ mv /usr/local/bin/docker /usr/bin/docker
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
-curl -f -L  https://exiftool.org/Image-ExifTool-12.79.tar.gz | tar -C /opt -xzv
-cd /opt/Image-ExifTool-12.79/
+curl -f -L https://exiftool.org/Image-ExifTool-12.76.tar.gz | tar -C /opt -xzv
+cd /opt/Image-ExifTool-12.76/
 
 perl Makefile.PL
 sudo make install

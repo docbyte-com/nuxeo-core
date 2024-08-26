@@ -49,7 +49,6 @@ public interface BlobProvider {
      *
      * @param blobProviderId the blob provider id for this binary manager
      * @param properties initialization properties
-     *
      * @since 7.3
      */
     void initialize(String blobProviderId, Map<String, String> properties) throws IOException;
@@ -119,6 +118,15 @@ public interface BlobProvider {
      * @since 11.1
      */
     default boolean allowByteRange() {
+        return false;
+    }
+
+    /**
+     * Checks whether this blob provider allows direct download.
+     *
+     * @since 2023.7
+     */
+    default boolean allowDirectDownload() {
         return false;
     }
 
@@ -337,7 +345,9 @@ public interface BlobProvider {
      *
      * @return the binary manager, or {@code null}
      * @since 7.4
+     * @deprecated since 2023.9, Use {@link BlobProvider} instead
      */
+    @Deprecated(since = "2023.9")
     default BinaryManager getBinaryManager() {
         return null;
     }
@@ -349,8 +359,7 @@ public interface BlobProvider {
      * @since 11.1
      */
     default BinaryGarbageCollector getBinaryGarbageCollector() {
-        BinaryManager binaryManager = getBinaryManager();
-        return binaryManager == null ? null : binaryManager.getGarbageCollector();
+        return null;
     }
 
     /**

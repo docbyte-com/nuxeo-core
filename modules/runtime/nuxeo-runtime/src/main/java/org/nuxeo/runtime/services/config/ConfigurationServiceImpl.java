@@ -69,7 +69,8 @@ public class ConfigurationServiceImpl extends DefaultComponent implements Config
     /**
      * XXX remove once we are able to get such a cached map from DefaultComponent.
      * <p>
-     * We'd ideally need a &lt;T extends Descriptor&gt; Map&lt;String, T&gt; getDescriptors(String xp) with cache method.
+     * We'd ideally need a &lt;T extends Descriptor&gt; Map&lt;String, T&gt; getDescriptors(String xp) with cache
+     * method.
      *
      * @since 10.3
      */
@@ -152,6 +153,16 @@ public class ConfigurationServiceImpl extends DefaultComponent implements Config
                                .stream()
                                .filter(desc -> startsWithNamespace(desc.getName(), namespace))
                                .collect(Collectors.toMap(desc -> desc.getId().substring(namespace.length() + 1),
+                                       desc -> desc.getValue() != null && desc.list
+                                               ? desc.getValue().split(LIST_SEPARATOR)
+                                               : desc.getValue()));
+    }
+
+    @Override
+    public Map<String, Serializable> getProperties() {
+        return getDescriptors().values()
+                               .stream()
+                               .collect(Collectors.toMap(desc -> desc.getId(),
                                        desc -> desc.getValue() != null && desc.list
                                                ? desc.getValue().split(LIST_SEPARATOR)
                                                : desc.getValue()));

@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.introspection;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -57,26 +58,62 @@ public class TestIntrospection {
     public void testScaleUp() throws Exception {
         String in = readFile("data/introspection-cluster.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
-        String out = convert.getActivity();
+        String out = convert.getActivity(1678439100);
         ObjectMapper mapper = new ObjectMapper();
         assertEquals(mapper.readTree(readFile("data/scale-up.json")), mapper.readTree(out));
     }
 
     @Test
-    public void testScaleDown() throws Exception {
+    public void testScaleWithoutMetrics() throws Exception {
+        String in = readFile("data/introspection-cluster.json");
+        // rename the metrics array so no metrics will be found
+        in = in.replace("\"metrics\": [", "\"no-metrics\": [");
+        StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
+        String out = convert.getActivity(1678439100);
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(mapper.readTree(readFile("data/scale-no-data.json")), mapper.readTree(out));
+    }
+
+    @Test
+    public void testScaleIdle() throws Exception {
         String in = readFile("data/introspection-cluster-idle.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
-        String out = convert.getActivity();
+        String out = convert.getActivity(1678439100);
         ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-down.json")), mapper.readTree(out));
+        assertEquals(mapper.readTree(readFile("data/scale-idle.json")), mapper.readTree(out));
+        // activity for a given timestamp in the future discards old metrics
+        out = convert.getActivity(1778439100);
+        assertEquals(mapper.readTree(readFile("data/scale-no-data.json")), mapper.readTree(out));
     }
+
+    @Test
+    public void testScaleConstantLoad() throws Exception {
+        String in = readFile("data/introspection-cluster-constant.json");
+        StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
+        String out = convert.getActivity(1709562437);
+        ObjectMapper mapper = new ObjectMapper();
+        assertEquals(mapper.readTree(readFile("data/scale-constant.json")), mapper.readTree(out));
+    }
+
 
     @Test
     public void testStreams() throws Exception {
         String json = readFile("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String streams = convert.getStreams();
-        assertTrue(streams.contains("bulk/command"));
+        assertTrue(streams, streams.contains("bulk/command"));
+    }
+
+    @Test
+    public void testEmptyJson() {
+        assertThrows(IllegalArgumentException.class, () -> new StreamIntrospectionConverter(null));
+        StreamIntrospectionConverter convert = new StreamIntrospectionConverter("{}");
+        assertEquals("[]", convert.getStreams());
+        assertEquals("[]", convert.getConsumers("bulk/whatever"));
+        String activity = convert.getActivity();
+        assertTrue(activity, activity.contains("scale"));
+        String puml = convert.getPuml();
+        assertTrue(puml, puml.contains("@startuml"));
     }
 
     @Test

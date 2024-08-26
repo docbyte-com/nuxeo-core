@@ -433,7 +433,7 @@ public class XSDLoader {
             if (baseType.isComplexType()) {
                 superType = (ComplexType) loadType(schema, baseType, name);
             } else {
-                log.warn("Complex type has a non complex type super type???");
+                log.warn("Complex type has a non complex type superElasticsearch.BulkIndex type???");
             }
         }
         XSComplexType xsct = type.asComplexType();

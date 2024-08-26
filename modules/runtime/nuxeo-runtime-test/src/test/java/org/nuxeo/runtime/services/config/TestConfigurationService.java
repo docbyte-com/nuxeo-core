@@ -117,7 +117,8 @@ public class TestConfigurationService {
         assertEquals(0, Framework.getRuntime().getMessageHandler().getMessages(Level.WARNING).size());
         hotDeployer.deploy("org.nuxeo.runtime.test.tests:configuration-test-contrib.xml");
 
-        // The deprecation warning messages should not be appended to the runtime, but logged by the DeprecationLogger class
+        // The deprecation warning messages should not be appended to the runtime, but logged by the DeprecationLogger
+        // class
         assertEquals(0, Framework.getRuntime().getMessageHandler().getMessages(Level.WARNING).size());
 
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();
@@ -175,6 +176,23 @@ public class TestConfigurationService {
         } catch (IllegalArgumentException e) {
             // Expected
         }
+    }
+
+    /**
+     * @since 2023.6
+     */
+    @Test
+    @Deploy("org.nuxeo.runtime.test.tests:configuration-namespace-contrib.xml")
+    public void testAllProperties() {
+        var properties = cs.getProperties();
+        assertEquals(7, properties.size());
+        assertEquals("true", properties.get("nuxeo.namespace.test.dummyBooleanProperty"));
+        var listProperty = properties.get("nuxeo.namespace.test.dummyStringProperty");
+        assertTrue(listProperty instanceof String[]);
+        String[] stringArrayProperty = (String[]) listProperty;
+        assertEquals(2, stringArrayProperty.length);
+        assertEquals("dummyValue", stringArrayProperty[0]);
+        assertEquals("anotherDummyValue", stringArrayProperty[1]);
     }
 
     /**

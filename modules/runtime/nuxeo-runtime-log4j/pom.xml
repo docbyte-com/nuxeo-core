@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.5-SNAPSHOT</version>
+    <version>2023.13-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
@@ -17,6 +17,16 @@
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
       <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
+      <artifactId>nuxeo-stream</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
