@@ -22,6 +22,7 @@
 package org.nuxeo.ecm.platform.mimetype;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
 import java.io.File;
 
@@ -175,6 +176,15 @@ public class TestMimetypeSniffing {
     @Test
     public void testXmlDocumentFromFile() {
         assertEquals("text/xml", mimetypeRegistry.getMimetypeFromFile(getXmlDocument()));
+    }
+
+    // NXP-32673
+    // MIME type cannot be computed from file content by jMimeMagic, fall back on file extension, throwing if
+    // unregistered.
+    @Test
+    public void testUnregisteredMimeType() {
+        assertThrows(MimetypeNotFoundException.class,
+                () -> mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/undefined-mime-type.opj")));
     }
 
     // OOo 1.x Writer
