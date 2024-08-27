@@ -1,3 +1,23 @@
+environments:
+  runtimeUnitTests:
+    values:
+    - environments/unit-tests-runtime.yaml
+  devUnitTests:
+    values:
+    - environments/unit-tests-dev.yaml
+  mongodbUnitTests:
+    values:
+    - environments/unit-tests-mongodb.yaml
+  postgresqlUnitTests:
+    values:
+    - environments/unit-tests-postgresql.yaml
+  upgradeTest:
+    values:
+    - environments/upgrade-test.yaml
+  benchmark:
+    values:
+    - environments/benchmark.yaml
+---
 {{- $valuesDir := ternary "unittests" .Environment.Name (regexMatch "^.*UnitTests$" .Environment.Name) -}}
 repositories:
 - name: bitnami
@@ -107,23 +127,3 @@ releases:
   values:
   - values/values-redis.yaml.gotmpl
   - values/{{ $valuesDir }}/values-redis.yaml
-
-environments:
-  runtimeUnitTests:
-    values:
-    - environments/unit-tests-runtime.yaml
-  devUnitTests:
-    values:
-    - environments/unit-tests-dev.yaml
-  mongodbUnitTests:
-    values:
-    - environments/unit-tests-mongodb.yaml
-  postgresqlUnitTests:
-    values:
-    - environments/unit-tests-postgresql.yaml
-  upgradeTest:
-    values:
-    - environments/upgrade-test.yaml
-  benchmark:
-    values:
-    - environments/benchmark.yaml
