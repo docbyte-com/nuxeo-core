@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -144,15 +143,14 @@ public class TestSearchObject extends ManagementBaseTest {
     }
 
     @Test
-    @Ignore("TODO when search + PP is implemented")
     public void testCheckSearch() {
-        httpClient.buildGetRequest("/management/elasticsearch/checkSearch")
+        httpClient.buildGetRequest("/management/search/checkSearch")
                   .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
                       assertTrue(jsonNode.isObject());
                       assertEquals(jsonNode.get("repo").get("resultsCount"),
-                              jsonNode.get("elastic").get("resultsCount"));
+                              jsonNode.get("search").get("resultsCount"));
                       assertNotNull(jsonNode.get("repo").get("results"));
-                      assertEquals(jsonNode.get("repo").get("results"), jsonNode.get("elastic").get("results"));
+                      assertEquals(jsonNode.get("repo").get("results"), jsonNode.get("search").get("results"));
                   });
     }
 

@@ -37,6 +37,7 @@ import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.api.PageProviderType;
 import org.nuxeo.ecm.platform.query.api.QuickFilter;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
+import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
@@ -55,9 +56,6 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     // @since 6.0
     public static final String REPLACER_EP = "replacers";
-
-    /** @since 2021.8 */
-    public static final String ELASTICSEARCH_NXQL_PAGE_PROVIDER_CLASS_NAME = "org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider";
 
     protected Map<String, PageProviderDefinition> providers;
 
@@ -169,9 +167,11 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
         PageProvider<?> ret;
         if (desc instanceof CoreQueryPageProviderDescriptor) {
             ret = newCoreQueryPageProviderInstance(name);
-        } else if (desc instanceof GenericPageProviderDescriptor) {
-            Class<PageProvider<?>> klass = ((GenericPageProviderDescriptor) desc).getPageProviderClass();
+        } else if (desc instanceof GenericPageProviderDescriptor descriptor) {
+            Class<PageProvider<?>> klass = descriptor.getPageProviderClass();
             ret = newPageProviderInstance(name, klass);
+        } else if (desc instanceof SearchServicePageProviderDescriptor) {
+            ret = new SearchServicePageProvider();
         } else {
             throw new NuxeoException(String.format("Invalid page provider definition with name '%s'", name));
         }
@@ -300,14 +300,10 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     @Override
     public PageProviderType getPageProviderType(PageProvider<?> pageProvider) {
-        try {
-            if (Class.forName(ELASTICSEARCH_NXQL_PAGE_PROVIDER_CLASS_NAME).isInstance(pageProvider)) {
-                return PageProviderType.ELASTIC;
-            }
-        } catch (ClassNotFoundException e) {
-            // just return default
-        }
-        return PageProviderType.DEFAULT;
+        return switch (pageProvider) {
+            case SearchServicePageProvider ignored -> PageProviderType.SEARCH;
+            default -> PageProviderType.DEFAULT;
+        };
     }
 
     record PageProviderReplacerWithName(String replacedName, Class<? extends PageProvider<?>> providerClass) {

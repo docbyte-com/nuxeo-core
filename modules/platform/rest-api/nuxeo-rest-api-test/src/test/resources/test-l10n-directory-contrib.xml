@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<component name="test-directory-contrib">
+<component name="test-l10n-directory-contrib">
 
   <extension point="directories" target="org.nuxeo.ecm.directory.GenericDirectory">
 
@@ -8,7 +8,7 @@
       <parentDirectory>l10nsubjects</parentDirectory>
       <idField>id</idField>
       <autoincrementIdField>false</autoincrementIdField>
-      <dataFile>l10nsubjects.csv</dataFile>
+      <dataFile>directories/l10nsubjects.csv</dataFile>
       <createTablePolicy>on_missing_columns</createTablePolicy>
     </directory>
 
@@ -17,7 +17,7 @@
       <parentDirectory>l10ncoverage</parentDirectory>
       <idField>id</idField>
       <autoincrementIdField>false</autoincrementIdField>
-      <dataFile>l10ncoverage.csv</dataFile>
+      <dataFile>directories/l10ncoverage.csv</dataFile>
       <createTablePolicy>on_missing_columns</createTablePolicy>
     </directory>
 

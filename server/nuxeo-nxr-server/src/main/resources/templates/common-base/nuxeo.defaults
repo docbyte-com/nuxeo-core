@@ -210,6 +210,7 @@ nuxeo.search.client.default.opensearch1.settings.indexTranslogDurability=${elast
 nuxeo.search.client.default.opensearch1.settings.numberOfShards=${elasticsearch.indexNumberOfShards:=5}
 nuxeo.search.client.default.opensearch1.settings.numberOfReplicas=${elasticsearch.indexNumberOfReplicas:=1}
 
+nuxeo.search.pageproviders.override=${elasticsearch.override.pageproviders:=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,document_picker,GET_TASKS_FOR_ACTORS,GET_TASKS_FOR_ACTORS_OR_DELEGATED_ACTORS,GET_TASKS_FOR_PROCESS,GET_TASKS_FOR_PROCESS_AND_ACTORS,GET_TASKS_FOR_PROCESS_AND_NODE,GET_TASKS_FOR_TARGET_DOCUMENT,GET_TASKS_FOR_TARGET_DOCUMENTS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS_OR_DELEGATED_ACTORS}
 
 # Kafka
 kafka.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{common,core-api,runtime-stream}*.jar

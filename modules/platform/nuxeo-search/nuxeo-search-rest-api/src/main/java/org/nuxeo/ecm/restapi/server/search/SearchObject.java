@@ -128,7 +128,9 @@ public class SearchObject extends QueryExecutor {
         String scrollParam = queryParams.getFirst(SCROLL_PARAM);
         if (StringUtils.isEmpty(scrollParam)) {
             // no scroll parameter, fall back on page provider type
-            scrollName = Framework.getService(PageProviderService.class).getPageProviderType(pageProvider).toString();
+            scrollName = Framework.getService(PageProviderService.class)
+                                  .getPageProviderType(pageProvider)
+                                  .getScrollerName();
         } else {
             scrollName = scrollParam;
         }

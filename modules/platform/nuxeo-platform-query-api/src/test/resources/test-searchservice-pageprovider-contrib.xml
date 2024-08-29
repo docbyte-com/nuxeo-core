@@ -1,0 +1,84 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider.test">
+
+  <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
+
+    <genericPageProvider name="NXQL_PP_PATTERN" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <pattern>SELECT * FROM Document WHERE
+        ecm:primaryType IN ('File', 'Workspace') AND
+        ecm:mixinType != 'HiddenInNavigation' AND
+        ecm:isTrashed = 0 AND
+        SORTED_COLUMN IS NOT NULL
+      </pattern>
+      <sort ascending="false" column="dc:title" />
+    </genericPageProvider>
+
+    <genericPageProvider name="NXQL_PP_PATTERN2" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <pattern>SELECT * FROM Document</pattern>
+      <maxPageSize>0</maxPageSize>
+      <sort ascending="false" column="dc:title" />
+    </genericPageProvider>
+
+    <genericPageProvider name="NXQL_PP_UNLIMITED"
+      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <pattern>SELECT * FROM Document</pattern>
+      <sort ascending="false" column="dc:title" />
+      <pageSize>0</pageSize>
+      <maxPageSize>0</maxPageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="nxql_search" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pattern escapeParameters="false" quoteParameters="false">?</pattern>
+      <parameter>#{documentSearchActions.nxqlQuery}</parameter>
+      <pageSize>20</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="NXQL_PP_FIXED_PART"
+      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">DEFAULT_NAVIGATION_RESULTS</property>
+      <property name="searchAllRepositories">true</property>
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
+      <whereClause>
+        <predicate operator="FULLTEXT" parameter="ecm:fulltext">
+          <field name="fulltext_all" schema="advanced_search" />
+        </predicate>
+        <predicate operator="FULLTEXT" parameter="dc:title">
+          <field name="title" schema="advanced_search" />
+        </predicate>
+        <predicate operator="BETWEEN" parameter="dc:modified">
+          <field name="modified_min" schema="advanced_search" />
+          <field name="modified_max" schema="advanced_search" />
+        </predicate>
+        <fixedPart>
+          ecm:parentId = ? AND ecm:isVersion = 0 AND
+          ecm:mixinType != 'HiddenInNavigation' AND ecm:isTrashed = 0
+        </fixedPart>
+      </whereClause>
+      <parameter>#{currentDocument.id}</parameter>
+      <sort ascending="true" column="dc:title" />
+      <pageSize>20</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="INVALID_PP" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <pattern>
+        SELECT * FROM Document WHERE
+      </pattern>
+      <sort ascending="true" column="dc:title" />
+      <pageSize>50</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="UNRESTRICTED_PP" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <property name="useUnrestrictedSession">true</property>
+      <pattern>
+        SELECT * FROM Document
+      </pattern>
+      <sort ascending="true" column="dc:title" />
+      <pageSize>50</pageSize>
+    </genericPageProvider>
+
+  </extension>
+
+</component>

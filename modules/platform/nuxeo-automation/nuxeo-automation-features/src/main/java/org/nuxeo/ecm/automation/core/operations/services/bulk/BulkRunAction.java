@@ -149,7 +149,9 @@ public class BulkRunAction {
             query = addExcludeClause(query, excludeDocs);
         }
 
-        String scroller = Framework.getService(PageProviderService.class).getPageProviderType(provider).toString();
+        String scroller = Framework.getService(PageProviderService.class)
+                                   .getPageProviderType(provider)
+                                   .getScrollerName();
         BulkCommand.Builder builder = new BulkCommand.Builder(action, query, session.getPrincipal().getName()).scroller(
                 scroller);
 

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.elasticsearch.pageproviders">
+<component name="org.nuxeo.ecm.restapi.server.management.search">
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
-    <!-- technical page providers for testing repo vs elastic -->
+    <!-- technical page provider for evaluating search results -->
     <coreQueryPageProvider name="nxql_repo_search">
       <trackUsage>true</trackUsage>
       <searchDocumentType>DefaultSearch</searchDocumentType>
@@ -11,14 +11,14 @@
       <sort column="dc:modified" ascending="false" />
     </coreQueryPageProvider>
 
-    <genericPageProvider name="nxql_elastic_search"
-      class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
-      <trackUsage>true</trackUsage>
+    <searchServicePageProvider name="search_check_nxql">
+      <trackUsage>false</trackUsage>
       <searchDocumentType>DefaultSearch</searchDocumentType>
       <pattern quoteParameters="false" escapeParameters="false">?</pattern>
       <pageSize>10</pageSize>
       <sort column="dc:modified" ascending="false" />
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
+
 </component>

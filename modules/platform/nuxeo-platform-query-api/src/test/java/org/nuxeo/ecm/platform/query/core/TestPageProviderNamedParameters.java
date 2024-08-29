@@ -47,6 +47,7 @@ import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * @since 7.3
@@ -63,6 +64,9 @@ public class TestPageProviderNamedParameters {
 
     @Inject
     protected CoreSession session;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Before
     public void createTestDocuments() {
@@ -85,6 +89,7 @@ public class TestPageProviderNamedParameters {
             session.createDocument(doc);
         }
         session.save();
+        txFeature.nextTransaction();
     }
 
     protected Map<String, Serializable> getPageProviderProps() {

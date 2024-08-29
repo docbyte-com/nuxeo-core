@@ -16,26 +16,23 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.elasticsearch.test.rest;
+package org.nuxeo.ecm.restapi.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
-import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_PAGE_PROVIDER;
-import static org.nuxeo.ecm.collections.api.CollectionConstants.COLLECTION_TYPE;
 import static org.nuxeo.ecm.platform.dublincore.constants.DublinCoreConstants.DUBLINCORE_TITLE_PROPERTY;
 import static org.nuxeo.ecm.platform.tag.TagConstants.TAG_FACET;
 
 import java.io.Serializable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
 
 import jakarta.inject.Inject;
 
-import org.junit.Ignore;
+import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,22 +43,22 @@ import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.io.marshallers.json.aggregate.AggregateJsonWriter;
+import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveAggregateCapability;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
-import org.nuxeo.ecm.restapi.server.QueryObject;
+import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.ecm.restapi.server.adapters.SearchAdapter;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.ecm.restapi.test.RestServerInit;
-import org.nuxeo.elasticsearch.provider.ElasticSearchNativePageProvider;
-import org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -70,33 +67,22 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * Test the various ways to get elasticsearch Json output.
+ * Test the various ways to get Search Json output.
  *
  * @since 5.9.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, RepositoryElasticSearchFeature.class, DirectoryFeature.class })
-@Deploy("org.nuxeo.ecm.platform.restapi.test:pageprovider-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:pageprovider2-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:pageprovider2-coretype-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:pageprovider-search-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core:test-directory-contrib.xml")
+@Features({ RestServerFeature.class, CoreSearchFeature.class, DirectoryFeature.class })
+@Deploy("org.nuxeo.ecm.platform.restapi.test:test-searchservice-pageprovider-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-searchservice-pageprovider-adapter-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-l10n-directory-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
-public class RestESDocumentsTest {
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveAggregateCapability.class)
+public class TestQueryObjectSearchService {
 
     public static final String QUERY = "select * from Document where " + "ecm:isTrashed = 0";
 
     public static final String TEST_MIME_TYPE = "text/plain";
-
-    /**
-     * @since 11.1
-     */
-    protected static final String ROOT_PATH = "/";
-
-    /**
-     * @since 11.1
-     */
-    protected static final String COLLECTION_NAME = "testCollection";
 
     @Inject
     protected CoreSession session;
@@ -122,7 +108,7 @@ public class RestESDocumentsTest {
         JsonNode node = httpClient.buildGetRequest(QueryObject.PATH + "/aggregates_2").execute(new JsonNodeHandler());
         // Then I get document listing as result
         // Verify results
-        assertEquals(20, JsonNodeHelper.getEntries(node).size());
+        Assert.assertEquals(20, JsonNodeHelper.getEntries(node).size());
         // And verify contributed aggregates
         assertEquals("terms", node.get("aggregations").get("coverage").get("type").textValue());
     }
@@ -146,41 +132,9 @@ public class RestESDocumentsTest {
                 (PageProvider<DocumentModel>) pageProviderService.getPageProvider(SearchAdapter.pageProviderName,
                         ppdefinition, null, null, 10000L, null, props, (Object[]) null),
                 null);
-        if (!(res.getProvider() instanceof ElasticSearchNxqlPageProvider)) {
-            fail("Should be an elastic search page provider");
+        if (!(res.getProvider() instanceof SearchServicePageProvider)) {
+            fail("Should be a search service page provider");
         }
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.platform.collections.core:OSGI-INF/collection-pageprovider-contrib.xml")
-    @Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-replacers-test-contrib.xml")
-    @Ignore("NXP-32984 impl hints")
-    public void iCanUseFulltextOperatorWithElasticsearchPageProvider() {
-        DocumentModel coll1 = session.createDocumentModel(ROOT_PATH, COLLECTION_NAME + 1, COLLECTION_TYPE);
-        coll1.setPropertyValue(DUBLINCORE_TITLE_PROPERTY, coll1.getName());
-        DocumentModel coll2 = session.createDocumentModel(ROOT_PATH, COLLECTION_NAME + 2, COLLECTION_TYPE);
-        coll2.setPropertyValue(DUBLINCORE_TITLE_PROPERTY, coll2.getName());
-        DocumentModel fufu = session.createDocumentModel(ROOT_PATH, "furtiveCollection", COLLECTION_TYPE);
-        fufu.setPropertyValue(DUBLINCORE_TITLE_PROPERTY, fufu.getName());
-
-        session.createDocument(coll1);
-        session.createDocument(coll2);
-        session.createDocument(fufu);
-
-        txFeature.nextTransaction();
-
-        PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition(COLLECTION_PAGE_PROVIDER);
-
-        Map<String, Serializable> props = Map.of(ElasticSearchNativePageProvider.CORE_SESSION_PROPERTY,
-                (Serializable) session);
-        @SuppressWarnings("unchecked")
-        PageProvider<DocumentModel> pp = (PageProvider<DocumentModel>) pageProviderService.getPageProvider(
-                ppdef.getName(), ppdef, null, null, null, 0L, props, "testCo");
-
-        List<DocumentModel> page = pp.getCurrentPage();
-        assertEquals(2, page.size());
-        assertEquals(coll1.getName(), page.get(0).getName());
-        assertEquals(coll2.getName(), page.get(1).getName());
     }
 
     /**
@@ -265,7 +219,7 @@ public class RestESDocumentsTest {
     @Test
     public void iCanQueryESQLPageProviderAndFetchVariousAggregates() {
         for (int i = 0; i < 50; i++) {
-            DocumentModel doc = session.createDocumentModel(ROOT_PATH, "aggTest" + i, "File");
+            DocumentModel doc = session.createDocumentModel("/", "aggTest" + i, "File");
             doc.setPropertyValue("dc:coverage", "europe/Spain");
             doc.setPropertyValue(DUBLINCORE_TITLE_PROPERTY, "tight_" + i % 2);
             if (i % 3 == 0) {

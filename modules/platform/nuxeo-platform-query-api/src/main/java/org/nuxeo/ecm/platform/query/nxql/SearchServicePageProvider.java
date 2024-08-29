@@ -16,8 +16,10 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.elasticsearch.provider;
+package org.nuxeo.ecm.platform.query.nxql;
 
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_AVG;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_CARDINALITY;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_COUNT;
@@ -31,6 +33,7 @@ import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_HISTO
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_RANGE;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_TERMS;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +49,10 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.query.QueryParseException;
-import org.nuxeo.ecm.core.search.client.opensearch1.ESQueryTransformer;
+import org.nuxeo.ecm.core.search.SearchIndex;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.platform.query.api.Aggregate;
 import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
 import org.nuxeo.ecm.platform.query.api.Bucket;
@@ -62,44 +68,37 @@ import org.nuxeo.ecm.platform.query.core.AggregateMissing;
 import org.nuxeo.ecm.platform.query.core.AggregateRange;
 import org.nuxeo.ecm.platform.query.core.AggregateSum;
 import org.nuxeo.ecm.platform.query.core.AggregateTerm;
-import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsResult;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
+import org.nuxeo.ecm.platform.query.core.SearchServicePageProviderDescriptor;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
-import org.opensearch.index.query.QueryBuilder;
 
 /**
- * Elasticsearch Page provider that converts the NXQL query build by CoreQueryDocumentPageProvider.
+ * Search Service Page provider that converts the NXQL query build by CoreQueryDocumentPageProvider.
  *
  * @since 5.9.3
  */
-public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider {
+public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
 
-    public static final String CORE_SESSION_PROPERTY = "coreSession";
+    @Serial
+    private static final long serialVersionUID = 1L;
+
+    protected static final Logger log = LogManager.getLogger(SearchServicePageProvider.class);
 
     public static final String SEARCH_ON_ALL_REPOSITORIES_PROPERTY = "searchAllRepositories";
 
-    // @since 9.2
-    public static final String ES_MAX_RESULT_WINDOW_PROPERTY = "org.nuxeo.elasticsearch.provider.maxResultWindow";
+    public static final String MAX_RESULT_WINDOW_PROPERTY = "org.nuxeo.elasticsearch.provider.maxResultWindow";
 
-    // This is the default ES index.max_result_window
-    public static final long DEFAULT_ES_MAX_RESULT_WINDOW_VALUE = 10000;
+    public static final int DEFAULT_MAX_RESULT_WINDOW = 10_000;
 
-    protected static final Logger log = LogManager.getLogger(ElasticSearchNxqlPageProvider.class);
+    protected SearchIndex searchIndex;
 
-    private static final long serialVersionUID = 1L;
-
-    protected HashMap<String, Aggregate<? extends Bucket>> currentAggregates;
+    protected Map<String, Aggregate<? extends Bucket>> currentAggregates;
 
     protected Long maxResultWindow;
 
     @Override
     public List<DocumentModel> getCurrentPage() {
-
         long t0 = System.currentTimeMillis();
-
         // use a cache
         if (currentPageDocuments != null) {
             return currentPageDocuments;
@@ -113,6 +112,7 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
         NuxeoPrincipal principal = coreSession.getPrincipal();
         if (useUnrestrictedSession() && !principal.isAdministrator()) {
             coreSession = CoreInstance.getCoreSessionSystem(coreSession.getRepositoryName(), principal.getName());
+            principal = coreSession.getPrincipal();
         }
         if (query == null) {
             buildQuery(coreSession);
@@ -120,29 +120,23 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
         if (query == null) {
             throw new NuxeoException(String.format("Cannot perform null query: check provider '%s'", getName()));
         }
-        // Build and execute the ES query
-        ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
+        // Build and execute the query using the Search Service
+        SearchService service = Framework.getService(SearchService.class);
         try {
-            NxQueryBuilder nxQuery = getQueryBuilder(coreSession).nxql(query)
-                                                                 .offset((int) getCurrentPageOffset())
-                                                                 .limit(getLimit())
-                                                                 .addAggregates(buildAggregates());
-            if (searchOnAllRepositories()) {
-                nxQuery.searchOnAllRepositories();
-            }
-
-            List<String> highlightFields = getHighlights();
-            if (highlightFields != null && !highlightFields.isEmpty()) {
-                nxQuery.highlight(highlightFields);
-            }
-
-            EsResult ret = ess.queryAndAggregate(nxQuery);
-            DocumentModelList dmList = ret.getDocuments();
+            // TODO search on all repositories
+            SearchIndex searchIndex = getSearchIndex(service, coreSession.getRepositoryName());
+            var queryBuilder = SearchQuery.builder(searchIndex, query, principal)
+                                          .offset((int) getCurrentPageOffset())
+                                          .limit(getLimit())
+                                          .addAggregates(buildAggregates())
+                                          .addHighlights(emptyIfNull(getHighlights()));
+            SearchResponse ret = service.search(queryBuilder.build());
+            DocumentModelList dmList = ret.loadDocuments(coreSession);
             currentAggregates = new HashMap<>(ret.getAggregates().size());
-            for (Aggregate<Bucket> agg : ret.getAggregates()) {
+            for (Aggregate<? extends Bucket> agg : ret.getAggregates()) {
                 currentAggregates.put(agg.getId(), agg);
             }
-            setResultsCount(dmList.totalSize());
+            setResultsCount(ret.getTotal());
             currentPageDocuments = dmList;
         } catch (QueryParseException e) {
             error = e;
@@ -156,6 +150,47 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
         return currentPageDocuments;
     }
 
+    protected SearchIndex getSearchIndex(SearchService service, String repository) {
+        if (searchIndex == null) {
+            String client;
+            String index;
+            if (getDefinition() instanceof SearchServicePageProviderDescriptor searchServiceDescriptor) {
+                client = searchServiceDescriptor.getSearchClient();
+                index = searchServiceDescriptor.getSearchIndex();
+            } else {
+                index = null;
+                client = null;
+            }
+            if (isBlank(client)) {
+                searchIndex = service.getDefaultSearchIndexForRepository(repository);
+            } else {
+                var searchIndexes = service.getSearchIndexForRepository(repository)
+                                           .stream()
+                                           .filter(item -> client.equals(item.client()))
+                                           .toList();
+                if (isBlank(index)) {
+                    searchIndex = searchIndexes.stream()
+                                               .findFirst()
+                                               .orElseThrow(
+                                                       () -> new IllegalArgumentException("No index found for client: "
+                                                               + client + " and repository: " + repository));
+                } else {
+                    searchIndex = searchIndexes.stream()
+                                               .filter(item -> index.equals(item.index()))
+                                               .findFirst()
+                                               .orElseThrow(() -> new IllegalArgumentException(
+                                                       "No index found for client: " + client + ", repository: "
+                                                               + repository + " and index: " + index));
+                }
+            }
+        }
+        return searchIndex;
+    }
+
+    public void setSearchIndex(SearchIndex searchIndex) {
+        this.searchIndex = searchIndex;
+    }
+
     protected int getLimit() {
         int ret = (int) getMinMaxPageSize();
         if (ret == 0) {
@@ -164,33 +199,16 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
         return ret;
     }
 
-    public QueryBuilder getCurrentQueryAsEsBuilder() {
-        String nxql = getCurrentQuery();
-        return ESQueryTransformer.toESQueryBuilder(nxql, getCoreSession());
-    }
-
     @Override
     protected void pageChanged() {
-        currentPageDocuments = null;
         currentAggregates = null;
         super.pageChanged();
     }
 
     @Override
     public void refresh() {
-        currentPageDocuments = null;
         currentAggregates = null;
         super.refresh();
-    }
-
-    @Override
-    protected CoreSession getCoreSession() {
-        Map<String, Serializable> props = getProperties();
-        CoreSession coreSession = (CoreSession) props.get(CORE_SESSION_PROPERTY);
-        if (coreSession == null) {
-            throw new NuxeoException("cannot find core session");
-        }
-        return coreSession;
     }
 
     protected List<Aggregate<? extends Bucket>> buildAggregates() {
@@ -246,7 +264,6 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
      */
     @Override
     protected void incorporateAggregates(Map<String, Serializable> eventProps) {
-
         super.incorporateAggregates(eventProps);
         if (currentAggregates != null) {
             HashMap<String, Serializable> aggregateMatches = new HashMap<>();
@@ -287,15 +304,15 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
     }
 
     /**
-     * Returns the max result window where the PP can navigate without raising Elasticsearch
-     * QueryPhaseExecutionException. {@code from + size} must be less than or equal to this value.
+     * Returns the max result window where the PP can navigate without raising QueryPhaseExecutionException.
+     * {@code from + size} must be less than or equal to this value.
      *
      * @since 9.2
      */
     public long getMaxResultWindow() {
         if (maxResultWindow == null) {
             ConfigurationService cs = Framework.getService(ConfigurationService.class);
-            maxResultWindow = cs.getLong(ES_MAX_RESULT_WINDOW_PROPERTY, DEFAULT_ES_MAX_RESULT_WINDOW_VALUE);
+            maxResultWindow = cs.getLong(MAX_RESULT_WINDOW_PROPERTY, DEFAULT_MAX_RESULT_WINDOW);
         }
         return maxResultWindow;
     }
@@ -312,13 +329,6 @@ public class ElasticSearchNxqlPageProvider extends CoreQueryDocumentPageProvider
      */
     public void setMaxResultWindow(long maxResultWindow) {
         this.maxResultWindow = maxResultWindow;
-    }
-
-    /**
-     * @since 2021.11
-     */
-    protected NxQueryBuilder getQueryBuilder(CoreSession session) {
-        return new NxQueryBuilder(session);
     }
 
 }

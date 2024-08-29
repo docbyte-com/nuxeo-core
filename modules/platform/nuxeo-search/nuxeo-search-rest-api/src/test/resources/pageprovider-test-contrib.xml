@@ -140,7 +140,7 @@
     </coreQueryPageProvider>
 
     <genericPageProvider name="aggregates"
-      class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
       <searchDocumentType>NamedParamDoc</searchDocumentType>
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>

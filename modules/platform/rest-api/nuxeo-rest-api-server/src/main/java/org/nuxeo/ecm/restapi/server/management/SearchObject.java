@@ -132,7 +132,6 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
      */
     @GET
     @Path("checkSearch")
-    // TODO implement it when search + PP is implemented
     public String checkSearch(@QueryParam("nxql") String nxql, @QueryParam("pageSize") Long pageSize) {
         if (nxql == null || nxql.isBlank()) {
             nxql = DEFAULT_CHECK_SEARCH_NXQL;
@@ -141,14 +140,14 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
             pageSize = DEFAULT_CHECK_SEARCH_PAGE_SIZE;
         }
         Map<String, Serializable> repoSearch = extractResultInfo("nxql_repo_search", nxql, pageSize);
-        Map<String, Serializable> elasticSearch = extractResultInfo("nxql_elastic_search", nxql, pageSize);
+        Map<String, Serializable> search = extractResultInfo("search_check_nxql", nxql, pageSize);
         Map<String, Serializable> ret = new HashMap<>();
         ret.put("query", nxql);
         ret.put("order", repoSearch.get("order"));
         repoSearch.remove("order");
-        elasticSearch.remove("order");
+        search.remove("order");
         ret.put("repo", (Serializable) repoSearch);
-        ret.put("elastic", (Serializable) elasticSearch);
+        ret.put("search", (Serializable) search);
         try {
             return MAPPER.writeValueAsString(ret);
         } catch (JsonProcessingException e) {

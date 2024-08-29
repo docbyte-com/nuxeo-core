@@ -1,17 +1,15 @@
 <#escape x as x?xml>
 <?xml version="1.0"?>
-<#assign ppNames="${elasticsearch.override.pageproviders}"?split(",") />
+<#assign ppNames="${nuxeo.search.pageproviders.override}"?split(",") />
 <component name="org.nuxeo.ecm.platform.query.api.PageProviderservice.replacers.defaultConfig">
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="replacers">
-
-    <replacer withClass="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-      enabled="${r"${elasticsearch.enabled:=true}"}">
+    <replacer withClass="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
 <#list ppNames as ppName>
       <provider>${ppName?trim}</provider>
 </#list>
     </replacer>
-
   </extension>
+
 </component>
 </#escape>

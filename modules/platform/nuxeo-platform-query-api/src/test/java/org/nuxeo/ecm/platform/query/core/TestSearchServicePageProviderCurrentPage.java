@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,19 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer<ataillefer@nuxeo.com>
+ *     bdelbosc
  */
-package org.nuxeo.ecm.platform.query.api;
+package org.nuxeo.ecm.platform.query.core;
+
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 
 /**
- * Available types for a {@link PageProvider}.
- * 
- * @since 2021.8
+ * @since 2025.0
  */
-public enum PageProviderType {
-
-    DEFAULT("default"), SEARCH("search");
-
-    private final String name;
-
-    PageProviderType(String name) {
-        this.name = name;
-    }
-
-    /**
-     * @since 2025.0
-     */
-    public String getScrollerName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
+@Features(CoreSearchFeature.class)
+@Deploy("org.nuxeo.ecm.platform.query.api.test:test-searchservice-pageprovider-replacer-contrib.xml")
+public class TestSearchServicePageProviderCurrentPage extends TestPageProviderCurrentPage {
 
 }

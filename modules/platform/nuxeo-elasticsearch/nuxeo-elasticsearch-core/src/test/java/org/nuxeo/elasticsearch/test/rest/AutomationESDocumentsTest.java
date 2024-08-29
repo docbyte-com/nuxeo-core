@@ -47,8 +47,8 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.ecm.restapi.test.RestServerInit;
-import org.nuxeo.elasticsearch.provider.ElasticSearchNativePageProvider;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -63,9 +63,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ EmbeddedAutomationServerFeature.class, RepositoryElasticSearchFeature.class, MultiRepositoryFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core.test:pageprovider2-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core.test:pageprovider2-coretype-test-contrib.xml")
+@Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-automation-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core.test:test-other-repository-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core.test:test-operations-multi-repositories.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
@@ -139,7 +137,7 @@ public class AutomationESDocumentsTest {
         // call a PageProvider configured with the "searchAllRepositories" property to true
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition(SEARCH_ALL_REPOSITORIES_PP);
         assertNotNull(ppdef);
-        var props = Map.of(ElasticSearchNativePageProvider.CORE_SESSION_PROPERTY, (Serializable) session);
+        var props = Map.of(SearchServicePageProvider.CORE_SESSION_PROPERTY, (Serializable) session);
         var parameter = "/folder_0";
         PageProvider<?> pp = pageProviderService.getPageProvider(SEARCH_ALL_REPOSITORIES_PP, ppdef, null, null, 10L, 0L,
                 props, parameter);

@@ -39,10 +39,10 @@ import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
@@ -59,8 +59,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @RunWith(FeaturesRunner.class)
 @Features({ //
         CollectionFeature.class, //
+        CoreSearchFeature.class, //
         ImagingFeature.class, //
-        RepositoryElasticSearchFeature.class, //
         RestServerFeature.class })
 @Deploy("org.nuxeo.adobe.cc.nuxeo-adobe-connector-core")
 @Deploy("org.nuxeo.ecm.platform.oauth")

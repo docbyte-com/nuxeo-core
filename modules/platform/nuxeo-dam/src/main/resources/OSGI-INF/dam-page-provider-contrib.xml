@@ -6,7 +6,7 @@
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
              point="providers">
 
-    <genericPageProvider name="assets_search" class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+    <genericPageProvider name="assets_search" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
       <searchDocumentType>AssetsSearch</searchDocumentType>
       <whereClause>
         <predicate parameter="ecm:fulltext" operator="FULLTEXT ALL">

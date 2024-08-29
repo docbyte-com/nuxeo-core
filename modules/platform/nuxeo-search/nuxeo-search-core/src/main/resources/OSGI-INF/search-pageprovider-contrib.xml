@@ -182,7 +182,7 @@
       <pageSize>20</pageSize>
     </coreQueryPageProvider>
 
-    <coreQueryPageProvider name="expired_search" class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+    <coreQueryPageProvider name="expired_search" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
       <trackUsage>true</trackUsage>
       <property name="maxResults">DEFAULT_NAVIGATION_RESULTS</property>
       <searchDocumentType>ExpiredSearch</searchDocumentType>

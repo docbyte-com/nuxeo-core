@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.elasticsearch.provider.hints.testContrib">
+
+  <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
+
+    <genericPageProvider name="NXQL_WITH_HINT" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <property name="coreSession">#{documentManager}</property>
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
+      <whereClause>
+        <predicate hint="ES: INDEX(dc:title.fulltext)" operator="=" parameter="dc:title">
+          <field name="fulltext_all" schema="advanced_search" />
+        </predicate>
+        <predicate hint="ES: INDEX(my_field) ANALYZER(my_analyzer) OPERATOR(fuzzy)" operator="="
+          parameter="dc:description">
+          <field name="description" schema="advanced_search" />
+        </predicate>
+        <fixedPart>
+          /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
+        </fixedPart>
+      </whereClause>
+    </genericPageProvider>
+
+    <genericPageProvider name="NXQL_WITH_HINT_IN_PARAMETER"
+      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <property name="coreSession">#{documentManager}</property>
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
+      <whereClause>
+        <predicate operator="=" parameter="/*+ES: INDEX(dc:title.fulltext) */ dc:title">
+          <field name="fulltext_all" schema="advanced_search" />
+        </predicate>
+        <predicate operator="="
+          parameter="/*+ES: INDEX(my_field) ANALYZER(my_analyzer) OPERATOR(fuzzy) */ dc:description">
+          <field name="description" schema="advanced_search" />
+        </predicate>
+        <fixedPart>
+          /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
+        </fixedPart>
+      </whereClause>
+    </genericPageProvider>
+
+  </extension>
+
+</component>
