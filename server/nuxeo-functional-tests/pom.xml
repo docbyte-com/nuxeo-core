@@ -50,7 +50,7 @@
       <type>xpi</type>
     </dependency>
     <dependency>
-      <groupId>biz.neustar</groupId>
+      <groupId>net.lightbody.bmp</groupId>
       <artifactId>browsermob-proxy</artifactId>
     </dependency>
     <dependency>

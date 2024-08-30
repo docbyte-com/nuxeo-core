@@ -45,7 +45,7 @@ public class NuxeoMetricSet implements MetricSet {
     }
 
     public NuxeoMetricSet(String name, String... names) {
-        this(MetricName.build(name).append(MetricName.build(names)));
+        this(MetricName.join(MetricName.build(name), MetricName.build(names)));
     }
 
     public NuxeoMetricSet(MetricName name) {
@@ -61,11 +61,11 @@ public class NuxeoMetricSet implements MetricSet {
      * Put a gauge inside this {@link MetricSet} as name {@code prefixName.name.names[0].names[1]...};
      */
     public <T> void putGauge(Gauge<T> gauge, MetricName name) {
-        metrics.put(prefixName.append(name), gauge);
+        metrics.put(prefixName.resolve(name.getKey()), gauge);
     }
 
     public <T> void putGauge(Gauge<T> gauge, String name, String... names) {
-        metrics.put(prefixName.append(MetricName.build(name).append(MetricName.build(names))), gauge);
+        metrics.put(MetricName.join(prefixName.resolve(name), MetricName.build(names)), gauge);
     }
 
     @Override

@@ -67,36 +67,35 @@
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
     <tomcat.version>10.1.28</tomcat.version>
-    <opensearch.version>1.3.17</opensearch.version>
-    <netty.version>4.1.111.Final</netty.version>
-    <netty.boringssl.version>2.0.65.Final</netty.boringssl.version>
+    <opensearch.version>1.3.19</opensearch.version>
+    <netty.version>4.1.112.Final</netty.version>
+    <netty.boringssl.version>2.0.66.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>7.0.0</guice.version>
-    <jersey.version>3.1.7</jersey.version>
+    <jersey.version>3.1.8</jersey.version>
     <chemistry.opencmis.version>2.0.0</chemistry.opencmis.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
-    <apache.poi.version>5.2.5</apache.poi.version>
+    <apache.poi.version>5.3.0</apache.poi.version>
     <jodreport.version>2.4.0</jodreport.version>
     <jxls.version>3.0.0</jxls.version>
     <keycloak.version>24.0.5</keycloak.version>
-    <keycloak.version>24.0.4</keycloak.version>
     <xdocreport.version>2.1.0</xdocreport.version>
-    <google.http.client.version>1.44.2</google.http.client.version>
+    <google.http.client.version>1.45.0</google.http.client.version>
     <google.oauth.client.version>1.36.0</google.oauth.client.version>
     <google.api.client.version>1.35.2</google.api.client.version>
     <google.api.drive.version>v2-rev20201130-1.31.0</google.api.drive.version>
     <box.api.version>1.1.0</box.api.version>
-    <selenium.version>2.53.0</selenium.version>
-    <pdfbox.version>2.0.31</pdfbox.version>
+    <selenium.version>2.53.1</selenium.version>
+    <pdfbox.version>2.0.32</pdfbox.version>
     <pdfbox.jbig2.version>2.99.0-NX1</pdfbox.jbig2.version>
-    <aws.version>1.12.650</aws.version>
-    <gcp.version>2.40.1</gcp.version>
-    <jackson1.version>1.9.11</jackson1.version>
+    <aws.version>1.12.770</aws.version>
+    <gcp.version>2.42.0</gcp.version>
+    <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.17.2</jackson.bom.version>
     <bouncycastle.version>1.78.1</bouncycastle.version>
-    <avro.version>1.11.3</avro.version>
+    <avro.version>1.12.0</avro.version>
     <restlet.version>2.4.3</restlet.version>
     <jmock.version>2.13.1</jmock.version>
     <wro4j.version>2.1.1</wro4j.version>
@@ -144,18 +143,18 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>4.11.2</mongo.java.driver.version>
+    <mongo.java.driver.version>4.11.3</mongo.java.driver.version>
     <quartz.mongodb.version>2.2.0-rc2</quartz.mongodb.version>
 
-    <kafka.version>3.6.1</kafka.version>
+    <kafka.version>3.8.0</kafka.version>
     <confluent.version>6.2.15</confluent.version>
-    <metrics.version>5.0.0-rc3</metrics.version>
+    <metrics.version>5.0.0</metrics.version>
     <amqp.client.version>5.21.0</amqp.client.version>
     <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
-    <prometheus.client.version>0.11.0</prometheus.client.version>
-    <protobuf.java.version>3.25.3</protobuf.java.version>
-    <opensaml.version>5.1.2</opensaml.version>
+    <prometheus.client.version>0.16.0</prometheus.client.version>
+    <protobuf.java.version>3.25.4</protobuf.java.version>
+    <opensaml.version>5.1.3</opensaml.version>
     <quartz.version>2.5.0-rc1</quartz.version>
   </properties>
 
@@ -2225,26 +2224,6 @@
         <version>3.1.0</version>
       </dependency>
       <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>groovy-engine</artifactId>
-        <version>1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>jexl-engine</artifactId>
-        <version>1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>js-engine</artifactId>
-        <version>1.0</version>
-      </dependency>
-      <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>bsh-engine</artifactId>
-        <version>1.0</version>
-      </dependency>
-      <dependency>
         <groupId>jakarta.servlet</groupId>
         <artifactId>jakarta.servlet-api</artifactId> <!-- provided by Tomcat -->
         <version>6.0.0</version>
@@ -2257,7 +2236,7 @@
       <dependency>
         <groupId>jakarta.servlet.jsp.jstl</groupId>
         <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
-        <version>3.0.0</version>
+        <version>3.0.2</version>
       </dependency>
       <dependency>
         <groupId>org.glassfish.web</groupId>
@@ -2315,7 +2294,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.14.0</version>
+        <version>3.17.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2356,7 +2335,7 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.3.3</version>
+        <version>1.3.4</version>
         <exclusions>
           <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
@@ -2380,12 +2359,12 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.17.0</version>
+        <version>1.17.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.26.2</version>
+        <version>1.27.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2395,7 +2374,7 @@
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2595,7 +2574,7 @@
       <dependency>
         <groupId>org.apache.xmlbeans</groupId>
         <artifactId>xmlbeans</artifactId>
-        <version>5.1.1</version>
+        <version>5.2.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.directory.shared</groupId>
@@ -2662,14 +2641,6 @@
             <artifactId>xmlParserAPIs</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-
-      <!-- Guessed versions of code included in JBoss 5.1.0.GA or at least
-        compliant -->
-      <dependency>
-        <groupId>org.jboss.logging</groupId>
-        <artifactId>jboss-logging-log4j</artifactId>
-        <version>2.1.2.GA</version>
       </dependency>
 
       <dependency>
@@ -2898,7 +2869,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>2.2</version>
+        <version>2.3</version>
       </dependency>
       <dependency>
         <groupId>antlr</groupId>
@@ -2908,19 +2879,19 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.3</version>
+        <version>42.7.4</version>
       </dependency>
       <!-- fix transitive dependency of org.postgresql:postgresql to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.45.0</version>
+        <version>3.46.0</version>
       </dependency>
 
       <dependency>
         <groupId>mysql</groupId>
         <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.30</version>
+        <version>8.0.33</version>
       </dependency>
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
@@ -2955,7 +2926,7 @@
       <dependency>
         <groupId>com.microsoft.sqlserver</groupId>
         <artifactId>mssql-jdbc</artifactId>
-        <version>7.4.1.jre8</version>
+        <version>7.4.1.jre12</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
@@ -3051,8 +3022,8 @@
       </dependency>
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-        <version>2.4.21</version>
+        <artifactId>groovy-jsr223</artifactId>
+        <version>2.5.23</version>
       </dependency>
       <dependency>
         <groupId>org.mvel</groupId>
@@ -3161,7 +3132,7 @@
       <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
-        <version>2.28.0</version>
+        <version>2.31.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -3267,7 +3238,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.10.14</version>
+        <version>1.10.15</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jdt</groupId>
@@ -3342,13 +3313,13 @@
         <version>0.6</version>
       </dependency>
       <dependency>
-        <groupId>biz.neustar</groupId>
+        <groupId>net.lightbody.bmp</groupId>
         <artifactId>browsermob-proxy</artifactId>
-        <version>2.0-beta-7</version>
+        <version>2.0.0</version>
         <exclusions>
           <exclusion>
             <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-api</artifactId>
+            <artifactId>selenium-server</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.apache.httpcomponents</groupId>
@@ -3370,15 +3341,25 @@
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-io</artifactId>
           </exclusion>
+          <!-- we use official jakarta.validation:validation-api instead -->
+          <exclusion>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+          </exclusion>
           <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId> <!-- without javax. -->
+            <artifactId>javax.servlet-api</artifactId>
           </exclusion>
           <!-- use org.dom4j:dom4j instead -->
           <exclusion>
             <groupId>dom4j</groupId>
             <artifactId>dom4j</artifactId>
+          </exclusion>
+          <!-- use org.bouncycastle:bcpkix-jdk18on instead -->
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
           </exclusion>
           <!-- use org.bouncycastle:bcprov-jdk18on instead -->
           <exclusion>
@@ -3681,7 +3662,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.12.0</version>
+        <version>5.13.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3945,28 +3926,28 @@
       <dependency>
         <groupId>com.google.http-client</groupId>
         <artifactId>google-http-client-apache-v2</artifactId>
-        <version>1.44.2</version>
+        <version>1.45.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.http-client</groupId>
         <artifactId>google-http-client-gson</artifactId>
-        <version>1.44.2</version>
+        <version>1.45.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-api</artifactId>
-        <version>1.65.0</version>
+        <version>1.66.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-context</artifactId>
-        <version>1.65.0</version>
+        <version>1.66.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.azure</groupId>
         <artifactId>azure-storage-blob</artifactId>
-        <version>12.26.1</version>
+        <version>12.27.1</version>
       </dependency>
 
       <dependency>
@@ -4012,7 +3993,7 @@
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.174</version>
+        <version>4.8.175</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -4283,7 +4264,7 @@
       <dependency>
         <groupId>org.jgrapht</groupId>
         <artifactId>jgrapht-core</artifactId>
-        <version>1.0.1</version>
+        <version>1.5.2</version>
       </dependency>
 
       <dependency>
@@ -4687,7 +4668,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.7.0</version>
+          <version>3.10.0</version>
           <configuration>
             <doclint>all,-missing</doclint>
             <show>protected</show>
@@ -4719,7 +4700,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.7.1</version>
+          <version>3.8.0</version>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
               <artifact>org.apache.logging.log4j:log4j-api</artifact>
@@ -4849,7 +4830,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.17.0</version>
+          <version>2.17.1</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -4868,7 +4849,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.12.1</version>
+          <version>3.20.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -4893,7 +4874,7 @@
                   ant-assembly-maven-plugin instead.</message>
               </bannedPlugins>
               <requireMavenVersion>
-                <version>[3.1.1,)</version>
+                <version>[3.6.3,)</version>
               </requireMavenVersion>
               <requireJavaVersion>
                 <version>[21,)</version>
@@ -5338,7 +5319,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.6.1</version>
+        <version>3.7.0</version>
         <reportSets>
           <reportSet>
             <configuration>

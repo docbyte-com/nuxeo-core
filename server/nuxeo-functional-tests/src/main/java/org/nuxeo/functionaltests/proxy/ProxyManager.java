@@ -25,9 +25,10 @@ package org.nuxeo.functionaltests.proxy;
 
 import java.io.File;
 
-import org.browsermob.proxy.ProxyServer;
 import org.nuxeo.common.Environment;
 import org.openqa.selenium.Proxy;
+
+import net.lightbody.bmp.proxy.ProxyServer;
 
 /**
  * Proxy server manager.
