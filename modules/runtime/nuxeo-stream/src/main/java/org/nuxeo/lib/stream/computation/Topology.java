@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,8 +86,8 @@ public class Topology {
             }
         }
         for (DefaultEdge edge : dag.edgeSet()) {
-            ret.append(
-                    String.format("%s==>%s%n", getPumlName(dag.getEdgeSource(edge)), getPumlName(dag.getEdgeTarget(edge))));
+            ret.append(String.format("%s==>%s%n", getPumlName(dag.getEdgeSource(edge)),
+                    getPumlName(dag.getEdgeTarget(edge))));
         }
         ret.append("@enduml\n");
         return ret.toString().replace("%n1 partitions", "%n1 partition").replace("%n1 threads", "%n1 thread");
@@ -95,8 +95,8 @@ public class Topology {
 
     protected String compactPolicy(ComputationPolicy policy) {
         return String.format("Continue on failure: %s%nRetries: %d, %d ms%nBatch: %d, %dms", policy.continueOnFailure(),
-                policy.getRetryPolicy().getMaxRetries(), policy.getRetryPolicy().getDelay().toMillis(), policy.getBatchCapacity(),
-                policy.getBatchThreshold().toMillis());
+                policy.getRetryPolicy().getMaxRetries(), policy.getRetryPolicy().getDelay().toMillis(),
+                policy.getBatchCapacity(), policy.getBatchThreshold().toMillis());
     }
 
     protected String getPumlName(Topology.Vertex vertex) {
