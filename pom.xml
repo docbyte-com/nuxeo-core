@@ -150,7 +150,6 @@
     <confluent.version>6.2.15</confluent.version>
     <metrics.version>5.0.0</metrics.version>
     <amqp.client.version>5.21.0</amqp.client.version>
-    <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.16.0</prometheus.client.version>
     <protobuf.java.version>3.25.4</protobuf.java.version>
@@ -4409,30 +4408,14 @@
                   <message>No Snapshots Allowed!</message>
                   <onlyWhenRelease>false</onlyWhenRelease>
                   <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
-                  <excludes>
-                    <exclude>com.nuxeo*</exclude>
-                    <exclude>org.nuxeo*</exclude>
-                  </excludes>
-                </requireReleaseDeps>
-              </rules>
-            </configuration>
-          </execution>
-          <execution>
-            <id>enforce-nuxeo-dependencies</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <skip>${nuxeo.skip.enforcer}</skip>
-              <rules>
-                <requireReleaseDeps>
-                  <message>No Snapshots Allowed!</message>
-                  <onlyWhenRelease>false</onlyWhenRelease>
-                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
                   <includes>
                     <include>org.nuxeo:nuxeo-ftest</include>
                     <include>org.nuxeo.connect:nuxeo-connect-client</include>
                   </includes>
+                  <excludes>
+                    <exclude>com.nuxeo*</exclude>
+                    <exclude>org.nuxeo*</exclude>
+                  </excludes>
                 </requireReleaseDeps>
               </rules>
             </configuration>
@@ -4638,8 +4621,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <!-- Newer versions don't build the expected MANIFEST.MF -->
-          <version>2.6</version>
+          <version>3.4.2</version>
           <configuration>
             <archive>
               <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
@@ -4695,7 +4677,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jxr-plugin</artifactId>
-          <version>2.5</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -4715,7 +4697,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>2.6.1</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -4725,22 +4707,22 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.3.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-report-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.3.1</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.surefire</groupId>
               <artifactId>surefire-junit47</artifactId>
-              <version>${maven.surefire.version}</version>
+              <version>3.5.0</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -4821,11 +4803,11 @@
         </plugin>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.7.1</version>
         </plugin>
         <plugin>
           <artifactId>maven-help-plugin</artifactId>
-          <version>2.2</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -4839,12 +4821,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.1.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>3.1.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -4854,7 +4836,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
+          <version>3.5.0</version>
           <configuration>
             <rules>
               <requirePluginVersions>
@@ -5027,12 +5009,12 @@
         </plugin>
         <plugin>
           <artifactId>maven-jarsigner-plugin</artifactId>
-          <version>1.4</version>
+          <version>3.0.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.jboss.tattletale</groupId>
