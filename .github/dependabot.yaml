@@ -156,3 +156,59 @@ updates:
       interval: "daily"
     ignore:
       - dependency-name: "*"
+
+  # Branch 2025
+  - package-ecosystem: "maven"
+    target-branch: "2025"
+    directory: "/"
+    schedule:
+        interval: "daily"
+        time: "01:00"
+        timezone: "Europe/Paris"
+      # Enable version updates along with security updates on 2025, limit to 10 to prevent CI overload
+    open-pull-requests-limit: 10
+    ignore:
+      # Major version updates (doesn't work for security updates, need to list them explicitly, see below)
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+      # Ignore Jakarta EE minor update
+      - dependency-name: "jakarta.*:*"
+        update-types: ["version-update:semver-minor"]
+
+      # Patch version update breaking compilation
+      - dependency-name: "org.apache.directory.server:*"
+        versions: [">1.5.1"]
+      - dependency-name: "org.apache.directory.shared:*"
+        versions: [">0.9.7"]
+
+      # Minor version updates breaking tests
+      - dependency-name: "org.hibernate.orm:hibernate-core"
+        versions: [">=6.6.0.Final"] # with this minor update, audit can't append entity with manually set id
+
+      # Spurious major version update
+      - dependency-name: "com.google.apis:google-api-services-drive"
+        versions: [">v2-rev20201130-1.31.0"]
+
+      # Minor version update breaking compilation
+      - dependency-name: "org.osgi:org.osgi.core"
+        versions: ["[4.4,)"]
+
+      # Nuxeo patch needed
+      - dependency-name: "com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer"
+        versions: [">20211018.2.NX1"]
+
+      # Not in our artifact repository
+      - dependency-name: "commons-httpclient:commons-httpclient"
+        versions: [ ">3.1" ] # no update to 3.1-jenkins-x
+      - dependency-name: "org.glassfish.web:jakarta.servlet.jsp.jstl"
+        versions: [ ">3.0.1" ] # no update to 3.0.1-jbossorg-1
+
+  # Ignore pip dependencies
+  - package-ecosystem: "pip"
+    target-branch: "2025"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    ignore:
+      - dependency-name: "*"
