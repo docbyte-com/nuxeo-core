@@ -23,7 +23,6 @@ package org.nuxeo.launcher;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.logging.log4j.LogManager.ROOT_LOGGER_NAME;
 import static org.nuxeo.common.Environment.NUXEO_CONTEXT_PATH;
 import static org.nuxeo.common.Environment.NUXEO_DATA_DIR;
@@ -56,6 +55,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -748,7 +748,7 @@ public class NuxeoLauncher {
         if (Files.notExists(classPathEntry)) {
             throw new RuntimeException("Tried to add nonexistent classpath entry: " + filename);
         }
-        cp += System.getProperty("path.separator") + classPathEntry;
+        cp += File.pathSeparator + classPathEntry;
         return cp;
     }
 
@@ -1181,13 +1181,12 @@ public class NuxeoLauncher {
      *             parameter read from stdin.
      * @since 8.3
      */
-    public ConnectProject promptProject(@NotNull List<ConnectProject> projects)
-            throws ConfigurationException, IOException {
+    public ConnectProject promptProject(@NotNull List<ConnectProject> projects) throws ConfigurationException {
         if (projects.isEmpty()) {
             throw new ConfigurationException("You don't have access to any project.");
         }
         if (projects.size() == 1) {
-            return projects.get(0);
+            return projects.getFirst();
         }
 
         String projectName;
@@ -1221,7 +1220,7 @@ public class NuxeoLauncher {
                     .forEach(project -> System.out.println("\t- " + project.getSymbolicName()));
             if (toIndex < projects.size()) {
                 int pageLeft = (projects.size() - i * PAGE_SIZE + PAGE_SIZE - 1) / PAGE_SIZE;
-                System.out.print(String.format("Project name (press Enter for next page; %d pages left): ", pageLeft));
+                System.out.printf("Project name (press Enter for next page; %d pages left): ", pageLeft);
             } else {
                 System.out.print("Project name: ");
             }
@@ -1303,7 +1302,7 @@ public class NuxeoLauncher {
         return true;
     }
 
-    protected boolean registerOffline() throws IOException, ConfigurationException {
+    protected boolean registerOffline() throws ConfigurationException {
         log.info("\nTo register your instance:");
         log.info("1. Visit {}/connect/registerInstance", ConnectUrlConfig::getBaseUrl);
         log.info(
@@ -1484,7 +1483,7 @@ public class NuxeoLauncher {
                     List<String> decryptedValues = askCryptoKeyAndDecrypt(crypto, value);
                     if (decryptedValues != null) {
                         raw = false;
-                        value = decryptedValues.get(0);
+                        value = decryptedValues.getFirst();
                     }
                 }
                 if (isRegexp) {
@@ -1499,7 +1498,7 @@ public class NuxeoLauncher {
     /**
      * @since 7.4
      */
-    protected void setConfigProperties() throws ConfigurationException, IOException, GeneralSecurityException {
+    protected void setConfigProperties() throws ConfigurationException, GeneralSecurityException {
         Crypto crypto = configurationGenerator.getCrypto();
         boolean doEncrypt = cmdLine.hasOption(OPTION_ENCRYPT);
         String algorithm = cmdLine.getOptionValue(OPTION_ENCRYPT);
@@ -1931,7 +1930,9 @@ public class NuxeoLauncher {
 
     /**
      * Return process status (running or not) as String, depending on OS capability to manage processes. Set status
-     * value following "http://refspecs.freestandards.org/LSB_4.1.0/LSB-Core-generic/LSB-Core- generic/iniscrptact.html"
+     * value following
+     * <a href="http://refspecs.freestandards.org/LSB_4.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptact.html">LSB Core
+     * generic</a>
      *
      * @see #getStatus()
      */
@@ -2253,8 +2254,8 @@ public class NuxeoLauncher {
             log.info("{}={}", keyval.key, keyval.value);
         }
         log.info("** Effective configuration for environment: {} and profiles: {}:",
-                () -> defaultString(System.getenv(ENV_NUXEO_ENVIRONMENT), "N/A"),
-                () -> defaultString(System.getenv(ENV_NUXEO_PROFILES), "N/A"));
+                () -> Objects.toString(System.getenv(ENV_NUXEO_ENVIRONMENT), "N/A"),
+                () -> Objects.toString(System.getenv(ENV_NUXEO_PROFILES), "N/A"));
         for (KeyValueInfo keyval : info.config.allkeyvals) {
             log.info("{}={}", keyval.key, keyval.value);
         }
