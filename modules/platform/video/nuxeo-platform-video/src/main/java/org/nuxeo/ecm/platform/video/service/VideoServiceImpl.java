@@ -23,9 +23,7 @@ import static java.util.stream.Collectors.toList;
 import static org.nuxeo.ecm.platform.video.service.Configuration.DEFAULT_CONFIGURATION;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +49,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Default implementation of {@link VideoService}.
@@ -72,8 +71,6 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
 
     protected VideoConversionContributionHandler videoConversions;
 
-    protected AutomaticVideoConversionContributionHandler automaticVideoConversions;
-
     /**
      * @since 7.4
      */
@@ -81,12 +78,13 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         videoConversions = new VideoConversionContributionHandler();
-        automaticVideoConversions = new AutomaticVideoConversionContributionHandler();
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         WorkManager workManager = Framework.getService(WorkManager.class);
         if (workManager != null && workManager.isStarted()) {
             try {
@@ -98,40 +96,33 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
             }
         }
         videoConversions = null;
-        automaticVideoConversions = null;
     }
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-        case VIDEO_CONVERSIONS_EP:
-            videoConversions.addContribution((VideoConversion) contribution);
-            break;
-        case DEFAULT_VIDEO_CONVERSIONS_EP:
-            automaticVideoConversions.addContribution((AutomaticVideoConversion) contribution);
-            break;
-        case CONFIGURATION_EP:
-            configuration = (Configuration) contribution;
-            break;
-        default:
-            break;
+            case VIDEO_CONVERSIONS_EP:
+                videoConversions.addContribution((VideoConversion) contribution);
+                break;
+            case CONFIGURATION_EP:
+                configuration = (Configuration) contribution;
+                break;
+            default:
+                register(extensionPoint, (Descriptor) contribution);
         }
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-        case VIDEO_CONVERSIONS_EP:
-            videoConversions.removeContribution((VideoConversion) contribution);
-            break;
-        case DEFAULT_VIDEO_CONVERSIONS_EP:
-            automaticVideoConversions.removeContribution((AutomaticVideoConversion) contribution);
-            break;
-        case CONFIGURATION_EP:
-            configuration = DEFAULT_CONFIGURATION;
-            break;
-        default:
-            break;
+            case VIDEO_CONVERSIONS_EP:
+                videoConversions.removeContribution((VideoConversion) contribution);
+                break;
+            case CONFIGURATION_EP:
+                configuration = DEFAULT_CONFIGURATION;
+                break;
+            default:
+                unregister(extensionPoint, (Descriptor) contribution);
         }
     }
 
@@ -155,14 +146,16 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
 
     @Override
     public void launchAutomaticConversions(DocumentModel doc, boolean onlyMissing) {
-        List<AutomaticVideoConversion> conversions = new ArrayList<>(automaticVideoConversions.registry.values());
-        Collections.sort(conversions);
         VideoDocument videoDocument = doc.getAdapter(VideoDocument.class);
-        for (AutomaticVideoConversion conversion : conversions) {
-            if (!onlyMissing || videoDocument.getTranscodedVideo(conversion.getName()) == null) {
-                launchConversion(doc, conversion.getName());
-            }
-        }
+        this.<AutomaticVideoConversion> getDescriptors(DEFAULT_VIDEO_CONVERSIONS_EP)
+            .stream()
+            .filter(AutomaticVideoConversion::isEnabled)
+            .sorted()
+            .forEach(c -> {
+                if (!onlyMissing || videoDocument.getTranscodedVideo(c.getName()) == null) {
+                    launchConversion(doc, c.getName());
+                }
+            });
     }
 
     @Override
