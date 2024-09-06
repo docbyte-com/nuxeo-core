@@ -14,19 +14,29 @@
  * limitations under the License.
  *
  * Contributors:
- *     bdelbosc
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.core.search.client.mock;
+package org.nuxeo.ecm.core.search;
 
-import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+import static org.nuxeo.ecm.core.search.SearchClient.Capability.INDEXING;
+
+import jakarta.inject.Inject;
+
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-test-contrib.xml")
-@Features(BaseCoreSearchFeature.class)
-public class MockSearchClientFeature implements RunnerFeature {
+public class IgnoreIfSearchClientDoesNotHaveIndexingCapability implements ConditionalIgnore.Condition {
+
+    @Inject
+    protected SearchService searchService;
+
+    @Inject
+    protected SearchIndexingService searchIndexingService;
+
+    @Override
+    public boolean shouldIgnore() {
+        return !searchIndexingService.getClient(searchService.getDefaultSearchIndex().client()).hasCapability(INDEXING);
+    }
 }

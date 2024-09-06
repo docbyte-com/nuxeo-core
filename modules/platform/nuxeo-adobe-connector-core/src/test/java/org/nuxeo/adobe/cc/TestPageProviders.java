@@ -39,6 +39,7 @@ import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClientAndFulltextSearchDisabled;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
@@ -46,6 +47,7 @@ import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -135,6 +137,7 @@ public class TestPageProviders {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "The PP needs fulltext search")
     public void testSearch() {
         DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc.setPropertyValue("dc:description", "hello");

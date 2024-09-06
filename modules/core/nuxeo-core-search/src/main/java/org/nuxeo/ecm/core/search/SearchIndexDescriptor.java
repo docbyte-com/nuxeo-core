@@ -87,6 +87,14 @@ public class SearchIndexDescriptor implements Descriptor {
         return writerClass;
     }
 
+    public IndexingJsonWriter newWriterInstance() {
+        try {
+            return writerClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalArgumentException("Invalid JsonWriter class: " + writerClass + " for: " + name, e);
+        }
+    }
+
     public boolean canCreateIndex() {
         return create;
     }

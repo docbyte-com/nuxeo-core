@@ -39,11 +39,12 @@
   </extension>
 
   <extension target="org.nuxeo.ecm.core.search" point="searchClient">
-    <searchClient name="opensearch" default="true" class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
+    <searchClient name="opensearch" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
+      class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
       <connection>
         <option name="clientId">search/default</option>
       </connection>
-      <index name="nuxeo" repository="default" create="false" default="true"
+      <index name="nuxeo" repository="default" create="false" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
         writerClass="org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter" />
     </searchClient>
   </extension>

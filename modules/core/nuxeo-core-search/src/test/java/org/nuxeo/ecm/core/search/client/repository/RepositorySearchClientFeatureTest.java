@@ -16,17 +16,26 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.ecm.core.search.client.mock;
+package org.nuxeo.ecm.core.search.client.repository;
 
-import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-test-contrib.xml")
-@Features(BaseCoreSearchFeature.class)
-public class MockSearchClientFeature implements RunnerFeature {
+@RunWith(FeaturesRunner.class)
+@Features(RepositorySearchClientFeature.class)
+public class RepositorySearchClientFeatureTest {
+
+    @Test
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
+    }
 }

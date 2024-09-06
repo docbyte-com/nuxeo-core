@@ -47,12 +47,13 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
@@ -72,6 +73,8 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
     protected static final String DEFAULT_CHECK_SEARCH_NXQL = "SELECT * FROM Document WHERE ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 AND ecm:isVersion = 0 AND ecm:isTrashed = 0";
 
     protected static final Long DEFAULT_CHECK_SEARCH_PAGE_SIZE = 10L;
+
+    protected static final String CHECK_SEARCH_NXQL_PP = "search_check_nxql";
 
     protected static final Integer DEFAULT_TIMEOUT_SECONDS = 60;
 
@@ -139,15 +142,17 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         if (pageSize == null || pageSize < 1) {
             pageSize = DEFAULT_CHECK_SEARCH_PAGE_SIZE;
         }
-        Map<String, Serializable> repoSearch = extractResultInfo("nxql_repo_search", nxql, pageSize);
-        Map<String, Serializable> search = extractResultInfo("search_check_nxql", nxql, pageSize);
+        SearchService service = Framework.getService(SearchService.class);
+        String repository = ctx.getCoreSession().getRepositoryName();
+        var searchIndexes = service.getSearchIndexForRepository(repository);
         Map<String, Serializable> ret = new HashMap<>();
         ret.put("query", nxql);
-        ret.put("order", repoSearch.get("order"));
-        repoSearch.remove("order");
-        search.remove("order");
-        ret.put("repo", (Serializable) repoSearch);
-        ret.put("search", (Serializable) search);
+        for (var searchIndex : searchIndexes) {
+            Map<String, Serializable> map = extractResultInfo(searchIndex, nxql, pageSize);
+            ret.put("order", map.get("order"));
+            map.remove("order");
+            ret.put(searchIndex.client() + "/" + searchIndex.index(), (Serializable) map);
+        }
         try {
             return MAPPER.writeValueAsString(ret);
         } catch (JsonProcessingException e) {
@@ -155,21 +160,20 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    protected Map<String, Serializable> extractResultInfo(String ppName, String nxql, long pageSize) {
+    protected Map<String, Serializable> extractResultInfo(SearchIndex searchIndex, String nxql, long pageSize) {
         PageProviderService pageProviderService = Framework.getService(PageProviderService.class);
-        PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition(ppName);
+        PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition(CHECK_SEARCH_NXQL_PP);
         HashMap<String, Serializable> params = new HashMap<>();
         params.put(CORE_SESSION_PROPERTY, (Serializable) ctx.getCoreSession());
-        var pp = (PageProvider<DocumentModel>) pageProviderService.getPageProvider(ppName, ppdef, null, null, pageSize,
-                0L, params);
-        String[] patternParams = { nxql };
-        pp.setParameters(patternParams);
+        var pp = (SearchServicePageProvider) pageProviderService.getPageProvider(CHECK_SEARCH_NXQL_PP, ppdef, null,
+                null, pageSize, 0L, params);
+        pp.setSearchIndex(searchIndex);
+        pp.setParameters(new String[] { nxql });
         long start = System.currentTimeMillis();
         List<DocumentModel> res = pp.getCurrentPage();
         long duration = System.currentTimeMillis() - start;
         Map<String, Serializable> ret = new HashMap<>();
-        ret.put("pageProvider", ppName);
+        ret.put("pageProvider", CHECK_SEARCH_NXQL_PP);
         ret.put("pageSize", pageSize);
         ret.put("took", duration);
         ret.put("resultsCount", pp.getResultsCount());

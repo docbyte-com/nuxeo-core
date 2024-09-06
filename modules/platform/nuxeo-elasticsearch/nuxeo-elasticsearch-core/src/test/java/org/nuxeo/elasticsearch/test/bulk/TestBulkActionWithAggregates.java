@@ -48,9 +48,11 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.action.SetPropertiesAction;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveAggregateCapability;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -64,6 +66,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider-bulk-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveAggregateCapability.class)
 public class TestBulkActionWithAggregates {
 
     protected static final int DOCUMENT_COUNT = 20;

@@ -189,6 +189,8 @@ nuxeo.search.stream.indexingAsync.defaultPartitions=8
 nuxeo.search.stream.reindexing.defaultConcurrency=${nuxeo.bulk.action.reindex.index.concurrency:=4}
 nuxeo.search.stream.reindexing.defaultPartitions=${nuxeo.bulk.action.reindex.index.partitions:=8}
 
+nuxeo.search.client.default.name=opensearch
+
 nuxeo.search.client.default.opensearch1.enabled=true
 nuxeo.search.client.default.opensearch1.index.name=${elasticsearch.indexName:=nuxeo}
 

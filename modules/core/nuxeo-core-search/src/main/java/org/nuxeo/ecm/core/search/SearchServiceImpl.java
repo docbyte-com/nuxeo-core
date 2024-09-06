@@ -122,7 +122,6 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     protected void initIndexes(SearchClient client, List<SearchIndexDescriptor> indexes) {
-        String defaultIndex = null;
         for (SearchIndexDescriptor descriptor : indexes) {
             if (!descriptor.isEnabled()) {
                 continue;
@@ -137,17 +136,10 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
             SearchIndex index = SearchIndex.of(descriptor.getRepositoryName(), client.getName(), descriptor.getId());
             String repo = descriptor.getRepositoryName();
             repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
-            if (descriptor.isDefault() || defaultIndex == null) {
-                defaultIndex = descriptor.getId();
+            if (descriptor.isDefault() || !repoToDefaultSearchIndex.containsKey(repo)) {
                 repoToDefaultSearchIndex.put(repo, index);
             }
-            try {
-                IndexingJsonWriter writer = descriptor.getWriterClass().getDeclaredConstructor().newInstance();
-                indexToJsonWriter.put(index, writer);
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalArgumentException(
-                        "Invalid JsonWriter class: " + descriptor.getWriterClass() + " for: " + index, e);
-            }
+            indexToJsonWriter.put(index, descriptor.newWriterInstance());
         }
     }
 
@@ -263,11 +255,9 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     protected String json(IndexingJsonWriter writer, DocumentModel doc) {
-        StringWriter stringWriter = new StringWriter();
-        try {
-            JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter);
+        try (StringWriter stringWriter = new StringWriter();
+                JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter)) {
             writer.writeDocument(generator, doc);
-            generator.close();
             return stringWriter.toString();
         } catch (IOException e) {
             throw new RuntimeException(e);

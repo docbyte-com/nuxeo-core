@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.test;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SEARCH_SERVICE_VALUE;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_REPOSITORY;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import org.apache.commons.lang3.StringUtils;
@@ -31,6 +32,7 @@ import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.search.client.mock.MockSearchClientFeature;
 import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchCoreSearchFeature;
+import org.nuxeo.ecm.core.search.client.repository.RepositorySearchClientFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
@@ -49,6 +51,7 @@ public class CoreSearchFeature implements RunnerFeature {
         var feature = switch (SEARCH_SERVICE_VALUE) {
             case STORAGE_MEM -> MockSearchClientFeature.class;
             case STORAGE_OPENSEARCH_1 -> OpenSearchCoreSearchFeature.class;
+            case STORAGE_REPOSITORY -> RepositorySearchClientFeature.class;
             default ->
                 throw new UnsupportedOperationException("Search type: " + SEARCH_SERVICE_VALUE + " is not supported");
         };
@@ -67,6 +70,10 @@ public class CoreSearchFeature implements RunnerFeature {
 
     public boolean hasOpenSearchClient() {
         return SEARCH_SERVICE_VALUE.equals(STORAGE_OPENSEARCH_1);
+    }
+
+    public boolean hasRepositoryClient() {
+        return SEARCH_SERVICE_VALUE.equals(STORAGE_REPOSITORY);
     }
 
     /**

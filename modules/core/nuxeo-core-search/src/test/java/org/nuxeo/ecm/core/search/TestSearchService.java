@@ -50,7 +50,9 @@ public class TestSearchService {
 
         assertEquals(SearchIndex.of(defaultRepo, defaultClient, "idx"), service.getDefaultSearchIndex());
 
-        assertEquals(List.of(SearchIndex.of(defaultRepo, defaultClient, "idx")),
+        assertEquals(
+                List.of(SearchIndex.of(defaultRepo, "repository", "repository"),
+                        SearchIndex.of(defaultRepo, defaultClient, "idx")),
                 service.getSearchIndexForRepository(defaultRepo));
     }
 }

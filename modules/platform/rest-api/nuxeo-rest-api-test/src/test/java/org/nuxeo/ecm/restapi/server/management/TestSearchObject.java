@@ -23,7 +23,6 @@ import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
@@ -46,6 +45,7 @@ import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.http.test.HttpResponse;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RandomBug;
 
@@ -95,6 +95,8 @@ public class TestSearchObject extends ManagementBaseTest {
     @Test
     @RandomBug.Repeat(issue = "Too fast and not enough concurrent", onFailure = 10, onSuccess = 30)
     public void fullReindexShouldBeExclusive() {
+        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
+
         txFeature.nextTransaction();
         int status1 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
         int status2 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
@@ -147,11 +149,19 @@ public class TestSearchObject extends ManagementBaseTest {
         httpClient.buildGetRequest("/management/search/checkSearch")
                   .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
                       assertTrue(jsonNode.isObject());
-                      assertEquals(jsonNode.get("repo").get("resultsCount"),
-                              jsonNode.get("search").get("resultsCount"));
-                      assertNotNull(jsonNode.get("repo").get("results"));
-                      assertEquals(jsonNode.get("repo").get("results"), jsonNode.get("search").get("results"));
+                      Framework.getService(SearchService.class)
+                               .getSearchIndexForRepository(coreSession.getRepositoryName())
+                               .forEach(searchIndex -> checkAssert(jsonNode,
+                                       searchIndex.client() + '/' + searchIndex.index()));
                   });
+    }
+
+    protected void checkAssert(JsonNode response, String searchIndex) {
+        assertTrue("Response doesn't have result for searchIndex: " + searchIndex, response.has(searchIndex));
+        JsonNode node = response.get(searchIndex);
+        assertTrue(searchIndex, node.isObject());
+        assertEquals(searchIndex, 4, node.get("resultsCount").asInt());
+        assertEquals(searchIndex, 10, node.get("pageSize").asInt());
     }
 
     @Test

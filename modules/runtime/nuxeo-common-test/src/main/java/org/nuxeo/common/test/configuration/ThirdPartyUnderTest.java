@@ -38,6 +38,8 @@ public final class ThirdPartyUnderTest {
 
     public static final String STORAGE_OPENSEARCH_1 = "opensearch1";
 
+    public static final String STORAGE_REPOSITORY = "repository";
+
     public static final String STORAGE_SQL = "sql";
 
     public static final String STORAGE_SQL_DB_H2 = "H2";
@@ -58,7 +60,7 @@ public final class ThirdPartyUnderTest {
             STORAGE_SQL);
 
     public static final SystemProperty SEARCH_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.search",
-            STORAGE_OPENSEARCH_1);
+            STORAGE_REPOSITORY);
 
     public static final SystemProperty STREAM_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.stream", STREAM_MEM);
 

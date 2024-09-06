@@ -19,10 +19,12 @@
 package org.nuxeo.ecm.core.search;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 
 import jakarta.inject.Inject;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -53,7 +55,16 @@ public class TestSearchFulltextEnabled {
     protected CoreFeature coreFeature;
 
     @Inject
+    protected CoreSearchFeature coreSearchFeature;
+
+    @Inject
     protected TransactionalFeature txFeature;
+
+    @Before
+    public void checkSupportsFulltextSearchIfRepositoryClient() {
+        assumeTrue("fulltext search not supported", !coreSearchFeature.hasRepositoryClient()
+                || coreFeature.getStorageConfiguration().supportsFulltextSearch());
+    }
 
     @Test
     public void testFulltext() {

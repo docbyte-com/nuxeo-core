@@ -40,6 +40,7 @@ import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -53,6 +54,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ CoreSearchFeature.class, LogCaptureFeature.class })
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveIndexingCapability.class)
 public class TestSearchReindexing {
 
     @Inject

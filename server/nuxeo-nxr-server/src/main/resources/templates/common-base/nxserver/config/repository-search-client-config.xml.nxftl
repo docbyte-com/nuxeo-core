@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.repository.contrib">
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
+    <searchClient name="repository" default="${(nuxeo.search.client.default.name == 'repository')?c}"
+      class="org.nuxeo.ecm.core.search.client.repository.RepositorySearchClient">
+      <index name="repository" repository="default" create="false" default="${(nuxeo.search.client.default.name == 'repository')?c}" />
+    </searchClient>
+  </extension>
+
+</component>

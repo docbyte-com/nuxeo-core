@@ -16,17 +16,19 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.ecm.core.search.client.mock;
+package org.nuxeo.ecm.core.search.client.repository;
 
 import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/repository-search-client-test-contrib.xml")
 @Features(BaseCoreSearchFeature.class)
-public class MockSearchClientFeature implements RunnerFeature {
+@WithFrameworkProperty(name = "nuxeo.test.search.client.repository.default", value = "true")
+public class RepositorySearchClientFeature implements RunnerFeature {
 }

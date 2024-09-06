@@ -33,15 +33,18 @@ import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveIndexingCapability;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.MultiRepositorySearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeaturesFeature.class, MultiRepositorySearchFeature.class })
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveIndexingCapability.class)
 public class TestSearchAutomationMultiRepo {
 
     @Inject

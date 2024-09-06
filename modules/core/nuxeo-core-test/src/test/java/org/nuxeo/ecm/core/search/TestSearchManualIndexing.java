@@ -38,6 +38,7 @@ import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -51,6 +52,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @RunWith(FeaturesRunner.class)
 @Features(CoreSearchFeature.class)
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/search/disable-search-domain-event-contrib.xml")
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveIndexingCapability.class)
 public class TestSearchManualIndexing {
 
     @Inject

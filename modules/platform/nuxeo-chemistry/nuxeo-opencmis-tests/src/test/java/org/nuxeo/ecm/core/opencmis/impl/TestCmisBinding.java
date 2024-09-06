@@ -156,6 +156,7 @@ import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoRepository;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoTypeHelper;
 import org.nuxeo.ecm.core.opencmis.tests.Helper;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClientAndFulltextSearchDisabled;
 import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -2277,6 +2278,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "contains needs fulltext")
     public void testQueryContains() {
 
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
@@ -2391,6 +2393,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "contains needs fulltext")
     public void testQueryContainsQualifier() {
 
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
@@ -2415,6 +2418,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "contains needs fulltext")
     public void testQueryContainsSyntax() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         assertEquals("testfile1_Title", getString(ob, "dc:title"));
@@ -2450,6 +2454,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "contains needs fulltext")
     public void testQueryScore() {
         nextTransaction();
         waitForIndexing();

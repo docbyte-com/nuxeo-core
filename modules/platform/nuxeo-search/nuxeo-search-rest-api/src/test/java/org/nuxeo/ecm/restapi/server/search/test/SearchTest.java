@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveAggregateCapability;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -49,6 +50,7 @@ import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -402,6 +404,7 @@ public class SearchTest {
      * @since 10.2
      */
     @Test
+    @ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveAggregateCapability.class)
     public void iCanPerformPageProviderWithOrWithoutAggregates() {
         String searchPath = getSearchPageProviderExecutePath("aggregates");
         String aggKey;

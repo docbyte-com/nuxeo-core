@@ -2,15 +2,6 @@
 <component name="org.nuxeo.ecm.restapi.server.management.search">
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
-    <!-- technical page provider for evaluating search results -->
-    <coreQueryPageProvider name="nxql_repo_search">
-      <trackUsage>true</trackUsage>
-      <searchDocumentType>DefaultSearch</searchDocumentType>
-      <pattern quoteParameters="false" escapeParameters="false">?</pattern>
-      <pageSize>10</pageSize>
-      <sort column="dc:modified" ascending="false" />
-    </coreQueryPageProvider>
-
     <searchServicePageProvider name="search_check_nxql">
       <trackUsage>false</trackUsage>
       <searchDocumentType>DefaultSearch</searchDocumentType>
@@ -18,7 +9,6 @@
       <pageSize>10</pageSize>
       <sort column="dc:modified" ascending="false" />
     </searchServicePageProvider>
-
   </extension>
 
 </component>

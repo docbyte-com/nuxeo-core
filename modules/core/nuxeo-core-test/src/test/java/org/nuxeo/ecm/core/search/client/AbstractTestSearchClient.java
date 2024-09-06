@@ -20,8 +20,6 @@ package org.nuxeo.ecm.core.search.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.nuxeo.ecm.core.search.SearchClient.Capability.INDEXING;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -34,6 +32,7 @@ import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveIndexingCapability;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClient;
 import org.nuxeo.ecm.core.search.SearchIndex;
@@ -42,6 +41,7 @@ import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -50,6 +50,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(CoreSearchFeature.class)
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveIndexingCapability.class)
 public abstract class AbstractTestSearchClient {
 
     @Inject
@@ -62,9 +63,6 @@ public abstract class AbstractTestSearchClient {
 
     @Before
     public void populateIndex() {
-        // check we can index before populating the index
-        assumeTrue("Search Client: '" + getClient().getName() + "' has no indexing capability",
-                getClient().hasCapability(INDEXING));
         // populate only once as there's no cleanup
         if (populated) {
             return;
