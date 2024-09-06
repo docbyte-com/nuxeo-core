@@ -72,9 +72,7 @@ public class NuxeoDriveSetActiveFactories {
         } finally {
             Framework.getRuntime().getComponentManager().unstash();
         }
-        FileSystemItemAdapterServiceImpl fileSystemItemAdapterService = (FileSystemItemAdapterServiceImpl) Framework.getService(
-                FileSystemItemAdapterService.class);
-        fileSystemItemAdapterService.setActiveFactories();
+        ((FileSystemItemAdapterServiceImpl) Framework.getService(FileSystemItemAdapterService.class)).start(null);
         return true;
     }
 
