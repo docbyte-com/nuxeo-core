@@ -71,14 +71,11 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     public static final String DEFAULT_LODS_EP = "automaticLOD";
 
-    protected AutomaticRenderViewContributionHandler automaticRenderViews;
-
     protected RenderViewContributionHandler renderViews;
 
     @Override
     public void activate(ComponentContext context) {
         super.activate(context);
-        automaticRenderViews = new AutomaticRenderViewContributionHandler();
         renderViews = new RenderViewContributionHandler();
     }
 
@@ -96,35 +93,24 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
                 throw new RuntimeException(e);
             }
         }
-        automaticRenderViews = null;
         renderViews = null;
     }
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        switch (extensionPoint) {
-            case RENDER_VIEWS_EP:
-                renderViews.addContribution((RenderView) contribution);
-                break;
-            case DEFAULT_RENDER_VIEWS_EP:
-                automaticRenderViews.addContribution((AutomaticRenderView) contribution);
-                break;
-            default:
-                register(extensionPoint, (Descriptor) contribution);
+        if (extensionPoint.equals(RENDER_VIEWS_EP)) {
+            renderViews.addContribution((RenderView) contribution);
+        } else {
+            register(extensionPoint, (Descriptor) contribution);
         }
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        switch (extensionPoint) {
-            case RENDER_VIEWS_EP:
-                renderViews.removeContribution((RenderView) contribution);
-                break;
-            case DEFAULT_RENDER_VIEWS_EP:
-                automaticRenderViews.removeContribution((AutomaticRenderView) contribution);
-                break;
-            default:
-                unregister(extensionPoint, (Descriptor) contribution);
+        if (extensionPoint.equals(RENDER_VIEWS_EP)) {
+            renderViews.removeContribution((RenderView) contribution);
+        } else {
+            unregister(extensionPoint, (Descriptor) contribution);
         }
     }
 
@@ -203,14 +189,14 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     @Override
     public Collection<RenderView> getAutomaticRenderViews() {
-        return automaticRenderViews.registry.values()
-                                            .stream()
-                                            .filter(AutomaticRenderView::isEnabled)
-                                            .sorted((o1, o2) -> o1.getOrder() - o2.getOrder())
-                                            .map(AutomaticRenderView::getId)
-                                            .map(this::getRenderView)
-                                            .filter(RenderView::isEnabled)
-                                            .collect(Collectors.toList());
+        return this.<AutomaticRenderView> getDescriptors(DEFAULT_RENDER_VIEWS_EP)
+                   .stream()
+                   .filter(AutomaticRenderView::isEnabled)
+                   .sorted(Comparator.comparingInt(AutomaticRenderView::getOrder))
+                   .map(AutomaticRenderView::getId)
+                   .map(this::getRenderView)
+                   .filter(RenderView::isEnabled)
+                   .collect(Collectors.toList());
     }
 
     @Override

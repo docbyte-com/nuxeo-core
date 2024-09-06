@@ -18,8 +18,11 @@
  */
 package org.nuxeo.ecm.platform.threed.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object representing an automatic render view on the {@link ThreeDService}. An {@code AutomaticRenderView} references
@@ -28,7 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 8.4
  */
 @XObject("automaticRenderView")
-public class AutomaticRenderView implements Comparable<AutomaticRenderView> {
+public class AutomaticRenderView implements Comparable<AutomaticRenderView>, Descriptor {
 
     @XNode("@order")
     protected Integer order;
@@ -46,13 +49,21 @@ public class AutomaticRenderView implements Comparable<AutomaticRenderView> {
     }
 
     public AutomaticRenderView() {
-        super();
+    }
+
+    @Override
+    public String getId() {
+        return String.valueOf(name.hashCode() & 0x7fffffff);
     }
 
     public Integer getOrder() {
         return order;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setOrder(Integer order) {
         this.order = order;
     }
@@ -65,14 +76,14 @@ public class AutomaticRenderView implements Comparable<AutomaticRenderView> {
         this.name = name;
     }
 
-    public String getId() {
-        return String.valueOf(name.hashCode() & 0x7fffffff);
-    }
-
     public boolean isEnabled() {
         return (enabled == null) || enabled;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -82,15 +93,13 @@ public class AutomaticRenderView implements Comparable<AutomaticRenderView> {
         return name.compareTo(o.name);
     }
 
-    public void merge(AutomaticRenderView src) {
-        if (src.order != null) {
-            order = src.order;
-        }
-        if (src.name != null) {
-            name = src.name;
-        }
-        if (src.enabled != null) {
-            enabled = src.enabled;
-        }
+    @Override
+    public AutomaticRenderView merge(Descriptor o) {
+        var other = (AutomaticRenderView) o;
+        var merged = new AutomaticRenderView(this);
+        merged.order = defaultIfNull(other.order, merged.order);
+        merged.enabled = defaultIfNull(other.enabled, merged.enabled);
+
+        return merged;
     }
 }
