@@ -27,7 +27,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -69,18 +71,10 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
      */
     public static final String CONFIGURATION_EP = "configuration";
 
-    protected VideoConversionContributionHandler videoConversions;
-
     /**
      * @since 7.4
      */
     protected Configuration configuration = DEFAULT_CONFIGURATION;
-
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        videoConversions = new VideoConversionContributionHandler();
-    }
 
     @Override
     public void deactivate(ComponentContext context) {
@@ -95,40 +89,32 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
                 throw new NuxeoException(e);
             }
         }
-        videoConversions = null;
     }
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        switch (extensionPoint) {
-            case VIDEO_CONVERSIONS_EP:
-                videoConversions.addContribution((VideoConversion) contribution);
-                break;
-            case CONFIGURATION_EP:
-                configuration = (Configuration) contribution;
-                break;
-            default:
-                register(extensionPoint, (Descriptor) contribution);
+        if (extensionPoint.equals(CONFIGURATION_EP)) {
+            configuration = (Configuration) contribution;
+        } else {
+            register(extensionPoint, (Descriptor) contribution);
         }
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        switch (extensionPoint) {
-            case VIDEO_CONVERSIONS_EP:
-                videoConversions.removeContribution((VideoConversion) contribution);
-                break;
-            case CONFIGURATION_EP:
-                configuration = DEFAULT_CONFIGURATION;
-                break;
-            default:
-                unregister(extensionPoint, (Descriptor) contribution);
+        if (extensionPoint.equals(CONFIGURATION_EP)) {
+            configuration = DEFAULT_CONFIGURATION;
+        } else {
+            unregister(extensionPoint, (Descriptor) contribution);
         }
     }
 
     @Override
     public Collection<VideoConversion> getAvailableVideoConversions() {
-        return videoConversions.registry.values();
+        return this.<VideoConversion> getDescriptors(VIDEO_CONVERSIONS_EP)
+                   .stream()
+                   .filter(VideoConversion::isEnabled)
+                   .collect(Collectors.toList());
     }
 
     @Override
@@ -160,11 +146,11 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
 
     @Override
     public TranscodedVideo convert(Video originalVideo, String conversionName) {
-        if (!videoConversions.registry.containsKey(conversionName)) {
+        var conversion = getVideoConversion(conversionName);
+        if (conversion == null) {
             throw new NuxeoException(String.format("'%s' is not a registered video conversion.", conversionName));
         }
         BlobHolder blobHolder = new SimpleBlobHolder(originalVideo.getBlob());
-        VideoConversion conversion = videoConversions.registry.get(conversionName);
         Map<String, Serializable> parameters = new HashMap<>();
         parameters.put("height", conversion.getHeight());
         parameters.put("videoInfo", originalVideo.getVideoInfo());
@@ -192,7 +178,10 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
 
     @Override
     public VideoConversion getVideoConversion(String conversionName) {
-        return videoConversions.registry.get(conversionName);
+        return getAvailableVideoConversions().stream()
+                                             .filter(c -> Objects.equals(c.getId(), conversionName))
+                                             .findFirst()
+                                             .orElse(null);
     }
 
     @Override
