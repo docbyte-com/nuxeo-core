@@ -18,8 +18,11 @@
  */
 package org.nuxeo.ecm.platform.threed.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object representing a registered automatic level of detail conversion on the {@link ThreeDService}. An
@@ -28,7 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 8.4
  */
 @XObject("automaticLOD")
-public class AutomaticLOD implements Comparable<AutomaticLOD> {
+public class AutomaticLOD implements Comparable<AutomaticLOD>, Descriptor {
 
     @XNode("@order")
     protected Integer order;
@@ -70,13 +73,21 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
     }
 
     public AutomaticLOD() {
-        super();
+    }
+
+    @Override
+    public String getId() {
+        return String.valueOf(name.hashCode() & 0x7fffffff);
     }
 
     public Integer getOrder() {
         return order;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setOrder(Integer order) {
         this.order = order;
     }
@@ -93,6 +104,10 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
         return (enabled == null) || enabled;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -117,6 +132,10 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
         return percTex;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setPercTex(Integer percTex) {
         this.percTex = percTex;
     }
@@ -125,6 +144,10 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
         return maxTex;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setMaxTex(String maxTex) {
         this.maxTex = maxTex;
     }
@@ -141,12 +164,12 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
         return (renditionVisible == null) || renditionVisible;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setRenditionVisible(boolean renditionVisible) {
         this.renditionVisible = renditionVisible;
-    }
-
-    public String getId() {
-        return String.valueOf(name.hashCode() & 0x7fffffff);
     }
 
     @Override
@@ -154,33 +177,20 @@ public class AutomaticLOD implements Comparable<AutomaticLOD> {
         return o.percPoly.compareTo(percPoly);
     }
 
-    public void merge(AutomaticLOD src) {
-        if (src.order != null) {
-            order = src.order;
-        }
-        if (src.name != null) {
-            name = src.name;
-        }
-        if (src.percPoly != null) {
-            percPoly = src.percPoly;
-        }
-        if (src.maxPoly != null) {
-            maxPoly = src.maxPoly;
-        }
-        if (src.maxTex != null) {
-            maxTex = src.maxTex;
-        }
-        if (src.percTex != null) {
-            percTex = src.percTex;
-        }
-        if (src.enabled != null) {
-            enabled = src.enabled;
-        }
-        if (src.rendition != null) {
-            rendition = src.rendition;
-        }
-        if (src.renditionVisible != null) {
-            renditionVisible = src.renditionVisible;
-        }
+    @Override
+    public AutomaticLOD merge(Descriptor o) {
+        var other = (AutomaticLOD) o;
+        var merged = new AutomaticLOD(this);
+        // we merge based on getId which hashes the name, so no name merging needed
+        merged.order = defaultIfNull(other.order, merged.order);
+        merged.percPoly = defaultIfNull(other.percPoly, merged.percPoly);
+        merged.maxPoly = defaultIfNull(other.maxPoly, merged.maxPoly);
+        merged.maxTex = defaultIfNull(other.maxTex, merged.maxTex);
+        merged.percTex = defaultIfNull(other.percTex, merged.percTex);
+        merged.enabled = defaultIfNull(other.enabled, merged.enabled);
+        merged.rendition = defaultIfNull(other.rendition, merged.rendition);
+        merged.renditionVisible = defaultIfNull(other.renditionVisible, renditionVisible);
+
+        return merged;
     }
 }

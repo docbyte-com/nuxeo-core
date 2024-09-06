@@ -18,13 +18,13 @@
  */
 package org.nuxeo.ecm.platform.threed.service;
 
+import java.util.Collection;
+
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.platform.threed.ThreeD;
 import org.nuxeo.ecm.platform.threed.ThreeDBatchProgress;
 import org.nuxeo.ecm.platform.threed.TransmissionThreeD;
-
-import java.util.Collection;
 
 /**
  * Service to asynchronously launch and monitor 3D format conversions (including lod) and rendering.
@@ -77,7 +77,7 @@ public interface ThreeDService {
     Collection<AutomaticLOD> getAvailableLODs();
 
     /**
-     * Returns the automatic registered automatic LODs on a 3D content.
+     * Returns the sorted automatic registered automatic LODs on a 3D content.
      */
     Collection<AutomaticLOD> getAutomaticLODs();
 

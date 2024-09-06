@@ -33,9 +33,11 @@ import static org.nuxeo.ecm.platform.threed.convert.Constants.RENDER_IDS_PARAMET
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -54,6 +56,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Default implementation of {@link ThreeDService}
@@ -68,21 +71,20 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     public static final String DEFAULT_LODS_EP = "automaticLOD";
 
-    protected AutomaticLODContributionHandler automaticLODs;
-
     protected AutomaticRenderViewContributionHandler automaticRenderViews;
 
     protected RenderViewContributionHandler renderViews;
 
     @Override
     public void activate(ComponentContext context) {
-        automaticLODs = new AutomaticLODContributionHandler();
+        super.activate(context);
         automaticRenderViews = new AutomaticRenderViewContributionHandler();
         renderViews = new RenderViewContributionHandler();
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         WorkManager workManager = Framework.getService(WorkManager.class);
         if (workManager != null && workManager.isStarted()) {
             try {
@@ -94,7 +96,6 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
                 throw new RuntimeException(e);
             }
         }
-        automaticLODs = null;
         automaticRenderViews = null;
         renderViews = null;
     }
@@ -108,8 +109,8 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
             case DEFAULT_RENDER_VIEWS_EP:
                 automaticRenderViews.addContribution((AutomaticRenderView) contribution);
                 break;
-            case DEFAULT_LODS_EP:
-                automaticLODs.addContribution((AutomaticLOD) contribution);
+            default:
+                register(extensionPoint, (Descriptor) contribution);
         }
     }
 
@@ -122,8 +123,8 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
             case DEFAULT_RENDER_VIEWS_EP:
                 automaticRenderViews.removeContribution((AutomaticRenderView) contribution);
                 break;
-            case DEFAULT_LODS_EP:
-                automaticLODs.removeContribution((AutomaticLOD) contribution);
+            default:
+                unregister(extensionPoint, (Descriptor) contribution);
         }
     }
 
@@ -214,21 +215,25 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     @Override
     public Collection<AutomaticLOD> getAvailableLODs() {
-        return automaticLODs.registry.values();
+        return this.<AutomaticLOD> getDescriptors(DEFAULT_LODS_EP)
+                   .stream()
+                   .filter(AutomaticLOD::isEnabled)
+                   .collect(Collectors.toSet());
     }
 
     @Override
     public Collection<AutomaticLOD> getAutomaticLODs() {
-        return automaticLODs.registry.values()
-                                     .stream()
-                                     .filter(AutomaticLOD::isEnabled)
-                                     .sorted((o1, o2) -> o1.getOrder() - o2.getOrder())
-                                     .collect(Collectors.toList());
+        return getAvailableLODs().stream()
+                                 .sorted(Comparator.comparingInt(AutomaticLOD::getOrder))
+                                 .collect(Collectors.toList());
     }
 
     @Override
     public AutomaticLOD getAutomaticLOD(String automaticLODId) {
-        return automaticLODs.registry.get(automaticLODId);
+        return getAvailableLODs().stream()
+                                 .filter(a -> Objects.equals(a.getId(), automaticLODId))
+                                 .findFirst()
+                                 .orElse(null);
     }
 
     @Override
