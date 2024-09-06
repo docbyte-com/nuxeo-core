@@ -18,8 +18,11 @@
  */
 package org.nuxeo.ecm.platform.threed.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object representing a registered render view conversion on the {@link ThreeDService}. An {@code RenderView}
@@ -28,7 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 8.4
  */
 @XObject("renderView")
-public class RenderView implements Comparable<RenderView> {
+public class RenderView implements Comparable<RenderView>, Descriptor {
 
     @XNode("@name")
     protected String name;
@@ -66,7 +69,11 @@ public class RenderView implements Comparable<RenderView> {
     }
 
     public RenderView() {
-        super();
+    }
+
+    @Override
+    public String getId() {
+        return String.valueOf(name.hashCode() & 0x7fffffff);
     }
 
     public String getName() {
@@ -81,6 +88,10 @@ public class RenderView implements Comparable<RenderView> {
         return zenith;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setZenith(Integer zenith) {
         this.zenith = zenith;
     }
@@ -89,6 +100,10 @@ public class RenderView implements Comparable<RenderView> {
         return azimuth;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setAzimuth(Integer azimuth) {
         this.azimuth = azimuth;
     }
@@ -97,6 +112,10 @@ public class RenderView implements Comparable<RenderView> {
         return width;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setWidth(Integer width) {
         this.width = width;
     }
@@ -105,6 +124,10 @@ public class RenderView implements Comparable<RenderView> {
         return height;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setHeight(Integer height) {
         this.height = height;
     }
@@ -113,6 +136,10 @@ public class RenderView implements Comparable<RenderView> {
         return (enabled == null) || enabled;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -129,36 +156,28 @@ public class RenderView implements Comparable<RenderView> {
         return (renditionVisible == null) || renditionVisible;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setRenditionVisible(boolean renditionVisible) {
         this.renditionVisible = renditionVisible;
     }
 
-    public void merge(RenderView src) {
-        if (src.enabled != null) {
-            enabled = src.enabled;
-        }
-        if (src.rendition != null) {
-            rendition = src.rendition;
-        }
-        if (src.renditionVisible != null) {
-            renditionVisible = src.renditionVisible;
-        }
-        if (src.zenith != null) {
-            zenith = src.zenith;
-        }
-        if (src.azimuth != null) {
-            azimuth = src.azimuth;
-        }
-        if (src.width != null) {
-            width = src.width;
-        }
-        if (src.height != null) {
-            height = src.height;
-        }
-    }
+    @Override
+    public RenderView merge(Descriptor o) {
+        var other = (RenderView) o;
+        var merged = new RenderView(this);
+        // we merge based on getId which hashes the name, so no name merging needed
+        merged.enabled = defaultIfNull(other.enabled, merged.enabled);
+        merged.rendition = defaultIfNull(other.rendition, merged.rendition);
+        merged.renditionVisible = defaultIfNull(other.renditionVisible, merged.renditionVisible);
+        merged.zenith = defaultIfNull(other.zenith, merged.zenith);
+        merged.azimuth = defaultIfNull(other.azimuth, merged.azimuth);
+        merged.width = defaultIfNull(other.width, merged.width);
+        merged.height = defaultIfNull(other.height, merged.height);
 
-    public String getId() {
-        return String.valueOf(name.hashCode() & 0x7fffffff);
+        return merged;
     }
 
     @Override

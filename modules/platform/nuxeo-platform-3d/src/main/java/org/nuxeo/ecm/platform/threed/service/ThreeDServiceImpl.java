@@ -54,9 +54,7 @@ import org.nuxeo.ecm.platform.threed.ThreeDBatchProgress;
 import org.nuxeo.ecm.platform.threed.TransmissionThreeD;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Default implementation of {@link ThreeDService}
@@ -71,14 +69,6 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     public static final String DEFAULT_LODS_EP = "automaticLOD";
 
-    protected RenderViewContributionHandler renderViews;
-
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        renderViews = new RenderViewContributionHandler();
-    }
-
     @Override
     public void deactivate(ComponentContext context) {
         super.deactivate(context);
@@ -92,25 +82,6 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
                 Thread.currentThread().interrupt();
                 throw new RuntimeException(e);
             }
-        }
-        renderViews = null;
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals(RENDER_VIEWS_EP)) {
-            renderViews.addContribution((RenderView) contribution);
-        } else {
-            register(extensionPoint, (Descriptor) contribution);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals(RENDER_VIEWS_EP)) {
-            renderViews.removeContribution((RenderView) contribution);
-        } else {
-            unregister(extensionPoint, (Descriptor) contribution);
         }
     }
 
@@ -184,7 +155,10 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     @Override
     public Collection<RenderView> getAvailableRenderViews() {
-        return renderViews.registry.values();
+        return this.<RenderView> getDescriptors(RENDER_VIEWS_EP)
+                   .stream()
+                   .filter(RenderView::isEnabled)
+                   .collect(Collectors.toList());
     }
 
     @Override
@@ -224,17 +198,19 @@ public class ThreeDServiceImpl extends DefaultComponent implements ThreeDService
 
     @Override
     public RenderView getRenderView(String renderViewId) {
-        return renderViews.registry.get(renderViewId);
+        return getAvailableRenderViews().stream()
+                                        .filter(a -> Objects.equals(a.getId(), renderViewId))
+                                        .findFirst()
+                                        .orElse(null);
     }
 
     @Override
     public RenderView getRenderView(Integer azimuth, Integer zenith) {
-        return renderViews.registry.values()
-                                   .stream()
-                                   .filter(renderView -> renderView.getAzimuth().equals(azimuth)
-                                           && renderView.getZenith().equals(zenith))
-                                   .findFirst()
-                                   .orElse(null);
+        return getAvailableRenderViews().stream()
+                                        .filter(renderView -> renderView.getAzimuth().equals(azimuth)
+                                                && renderView.getZenith().equals(zenith))
+                                        .findFirst()
+                                        .orElse(null);
     }
 
     @Override
