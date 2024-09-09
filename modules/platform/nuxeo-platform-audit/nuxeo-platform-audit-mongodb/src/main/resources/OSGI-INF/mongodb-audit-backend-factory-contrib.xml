@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.mongodb.backend.contrib">
+
+  <extension target="org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory" point="backend">
+    <backend name="default" enabled="${nuxeo.audit.backend.default.mongodb.enabled:=true}"
+             connectionId="audit/default" collectionName="${nuxeo.audit.backend.default.mongodb.collection.name:=audit}" />
+  </extension>
+
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
+    <backend name="default" factory="org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory" />
+  </extension>
+
+</component>

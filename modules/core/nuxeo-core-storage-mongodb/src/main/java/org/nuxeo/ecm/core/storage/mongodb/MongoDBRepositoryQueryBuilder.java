@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -77,7 +77,9 @@ import org.nuxeo.ecm.core.storage.ExpressionEvaluator.PathResolver;
 import org.nuxeo.ecm.core.storage.FulltextQueryAnalyzer;
 import org.nuxeo.ecm.core.storage.FulltextQueryAnalyzer.FulltextQuery;
 import org.nuxeo.ecm.core.storage.FulltextQueryAnalyzer.Op;
+import org.nuxeo.ecm.core.storage.QueryOptimizer;
 import org.nuxeo.ecm.core.storage.dbs.DBSSession;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBAbstractSearchBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBOperators;
 
@@ -87,9 +89,11 @@ import org.nuxeo.runtime.mongodb.MongoDBOperators;
  * @since 5.9.4
  */
 
-public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
+public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractSearchBuilder {
 
     private static final Logger log = LogManager.getLogger(MongoDBRepositoryQueryBuilder.class);
+
+    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/\\*\\d+(/)?");
 
     protected final SchemaManager schemaManager;
 
@@ -103,6 +107,8 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
 
     protected final PathResolver pathResolver;
 
+    protected final boolean fulltextSearchDisabled;
+
     public boolean hasFulltext;
 
     public boolean sortOnFulltextScore;
@@ -111,11 +117,14 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
 
     protected Document projection;
 
+    /**
+     * Prefix to remove for $elemMatch (including final dot), or {@code null} if there's no current prefix to remove.
+     */
+    protected String elemMatchPrefix;
+
     protected Map<String, String> propertyKeys;
 
     boolean projectionHasWildcard;
-
-    private boolean fulltextSearchDisabled;
 
     public MongoDBRepositoryQueryBuilder(MongoDBRepository repository, Expression expression, SelectClause selectClause,
             OrderByClause orderByClause, PathResolver pathResolver, boolean fulltextSearchDisabled) {
@@ -394,6 +403,41 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
     }
 
     @Override
+    protected Document walkAndOr(Expression expr, List<? extends Operand> values) {
+        if (values.size() == 1) {
+            return (Document) walkOperand(null, values.getFirst());
+        }
+        boolean and = expr.operator == Operator.AND;
+        String op = and ? MongoDBOperators.AND : MongoDBOperators.OR;
+        // PrefixInfo was computed by the QueryOptimizer for common AND predicates
+        QueryOptimizer.PrefixInfo info = (QueryOptimizer.PrefixInfo) expr.getInfo();
+        if (info == null || info.count < 2 || !and) {
+            List<Object> list = walkOperandList(values);
+            return new Document(op, list);
+        }
+
+        // we have a common prefix for all underlying references, extract it into an $elemMatch node
+
+        String prefix = getMongoDBPrefix(info.prefix);
+        String fieldBase = stripElemMatchPrefix(prefix.substring(0, prefix.length() - 1));
+
+        String previousElemMatchPrefix = elemMatchPrefix;
+        elemMatchPrefix = prefix;
+        List<Object> list = walkOperandList(values);
+        elemMatchPrefix = previousElemMatchPrefix;
+
+        return new Document(fieldBase, new Document(MongoDBOperators.ELEM_MATCH, new Document(op, list)));
+    }
+
+    // remove current prefix and trailing . for actual field match
+    protected String stripElemMatchPrefix(String field) {
+        if (elemMatchPrefix != null && field.startsWith(elemMatchPrefix)) {
+            field = field.substring(elemMatchPrefix.length());
+        }
+        return field;
+    }
+
+    @Override
     public Document walkEq(Operand lvalue, Operand rvalue) {
         FieldInfo fieldInfo = walkReference(lvalue);
         if (isMixinTypes(fieldInfo)) {
@@ -420,6 +464,7 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public Document walkIn(Operand lvalue, Operand rvalue, boolean positive) {
         FieldInfo fieldInfo = walkReference(lvalue);
         if (isMixinTypes(fieldInfo)) {
@@ -432,7 +477,8 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
         return super.walkIn(fieldInfo, rvalue, positive);
     }
 
-    public Document walkStartsWith(Operand lvalue, Operand rvalue) {
+    @Override
+    protected Document walkStartsWith(Operand lvalue, Operand rvalue) {
         if (!(lvalue instanceof Reference)) {
             throw new QueryParseException("Invalid STARTSWITH query, left hand side must be a property: " + lvalue);
         }
@@ -491,7 +537,7 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
      * @return the canonicalized xpath.
      */
     public static String canonicalXPath(String xpath) {
-        while (xpath.length() > 0 && xpath.charAt(0) == '/') {
+        while (!xpath.isEmpty() && xpath.charAt(0) == '/') {
             xpath = xpath.substring(1);
         }
         if (xpath.indexOf('[') == -1) {
@@ -510,9 +556,8 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
      * files:files/*1 -> files.
      * }</pre>
      */
-    @Override
     protected String getMongoDBPrefix(String prefix) {
-        String mongoPrefix = super.getMongoDBPrefix(prefix);
+        String mongoPrefix = SLASH_WILDCARD_SLASH.matcher(prefix).replaceAll(".");
         String first = mongoPrefix.split("\\.")[0];
         int i = first.indexOf(':');
         if (i > 0) {
@@ -520,8 +565,7 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractQueryBuilder {
             Field field = schemaManager.getField(first);
             if (field != null) {
                 Type type = field.getDeclaringType();
-                if (type instanceof Schema) {
-                    Schema schema = (Schema) type;
+                if (type instanceof Schema schema) {
                     if (StringUtils.isBlank(schema.getNamespace().prefix)) {
                         // schema without prefix, strip it
                         mongoPrefix = mongoPrefix.substring(i + 1);

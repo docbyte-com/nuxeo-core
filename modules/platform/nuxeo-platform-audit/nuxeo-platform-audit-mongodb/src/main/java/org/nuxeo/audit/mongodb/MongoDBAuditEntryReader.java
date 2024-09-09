@@ -18,35 +18,28 @@
  */
 package org.nuxeo.audit.mongodb;
 
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_COMMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_LIFE_CYCLE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_TYPE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EXTENDED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_LOG_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_COMMENT;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_LIFE_CYCLE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_TYPE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_LOG_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Date;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.Document;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.runtime.mongodb.MongoDBSerializationHelper;
-
-import com.mongodb.DBObject;
 
 /**
  * Reader for MongoDB Audit.
@@ -58,70 +51,33 @@ public class MongoDBAuditEntryReader {
     private static final Logger log = LogManager.getLogger(MongoDBAuditEntryReader.class);
 
     public static LogEntry read(Document doc) {
-        LogEntryImpl entry = new LogEntryImpl();
+        var eventId = doc.get(LOG_EVENT_ID, String.class);
+        var eventDate = doc.get(LOG_EVENT_DATE, Date.class);
+        var builder = LogEntry.builder(eventId, eventDate);
         for (String key : doc.keySet()) {
             switch (key) {
-                case MongoDBSerializationHelper.MONGODB_ID:
-                    entry.setId(doc.getLong(key).longValue());
-                    break;
-                case LOG_CATEGORY:
-                    entry.setCategory(doc.getString(key));
-                    break;
-                case LOG_PRINCIPAL_NAME:
-                    entry.setPrincipalName(doc.getString(key));
-                    break;
-                case LOG_COMMENT:
-                    entry.setComment(doc.getString(key));
-                    break;
-                case LOG_DOC_LIFE_CYCLE:
-                    entry.setDocLifeCycle(doc.getString(key));
-                    break;
-                case LOG_DOC_PATH:
-                    entry.setDocPath(doc.getString(key));
-                    break;
-                case LOG_DOC_TYPE:
-                    entry.setDocType(doc.getString(key));
-                    break;
-                case LOG_DOC_UUID:
-                    entry.setDocUUID(doc.getString(key));
-                    break;
-                case LOG_EVENT_ID:
-                    entry.setEventId(doc.getString(key));
-                    break;
-                case LOG_REPOSITORY_ID:
-                    entry.setRepositoryId(doc.getString(key));
-                    break;
-                case LOG_EVENT_DATE:
-                    entry.setEventDate(doc.getDate(key));
-                    break;
-                case LOG_LOG_DATE:
-                    entry.setLogDate(doc.getDate(key));
-                    break;
-                case LOG_EXTENDED:
-                    entry.setExtendedInfos(readExtendedInfo(doc.get(key, Document.class)));
-                    break;
-                default:
-                    log.warn("Property with key: {} is not a known LogEntry property, skip it.", key);
-                    break;
+                case MongoDBSerializationHelper.MONGODB_ID -> builder.id(doc.getLong(key));
+                case LOG_CATEGORY -> builder.category(doc.getString(key));
+                case LOG_PRINCIPAL_NAME -> builder.principalName(doc.getString(key));
+                case LOG_COMMENT -> builder.comment(doc.getString(key));
+                case LOG_DOC_LIFE_CYCLE -> builder.docLifeCycle(doc.getString(key));
+                case LOG_DOC_PATH -> builder.docPath(doc.getString(key));
+                case LOG_DOC_TYPE -> builder.docType(doc.getString(key));
+                case LOG_DOC_UUID -> builder.docUUID(doc.getString(key));
+                case LOG_REPOSITORY_ID -> builder.repositoryId(doc.getString(key));
+                case LOG_LOG_DATE -> builder.logDate(doc.getDate(key));
+                case LOG_EXTENDED -> builder.extended(readExtendedInfo(doc.get(key, Document.class)));
+                case LOG_EVENT_ID, LOG_EVENT_DATE -> {
+                    // already read
+                }
+                default -> log.warn("Property with key: {} is not a known LogEntry property, skip it.", key);
             }
         }
-        return entry;
+        return builder.build();
     }
 
-    public static Map<String, ExtendedInfo> readExtendedInfo(Document extInfos) {
-        Map<String, ExtendedInfo> info = new HashMap<>();
-        for (Entry<String, Object> entry : extInfos.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            ExtendedInfoImpl ei;
-            if (value instanceof List || value instanceof DBObject) {
-                ei = ExtendedInfoImpl.createExtendedInfo(value.toString());
-            } else {
-                ei = ExtendedInfoImpl.createExtendedInfo((Serializable) value);
-            }
-            info.put(key, ei);
-        }
-        return info;
+    public static Map<String, Object> readExtendedInfo(Document extInfos) {
+        return extInfos.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
 }

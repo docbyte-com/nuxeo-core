@@ -18,19 +18,12 @@
  */
 package org.nuxeo.audit.mongodb;
 
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
+import static org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer.DEFAULT_STORE_NAME;
 import static org.nuxeo.runtime.mongodb.MongoDBSerializationHelper.MONGODB_ID;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -39,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
-import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -48,42 +39,30 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.LogEntryList;
+import org.nuxeo.audit.service.AbstractAuditBackend;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.common.utils.TextTemplate;
 import org.nuxeo.ecm.core.api.CursorService;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.ScrollResult;
-import org.nuxeo.ecm.core.query.sql.model.Literals;
-import org.nuxeo.ecm.core.query.sql.model.MultiExpression;
-import org.nuxeo.ecm.core.query.sql.model.Operand;
-import org.nuxeo.ecm.core.query.sql.model.Operator;
-import org.nuxeo.ecm.core.query.sql.model.OrderByExpr;
-import org.nuxeo.ecm.core.query.sql.model.OrderByList;
-import org.nuxeo.ecm.core.query.sql.model.Predicate;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.core.query.sql.model.Reference;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBQuerySearchBuilder;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBSearchConverter;
 import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
-import org.nuxeo.ecm.platform.audit.service.AbstractAuditBackend;
-import org.nuxeo.ecm.platform.audit.service.AuditBackend;
-import org.nuxeo.ecm.platform.audit.service.BaseLogEntryProvider;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
-import org.nuxeo.ecm.platform.audit.service.extension.AuditBackendDescriptor;
+import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.mongodb.MongoDBComponent;
-import org.nuxeo.runtime.mongodb.MongoDBConnectionService;
-import org.nuxeo.runtime.services.config.ConfigurationService;
+import org.nuxeo.runtime.kv.KeyValueService;
+import org.nuxeo.runtime.kv.KeyValueStoreProvider;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.Indexes;
 import com.mongodb.client.model.Sorts;
 
 /**
@@ -91,76 +70,29 @@ import com.mongodb.client.model.Sorts;
  *
  * @since 9.1
  */
-public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
+public class MongoDBAuditBackend extends AbstractAuditBackend {
 
     private static final Logger log = LogManager.getLogger(MongoDBAuditBackend.class);
 
-    public static final String AUDIT_DATABASE_ID = "audit";
-
-    public static final String COLLECTION_NAME_PROPERTY = "nuxeo.mongodb.audit.collection.name";
-
-    public static final String DEFAULT_COLLECTION_NAME = "audit";
-
     public static final String SEQ_NAME = "audit";
 
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    protected final MongoCollection<Document> collection;
 
-    protected MongoCollection<Document> collection;
-
-    protected MongoDBLogEntryProvider provider = new MongoDBLogEntryProvider();
-
-    protected CursorService<MongoCursor<Document>, Document, String> cursorService;
-
-    public MongoDBAuditBackend(NXAuditEventsService component, AuditBackendDescriptor config) {
-        super(component, config);
-    }
+    protected final CursorService<MongoCursor<Document>, Document, String> cursorService;
 
     /**
-     * @since 9.3
+     * @since 2025.0
      */
-    public MongoDBAuditBackend() {
-        super();
-    }
-
-    @Override
-    public int getApplicationStartedOrder() {
-        DefaultComponent component = (DefaultComponent) Framework.getRuntime()
-                                                                 .getComponent(MongoDBComponent.COMPONENT_NAME);
-        return component.getApplicationStartedOrder() + 1;
-    }
-
-    @Override
-    public void onApplicationStarted() {
-        log.info("Activate MongoDB backend for Audit");
-        // First retrieve the collection name
-        ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
-        String collName = configurationService.getString(COLLECTION_NAME_PROPERTY, DEFAULT_COLLECTION_NAME);
-        // Get a connection to MongoDB
-        MongoDBConnectionService mongoService = Framework.getService(MongoDBConnectionService.class);
-        MongoDatabase database = mongoService.getDatabase(AUDIT_DATABASE_ID);
-        collection = database.getCollection(collName);
-        collection.createIndex(Indexes.ascending(LOG_DOC_UUID)); // query by doc id
-        collection.createIndex(Indexes.ascending(LOG_EVENT_DATE)); // query by date range
-        collection.createIndex(Indexes.ascending(LOG_EVENT_ID)); // query by type of event
-        collection.createIndex(Indexes.ascending(LOG_DOC_PATH)); // query by path
-        collection.createIndex(Indexes.descending(LOG_ID)); // query by log id - sort
-        collection.createIndex(Indexes.compoundIndex( //
-                Indexes.ascending(LOG_REPOSITORY_ID), Indexes.descending(LOG_EVENT_DATE))); // query by drive - sort
+    public MongoDBAuditBackend(MongoCollection<Document> collection) {
+        this.collection = collection;
         initUIDSequencer(collection);
-        cursorService = new CursorService<>(doc -> {
+        this.cursorService = new CursorService<>(doc -> {
             Object id = doc.remove(MONGODB_ID);
             if (id != null) {
                 doc.put(LOG_ID, id);
             }
             return doc.toJson();
         });
-    }
-
-    @Override
-    public void onApplicationStopped() {
-        collection = null;
-        cursorService.clear();
-        cursorService = null;
     }
 
     /**
@@ -191,85 +123,30 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
     }
 
     @Override
-    public List<LogEntry> queryLogs(QueryBuilder builder) {
+    public LogEntryList queryLogs(QueryBuilder query) {
         // prepare parameters
-        MultiExpression predicate = builder.predicate();
-        OrderByList orders = builder.orders();
-        long offset = builder.offset();
-        long limit = builder.limit();
+        long offset = query.offset();
+        long limit = query.limit();
 
-        // create MongoDB filter
-        Bson mgFilter = createFilter(predicate);
+        // create MongoDB filter & order
+        var builder = new MongoDBQuerySearchBuilder(new MongoDBSearchConverter(LOG_ID), query);
+        builder.walk();
+        var filter = builder.getFilter();
+        var sort = builder.getSort();
 
-        // create MongoDB order
-        Bson mgOrder = createSort(orders);
-
-        logRequest(mgFilter, mgOrder);
-        FindIterable<Document> iterable = collection.find(mgFilter).sort(mgOrder).skip((int) offset).limit((int) limit);
-        return buildLogEntries(iterable);
-    }
-
-    protected Bson createFilter(MultiExpression andPredicate) {
-        // cast parameters
-        // current implementation only support a MultiExpression with AND operator
-        List<Predicate> predicates = andPredicate.predicates;
-        // current implementation only use Predicate/OrderByExpr with a simple Reference for left and right
-        Function<Operand, String> getFieldName = operand -> ((Reference) operand).name;
-        getFieldName = getFieldName.andThen(this::getMongoDBKey);
-
-        List<Bson> filterList = new ArrayList<>(predicates.size());
-        for (Predicate predicate : predicates) {
-            String leftName = getFieldName.apply(predicate.lvalue);
-            Operator operator = predicate.operator;
-            Object rightValue = Literals.valueOf(predicate.rvalue);
-            if (rightValue instanceof ZonedDateTime) {
-                // The ZonedDateTime representation is not compatible with MongoDB query
-                rightValue = Date.from(((ZonedDateTime) rightValue).toInstant());
-            }
-            if (Operator.EQ.equals(operator)) {
-                filterList.add(Filters.eq(leftName, rightValue));
-            } else if (Operator.NOTEQ.equals(operator)) {
-                filterList.add(Filters.ne(leftName, rightValue));
-            } else if (Operator.LT.equals(operator)) {
-                filterList.add(Filters.lt(leftName, rightValue));
-            } else if (Operator.LTEQ.equals(operator)) {
-                filterList.add(Filters.lte(leftName, rightValue));
-            } else if (Operator.GTEQ.equals(operator)) {
-                filterList.add(Filters.gte(leftName, rightValue));
-            } else if (Operator.GT.equals(operator)) {
-                filterList.add(Filters.gt(leftName, rightValue));
-            } else if (Operator.IN.equals(operator)) {
-                filterList.add(Filters.in(leftName, (List<?>) rightValue));
-            } else if (Operator.STARTSWITH.equals(operator)) {
-                filterList.add(Filters.regex(leftName, "^" + Pattern.quote(String.valueOf(rightValue))));
-            }
+        logRequest(filter, sort);
+        FindIterable<Document> iterable = collection.find(filter).sort(sort).skip((int) offset).limit((int) limit);
+        var result = buildLogEntries(iterable);
+        long totalSize = PageProvider.UNKNOWN_SIZE;
+        if (query.countTotal()) {
+            totalSize = collection.countDocuments(filter);
         }
-        return Filters.and(filterList);
-    }
-
-    protected Bson createSort(OrderByList orders) {
-        List<Bson> orderList = new ArrayList<>(orders.size());
-        for (OrderByExpr order : orders) {
-            String name = getMongoDBKey(order.reference.name);
-            if (order.isDescending) {
-                orderList.add(Sorts.descending(name));
-            } else {
-                orderList.add(Sorts.ascending(name));
-            }
-        }
-        return Sorts.orderBy(orderList);
-    }
-
-    protected String getMongoDBKey(String key) {
-        if (LOG_ID.equals(key)) {
-            return MONGODB_ID;
-        }
-        return key;
+        return new LogEntryList(result, totalSize);
     }
 
     @Override
     public LogEntry getLogEntryByID(long id) {
-        Document document = collection.find(Filters.eq(MONGODB_ID, Long.valueOf(id))).first();
+        Document document = collection.find(Filters.eq(MONGODB_ID, id)).first();
         if (document == null) {
             return null;
         }
@@ -285,7 +162,7 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
     }
 
     public Bson buildFilter(String query, Map<String, Object> params) {
-        if (params != null && params.size() > 0) {
+        if (params != null && !params.isEmpty()) {
             query = expandQueryVariables(query, params);
         }
         return Document.parse(query);
@@ -301,7 +178,7 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
     }
 
     public String expandQueryVariables(String query, Map<String, Object> params) {
-        if (params != null && params.size() > 0) {
+        if (params != null && !params.isEmpty()) {
             TextTemplate tmpl = new TextTemplate();
             // MongoDB date formatter - copied from org.bson.json.JsonWriter
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd\'T\'HH:mm:ss.SSS\'Z\'");
@@ -323,36 +200,6 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
     }
 
     @Override
-    public List<LogEntry> queryLogsByPage(String[] eventIds, Date limit, String[] categories, String path, int pageNb,
-            int pageSize) {
-        List<Bson> list = new ArrayList<>();
-        if (eventIds != null && eventIds.length > 0) {
-            if (eventIds.length == 1) {
-                list.add(Filters.eq(LOG_EVENT_ID, eventIds[0]));
-            } else {
-                list.add(Filters.in(LOG_EVENT_ID, eventIds));
-            }
-        }
-        if (categories != null && categories.length > 0) {
-            if (categories.length == 1) {
-                list.add(Filters.eq(LOG_CATEGORY, categories[0]));
-            } else {
-                list.add(Filters.in(LOG_CATEGORY, categories));
-            }
-        }
-        if (path != null) {
-            list.add(Filters.eq(LOG_DOC_PATH, path));
-        }
-        if (limit != null) {
-            list.add(Filters.lt(LOG_EVENT_DATE, limit));
-        }
-        Bson filter = list.size() == 1 ? list.get(0) : Filters.and(list);
-        logRequest(filter, pageNb, pageSize);
-        FindIterable<Document> iterable = collection.find(filter).skip(pageNb * pageSize).limit(pageSize);
-        return buildLogEntries(iterable);
-    }
-
-    @Override
     public void addLogEntries(List<LogEntry> entries) {
         if (entries.isEmpty()) {
             return;
@@ -364,8 +211,7 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
         List<Document> documents = new ArrayList<>(entries.size());
         List<Long> block = seq.getNextBlock(SEQ_NAME, entries.size());
         for (int i = 0; i < entries.size(); i++) {
-            LogEntry entry = entries.get(i);
-            entry.setId(block.get(i));
+            LogEntry entry = entries.get(i).builder().id(block.get(i)).logDate(new Date()).build();
             log.debug("Indexing log entry Id: {}, with logDate : {}, for docUUID: {}", entry.getId(),
                     entry.getLogDate(), entry.getDocUUID());
             documents.add(MongoDBAuditEntryWriter.asDocument(entry));
@@ -375,17 +221,7 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     @Override
     public Long getEventsCount(String eventId) {
-        return Long.valueOf(collection.countDocuments(Filters.eq("eventId", eventId)));
-    }
-
-    @Override
-    public long syncLogCreationEntries(String repoId, String path, Boolean recurs) {
-        return syncLogCreationEntries(provider, repoId, path, recurs);
-    }
-
-    @Override
-    public ExtendedInfo newExtendedInfo(Serializable value) {
-        return new MongoDBExtendedInfo(value);
+        return collection.countDocuments(Filters.eq("eventId", eventId));
     }
 
     private List<LogEntry> buildLogEntries(FindIterable<Document> iterable) {
@@ -406,9 +242,10 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
     public void append(List<String> jsonEntries) {
         // we need to parse json with jackson first because Document#parse from mongodb driver will parse number as int
         List<Document> entries = new ArrayList<>();
+        var renderingContext = RenderingContext.CtxBuilder.get();
         for (String json : jsonEntries) {
             try {
-                LogEntryImpl entry = OBJECT_MAPPER.readValue(json, LogEntryImpl.class);
+                var entry = MarshallerHelper.jsonToObject(LogEntry.class, json, renderingContext);
                 if (entry.getId() == 0) {
                     throw new NuxeoException("A json entry has an empty id. entry=" + json);
                 }
@@ -423,19 +260,15 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     @SuppressWarnings("resource") // CursorResult is being registered, must not be closed
     @Override
-    public ScrollResult<String> scroll(QueryBuilder builder, int batchSize, int keepAliveSeconds) {
-        // prepare parameters
-        MultiExpression predicate = builder.predicate();
-        OrderByList orders = builder.orders();
+    public ScrollResult<String> scroll(QueryBuilder query, int batchSize, int keepAliveSeconds) {
+        // create MongoDB filter & order
+        var builder = new MongoDBQuerySearchBuilder(new MongoDBSearchConverter(LOG_ID), query);
+        builder.walk();
+        var filter = builder.getFilter();
+        var sort = builder.getSort();
 
-        // create MongoDB filter
-        Bson mgFilter = createFilter(predicate);
-
-        // create MongoDB order
-        Bson mgOrder = createSort(orders);
-
-        logRequest(mgFilter, mgOrder);
-        MongoCursor<Document> cursor = collection.find(mgFilter).sort(mgOrder).batchSize(batchSize).iterator();
+        logRequest(filter, sort);
+        MongoCursor<Document> cursor = collection.find(filter).sort(sort).batchSize(batchSize).iterator();
         String scrollId = cursorService.registerCursor(cursor, batchSize, keepAliveSeconds);
         return scroll(scrollId);
     }
@@ -445,20 +278,12 @@ public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
         return cursorService.scroll(scrollId);
     }
 
-    public class MongoDBLogEntryProvider implements BaseLogEntryProvider {
-
-        @Override
-        public int removeEntries(String eventId, String pathPattern) {
-            throw new UnsupportedOperationException("Not implemented yet!");
-        }
-
-        @Override
-        public void addLogEntry(LogEntry logEntry) {
-            List<LogEntry> entries = new ArrayList<>();
-            entries.add(logEntry);
-            addLogEntries(entries);
-        }
-
+    @Override
+    protected void clearEntries() {
+        // clear audit
+        collection.drop();
+        // clear sequencer
+        ((KeyValueStoreProvider) Framework.getService(KeyValueService.class)
+                                          .getKeyValueStore(DEFAULT_STORE_NAME)).clear();
     }
-
 }

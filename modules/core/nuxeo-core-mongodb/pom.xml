@@ -29,6 +29,10 @@
       <artifactId>nuxeo-core</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-query</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-kv</artifactId>
     </dependency>

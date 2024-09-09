@@ -26,7 +26,10 @@ import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
  * Extended info for the {@link MongoDBExtendedInfo}.
  *
  * @since 9.1
+ * @deprecated since 2025.0, to follow {@link ExtendedInfo} deprecation
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class MongoDBExtendedInfo implements ExtendedInfo {
 
     private static final long serialVersionUID = 1L;

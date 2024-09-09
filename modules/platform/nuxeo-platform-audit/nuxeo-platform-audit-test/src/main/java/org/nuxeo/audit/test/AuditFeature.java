@@ -20,6 +20,7 @@ package org.nuxeo.audit.test;
 
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.AUDIT_SERVICE_VALUE;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
@@ -33,6 +34,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.mem.MemAuditFeature;
+import org.nuxeo.audit.mongodb.MongoDBAuditFeature;
 import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -59,6 +61,7 @@ public class AuditFeature implements RunnerFeature {
     public AuditFeature(DynamicFeaturesLoader loader) {
         var feature = switch (AUDIT_SERVICE_VALUE) {
             case STORAGE_MEM -> MemAuditFeature.class;
+            case STORAGE_MONGODB -> MongoDBAuditFeature.class;
             case STORAGE_SQL -> SQLAuditFeature.class;
             default ->
                 throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");

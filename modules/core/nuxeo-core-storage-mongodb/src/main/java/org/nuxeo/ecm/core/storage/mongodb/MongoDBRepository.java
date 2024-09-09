@@ -135,7 +135,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
 
     protected final MongoClient mongoClient;
 
-    protected final MongoDBConverter converter;
+    protected final MongoDBRepositoryConverter converter;
 
     protected final MongoDBCursorService cursorService;
 
@@ -200,7 +200,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
         } else {
             idValuesKeys = Set.of();
         }
-        converter = new MongoDBConverter(useCustomId ? null : KEY_ID, DBSSession.TRUE_OR_NULL_BOOLEAN_KEYS,
+        converter = new MongoDBRepositoryConverter(useCustomId ? null : KEY_ID, DBSSession.TRUE_OR_NULL_BOOLEAN_KEYS,
                 idValuesKeys);
         cursorService = new MongoDBCursorService(converter);
 
@@ -326,7 +326,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
         return idKey;
     }
 
-    protected MongoDBConverter getConverter() {
+    protected MongoDBRepositoryConverter getConverter() {
         return converter;
     }
 

@@ -18,27 +18,32 @@
  */
 package org.nuxeo.audit.mongodb;
 
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_COMMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_LIFE_CYCLE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_TYPE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EXTENDED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_LOG_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_COMMENT;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_LIFE_CYCLE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_TYPE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_LOG_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.bson.Document;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.io.LogEntryJsonWriter;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBSerializationHelper;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Writer for MongoDB Audit.
@@ -46,6 +51,15 @@ import org.nuxeo.runtime.mongodb.MongoDBSerializationHelper;
  * @since 9.1
  */
 public class MongoDBAuditEntryWriter {
+
+    /**
+     * Framework properties to write extended info that are JSON content as object and not string. Default to true.
+     *
+     * @since 2025.0
+     */
+    public static final String EXTENDED_INFO_JSON_AS_OBJECT = "nuxeo.audit.backend.mongodb.extended.json.as.object";
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
 
     public static Document asDocument(LogEntry logEntry) {
         Document document = new Document(MongoDBSerializationHelper.MONGODB_ID, Long.valueOf(logEntry.getId()));
@@ -61,19 +75,24 @@ public class MongoDBAuditEntryWriter {
         document.put(LOG_EVENT_DATE, logEntry.getEventDate());
         document.put(LOG_LOG_DATE, logEntry.getLogDate());
 
-        Map<String, ExtendedInfo> extendedInfo = logEntry.getExtendedInfos();
+        Map<String, Object> extendedInfo = logEntry.getExtended();
         Document extended = new Document();
-        for (Entry<String, ExtendedInfo> entry : extendedInfo.entrySet()) {
+        for (Entry<String, Object> entry : extendedInfo.entrySet()) {
             String key = entry.getKey();
-            ExtendedInfo ei = entry.getValue();
-            if (ei != null && ei.getSerializableValue() != null) {
-                Object value = ei.getSerializableValue();
-                if (value instanceof Object[]) {
-                    value = Arrays.asList((Object[]) value);
+            Object value = entry.getValue();
+            if (value instanceof Object[] array) {
+                value = Arrays.asList(array);
+            } else if (BooleanUtils.toBoolean(Framework.getProperty(EXTENDED_INFO_JSON_AS_OBJECT, "true"))
+                    && value instanceof String string && LogEntryJsonWriter.isJsonContent(string)) {
+                try {
+                    value = MAPPER.readValue(string, Map.class);
+                } catch (JsonProcessingException e) {
+                    // ignore invalid JSON content, same behavior than LogEntryJsonWriter
+                    value = null;
                 }
+            }
+            if (value != null) {
                 extended.put(key, value);
-            } else {
-                extended.put(key, null);
             }
         }
         document.put(LOG_EXTENDED, extended);

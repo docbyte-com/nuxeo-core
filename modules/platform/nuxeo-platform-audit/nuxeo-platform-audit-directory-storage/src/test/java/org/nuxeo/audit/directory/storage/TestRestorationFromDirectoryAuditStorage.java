@@ -67,7 +67,8 @@ public class TestRestorationFromDirectoryAuditStorage {
         List<String> jsonEntries = new ArrayList<>();
         for (long i = 1; i <= nbEntries; i++) {
             ObjectNode logEntryJson = mapper.createObjectNode();
-            logEntryJson.put(LOG_ID, i);
+            logEntryJson.put("entity-type", "logEntry");
+            logEntryJson.put(LOG_ID, 1_000 + i);
             logEntryJson.put(LOG_EVENT_ID, testEventId);
             logEntryJson.put(LOG_EVENT_DATE, "2024-11-04T16:00:00Z");
             jsonEntries.add(mapper.writeValueAsString(logEntryJson));

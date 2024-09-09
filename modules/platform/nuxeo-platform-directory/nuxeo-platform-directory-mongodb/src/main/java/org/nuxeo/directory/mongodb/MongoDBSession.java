@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.directory.mongodb;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
@@ -48,9 +46,6 @@ import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.query.QueryParseException;
-import org.nuxeo.ecm.core.query.sql.model.Expression;
-import org.nuxeo.ecm.core.query.sql.model.OrderByExpr;
-import org.nuxeo.ecm.core.query.sql.model.OrderByList;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Type;
@@ -58,8 +53,9 @@ import org.nuxeo.ecm.core.schema.types.primitives.IntegerType;
 import org.nuxeo.ecm.core.schema.types.primitives.LongType;
 import org.nuxeo.ecm.core.schema.types.primitives.StringType;
 import org.nuxeo.ecm.core.storage.State;
-import org.nuxeo.ecm.core.storage.mongodb.MongoDBAbstractQueryBuilder;
-import org.nuxeo.ecm.core.storage.mongodb.MongoDBConverter;
+import org.nuxeo.ecm.core.storage.mongodb.MongoDBRepositoryConverter;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBAbstractSearchBuilder;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBQuerySearchBuilder;
 import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.OperationNotAllowedException;
@@ -84,6 +80,8 @@ import com.mongodb.client.result.UpdateResult;
  */
 public class MongoDBSession extends BaseSession {
 
+    protected static final MongoDBRepositoryConverter CONVERTER = new MongoDBRepositoryConverter();
+
     public MongoDBSession(MongoDBDirectory directory) {
         super(directory, MongoDBReference.class);
     }
@@ -103,8 +101,7 @@ public class MongoDBSession extends BaseSession {
             return null;
         }
 
-        DocumentModel docModel = result.get(0);
-
+        DocumentModel docModel = result.getFirst();
         if (isMultiTenant()) {
             // check that the entry is from the current tenant, or no tenant
             // at all
@@ -235,7 +232,7 @@ public class MongoDBSession extends BaseSession {
                                        .values()
                                        .stream()
                                        .map(field -> field.getName().getPrefixedName())
-                                       .collect(Collectors.toList());
+                                       .toList();
         String idFieldName = getPrefixedIdField();
         String passwordFieldName = getPrefixedPasswordField();
 
@@ -354,8 +351,7 @@ public class MongoDBSession extends BaseSession {
                 Map<String, List<String>> targetIdsMap = new HashMap<>();
                 for (Reference reference : directory.getReferences()) {
                     List<String> targetIds;
-                    if (reference instanceof MongoDBReference) {
-                        MongoDBReference mongoReference = (MongoDBReference) reference;
+                    if (reference instanceof MongoDBReference mongoReference) {
                         targetIds = mongoReference.getTargetIdsForSource(doc.getId(), this);
                     } else {
                         targetIds = reference.getTargetIdsForSource(doc.getId());
@@ -441,15 +437,14 @@ public class MongoDBSession extends BaseSession {
         }
         queryBuilder = addTenantId(queryBuilder);
 
-        MongoDBConverter converter = new MongoDBConverter();
-        MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(converter, queryBuilder.predicate());
+        MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(CONVERTER, queryBuilder);
         builder.walk();
-        Document filter = builder.getQuery();
+        Document filter = builder.getFilter();
         int limit = Math.max(0, (int) queryBuilder.limit());
         int offset = Math.max(0, (int) queryBuilder.offset());
         boolean countTotal = queryBuilder.countTotal();
         // we should also use getDirectory().getDescriptor().getQuerySizeLimit() like in SQL
-        Document sort = builder.walkOrderBy(queryBuilder.orders());
+        Document sort = builder.getSort();
 
         DocumentModelListImpl entries = new DocumentModelListImpl();
 
@@ -464,7 +459,7 @@ public class MongoDBSession extends BaseSession {
                     // remove password from results
                     doc.remove(passwordFieldName);
                 }
-                State state = converter.bsonToState(doc);
+                State state = CONVERTER.bsonToState(doc);
                 Map<String, Object> fieldMap = new HashMap<>();
                 for (Entry<String, Serializable> es : state.entrySet()) {
                     fieldMap.put(es.getKey(), es.getValue());
@@ -475,8 +470,7 @@ public class MongoDBSession extends BaseSession {
                     Map<String, List<String>> targetIdsMap = new HashMap<>();
                     for (Reference reference : directory.getReferences()) {
                         List<String> targetIds;
-                        if (reference instanceof MongoDBReference) {
-                            MongoDBReference mongoReference = (MongoDBReference) reference;
+                        if (reference instanceof MongoDBReference mongoReference) {
                             targetIds = mongoReference.getTargetIdsForSource(docModel.getId(), this);
                         } else {
                             targetIds = reference.getTargetIdsForSource(docModel.getId());
@@ -519,16 +513,15 @@ public class MongoDBSession extends BaseSession {
         }
         queryBuilder = addTenantId(queryBuilder);
 
-        MongoDBConverter converter = new MongoDBConverter();
-        MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(converter, queryBuilder.predicate());
+        MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(CONVERTER, queryBuilder);
         builder.walk();
-        Document filter = builder.getQuery();
+        Document filter = builder.getFilter();
         String idFieldName = getPrefixedIdField();
         Document projection = new Document(idFieldName, 1L);
         int limit = Math.max(0, (int) queryBuilder.limit());
         int offset = Math.max(0, (int) queryBuilder.offset());
         // we should also use getDirectory().getDescriptor().getQuerySizeLimit() like in SQL
-        Document sort = builder.walkOrderBy(queryBuilder.orders());
+        Document sort = builder.getSort();
 
         List<String> ids = new ArrayList<>();
 
@@ -540,7 +533,7 @@ public class MongoDBSession extends BaseSession {
                                                            .sort(sort)
                                                            .iterator()) {
             for (Document doc : (Iterable<Document>) () -> cursor) {
-                State state = converter.bsonToState(doc);
+                State state = CONVERTER.bsonToState(doc);
                 String id = getIdFromState(state);
                 ids.add(id);
             }
@@ -553,14 +546,14 @@ public class MongoDBSession extends BaseSession {
      *
      * @since 10.3
      */
-    public class MongoDBDirectoryQueryBuilder extends MongoDBAbstractQueryBuilder {
+    public class MongoDBDirectoryQueryBuilder extends MongoDBQuerySearchBuilder {
 
-        public MongoDBDirectoryQueryBuilder(MongoDBConverter converter, Expression expression) {
-            super(converter, expression);
+        public MongoDBDirectoryQueryBuilder(MongoDBRepositoryConverter converter, QueryBuilder queryBuilder) {
+            super(converter, queryBuilder);
         }
 
         @Override
-        protected Document newDocumentWithField(FieldInfo fieldInfo, Object value) {
+        protected Document newDocumentWithField(MongoDBAbstractSearchBuilder.FieldInfo fieldInfo, Object value) {
             return new Document(fieldInfo.queryField, convertToType(value, fieldInfo.type));
         }
 
@@ -571,22 +564,8 @@ public class MongoDBSession extends BaseSession {
                 throw new QueryParseException("No column: " + name + " for directory: " + getDirectory().getName());
             }
             String key = field.getName().getPrefixedName();
-            String queryField = stripElemMatchPrefix(key);
+            String queryField = converter.keyToBson(key);
             return new FieldInfo(name, key, queryField, queryField, field.getType());
-        }
-
-        protected Document walkOrderBy(OrderByList orderByList) {
-            if (orderByList.isEmpty()) {
-                return null;
-            }
-            Document orderBy = new Document();
-            for (OrderByExpr ob : orderByList) {
-                String field = walkReference(ob.reference).queryField;
-                if (!orderBy.containsKey(field)) {
-                    orderBy.put(field, ob.isDescending ? MINUS_ONE : ONE);
-                }
-            }
-            return orderBy;
         }
     }
 

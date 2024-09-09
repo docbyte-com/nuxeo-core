@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.core.storage.mongodb;
 
-import static java.lang.Boolean.FALSE;
 import static org.nuxeo.ecm.core.storage.State.NOP;
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.MONGODB_EACH;
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.MONGODB_ID;
@@ -41,7 +40,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.regex.Pattern;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
@@ -49,6 +47,7 @@ import org.nuxeo.ecm.core.api.model.Delta;
 import org.nuxeo.ecm.core.storage.State;
 import org.nuxeo.ecm.core.storage.State.ListDiff;
 import org.nuxeo.ecm.core.storage.State.StateDiff;
+import org.nuxeo.ecm.core.storage.mongodb.query.MongoDBSearchConverter;
 
 import com.mongodb.client.model.Filters;
 
@@ -60,23 +59,14 @@ import com.mongodb.client.model.Filters;
  *
  * @since 9.1
  */
-public class MongoDBConverter {
-
-    /** The key to use in memory to map the database native "_id". */
-    protected final String idKey;
-
-    /** The keys for booleans whose value is true or null (instead of false). */
-    protected final Set<String> trueOrNullBooleanKeys;
-
-    /** The keys whose values are ids and are stored as longs. */
-    protected final Set<String> idValuesKeys;
+public class MongoDBRepositoryConverter extends MongoDBSearchConverter {
 
     /**
      * Constructor for a converter that does not map the MongoDB native "_id".
      *
      * @since 10.3
      */
-    public MongoDBConverter() {
+    public MongoDBRepositoryConverter() {
         this(null, Set.of(), Set.of());
     }
 
@@ -90,10 +80,8 @@ public class MongoDBConverter {
      *            false)
      * @param idValuesKeys the keys corresponding to values that are ids
      */
-    public MongoDBConverter(String idKey, Set<String> trueOrNullBooleanKeys, Set<String> idValuesKeys) {
-        this.idKey = idKey;
-        this.trueOrNullBooleanKeys = trueOrNullBooleanKeys;
-        this.idValuesKeys = idValuesKeys;
+    public MongoDBRepositoryConverter(String idKey, Set<String> trueOrNullBooleanKeys, Set<String> idValuesKeys) {
+        super(idKey, trueOrNullBooleanKeys, idValuesKeys);
     }
 
     /**
@@ -108,14 +96,6 @@ public class MongoDBConverter {
 
     public void putToBson(Document doc, String key, Object value) {
         doc.put(keyToBson(key), valueToBson(key, value));
-    }
-
-    public String keyToBson(String key) {
-        if (idKey == null) {
-            return key;
-        } else {
-            return idKey.equals(key) ? MONGODB_ID : key;
-        }
     }
 
     public Object valueToBson(String key, Object value) {
@@ -219,23 +199,6 @@ public class MongoDBConverter {
         }
     }
 
-    protected boolean valueIsId(String key) {
-        return key != null && idValuesKeys.contains(key);
-    }
-
-    public Object serializableToBson(String key, Object value) {
-        if (value instanceof Calendar) {
-            return ((Calendar) value).getTime();
-        }
-        if (valueIsId(key)) {
-            return idToBson(value);
-        }
-        if (FALSE.equals(value) && key != null && trueOrNullBooleanKeys.contains(key)) {
-            return null;
-        }
-        return value;
-    }
-
     public Serializable bsonToSerializable(String key, Object val) {
         if (val instanceof Date) {
             Calendar cal = Calendar.getInstance();
@@ -264,25 +227,6 @@ public class MongoDBConverter {
             return Long.class;
         }
         return klass;
-    }
-
-    // exactly 16 chars in lowercase hex
-    protected static final Pattern HEX_RE = Pattern.compile("[0-9a-f]{16}");
-
-    // convert hex id to long
-    protected Object idToBson(Object value) {
-        if (value == null) {
-            return null;
-        }
-        try {
-            String string = (String) value;
-            if (!HEX_RE.matcher(string).matches()) {
-                throw new NumberFormatException(string);
-            }
-            return Long.parseUnsignedLong(string, 16);
-        } catch (ClassCastException | NumberFormatException e) {
-            return "__invalid_id__" + value;
-        }
     }
 
     // convert long to hex id

@@ -16,7 +16,7 @@
  * Contributors:
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.core.storage.mongodb;
+package org.nuxeo.ecm.core.storage.mongodb.query;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
@@ -52,7 +52,6 @@ import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.ecm.core.schema.types.primitives.BooleanType;
 import org.nuxeo.ecm.core.schema.types.primitives.DateType;
 import org.nuxeo.ecm.core.storage.ExpressionEvaluator;
-import org.nuxeo.ecm.core.storage.QueryOptimizer.PrefixInfo;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBOperators;
 import org.nuxeo.runtime.services.config.ConfigurationService;
@@ -64,34 +63,25 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
  *
  * @since 5.9.4
  */
-public abstract class MongoDBAbstractQueryBuilder {
+public abstract class MongoDBAbstractSearchBuilder {
 
-    public static final Long LONG_ZERO = Long.valueOf(0);
+    protected static final Double ONE = 1.0;
 
-    public static final Long LONG_ONE = Long.valueOf(1);
-
-    public static final Double ONE = Double.valueOf(1);
-
-    public static final Double MINUS_ONE = Double.valueOf(-1);
+    protected static final Double MINUS_ONE = -1.0;
 
     protected static final String DATE_CAST = "DATE";
 
     protected static final String LIKE_ANCHORED_PROP = "nuxeo.mongodb.like.anchored";
 
-    protected final MongoDBConverter converter;
+    protected final MongoDBSearchConverter converter;
 
     protected final Expression expression;
 
-    protected Document query;
+    protected final boolean likeAnchored;
 
-    /**
-     * Prefix to remove for $elemMatch (including final dot), or {@code null} if there's no current prefix to remove.
-     */
-    protected String elemMatchPrefix;
+    protected Document filter;
 
-    protected boolean likeAnchored;
-
-    public MongoDBAbstractQueryBuilder(MongoDBConverter converter, Expression expression) {
+    public MongoDBAbstractSearchBuilder(MongoDBSearchConverter converter, Expression expression) {
         this.converter = converter;
         this.expression = expression;
         likeAnchored = Framework.getService(ConfigurationService.class).isBooleanTrue(LIKE_ANCHORED_PROP);
@@ -100,21 +90,21 @@ public abstract class MongoDBAbstractQueryBuilder {
     public void walk() {
         if (expression instanceof MultiExpression multiExpression && multiExpression.predicates.isEmpty()) {
             // special-case empty query
-            query = new Document();
+            filter = new Document();
         } else {
-            query = walkExpression(expression);
+            filter = walkExpression(expression);
         }
     }
 
-    public Document getQuery() {
-        return query;
+    public Document getFilter() {
+        return filter;
     }
 
     public Document walkExpression(Expression expr) {
         Operator op = expr.operator;
         Operand lvalue = expr.lvalue;
         Operand rvalue = expr.rvalue;
-        Reference ref = lvalue instanceof Reference ? (Reference) lvalue : null;
+        Reference ref = lvalue instanceof Reference lreference ? lreference : null;
         String name = ref != null ? ref.name : null;
         String cast = ref != null ? ref.cast : null;
         if (DATE_CAST.equals(cast)) {
@@ -141,8 +131,8 @@ public abstract class MongoDBAbstractQueryBuilder {
         } else if (op == Operator.GTEQ) {
             return walkGtEq(lvalue, rvalue);
         } else if (op == Operator.AND || op == Operator.OR) {
-            if (expr instanceof MultiExpression) {
-                return walkAndOrMultiExpression((MultiExpression) expr);
+            if (expr instanceof MultiExpression multiExpression) {
+                return walkAndOrMultiExpression(multiExpression);
             } else {
                 return walkAndOr(expr);
             }
@@ -168,6 +158,8 @@ public abstract class MongoDBAbstractQueryBuilder {
             return walkBetween(lvalue, rvalue, true);
         } else if (op == Operator.NOTBETWEEN) {
             return walkBetween(lvalue, rvalue, false);
+        } else if (op == Operator.STARTSWITH) {
+            return walkStartsWith(lvalue, rvalue);
         } else {
             throw new QueryParseException("Unknown operator: " + op);
         }
@@ -184,7 +176,7 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     protected void checkDateLiteralForCast(Operand value, String name) {
-        if (value instanceof DateLiteral && !((DateLiteral) value).onlyDate) {
+        if (value instanceof DateLiteral dateLiteral && !dateLiteral.onlyDate) {
             throw new QueryParseException("DATE() cast must be used with DATE literal, not TIMESTAMP: " + name);
         }
     }
@@ -267,53 +259,14 @@ public abstract class MongoDBAbstractQueryBuilder {
         return walkAndOr(expr, Arrays.asList(expr.lvalue, expr.rvalue));
     }
 
-    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/\\*\\d+(/)?");
-
     protected Document walkAndOr(Expression expr, List<? extends Operand> values) {
         if (values.size() == 1) {
             return (Document) walkOperand(null, values.getFirst());
         }
         boolean and = expr.operator == Operator.AND;
         String op = and ? MongoDBOperators.AND : MongoDBOperators.OR;
-        // PrefixInfo was computed by the QueryOptimizer for common AND predicates
-        PrefixInfo info = (PrefixInfo) expr.getInfo();
-        if (info == null || info.count < 2 || !and) {
-            List<Object> list = walkOperandList(values);
-            return new Document(op, list);
-        }
-
-        // we have a common prefix for all underlying references, extract it into an $elemMatch node
-
-        String prefix = getMongoDBPrefix(info.prefix);
-        String fieldBase = stripElemMatchPrefix(prefix.substring(0, prefix.length() - 1));
-
-        String previousElemMatchPrefix = elemMatchPrefix;
-        elemMatchPrefix = prefix;
         List<Object> list = walkOperandList(values);
-        elemMatchPrefix = previousElemMatchPrefix;
-
-        return new Document(fieldBase, new Document(MongoDBOperators.ELEM_MATCH, new Document(op, list)));
-    }
-
-    /**
-     * Computes the MongoDB prefix from the DBS common prefix.
-     *
-     * <pre>{@code
-     * foo/bar/*1 -> foo.bar.
-     * ecm:acp/*1/acl/*1 -> ecm:acp.acl.
-     * }</pre>
-     */
-    // overridden for repository to also strip prefix from unprefixed schemas (files:files/*1 -> files.)
-    protected String getMongoDBPrefix(String prefix) {
-        return SLASH_WILDCARD_SLASH.matcher(prefix).replaceAll(".");
-    }
-
-    // remove current prefix and trailing . for actual field match
-    protected String stripElemMatchPrefix(String field) {
-        if (elemMatchPrefix != null && field.startsWith(elemMatchPrefix)) {
-            field = field.substring(elemMatchPrefix.length());
-        }
-        return field;
+        return new Document(op, list);
     }
 
     public Document walkEq(Operand lvalue, Operand rvalue) {
@@ -384,25 +337,37 @@ public abstract class MongoDBAbstractQueryBuilder {
 
     public Document walkIn(FieldInfo fieldInfo, Operand rvalue, boolean positive) {
         Object right = walkOperand(fieldInfo, rvalue);
-        if (!(right instanceof List)) {
+        if (!(right instanceof List<?> list)) {
             throw new QueryParseException("Invalid IN, right hand side must be a list: " + rvalue);
         }
         // TODO check list fields
-        @SuppressWarnings("unchecked")
-        List<Object> list = (List<Object>) right;
         return newDocumentWithField(fieldInfo,
                 new Document(positive ? MongoDBOperators.IN : MongoDBOperators.NIN, list));
     }
 
     public Document walkLike(Operand lvalue, Operand rvalue, boolean positive, boolean caseInsensitive) {
         FieldInfo fieldInfo = walkReference(lvalue);
-        if (!(rvalue instanceof StringLiteral)) {
+        if (!(rvalue instanceof StringLiteral rightLiteral)) {
             throw new QueryParseException("Invalid LIKE/ILIKE, right hand side must be a string: " + rvalue);
         }
         // TODO check list fields
-        String like = (String) walkStringLiteral(fieldInfo, (StringLiteral) rvalue);
-        String regex = ExpressionEvaluator.likeToRegex(like);
+        String like = (String) walkStringLiteral(fieldInfo, rightLiteral);
+        String regex = walkLikeLiteral(like);
+
+        int flags = caseInsensitive ? Pattern.CASE_INSENSITIVE : 0;
+        Pattern pattern = Pattern.compile(regex, flags);
+        Object value;
+        if (positive) {
+            value = pattern;
+        } else {
+            value = new Document(MongoDBOperators.NOT, pattern);
+        }
+        return newDocumentWithField(fieldInfo, value);
+    }
+
+    protected String walkLikeLiteral(String like) {
         // MongoDB native matches are unanchored: optimize the regex for faster matches
+        String regex = ExpressionEvaluator.likeToRegex(like);
         if (regex.startsWith(".*")) {
             regex = regex.substring(2);
         } else if (likeAnchored) {
@@ -413,15 +378,18 @@ public abstract class MongoDBAbstractQueryBuilder {
         } else if (likeAnchored) {
             regex = regex + "$";
         }
+        return regex;
+    }
 
-        int flags = caseInsensitive ? Pattern.CASE_INSENSITIVE : 0;
-        Pattern pattern = Pattern.compile(regex, flags);
-        Object value;
-        if (positive) {
-            value = pattern;
-        } else {
-            value = new Document(MongoDBOperators.NOT, pattern);
+    protected Document walkStartsWith(Operand lvalue, Operand rvalue) {
+        FieldInfo fieldInfo = walkReference(lvalue);
+        if (!(rvalue instanceof StringLiteral rightLiteral)) {
+            throw new QueryParseException("Invalid STARTSWITH query, right hand side must be a string: " + rvalue);
         }
+        String like = (String) walkStringLiteral(fieldInfo, rightLiteral);
+        Pattern pattern = Pattern.compile("^" + like);
+        Object value;
+        value = pattern;
         return newDocumentWithField(fieldInfo, value);
     }
 
@@ -448,7 +416,7 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     public Object walkBooleanLiteral(FieldInfo fieldInfo, BooleanLiteral lit) {
-        return Boolean.valueOf(lit.value);
+        return lit.value;
     }
 
     public Date walkDateLiteral(FieldInfo fieldInfo, DateLiteral lit) {
@@ -456,7 +424,7 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     public Double walkDoubleLiteral(FieldInfo fieldInfo, DoubleLiteral lit) {
-        return Double.valueOf(lit.value);
+        return lit.value;
     }
 
     public Object walkIntegerLiteral(FieldInfo fieldInfo, IntegerLiteral lit) {
@@ -473,7 +441,7 @@ public abstract class MongoDBAbstractQueryBuilder {
             }
             return converter.serializableToBson(fieldInfo.key, b);
         }
-        return Long.valueOf(value);
+        return value;
     }
 
     public Object walkStringLiteral(FieldInfo fieldInfo, StringLiteral lit) {
@@ -523,10 +491,10 @@ public abstract class MongoDBAbstractQueryBuilder {
     }
 
     protected FieldInfo walkReference(Operand value) {
-        if (!(value instanceof Reference)) {
+        if (!(value instanceof Reference reference)) {
             throw new QueryParseException("Invalid query, left hand side must be a property: " + value);
         }
-        return walkReference((Reference) value);
+        return walkReference(reference);
     }
 
     public static class FieldInfo {
@@ -570,7 +538,7 @@ public abstract class MongoDBAbstractQueryBuilder {
         if (DATE_CAST.equals(ref.cast)) {
             Type type = fieldInfo.type;
             if (!(type instanceof DateType
-                    || (type instanceof ListType && ((ListType) type).getFieldType() instanceof DateType))) {
+                    || (type instanceof ListType listType && listType.getFieldType() instanceof DateType))) {
                 throw new QueryParseException("Cannot cast to " + ref.cast + ": " + ref.name);
             }
             // fieldInfo.isDateCast = true;

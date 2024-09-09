@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory">
+
+  <implementation class="org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory" />
+  </service>
+
+  <extension-point name="backend">
+    <documentation>
+      Allows to instantiate a MongoDB audit backend.
+    </documentation>
+
+    <object class="org.nuxeo.audit.mongodb.MongoDBAuditBackendDescriptor" />
+  </extension-point>
+
+</component>

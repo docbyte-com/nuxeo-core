@@ -1,0 +1,72 @@
+/*
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Kevin Leturc <kevin.leturc@hyland.com>
+ */
+package org.nuxeo.audit.mongodb;
+
+import java.util.Objects;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
+
+/**
+ * @since 2025.0
+ */
+@XObject("backend")
+public class MongoDBAuditBackendDescriptor implements Descriptor {
+
+    @XNode("@name")
+    protected String name;
+
+    @XNode("@enabled")
+    protected Boolean enabled;
+
+    @XNode("@connectionId")
+    protected String connectionId;
+
+    @XNode("@collectionName")
+    protected String collectionName;
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public boolean iEnabled() {
+        return BooleanUtils.toBooleanDefaultIfNull(enabled, true);
+    }
+
+    /**
+     * @return the configured {@code connectionId} or "audit/{@code name}" if null
+     */
+    public String getConnectionId() {
+        return Objects.requireNonNullElseGet(connectionId, () -> "audit/" + name);
+    }
+
+    /**
+     * @return the configured {@code collectionName} or "audit" if null
+     */
+    public String getCollectionName() {
+        return Objects.requireNonNullElse(collectionName, "audit");
+    }
+}

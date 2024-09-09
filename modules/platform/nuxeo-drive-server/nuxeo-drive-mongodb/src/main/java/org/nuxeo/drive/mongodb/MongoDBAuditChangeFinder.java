@@ -31,7 +31,6 @@ import static com.mongodb.client.model.Sorts.orderBy;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -40,16 +39,15 @@ import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.mongodb.MongoDBAuditBackend;
 import org.nuxeo.audit.mongodb.MongoDBAuditEntryReader;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.drive.service.SynchronizationRoots;
 import org.nuxeo.drive.service.impl.AuditChangeFinder;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
-import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
 import com.mongodb.client.MongoCollection;
@@ -61,12 +59,8 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
 
     @Override
     public long getUpperBound() {
-        MongoDBAuditBackend auditService = (MongoDBAuditBackend) Framework.getService(AuditReader.class);
-        // TODO remove this dummy predicate once we can query with no predicate at all
-        QueryBuilder queryBuilder = new AuditQueryBuilder().predicate(Predicates.gt("eventDate", new Date(0)));
-        queryBuilder.order(OrderByExprs.desc(LOG_ID));
-        queryBuilder.limit(1);
-        List<LogEntry> entries = auditService.queryLogs(queryBuilder);
+        QueryBuilder queryBuilder = new AuditQueryBuilder().order(OrderByExprs.desc(LOG_ID)).limit(1);
+        List<LogEntry> entries = Framework.getService(AuditBackend.class).queryLogs(queryBuilder);
         if (entries.isEmpty()) {
             log.debug("Found no audit log entries, returning -1");
             return -1;
@@ -75,10 +69,11 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
     }
 
     @Override
-    protected List<LogEntry> queryAuditEntries(CoreSession session, SynchronizationRoots activeRoots,
-            Set<String> collectionSyncRootMemberIds, long lowerBound, long upperBound, int limit) {
-        MongoDBAuditBackend auditService = (MongoDBAuditBackend) Framework.getService(AuditReader.class);
-        MongoCollection<Document> auditCollection = auditService.getAuditCollection();
+    protected List<org.nuxeo.ecm.platform.audit.api.LogEntry> queryAuditEntries(CoreSession session,
+            SynchronizationRoots activeRoots, Set<String> collectionSyncRootMemberIds, long lowerBound, long upperBound,
+            int limit) {
+        var auditBackend = (MongoDBAuditBackend) Framework.getService(AuditBackend.class);
+        MongoCollection<Document> auditCollection = auditBackend.getAuditCollection();
 
         // Build intermediate filters
         Bson documentEvent = and(eq("category", "eventDocumentCategory"),

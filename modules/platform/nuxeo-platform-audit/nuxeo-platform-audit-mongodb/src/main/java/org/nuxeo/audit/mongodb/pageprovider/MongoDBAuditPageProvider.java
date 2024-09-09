@@ -18,7 +18,6 @@
  */
 package org.nuxeo.audit.mongodb.pageprovider;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -29,16 +28,14 @@ import org.apache.logging.log4j.Logger;
 import org.bson.BsonDocument;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.mongodb.MongoDBAuditBackend;
 import org.nuxeo.audit.mongodb.MongoDBAuditEntryReader;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.SortInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.comment.CommentProcessorHelper;
-import org.nuxeo.ecm.platform.audit.service.AuditBackend;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.query.api.AbstractPageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
@@ -68,6 +65,10 @@ public class MongoDBAuditPageProvider extends AbstractPageProvider<LogEntry> imp
 
     public static final String CORE_SESSION_PROPERTY = "coreSession";
 
+    /**
+     * @deprecated since 2025.0, unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final String UICOMMENTS_PROPERTY = "generateUIComments";
 
     @Override
@@ -81,18 +82,6 @@ public class MongoDBAuditPageProvider extends AbstractPageProvider<LogEntry> imp
             return (CoreSession) session;
         }
         return null;
-    }
-
-    protected void preprocessCommentsIfNeeded(List<LogEntry> entries) {
-        Serializable preprocess = getProperties().get(UICOMMENTS_PROPERTY);
-
-        if (preprocess != null && "true".equalsIgnoreCase(preprocess.toString())) {
-            CoreSession session = getCoreSession();
-            if (session != null) {
-                CommentProcessorHelper cph = new CommentProcessorHelper(session);
-                cph.processComments(entries);
-            }
-        }
     }
 
     @Override
@@ -127,7 +116,6 @@ public class MongoDBAuditPageProvider extends AbstractPageProvider<LogEntry> imp
         for (Document document : response) {
             entries.add(MongoDBAuditEntryReader.read(document));
         }
-        preprocessCommentsIfNeeded(entries);
 
         CoreSession session = getCoreSession();
         if (session != null) {
@@ -156,10 +144,8 @@ public class MongoDBAuditPageProvider extends AbstractPageProvider<LogEntry> imp
     }
 
     protected MongoDBAuditBackend getMongoDBBackend() {
-        NXAuditEventsService auditEventsService = Framework.getService(NXAuditEventsService.class);
-        AuditBackend backend = auditEventsService.getBackend();
-        if (backend instanceof MongoDBAuditBackend) {
-            return (MongoDBAuditBackend) backend;
+        if (Framework.getService(AuditBackend.class) instanceof MongoDBAuditBackend backend) {
+            return backend;
         }
         throw new NuxeoException(
                 "Unable to use MongoDBAuditPageProvider if auditEventsService service is not configured to run with MongoDB");

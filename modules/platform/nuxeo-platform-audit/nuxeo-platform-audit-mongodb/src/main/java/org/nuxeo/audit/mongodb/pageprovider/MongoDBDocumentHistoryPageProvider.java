@@ -18,8 +18,8 @@
  */
 package org.nuxeo.audit.mongodb.pageprovider;
 
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class MongoDBDocumentHistoryPageProvider extends MongoDBAuditPageProvider
     @Override
     public List<SortInfo> getSortInfos() {
         List<SortInfo> sort = super.getSortInfos();
-        if (sort == null || sort.size() == 0) {
+        if (sort == null || sort.isEmpty()) {
             sort = new ArrayList<>(2);
             sort.add(new SortInfo(LOG_EVENT_DATE, true));
             sort.add(new SortInfo(MongoDBSerializationHelper.MONGODB_ID, true));
@@ -79,8 +79,7 @@ public class MongoDBDocumentHistoryPageProvider extends MongoDBAuditPageProvider
             }
             CoreSession session;
             String uuid;
-            if (params[0] instanceof DocumentModel) {
-                DocumentModel doc = (DocumentModel) params[0];
+            if (params[0] instanceof DocumentModel doc) {
                 uuid = doc.getId();
                 session = doc.getCoreSession();
             } else {

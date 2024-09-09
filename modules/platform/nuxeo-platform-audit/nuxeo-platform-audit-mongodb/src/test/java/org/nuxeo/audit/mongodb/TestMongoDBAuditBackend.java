@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,56 +14,51 @@
  * limitations under the License.
  *
  * Contributors:
- *     Kevin Leturc
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
 package org.nuxeo.audit.mongodb;
 
 import static org.junit.Assert.assertEquals;
+import static org.nuxeo.common.test.ModuleUnderTest.getClassLoaderResourceAsString;
 
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.io.IOUtils;
+import jakarta.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.audit.AbstractAuditStorageTest;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.audit.AuditCoreFeature;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(MongoDBAuditFeature.class)
-public class TestAuditWithMongoDB extends AbstractAuditStorageTest {
+public class TestMongoDBAuditBackend {
+
+    @Inject
+    protected AuditCoreFeature auditCoreFeature;
+
+    @Inject
+    protected AuditBackend backend;
 
     @Test
-    public void shouldSupportNativeQueries() throws Exception {
-        LogEntryGen.generate("dummy", "entry", "category", 9);
+    public void shouldSupportNativeQueries() {
+        auditCoreFeature.generateLogEntries("dummy", "entry", "category", 9);
 
-        String jsonQuery;
-        AuditReader reader = Framework.getService(AuditReader.class);
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("query.json")) {
-            jsonQuery = IOUtils.toString(is, "UTF-8");
-        }
-        List<?> res = reader.nativeQuery(jsonQuery, 0, 5);
+        String jsonQuery = getClassLoaderResourceAsString("query.json");
+        List<?> res = backend.nativeQuery(jsonQuery, 0, 5);
 
         assertEquals(2, res.size());
 
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream("queryWithParams.json")) {
-            jsonQuery = IOUtils.toString(is, "UTF-8");
-        }
+        jsonQuery = getClassLoaderResourceAsString("queryWithParams.json");
 
         Map<String, Object> params = new HashMap<>();
         params.put("category", "category1");
-        res = reader.nativeQuery(jsonQuery, params, 0, 5);
+        res = backend.nativeQuery(jsonQuery, params, 0, 5);
 
         assertEquals(1, res.size());
-    }
-
-    @Override
-    protected void flush() throws Exception {
-        LogEntryGen.flushAndSync();
     }
 }

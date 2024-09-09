@@ -100,7 +100,7 @@ import org.nuxeo.ecm.core.storage.dbs.DBSRepositoryBase;
 import org.nuxeo.ecm.core.storage.dbs.DBSRepositoryBase.IdType;
 import org.nuxeo.ecm.core.storage.dbs.DBSStateFlattener;
 import org.nuxeo.ecm.core.storage.dbs.DBSTransactionState.ConditionalUpdates;
-import org.nuxeo.ecm.core.storage.mongodb.MongoDBConverter.ConditionsAndUpdates;
+import org.nuxeo.ecm.core.storage.mongodb.MongoDBRepositoryConverter.ConditionsAndUpdates;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBOperators;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -162,7 +162,7 @@ public class MongoDBConnection extends DBSConnectionBase {
      */
     protected long sequenceLastValue;
 
-    protected final MongoDBConverter converter;
+    protected final MongoDBRepositoryConverter converter;
 
     protected ClientSession clientSession;
 
@@ -796,7 +796,7 @@ public class MongoDBConnection extends DBSConnectionBase {
         if (builder.hasFulltext && repository.isFulltextSearchDisabled()) {
             throw new QueryParseException("Fulltext search disabled by configuration");
         }
-        Document filter = builder.getQuery();
+        Document filter = builder.getFilter();
         addPrincipals(filter, evaluator.principals);
         Bson orderBy = builder.getOrderBy();
         Bson keys = builder.getProjection();
@@ -881,7 +881,7 @@ public class MongoDBConnection extends DBSConnectionBase {
         if (builder.hasFulltext && repository.isFulltextSearchDisabled()) {
             throw new QueryParseException("Fulltext search disabled by configuration");
         }
-        Document filter = builder.getQuery();
+        Document filter = builder.getFilter();
         addPrincipals(filter, evaluator.principals);
         Bson keys = builder.getProjection();
         logQuery(filter, keys, null, 0, 0);

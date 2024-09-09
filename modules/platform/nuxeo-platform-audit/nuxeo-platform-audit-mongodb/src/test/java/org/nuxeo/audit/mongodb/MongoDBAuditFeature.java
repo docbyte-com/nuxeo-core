@@ -18,16 +18,8 @@
  */
 package org.nuxeo.audit.mongodb;
 
-import static org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer.DEFAULT_STORE_NAME;
-
-import java.util.concurrent.TimeUnit;
-
+import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.kv.KeyValueService;
-import org.nuxeo.runtime.kv.KeyValueStoreProvider;
 import org.nuxeo.runtime.mongodb.MongoDBFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -39,23 +31,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.core.event")
 @Deploy("org.nuxeo.ecm.core")
 @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.audit.api")
-@Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.mongodb.audit")
 @Deploy("org.nuxeo.mongodb.audit.test")
-@Features({ MongoDBFeature.class, CoreFeature.class })
+@Features({ AuditCoreFeature.class, MongoDBFeature.class, CoreFeature.class })
 public class MongoDBAuditFeature implements RunnerFeature {
-
-    @Override
-    public void testCreated(Object test) throws Exception {
-        // make sure nothing is currently waiting to be processed
-        Framework.getService(AuditLogger.class).await(10, TimeUnit.SECONDS);
-        // clean the audit
-        MongoDBAuditBackend auditBackend = (MongoDBAuditBackend) Framework.getService(AuditReader.class);
-        auditBackend.getAuditCollection().drop();
-        // clean the sequence
-        ((KeyValueStoreProvider) Framework.getService(KeyValueService.class)
-                                          .getKeyValueStore(DEFAULT_STORE_NAME)).clear();
-    }
-
 }
