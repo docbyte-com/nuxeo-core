@@ -1,5 +1,5 @@
 image:
-  tag: "3.6.0"
+  tag: "3.8.0"
 kraft:
   enabled: false
 controller:
@@ -44,14 +44,13 @@ broker:
   pdb:
     create: true
     minAvailable: 1
-    maxUnavailable: ""
 {{ readFile "values-tolerations-nodeselector.yaml" | indent 2 }}
 serviceAccount:
   create: false
 zookeeper:
   enabled: true
   image:
-    tag: "3.6.2"
+    tag: "3.9.2-debian-12-r12"
   replicaCount: 1
   persistence:
     enabled: false
@@ -67,22 +66,7 @@ zookeeper:
     {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 4 }}
     dev.nuxeo.com/app: zookeeper
     dev.nuxeo.com/resource: pod
-  extraDeploy:
-  # use extra deploy for Zookeeper PDB because PDB from Zookeeper chart is only deployed when replica count > 1
-  - |
-    apiVersion: policy/v1
-    kind: PodDisruptionBudget
-    metadata:
-      name: {{"{{"}} template "common.names.fullname" . {{"}}"}}
-      labels: {{"{{-"}} include "common.labels.standard" ( dict "customLabels" .Values.commonLabels "context" $ ) | nindent 4 {{"}}"}}
-        app.kubernetes.io/component: zookeeper
-      {{"{{-"}} if .Values.commonAnnotations {{"}}"}}
-      annotations: {{"{{-"}} include "common.tplvalues.render" ( dict "value" .Values.commonAnnotations "context" $ ) | nindent 4 {{"}}"}}
-      {{"{{-"}} end {{"}}"}}
-    spec:
-      minAvailable: 1
-      {{"{{-"}} $podLabels := include "common.tplvalues.merge" ( dict "values" ( list .Values.podLabels .Values.commonLabels ) "context" . ) {{"}}"}}
-      selector:
-        matchLabels: {{"{{-"}} include "common.labels.matchLabels" ( dict "customLabels" $podLabels "context" $ ) | nindent 6 {{"}}"}}
-          app.kubernetes.io/component: zookeeper
+  pdb:
+    create: true
+    minAvailable: 1
 {{ readFile "values-tolerations-nodeselector.yaml" | indent 2 }}

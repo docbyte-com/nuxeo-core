@@ -23,13 +23,6 @@ environments:
 ---
 {{- $valuesDir := ternary "unittests" .Environment.Name (regexMatch "^.*UnitTests$" .Environment.Name) -}}
 repositories:
-- name: bitnami
-  # Unfortunately, the version of the postgresql Bitnami chart we're using is too old to be available as an OCI package
-  # in the bitnamicharts DockerHub organization. Thus, we are fetching it from the still maintained index.yaml served at
-  # https://charts.bitnami.com.
-  # Yet, we need to use a specific version of index.yaml from the git repository as Bitnami removes all charts older
-  # than 6 months from the head index.yaml descriptor, see https://github.com/bitnami/charts/issues/10539.
-  url: https://raw.githubusercontent.com/bitnami/charts/d2a3b454f8bb808a493d417199d3e2e09b5c650c/bitnami
 - name: elastic
   url: https://helm.elastic.co/
 - name: opensearch
@@ -64,15 +57,15 @@ releases:
   - values/{{ $valuesDir }}/values-nuxeo.yaml.gotmpl
 - name: mongodb
   chart: oci://registry-1.docker.io/bitnamicharts/mongodb
-  version: 13.3.1
+  version: 15.6.22
   namespace: {{ requiredEnv "NAMESPACE" }}
   condition: mongodb.enabled
   values:
   - values/values-mongodb.yaml.gotmpl
   - values/{{ $valuesDir }}/values-mongodb.yaml.gotmpl
 - name: postgresql
-  chart: bitnami/postgresql
-  version: 10.16.2 # latest chart version for app version 13
+  chart: oci://registry-1.docker.io/bitnamicharts/postgresql
+  version: 15.5.28
   namespace: {{ requiredEnv "NAMESPACE" }}
   condition: postgresql.enabled
   values:
@@ -80,7 +73,7 @@ releases:
   - values/{{ $valuesDir }}/values-postgresql.yaml
 - name: opensearch
   chart: opensearch/opensearch
-  version: 1.16.0
+  version: 1.30.0
   namespace: {{ requiredEnv "NAMESPACE" }}
   condition: opensearch.enabled
   values:
@@ -141,7 +134,7 @@ releases:
 {{ end }}
 - name: kafka
   chart: oci://registry-1.docker.io/bitnamicharts/kafka
-  version: 26.4.3
+  version: 30.0.5
   namespace: {{ requiredEnv "NAMESPACE" }}
   condition: kafka.enabled
   values:

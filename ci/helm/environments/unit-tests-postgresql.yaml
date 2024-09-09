@@ -1,5 +1,5 @@
 extra-deploy:
-  enabled: true
+  enabled: false
 nuxeo:
   enabled: false
 mongodb:
