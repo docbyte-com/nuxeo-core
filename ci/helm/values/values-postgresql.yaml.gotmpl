@@ -8,10 +8,9 @@ primary:
         CREATE DATABASE nuxeo ENCODING 'UTF8' OWNER nuxeo;
   resources:
     requests:
-      cpu: "1"
-      memory: "2Gi"
-    limits:
       cpu: "2"
+      memory: "4Gi"
+    limits:
       memory: "4Gi"
   labels:
     {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 4 }}

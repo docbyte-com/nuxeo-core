@@ -24,7 +24,6 @@ broker:
       cpu: "1"
       memory: "1024Mi"
     limits:
-      cpu: "1"
       memory: "1024Mi"
   extraConfig: |
     auto.create.topics.enable=false
@@ -60,7 +59,6 @@ zookeeper:
       cpu: "500m"
       memory: "512Mi"
     limits:
-      cpu: "500m"
       memory: "512Mi"
   podLabels:
     {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 4 }}
