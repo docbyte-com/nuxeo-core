@@ -30,11 +30,13 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.Arrays;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Test;
+import org.nuxeo.common.test.ModuleUnderTest;
 
 public class TestFileUtils {
 
@@ -164,4 +166,13 @@ public class TestFileUtils {
         assertEquals("_tmp___2349_876398___foo.png", FileUtils.getSafeFilename("\\tmp\\..\\2349:876398\\*\\foo.png"));
     }
 
+    @Test
+    public void testCopyDirectoryKeepSourceDirectoryToDestinationDirectory() throws IOException {
+        var srcDir = FileUtils.getResourceFileFromContext("test-data");
+        var destDir = Files.createTempDirectory(java.nio.file.Path.of(ModuleUnderTest.getOutputDirectory()),
+                "test-file-utils-").toFile();
+        FileUtils.copy(srcDir, destDir);
+
+        assertTrue(new File(destDir, "test-data").exists());
+    }
 }

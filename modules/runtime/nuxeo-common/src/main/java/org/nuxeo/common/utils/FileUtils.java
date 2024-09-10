@@ -20,7 +20,7 @@
  */
 package org.nuxeo.common.utils;
 
-import static org.apache.commons.io.FileUtils.copyDirectory;
+import static org.apache.commons.io.FileUtils.copyDirectoryToDirectory;
 import static org.apache.commons.io.FileUtils.copyFile;
 
 import java.io.File;
@@ -59,7 +59,7 @@ public final class FileUtils {
         if (src.isFile()) {
             copyFile(src, dst);
         } else {
-            copyDirectory(src, dst);
+            copyDirectoryToDirectory(src, dst);
         }
     }
 
