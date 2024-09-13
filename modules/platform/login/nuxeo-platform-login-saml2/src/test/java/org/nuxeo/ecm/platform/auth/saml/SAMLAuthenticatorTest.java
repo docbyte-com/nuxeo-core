@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.anyBoolean;
@@ -38,6 +39,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
@@ -225,6 +227,23 @@ public class SAMLAuthenticatorTest {
         assertTrue(cookie.isHttpOnly());
     }
 
+    // NXP-32891
+    @Test
+    public void testRetrieveIdentityRequireSignature() throws Exception {
+        String metadata = getClass().getResource("/idp-meta-with-certificate.xml").toURI().getPath();
+        Map<String, String> params = Map.of("metadata", metadata);
+        var samlAuth = new SAMLAuthenticationProvider();
+        samlAuth.initPlugin(params);
+
+        HttpServletRequest req = getMockRequest("/saml-response.xml", "POST", "http://localhost:8080/login",
+                "text/html", "/relay");
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(req, resp);
+        assertNull(info);
+    }
+
     @Test
     public void testLogoutRequest() throws Exception {
 
@@ -275,6 +294,7 @@ public class SAMLAuthenticatorTest {
         when(request.getRequestURL()).thenReturn(new StringBuffer(url));
         when(request.getAttribute("javax.servlet.request.X509Certificate")).thenReturn(null);
         when(request.isSecure()).thenReturn(false);
+        when(request.getLocale()).thenReturn(Locale.ENGLISH);
         return request;
     }
 

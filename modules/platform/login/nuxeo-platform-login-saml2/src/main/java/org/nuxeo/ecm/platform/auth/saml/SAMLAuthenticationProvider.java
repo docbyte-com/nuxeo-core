@@ -102,6 +102,7 @@ import org.opensaml.xml.parse.BasicParserPool;
 import org.opensaml.xml.security.BasicSecurityConfiguration;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
+import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.signature.SignatureTrustEngine;
@@ -269,8 +270,24 @@ public class SAMLAuthenticationProvider
 
     protected void addProfile(AbstractSAMLProfile profile) {
         profile.setTrustEngine(trustEngine);
+        profile.setSignatureRequired(
+                () -> {
+                    try {
+                        return getIdPDescriptor().getIDPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
+                                                .getKeyDescriptors()
+                                                .stream()
+                                                .anyMatch(keyDescriptor -> keyDescriptor.getUse() == UsageType.SIGNING);
+                    } catch (MetadataProviderException e) {
+                        return sneakyThrow(e);
+                    }
+                });
         profile.setDecrypter(decrypter);
         profiles.put(profile.getProfileIdentifier(), profile);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <T extends Throwable, R> R sneakyThrow(Throwable e) throws T {
+        throw (T) e;
     }
 
     protected static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";

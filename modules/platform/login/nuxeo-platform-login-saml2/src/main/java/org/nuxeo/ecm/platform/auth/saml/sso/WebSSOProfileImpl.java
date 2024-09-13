@@ -91,7 +91,7 @@ public class WebSSOProfileImpl extends AbstractSAMLProfile implements WebSSOProf
         }
 
         // Validate signature of the response if present
-        if (response.getSignature() != null) {
+        if (signatureRequired.getAsBoolean()) {
             log.debug("Verifying message signature");
             validateSignature(response.getSignature(), context.getPeerEntityId());
             context.setInboundSAMLMessageAuthenticated(true);
