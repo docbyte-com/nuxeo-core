@@ -18,7 +18,7 @@
  *     Florent Guillaume
  *     Mickaël Schoentgen
  */
-package org.nuxeo.ecm.core.storage.sql;
+package org.nuxeo.ecm.blob.s3;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.apache.commons.lang3.StringUtils.defaultString;
@@ -51,7 +51,6 @@ import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicHeaderValueParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.blob.s3.S3ManagedTransfer;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.BlobInfo;
@@ -86,7 +85,7 @@ import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
 
 /**
- * Batch Handler allowing direct S3 upload. Should we move it to org.nuxeo.ecm.blob.s3 package?
+ * Batch Handler allowing direct S3 upload.
  *
  * @since 10.1
  */

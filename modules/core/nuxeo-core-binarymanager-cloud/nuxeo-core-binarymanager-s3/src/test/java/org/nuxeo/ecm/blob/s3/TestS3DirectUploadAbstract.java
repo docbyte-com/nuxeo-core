@@ -35,7 +35,7 @@ import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_NAME_PROPERT
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_PREFIX_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.BUCKET_REGION_PROPERTY;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SYSTEM_PROPERTY_PREFIX;
-import static org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler.ROLE_ARN_PROPERTY;
+import static org.nuxeo.ecm.blob.s3.S3DirectBatchHandler.ROLE_ARN_PROPERTY;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_ROLE_ARN;
 
 import java.io.ByteArrayInputStream;
@@ -62,7 +62,6 @@ import org.nuxeo.ecm.core.io.upload.batch.Batch;
 import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
 import org.nuxeo.ecm.core.io.upload.batch.BatchHandler;
 import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
-import org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStore;
 import org.nuxeo.runtime.test.runner.BlacklistComponent;

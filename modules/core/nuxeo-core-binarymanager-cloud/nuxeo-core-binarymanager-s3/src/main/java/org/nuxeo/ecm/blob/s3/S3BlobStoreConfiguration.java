@@ -56,7 +56,6 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.PathStrategy;
 import org.nuxeo.ecm.core.blob.PathStrategyFlat;
 import org.nuxeo.ecm.core.blob.PathStrategySubDirs;
-import org.nuxeo.ecm.core.storage.sql.S3Utils;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.aws.AWSConfigurationService;
 import org.nuxeo.runtime.aws.NuxeoAWSRegionProvider;

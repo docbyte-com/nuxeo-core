@@ -69,7 +69,7 @@
   <extension target="org.nuxeo.ecm.core.io.BatchManager" point="handlers">
     <batchHandler>
       <name>s3</name>
-      <class>org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler</class>
+      <class>org.nuxeo.ecm.blob.s3.S3DirectBatchHandler</class>
       <property name="transientStore">s3TransientStore</property>
       <property name="blobProvider">s3DirectUploadBlobProviderSource</property>
       <property name="awsid">${nuxeo.s3storage.transient.awsid}</property>

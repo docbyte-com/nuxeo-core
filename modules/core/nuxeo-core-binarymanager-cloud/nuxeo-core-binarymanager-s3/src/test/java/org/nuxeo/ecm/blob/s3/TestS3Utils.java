@@ -16,7 +16,7 @@
  * Contributors:
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.core.storage.sql;
+package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertEquals;
 
@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.Test;
-import org.nuxeo.ecm.core.storage.sql.S3Utils.SliceConsumer;
+import org.nuxeo.ecm.blob.s3.S3Utils.SliceConsumer;
 
 public class TestS3Utils {
 

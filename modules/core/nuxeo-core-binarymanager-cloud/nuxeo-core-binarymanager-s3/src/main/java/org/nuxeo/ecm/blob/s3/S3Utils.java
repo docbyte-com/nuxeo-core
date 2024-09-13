@@ -17,12 +17,11 @@
  *     Luís Duarte
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.core.storage.sql;
+package org.nuxeo.ecm.blob.s3;
 
 import static java.lang.Math.min;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
-import org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration;
 import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -54,7 +53,7 @@ public class S3Utils {
     /**
      * @deprecated since 11.1, use {@link #MULTIPART_COPY_PART_SIZE_DEFAULT} instead
      */
-    @Deprecated
+    @Deprecated(since = "11.1")
     public static final long PART_SIZE = MULTIPART_COPY_PART_SIZE_DEFAULT;
 
     /**
