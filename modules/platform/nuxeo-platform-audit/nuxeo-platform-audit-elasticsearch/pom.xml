@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.elasticsearch</groupId>
-    <artifactId>nuxeo-elasticsearch-parent</artifactId>
+    <groupId>org.nuxeo.ecm.platform</groupId>
+    <artifactId>nuxeo-platform-audit-parent</artifactId>
     <version>2025.0-SNAPSHOT</version>
   </parent>
-  <artifactId>nuxeo-elasticsearch-audit</artifactId>
-  <name>Elasticsearch based Audit backend implementation</name>
+  <artifactId>nuxeo-platform-audit-elasticsearch</artifactId>
+  <name>Nuxeo Platform Audit Service - ElasticSearch</name>
 
   <dependencies>
     <dependency>

@@ -62,7 +62,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @SuppressWarnings("unchecked")
 public class TestAuditPageProviderWithElasticSearch {
 
-    protected @Inject CoreSession session;
+    @Inject
+    protected CoreSession session;
 
     @Inject
     protected PageProviderService pps;

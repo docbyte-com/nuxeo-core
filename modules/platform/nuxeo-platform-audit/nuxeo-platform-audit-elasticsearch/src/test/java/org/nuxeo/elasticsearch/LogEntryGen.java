@@ -61,7 +61,7 @@ public class LogEntryGen {
 
         TransactionHelper.commitOrRollbackTransaction();
         TransactionHelper.startTransaction();
-        Assert.assertTrue(Framework.getService(AuditLogger.class).await(10,TimeUnit.SECONDS));
+        Assert.assertTrue(Framework.getService(AuditLogger.class).await(10, TimeUnit.SECONDS));
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
 
         esa.getClient().flush(esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE));

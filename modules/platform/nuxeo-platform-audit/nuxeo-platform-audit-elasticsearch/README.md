@@ -1,4 +1,4 @@
-nuxeo-elasticsearch-audit
+nuxeo-platform-audit-elasticsearch
 =========================
 
 ## About
@@ -29,7 +29,7 @@ In the Elasticsearch implementation, an alternate sequence generation system is 
 
 ## Data Migration
 
-When `nuxeo-elasticsearch-audit` is deployed it will automatically replace the default JPA implementation.
+When `nuxeo-platform-audit-elasticsearch` is deployed it will automatically replace the default JPA implementation.
 
 However, if you have previous data inside JPA you have to migrate it.
 
