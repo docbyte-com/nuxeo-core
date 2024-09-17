@@ -11,7 +11,6 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>nuxeo-platform-audit-api</module>
     <module>nuxeo-platform-audit-core</module>
     <module>nuxeo-platform-audit-io</module>
     <module>nuxeo-platform-audit-mongodb</module>
