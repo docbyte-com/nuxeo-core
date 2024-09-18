@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.mongodb.audit.contrib">
+<component name="org.nuxeo.audit.mongodb.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.mongodb.audit.contrib</alias>
 
 <#if ((audit.elasticsearch.enabled)!"false") == "true">
-  <require>org.nuxeo.elasticsearch.audit.contrib</require>
+  <require>org.nuxeo.audit.elasticsearch.contrib</require>
 </#if>
   <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="backend">
-    <backend class="org.nuxeo.mongodb.audit.MongoDBAuditBackend">
+    <backend class="org.nuxeo.audit.mongodb.MongoDBAuditBackend">
       <require>org.nuxeo.runtime.mongodb.MongoDBComponent</require>
     </backend>
   </extension>

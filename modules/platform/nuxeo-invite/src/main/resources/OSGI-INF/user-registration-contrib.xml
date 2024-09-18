@@ -45,8 +45,7 @@
     </configuration>
   </extension>
 
-  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService"
-             point="event">
+  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
     <event name="registrationSubmitted"/>
     <event name="registrationAccepted"/>
     <event name="registrationValidated"/>

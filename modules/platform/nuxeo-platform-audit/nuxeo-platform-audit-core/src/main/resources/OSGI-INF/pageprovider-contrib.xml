@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
+<component name="org.nuxeo.audit.PageProviderService.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.contrib</alias>
 
-<component name="org.nuxeo.ecm.platform.audit.PageProviderservice.contrib">
-
-  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
-    point="providers">
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
 
     <genericPageProvider name="DOCUMENT_HISTORY_PROVIDER_OLD"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
         <fixedPart>
@@ -28,7 +28,7 @@
     </genericPageProvider>
 
     <genericPageProvider name="LATEST_AUDITED_CREATED_USERS_OR_GROUPS_PROVIDER"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
         <fixedPart>
@@ -40,11 +40,11 @@
     </genericPageProvider>
 
     <genericPageProvider name="LATEST_CREATED_USERS_OR_GROUPS_PROVIDER"
-      class="org.nuxeo.ecm.platform.audit.provider.LatestCreatedUsersOrGroupsPageProvider">
+      class="org.nuxeo.audit.provider.LatestCreatedUsersOrGroupsPageProvider">
     </genericPageProvider>
 
     <genericPageProvider name="DOCUMENT_HISTORY_PROVIDER"
-      class="org.nuxeo.ecm.platform.audit.api.document.DocumentHistoryPageProvider">
+      class="org.nuxeo.audit.api.document.DocumentHistoryPageProvider">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
         <predicate parameter="log.eventDate" operator="BETWEEN">

@@ -3,7 +3,7 @@
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="domainEventProducer">
 
-    <domainEventProducer name="auditDomain" class="org.nuxeo.ecm.platform.audit.stream.AuditDomainEventProducer">
+    <domainEventProducer name="auditDomain" class="org.nuxeo.audit.stream.AuditDomainEventProducer">
       <stream name="source/audit" partitions="1" codec="avro" />
     </domainEventProducer>
 

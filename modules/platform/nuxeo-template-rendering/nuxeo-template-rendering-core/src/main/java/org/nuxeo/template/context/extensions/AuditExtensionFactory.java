@@ -46,7 +46,7 @@ public class AuditExtensionFactory implements ContextExtensionFactory {
     public Object getExtension(DocumentModel currentDocument, DocumentWrapper wrapper, Map<String, Object> ctx) {
         // add audit context info
         DocumentHistoryReader historyReader = Framework.getService(DocumentHistoryReader.class);
-        List<LogEntry> auditEntries = null;
+        List<LogEntry> auditEntries;
         if (historyReader != null) {
             auditEntries = historyReader.getDocumentHistory(currentDocument, 0, 1000);
         } else {
@@ -76,13 +76,13 @@ public class AuditExtensionFactory implements ContextExtensionFactory {
             if (comment == null) {
                 comment = "";
             } else {
-                String i18nComment = I18NUtils.getMessageString("messages", comment, null, new Locale(lang));
+                String i18nComment = I18NUtils.getMessageString("messages", comment, null, Locale.of(lang));
                 if (i18nComment != null) {
                     comment = i18nComment;
                 }
             }
             String eventId = entry.getEventId();
-            String i18nEventId = I18NUtils.getMessageString("messages", eventId, null, new Locale(lang));
+            String i18nEventId = I18NUtils.getMessageString("messages", eventId, null, Locale.of(lang));
             if (i18nEventId != null) {
                 entry.setEventId(i18nEventId);
             }

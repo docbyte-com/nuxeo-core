@@ -361,7 +361,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     }
 
     private static void registerTemplate(TemplateDescriptor td) {
-        if (td.src != null && td.src.length() > 0) {
+        if (td.src != null && !td.src.isEmpty()) {
             URL url = td.getContext().getResource(td.src);
             TEMPLATES_MAP.put(td.name, url);
         }

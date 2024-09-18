@@ -16,10 +16,9 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.platform.importer.listener;
 
-import org.nuxeo.ecm.platform.audit.api.job.JobHistoryHelper;
+import org.nuxeo.audit.api.job.JobHistoryHelper;
 
 /**
  * @author <a href="mailto:troger@nuxeo.com">Thomas Roger</a>

@@ -16,9 +16,7 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.audit;
 
 import static org.junit.Assert.assertNotNull;

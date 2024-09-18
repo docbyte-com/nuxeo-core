@@ -21,9 +21,9 @@ package org.nuxeo.ecm.automation.core.operations.services.bulk;
 import static java.lang.Boolean.TRUE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.api.CoreSession.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.core.api.VersioningOption.NONE;
 import static org.nuxeo.ecm.core.bulk.action.SetPropertiesAction.ACTION_NAME;
-import static org.nuxeo.ecm.core.bulk.action.SetPropertiesAction.PARAM_DISABLE_AUDIT;
 import static org.nuxeo.ecm.core.bulk.action.SetPropertiesAction.PARAM_VERSIONING_OPTION;
 
 import java.time.Duration;
@@ -38,7 +38,6 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.event.EventService;
@@ -47,7 +46,6 @@ import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.audit.api.Logs;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -73,13 +71,7 @@ public class TestSetPropertiesActionOptimizations {
     public BulkService bulkService;
 
     @Inject
-    public NXAuditEventsService auditService;
-
-    @Inject
     public TransactionalFeature transactions;
-
-    @Inject
-    public VersioningService versioningService;
 
     @Inject
     public EventService eventService;
@@ -111,7 +103,7 @@ public class TestSetPropertiesActionOptimizations {
         // documentCheckin and documentModified
         assertEquals(initialLogEntries + 2, logs.getLogEntriesFor(note.getId(), session.getRepositoryName()).size());
 
-        bulkService.submit(createBuilder().param(PARAM_DISABLE_AUDIT, TRUE).build());
+        bulkService.submit(createBuilder().param(DISABLE_AUDIT_LOGGER, TRUE).build());
         assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(60)));
         assertTrue("Logs didn't finish", logs.await(60, TimeUnit.SECONDS));
         // only documentCheckin
@@ -123,7 +115,7 @@ public class TestSetPropertiesActionOptimizations {
         // only documentModified
         assertEquals(initialLogEntries + 4, logs.getLogEntriesFor(note.getId(), session.getRepositoryName()).size());
 
-        bulkService.submit(createBuilder().param(PARAM_DISABLE_AUDIT, TRUE)
+        bulkService.submit(createBuilder().param(DISABLE_AUDIT_LOGGER, TRUE)
                                           .param(PARAM_VERSIONING_OPTION, NONE.toString())
                                           .build());
         assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(60)));
@@ -173,7 +165,7 @@ public class TestSetPropertiesActionOptimizations {
         String nxql = String.format("SELECT * FROM Note where ecm:parentId='%s'", model.getId());
         String user = session.getPrincipal().getName();
         return new BulkCommand.Builder(ACTION_NAME, nxql, user).repository(session.getRepositoryName())
-                                                         .param("dc:title", UUID.randomUUID().toString());
+                                                               .param("dc:title", UUID.randomUUID().toString());
     }
 
 }

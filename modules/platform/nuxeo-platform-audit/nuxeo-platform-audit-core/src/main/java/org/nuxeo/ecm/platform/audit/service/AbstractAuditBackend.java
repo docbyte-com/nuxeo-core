@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.platform.audit.service;
 
+import static org.nuxeo.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
+import static org.nuxeo.audit.listener.StreamAuditEventListener.STREAM_NAME;
 import static org.nuxeo.ecm.core.schema.FacetNames.SYSTEM_DOCUMENT;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
@@ -25,8 +27,6 @@ import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DAT
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
-import static org.nuxeo.ecm.platform.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
-import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_NAME;
 
 import java.io.Serializable;
 import java.security.Principal;
@@ -37,6 +37,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -45,6 +46,9 @@ import jakarta.el.ELException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.service.extension.AdapterDescriptor;
+import org.nuxeo.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -66,14 +70,11 @@ import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.AuditQueryBuilder;
 import org.nuxeo.ecm.platform.audit.api.AuditStorage;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
-import org.nuxeo.ecm.platform.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.AuditBackendDescriptor;
-import org.nuxeo.ecm.platform.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
 import org.nuxeo.lib.stream.log.LogManager;
@@ -239,8 +240,7 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         entry.setEventId(eventName);
         entry.setEventDate(eventDate);
 
-        if (ctx instanceof DocumentEventContext) {
-            DocumentEventContext docCtx = (DocumentEventContext) ctx;
+        if (ctx instanceof DocumentEventContext docCtx) {
             DocumentModel document = docCtx.getSourceDocument();
             if (document.hasFacet(SYSTEM_DOCUMENT) && !document.hasFacet(FORCE_AUDIT_FACET)) {
                 // do not log event on System documents
@@ -277,11 +277,7 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
                 entry.setDocLifeCycle((String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TO));
             }
             String category = (String) properties.get("category");
-            if (category != null) {
-                entry.setCategory(category);
-            } else {
-                entry.setCategory("eventDocumentCategory");
-            }
+            entry.setCategory(Objects.requireNonNullElse(category, "eventDocumentCategory"));
 
             doPutExtendedInfos(entry, docCtx, document, principal);
 

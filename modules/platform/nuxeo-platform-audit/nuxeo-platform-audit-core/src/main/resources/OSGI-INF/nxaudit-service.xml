@@ -16,7 +16,7 @@
   </documentation>
 
   <!-- needed so that activation has access to persistence -->
-  <require>org.nuxeo.ecm.platform.audit.service.persistence</require>
+  <require>org.nuxeo.audit.service.persistence</require>
 
   <implementation class="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" />
 
@@ -57,7 +57,7 @@
       </programlisting>
     </documentation>
 
-    <object class="org.nuxeo.ecm.platform.audit.service.extension.EventDescriptor" />
+    <object class="org.nuxeo.audit.service.extension.EventDescriptor" />
 
   </extension-point>
 
@@ -71,7 +71,7 @@
       regist:ering results into a map indexed by names.
     </documentation>
 
-    <object class="org.nuxeo.ecm.platform.audit.service.extension.ExtendedInfoDescriptor" />
+    <object class="org.nuxeo.audit.service.extension.ExtendedInfoDescriptor" />
   </extension-point>
 
   <extension-point name="adapter">
@@ -80,7 +80,7 @@
       register the adapter that will be injected in EL context
     </documentation>
 
-    <object class="org.nuxeo.ecm.platform.audit.service.extension.AdapterDescriptor" />
+    <object class="org.nuxeo.audit.service.extension.AdapterDescriptor" />
   </extension-point>
 
   <extension-point name="backend">
@@ -153,12 +153,12 @@
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
     <listener name="auditLoggerListener" async="false" postCommit="false" priority="500"
-      class="org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener" />
+      class="org.nuxeo.audit.listener.StreamAuditEventListener" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
     <streamProcessor name="auditWriter" defaultConcurrency="1" defaultPartitions="1"
-      defaultCodec="${nuxeo.stream.audit.log.codec:=legacy}" class="org.nuxeo.ecm.platform.audit.impl.StreamAuditWriter"
+      defaultCodec="${nuxeo.stream.audit.log.codec:=legacy}" class="org.nuxeo.audit.impl.StreamAuditWriter"
       enabled="${nuxeo.stream.audit.enabled:=true}">
       <policy name="default" batchCapacity="${nuxeo.stream.audit.batch.size:=10}"
         batchThreshold="${nuxeo.stream.audit.batch.threshold.ms:=50}ms" maxRetries="20" delay="1s" maxDelay="60s"

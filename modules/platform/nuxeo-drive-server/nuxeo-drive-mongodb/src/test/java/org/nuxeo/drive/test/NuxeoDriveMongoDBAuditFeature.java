@@ -18,9 +18,9 @@ package org.nuxeo.drive.test;
 
 import java.util.concurrent.TimeUnit;
 
+import org.nuxeo.audit.mongodb.MongoDBAuditFeature;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.mongodb.audit.MongoDBAuditFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;

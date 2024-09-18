@@ -1,4 +1,6 @@
-<component name="org.nuxeo.ecm.platform.audit.tests.config">
+<component name="org.nuxeo.audit.tests.config">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.tests.config</alias>
 
   <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent"
     point="hibernate">

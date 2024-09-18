@@ -343,7 +343,7 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
         // Truncate sync date to 0 milliseconds
         syncDate = System.currentTimeMillis();
         syncDate = syncDate - (syncDate % 1000);
-        Boolean hasTooManyChanges = Boolean.FALSE;
+        boolean hasTooManyChanges = Boolean.FALSE;
         int limit = Integer.parseInt(Framework.getProperty(DOCUMENT_CHANGE_LIMIT_PROPERTY, "1000"));
         if (!allRepositories.isEmpty() && lowerBound >= 0 && upperBound > lowerBound) {
             for (String repositoryName : allRepositories) {
@@ -509,15 +509,13 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
      * @since 5.9.5
      */
     protected String computeSyncRootsQuery(String username) {
-        return String.format(
-                "SELECT ecm:uuid FROM Document" //
-                        + " WHERE %s/*1/username = %s" //
-                        + " AND %s/*1/enabled = 1" //
-                        + " AND ecm:isTrashed = 0" //
-                        + " AND ecm:isVersion = 0" //
-                        + " ORDER BY dc:title, dc:created DESC",
-                DRIVE_SUBSCRIPTIONS_PROPERTY, NXQLQueryBuilder.prepareStringLiteral(username, true, true),
-                DRIVE_SUBSCRIPTIONS_PROPERTY);
+        return String.format("SELECT ecm:uuid FROM Document" //
+                + " WHERE %s/*1/username = %s" //
+                + " AND %s/*1/enabled = 1" //
+                + " AND ecm:isTrashed = 0" //
+                + " AND ecm:isVersion = 0" //
+                + " ORDER BY dc:title, dc:created DESC", DRIVE_SUBSCRIPTIONS_PROPERTY,
+                NXQLQueryBuilder.prepareStringLiteral(username, true, true), DRIVE_SUBSCRIPTIONS_PROPERTY);
     }
 
     @Override

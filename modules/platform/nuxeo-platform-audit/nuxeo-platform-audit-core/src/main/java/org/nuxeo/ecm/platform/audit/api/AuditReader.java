@@ -27,10 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.query.AuditQueryException;
+import org.nuxeo.audit.api.query.DateRangeParser;
+import org.nuxeo.audit.api.query.DateRangeQueryConstants;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.query.AuditQueryException;
-import org.nuxeo.ecm.platform.audit.api.query.DateRangeParser;
 
 /**
  * Interface for reading data from the Audit service.
@@ -75,7 +77,7 @@ public interface AuditReader {
      * <p>
      * Note we will use NXQL in the future when the search engine will index history.
      *
-     * @see org.nuxeo.ecm.platform.audit.api.query.DateRangeQueryConstants
+     * @see DateRangeQueryConstants
      * @param eventIds the event ids.
      * @param dateRange a preset date range.
      * @return a list of log entries.
@@ -89,7 +91,7 @@ public interface AuditReader {
      * <p>
      * Note we will use NXQL in the future when the search engine will index history.
      *
-     * @see org.nuxeo.ecm.platform.audit.api.query.DateRangeQueryConstants
+     * @see DateRangeQueryConstants
      * @param eventIds the event ids.
      * @param dateRange a preset date range.
      * @param category add filter on events category
@@ -123,7 +125,7 @@ public interface AuditReader {
      * <p>
      * Note we will use NXQL in the future when the search engine will index history.
      *
-     * @see org.nuxeo.ecm.platform.audit.api.query.DateRangeQueryConstants
+     * @see DateRangeQueryConstants
      * @param eventIds the event ids.
      * @param limit filter events by date from limit to now
      * @param category add filter on events category

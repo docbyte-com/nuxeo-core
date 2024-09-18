@@ -45,7 +45,8 @@ public class AuditBackendDescriptor {
         if (StringUtils.isEmpty(requiredComponent)) {
             return 1000;
         }
-        return ((DefaultComponent)Framework.getRuntime().getComponent(requiredComponent)).getApplicationStartedOrder()+1;
+        return ((DefaultComponent) Framework.getRuntime().getComponent(requiredComponent)).getApplicationStartedOrder()
+                + 1;
     }
 
     public Class<? extends AuditBackend> getKlass() {
@@ -54,7 +55,8 @@ public class AuditBackendDescriptor {
 
     public AuditBackend newInstance(NXAuditEventsService component) {
         try {
-            return klass.getDeclaredConstructor(NXAuditEventsService.class, AuditBackendDescriptor.class).newInstance(component, this);
+            return klass.getDeclaredConstructor(NXAuditEventsService.class, AuditBackendDescriptor.class)
+                        .newInstance(component, this);
         } catch (ReflectiveOperationException cause) {
             throw new RuntimeException("Cannot create audit backend of type " + klass.getName(), cause);
         }

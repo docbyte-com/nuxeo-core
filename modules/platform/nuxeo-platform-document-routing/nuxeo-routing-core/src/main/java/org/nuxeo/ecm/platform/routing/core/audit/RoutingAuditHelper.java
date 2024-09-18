@@ -17,7 +17,6 @@
  *     <a href="mailto:grenard@nuxeo.com">Guillaume Renard</a>
  *
  */
-
 package org.nuxeo.ecm.platform.routing.core.audit;
 
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
@@ -28,8 +27,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
-import org.nuxeo.ecm.platform.audit.api.AuditQueryBuilder;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.api.Logs;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
@@ -67,8 +66,8 @@ public final class RoutingAuditHelper {
                                            .and(Predicates.eq(LOG_EVENT_ID, event.name()))
                                            .defaultOrder()
                                            .limit(1));
-            if (logEntries.size() > 0) {
-                LogEntry logEntry = logEntries.get(0);
+            if (!logEntries.isEmpty()) {
+                LogEntry logEntry = logEntries.getFirst();
                 Date start = logEntry.getEventDate();
                 return new Date().getTime() - start.getTime();
             }

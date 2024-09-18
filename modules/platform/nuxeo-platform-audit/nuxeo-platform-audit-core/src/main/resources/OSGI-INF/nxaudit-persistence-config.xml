@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="org.nuxeo.ecm.platform.audit.service.persistence">
+<component name="org.nuxeo.audit.service.persistence">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.service.persistence</alias>
 
   <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent"
     point="hibernate">

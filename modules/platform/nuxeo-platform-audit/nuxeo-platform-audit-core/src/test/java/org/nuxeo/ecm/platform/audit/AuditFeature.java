@@ -58,7 +58,7 @@ public class AuditFeature implements RunnerFeature {
         clear();
     }
 
-    protected void clear() {
+    public void clear() {
         boolean started = !TransactionHelper.isTransactionActive() && TransactionHelper.startTransaction();
         try {
             doClear();

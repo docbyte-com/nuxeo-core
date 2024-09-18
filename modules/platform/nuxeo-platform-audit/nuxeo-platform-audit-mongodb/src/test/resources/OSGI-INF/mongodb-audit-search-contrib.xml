@@ -1,4 +1,6 @@
-<component name="org.nuxeo.ecm.platform.audit.search.contrib" version="1.0">
+<component name="org.nuxeo.audit.search.contrib" version="1.0">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.search.contrib</alias>
 
   <documentation>Contribute the search event to the Audit configuration :
     this is only safe to do so when the MongoDB backend if used for Audit

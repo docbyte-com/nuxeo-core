@@ -203,7 +203,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
 
         assertNotNull(docs);
         assertEquals(1, docs.size());
-        checkHasCorrectMultiValues(docs.get(0));
+        checkHasCorrectMultiValues(docs.getFirst());
     }
 
     private void checkHasCorrectMultiValues(JsonNode note) {

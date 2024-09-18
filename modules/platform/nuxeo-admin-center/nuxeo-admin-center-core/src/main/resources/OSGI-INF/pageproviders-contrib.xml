@@ -34,7 +34,7 @@
       <pageSize>10</pageSize>
     </coreQueryPageProvider>
 
-    <genericPageProvider class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider" name="EVENTS_VIEW">
+    <genericPageProvider class="org.nuxeo.audit.api.AuditPageProvider" name="EVENTS_VIEW">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
         <predicate parameter="log.eventDate" operator="BETWEEN">

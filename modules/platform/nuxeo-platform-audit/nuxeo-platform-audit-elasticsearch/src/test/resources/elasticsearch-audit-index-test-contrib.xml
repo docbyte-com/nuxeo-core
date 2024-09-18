@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.elasticsearch.index.audit.contrib.test">
+<component name="org.nuxeo.audit.elasticsearch.index.contrib.test">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.elasticsearch.index.audit.contrib.test</alias>
 
   <extension target="org.nuxeo.elasticsearch.ElasticSearchComponent"
              point="elasticSearchIndex">

@@ -18,7 +18,6 @@
  *     Thierry Delprat
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.platform.audit.impl;
 
 import java.io.IOException;

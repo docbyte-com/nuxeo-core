@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-
-<component name="org.nuxeo.ecm.platform.query.api.PageProviderservice.test.contrib">
+<component name="org.nuxeo.audit.mongodb.query.api.PageProviderService.test.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.query.api.PageProviderservice.test.contrib</alias>
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
 

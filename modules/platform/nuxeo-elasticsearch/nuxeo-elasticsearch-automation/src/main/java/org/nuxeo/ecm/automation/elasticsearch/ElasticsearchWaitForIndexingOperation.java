@@ -44,9 +44,7 @@ import org.nuxeo.runtime.api.Framework;
  *
  * @since 8.1
  */
-@Operation(id = ElasticsearchWaitForIndexingOperation.ID, category = Constants.CAT_SERVICES, label = "Wait for Elasticsearch Indexing",
-        since = "8.1",
-        description = "Wait until Elasticsearch indexing is done.")
+@Operation(id = ElasticsearchWaitForIndexingOperation.ID, category = Constants.CAT_SERVICES, label = "Wait for Elasticsearch Indexing", since = "8.1", description = "Wait until Elasticsearch indexing is done.")
 public class ElasticsearchWaitForIndexingOperation {
 
     public static final String ID = "Elasticsearch.WaitForIndexing";

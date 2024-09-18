@@ -1,13 +1,15 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ecm.platform.audit.io.marshallers" version="1.0.0">
+<component name="org.nuxeo.audit.io.marshallers" version="1.0.0">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.io.marshallers</alias>
   <documentation>
     Core IO registered marshallers set.
   </documentation>
   <extension target="org.nuxeo.ecm.core.io.MarshallerRegistry" point="marshallers">
     <!-- preview document enricher -->
-    <register class="org.nuxeo.ecm.platform.audit.io.LogEntryJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.platform.audit.io.LogEntryListJsonWriter" enable="true" />
-    <register class="org.nuxeo.ecm.platform.audit.io.LogEntryCSVWriter" enable="true" />
-    <register class="org.nuxeo.ecm.platform.audit.io.LogEntryListCSVWriter" enable="true" />
+    <register class="org.nuxeo.audit.io.LogEntryJsonWriter" enable="true" />
+    <register class="org.nuxeo.audit.io.LogEntryListJsonWriter" enable="true" />
+    <register class="org.nuxeo.audit.io.LogEntryCSVWriter" enable="true" />
+    <register class="org.nuxeo.audit.io.LogEntryListCSVWriter" enable="true" />
   </extension>
 </component>

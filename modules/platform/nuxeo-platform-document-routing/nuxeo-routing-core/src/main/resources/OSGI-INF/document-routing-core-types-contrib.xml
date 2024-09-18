@@ -4,7 +4,7 @@
 
   <require>org.nuxeo.ecm.core.CoreExtensions</require>
   <require>org.nuxeo.ecm.plateform.task.type</require>
-  <require>org.nuxeo.ecm.platform.audit.core.types-contrib</require>
+  <require>org.nuxeo.audit.core.types-contrib</require>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService"
     point="schema">

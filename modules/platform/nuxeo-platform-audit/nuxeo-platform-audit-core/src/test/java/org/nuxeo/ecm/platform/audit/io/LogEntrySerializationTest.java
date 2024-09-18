@@ -17,7 +17,6 @@
  *     Funsho David
  *
  */
-
 package org.nuxeo.ecm.platform.audit.io;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -153,8 +152,8 @@ public class LogEntrySerializationTest {
         logEntryJson.with("extended").put(BOOL_INFO, false);
         logEntryJson.with("extended").put(STRING_INFO, "myInfo");
         logEntryJson.with("extended").put(DATE_INFO, "2012-01-01T00:00:00Z");
-        logEntryJson.with("extended").put("blobInfo",
-                Base64.encodeBase64(SerializationUtils.serialize(new StringBlob("I'm a blob!"))));
+        logEntryJson.with("extended")
+                    .put("blobInfo", Base64.encodeBase64(SerializationUtils.serialize(new StringBlob("I'm a blob!"))));
 
         LogEntryImpl logEntry = mapper.convertValue(logEntryJson, LogEntryImpl.class);
 

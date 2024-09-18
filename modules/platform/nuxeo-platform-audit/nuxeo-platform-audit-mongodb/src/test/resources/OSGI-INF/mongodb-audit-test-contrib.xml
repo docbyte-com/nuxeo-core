@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.mongodb.audit.test.contrib">
+<component name="org.nuxeo.audit.mongodb.test.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.mongodb.audit.test.contrib</alias>
 
-  <extension point="extendedInfo" target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService">
+  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="extendedInfo">
      <extendedInfo expression="${source.dublincore.title}" key="title" />
      <extendedInfo expression="${principal.name}" key="user" />
   </extension>

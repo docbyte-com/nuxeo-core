@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-
-<component
-  name="org.nuxeo.ecm.platform.audit.PageProviderservice.testContrib">
+<component name="org.nuxeo.audit.PageProviderService.testContrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.testContrib</alias>
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
     point="providers">
@@ -35,7 +35,7 @@
 -->
 
    <genericPageProvider name="GetAllEntries"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <pattern>
         from LogEntry log
       </pattern>
@@ -44,7 +44,7 @@
     </genericPageProvider>
 
     <genericPageProvider name="GetAllEntriesInCategory"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <pattern>
         from LogEntry log  where log.category = ?
       </pattern>
@@ -53,7 +53,7 @@
     </genericPageProvider>
 
     <genericPageProvider name="GetAllEntriesForDocumentInCategory"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>File</searchDocumentType>
       <whereClause>
         <fixedPart>
@@ -68,7 +68,7 @@
     </genericPageProvider>
 
     <genericPageProvider name="GetAllEntriesForDocumentInCategories"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>File</searchDocumentType>
       <whereClause>
         <fixedPart>
@@ -83,7 +83,7 @@
     </genericPageProvider>
 
     <genericPageProvider name="GetAllEntriesBetween2Dates"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>File</searchDocumentType>
       <whereClause>
         <fixedPart>

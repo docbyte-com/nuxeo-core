@@ -35,8 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
@@ -50,8 +48,6 @@ import org.nuxeo.ecm.core.api.versioning.VersioningService;
  * @since 9.3
  */
 public class FacetedTagService extends AbstractTagService {
-
-    private static final Logger log = LogManager.getLogger(FacetedTagService.class);
 
     public static final String LABEL_PROPERTY = "label";
 

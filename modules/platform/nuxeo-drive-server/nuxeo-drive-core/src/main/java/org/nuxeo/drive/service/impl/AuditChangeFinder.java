@@ -202,8 +202,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                             String oldDigest = oldDigestInfo.getValue(String.class);
                             if (oldDigest != null) {
                                 FileSystemItem fsItem = change.getFileSystemItem();
-                                if (fsItem instanceof DocumentBackedFileItem) {
-                                    DocumentBackedFileItem dbfi = (DocumentBackedFileItem) fsItem;
+                                if (fsItem instanceof DocumentBackedFileItem dbfi) {
                                     dbfi.setOldDigest(oldDigest);
                                 }
                             }
@@ -233,7 +232,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
             log.debug("Found no audit log entries, returning -1");
             return -1;
         }
-        return entries.get(0).getId();
+        return entries.getFirst().getId();
     }
 
     @SuppressWarnings("unchecked")
@@ -314,7 +313,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         for (String rootPath : rootPaths) {
             rootPathCount++;
             String rootPathParam = "rootPath" + rootPathCount;
-            if (rootPathClause.length() > 0) {
+            if (!rootPathClause.isEmpty()) {
                 rootPathClause.append(" or ");
             }
             rootPathClause.append(String.format("log.docPath like :%s", rootPathParam));

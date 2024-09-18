@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.contentTemplate.contrib.audit.test">
+<component name="org.nuxeo.audit.contentTemplate.contrib.test">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.contentTemplate.contrib.audit.test</alias>
 
   <require>
     org.nuxeo.ecm.platform.content.template.service.ContentTemplateService.defaultContrib

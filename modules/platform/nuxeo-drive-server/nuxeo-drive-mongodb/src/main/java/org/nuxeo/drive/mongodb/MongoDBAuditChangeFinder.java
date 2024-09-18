@@ -39,17 +39,17 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.mongodb.MongoDBAuditBackend;
+import org.nuxeo.audit.mongodb.MongoDBAuditEntryReader;
 import org.nuxeo.drive.service.SynchronizationRoots;
 import org.nuxeo.drive.service.impl.AuditChangeFinder;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.AuditQueryBuilder;
 import org.nuxeo.ecm.platform.audit.api.AuditReader;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.mongodb.audit.MongoDBAuditBackend;
-import org.nuxeo.mongodb.audit.MongoDBAuditEntryReader;
 import org.nuxeo.runtime.api.Framework;
 
 import com.mongodb.client.MongoCollection;
@@ -71,7 +71,7 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
             log.debug("Found no audit log entries, returning -1");
             return -1;
         }
-        return entries.get(0).getId();
+        return entries.getFirst().getId();
     }
 
     @Override

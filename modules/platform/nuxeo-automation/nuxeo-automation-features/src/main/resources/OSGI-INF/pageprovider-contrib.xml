@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
-
-<component name="org.nuxeo.ecm.platform.audit.PageProviderservice.automation.contrib">
+<component name="org.nuxeo.audit.PageProviderService.automation.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.automation.contrib</alias>
 
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
     point="providers">
 
     <genericPageProvider name="AUDIT_BROWSER"
-      class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider">
+      class="org.nuxeo.audit.api.AuditPageProvider">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
         <predicate parameter="log.id" operator="&gt;">
