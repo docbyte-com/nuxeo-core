@@ -22,7 +22,9 @@ package org.nuxeo.ecm.platform.audit.api;
  * Log entry builtin constants.
  *
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.LogEntryConstants} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public final class BuiltinLogEntryData {
 
     public static final String LOG_ID = "id";

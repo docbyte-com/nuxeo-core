@@ -49,6 +49,7 @@ import jakarta.inject.Inject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationException;
@@ -85,7 +86,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.web.common.ServletHelper;
 import org.nuxeo.runtime.api.Framework;
@@ -107,7 +107,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Deploy("org.nuxeo.ecm.automation.test:test-bindings.xml")
 @Deploy("org.nuxeo.ecm.automation.test:test-mvalues.xml")
 @Deploy("org.nuxeo.ecm.automation.test:operation-contrib.xml")
-@Features({ EmbeddedAutomationServerFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, EmbeddedAutomationServerFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
 

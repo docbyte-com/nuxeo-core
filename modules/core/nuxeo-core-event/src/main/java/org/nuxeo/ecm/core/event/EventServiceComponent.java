@@ -30,6 +30,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Descriptor;
 
@@ -39,7 +40,11 @@ import org.nuxeo.runtime.model.Descriptor;
  */
 public class EventServiceComponent extends DefaultComponent {
 
-    public static final int APPLICATION_STARTED_ORDER = -500;
+    /**
+     * @deprecated since 2025.0, use {@link ComponentStartOrders#EVENT} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final int APPLICATION_STARTED_ORDER = ComponentStartOrders.EVENT;
 
     public static final String EVENT_LISTENER_XP = "listener";
 
@@ -84,7 +89,7 @@ public class EventServiceComponent extends DefaultComponent {
 
     @Override
     public int getApplicationStartedOrder() {
-        return APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.EVENT;
     }
 
     @Override

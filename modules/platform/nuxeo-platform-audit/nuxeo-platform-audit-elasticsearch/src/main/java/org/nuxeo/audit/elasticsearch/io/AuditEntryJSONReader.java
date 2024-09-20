@@ -18,129 +18,23 @@
  */
 package org.nuxeo.audit.elasticsearch.io;
 
-import static org.nuxeo.common.utils.DateUtils.parseISODateTime;
-import static org.nuxeo.common.utils.DateUtils.toDate;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_COMMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_LIFE_CYCLE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_TYPE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EXTENDED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_LOG_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
-
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
 
-import org.nuxeo.ecm.core.api.impl.blob.AbstractBlob;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-
+/**
+ * @deprecated since 2025.0, use nuxeo-core-io instead.
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditEntryJSONReader {
 
+    /**
+     * @deprecated since 2025.0, use {@link MarshallerHelper#jsonToObject(Class, String, RenderingContext)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static LogEntry read(String content) throws IOException {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        SimpleModule module = new SimpleModule("esAuditJson", Version.unknownVersion());
-        module.addSerializer(Map.class, new AuditEntryJSONWriter.MapEntrySerializer());
-        module.addSerializer(AbstractBlob.class, new AuditEntryJSONWriter.BinaryBlobEntrySerializer());
-        objectMapper.registerModule(module);
-
-        LogEntryImpl entry = new LogEntryImpl();
-
-        JsonFactory factory = new JsonFactory();
-        factory.setCodec(objectMapper);
-        try (JsonParser jp = factory.createParser(content)) {
-
-            JsonToken tok = jp.nextToken();
-
-            // skip {
-            if (jp.getCurrentToken() == JsonToken.START_OBJECT) {
-                tok = jp.nextToken();
-            }
-
-            while (tok != null && tok != JsonToken.END_OBJECT) {
-                String key = jp.getCurrentName();
-                JsonToken token = jp.nextToken();
-                if (token != JsonToken.VALUE_NULL) {
-                    if (LOG_CATEGORY.equals(key)) {
-                        entry.setCategory(token == JsonToken.VALUE_NULL ? null : jp.getText());
-                    } else if (LOG_PRINCIPAL_NAME.equals(key)) {
-                        entry.setPrincipalName(jp.getText());
-                    } else if (LOG_COMMENT.equals(key)) {
-                        entry.setComment(jp.getText());
-                    } else if (LOG_DOC_LIFE_CYCLE.equals(key)) {
-                        entry.setDocLifeCycle(jp.getText());
-                    } else if (LOG_DOC_PATH.equals(key)) {
-                        entry.setDocPath(jp.getText());
-                    } else if (LOG_DOC_TYPE.equals(key)) {
-                        entry.setDocType(jp.getText());
-                    } else if (LOG_DOC_UUID.equals(key)) {
-                        entry.setDocUUID(jp.getText());
-                    } else if (LOG_EVENT_ID.equals(key)) {
-                        entry.setEventId(jp.getText());
-                    } else if (LOG_REPOSITORY_ID.equals(key)) {
-                        entry.setRepositoryId(jp.getText());
-                    } else if (LOG_ID.equals(key)) {
-                        entry.setId(jp.getLongValue());
-                    } else if (LOG_EVENT_DATE.equals(key)) {
-                        entry.setEventDate(toDate(parseISODateTime(jp.getText())));
-                    } else if (LOG_LOG_DATE.equals(key)) {
-                        entry.setLogDate(toDate(parseISODateTime(jp.getText())));
-                    } else if (LOG_EXTENDED.equals(key)) {
-                        entry.setExtendedInfos(readExtendedInfo(jp, objectMapper));
-                    }
-                }
-                tok = jp.nextToken();
-            }
-        }
-        return entry;
+        return MarshallerHelper.jsonToObject(LogEntry.class, content, RenderingContext.CtxBuilder.get());
     }
-
-    public static Map<String, ExtendedInfo> readExtendedInfo(JsonParser jp, ObjectMapper objectMapper)
-            throws IOException {
-
-        Map<String, ExtendedInfo> info = new HashMap<>();
-
-        JsonNode node = jp.readValueAsTree();
-
-        Iterator<String> fieldsIt = node.fieldNames();
-
-        while (fieldsIt.hasNext()) {
-            String fieldName = fieldsIt.next();
-
-            JsonNode field = node.get(fieldName);
-
-            ExtendedInfoImpl ei = null;
-            if (field.isObject() || field.isArray()) {
-                ei = ExtendedInfoImpl.createExtendedInfo(objectMapper.writeValueAsString(field));
-            } else {
-                if (field.isInt() || field.isLong()) {
-                    ei = ExtendedInfoImpl.createExtendedInfo(field.longValue());
-                } else {
-                    ei = ExtendedInfoImpl.createExtendedInfo(field.textValue());
-                }
-            }
-            info.put(fieldName, ei);
-        }
-        return info;
-    }
-
 }

@@ -23,7 +23,10 @@ package org.nuxeo.ecm.platform.audit.api.comment;
  *
  * @author Tiry (tdelprat@nuxeo.com)
  * @since 5.4.2
+ * @deprecated since 2025.0, unused
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class UIAuditComment {
 
     protected final String comment;

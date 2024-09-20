@@ -24,6 +24,10 @@ import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
 
+/**
+ * @deprecated since 2025.0, unused
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoContext extends ExpressionContext {
 
     private final EventContext eventContext;

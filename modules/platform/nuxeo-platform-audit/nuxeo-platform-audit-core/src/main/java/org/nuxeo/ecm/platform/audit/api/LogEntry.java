@@ -24,12 +24,17 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
 
+import org.nuxeo.audit.api.AuditPageProvider;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.platform.audit.api.comment.UIAuditComment;
 
 /**
  * Log entry.
+ * 
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.LogEntry} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface LogEntry extends Serializable {
 
     /**
@@ -37,7 +42,13 @@ public interface LogEntry extends Serializable {
      */
     long getId();
 
-    void setId(long id);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setId(long id) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the name of the principal who originated the log entry.
@@ -46,7 +57,13 @@ public interface LogEntry extends Serializable {
      */
     String getPrincipalName();
 
-    void setPrincipalName(String principalName);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setPrincipalName(String principalName) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the identifier of the event that originated the log entry.
@@ -55,7 +72,13 @@ public interface LogEntry extends Serializable {
      */
     String getEventId();
 
-    void setEventId(String eventId);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setEventId(String eventId) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * @return the date of the log insertion: this up to max transaction timeout later than eventDate. This date is
@@ -66,7 +89,13 @@ public interface LogEntry extends Serializable {
      */
     Date getLogDate();
 
-    void setLogDate(Date logDate);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setLogDate(Date logDate) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the date of the event that originated the log entry.
@@ -75,7 +104,13 @@ public interface LogEntry extends Serializable {
      */
     Date getEventDate();
 
-    void setEventDate(Date eventDate);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setEventDate(Date eventDate) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the doc UUID related to the log entry.
@@ -86,9 +121,25 @@ public interface LogEntry extends Serializable {
      */
     String getDocUUID();
 
-    void setDocUUID(String docUUID);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setDocUUID(String docUUID) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
-    void setDocUUID(DocumentRef docRef);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setDocUUID(DocumentRef docRef) {
+        switch (docRef.type()) {
+            case DocumentRef.ID -> setDocUUID((String) docRef.reference());
+            case DocumentRef.INSTANCE -> setDocUUID(((DocumentModel) docRef.reference()).getId());
+            default -> throw new IllegalArgumentException("not an id reference " + docRef);
+        }
+    }
 
     /**
      * Returns the doc path related to the log entry.
@@ -99,7 +150,13 @@ public interface LogEntry extends Serializable {
      */
     String getDocPath();
 
-    void setDocPath(String docPath);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setDocPath(String docPath) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the doc type related to the log entry.
@@ -110,7 +167,13 @@ public interface LogEntry extends Serializable {
      */
     String getDocType();
 
-    void setDocType(String docType);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setDocType(String docType) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the category for this log entry.
@@ -121,7 +184,13 @@ public interface LogEntry extends Serializable {
      */
     String getCategory();
 
-    void setCategory(String category);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setCategory(String category) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the associated comment for this log entry.
@@ -130,7 +199,13 @@ public interface LogEntry extends Serializable {
      */
     String getComment();
 
-    void setComment(String comment);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setComment(String comment) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Return the life cycle if the document related to the log entry.
@@ -141,7 +216,13 @@ public interface LogEntry extends Serializable {
      */
     String getDocLifeCycle();
 
-    void setDocLifeCycle(String docLifeCycle);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setDocLifeCycle(String docLifeCycle) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
      * Returns the repository id related to the log entry.
@@ -150,16 +231,62 @@ public interface LogEntry extends Serializable {
      */
     String getRepositoryId();
 
-    void setRepositoryId(String repositoryId);
-
-    Map<String, ExtendedInfo> getExtendedInfos();
-
-    void setExtendedInfos(Map<String, ExtendedInfo> infos);
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setRepositoryId(String repositoryId) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 
     /**
-     * Return the comment preprocessed to be ready for display. (extract info about linked documents).
+     * Returns the extended information attached to this log entry.
+     *
+     * @since 2025.0
      */
-    UIAuditComment getPreprocessedComment();
+    Map<String, Object> getExtended();
 
-    void setPreprocessedComment(UIAuditComment uiComment);
+    /**
+     * @since 2025.0
+     */
+    @SuppressWarnings("unchecked")
+    default <R> R getExtendedValue(String key) {
+        return (R) getExtended().get(key);
+    }
+
+    /**
+     * @deprecated since 2025.0, {@link ExtendedInfo} doesn't need a Java type anymore, use {@link #getExtended} instead
+     */
+    @SuppressWarnings("removal")
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default Map<String, ExtendedInfo> getExtendedInfos() {
+        throw new UnsupportedOperationException("ExtendedInfo not supported, use #getExtended instead");
+    }
+
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @SuppressWarnings("removal")
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setExtendedInfos(Map<String, ExtendedInfo> infos) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
+
+    /**
+     * Returns the comment preprocessed to be ready for display (extract info about linked documents).
+     *
+     * @deprecated since 2025.0, unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default UIAuditComment getPreprocessedComment() {
+        throw new UnsupportedOperationException("Preprocessed comment not supported, no replacement");
+    }
+
+    /**
+     * @deprecated since 2025.0, {@link LogEntry} built by Nuxeo Platform are now immutable
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default void setPreprocessedComment(UIAuditComment uiComment) {
+        throw new UnsupportedOperationException("LogEntry are immutable");
+    }
 }

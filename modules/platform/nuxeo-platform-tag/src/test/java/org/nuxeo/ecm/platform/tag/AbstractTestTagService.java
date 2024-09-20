@@ -23,9 +23,9 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -41,6 +41,8 @@ import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -61,9 +63,6 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.service.AuditBackend;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -92,7 +91,7 @@ public abstract class AbstractTestTagService {
     protected TagService tagService;
 
     @Inject
-    protected NXAuditEventsService auditEventsService;
+    protected AuditBackend auditBackend;
 
     /**
      * @since 11.1
@@ -797,11 +796,10 @@ public abstract class AbstractTestTagService {
         assertEquals("Administrator", file1.getPropertyValue("dc:lastContributor"));
 
         // Also check that the event was not logged in the audit
-        AuditBackend backend = auditEventsService.getBackend();
-        assertEquals(0, backend
-                               .queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_PRINCIPAL_NAME, "bob"))
-                                                                 .and(Predicates.eq(LOG_EVENT_ID, DOCUMENT_UPDATED)))
-                               .size());
+        assertEquals(0,
+                auditBackend.queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_PRINCIPAL_NAME, "bob"))
+                                                              .and(Predicates.eq(LOG_EVENT_ID, DOCUMENT_UPDATED)))
+                            .size());
     }
 
     /**

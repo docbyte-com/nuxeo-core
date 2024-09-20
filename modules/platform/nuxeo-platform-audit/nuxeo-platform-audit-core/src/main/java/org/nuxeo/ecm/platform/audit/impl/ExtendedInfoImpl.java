@@ -43,11 +43,14 @@ import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
  * Extended audit info entities, used to persist contributed extended information.
  *
  * @author Stephane Lacoin (Nuxeo EP software engineer)
+ * @deprecated since 2025.0, it is not useful anymore except for nuxeo-platform-audit-sql
  */
+@SuppressWarnings("removal")
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "NXP_LOGS_EXTINFO")
 @DiscriminatorColumn(name = "DISCRIMINATOR")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoImpl implements ExtendedInfo {
 
     private static final long serialVersionUID = 1L;

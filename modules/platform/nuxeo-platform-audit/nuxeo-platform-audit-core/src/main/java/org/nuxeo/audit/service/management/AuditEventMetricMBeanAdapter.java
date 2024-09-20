@@ -18,25 +18,25 @@
  */
 package org.nuxeo.audit.service.management;
 
-import org.nuxeo.ecm.platform.audit.api.Logs;
+import org.nuxeo.audit.service.AuditBackend;
 
 /**
  * @author matic
  */
 public class AuditEventMetricMBeanAdapter implements AuditEventMetricMBean {
 
-    protected final Logs service;
+    protected final AuditBackend backend;
 
     protected final String eventName;
 
-    protected AuditEventMetricMBeanAdapter(Logs service, String name) {
-        this.service = service;
+    protected AuditEventMetricMBeanAdapter(AuditBackend backend, String name) {
+        this.backend = backend;
         this.eventName = name;
     }
 
     @Override
     public Long getCount() {
-        return service.getEventsCount(eventName);
+        return backend.getEventsCount(eventName);
     }
 
 }

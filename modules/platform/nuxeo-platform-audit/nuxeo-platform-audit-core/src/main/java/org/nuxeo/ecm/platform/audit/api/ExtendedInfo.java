@@ -24,7 +24,9 @@ import java.io.Serializable;
  * Extended audit info entities, used to persist contributed extended information.
  *
  * @author Stephane Lacoin (Nuxeo EP software engineer)
+ * @deprecated since 2025.0, it is not useful anymore
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface ExtendedInfo extends Serializable {
 
     Long getId();

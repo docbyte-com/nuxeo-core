@@ -72,7 +72,7 @@
   </extension>
   </#if>
 </#if>
-  <require>org.nuxeo.ecm.platform.audit.service.NXAuditEventsService</require>
+  <require>org.nuxeo.audit.service.AuditComponent</require>
   <extension target="org.nuxeo.runtime.stream.service" point="logConfig">
   <#if "${kafka.enabled}" == "true">
      <logConfig name="audit" type="kafka">

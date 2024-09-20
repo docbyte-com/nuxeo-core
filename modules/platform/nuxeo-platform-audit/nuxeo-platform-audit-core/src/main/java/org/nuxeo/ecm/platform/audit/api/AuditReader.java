@@ -18,7 +18,12 @@
  */
 package org.nuxeo.ecm.platform.audit.api;
 
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
+import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
+import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
+import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
 
 import java.util.Date;
@@ -27,10 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntryConstants;
 import org.nuxeo.audit.api.query.AuditQueryException;
 import org.nuxeo.audit.api.query.DateRangeParser;
 import org.nuxeo.audit.api.query.DateRangeQueryConstants;
+import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 
@@ -38,8 +46,13 @@ import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
  * Interface for reading data from the Audit service.
  *
  * @author tiry
+ * @param <L> to give the log entry type for the new {@link org.nuxeo.audit.service.AuditBackend} interface that defines
+ *            a new entry type.
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AuditBackend} instead
  */
-public interface AuditReader {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public interface AuditReader<L extends LogEntry> {
 
     /**
      * Returns the logs given a doc uuid and a repository id.
@@ -49,7 +62,7 @@ public interface AuditReader {
      * @return a list of log entries
      * @since 8.4
      */
-    default List<LogEntry> getLogEntriesFor(String uuid, String repositoryId) {
+    default List<L> getLogEntriesFor(String uuid, String repositoryId) {
         return queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_DOC_UUID, uuid))
                                                 .and(Predicates.eq(LOG_REPOSITORY_ID, repositoryId))
                                                 .defaultOrder());
@@ -61,7 +74,7 @@ public interface AuditReader {
      * @param id the log entry identifier
      * @return a LogEntry instance
      */
-    LogEntry getLogEntryByID(long id);
+    L getLogEntryByID(long id);
 
     /**
      * Returns the logs given a collection of predicates and a default sort.
@@ -70,7 +83,7 @@ public interface AuditReader {
      * @return a list of log entries
      * @since 9.3
      */
-    List<LogEntry> queryLogs(QueryBuilder builder);
+    List<L> queryLogs(QueryBuilder builder);
 
     /**
      * Returns the list of log entries.
@@ -81,8 +94,10 @@ public interface AuditReader {
      * @param eventIds the event ids.
      * @param dateRange a preset date range.
      * @return a list of log entries.
+     * @deprecated since 2025.0, use {@link #queryLogs(QueryBuilder)} instead
      */
-    default List<LogEntry> queryLogs(String[] eventIds, String dateRange) {
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default List<L> queryLogs(String[] eventIds, String dateRange) {
         return queryLogsByPage(eventIds, (String) null, (String[]) null, null, 0, 10000);
     }
 
@@ -99,14 +114,20 @@ public interface AuditReader {
      * @param pageNb page number (ignore if &lt;=1)
      * @param pageSize number of results per page
      * @return a list of log entries.
+     * @deprecated since 2025.0, use {@link #queryLogs(QueryBuilder)} instead
      */
-    default List<LogEntry> queryLogsByPage(String[] eventIds, String dateRange, String category, String path,
-            int pageNb, int pageSize) {
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default List<L> queryLogsByPage(String[] eventIds, String dateRange, String category, String path, int pageNb,
+            int pageSize) {
         return queryLogsByPage(eventIds, dateRange, new String[] { category }, path, pageNb, pageSize);
     }
 
-    default List<LogEntry> queryLogsByPage(String[] eventIds, String dateRange, String[] categories, String path,
-            int pageNb, int pageSize) {
+    /**
+     * @deprecated since 2025.0, use {@link #queryLogs(QueryBuilder)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default List<L> queryLogsByPage(String[] eventIds, String dateRange, String[] categories, String path, int pageNb,
+            int pageSize) {
 
         Date limit = null;
         if (dateRange != null) {
@@ -133,25 +154,56 @@ public interface AuditReader {
      * @param pageNb page number (ignore if &lt;=1)
      * @param pageSize number of results per page
      * @return a list of log entries.
+     * @deprecated since 2025.0, use {@link #queryLogs(QueryBuilder)} instead
      */
-    default List<LogEntry> queryLogsByPage(String[] eventIds, Date limit, String category, String path, int pageNb,
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default List<L> queryLogsByPage(String[] eventIds, Date limit, String category, String path, int pageNb,
             int pageSize) {
         return queryLogsByPage(eventIds, limit, new String[] { category }, path, pageNb, pageSize);
     }
 
-    List<LogEntry> queryLogsByPage(String[] eventIds, Date limit, String[] categories, String path, int pageNb,
-            int pageSize);
+    /**
+     * @deprecated since 2025.0, use {@link #queryLogs(QueryBuilder)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default List<L> queryLogsByPage(String[] eventIds, Date limit, String[] categories, String path, int pageNb,
+            int pageSize) {
+        QueryBuilder builder = new AuditQueryBuilder();
+        if (ArrayUtils.isNotEmpty(eventIds)) {
+            if (eventIds.length == 1) {
+                builder.predicate(Predicates.eq(BuiltinLogEntryData.LOG_EVENT_ID, eventIds[0]));
+            } else {
+                builder.predicate(Predicates.in(BuiltinLogEntryData.LOG_EVENT_ID, eventIds[0]));
+            }
+        }
+        if (ArrayUtils.isNotEmpty(categories)) {
+            if (categories.length == 1) {
+                builder.predicate(Predicates.eq(LOG_CATEGORY, categories[0]));
+            } else {
+                builder.predicate(Predicates.in(LOG_CATEGORY, categories[0]));
+            }
+        }
+        if (path != null) {
+            builder.predicate(Predicates.eq(LOG_DOC_PATH, path));
+        }
+        if (limit != null) {
+            builder.predicate(Predicates.lt(LOG_EVENT_DATE, limit));
+        }
+        builder.offset(pageNb * pageSize).limit(pageSize);
+        return queryLogs(builder);
+    }
 
     /**
      * Returns a batched list of log entries. WhereClause is a native where clause for the backend: here EJBQL 3.0 must
      * be used if implementation of audit backend is JPA (&lt; 7.3 or audit.elasticsearch.enabled=false) and JSON if
      * implementation is Elasticsearch.
      */
-    default List<LogEntry> nativeQueryLogs(String whereClause, int pageNb, int pageSize) {
-        return nativeQuery(whereClause, pageNb, pageSize).stream()
-                                                         .filter(LogEntry.class::isInstance)
-                                                         .map(LogEntry.class::cast)
-                                                         .collect(Collectors.toCollection(LinkedList::new));
+    @SuppressWarnings("unchecked")
+    default List<L> nativeQueryLogs(String whereClause, int pageNb, int pageSize) {
+        return (List<L>) nativeQuery(whereClause, pageNb, pageSize).stream()
+                                                                   .filter(LogEntry.class::isInstance)
+                                                                   .map(LogEntry.class::cast)
+                                                                   .collect(Collectors.toCollection(LinkedList::new));
     }
 
     /**
@@ -179,13 +231,27 @@ public interface AuditReader {
      *
      * @since 9.3
      */
-    long getLatestLogId(String repositoryId, String... eventIds);
+    default long getLatestLogId(String repositoryId, String... eventIds) {
+        QueryBuilder builder = new AuditQueryBuilder().predicate(Predicates.eq(LOG_REPOSITORY_ID, repositoryId))
+                                                      .and(Predicates.in(BuiltinLogEntryData.LOG_EVENT_ID, eventIds))
+                                                      .order(OrderByExprs.desc(BuiltinLogEntryData.LOG_ID))
+                                                      .limit(1);
+        return queryLogs(builder).stream().mapToLong(LogEntry::getId).findFirst().orElse(0L);
+    }
 
     /**
      * Returns up to limit log entries matching events and repository with log id greater or equal to logIdOffset.
      *
      * @since 9.3
      */
-    List<LogEntry> getLogEntriesAfter(long logIdOffset, int limit, String repositoryId, String... eventIds);
+    default List<L> getLogEntriesAfter(long logIdOffset, int limit, String repositoryId, String... eventIds) {
+        QueryBuilder builder = new AuditQueryBuilder().predicate(
+                Predicates.eq(LogEntryConstants.LOG_REPOSITORY_ID, repositoryId))
+                                                      .and(Predicates.in(LOG_EVENT_ID, eventIds))
+                                                      .and(Predicates.gte(LOG_ID, logIdOffset))
+                                                      .order(OrderByExprs.asc(LOG_ID))
+                                                      .limit(limit);
+        return queryLogs(builder);
+    }
 
 }

@@ -29,8 +29,8 @@ import java.util.Map;
 import org.apache.avro.Schema;
 import org.nuxeo.lib.stream.codec.AvroSchemaStore;
 import org.nuxeo.runtime.RuntimeServiceException;
-import org.nuxeo.runtime.kafka.KafkaConfigServiceImpl;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -61,7 +61,7 @@ public class AvroComponent extends DefaultComponent {
 
     @Override
     public int getApplicationStartedOrder() {
-        return KafkaConfigServiceImpl.APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.KAFKA;
     }
 
     @Override

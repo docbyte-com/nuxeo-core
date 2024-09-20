@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,8 +97,6 @@ public class TestPageProvider {
 
         AuditReader reader = Framework.getService(AuditReader.class);
         assertNotNull(reader);
-
-        audit.clear();
 
         AuditLogger logger = Framework.getService(AuditLogger.class);
         assertNotNull(logger);

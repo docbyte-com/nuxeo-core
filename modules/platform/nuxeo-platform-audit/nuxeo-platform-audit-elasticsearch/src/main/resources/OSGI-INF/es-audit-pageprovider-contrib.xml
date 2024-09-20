@@ -3,7 +3,6 @@
   <!-- Alias is deprecated since 2025.0 -->
   <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.es.contrib</alias>
 
-  <require>org.nuxeo.audit.PageProviderService.contrib</require>
   <require>org.nuxeo.admin.pageproviders</require>
 
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"

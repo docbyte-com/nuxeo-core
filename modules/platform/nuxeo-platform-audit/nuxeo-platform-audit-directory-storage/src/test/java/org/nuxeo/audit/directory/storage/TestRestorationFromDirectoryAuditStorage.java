@@ -20,6 +20,7 @@
 package org.nuxeo.audit.directory.storage;
 
 import static org.junit.Assert.assertEquals;
+import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
 
@@ -50,7 +51,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * @since 10.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ DirectoryFeature.class, MongoDBAuditFeature.class })
+@Features({ MongoDBAuditFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.audit.storage.directory")
 public class TestRestorationFromDirectoryAuditStorage {
 
@@ -68,6 +69,7 @@ public class TestRestorationFromDirectoryAuditStorage {
             ObjectNode logEntryJson = mapper.createObjectNode();
             logEntryJson.put(LOG_ID, i);
             logEntryJson.put(LOG_EVENT_ID, testEventId);
+            logEntryJson.put(LOG_EVENT_DATE, "2024-11-04T16:00:00Z");
             jsonEntries.add(mapper.writeValueAsString(logEntryJson));
         }
 

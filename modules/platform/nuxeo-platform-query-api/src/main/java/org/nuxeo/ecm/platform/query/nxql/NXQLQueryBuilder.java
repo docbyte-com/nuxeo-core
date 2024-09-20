@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -44,9 +45,11 @@ import org.nuxeo.ecm.core.schema.types.SimpleTypeImpl;
 import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.ecm.core.schema.types.primitives.StringType;
 import org.nuxeo.ecm.core.search.api.client.querymodel.Escaper;
+import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.api.PredicateDefinition;
 import org.nuxeo.ecm.platform.query.api.PredicateFieldDefinition;
+import org.nuxeo.ecm.platform.query.api.QuickFilter;
 import org.nuxeo.ecm.platform.query.api.WhereClauseDefinition;
 import org.nuxeo.ecm.platform.query.core.FieldDescriptor;
 import org.nuxeo.runtime.api.Framework;
@@ -94,6 +97,36 @@ public class NXQLQueryBuilder {
             }
         }
         return queryBuilder.toString();
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public static String getQuery(PageProviderDefinition definition, Object[] params, DocumentModel searchDocModel) {
+        var pattern = definition.getPattern();
+        var whereClauseDefinition = definition.getWhereClause();
+        var sortInfos = definition.getSortInfos().toArray(SortInfo[]::new);
+
+        String query;
+        String quickFiltersClause = CollectionUtils.emptyIfNull(definition.getQuickFilters())
+                                                   .stream()
+                                                   .map(QuickFilter::getClause)
+                                                   .filter(StringUtils::isNotBlank)
+                                                   .reduce(StringUtils.EMPTY, NXQLQueryBuilder::appendClause);
+        if (whereClauseDefinition == null) {
+            if (!quickFiltersClause.isEmpty()) {
+                query = StringUtils.containsIgnoreCase(pattern, " WHERE ") ? appendClause(pattern, quickFiltersClause)
+                        : pattern + " WHERE " + quickFiltersClause;
+            } else {
+                query = pattern;
+            }
+            query = getQuery(query, params, definition.getQuotePatternParameters(),
+                    definition.getEscapePatternParameters(), searchDocModel, sortInfos);
+        } else {
+            query = getQuery(searchDocModel, whereClauseDefinition, quickFiltersClause, params, sortInfos);
+        }
+
+        return query;
     }
 
     public static String getQuery(DocumentModel model, WhereClauseDefinition whereClause, Object[] params,
@@ -240,11 +273,15 @@ public class NXQLQueryBuilder {
             // of the split function in case the pattern ends with '?'
             String[] queryStrList = (pattern + ' ').split("\\?");
             queryBuilder = new StringBuilder(queryStrList[0]);
-            for (int i = 0; i < params.length; i++) {
+            for (int i = 0; i < Math.min(params.length, queryStrList.length - 1); i++) {
                 switch (params[i]) {
                     case String[] string -> appendStringList(queryBuilder, List.of(string), quoteParameters, escape);
                     case List<?> list -> appendStringList(queryBuilder, list, quoteParameters, escape);
                     case Boolean bool -> queryBuilder.append(bool ? 1 : 0);
+                    case GregorianCalendar cal ->
+                        queryBuilder.append("TIMESTAMP '").append(getDateFormat().format(cal.getTime())).append("'");
+                    case Date date ->
+                        queryBuilder.append("TIMESTAMP '").append(getDateFormat().format(date)).append("'");
                     case Number number -> queryBuilder.append(number);
                     case Literal literal when quoteParameters -> queryBuilder.append(literal);
                     case Literal literal -> queryBuilder.append(literal.asString());
@@ -660,7 +697,7 @@ public class NXQLQueryBuilder {
 
     protected static DateFormat getDateFormat() {
         // not thread-safe so don't use a static instance
-        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSXXX");
     }
 
     @SuppressWarnings("unchecked")

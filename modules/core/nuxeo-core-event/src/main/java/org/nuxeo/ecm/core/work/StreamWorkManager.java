@@ -44,7 +44,6 @@ import jakarta.transaction.Transaction;
 import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.event.EventServiceComponent;
 import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkQueueDescriptor;
 import org.nuxeo.ecm.core.work.api.WorkQueueMetrics;
@@ -69,6 +68,7 @@ import org.nuxeo.runtime.codec.CodecService;
 import org.nuxeo.runtime.metrics.NuxeoMetricSet;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.stream.StreamService;
@@ -241,7 +241,7 @@ public class StreamWorkManager extends WorkManagerImpl {
     @Override
     public int getApplicationStartedOrder() {
         // start before the WorkManagerImpl
-        return EventServiceComponent.APPLICATION_STARTED_ORDER - 2;
+        return ComponentStartOrders.EVENT - 2;
     }
 
     @Override

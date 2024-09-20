@@ -18,23 +18,23 @@
  */
 package org.nuxeo.audit.io;
 
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_COMMENT;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_LIFE_CYCLE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_TYPE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_LOG_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 import static org.nuxeo.common.utils.DateUtils.nowIfNull;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_COMMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_LIFE_CYCLE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_TYPE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EXTENDED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_LOG_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -43,12 +43,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.io.marshallers.json.ExtensibleEntityJsonWriter;
 import org.nuxeo.ecm.core.io.marshallers.json.enrichers.AbstractJsonEnricher;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
@@ -113,12 +112,12 @@ public class LogEntryJsonWriter extends ExtensibleEntityJsonWriter<LogEntry> {
     }
 
     protected void writeExtendedInfos(JsonGenerator jg, LogEntry logEntry) throws IOException {
-        Map<String, ExtendedInfo> extended = logEntry.getExtendedInfos();
+        Map<String, Object> extended = logEntry.getExtended();
         jg.writeObjectFieldStart(LOG_EXTENDED);
         for (String key : extended.keySet()) {
-            ExtendedInfo ei = extended.get(key);
-            if (ei != null && ei.getSerializableValue() != null) {
-                writeExtendedInfo(jg, key, ei.getSerializableValue());
+            var value = extended.get(key);
+            if (value != null) {
+                writeExtendedInfo(jg, key, (Serializable) value);
             } else {
                 jg.writeNullField(key);
             }
@@ -167,7 +166,7 @@ public class LogEntryJsonWriter extends ExtensibleEntityJsonWriter<LogEntry> {
             }
         } else if (List.class.isAssignableFrom(value.getClass())) {
             List<?> values = (List<?>) value;
-            if (values.isEmpty() || !(values.get(0) instanceof Blob)) {
+            if (values.isEmpty() || !(values.getFirst() instanceof Blob)) {
                 jg.writeObjectField(key, value);
             }
         }

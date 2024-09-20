@@ -55,7 +55,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @since 9.3
+ * @deprecated since 2025, follow depreciation of {@link LogEntryImpl}, {@link ExtendedInfoSerializer} and
+ *             {@link ExtendedInfoDeserializer}
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 @RunWith(FeaturesRunner.class)
 @Features(AuditFeature.class)
 public class LogEntrySerializationTest {

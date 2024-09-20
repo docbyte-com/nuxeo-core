@@ -26,11 +26,11 @@ import java.io.OutputStream;
 import java.util.List;
 
 import org.apache.commons.csv.CSVPrinter;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter;
 import org.nuxeo.ecm.core.io.marshallers.csv.OutputStreamWithCSVWriter;
 import org.nuxeo.ecm.core.io.registry.Writer;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 /**
  * @since 11.1

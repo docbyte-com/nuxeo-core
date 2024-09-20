@@ -37,6 +37,7 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -71,7 +72,7 @@ import org.nuxeo.template.api.adapters.TemplateSourceDocument;
 import org.nuxeo.template.processors.HtmlBodyExtractor;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, UserManagerFeature.class })
+@Features({ AuditFeature.class, CoreFeature.class, UserManagerFeature.class })
 @RepositoryConfig(init = RenditionPublicationRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.convert")
@@ -200,7 +201,6 @@ public class TestRenditionPublication {
 
         defs = renditionService.getAvailableRenditionDefinitions(templateBasedDoc);
         assertEquals(4, defs.size());
-
 
     }
 

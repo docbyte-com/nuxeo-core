@@ -19,9 +19,10 @@
  */
 package org.nuxeo.audit.api.document;
 
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -29,6 +30,8 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
@@ -36,8 +39,6 @@ import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -49,7 +50,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class DocumentAuditHelper {
 
-    @SuppressWarnings({ "unchecked", "boxing" })
+    @SuppressWarnings("boxing")
     public static AdditionalDocumentAuditParams getAuditParamsForUUID(String uuid, CoreSession session) {
 
         IdRef ref = new IdRef(uuid);
@@ -69,16 +70,15 @@ public class DocumentAuditHelper {
         // now get from Audit Logs the creation date of
         // the version / proxy
         QueryBuilder builder = new AuditQueryBuilder().predicate(Predicates.eq(LOG_DOC_UUID, uuid))
-                                                      .and(Predicates.eq(LOG_EVENT_ID,
-                                                              DocumentEventTypes.DOCUMENT_CREATED));
-        AuditReader reader = Framework.getService(AuditReader.class);
-        List<LogEntry> entries = reader.queryLogs(builder);
+                                                      .and(Predicates.eq(LOG_EVENT_ID, DOCUMENT_CREATED));
+        var backend = Framework.getService(AuditBackend.class);
+        List<LogEntry> entries = backend.queryLogs(builder);
         AdditionalDocumentAuditParams result;
-        if (entries != null && entries.size() > 0) {
+        if (entries != null && !entries.isEmpty()) {
             result = new AdditionalDocumentAuditParams();
-            result.maxDate = entries.get(0).getEventDate();
+            result.maxDate = entries.getFirst().getEventDate();
             result.targetUUID = targetUUID;
-            result.eventId = entries.get(0).getId();
+            result.eventId = entries.getFirst().getId();
         } else {
             // we have no entry in audit log to get the maxDate
             // fallback to repository timestamp
@@ -101,16 +101,15 @@ public class DocumentAuditHelper {
 
             QueryBuilder dateBuilder = new AuditQueryBuilder();
             dateBuilder.predicate(Predicates.in(LOG_DOC_UUID, ids))
-                       .and(Predicates.in(LOG_EVENT_ID, DocumentEventTypes.DOCUMENT_CREATED,
-                               DocumentEventTypes.DOCUMENT_CHECKEDIN))
+                       .and(Predicates.in(LOG_EVENT_ID, DOCUMENT_CREATED, DocumentEventTypes.DOCUMENT_CHECKEDIN))
                        .and(Predicates.gte(LOG_EVENT_DATE, estimatedDate.getTime()));
             dateBuilder.order(OrderByExprs.asc(LOG_EVENT_ID));
             dateBuilder.offset(0).limit(20);
-            List<LogEntry> dateEntries = reader.queryLogs(dateBuilder);
-            if (dateEntries.size() > 0) {
+            List<LogEntry> dateEntries = backend.queryLogs(dateBuilder);
+            if (!dateEntries.isEmpty()) {
                 result.targetUUID = targetUUID;
                 Calendar maxDate = new GregorianCalendar();
-                maxDate.setTime(dateEntries.get(0).getEventDate());
+                maxDate.setTime(dateEntries.getFirst().getEventDate());
                 maxDate.add(Calendar.MILLISECOND, -500);
                 result.maxDate = maxDate.getTime();
             } else {

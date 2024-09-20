@@ -23,8 +23,10 @@ import org.nuxeo.common.xmap.annotation.XObject;
 
 /**
  * @author matic
+ * @deprecated since 2025.0, unused
  */
 @XObject("managedEvent")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ManagedEventIdDescriptor {
 
     @XNode("@id")

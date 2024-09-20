@@ -43,7 +43,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Deserializer class for extended info from a JSON object
  *
  * @since 9.3
+ * @deprecated since 2025, use {@link org.nuxeo.audit.io.LogEntryJsonReader} with help of nuxeo-core-io instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoDeserializer extends JsonDeserializer<ExtendedInfo> {
 
     @Override

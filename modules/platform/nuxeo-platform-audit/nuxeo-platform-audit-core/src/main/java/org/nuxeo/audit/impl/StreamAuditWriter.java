@@ -20,6 +20,7 @@ package org.nuxeo.audit.impl;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.audit.listener.StreamAuditEventListener.STREAM_NAME;
+import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -29,18 +30,17 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.lib.stream.computation.AbstractBatchComputation;
 import org.nuxeo.lib.stream.computation.ComputationContext;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.Topology;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamProcessorTopology;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Computation that consumes a stream of log entries and write them to the audit backend.
@@ -90,16 +90,15 @@ public class StreamAuditWriter implements StreamProcessorTopology {
                 return;
             }
             log.debug("Writing {} log entries to audit backend.", logEntries::size);
-            AuditLogger logger = Framework.getService(AuditLogger.class);
-            logger.addLogEntries(logEntries);
+            var backend = Framework.getService(AuditService.class).getAuditBackend(DEFAULT_AUDIT_BACKEND);
+            backend.addLogEntries(logEntries);
         }
 
         protected LogEntry getLogEntryFromJson(byte[] data) {
             String json = "";
             try {
                 json = new String(data, UTF_8);
-                ObjectMapper mapper = new ObjectMapper();
-                return mapper.readValue(json, LogEntryImpl.class);
+                return MarshallerHelper.jsonToObject(LogEntry.class, json, RenderingContext.CtxBuilder.get());
             } catch (IOException e) {
                 throw new NuxeoException("Invalid json logEntry" + json, e);
             }

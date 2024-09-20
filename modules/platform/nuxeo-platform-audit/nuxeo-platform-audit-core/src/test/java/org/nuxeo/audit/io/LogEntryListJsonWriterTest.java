@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,29 +18,19 @@
  */
 package org.nuxeo.audit.io;
 
-import java.io.Serializable;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-
-import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.junit.Test;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.PaginableLogEntryList;
 import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriterTest;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.LogEntryList;
-import org.nuxeo.ecm.platform.query.api.PageProvider;
-import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.ecm.platform.query.api.AbstractPageProvider;
 import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
 
-@Features(AuditFeature.class)
-@Deploy("org.nuxeo.ecm.platform.audit.tests:test-pageprovider-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.audit:OSGI-INF/marshallers-contrib.xml")
 public class LogEntryListJsonWriterTest
         extends AbstractJsonWriterTest.External<LogEntryListJsonWriter, List<LogEntry>> {
 
@@ -48,25 +38,15 @@ public class LogEntryListJsonWriterTest
         super(LogEntryListJsonWriter.class, List.class, TypeUtils.parameterize(List.class, LogEntry.class));
     }
 
-    @Inject
-    private PageProviderService pps;
-
-    @Inject
-    private CoreSession session;
-
     @Test
     public void test() throws Exception {
-        DocumentModel root = session.getDocument(new PathRef("/"));
-        HashMap<String, Serializable> properties = new HashMap<>();
-        String name = "DOCUMENT_HISTORY_PROVIDER";
-        @SuppressWarnings("unchecked")
-        PageProvider<LogEntry> pp = (PageProvider<LogEntry>) pps.getPageProvider(name, null, 3l, 0l, properties, root);
-        LogEntryList list = new LogEntryList(pp);
+        var pp = new LogEntryPageProvider(List.of(LogEntry.builder("eventIdForTests", new Date()).build()));
+        var list = new PaginableLogEntryList(pp);
         JsonAssert json = jsonAssert(list);
         json.properties(19);
         json.has("entity-type").isEquals("logEntries");
         json.has("isPaginable").isTrue();
-        json.has("resultsCount").isInt();
+        json.has("resultsCount").isEquals(pp.getResultsCount());
         json.has("pageSize").isEquals(pp.getPageSize());
         json.has("maxPageSize").isEquals(pp.getMaxPageSize());
         json.has("currentPageSize").isEquals(pp.getCurrentPageSize());
@@ -79,11 +59,24 @@ public class LogEntryListJsonWriterTest
         json.has("hasError").isEquals(pp.hasError());
         json.has("errorMessage").isNull();
         json.has("pageIndex").isEquals(pp.getCurrentPageIndex());
-        json.has("pageCount").isEquals(pp.getResultsCount());
+        json.has("pageCount").isEquals(pp.getNumberOfPages());
         json.has("currentPageOffset").isEquals(pp.getCurrentPageOffset());
         json = json.has("entries").isArray();
         json = json.has(0).isObject();
         json.has("entity-type").isEquals("logEntry");
     }
 
+    protected static class LogEntryPageProvider extends AbstractPageProvider<LogEntry> {
+
+        protected final List<LogEntry> entries;
+
+        public LogEntryPageProvider(List<LogEntry> entries) {
+            this.entries = entries;
+        }
+
+        @Override
+        public List<LogEntry> getCurrentPage() {
+            return entries;
+        }
+    }
 }

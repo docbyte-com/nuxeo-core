@@ -108,4 +108,10 @@ public interface PageProviderDefinition {
      */
     List<QuickFilter> getQuickFilters();
 
+    /**
+     * @since 2025.0
+     */
+    default PageProviderDefinitionBuilder builder() {
+        return new PageProviderDefinitionBuilder(this);
+    }
 }

@@ -7,6 +7,7 @@
   </documentation>
   <extension target="org.nuxeo.ecm.core.io.MarshallerRegistry" point="marshallers">
     <!-- preview document enricher -->
+    <register class="org.nuxeo.audit.io.LogEntryJsonReader" enable="true" />
     <register class="org.nuxeo.audit.io.LogEntryJsonWriter" enable="true" />
     <register class="org.nuxeo.audit.io.LogEntryListJsonWriter" enable="true" />
     <register class="org.nuxeo.audit.io.LogEntryCSVWriter" enable="true" />

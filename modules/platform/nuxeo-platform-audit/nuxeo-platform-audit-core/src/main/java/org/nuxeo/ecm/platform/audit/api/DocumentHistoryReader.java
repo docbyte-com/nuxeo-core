@@ -28,7 +28,10 @@ import org.nuxeo.ecm.platform.query.api.PageProvider;
  * Dedicated interface to browse history of a document
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
+ * @deprecated since 2025.0, use the {@link org.nuxeo.ecm.platform.query.api.PageProviderService} instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface DocumentHistoryReader {
 
     /**

@@ -24,11 +24,10 @@ import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.stream.DomainEventProducer;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.runtime.api.Framework;
@@ -63,12 +62,12 @@ public class AuditDomainEventProducer extends DomainEventProducer {
 
     @Override
     public void addEvent(Event event) {
-        AuditLogger logger = Framework.getService(AuditLogger.class);
-        if (logger == null || event == null) {
+        var auditService = Framework.getService(AuditService.class);
+        if (event == null) {
             return;
         }
-        if (logger.getAuditableEventNames().contains(event.getName())) {
-            LogEntry entry = logger.buildEntryFromEvent(event);
+        if (auditService.getAuditableEventNames().contains(event.getName())) {
+            LogEntry entry = auditService.buildEntryFromEvent(event);
             if (entry != null) {
                 records.add(buildRecordFromEvent(entry));
             }
@@ -92,7 +91,7 @@ public class AuditDomainEventProducer extends DomainEventProducer {
         if (entry.getEventDate() != null) {
             event.date = entry.getEventDate().getTime();
         }
-        Map<String, ExtendedInfo> extended = entry.getExtendedInfos();
+        Map<String, Object> extended = entry.getExtended();
         if (extended != null && !extended.isEmpty()) {
             try {
                 event.extendedInfoAsJson = MAPPER.writeValueAsString(extended);

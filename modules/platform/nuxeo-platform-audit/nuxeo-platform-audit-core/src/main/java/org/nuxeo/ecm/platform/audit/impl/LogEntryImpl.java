@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -44,8 +45,6 @@ import jakarta.persistence.Transient;
 import jakarta.persistence.UniqueConstraint;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.api.comment.UIAuditComment;
@@ -61,7 +60,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Log entry implementation.
+ *
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.LogEntry#builder()} instead
  */
+@SuppressWarnings("removal")
 @Entity(name = "LogEntry")
 @NamedQuery(name = "LogEntry.removeByEventIdAndPath", query = "delete LogEntry log where log.eventId = :eventId and log.docPath like :pathPattern")
 @NamedQuery(name = "LogEntry.findByDocument", query = "from LogEntry log where log.docUUID=:docUUID ORDER BY log.eventDate DESC")
@@ -72,6 +74,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @NamedQuery(name = "LogEntry.countEventsById", query = "select count(log.eventId) from LogEntry log where log.eventId=:eventId")
 @NamedQuery(name = "LogEntry.findEventIds", query = "select distinct log.eventId from LogEntry log")
 @Table(name = "NXP_LOGS")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class LogEntryImpl implements LogEntry {
 
     @JsonProperty("entity-type")
@@ -212,20 +215,6 @@ public class LogEntryImpl implements LogEntry {
         this.docUUID = docUUID;
     }
 
-    @Override
-    public void setDocUUID(DocumentRef docRef) {
-        switch (docRef.type()) {
-            case DocumentRef.ID:
-                docUUID = (String) docRef.reference();
-                break;
-            case DocumentRef.INSTANCE:
-                docUUID = ((DocumentModel) docRef.reference()).getId();
-                break;
-            default:
-                throw new IllegalArgumentException("not an id reference " + docRef);
-        }
-    }
-
     /**
      * Returns the doc path related to the log entry.
      * <p>
@@ -328,6 +317,14 @@ public class LogEntryImpl implements LogEntry {
     @Override
     public void setRepositoryId(String repositoryId) {
         this.repositoryId = repositoryId;
+    }
+
+    @Transient
+    @Override
+    public Map<String, Object> getExtended() {
+        return extendedInfos.entrySet()
+                            .stream()
+                            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getSerializableValue()));
     }
 
     @Override

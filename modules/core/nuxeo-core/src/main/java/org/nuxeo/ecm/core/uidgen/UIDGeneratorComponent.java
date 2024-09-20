@@ -29,6 +29,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Extension;
 
@@ -55,6 +56,11 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
     protected final LinkedHashMap<String, UIDSequencerProviderDescriptor> sequencerContribs = new LinkedHashMap<>();
 
     protected String defaultSequencer;
+
+    @Override
+    public int getApplicationStartedOrder() {
+        return ComponentStartOrders.SEQUENCER;
+    }
 
     @Override
     public void start(ComponentContext context) {

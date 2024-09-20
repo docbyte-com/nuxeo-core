@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.common.utils.ExceptionUtils;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -34,7 +35,6 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
@@ -76,13 +76,13 @@ public class ElasticsearchWaitForIndexingOperation {
     public Boolean run() {
         long start = System.currentTimeMillis();
         WorkManager workManager = Framework.getService(WorkManager.class);
-        AuditLogger auditLogger = Framework.getService(AuditLogger.class);
+        var auditService = Framework.getService(AuditService.class);
         boolean waitForAuditStoredInEs = waitForAudit && Framework.isBooleanPropertyTrue(AUDIT_ELASTICSEARCH_ENABLED);
         try {
             if (!workManager.awaitCompletion(timeout, TimeUnit.SECONDS)) {
                 throw new TimeoutException();
             }
-            if (waitForAuditStoredInEs && !auditLogger.await(computeRemainingTime(start), TimeUnit.SECONDS)) {
+            if (waitForAuditStoredInEs && !auditService.await(Duration.ofSeconds(computeRemainingTime(start)))) {
                 throw new TimeoutException();
             }
             esa.prepareWaitForIndexing().get(computeRemainingTime(start), TimeUnit.SECONDS);

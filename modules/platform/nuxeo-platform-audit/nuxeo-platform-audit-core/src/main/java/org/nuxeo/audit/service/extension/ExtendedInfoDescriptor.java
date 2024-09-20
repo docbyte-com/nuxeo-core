@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,12 @@
  */
 package org.nuxeo.audit.service.extension;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Extended info descriptor
@@ -28,7 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
  */
 @XObject("extendedInfo")
-public class ExtendedInfoDescriptor {
+public class ExtendedInfoDescriptor implements Descriptor {
 
     @XNode("@key")
     private String key;
@@ -37,7 +40,12 @@ public class ExtendedInfoDescriptor {
     private String expression;
 
     @XNode("@enabled")
-    private boolean enabled = true;
+    private Boolean enabled;
+
+    @Override
+    public String getId() {
+        return key;
+    }
 
     public String getKey() {
         return key;
@@ -55,6 +63,12 @@ public class ExtendedInfoDescriptor {
         expression = value;
     }
 
+    public boolean isEnabled() {
+        return BooleanUtils.toBooleanDefaultIfNull(enabled, true);
+    }
+
+    /** @deprecated since 2025.0, use {@link ExtendedInfoDescriptor#isEnabled()} instead */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public boolean getEnabled() {
         return enabled;
     }
@@ -95,4 +109,13 @@ public class ExtendedInfoDescriptor {
         return ToStringBuilder.reflectionToString(this);
     }
 
+    @Override
+    public ExtendedInfoDescriptor merge(Descriptor o) {
+        var other = (ExtendedInfoDescriptor) o;
+        var merged = new ExtendedInfoDescriptor();
+        merged.key = key;
+        merged.expression = StringUtils.defaultIfBlank(other.expression, expression);
+        merged.enabled = other.enabled == null ? enabled : other.enabled;
+        return merged;
+    }
 }

@@ -21,12 +21,12 @@ package org.nuxeo.drive.listener;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.NuxeoDriveContribException;
 import org.nuxeo.drive.adapter.RootlessItemException;
@@ -48,9 +48,6 @@ import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.event.impl.EventContextImpl;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.FacetNames;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -151,7 +148,7 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
     protected void fireVirtualEventLogEntries(DocumentModel doc, String eventName, NuxeoPrincipal principal,
             String impactedUserName, CoreSession session) {
 
-        if (Framework.getService(AuditLogger.class) == null) {
+        if (Framework.getService(AuditBackend.class) == null) {
             // The log is not deployed (probably in unittest)
             return;
         }
@@ -217,29 +214,21 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
             String docType, String repositoryName, String currentLifeCycleState, String impactedUserName,
             FileSystemItem fsItem) {
 
-        AuditLogger logger = Framework.getService(AuditLogger.class);
-        LogEntry entry = logger.newLogEntry();
-        entry.setEventId(eventName);
-        entry.setEventDate(eventDate);
-        entry.setCategory(NuxeoDriveEvents.EVENT_CATEGORY);
-        entry.setDocUUID(docId);
-        entry.setDocPath(docPath);
-        entry.setPrincipalName(principal);
-        entry.setDocType(docType);
-        entry.setRepositoryId(repositoryName);
-        entry.setDocLifeCycle(currentLifeCycleState);
-
-        Map<String, ExtendedInfo> extendedInfos = new HashMap<>();
+        var builder = LogEntry.builder(eventName, eventDate)
+                              .category(NuxeoDriveEvents.EVENT_CATEGORY)
+                              .principalName(principal)
+                              .repositoryId(repositoryName)
+                              .docUUID(docId)
+                              .docType(docType)
+                              .docPath(docPath)
+                              .docLifeCycle(currentLifeCycleState)
+                              // We do not serialize the whole object as it's too big to fit in a StringInfo column
+                              .extended("fileSystemItemId", fsItem.getId())
+                              .extended("fileSystemItemName", fsItem.getName());
         if (impactedUserName != null) {
-            extendedInfos.put("impactedUserName", logger.newExtendedInfo(impactedUserName));
+            builder.extended("impactedUserName", impactedUserName);
         }
-        // We do not serialize the whole object as it's too big to fit in a
-        // StringInfo column
-        extendedInfos.put("fileSystemItemId", logger.newExtendedInfo(fsItem.getId()));
-        extendedInfos.put("fileSystemItemName", logger.newExtendedInfo(fsItem.getName()));
-        entry.setExtendedInfos(extendedInfos);
-
-        return entry;
+        return builder.build();
     }
 
 }

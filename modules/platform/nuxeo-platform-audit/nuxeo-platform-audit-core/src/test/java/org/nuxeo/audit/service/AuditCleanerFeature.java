@@ -1,0 +1,78 @@
+/*
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Kevin Leturc <kevin.leturc@hyland.com>
+ */
+package org.nuxeo.audit.service;
+
+import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.test.annotations.Granularity;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+
+/**
+ * INTERNAL CLASS - It exists to access protected method from {@link AuditComponent}.
+ * <p>
+ * Furthermore, the feature depends on {@link CoreFeature} but do not declare it because the {@link CoreFeature} must be
+ * registered after the {@link AuditCleanerFeature} because the audit cleanup mechanism must happen after the repository
+ * cleanup.
+ * <p>
+ * Don't use it directly, only {@link org.nuxeo.audit.AuditCoreFeature} should use it.
+ * 
+ * @since 2025.0
+ */
+public class AuditCleanerFeature implements RunnerFeature {
+
+    protected Granularity granularity;
+
+    @Override
+    public void initialize(FeaturesRunner runner) throws Exception {
+        if (runner.getFeature(CoreFeature.class).getGranularity() != null) {
+            throw new IllegalStateException(
+                    "The AuditFeature must be deployed before the CoreFeature, check your test configuration");
+        }
+    }
+
+    @Override
+    public void start(FeaturesRunner runner) {
+        granularity = runner.getFeature(CoreFeature.class).getGranularity();
+    }
+
+    @Override
+    public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
+        if (granularity == Granularity.METHOD) {
+            clearAudit(runner);
+        }
+    }
+
+    @Override
+    public void afterRun(FeaturesRunner runner) {
+        if (granularity != Granularity.METHOD) {
+            clearAudit(runner);
+        }
+    }
+
+    public void clearAudit(FeaturesRunner runner) {
+        // first wait for async completion
+        runner.getFeature(TransactionalFeature.class).nextTransaction();
+        // then clear audit entries
+        var auditComponent = (AuditComponent) Framework.getService(AuditService.class);
+        auditComponent.clearEntriesFromBackends();
+    }
+}

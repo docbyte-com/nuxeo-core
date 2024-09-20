@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,24 +29,38 @@ import org.nuxeo.ecm.core.event.Event;
  * Interface for adding audit logs.
  *
  * @author tiry
+ * @param <L> to give the log entry type for the new {@link org.nuxeo.audit.service.AuditBackend} interface that defines
+ *            a new entry type.
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AuditBackend} instead
  */
-public interface AuditLogger {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public interface AuditLogger<L extends LogEntry> {
 
     /**
      * Returns the list of auditable event names.
      *
-     * @return list of String representing event names.
+     * @return a set of String representing event names.
+     * @deprecated since 2025.0, use {@code org.nuxeo.ecm.platform.audit.service.AuditService#getAuditableEventNames()}
+     *             instead
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     Set<String> getAuditableEventNames();
 
     /**
      * Create a new LogEntry instance.
+     *
+     * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.LogEntry#builder()} instead
      */
-    LogEntry newLogEntry();
+    @Deprecated(since = "2025.0", forRemoval = true)
+    L newLogEntry();
 
     /**
      * Create a new ExtendedInfo instance
+     * 
+     * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.LogEntryBuilder#extended(String, Object)} instead
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     ExtendedInfo newExtendedInfo(Serializable value);
 
     /**
@@ -54,17 +68,22 @@ public interface AuditLogger {
      *
      * @param entries the list of log entries.
      */
-    void addLogEntries(List<LogEntry> entries);
+    void addLogEntries(List<L> entries);
 
     /**
      * @since 8.2
+     * @deprecated since 2025.0, use {@code org.nuxeo.ecm.platform.audit.service.AuditService#await(Duration)} instead
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     boolean await(long time, TimeUnit unit) throws InterruptedException;
 
     /**
      * Returns a log entry representation of an event.
      *
      * @since 9.3
+     * @deprecated since 2025.0, use {@code org.nuxeo.ecm.platform.audit.service.AuditService#buildEntryFromEvent()}
+     *             instead
      */
-    LogEntry buildEntryFromEvent(Event event);
+    @Deprecated(since = "2025.0", forRemoval = true)
+    L buildEntryFromEvent(Event event);
 }

@@ -1182,6 +1182,12 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-test</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -1417,6 +1423,7 @@
         <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-test</artifactId>
         <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
@@ -5342,7 +5349,7 @@
             </reportSets>
             <configuration>
               <!-- skip modules having issues to be built due to test-jars -->
-              <skippedModules>nuxeo-core-test,nuxeo-automation-test,nuxeo-platform-test,nuxeo-features-test,nuxeo-platform-imaging-test</skippedModules>
+              <skippedModules>nuxeo-core-test,nuxeo-automation-test,nuxeo-platform-audit-test,nuxeo-platform-test,nuxeo-features-test,nuxeo-platform-imaging-test</skippedModules>
               <windowtitle>Nuxeo ${project.version} API Documentation</windowtitle>
               <doctitle>Nuxeo ${project.version} API Documentation</doctitle>
               <header>Nuxeo ${project.version}</header>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,11 +42,11 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.kv.KeyValueService;
-import org.nuxeo.runtime.kv.KeyValueServiceImpl;
 import org.nuxeo.runtime.kv.KeyValueStore;
 import org.nuxeo.runtime.migration.MigrationDescriptor.MigrationStepDescriptor;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.pubsub.AbstractPubSubBroker;
@@ -210,7 +210,7 @@ public class MigrationServiceImpl extends DefaultComponent implements MigrationS
 
     @Override
     public int getApplicationStartedOrder() {
-        return KeyValueServiceImpl.APPLICATION_STARTED_ORDER + 10;
+        return ComponentStartOrders.KV + 10;
     }
 
     /**

@@ -31,12 +31,15 @@ import org.nuxeo.runtime.model.DefaultComponent;
  * Descriptor to configure / contribute a Backend for Audit service
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor} instead
  */
+@SuppressWarnings("removal")
 @XObject("backend")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditBackendDescriptor {
 
     @XNode("@class")
-    protected Class<? extends AuditBackend> klass = DefaultAuditBackend.class;
+    protected Class<? extends AuditBackend<?>> klass = DefaultAuditBackend.class;
 
     @XNode("require")
     String requiredComponent;

@@ -24,9 +24,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
-import org.nuxeo.audit.api.AuditPageProvider;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.PaginableLogEntryList;
+import org.nuxeo.audit.provider.AuditPageProvider;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -41,8 +44,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.SortInfo;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.LogEntryList;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.core.GenericPageProviderDescriptor;
@@ -67,8 +68,6 @@ public class AuditPageProviderOperation {
 
     public static final String CURRENT_REPO_PATTERN = "$currentRepository";
 
-    private static final String SORT_PARAMETER_SEPARATOR = " ";
-
     public static final String DESC = "DESC";
 
     public static final String ASC = "ASC";
@@ -85,6 +84,7 @@ public class AuditPageProviderOperation {
     @Param(name = "providerName", required = false)
     protected String providerName;
 
+    /** A NXQL query for LogEntry, for example: {@code SELECT * FROM LogEntry} */
     @Param(name = "query", required = false)
     protected String query;
 
@@ -122,11 +122,11 @@ public class AuditPageProviderOperation {
 
         List<SortInfo> sortInfos = null;
         // Sort Info Management
-        if (!StringUtils.isBlank(sortBy)) {
+        if (StringUtils.isNotBlank(sortBy)) {
             sortInfos = new ArrayList<>();
             String[] sorts = sortBy.split(",");
             String[] orders = null;
-            if (!StringUtils.isBlank(sortOrder)) {
+            if (StringUtils.isNotBlank(sortOrder)) {
                 orders = sortOrder.split(",");
             }
             for (int i = 0; i < sorts.length; i++) {
@@ -139,7 +139,7 @@ public class AuditPageProviderOperation {
         Object[] parameters = null;
 
         if (strParameters != null && !strParameters.isEmpty()) {
-            parameters = strParameters.toArray(new String[strParameters.size()]);
+            parameters = strParameters.toArray(String[]::new);
             // expand specific parameters
             for (int idx = 0; idx < parameters.length; idx++) {
                 String value = (String) parameters[idx];
@@ -157,22 +157,15 @@ public class AuditPageProviderOperation {
         Map<String, Serializable> props = new HashMap<>();
         props.put(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (Serializable) session);
 
-        if (query == null && (providerName == null || providerName.length() == 0)) {
-            // provide a defaut provider
+        if (query == null && StringUtils.isEmpty(providerName)) {
+            // provide a default provider
             providerName = "AUDIT_BROWSER";
         }
 
-        Long targetPage = null;
-        if (currentPageIndex != null) {
-            targetPage = currentPageIndex.longValue();
-        }
-        Long targetPageSize = null;
-        if (pageSize != null) {
-            targetPageSize = pageSize.longValue();
-        }
+        long targetPage = Objects.requireNonNullElse(currentPageIndex, 0).longValue();
+        long targetPageSize = Objects.requireNonNullElse(pageSize, 0).longValue();
 
         if (query != null) {
-
             AuditPageProvider app = new AuditPageProvider();
             app.setProperties(props);
             GenericPageProviderDescriptor desc = new GenericPageProviderDescriptor();
@@ -182,11 +175,10 @@ public class AuditPageProviderOperation {
             app.setSortInfos(sortInfos);
             app.setPageSize(targetPageSize);
             app.setCurrentPage(targetPage);
-            return new LogEntryList(app);
+            return new PaginableLogEntryList(app);
         } else {
-
             DocumentModel searchDoc = null;
-            if (namedQueryParams != null && namedQueryParams.size() > 0) {
+            if (namedQueryParams != null && !namedQueryParams.isEmpty()) {
                 String docType = ppService.getPageProviderDefinition(providerName).getSearchDocumentType();
                 searchDoc = session.createDocumentModel(docType);
                 DocumentHelper.setProperties(session, searchDoc, namedQueryParams);
@@ -194,9 +186,7 @@ public class AuditPageProviderOperation {
 
             PageProvider<LogEntry> pp = (PageProvider<LogEntry>) ppService.getPageProvider(providerName, searchDoc,
                     sortInfos, targetPageSize, targetPage, props, parameters);
-            // return new PaginablePageProvider<LogEntry>(pp);
-            return new LogEntryList(pp);
+            return new PaginableLogEntryList(pp);
         }
-
     }
 }

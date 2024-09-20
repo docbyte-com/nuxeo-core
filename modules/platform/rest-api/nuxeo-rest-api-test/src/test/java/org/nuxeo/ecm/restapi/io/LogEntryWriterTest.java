@@ -23,7 +23,6 @@ import static org.nuxeo.common.utils.DateUtils.parseISODateTime;
 
 import java.time.ZonedDateTime;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -32,6 +31,7 @@ import jakarta.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
@@ -40,10 +40,6 @@ import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -79,24 +75,19 @@ public class LogEntryWriterTest {
         DocumentModel folder = session.getDocument(new PathRef("/folder1"));
         String id = folder.getId();
 
-        LogEntry entry = new LogEntryImpl();
-        entry.setEventId("documentModified");
-        entry.setDocUUID(id);
-        entry.setEventDate(new Date());
-        entry.setDocPath("/" + id);
-        entry.setRepositoryId("test");
-        entry.setCategory("Workflow");
-        entry.setComment("comment");
-        entry.setDocLifeCycle("approved");
-        entry.setLogDate(new Date());
-        Map<String, ExtendedInfo> extendedInfo = new HashMap<>();
-
         ZonedDateTime testDate = ZonedDateTime.now();
-        extendedInfo.put("extInfo1", ExtendedInfoImpl.createExtendedInfo("testString"));
-        extendedInfo.put("extInfo2", ExtendedInfoImpl.createExtendedInfo(2L));
-        extendedInfo.put("extInfo3", ExtendedInfoImpl.createExtendedInfo(testDate));
-
-        entry.setExtendedInfos(extendedInfo);
+        LogEntry entry = LogEntry.builder("documentModified", new Date())
+                                 .docUUID(id)
+                                 .docPath("/" + id)
+                                 .repositoryId("test")
+                                 .category("Workflow")
+                                 .comment("comment")
+                                 .docLifeCycle("approved")
+                                 .logDate(new Date())
+                                 .extended("extInfo1", "testString")
+                                 .extended("extInfo2", 2L)
+                                 .extended("extInfo3", testDate)
+                                 .build();
 
         // When it is written as Json
         String json = MarshallerHelper.objectToJson(entry, CtxBuilder.get());

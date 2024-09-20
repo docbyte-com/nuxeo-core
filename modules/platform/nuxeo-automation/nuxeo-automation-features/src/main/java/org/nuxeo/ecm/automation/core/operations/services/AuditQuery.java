@@ -46,7 +46,9 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
+ * @deprecated since 2025.0, use {@link AuditPageProviderOperation} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 @Operation(id = AuditQuery.ID, category = Constants.CAT_SERVICES, label = "Query Audit Service", description = "Execute a JPA query against the Audit Service. This is returning a blob with the query result. The result is a serialized JSON array. You can use the context to set query variables but you must prefix using 'audit.query.' the context variable keys that match the ones in the query.", addToStudio = false)
 public class AuditQuery {
 

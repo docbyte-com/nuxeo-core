@@ -180,9 +180,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ CmisFeature.class, CmisFeatureConfiguration.class, RepositoryLightElasticSearchFeature.class })
-@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.audit")
-@Deploy("org.nuxeo.elasticsearch.audit.test:elasticsearch-audit-index-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/types-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestCmisBinding extends TestCmisBindingBase {

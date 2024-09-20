@@ -3,11 +3,11 @@
 	<!-- Alias is deprecated since 2025.0 -->
 	<alias>test.audit.contrib</alias>
 
-	<extension target="org.nuxeo..ecm.platformaudit.service.NXAuditEventsService" point="adapter">
+	<extension target="org.nuxeo.audit.service.AuditComponent" point="adapter">
 		<adapter name="myadapter" class="org.nuxeo.ecm.core.api.facet.VersioningDocument"/>
 	</extension>
 
-	<extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
+	<extension target="org.nuxeo.audit.service.AuditComponent" point="event">
 		<event name="documentCreated" />
 		<event name="documentCreatedByCopy" />
 		<event name="documentDuplicated" />
@@ -25,10 +25,10 @@
 		<event name="lifecycle_transition_event" />
 	</extension>
 
-    <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="extendedInfo">
-        <extendedInfo expression="${source.dublincore.title}" key="title" />
-        <extendedInfo expression="${principal.name}" key="user" />
-        <extendedInfo expression="${source.path.removeLastSegments(1).toString()}" key="parentPath" />
-    </extension>
+	<extension target="org.nuxeo.audit.service.AuditComponent" point="extendedInfo">
+		<extendedInfo expression="${source.dublincore.title}" key="title" />
+		<extendedInfo expression="${principal.name}" key="user" />
+		<extendedInfo expression="${source.path.removeLastSegments(1).toString()}" key="parentPath" />
+	</extension>
 
 </component>

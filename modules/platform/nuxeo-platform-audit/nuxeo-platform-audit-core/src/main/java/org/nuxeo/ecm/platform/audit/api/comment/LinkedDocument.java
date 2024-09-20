@@ -24,6 +24,10 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.platform.util.RepositoryLocation;
 
+/**
+ * @deprecated since 2025.0, unused
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class LinkedDocument implements Serializable {
 
     private static final long serialVersionUID = 1565438769754L;

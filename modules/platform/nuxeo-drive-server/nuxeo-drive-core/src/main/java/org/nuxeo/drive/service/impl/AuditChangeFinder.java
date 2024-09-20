@@ -44,7 +44,6 @@ import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
@@ -122,8 +121,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
             log.debug("Handling log entry {}", entry);
             FileSystemItemChange change = null;
             DocumentRef docRef = new IdRef(entry.getDocUUID());
-            Map<String, ExtendedInfo> extendedInfos = entry.getExtendedInfos();
-            ExtendedInfo fsIdInfo = extendedInfos.get("fileSystemItemId");
+            String fsIdInfo = entry.getExtendedValue("fileSystemItemId");
             if (fsIdInfo != null) {
                 // This document has been deleted, moved, is an unregistered synchronization root or its security has
                 // been updated, we just know the FileSystemItem id and name.
@@ -136,7 +134,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                 // This can succeed if this is a move to a synchronization root or a security update after which the
                 // current user still has access to the document.
                 if (!"deleted".equals(entry.getEventId()) && session.exists(docRef)) {
-                    change = getFileSystemItemChange(session, docRef, entry, fsIdInfo.getValue(String.class));
+                    change = getFileSystemItemChange(session, docRef, entry, fsIdInfo);
                     if (change != null) {
                         if (NuxeoDriveEvents.MOVED_EVENT.equals(entry.getEventId())) {
                             // A move to a synchronization root also fires a documentMoved event, don't propagate the
@@ -157,7 +155,6 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                     log.debug(
                             "Document {} ({}) doesn't exist or is not adaptable as a FileSystemItem, only providing the FileSystemItem id and name to the FileSystemItemChange entry.",
                             entry::getDocPath, () -> docRef);
-                    String fsId = fsIdInfo.getValue(String.class);
                     String eventId;
                     if (NuxeoDriveEvents.MOVED_EVENT.equals(entry.getEventId())) {
                         // Move to a non synchronization root
@@ -167,7 +164,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                         eventId = entry.getEventId();
                     }
                     change = new FileSystemItemChangeImpl(eventId, entry.getEventDate().getTime(),
-                            entry.getRepositoryId(), entry.getDocUUID(), fsId, null);
+                            entry.getRepositoryId(), entry.getDocUUID(), fsIdInfo, null);
                 }
                 log.debug("Adding FileSystemItemChange entry to the change summary: {}", change);
                 changes.add(change);
@@ -196,15 +193,11 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                             entry::getDocPath, () -> docRef);
                 } else {
                     if (DocumentEventTypes.BLOB_DIGEST_UPDATED.equals(entry.getEventId())) {
-                        ExtendedInfo oldDigestInfo = extendedInfos.get(
-                                CoreEventConstants.BLOB_DIGEST_UPDATED_OLD_DIGEST);
-                        if (oldDigestInfo != null) {
-                            String oldDigest = oldDigestInfo.getValue(String.class);
-                            if (oldDigest != null) {
-                                FileSystemItem fsItem = change.getFileSystemItem();
-                                if (fsItem instanceof DocumentBackedFileItem dbfi) {
-                                    dbfi.setOldDigest(oldDigest);
-                                }
+                        String oldDigest = entry.getExtendedValue(CoreEventConstants.BLOB_DIGEST_UPDATED_OLD_DIGEST);
+                        if (oldDigest != null) {
+                            FileSystemItem fsItem = change.getFileSystemItem();
+                            if (fsItem instanceof DocumentBackedFileItem dbfi) {
+                                dbfi.setOldDigest(oldDigest);
                             }
                         }
                     }
@@ -296,8 +289,8 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         List<LogEntry> postFilteredEntries = new ArrayList<>();
         String principalName = session.getPrincipal().getName();
         for (LogEntry entry : entries) {
-            ExtendedInfo impactedUserInfo = entry.getExtendedInfos().get("impactedUserName");
-            if (impactedUserInfo != null && !principalName.equals(impactedUserInfo.getValue(String.class))) {
+            String impactedUser = entry.getExtendedValue("impactedUserName");
+            if (!principalName.equals(impactedUser)) {
                 // ignore event that only impact other users
                 continue;
             }

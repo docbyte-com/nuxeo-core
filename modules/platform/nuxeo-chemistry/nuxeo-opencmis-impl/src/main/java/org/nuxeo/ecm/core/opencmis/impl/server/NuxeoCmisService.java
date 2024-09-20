@@ -20,6 +20,8 @@ package org.nuxeo.ecm.core.opencmis.impl.server;
 
 import static org.apache.chemistry.opencmis.commons.server.CallContext.BINDING_ATOMPUB;
 import static org.apache.chemistry.opencmis.commons.server.CallContext.BINDING_BROWSER;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_REMOVED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
@@ -123,6 +125,10 @@ import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmis
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.LogEntryConstants;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.common.utils.Path;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -156,10 +162,10 @@ import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils.BatchedList;
 import org.nuxeo.ecm.core.opencmis.impl.util.TypeManagerImpl;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
+import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.schema.FacetNames;
 import org.nuxeo.ecm.core.security.SecurityService;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.mimetype.MimetypeNotFoundException;
@@ -1410,12 +1416,18 @@ public class NuxeoCmisService extends AbstractCmisService
      * @return null if not enough elements found with the current page size
      */
     protected List<ObjectData> readAuditLog(String repositoryId, long minId, int max, int pageSize) {
-        AuditReader reader = Framework.getService(AuditReader.class);
-        if (reader == null) {
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend == null) {
             throw new CmisRuntimeException("Cannot find audit service");
         }
-        List<LogEntry> entries = reader.getLogEntriesAfter(minId, pageSize, repositoryId, DOCUMENT_CREATED,
-                DOCUMENT_UPDATED, DOCUMENT_REMOVED);
+        var builder = new AuditQueryBuilder().predicate(
+                Predicates.eq(LogEntryConstants.LOG_REPOSITORY_ID, repositoryId))
+                                             .and(Predicates.in(LOG_EVENT_ID, DOCUMENT_CREATED, DOCUMENT_UPDATED,
+                                                     DOCUMENT_REMOVED))
+                                             .and(Predicates.gte(LOG_ID, minId))
+                                             .order(OrderByExprs.asc(LOG_ID))
+                                             .limit(pageSize);
+        List<LogEntry> entries = auditBackend.queryLogs(builder);
         List<ObjectData> ods = new ArrayList<>();
         for (LogEntry entry : entries) {
             ObjectData od = getLogEntryObjectData(entry);
@@ -1474,13 +1486,13 @@ public class NuxeoCmisService extends AbstractCmisService
     }
 
     protected String getLatestChangeLogToken(String repositoryId) {
-        AuditReader reader = Framework.getService(AuditReader.class);
-        if (reader == null) {
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend == null) {
             log.warn("Audit Service not found. latest change log token will be '0'");
             return "0";
             // throw new CmisRuntimeException("Cannot find audit service");
         }
-        long id = reader.getLatestLogId(repositoryId, DOCUMENT_CREATED, DOCUMENT_UPDATED, DOCUMENT_REMOVED);
+        long id = auditBackend.getLatestLogId(repositoryId, DOCUMENT_CREATED, DOCUMENT_UPDATED, DOCUMENT_REMOVED);
         return String.valueOf(id);
     }
 

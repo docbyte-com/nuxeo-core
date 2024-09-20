@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,10 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.LogEntryBuilder;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -40,8 +40,6 @@ public class JobHistoryHelper {
     public static final String JOB_ENDED_SUFFIX = "Ended";
 
     public static final String JOB_FAILED_SUFFIX = "Failed";
-
-    protected AuditLogger logger;
 
     protected String jobName;
 
@@ -59,69 +57,56 @@ public class JobHistoryHelper {
         jobFailedEventId = jobName + JOB_FAILED_SUFFIX;
     }
 
-    protected LogEntry getNewLogEntry() {
-        LogEntry entry = getLogger().newLogEntry();
-        entry.setCategory(jobName);
-        entry.setPrincipalName(SecurityConstants.SYSTEM_USERNAME);
-        entry.setEventDate(new Date());
-        return entry;
+    protected LogEntry getNewLogEntry(String eventId) {
+        return getNewLogEntryBuilder(eventId).build();
     }
 
-    protected AuditLogger getLogger() {
-        if (logger == null) {
-            logger = Framework.getService(AuditLogger.class);
-        }
-        return logger;
+    protected LogEntryBuilder getNewLogEntryBuilder(String eventId) {
+        return LogEntry.builder(eventId, new Date()).category(jobName).principalName(SecurityConstants.SYSTEM_USERNAME);
+    }
+
+    protected AuditBackend getAuditBackend() {
+        return Framework.getService(AuditBackend.class);
     }
 
     /**
      * Logs an event for Job startup.
      */
     public void logJobStarted() {
-        LogEntry entry = getNewLogEntry();
-        entry.setEventId(jobStartedEventId);
+        LogEntry entry = getNewLogEntry(jobStartedEventId);
         List<LogEntry> entries = new ArrayList<>();
         entries.add(entry);
-        getLogger().addLogEntries(entries);
+        getAuditBackend().addLogEntries(entries);
     }
 
     /**
      * Logs an event for a successful Job completion.
      */
     public void logJobEnded() {
-        LogEntry entry = getNewLogEntry();
-        entry.setEventId(jobEndedEventId);
+        LogEntry entry = getNewLogEntry(jobEndedEventId);
         List<LogEntry> entries = new ArrayList<>();
         entries.add(entry);
-        getLogger().addLogEntries(entries);
+        getAuditBackend().addLogEntries(entries);
     }
 
     /**
      * Logs an event for a failed Job execution.
      */
     public void logJobFailed(String errMessage) {
-        LogEntry entry = getNewLogEntry();
-        entry.setEventId(jobFailedEventId);
-        entry.setComment(errMessage);
+        LogEntry entry = getNewLogEntryBuilder(jobFailedEventId).comment(errMessage).build();
         List<LogEntry> entries = new ArrayList<>();
         entries.add(entry);
-        getLogger().addLogEntries(entries);
+        getAuditBackend().addLogEntries(entries);
     }
 
     protected Date getLastRunWithStatus(String status) {
-        AuditReader reader = Framework.getService(AuditReader.class);
+        String query = "from LogEntry log where log.eventId='%s' AND log.category='%s' ORDER BY log.eventDate DESC".formatted(
+                status, jobName);
 
-        StringBuilder query = new StringBuilder("from LogEntry log where log.eventId=");
-        query.append("'");
-        query.append(status);
-        query.append("' AND log.category='");
-        query.append(jobName);
-        query.append("'  ORDER BY log.eventDate DESC");
-
-        List<?> result = reader.nativeQuery(query.toString(), 1, 1);
+        List<?> result = getAuditBackend().nativeQuery(query, 1, 1);
 
         if (!result.isEmpty()) {
-            LogEntry entry = (LogEntry) result.get(0);
+            var entry = (LogEntry) result.getFirst();
             return entry.getEventDate();
         }
 

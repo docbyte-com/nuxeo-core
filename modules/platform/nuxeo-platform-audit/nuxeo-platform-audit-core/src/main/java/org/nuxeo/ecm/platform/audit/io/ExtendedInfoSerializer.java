@@ -36,7 +36,10 @@ import com.fasterxml.jackson.databind.SerializerProvider;
  * Serializer class for extended info to a JSON object
  *
  * @since 9.3
+ * @deprecated since 2025, use {@link org.nuxeo.audit.io.LogEntryJsonWriter} with help of nuxeo-core-io instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoSerializer extends JsonSerializer<ExtendedInfo> {
 
     protected static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3)

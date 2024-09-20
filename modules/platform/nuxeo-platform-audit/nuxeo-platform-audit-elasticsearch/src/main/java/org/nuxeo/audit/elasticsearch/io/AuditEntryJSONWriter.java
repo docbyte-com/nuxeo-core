@@ -35,13 +35,13 @@ import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.impl.blob.AbstractBlob;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -54,10 +54,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 
+/**
+ * @deprecated since 2025.0, use nuxeo-core-io instead.
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditEntryJSONWriter {
 
     private static final Logger log = LogManager.getLogger(AuditEntryJSONWriter.class);
 
+    /**
+     * @deprecated since 2025.0, use {@link MarshallerHelper#objectToJson(Object, RenderingContext)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static void asJSON(JsonGenerator jg, LogEntry logEntry) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         SimpleModule module = new SimpleModule("esAuditJson", Version.unknownVersion());
@@ -81,12 +89,10 @@ public class AuditEntryJSONWriter {
         jg.writeStringField(LOG_EVENT_DATE, formatISODateTime(nowIfNull(logEntry.getEventDate())));
         jg.writeNumberField(LOG_ID, logEntry.getId());
         jg.writeStringField(LOG_LOG_DATE, formatISODateTime(nowIfNull(logEntry.getLogDate())));
-        Map<String, ExtendedInfo> extended = logEntry.getExtendedInfos();
         jg.writeObjectFieldStart(LOG_EXTENDED);
-        for (String key : extended.keySet()) {
-            ExtendedInfo ei = extended.get(key);
-            if (ei != null && ei.getSerializableValue() != null) {
-                Serializable value = ei.getSerializableValue();
+        for (String key : logEntry.getExtended().keySet()) {
+            var value = logEntry.getExtended().get(key);
+            if (value != null) {
                 if (value instanceof String strValue) {
                     if (isJsonContent(strValue)) {
                         jg.writeFieldName(key);
@@ -96,7 +102,7 @@ public class AuditEntryJSONWriter {
                     }
                 } else {
                     try {
-                        jg.writeObjectField(key, ei.getSerializableValue());
+                        jg.writeObjectField(key, value);
                     } catch (JsonMappingException e) {
                         log.error("No Serializer found.", e);
                     }

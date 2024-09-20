@@ -23,22 +23,27 @@ import jakarta.persistence.EntityManager;
 
 import org.nuxeo.ecm.core.persistence.PersistenceProviderFactory;
 import org.nuxeo.ecm.platform.audit.api.AuditLogger;
+import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.ManagementFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
-@Deploy("org.nuxeo.runtime.datasource")
-@Deploy("org.nuxeo.runtime.metrics")
-@Deploy("org.nuxeo.ecm.core.persistence")
+/**
+ * @deprecated since 2025.0, use {@code org.nuxeo.platform.audit.test.AuditFeature} instead
+ */
 @Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.ecm.platform.audit:nxaudit-ds.xml")
 @Features({ ManagementFeature.class, PlatformFeature.class })
+@Deprecated(since = "2025.0", forRemoval = true)
+// hide deprecation message about AuditBackend/AuditLogger/AuditReader/Logs usage
+@LoggerLevel(klass = NXAuditEventsService.class, level = "ERROR")
 public class AuditFeature implements RunnerFeature {
 
     @Override

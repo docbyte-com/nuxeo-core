@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 package org.nuxeo.runtime.model;
 
+import org.apache.commons.lang3.math.NumberUtils;
+
 /**
  * Some default application start orders.
  *
@@ -31,6 +33,18 @@ public class ComponentStartOrders {
     /** @since 2023.0 */
     public static final int CLUSTER_SERVICE = -1000;
 
+    /** @since 2025.0 */
+    public static final int KAFKA = -600;
+
+    /** @since 2025.0 */
+    public static final int STREAM = KAFKA + 10;
+
+    /** @since 2025.0 */
+    public static final int EVENT = -500;
+
+    /** @since 2025.0 */
+    public static final int KV = -500;
+
     /**
      * Let RedisComponent start before us (Redis starts before WorkManager that starts before events).
      * 
@@ -41,6 +55,13 @@ public class ComponentStartOrders {
     /** @since 2023.0 */
     public static final int CLUSTER_ACTIONS = Math.min(CLUSTER_SERVICE, PUB_SUB) + 10;
 
+    /**
+     * Even before repository init.
+     *
+     * @since 2025.0
+     */
+    public static final int JPA = 50;
+
     // @since 2021.14
     public static final int MONGODB = 40;
 
@@ -49,6 +70,20 @@ public class ComponentStartOrders {
 
     // @since 2021.14
     public static final int ELASTIC = OPENSEARCH + 10;
+
+    /**
+     * Sequencer should start after any of its implementation.
+     * 
+     * @since 2025.0
+     */
+    public static final int SEQUENCER = NumberUtils.max(KV, JPA, MONGODB, OPENSEARCH) + 10;
+
+    /**
+     * Audit should start after Sequencer because some implementation uses them.
+     *
+     * @since 2025.0
+     */
+    public static final int AUDIT = SEQUENCER + 10;
 
     public static final int REPOSITORY = 100;
 

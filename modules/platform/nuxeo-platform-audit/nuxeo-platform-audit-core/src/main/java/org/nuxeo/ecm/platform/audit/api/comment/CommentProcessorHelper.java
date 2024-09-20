@@ -35,7 +35,10 @@ import org.nuxeo.ecm.platform.util.RepositoryLocation;
  *
  * @author Tiry (tdelprat@nuxeo.com)
  * @since 5.4.2
+ * @deprecated since 2025.0, unused
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class CommentProcessorHelper {
 
     protected CoreSession documentManager;

@@ -35,12 +35,12 @@ import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.StreamManager;
 import org.nuxeo.lib.stream.computation.Watermark;
@@ -73,17 +73,14 @@ public class StreamAuditEventListener implements EventListener, Synchronization 
 
     @Override
     public void handleEvent(Event event) {
-        AuditLogger logger = Framework.getService(AuditLogger.class);
-        if (logger == null) {
-            return;
-        }
+        var auditService = Framework.getService(AuditService.class);
         if (!isEnlisted.get()) {
             isEnlisted.set(registerSynchronization(this));
             entries.get().clear();
             log.debug("AuditEventListener collecting entries for the tx");
         }
-        if (logger.getAuditableEventNames().contains(event.getName())) {
-            entries.get().add(logger.buildEntryFromEvent(event));
+        if (auditService.getAuditableEventNames().contains(event.getName())) {
+            entries.get().add(auditService.buildEntryFromEvent(event));
         }
         if (!isEnlisted.get()) {
             // there is no transaction so don't wait for a commit

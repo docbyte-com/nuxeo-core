@@ -24,7 +24,10 @@ import org.nuxeo.ecm.platform.audit.api.LogEntry;
  * Minimal interface extracted to be able to share some code inside the {@link AbstractAuditBackend}
  *
  * @author tiry
+ * @deprecated since 2025.0, {@link org.nuxeo.audit.service.AuditBackend} has all necessary APIs
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface BaseLogEntryProvider {
 
     void addLogEntry(LogEntry entry);

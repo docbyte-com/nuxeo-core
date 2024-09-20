@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.restapi.server.adapters;
 
 import static org.nuxeo.common.utils.DateUtils.parseISODateTime;
@@ -31,11 +30,11 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
@@ -50,7 +49,7 @@ import org.nuxeo.runtime.api.Framework;
 @Produces({ MediaType.APPLICATION_JSON, AbstractCSVWriter.TEXT_CSV })
 public class AuditAdapter extends PaginableAdapter<LogEntry> {
 
-    private static Logger log = LogManager.getLogger(AuditAdapter.class);
+    private static final Logger log = LogManager.getLogger(AuditAdapter.class);
 
     public static final String NAME = "audit";
 

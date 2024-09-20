@@ -19,22 +19,38 @@
 package org.nuxeo.ecm.platform.audit.service;
 
 import org.nuxeo.ecm.platform.audit.api.AuditStorage;
+import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.api.Logs;
 
 /**
  * Audit Backend SPI
  *
  * @author tiry
+ * @param <L> to give the log entry type for the new {@link org.nuxeo.audit.service.AuditBackend} interface that defines
+ *            a new entry type.
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AuditBackend} instead
  */
-public interface AuditBackend extends Logs {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public interface AuditBackend<L extends LogEntry> extends Logs<L> {
 
+    /**
+     * @deprecated since 2025.0, not needed since introduction of {@link org.nuxeo.audit.service.AuditBackendFactory}
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     int getApplicationStartedOrder();
 
+    /**
+     * @deprecated since 2025.0, not needed since introduction of {@link org.nuxeo.audit.service.AuditBackendFactory}
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     void onApplicationStarted();
 
     /**
      * @since 9.2
+     * @deprecated since 2025.0, not needed since introduction of {@link org.nuxeo.audit.service.AuditBackendFactory}
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     void onApplicationStopped();
 
     /**

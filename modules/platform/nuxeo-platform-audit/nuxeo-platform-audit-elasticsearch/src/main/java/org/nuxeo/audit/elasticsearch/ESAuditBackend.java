@@ -121,7 +121,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author tiry
  */
-public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend {
+public class ESAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     private static final Logger log = LogManager.getLogger(ESAuditBackend.class);
 
@@ -182,7 +182,8 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
 
     protected boolean isMigrationDone() {
         AuditReader reader = Framework.getService(AuditReader.class);
-        List<LogEntry> entries = reader.queryLogs(new String[] { MIGRATION_DONE_EVENT }, null);
+        List<LogEntry> entries = reader.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, "search")));
         return !entries.isEmpty();
     }
 
@@ -529,6 +530,10 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
         return res.getHits().getTotalHits().value;
     }
 
+    /**
+     * @deprecated since 2025.0, seems unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     @Override
     public long syncLogCreationEntries(final String repoId, final String path, final Boolean recurs) {
         return syncLogCreationEntries(provider, repoId, path, recurs);

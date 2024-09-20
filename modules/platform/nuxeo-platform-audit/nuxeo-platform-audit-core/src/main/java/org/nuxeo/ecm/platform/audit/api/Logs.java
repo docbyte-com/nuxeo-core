@@ -23,7 +23,12 @@ package org.nuxeo.ecm.platform.audit.api;
  *
  * @see <a href="http://jira.nuxeo.org/browse/NXP-514">NXP-514</a>
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
+ * @param <L> to give the log entry type for the new {@link org.nuxeo.audit.service.AuditBackend} interface that defines
+ *            a new entry type.
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AuditBackend} instead
  */
-public interface Logs extends AuditReader, AuditLogger, AuditAdmin {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public interface Logs<L extends LogEntry> extends AuditReader<L>, AuditLogger<L>, AuditAdmin {
 
 }

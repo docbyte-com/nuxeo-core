@@ -47,4 +47,10 @@ public interface WhereClauseDefinition {
      */
     String getSelectStatement();
 
+    /**
+     * @since 2025.0
+     */
+    default WhereClauseDefinitionBuilder builder() {
+        return new WhereClauseDefinitionBuilder(this);
+    }
 }

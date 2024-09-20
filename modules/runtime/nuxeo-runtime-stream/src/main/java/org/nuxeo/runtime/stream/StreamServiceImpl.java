@@ -49,9 +49,9 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.codec.CodecService;
 import org.nuxeo.runtime.kafka.KafkaConfigService;
-import org.nuxeo.runtime.kafka.KafkaConfigServiceImpl;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -80,8 +80,7 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
 
     @Override
     public int getApplicationStartedOrder() {
-        // start after kafka config service
-        return KafkaConfigServiceImpl.APPLICATION_STARTED_ORDER + 10;
+        return ComponentStartOrders.STREAM;
     }
 
     @Override
@@ -158,9 +157,8 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
         String kafkaConfig = desc.options.getOrDefault("kafkaConfig", "default");
         KafkaConfigService service = Framework.getService(KafkaConfigService.class);
         return new KafkaLogConfig(desc.getId(), desc.isDefault(), desc.getPatterns(),
-                service.getTopicPrefix(kafkaConfig),
-                service.getAdminProperties(kafkaConfig), service.getProducerProperties(kafkaConfig),
-                service.getConsumerProperties(kafkaConfig));
+                service.getTopicPrefix(kafkaConfig), service.getAdminProperties(kafkaConfig),
+                service.getProducerProperties(kafkaConfig), service.getConsumerProperties(kafkaConfig));
     }
 
     protected void initProcessor(StreamProcessorDescriptor descriptor) {
@@ -331,7 +329,7 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
         log.debug("Set computation position for {} after date: {}", computation, after);
         try (LogTailer<Externalizable> tailer = logManager.createTailer(computation, stream)) {
             boolean moved = false;
-            for (LogPartition partition: tailer.assignments()) {
+            for (LogPartition partition : tailer.assignments()) {
                 LogOffset offset = tailer.offsetForTimestamp(partition, after.toEpochMilli());
                 if (offset != null) {
                     tailer.seek(offset);

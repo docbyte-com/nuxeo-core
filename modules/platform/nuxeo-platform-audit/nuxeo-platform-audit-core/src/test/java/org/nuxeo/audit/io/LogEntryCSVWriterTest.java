@@ -19,46 +19,25 @@
 package org.nuxeo.audit.io;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import static org.nuxeo.audit.io.LogEntryJsonWriter.ENTITY_TYPE;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-
-import jakarta.inject.Inject;
+import java.util.UUID;
+import java.util.function.LongFunction;
 
 import org.junit.Test;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriterTest;
 import org.nuxeo.ecm.core.io.marshallers.csv.CSVAssert;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.query.api.PageProvider;
-import org.nuxeo.ecm.platform.query.api.PageProviderService;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * @since 11.1
  */
-@Features(AuditFeature.class)
 public class LogEntryCSVWriterTest extends AbstractCSVWriterTest.External<LogEntryCSVWriter, LogEntry> {
-
-    @Inject
-    protected PageProviderService pps;
-
-    @Inject
-    protected CoreSession session;
-
-    @Inject
-    protected TransactionalFeature txFeature;
-
-    protected DocumentModel file;
 
     public LogEntryCSVWriterTest() {
         super(LogEntryCSVWriter.class, LogEntry.class);
@@ -71,14 +50,14 @@ public class LogEntryCSVWriterTest extends AbstractCSVWriterTest.External<LogEnt
         for (LogEntry entry : getLogEntries()) {
             CSVAssert csv = csvAssert(entry, renderingCtx);
             csv.has("id");
-            csv.has("category").isEquals("eventDocumentCategory");
+            csv.has("category").isEquals("categoryForTests");
             csv.has("principalName").isEquals("Administrator"); // NOSONAR
-            csv.has("comment").isEquals("");
+            csv.has("comment").isEquals("comment");
             csv.has("docLifeCycle").isEquals("project"); // NOSONAR
             csv.has("docPath").isEquals("/myFile"); // NOSONAR
             csv.has("docType").isEquals("File"); // NOSONAR
-            csv.has("docUUID").isEquals(file.getId()); // NOSONAR
-            csv.has("eventId").isEquals(DocumentEventTypes.DOCUMENT_CREATED);
+            csv.has("docUUID"); // NOSONAR
+            csv.has("eventId").isEquals("eventIdForTests");
             csv.has("repositoryId").isEquals("test");
             csv.has("eventDate");
             csv.has("logDate");
@@ -96,7 +75,7 @@ public class LogEntryCSVWriterTest extends AbstractCSVWriterTest.External<LogEnt
             csv.has("docLifeCycle").isEquals("project");
             csv.has("docPath").isEquals("/myFile");
             csv.has("docType").isEquals("File");
-            csv.has("docUUID").isEquals(file.getId());
+            csv.has("docUUID");
             // Default properties that are not requested and shouldn't be there
             List<String> unwantedProps = List.of("category", "comment", "eventId", "eventDate", "logDate");
             for (String property : unwantedProps) {
@@ -112,16 +91,19 @@ public class LogEntryCSVWriterTest extends AbstractCSVWriterTest.External<LogEnt
     }
 
     protected List<LogEntry> getLogEntries() {
-        file = session.createDocumentModel("/", "myFile", "File");
-        file = session.createDocument(file);
-        // LogEntry are event driven. They are created asynchronously
-        txFeature.nextTransaction();
-        PageProvider<?> pp = pps.getPageProvider("DOCUMENT_HISTORY_PROVIDER", null, Long.valueOf(20), Long.valueOf(0),
-                new HashMap<>(), file);
-        @SuppressWarnings("unchecked")
-        List<LogEntry> entries = (List<LogEntry>) pp.getCurrentPage();
-        // if there is nothing to test, the test would always succeed.
-        assertFalse(entries.isEmpty());
-        return entries;
+        LongFunction<LogEntry> logEntryGenerator = id -> LogEntry.builder("eventIdForTests", new Date())
+                                                                 .id(id)
+                                                                 .principalName("Administrator")
+                                                                 .logDate(new Date())
+                                                                 .docUUID(UUID.randomUUID().toString())
+                                                                 .docPath("/myFile")
+                                                                 .docType("File")
+                                                                 .category("categoryForTests")
+                                                                 .comment("comment")
+                                                                 .docLifeCycle("project")
+                                                                 .repositoryId("test")
+                                                                 .extended("stringExtended", String.valueOf(id))
+                                                                 .build();
+        return List.of(logEntryGenerator.apply(1L), logEntryGenerator.apply(2L), logEntryGenerator.apply(3L));
     }
 }

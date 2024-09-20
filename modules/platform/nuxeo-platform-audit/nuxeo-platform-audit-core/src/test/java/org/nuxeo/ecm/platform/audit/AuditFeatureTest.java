@@ -28,9 +28,11 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2025.0
+ * @deprecated since 2025.0, to follow {@link AuditFeature} deprecation
  */
 @RunWith(FeaturesRunner.class)
 @Features(AuditFeature.class)
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditFeatureTest {
 
     @Test

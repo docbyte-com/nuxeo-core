@@ -19,8 +19,8 @@
 package org.nuxeo.ecm.core.opencmis.impl;
 
 import org.junit.AssumptionViolatedException;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -30,7 +30,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * Feature for CMIS tests.
  */
-@Features({ CoreFeature.class, NuxeoLoginFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, CoreFeature.class, NuxeoLoginFeature.class })
+@Deploy("org.nuxeo.ecm.platform.content.template")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 // deployed for fulltext indexing
 @Deploy("org.nuxeo.ecm.platform.convert")

@@ -29,7 +29,10 @@ import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
  * serialized to JSON with {@link BuiltinLogEntryData} field names.
  *
  * @since 9.3
+ * @deprecated since 2025.0, the behavior of storage is not common across the different backend implementation, mainly
+ *             because there's no conversion from the input/output Strings
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface AuditStorage {
 
     void append(List<String> jsonEntries);

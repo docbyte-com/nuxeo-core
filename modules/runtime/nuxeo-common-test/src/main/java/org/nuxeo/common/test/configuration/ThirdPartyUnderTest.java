@@ -49,6 +49,8 @@ public final class ThirdPartyUnderTest {
 
     // System properties declaration
 
+    public static final SystemProperty AUDIT_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.audit", STORAGE_SQL);
+
     public static final SystemProperty CORE_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.core", STORAGE_SQL);
 
     public static final SystemProperty DIRECTORY_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.directory",
@@ -59,6 +61,9 @@ public final class ThirdPartyUnderTest {
     // Effective property values
 
     public static final String CORE_SERVICE_VALUE = computeSystemProperty(CORE_SERVICE_PROPERTY);
+
+    public static final String AUDIT_SERVICE_VALUE = computeSystemProperty(AUDIT_SERVICE_PROPERTY,
+            CORE_SERVICE_PROPERTY);
 
     public static final String DIRECTORY_SERVICE_VALUE = computeSystemProperty(DIRECTORY_SERVICE_PROPERTY,
             CORE_SERVICE_PROPERTY);

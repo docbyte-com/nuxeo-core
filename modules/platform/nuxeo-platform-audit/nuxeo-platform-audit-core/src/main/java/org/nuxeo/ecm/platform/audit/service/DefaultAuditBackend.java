@@ -33,10 +33,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.core.api.CursorResult;
 import org.nuxeo.ecm.core.api.CursorService;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.ScrollResult;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.persistence.PersistenceProvider;
 import org.nuxeo.ecm.core.persistence.PersistenceProviderFactory;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExpr;
@@ -58,14 +61,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author tiry
  */
-public class DefaultAuditBackend extends AbstractAuditBackend {
+@SuppressWarnings("removal")
+public class DefaultAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     protected PersistenceProvider persistenceProvider;
 
-    protected CursorService<Iterator<LogEntry>, LogEntry, String> cursorService;
+    protected CursorService<Iterator<LogEntry>, LogEntry, String> cursorService = new CursorService<>(
+            ThrowableFunction.asFunction(
+                    entry -> MarshallerHelper.objectToJson(entry, RenderingContext.CtxBuilder.get())));
 
+    @SuppressWarnings("removal")
     public DefaultAuditBackend(NXAuditEventsService component, AuditBackendDescriptor config) {
         super(component, config);
         activatePersistenceProvider();
@@ -80,21 +87,15 @@ public class DefaultAuditBackend extends AbstractAuditBackend {
 
     @Override
     public int getApplicationStartedOrder() {
-        DefaultComponent component = (DefaultComponent) Framework.getRuntime().getComponent(
-                "org.nuxeo.ecm.core.persistence.PersistenceComponent");
+        var component = (DefaultComponent) Framework.getRuntime()
+                                                    .getComponent(
+                                                            "org.nuxeo.ecm.core.persistence.PersistenceComponent");
         return component.getApplicationStartedOrder() + 1;
     }
 
     @Override
     public void onApplicationStarted() {
         activatePersistenceProvider();
-        cursorService = new CursorService<>(entry -> {
-            try {
-                return OBJECT_MAPPER.writeValueAsString(entry);
-            } catch (IOException e) {
-                throw new NuxeoException("Unable to serialize entry");
-            }
-        });
     }
 
     @Override
@@ -190,6 +191,10 @@ public class DefaultAuditBackend extends AbstractAuditBackend {
         return apply(false, provider -> provider.queryLogsByPage(eventIds, limit, category, path, pageNb, pageSize));
     }
 
+    /**
+     * @deprecated since 2025.0, seems unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     @Override
     public long syncLogCreationEntries(final String repoId, final String path, final Boolean recurs) {
         return apply(false, provider -> syncLogCreationEntries(provider, repoId, path, recurs));

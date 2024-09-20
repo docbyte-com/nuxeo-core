@@ -105,7 +105,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, WorkflowFeature.class, LogCaptureFeature.class })
+@Features({ WorkflowFeature.class, RestServerFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
 @Deploy("org.nuxeo.ecm.platform.routing.default")

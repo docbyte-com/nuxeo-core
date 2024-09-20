@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.function.Function;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -46,6 +47,11 @@ import org.nuxeo.ecm.core.query.sql.model.Reference;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 
+/**
+ * @deprecated since 2025.0, {@link org.nuxeo.audit.service.AuditBackend} has all necessary APIs
+ */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class LogEntryProvider implements BaseLogEntryProvider {
 
     private static final Logger log = LogManager.getLogger(LogEntryProvider.class);
@@ -83,10 +89,10 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     }
 
     protected List<?> doPublishIfEntries(List<?> entries) {
-        if (entries == null || entries.size() == 0) {
+        if (CollectionUtils.isEmpty(entries)) {
             return entries;
         }
-        Object entry = entries.get(0);
+        Object entry = entries.getFirst();
         if (entry instanceof LogEntry) {
             for (Object logEntry : entries) {
                 doPublish((LogEntry) logEntry);
@@ -101,7 +107,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     }
 
     protected LogEntry doPublish(LogEntry entry) {
-        if (entry.getExtendedInfos() != null) {
+        if (entry != null && entry.getExtendedInfos() != null) {
             entry.getExtendedInfos().size(); // force lazy loading
         }
         return entry;
@@ -255,7 +261,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
         }
         // if firstOrder == false then there's at least one order
         if (!firstOrder) {
-            if (orders.get(0).isDescending) {
+            if (orders.getFirst().isDescending) {
                 queryStr.append(" DESC");
             } else {
                 queryStr.append(" ASC");

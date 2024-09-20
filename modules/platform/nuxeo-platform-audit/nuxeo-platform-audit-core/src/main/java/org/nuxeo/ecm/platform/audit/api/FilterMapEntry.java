@@ -20,6 +20,10 @@ package org.nuxeo.ecm.platform.audit.api;
 
 import java.io.Serializable;
 
+/**
+ * @deprecated since 2025.0, unused
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class FilterMapEntry implements Serializable {
 
     private static final long serialVersionUID = -9120973644582569871L;

@@ -30,6 +30,11 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
+/**
+ * @deprecated since 2025.0, to follow other deprecation
+ */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 @Features(AuditFeature.class)
 @RunWith(FeaturesRunner.class)
 public class TestServiceAccess {

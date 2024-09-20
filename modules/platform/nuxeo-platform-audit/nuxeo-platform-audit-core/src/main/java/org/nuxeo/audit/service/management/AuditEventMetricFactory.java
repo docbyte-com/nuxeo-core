@@ -20,7 +20,8 @@ package org.nuxeo.audit.service.management;
 
 import javax.management.ObjectName;
 
-import org.nuxeo.ecm.platform.audit.api.Logs;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.ObjectNameFactory;
@@ -33,14 +34,11 @@ import org.nuxeo.runtime.management.ResourcePublisherService;
  */
 public class AuditEventMetricFactory implements ResourceFactory {
 
-    protected Logs auditService;
-
     protected ResourcePublisherService publisherService;
 
     @Override
     public void configure(ResourcePublisherService service, ResourceFactoryDescriptor descriptor) {
         publisherService = service;
-        auditService = Framework.getService(Logs.class);
     }
 
     public static String formatQualifiedName(String name) {
@@ -57,7 +55,8 @@ public class AuditEventMetricFactory implements ResourceFactory {
 
     protected void doRegisterResource(String name) {
         publisherService.registerResource(formatShortcutName(name), formatQualifiedName(name),
-                AuditEventMetricMBean.class, new AuditEventMetricMBeanAdapter(auditService, name));
+                AuditEventMetricMBean.class,
+                new AuditEventMetricMBeanAdapter(Framework.getService(AuditBackend.class), name));
     }
 
     protected void doUnregisterResource(String name) {
@@ -66,7 +65,7 @@ public class AuditEventMetricFactory implements ResourceFactory {
 
     @Override
     public void registerResources() {
-        for (String name : auditService.getAuditableEventNames()) {
+        for (String name : Framework.getService(AuditService.class).getAuditableEventNames()) {
             doRegisterResource(name);
         }
     }

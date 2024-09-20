@@ -23,12 +23,12 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.query.api.AbstractPageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
@@ -73,7 +73,7 @@ public class LatestCreatedUsersOrGroupsPageProvider extends AbstractPageProvider
             DirectoryService directoryService = Framework.getService(DirectoryService.class);
             try (Session userDir = directoryService.open(um.getUserDirectoryName(), null)) {
                 for (LogEntry e : entries) {
-                    String id = (String) e.getExtendedInfos().get("id").getSerializableValue();
+                    String id = e.getExtendedValue("id");
                     if (StringUtils.isNotBlank(id)) {
                         DocumentModel doc;
                         if (UserManagerImpl.GROUPCREATED_EVENT_ID.equals(e.getEventId())) {

@@ -22,13 +22,18 @@ package org.nuxeo.ecm.platform.audit.api;
  * Interface for Administration of Audit service.
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AuditBackend} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface AuditAdmin {
 
     /**
      * Forces log Synchronisation for a branch of the repository. This can be useful to add the create entries if DB was
      * initialized from a bulk import.
+     *
+     * @deprecated since 2025.0, seems unused
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     long syncLogCreationEntries(String repoId, String path, Boolean recurs);
 
     Long getEventsCount(final String eventId);

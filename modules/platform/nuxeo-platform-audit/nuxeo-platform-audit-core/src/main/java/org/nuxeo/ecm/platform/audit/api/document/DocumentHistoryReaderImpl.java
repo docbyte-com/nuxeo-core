@@ -20,8 +20,8 @@
 package org.nuxeo.ecm.platform.audit.api.document;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.nuxeo.audit.api.document.DocumentHistoryPageProvider;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -36,7 +36,10 @@ import org.nuxeo.runtime.api.Framework;
  * {@link DocumentHistoryPageProvider}
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
+ * @deprecated since 2025.0, use the {@link org.nuxeo.ecm.platform.query.api.PageProviderService} instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class DocumentHistoryReaderImpl implements DocumentHistoryReader {
 
     @Override
@@ -51,8 +54,9 @@ public class DocumentHistoryReaderImpl implements DocumentHistoryReader {
     public PageProvider<LogEntry> getPageProvider(DocumentModel doc, long pageIndex, long pageSize) {
 
         PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<LogEntry> pp = (PageProvider<LogEntry>) pps.getPageProvider("DOCUMENT_HISTORY_PROVIDER", null,
-                Long.valueOf(pageSize), Long.valueOf(pageIndex), new HashMap<String, Serializable>(), doc);
+        PageProvider<LogEntry> pp = (PageProvider<LogEntry>) pps.getPageProvider("DOCUMENT_HISTORY_PROVIDER", List.of(),
+                pageSize, pageIndex, Map.of("coreSession", (Serializable) doc.getCoreSession()), doc);
+        pp.setSearchDocumentModel(doc);
         return pp;
     }
 

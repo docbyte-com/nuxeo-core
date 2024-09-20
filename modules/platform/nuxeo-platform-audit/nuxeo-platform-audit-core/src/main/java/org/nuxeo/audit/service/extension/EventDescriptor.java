@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,19 @@
  */
 package org.nuxeo.audit.service.extension;
 
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Really simple auditable event descriptor.
@@ -31,30 +38,38 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
  */
 @XObject("event")
-public class EventDescriptor {
+public class EventDescriptor implements Descriptor {
 
     @XNode("@name")
     private String name;
 
     @XNode("@enabled")
-    private boolean enabled = true;
+    private Boolean enabled;
 
     @XNodeList(value = "extendedInfos/extendedInfo", type = ArrayList.class, componentType = ExtendedInfoDescriptor.class)
     protected List<ExtendedInfoDescriptor> extendedInfoDescriptors;
 
-    public boolean getEnabled() {
-        return enabled;
-    }
-
-    /**
-     * @since 7.4
-     */
-    public List<ExtendedInfoDescriptor> getExtendedInfoDescriptors() {
-        return extendedInfoDescriptors;
+    @Override
+    public String getId() {
+        return name;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public boolean isEnabled() {
+        return BooleanUtils.toBooleanDefaultIfNull(enabled, true);
+    }
+
+    /** @deprecated since 2025.0, use {@link EventDescriptor#isEnabled()} instead */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public boolean getEnabled() {
+        return enabled;
     }
 
     public void setEnabled(boolean enabled) {
@@ -64,12 +79,29 @@ public class EventDescriptor {
     /**
      * @since 7.4
      */
+    public List<ExtendedInfoDescriptor> getExtendedInfoDescriptors() {
+        return extendedInfoDescriptors;
+    }
+
+    /**
+     * @since 7.4
+     */
     public void setExtendedInfoDescriptors(List<ExtendedInfoDescriptor> extendedInfoDescriptors) {
         this.extendedInfoDescriptors = extendedInfoDescriptors;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (EventDescriptor) o;
+        var merged = new EventDescriptor();
+        merged.name = name;
+        merged.enabled = other.enabled == null ? enabled : other.enabled;
+        merged.extendedInfoDescriptors = Stream.concat(extendedInfoDescriptors.stream(),
+                other.extendedInfoDescriptors.stream())
+                                               .collect(collectingAndThen(
+                                                       toMap(ExtendedInfoDescriptor::getKey, Function.identity(),
+                                                               ExtendedInfoDescriptor::merge),
+                                                       map -> new ArrayList<>(map.values())));
+        return merged;
     }
-
 }

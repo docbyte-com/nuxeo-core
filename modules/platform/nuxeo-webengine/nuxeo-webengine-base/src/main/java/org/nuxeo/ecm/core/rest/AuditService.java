@@ -42,7 +42,9 @@ import org.nuxeo.runtime.api.Framework;
  * </ul>
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
+ * @deprecated since 2025.0, doesn't seem to be used
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 @WebAdapter(name = "audits", type = "AuditService", targetType = "Document")
 public class AuditService extends DefaultAdapter {
 

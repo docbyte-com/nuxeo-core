@@ -32,7 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.drive.service.SynchronizationRoots;
 import org.nuxeo.drive.service.impl.AuditChangeFinder;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
@@ -265,8 +264,8 @@ public class ESAuditChangeFinder extends AuditChangeFinder {
         List<LogEntry> postFilteredEntries = new ArrayList<>();
         String principalName = session.getPrincipal().getName();
         for (LogEntry entry : entries) {
-            ExtendedInfo impactedUserInfo = entry.getExtendedInfos().get("impactedUserName");
-            if (impactedUserInfo != null && !principalName.equals(impactedUserInfo.getValue(String.class))) {
+            String impactedUser = entry.getExtendedValue("impactedUserName");
+            if (!principalName.equals(impactedUser)) {
                 // ignore event that only impact other users
                 continue;
             }

@@ -20,15 +20,21 @@ package org.nuxeo.audit.service.extension;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("adapter")
-public class AdapterDescriptor {
+public class AdapterDescriptor implements Descriptor {
 
     @XNode("@name")
     private String name;
 
     @XNode("@class")
     protected Class<?> klass;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -37,5 +43,4 @@ public class AdapterDescriptor {
     public Class<?> getKlass() {
         return klass;
     }
-
 }

@@ -21,6 +21,10 @@ package org.nuxeo.ecm.platform.audit.api;
 import org.nuxeo.ecm.automation.core.util.PaginablePageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 
+/**
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.api.PaginableLogEntryList} instead
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class LogEntryList extends PaginablePageProvider<LogEntry> {
 
     private static final long serialVersionUID = 1L;

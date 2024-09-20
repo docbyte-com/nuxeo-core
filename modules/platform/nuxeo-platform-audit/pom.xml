@@ -16,6 +16,7 @@
     <module>nuxeo-platform-audit-elasticsearch</module>
     <module>nuxeo-platform-audit-io</module>
     <module>nuxeo-platform-audit-mongodb</module>
+    <module>nuxeo-platform-audit-test</module>
   </modules>
 
 </project>

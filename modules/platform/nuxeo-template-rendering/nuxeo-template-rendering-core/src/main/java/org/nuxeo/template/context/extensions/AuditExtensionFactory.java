@@ -26,12 +26,14 @@ import java.util.MissingResourceException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.common.utils.i18n.I18NUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.audit.api.DocumentHistoryReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.comment.CommentProcessorHelper;
+import org.nuxeo.ecm.core.api.DocumentRef;
+import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
+import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.template.api.context.ContextExtensionFactory;
 import org.nuxeo.template.api.context.DocumentWrapper;
@@ -43,12 +45,14 @@ public class AuditExtensionFactory implements ContextExtensionFactory {
     public static List<LogEntry> testAuditEntries;
 
     @Override
+    @SuppressWarnings("unchecked")
     public Object getExtension(DocumentModel currentDocument, DocumentWrapper wrapper, Map<String, Object> ctx) {
         // add audit context info
-        DocumentHistoryReader historyReader = Framework.getService(DocumentHistoryReader.class);
         List<LogEntry> auditEntries;
-        if (historyReader != null) {
-            auditEntries = historyReader.getDocumentHistory(currentDocument, 0, 1000);
+        var pps = Framework.getService(PageProviderService.class);
+        if (pps != null) {
+            var pp = pps.getPageProvider("DOCUMENT_HISTORY_PROVIDER", null, 0L, 1_000L, Map.of(), currentDocument);
+            auditEntries = (List<LogEntry>) pp.getCurrentPage();
         } else {
             if (Framework.isTestModeSet() && testAuditEntries != null) {
                 auditEntries = testAuditEntries;
@@ -57,22 +61,19 @@ public class AuditExtensionFactory implements ContextExtensionFactory {
                 log.warn("Can not add Audit info to rendering context");
             }
         }
-        if (auditEntries != null) {
-            try {
-                auditEntries = preprocessAuditEntries(auditEntries, currentDocument.getCoreSession(), "en");
-            } catch (MissingResourceException e) {
-                log.warn("Unable to preprocess Audit entries : {}", e::getMessage);
-            }
-            ctx.put("auditEntries", wrapper.wrap(auditEntries));
+        try {
+            auditEntries = preprocessAuditEntries(auditEntries, currentDocument.getCoreSession(), "en");
+        } catch (MissingResourceException e) {
+            log.warn("Unable to preprocess Audit entries : {}", e::getMessage);
         }
+        ctx.put("auditEntries", wrapper.wrap(auditEntries));
         return null;
     }
 
     protected List<LogEntry> preprocessAuditEntries(List<LogEntry> auditEntries, CoreSession session, String lang)
             throws MissingResourceException {
-        CommentProcessorHelper helper = new CommentProcessorHelper(session);
-        for (LogEntry entry : auditEntries) {
-            String comment = helper.getLogComment(entry);
+        return auditEntries.stream().map(entry -> {
+            String comment = getLogComment(entry, session);
             if (comment == null) {
                 comment = "";
             } else {
@@ -81,13 +82,53 @@ public class AuditExtensionFactory implements ContextExtensionFactory {
                     comment = i18nComment;
                 }
             }
-            String eventId = entry.getEventId();
-            String i18nEventId = I18NUtils.getMessageString("messages", eventId, null, Locale.of(lang));
-            if (i18nEventId != null) {
-                entry.setEventId(i18nEventId);
+            String eventId = I18NUtils.getMessageString("messages", entry.getEventId(), null, Locale.of(lang));
+            if (eventId != null) {
+                eventId = entry.getEventId();
             }
-            entry.setComment(comment);
+            return LogEntry.builder(eventId, entry.getEventDate())
+                           .id(entry.getId())
+                           .principalName(entry.getPrincipalName())
+                           .logDate(entry.getLogDate())
+                           .docUUID(entry.getDocUUID())
+                           .docPath(entry.getDocPath())
+                           .docType(entry.getDocType())
+                           .category(entry.getCategory())
+                           .comment(comment)
+                           .docLifeCycle(entry.getDocLifeCycle())
+                           .repositoryId(entry.getRepositoryId())
+                           .extended(entry.getExtended())
+                           .build();
+        }).toList();
+    }
+
+    protected String getLogComment(LogEntry entry, CoreSession session) {
+        String oldComment = entry.getComment();
+        if (oldComment == null) {
+            return null;
         }
-        return auditEntries;
+
+        String newComment = oldComment;
+        boolean targetDocExists = false;
+        String[] split = oldComment.split(":");
+        if (split.length >= 2) {
+            String strDocRef = split[1];
+            DocumentRef docRef = new IdRef(strDocRef);
+            targetDocExists = session.exists(docRef);
+        }
+
+        if (targetDocExists) {
+            String eventId = entry.getEventId();
+            // update comment
+            if (DocumentEventTypes.DOCUMENT_DUPLICATED.equals(eventId)) {
+                newComment = "audit.duplicated_to";
+            } else if (DocumentEventTypes.DOCUMENT_CREATED_BY_COPY.equals(eventId)) {
+                newComment = "audit.copied_from";
+            } else if (DocumentEventTypes.DOCUMENT_MOVED.equals(eventId)) {
+                newComment = "audit.moved_from";
+            }
+        }
+
+        return newComment;
     }
 }

@@ -18,21 +18,21 @@
  */
 package org.nuxeo.audit.io;
 
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_COMMENT;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_LIFE_CYCLE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_TYPE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_LOG_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 import static org.nuxeo.audit.io.LogEntryJsonWriter.ENTITY_TYPE;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_COMMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_LIFE_CYCLE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_TYPE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_LOG_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -41,10 +41,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 /**
  * Convert {@link LogEntry} to CSV only keeping default and fetched properties if any.
@@ -71,7 +72,7 @@ public class LogEntryCSVWriter extends AbstractCSVWriter<LogEntry> {
             printer.print(entity.getPrincipalName());
         }
         if (propertiesToFetch.contains(LOG_COMMENT)) {
-            printer.print(entity.getComment());
+            printer.print(StringUtils.trimToEmpty(entity.getComment()));
         }
         if (propertiesToFetch.contains(LOG_DOC_LIFE_CYCLE)) {
             printer.print(entity.getDocLifeCycle());

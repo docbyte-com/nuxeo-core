@@ -85,7 +85,7 @@ public class TestAuditMigration {
     protected AutomationService automationService;
 
     @Inject
-    protected NXAuditEventsService auditEventsService;
+    protected NXAuditEventsService auditService;
 
     protected DefaultAuditBackend jpaBackend;
 
@@ -96,7 +96,7 @@ public class TestAuditMigration {
         esa.initIndexes(true);
 
         // start with JPA based Audit
-        jpaBackend = (DefaultAuditBackend) auditEventsService.getAuditStorage(DEFAULT_AUDIT_STORAGE);
+        jpaBackend = (DefaultAuditBackend) auditService.getAuditStorage(DEFAULT_AUDIT_STORAGE);
 
     }
 

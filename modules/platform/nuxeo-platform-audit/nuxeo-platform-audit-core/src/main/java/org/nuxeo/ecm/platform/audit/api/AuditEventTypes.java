@@ -26,7 +26,9 @@ package org.nuxeo.ecm.platform.audit.api;
  * Might useful for other kind of event based notifications.
  *
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
+ * @deprecated since 2025.0, unused
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditEventTypes {
 
     public static final String HISTORY_CHANGED = "historyChanged";

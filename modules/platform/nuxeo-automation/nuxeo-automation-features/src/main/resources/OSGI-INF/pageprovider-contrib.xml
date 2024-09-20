@@ -3,33 +3,30 @@
   <!-- Alias is deprecated since 2025.0 -->
   <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.automation.contrib</alias>
 
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
 
-  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
-    point="providers">
-
-    <genericPageProvider name="AUDIT_BROWSER"
-      class="org.nuxeo.audit.api.AuditPageProvider">
+    <genericPageProvider name="AUDIT_BROWSER" class="org.nuxeo.audit.provider.AuditPageProvider">
       <searchDocumentType>BasicAuditSearch</searchDocumentType>
       <whereClause>
-        <predicate parameter="log.id" operator="&gt;">
+        <predicate parameter="id" operator="&gt;">
           <field schema="basicauditsearch" name="logId" />
         </predicate>
-        <predicate parameter="log.eventDate" operator="BETWEEN">
+        <predicate parameter="eventDate" operator="BETWEEN">
           <field schema="basicauditsearch" name="startDate" />
           <field schema="basicauditsearch" name="endDate" />
         </predicate>
-        <predicate parameter="log.category" operator="IN">
+        <predicate parameter="category" operator="IN">
           <field schema="basicauditsearch" name="eventCategories" />
         </predicate>
-        <predicate parameter="log.eventId" operator="IN">
+        <predicate parameter="eventId" operator="IN">
           <field schema="basicauditsearch" name="eventIds" />
         </predicate>
-        <predicate parameter="log.principalName" operator="IN">
+        <predicate parameter="principalName" operator="IN">
           <field schema="basicauditsearch" name="principalNames" />
         </predicate>
       </whereClause>
-      <sort column="log.eventDate" ascending="true" />
-      <sort column="log.id" ascending="true" />
+      <sort column="eventDate" ascending="true" />
+      <sort column="id" ascending="true" />
       <pageSize>10</pageSize>
     </genericPageProvider>
 

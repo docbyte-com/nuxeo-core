@@ -21,9 +21,9 @@ package org.nuxeo.audit.io;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.io.marshallers.json.DefaultListJsonWriter;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 /**
  * see {@link DefaultListJsonWriter}

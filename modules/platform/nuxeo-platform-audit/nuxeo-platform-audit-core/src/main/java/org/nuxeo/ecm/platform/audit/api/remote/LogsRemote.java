@@ -24,7 +24,10 @@ import org.nuxeo.ecm.platform.audit.api.Logs;
  * Remote interface for Logs.
  *
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
+ * @deprecated since 2025.0, unused
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public interface LogsRemote extends Logs {
 
 }

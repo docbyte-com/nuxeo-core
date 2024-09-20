@@ -91,7 +91,7 @@ import com.mongodb.client.model.Sorts;
  *
  * @since 9.1
  */
-public class MongoDBAuditBackend extends AbstractAuditBackend implements AuditBackend {
+public class MongoDBAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     private static final Logger log = LogManager.getLogger(MongoDBAuditBackend.class);
 

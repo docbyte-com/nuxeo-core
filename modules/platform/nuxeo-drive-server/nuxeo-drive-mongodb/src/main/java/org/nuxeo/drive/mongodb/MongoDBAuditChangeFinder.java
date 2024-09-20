@@ -28,7 +28,7 @@ import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Sorts.ascending;
 import static com.mongodb.client.model.Sorts.descending;
 import static com.mongodb.client.model.Sorts.orderBy;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 
 import java.util.ArrayList;
 import java.util.Date;

@@ -26,6 +26,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -38,7 +39,7 @@ public class PersistenceComponent extends DefaultComponent
 
     @Override
     public int getApplicationStartedOrder() {
-        return 50; // even before repository init
+        return ComponentStartOrders.JPA;
     }
 
     @Override
