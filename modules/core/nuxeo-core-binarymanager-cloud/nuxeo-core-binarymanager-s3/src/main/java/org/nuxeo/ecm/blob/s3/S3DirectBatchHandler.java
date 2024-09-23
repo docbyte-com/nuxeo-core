@@ -287,7 +287,7 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
         properties.put(INFO_EXPIRATION, credentials.expiration().toEpochMilli());
         properties.put(INFO_AWS_ENDPOINT, endpointOverride != null ? endpointOverride.toString() : null);
         properties.put(INFO_AWS_PATH_STYLE_ACCESS, pathStyleAccessEnabled);
-        properties.put(INFO_AWS_REGION, region);
+        properties.put(INFO_AWS_REGION, region.id());
         properties.put(INFO_USE_S3_ACCELERATE, accelerateModeEnabled);
 
         return batch;
