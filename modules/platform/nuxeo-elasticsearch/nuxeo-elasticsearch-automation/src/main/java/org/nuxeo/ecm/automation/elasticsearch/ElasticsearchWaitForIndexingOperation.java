@@ -35,9 +35,9 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
 
 /**
  * Wait for Elasticsearch indexing background job
@@ -105,7 +105,8 @@ public class ElasticsearchWaitForIndexingOperation {
         if (refresh) {
             esa.refreshRepositoryIndex(repo.getRepositoryName());
             if (waitForAuditStoredInEs) {
-                esa.getClient().refresh(esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE));
+                String indexName = Framework.getProperty("nuxeo.audit.backend.default.opensearch1.index.name", "audit");
+                Framework.getService(OpenSearchClientService.class).getClient("audit/default").refresh(indexName);
             }
         }
         return Boolean.TRUE;

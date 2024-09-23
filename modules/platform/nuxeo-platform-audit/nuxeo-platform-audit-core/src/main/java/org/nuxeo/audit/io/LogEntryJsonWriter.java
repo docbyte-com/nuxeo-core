@@ -51,6 +51,7 @@ import org.nuxeo.ecm.core.io.marshallers.json.enrichers.AbstractJsonEnricher;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Convert {@link LogEntry} to Json.
@@ -90,6 +91,16 @@ import com.fasterxml.jackson.core.JsonGenerator;
 public class LogEntryJsonWriter extends ExtensibleEntityJsonWriter<LogEntry> {
 
     public static final String ENTITY_TYPE = "logEntry";
+
+    /**
+     * {@link org.nuxeo.ecm.core.io.registry.context.RenderingContext} parameter to serialize JSON like extended infos
+     * as JSON and not String.
+     *
+     * @since 2025.0
+     */
+    public static final String EXTENDED_INFO_JSON_STRING_AS_JSON = "extendedInfoJsonStringAsJson";
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     public LogEntryJsonWriter() {
         super(ENTITY_TYPE, LogEntry.class);
@@ -137,7 +148,20 @@ public class LogEntryJsonWriter extends ExtensibleEntityJsonWriter<LogEntry> {
         } else if (Date.class.isAssignableFrom(clazz)) {
             jg.writeStringField(key, formatISODateTime((Date) value));
         } else if (String.class.isAssignableFrom(clazz)) {
-            jg.writeStringField(key, (String) value);
+            var string = (String) value;
+            if (ctx.getBooleanParameter(EXTENDED_INFO_JSON_STRING_AS_JSON) && isJsonContent(string)) {
+                jg.writeFieldName(key);
+                try {
+                    MAPPER.readTree(string);
+                    jg.writeRawValue(string);
+                } catch (IOException e) {
+                    // the extended info value is not a valid JSON content
+                    // send a null value to avoid mapping errors on backend that has such constraint (ie: OpenSearch)
+                    jg.writeObject(null);
+                }
+            } else {
+                jg.writeStringField(key, string);
+            }
         } else if (Boolean.class.isAssignableFrom(clazz)) {
             jg.writeBooleanField(key, (Boolean) value);
         } else if (clazz.isArray() || List.class.isAssignableFrom(clazz)) {

@@ -21,12 +21,9 @@ package org.nuxeo.elasticsearch.http.readonly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 
-import jakarta.inject.Inject;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
+import org.nuxeo.audit.opensearch1.OpenSearchAuditFeature;
 import org.nuxeo.elasticsearch.http.readonly.filter.AuditRequestFilter;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -37,20 +34,15 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 7.4
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
+@Features({ OpenSearchAuditFeature.class, RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.http.readonly")
-@Deploy("org.nuxeo.elasticsearch.audit.test:elasticsearch-audit-index-test-contrib.xml")
 public class TestAuditRequestFilter {
-
-    @Inject
-    protected ElasticSearchAdmin esa;
 
     @Test
     public void testMatchAllAuditAsAdmin() {
         String payload = "{\"query\": {\"match_all\": {}}}";
         AuditRequestFilter filter = new AuditRequestFilter();
-        filter.init(TestSearchRequestFilter.getAdminCoreSession(),
-                esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE), "pretty", payload);
+        filter.init(TestSearchRequestFilter.getAdminCoreSession(), "not used", "pretty", payload);
         assertEquals(payload, filter.getPayload());
     }
 
@@ -59,8 +51,7 @@ public class TestAuditRequestFilter {
         String payload = "{\"query\": {\"match_all\": {}}}";
         AuditRequestFilter filter = new AuditRequestFilter();
         assertThrows("Non Admin should not be able to access audit", IllegalArgumentException.class,
-                () -> filter.init(TestSearchRequestFilter.getNonAdminCoreSession(),
-                        esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE), "pretty", payload));
+                () -> filter.init(TestSearchRequestFilter.getNonAdminCoreSession(), "not used", "pretty", payload));
     }
 
 }

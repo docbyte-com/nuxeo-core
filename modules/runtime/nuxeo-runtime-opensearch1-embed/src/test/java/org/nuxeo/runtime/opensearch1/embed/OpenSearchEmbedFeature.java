@@ -48,6 +48,14 @@ public class OpenSearchEmbedFeature implements RunnerFeature {
 
     public static final String SERVER_NAME = "nuxeoTestClusterLocal";
 
+    static {
+        // We have to disable the setAvailableProcessors mechanism on OpenSearch Embed server because some tests deploy
+        // a Netty and set availableProcessors, which leads to this error:
+        // IllegalStateException: availableProcessors is already set to [X], rejecting [Y]
+        // For instance this is the case for org.nuxeo.ecm.automation.core.test.HTTPHelperTest
+        System.setProperty("opensearch.set.netty.runtime.available.processors", "false");
+    }
+
     @Override
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying an embedded OpenSearch");

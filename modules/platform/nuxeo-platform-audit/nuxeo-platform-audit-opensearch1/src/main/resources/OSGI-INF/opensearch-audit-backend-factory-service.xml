@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.opensearch1.OpenSearchAuditBackendFactory">
+
+  <implementation class="org.nuxeo.audit.opensearch1.OpenSearchAuditBackendFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.audit.opensearch1.OpenSearchAuditBackendFactory" />
+  </service>
+
+  <extension-point name="backend">
+    <documentation>
+      Allows to instantiate an OpenSearch audit backend.
+    </documentation>
+
+    <object class="org.nuxeo.audit.opensearch1.OpenSearchAuditBackendDescriptor" />
+  </extension-point>
+
+</component>

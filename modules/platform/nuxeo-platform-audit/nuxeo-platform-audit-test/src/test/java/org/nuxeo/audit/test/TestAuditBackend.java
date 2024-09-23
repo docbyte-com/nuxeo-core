@@ -222,8 +222,7 @@ public class TestAuditBackend {
         assertStartsWithCount(NUM_OF_EVENTS / 2, "/is/odd");
 
         // A partial match is supported by the sql and mongodb implementations, but not ES
-        boolean isES = false;
-        if (isES) {
+        if (auditFeature.isBackendOpenSearch()) {
             assertStartsWithCount(0, "/is/eve");
             assertStartsWithCount(0, "/is/od");
         } else {

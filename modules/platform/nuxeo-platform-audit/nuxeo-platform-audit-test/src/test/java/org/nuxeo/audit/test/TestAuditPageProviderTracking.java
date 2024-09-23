@@ -62,6 +62,9 @@ public class TestAuditPageProviderTracking {
     protected PageProviderService pps;
 
     @Inject
+    protected AuditFeature auditFeature;
+
+    @Inject
     protected TransactionalFeature transactionalFeature;
 
     @Test
@@ -137,11 +140,17 @@ public class TestAuditPageProviderTracking {
         assertEquals(Long.valueOf(0L), entry.getExtendedValue("pageIndex"));
         assertEquals(Long.valueOf(0L), entry.getExtendedValue("resultsCountInPage"));
 
-        // TODO standardize audit backends - ES has a real object for searchDocumentModel
-        assertTrue("searchDocumentModel should be a String",
-                entry.getExtendedValue("searchDocumentModel") instanceof String);
-        String searchDoc = entry.getExtendedValue("searchDocumentModel");
-        assertTrue(searchDoc.contains(String.format("\"uid\":\"%s\"", rootDoc.getId())));
+        if (auditFeature.isBackendSql()) {
+            assertTrue("searchDocumentModel should be a String",
+                    entry.getExtendedValue("searchDocumentModel") instanceof String);
+            String searchDoc = entry.getExtendedValue("searchDocumentModel");
+            assertTrue(searchDoc.contains(String.format("\"uid\":\"%s\"", rootDoc.getId())));
+        } else {
+            assertTrue("searchDocumentModel should be a real object",
+                    entry.getExtendedValue("searchDocumentModel") instanceof Map);
+            Map<String, Object> searchDoc = entry.getExtendedValue("searchDocumentModel");
+            assertEquals(rootDoc.getId(), searchDoc.get("uid"));
+        }
 
         pp.refresh(); // clear cache
         pp.getCurrentPage();

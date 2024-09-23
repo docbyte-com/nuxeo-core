@@ -107,7 +107,7 @@ public class OpenSearchEmbedNode implements Closeable {
         } catch (NodeValidationException e) {
             throw new RuntimeServiceException("Cannot start embedded OpenSearch: " + config.getName(), e);
         }
-        log.info("OpenSearch node: {} started", config::getName);
+        log.info("OpenSearch node: {} started on: {}", config::getName, this::getServerUrl);
         var clientCluster = node.client().admin().cluster();
         clientCluster.health(clientCluster.prepareHealth()
                                           .setWaitForGreenStatus()

@@ -1,12 +1,6 @@
 <#escape x as x?xml>
 org.nuxeo.runtime.trackers.files.threadstracking.config
-<#if elasticsearch.enabled != "true" || audit.elasticsearch.enabled != "true">
-org.nuxeo.audit.elasticsearch.contrib
-org.nuxeo.audit.elasticsearch.index.contrib
-org.nuxeo.audit.elasticsearch.PageProviderService.contrib
-org.nuxeo.audit.search.contrib
-org.nuxeo.admin.audit.es.contentView.contrib
-org.nuxeo.ecm.multi.tenant.content.views.es
+<#if elasticsearch.enabled != "true">
 org.nuxeo.drive.elasticsearch.adapters
 org.nuxeo.drive.elasticsearch.automation.server.bindings
 org.nuxeo.drive.elasticsearch.change.finder

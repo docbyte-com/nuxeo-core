@@ -19,11 +19,15 @@
 package org.nuxeo.audit.test;
 
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.AUDIT_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_ELASTICSEARCH_7;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_ELASTICSEARCH_8;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
+import java.util.Set;
 import java.util.function.IntFunction;
 
 import jakarta.inject.Inject;
@@ -35,6 +39,7 @@ import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.mem.MemAuditFeature;
 import org.nuxeo.audit.mongodb.MongoDBAuditFeature;
+import org.nuxeo.audit.opensearch1.OpenSearchAuditFeature;
 import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -60,6 +65,7 @@ public class AuditFeature implements RunnerFeature {
 
     public AuditFeature(DynamicFeaturesLoader loader) {
         var feature = switch (AUDIT_SERVICE_VALUE) {
+            case STORAGE_ELASTICSEARCH_7, STORAGE_ELASTICSEARCH_8, STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
             case STORAGE_MEM -> MemAuditFeature.class;
             case STORAGE_MONGODB -> MongoDBAuditFeature.class;
             case STORAGE_SQL -> SQLAuditFeature.class;
@@ -73,6 +79,11 @@ public class AuditFeature implements RunnerFeature {
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Audit using {}",
                 () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
+    }
+
+    public boolean isBackendOpenSearch() {
+        return Set.of(STORAGE_ELASTICSEARCH_7, STORAGE_ELASTICSEARCH_8, STORAGE_OPENSEARCH_1)
+                  .contains(AUDIT_SERVICE_VALUE);
     }
 
     public boolean isBackendSql() {

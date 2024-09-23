@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.opensearch1.backend.test">
+
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="uidgen" class="org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer" default="true" />
+  </extension>
+
+</component>

@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Audit OpenSearch 1.x backend
+Bundle-SymbolicName: org.nuxeo.audit.opensearch1;singleton:=true
+Bundle-Version: 1.0.0
+Nuxeo-Component: OSGI-INF/opensearch-audit-backend-factory-service.xml,
+ OSGI-INF/opensearch-audit-backend-factory-contrib.xml

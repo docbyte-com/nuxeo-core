@@ -13,9 +13,9 @@
   <modules>
     <module>nuxeo-platform-audit-core</module>
     <module>nuxeo-platform-audit-directory-storage</module>
-    <module>nuxeo-platform-audit-elasticsearch</module>
     <module>nuxeo-platform-audit-io</module>
     <module>nuxeo-platform-audit-mongodb</module>
+    <module>nuxeo-platform-audit-opensearch1</module>
     <module>nuxeo-platform-audit-sql</module>
     <module>nuxeo-platform-audit-test</module>
   </modules>

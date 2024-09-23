@@ -56,7 +56,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-elasticsearch</artifactId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.elasticsearch</groupId>
@@ -110,7 +110,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-elasticsearch</artifactId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

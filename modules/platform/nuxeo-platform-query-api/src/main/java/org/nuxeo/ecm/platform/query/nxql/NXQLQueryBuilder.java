@@ -166,7 +166,7 @@ public class NXQLQueryBuilder {
             String quickFiltersClause, Object[] params) {
         List<String> elements = new ArrayList<>();
         PredicateDefinition[] predicates = whereClause.getPredicates();
-        if (predicates != null) {
+        if (predicates != null && model != null) {
             Escaper escaper = null;
             Class<? extends Escaper> escaperClass = whereClause.getEscaperClass();
             if (escaperClass != null) {

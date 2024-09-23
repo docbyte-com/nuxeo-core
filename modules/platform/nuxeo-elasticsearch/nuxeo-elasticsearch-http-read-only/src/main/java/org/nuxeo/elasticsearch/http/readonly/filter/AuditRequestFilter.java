@@ -21,9 +21,9 @@
 package org.nuxeo.elasticsearch.http.readonly.filter;
 
 import org.json.JSONException;
+import org.nuxeo.audit.opensearch1.OpenSearchAuditBackend;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.http.readonly.AbstractSearchRequestFilterImpl;
 import org.nuxeo.runtime.api.Framework;
 
@@ -41,8 +41,11 @@ public class AuditRequestFilter extends AbstractSearchRequestFilterImpl {
         if (!principal.isAdministrator()) {
             throw new IllegalArgumentException("Invalid index submitted: " + indices);
         }
-        ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        this.indices = esa.getIndexNameForType(ElasticSearchConstants.ENTRY_TYPE);
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (!(auditBackend instanceof OpenSearchAuditBackend osAuditBackend)) {
+            throw new IllegalStateException("Invalid configured audit backend");
+        }
+        this.indices = osAuditBackend.getIndexName();
         this.rawQuery = rawQuery;
         this.payload = validator.getPayload(payload);
         if (payload == null && !principal.isAdministrator()) {
