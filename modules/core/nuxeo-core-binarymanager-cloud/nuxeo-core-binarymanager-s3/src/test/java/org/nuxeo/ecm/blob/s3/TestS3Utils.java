@@ -19,10 +19,17 @@
 package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import org.junit.Test;
@@ -61,6 +68,27 @@ public class TestS3Utils {
         list.clear();
         S3Utils.processSlices(10, 0, recorder);
         assertEquals(Collections.emptyList(), list);
+    }
+
+    @Test
+    public void testRestoreHeaderParsing() {
+        var expectedExpiryDate = "Fri, 27 Sep 2024 00:00:00 GMT";
+        var restore = "ongoing-request=\"false\", expiry-date=\"" + expectedExpiryDate + "\"";
+
+        var actualExpirydate = S3Utils.getRestoreExpiryDate(restore);
+        Calendar date = GregorianCalendar.from(ZonedDateTime.ofInstant(actualExpirydate, ZoneId.systemDefault()));
+        assertEquals(Calendar.SEPTEMBER, date.get(Calendar.MONTH));
+        assertEquals(2024, date.get(Calendar.YEAR));
+        assertEquals(27, date.get(Calendar.DAY_OF_MONTH));
+        assertFalse(S3Utils.isOnGoingRestore(restore));
+
+        restore = "ongoing-request=\"true\"";
+        assertNull(S3Utils.getRestoreExpiryDate(restore));
+        assertTrue(S3Utils.isOnGoingRestore(restore));
+
+        restore = "absent";
+        assertNull(S3Utils.getRestoreExpiryDate(restore));
+        assertFalse(S3Utils.isOnGoingRestore(restore));
     }
 
 }

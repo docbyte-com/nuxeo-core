@@ -20,7 +20,12 @@
 package org.nuxeo.ecm.blob.s3;
 
 import static java.lang.Math.min;
+import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+
+import java.time.Instant;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.nuxeo.runtime.aws.NuxeoAWSCredentialsProvider;
 
@@ -36,6 +41,9 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
  * @since 10.1
  */
 public class S3Utils {
+
+    protected static final Pattern RESTORE_EXPIRTION_REGEX = Pattern.compile(
+            "ongoing-request=\"false\", expiry-date=\"(.*)\"");
 
     /** The maximum size of a file that can be copied without using multipart: 5 GB */
     public static final long NON_MULTIPART_COPY_MAX_SIZE = 5L * 1024 * 1024 * 1024;
@@ -125,6 +133,37 @@ public class S3Utils {
             return StaticCredentialsProvider.create(awsCreds);
         }
         return NuxeoAWSCredentialsProvider.getInstance();
+    }
+
+    /**
+     * AWS SDK V2 does not have an API to check if a S3 object is being restored.
+     *
+     * @return true if the restore header indicates a restore is in progress, false otherwise
+     * @since 2025.0
+     */
+    public static boolean isOnGoingRestore(String restoreHeader) {
+        if (restoreHeader == null) {
+            return false;
+        }
+        return "ongoing-request=\"true\"".equals(restoreHeader);
+    }
+
+    /**
+     * AWS SDK V2 does not have an API to get the expiry date of an expired object.
+     *
+     * @return the instant representing the expiry date if any, null otherwise
+     * @since 2025.0
+     */
+    public static Instant getRestoreExpiryDate(String restoreHeader) {
+        if (restoreHeader == null) {
+            return null;
+        }
+        Matcher matcher = RESTORE_EXPIRTION_REGEX.matcher(restoreHeader);
+        if (matcher.find()) {
+            var dateString = matcher.group(1);
+            return Instant.from(RFC_1123_DATE_TIME.parse(dateString));
+        }
+        return null;
     }
 
 }

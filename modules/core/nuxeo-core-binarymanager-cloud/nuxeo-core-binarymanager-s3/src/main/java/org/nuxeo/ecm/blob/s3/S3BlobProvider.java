@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.Map;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -315,9 +313,9 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             // x-amz-restore: ongoing-request="true"
             // x-amz-restore: ongoing-request="false", expiry-date="Fri, 23 Dec 2012 00:00:00 GMT"
             String restore = response.restore();
-            Instant downloadableUntil = getRestoreExpiryDate(restore);
+            boolean ongoingRestore = S3Utils.isOnGoingRestore(restore);
+            Instant downloadableUntil = S3Utils.getRestoreExpiryDate(restore);
             boolean downloadable = storageClass == null || downloadableUntil != null;
-            boolean ongoingRestore = isOnGoingRestore(restore);
             blobStatus.withDownloadable(downloadable)
                       .withDownloadableUntil(downloadableUntil)
                       .withOngoingRestore(ongoingRestore);
@@ -329,34 +327,6 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             }
             throw e;
         }
-    }
-
-    protected static boolean isOnGoingRestore(String restore) {
-        if (restore == null) {
-            return false;
-        }
-        // Weird we don't have helper from the sdk for that
-        return Arrays.stream(restore.split(" "))
-                     .map(kv -> kv.split("="))
-                     .filter(kvArray -> kvArray.length == 2 && "ongoing-request".equals(kvArray[0]))
-                     .map(kvArray -> kvArray[1])
-                     .findFirst()
-                     .map(s -> Boolean.valueOf(s.replace("\"", "")))
-                     .orElse(false);
-    }
-
-    protected static Instant getRestoreExpiryDate(String restore) {
-        if (restore == null) {
-            return null;
-        }
-        // Weird we don't have helper from the sdk for that
-        return Arrays.stream(restore.split(" "))
-                     .map(kv -> kv.split("="))
-                     .filter(kvArray -> kvArray.length == 2 && "expiry-date".equals(kvArray[0]))
-                     .map(kvArray -> kvArray[1])
-                     .findFirst()
-                     .map(s -> RFC_1123_DATE_TIME.parse(s.replace("\"", ""), Instant::from))
-                     .orElse(null);
     }
 
     @Override

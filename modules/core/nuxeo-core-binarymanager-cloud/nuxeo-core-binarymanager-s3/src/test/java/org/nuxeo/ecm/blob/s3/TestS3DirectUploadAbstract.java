@@ -80,7 +80,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
@@ -342,14 +341,14 @@ public abstract class TestS3DirectUploadAbstract {
         String region = (String) properties.get(S3DirectBatchHandler.INFO_AWS_REGION);
         AwsCredentialsProvider credentials = StaticCredentialsProvider.create(
                 AwsSessionCredentials.create(awsSecretKeyId, awsSecretAccessKey, awsSessionToken));
-        S3CrtAsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.crtBuilder()
-                                                                    .region(Region.of(region))
-                                                                    .accelerate(accelerated)
-                                                                    .credentialsProvider(credentials)
-                                                                    .thresholdInBytes((long) MULTIPART_THRESHOLD);
-
-        S3TransferManager.Builder tmBuilder = S3TransferManager.builder().s3Client(s3AsyncClientBuilder.build());
-        return tmBuilder.build();
+        return S3TransferManager.builder()
+                                .s3Client(S3AsyncClient.crtBuilder() // NOSONAR
+                                                       .region(Region.of(region))
+                                                       .accelerate(accelerated)
+                                                       .credentialsProvider(credentials)
+                                                       .thresholdInBytes((long) MULTIPART_THRESHOLD)
+                                                       .build())
+                                .build();
     }
 
     protected byte[] generateRandomBytes(int length) {
