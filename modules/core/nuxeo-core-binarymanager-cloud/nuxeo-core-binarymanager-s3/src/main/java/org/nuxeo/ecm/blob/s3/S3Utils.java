@@ -166,4 +166,12 @@ public class S3Utils {
         return null;
     }
 
+    /**
+     * @return the sanitized eTag
+     * @since 2025.0
+     */
+    public static String sanitizeETag(String responseETag) {
+        return responseETag.replace("\"", "");
+    }
+
 }

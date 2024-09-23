@@ -21,6 +21,7 @@ package org.nuxeo.ecm.blob.s3;
 import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
+import static org.nuxeo.ecm.blob.s3.S3Utils.sanitizeETag;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
@@ -627,7 +628,7 @@ public class S3BlobStore extends AbstractBlobStore {
         // check if source ETag is applicable
         HeadObjectResponse response;
         response = amazonS3.headObject(b -> b.key(bucketKey).bucket(config.bucketName));
-        String eTag = response.eTag().replace("\"", "");
+        String eTag = sanitizeETag(response.eTag());
         // with multipart uploaded the ETag is not a digest
         if (eTag.contains("-")) {
             return null;

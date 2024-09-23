@@ -310,7 +310,7 @@ public class S3DirectBatchHandler extends AbstractBatchHandler {
 
         if (isValidDigest(key)) {
             // the key looks like a digest, move it to a non-digest key
-            key = response.eTag().replace("\"", "");
+            key = S3Utils.sanitizeETag(response.eTag());
             if (isValidDigest(key)) {
                 key += "-0"; // cannot be confused with a digest
             }
