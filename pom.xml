@@ -115,12 +115,6 @@
 
     <nuxeo.skip.enforcer>false</nuxeo.skip.enforcer>
 
-    <!-- Tests properties -->
-    <!-- for use integration/vcstests.xml and org.nuxeo:nuxeo-ftest -->
-    <!-- (related profiles: customdb, default, pgsql, oracle10g, oracle11g, oracle12c, oracle18c, mysql, mongodb) -->
-    <nuxeo.test.core>vcs</nuxeo.test.core>
-    <nuxeo.db.host.default>localhost</nuxeo.db.host.default>
-
     <!-- for use in maven-surefire-plugin to skip only the unit tests (maven-surefire-plugin) -->
     <!-- and not skip the integration tests (maven-failsafe-plugin, ant-assembly-maven-plugin) -->
     <!-- related properties: skipTests (skip all tests), skipITs (skip integration tests) -->
@@ -4447,39 +4441,6 @@
             <net.sourceforge.cobertura.datafile>
               ${project.build.directory}/cobertura/cobertura.ser
             </net.sourceforge.cobertura.datafile>
-            <!-- Used by org.nuxeo.ecm.core.storage.sql.DatabaseHelper -->
-            <nuxeo.test.vcs.db>${nuxeo.test.vcs.db}</nuxeo.test.vcs.db>
-            <nuxeo.test.vcs.url>${nuxeo.test.vcs.url}</nuxeo.test.vcs.url>
-            <nuxeo.test.vcs.server>${nuxeo.test.vcs.server}</nuxeo.test.vcs.server>
-            <nuxeo.test.vcs.port>${nuxeo.test.vcs.port}</nuxeo.test.vcs.port>
-            <nuxeo.test.vcs.database>${nuxeo.test.vcs.database}</nuxeo.test.vcs.database>
-            <nuxeo.test.vcs.user>${nuxeo.test.vcs.user}</nuxeo.test.vcs.user>
-            <nuxeo.test.vcs.password>${nuxeo.test.vcs.password}</nuxeo.test.vcs.password>
-            <!-- Used by org.nuxeo.ecm.core.test.StorageConfiguration -->
-            <!-- (and org.nuxeo.runtime.mongodb.MongoDBFeature) -->
-            <nuxeo.test.core>${nuxeo.test.core}</nuxeo.test.core>
-            <nuxeo.test.mongodb.server>${nuxeo.test.mongodb.server}</nuxeo.test.mongodb.server>
-            <nuxeo.test.mongodb.dbname>${nuxeo.test.mongodb.dbname}</nuxeo.test.mongodb.dbname>
-            <nuxeo.test.elasticsearch.addressList>${nuxeo.test.elasticsearch.addressList}</nuxeo.test.elasticsearch.addressList>
-            <nuxeo.test.s3storage.bucket>${nuxeo.test.s3storage.bucket}</nuxeo.test.s3storage.bucket>
-            <nuxeo.test.s3storage.transient.bucket>${nuxeo.test.s3storage.transient.bucket}</nuxeo.test.s3storage.transient.bucket>
-            <nuxeo.test.s3storage.policy.bucket>${nuxeo.test.s3storage.policy.bucket}</nuxeo.test.s3storage.policy.bucket>
-            <nuxeo.test.s3storage.bucket_prefix>${nuxeo.test.s3storage.bucket_prefix}</nuxeo.test.s3storage.bucket_prefix>
-            <nuxeo.test.s3storage.provider.test.bucket_prefix>${nuxeo.test.s3storage.provider.test.bucket_prefix}</nuxeo.test.s3storage.provider.test.bucket_prefix>
-            <nuxeo.test.s3storage.provider.other.bucket_prefix>${nuxeo.test.s3storage.provider.other.bucket_prefix}</nuxeo.test.s3storage.provider.other.bucket_prefix>
-            <nuxeo.test.s3storage.crypt.kms.clientside.key>${nuxeo.test.s3storage.crypt.kms.clientside.key}</nuxeo.test.s3storage.crypt.kms.clientside.key>
-            <nuxeo.test.gcp.project>${nuxeo.test.gcp.project}</nuxeo.test.gcp.project>
-            <nuxeo.test.gcp.bucket>${nuxeo.test.gcp.bucket}</nuxeo.test.gcp.bucket>
-            <nuxeo.test.gcp.bucket_prefix>${nuxeo.test.gcp.bucket_prefix}</nuxeo.test.gcp.bucket_prefix>
-            <nuxeo.test.gcp.provider.test.bucket_prefix>${nuxeo.test.gcp.provider.test.bucket_prefix}</nuxeo.test.gcp.provider.test.bucket_prefix>
-            <nuxeo.test.gcp.provider.other.bucket_prefix>${nuxeo.test.gcp.provider.other.bucket_prefix}</nuxeo.test.gcp.provider.other.bucket_prefix>
-            <nuxeo.test.azure.account.name>${nuxeo.test.azure.account.name}</nuxeo.test.azure.account.name>
-            <nuxeo.test.azure.account.key>${nuxeo.test.azure.account.key}</nuxeo.test.azure.account.key>
-            <nuxeo.test.azure.container>${nuxeo.test.azure.container}</nuxeo.test.azure.container>
-            <nuxeo.test.azure.prefix>${nuxeo.test.azure.prefix}</nuxeo.test.azure.prefix>
-            <nuxeo.test.azure.provider.test.prefix>${nuxeo.test.azure.provider.test.prefix}</nuxeo.test.azure.provider.test.prefix>
-            <nuxeo.test.azure.provider.other.prefix>${nuxeo.test.azure.provider.other.prefix}</nuxeo.test.azure.provider.other.prefix>
-
           </systemPropertyVariables>
           <includes>
             <include>**/Test*.java</include>
@@ -5511,212 +5472,9 @@
       </properties>
     </profile>
 
-    <!-- Used for multi-database tests -->
-    <profile>
-      <id>customdb</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.nuxeo.build</groupId>
-            <artifactId>ant-assembly-maven-plugin</artifactId>
-            <inherited>false</inherited>
-            <executions>
-              <execution>
-                <id>setup-vcs</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <configuration>
-                  <buildFiles>
-                    <buildFile>${basedir}/integration/vcstests.xml</buildFile>
-                  </buildFiles>
-                  <targets>
-                    <target>vcs-tests-setup</target>
-                    <target>prepare-db</target>
-                  </targets>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>properties-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>read-project-properties</goal>
-                </goals>
-                <configuration>
-                  <files>
-                    <file>${user.home}/nuxeo-test-vcs.properties</file>
-                  </files>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
     <profile>
       <id>default</id>
     </profile>
-    <profile>
-      <id>pgsql</id>
-      <properties>
-        <nuxeo.test.vcs.db>PostgreSQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>5432</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mssql</id>
-      <properties>
-        <nuxeo.test.vcs.db>SQLServer</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1433</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <!-- DEPRECATED since 9.10 see NXP-23813 -->
-      <id>oracle10g</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc14</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle11g</id>
-      <!-- DEPRECATED since 9.10 see NXP-23813 -->
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc6</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle12c</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc7</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle18c</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle.jdbc</groupId>
-          <artifactId>ojdbc8</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mysql</id>
-      <properties>
-        <nuxeo.test.vcs.db>MySQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>3306</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mariadb</id>
-      <properties>
-        <nuxeo.test.vcs.db>MySQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>3306</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>dbsmem</id>
-      <properties>
-        <nuxeo.test.core>mem</nuxeo.test.core>
-      </properties>
-    </profile>
-    <profile>
-      <id>mongodb</id>
-      <properties>
-        <nuxeo.test.core>mongodb</nuxeo.test.core>
-        <nuxeo.mongodb.server.default>localhost:27017</nuxeo.mongodb.server.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>kafka</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>properties-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>read-kafka-properties</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>read-project-properties</goal>
-                </goals>
-                <configuration>
-                  <files>
-                    <file>/etc/kafka.properties</file>
-                    <file>${user.home}/kafka.properties</file>
-                    <file>kafka.properties</file>
-                  </files>
-                  <quiet>true</quiet>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <!-- used by nuxeo-stream -->
-                <kafka>true</kafka>
-                <kafka.bootstrap.servers>${kafka.bootstrap.servers}</kafka.bootstrap.servers>
-                <!-- used by unit tests from feature -->
-                <nuxeo.test.stream>kafka</nuxeo.test.stream>
-                <nuxeo.test.kafka.servers>${kafka.bootstrap.servers}</nuxeo.test.kafka.servers>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>confluent</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <confluent>true</confluent>
-                <confluent.schema.registry>${confluent.schema.registry}</confluent.schema.registry>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!--
       Used to build for a custom environment:
         - in an alternative build directory
@@ -5749,6 +5507,16 @@
                 </configuration>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration combine.children="append">
+              <systemPropertiesFile>${user.home}/nuxeo-test-${custom.environment}.properties</systemPropertiesFile>
+              <systemPropertyVariables combine.children="append">
+                <custom.environment.log.dir>target-${custom.environment}</custom.environment.log.dir>
+              </systemPropertyVariables>
+            </configuration>
           </plugin>
         </plugins>
       </build>

@@ -32,6 +32,8 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
 import org.nuxeo.common.utils.JDBCUtils;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.LocalBlobProvider;
@@ -43,9 +45,19 @@ public abstract class DatabaseHelper {
 
     private static final Logger log = LogManager.getLogger(DatabaseHelper.class);
 
-    public static final String DB_PROPERTY = "nuxeo.test.vcs.db";
+    public static final SystemProperty STORAGE_VCS_DB_PROPERTY = new SystemProperty("nuxeo.test.vcs.db", "H2");
 
-    public static final String DB_DEFAULT = "H2";
+    /**
+     * @deprecated since 2025.0, use {@link #STORAGE_VCS_DB_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DB_PROPERTY = STORAGE_VCS_DB_PROPERTY.key();
+
+    /**
+     * @deprecated since 2025.0, use {@link #STORAGE_VCS_DB_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DB_DEFAULT = STORAGE_VCS_DB_PROPERTY.defaultValue();
 
     public static final String DEF_ID_TYPE = "varchar"; // "varchar", "uuid", "sequence"
 
@@ -56,8 +68,7 @@ public abstract class DatabaseHelper {
     protected static final Class<? extends BlobProvider> defaultBlobProvider = LocalBlobProvider.class;
 
     static {
-        setSystemProperty(DB_PROPERTY, DB_DEFAULT);
-        String className = System.getProperty(DB_PROPERTY);
+        String className = ThirdPartyUnderTest.computeSystemProperty(STORAGE_VCS_DB_PROPERTY);
         if (className.indexOf('.') < 0) {
             className = DB_CLASS_NAME_BASE + className;
         }
@@ -84,6 +95,10 @@ public abstract class DatabaseHelper {
 
     protected Error owner;
 
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#computeSystemProperty(String, String)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String setSystemProperty(String name, String def) {
         String value = System.getProperty(name);
         if (value == null || value.equals("") || value.equals("${" + name + "}")) {

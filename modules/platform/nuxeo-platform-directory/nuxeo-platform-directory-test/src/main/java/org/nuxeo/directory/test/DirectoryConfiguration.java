@@ -18,6 +18,12 @@
  */
 package org.nuxeo.directory.test;
 
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.DIRECTORY_SERVICE_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.DIRECTORY_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
+
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
@@ -30,30 +36,38 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
  */
 public class DirectoryConfiguration {
 
-    public static final String DIRECTORY_PROPERTY = "nuxeo.test.directory";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#DIRECTORY_SERVICE_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DIRECTORY_PROPERTY = DIRECTORY_SERVICE_PROPERTY.key();
 
-    public static final String DIRECTORY_SQL = "sql";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_SQL} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DIRECTORY_SQL = STORAGE_SQL;
 
-    public static final String DIRECTORY_MONGODB = "mongodb";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DIRECTORY_MONGODB = STORAGE_MONGODB;
 
     public static final String SQL_TEMPLATE_CONTRIB = "OSGI-INF/directory-test-sql-contrib.xml";
 
     public static final String MONGODB_TEMPLATE_CONTRIB = "OSGI-INF/directory-test-mongodb-contrib.xml";
 
-    protected String directoryType;
-
     protected StorageConfiguration storageConfiguration;
 
     public DirectoryConfiguration(StorageConfiguration storageConfiguration) {
         this.storageConfiguration = storageConfiguration;
-        directoryType = StorageConfiguration.defaultSystemProperty(DIRECTORY_PROPERTY,
-                storageConfiguration.isVCS() ? DIRECTORY_SQL : storageConfiguration.getCoreType());
     }
 
     public void deployContrib(FeaturesRunner runner) throws Exception {
-        String contribName = switch (directoryType) {
-            case DIRECTORY_SQL -> SQL_TEMPLATE_CONTRIB;
-            case DIRECTORY_MONGODB -> MONGODB_TEMPLATE_CONTRIB;
+        String contribName = switch (DIRECTORY_SERVICE_VALUE) {
+            case STORAGE_SQL -> SQL_TEMPLATE_CONTRIB;
+            case STORAGE_MONGODB -> MONGODB_TEMPLATE_CONTRIB;
             // Fallback on SQL template directory by default if directoryType unknown
             default -> SQL_TEMPLATE_CONTRIB;
         };

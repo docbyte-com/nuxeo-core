@@ -18,6 +18,9 @@
  */
 package org.nuxeo.runtime.mongodb;
 
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY;
+
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 
 /**
@@ -38,7 +41,11 @@ public final class IgnoreNoMongoDB implements ConditionalIgnoreRule.Condition {
         if (MONGODB_FORCE) {
             return false;
         }
+        // deprecated since 2025.0
         if (CORE_MONGODB.equals(System.getProperty(CORE_PROPERTY))) {
+            return false;
+        }
+        if (STORAGE_MONGODB_SERVER_PROPERTY.isConfigured() && STORAGE_MONGODB_DBNAME_PROPERTY.isConfigured()) {
             return false;
         }
         return true;

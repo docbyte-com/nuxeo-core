@@ -15,8 +15,8 @@
  */
 package org.nuxeo.runtime.stream;
 
-import static org.nuxeo.runtime.stream.RuntimeStreamFeature.STREAM_KAFKA;
-import static org.nuxeo.runtime.stream.RuntimeStreamFeature.STREAM_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STREAM_KAFKA;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STREAM_SERVICE_VALUE;
 
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 
@@ -24,7 +24,7 @@ public class IgnoreKafka implements ConditionalIgnoreRule.Condition {
 
     @Override
     public boolean shouldIgnore() {
-        if (STREAM_KAFKA.equals(System.getProperty(STREAM_PROPERTY))) {
+        if (STREAM_KAFKA.equals(STREAM_SERVICE_VALUE)) {
             return true;
         }
         // deprecated

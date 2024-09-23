@@ -41,7 +41,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.nuxeo.ecm.core.test.StorageConfiguration;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.http.test.HttpClientTestRule;
@@ -92,9 +92,8 @@ public class ITDevHotReloadTest {
 
     @Test
     public void testHotReloadSequence() {
-        String storageConf = StorageConfiguration.defaultSystemProperty(StorageConfiguration.CORE_PROPERTY,
-                StorageConfiguration.DEFAULT_CORE);
-        assumeTrue("This test only works with VCS", StorageConfiguration.CORE_VCS.equals(storageConf));
+        assumeTrue("This test only works with SQL",
+                ThirdPartyUnderTest.STORAGE_SQL.equals(ThirdPartyUnderTest.CORE_SERVICE_VALUE));
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("sequenceName", "hibernateSequencer");
         restHelper.operation("javascript.getSequence", parameters);

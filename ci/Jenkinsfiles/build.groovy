@@ -119,8 +119,7 @@ def buildUnitTestStage(env) {
           //   - in an alternative build directory
           //   - loading some test framework system properties
           def mvnCommand = "mvn ${MAVEN_CLI_ARGS} -rf :nuxeo-core-parent test"
-          mvnCommand += " -Dcustom.environment=${env} -Dcustom.environment.log.dir=target-${env}"
-          mvnCommand += " -Dnuxeo.test.core=${env == 'mongodb' ? 'mongodb' : 'vcs'}"
+          mvnCommand += " -Dcustom.environment=${env}"
 
           if (isDev) {
             // empty file required by the read-project-properties goal of the properties-maven-plugin with the
@@ -129,28 +128,6 @@ def buildUnitTestStage(env) {
 
             executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
           } else {
-            // prepare test framework system properties
-            // prefix sample: nuxeo-lts-pr-48-3-mongodb
-            def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
-            def testBlobProviderPrefix = "$bucketPrefix-test"
-            def otherBlobProviderPrefix = "$bucketPrefix-other"
-            sh """
-              cat ci/mvn/nuxeo-test-${env}.properties \
-                ci/mvn/nuxeo-test-opensearch.properties \
-                ci/mvn/nuxeo-test-s3.properties \
-                ci/mvn/nuxeo-test-gcp.properties \
-                ci/mvn/nuxeo-test-azure.properties \
-                > ci/mvn/nuxeo-test-${env}.properties~gen
-              BUCKET_PREFIX=${bucketPrefix} \
-                TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
-                OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
-                NAMESPACE=${testNamespace} \
-                DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
-                envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
-            """
-
-            def kafkaHost = "${TEST_KAFKA_K8S_OBJECT}.${testNamespace}.${TEST_SERVICE_DOMAIN_SUFFIX}:${TEST_KAFKA_PORT}"
-            mvnCommand += " -Pkafka -Dkafka.bootstrap.servers=${kafkaHost}"
             mvnCommand += " -Dkafka.version=3.4.1"
 
             echo "${env} unit tests: install external services"
@@ -168,6 +145,25 @@ def buildUnitTestStage(env) {
                   "GCP_CREDENTIALS_PATH=/home/jenkins/.config/gcloud/credentials.json",
                   "AZURE_STORAGE_ACCESS_KEY=${azureAccountKey}"
               ]) {
+                // prepare test framework system properties
+                // prefix sample: nuxeo-lts-pr-48-3-mongodb
+                def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
+                def testBlobProviderPrefix = "$bucketPrefix-test"
+                def otherBlobProviderPrefix = "$bucketPrefix-other"
+                sh """
+                  cat ci/mvn/nuxeo-test-${env}.properties \
+                    ci/mvn/nuxeo-test-kafka.properties \
+                    ci/mvn/nuxeo-test-opensearch.properties \
+                    ci/mvn/nuxeo-test-s3.properties \
+                    ci/mvn/nuxeo-test-gcp.properties \
+                    ci/mvn/nuxeo-test-azure.properties \
+                    > ci/mvn/nuxeo-test-${env}.properties~gen
+                  BUCKET_PREFIX=${bucketPrefix} \
+                    TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
+                    OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
+                    envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
+                """
+                // execute maven command
                 executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
               }
             }
@@ -540,29 +536,28 @@ pipeline {
         container('maven') {
           nxWithGitHubStatus(context: 'utests/runtime', message: 'Unit tests - runtime') {
             script {
-              def testNamespace = "${TEST_NAMESPACE_PREFIX}-runtime"
-              def kafkaHost = "${TEST_KAFKA_K8S_OBJECT}.${testNamespace}.${TEST_SERVICE_DOMAIN_SUFFIX}:${TEST_KAFKA_PORT}"
               echo """
                 ----------------------------------------
                 Run runtime unit tests
                 ----------------------------------------"""
               echo 'runtime unit tests: install external services'
-              nxWithHelmfileDeployment(namespace: testNamespace, environment: 'runtimeUnitTests') {
+              nxWithHelmfileDeployment(namespace: "${TEST_NAMESPACE_PREFIX}-runtime", environment: 'runtimeUnitTests') {
                 try {
                   echo 'runtime unit tests: run Maven'
                   echo "MAVEN_OPTS=$MAVEN_OPTS"
+                  sh "envsubst < ci/mvn/nuxeo-test-runtime.properties > ${HOME}/nuxeo-test-runtime.properties"
                   dir('modules/runtime') {
                     retry(2) {
                       sh """
                         mvn ${MAVEN_CLI_ARGS} \
-                          -Pkafka -Dkafka.bootstrap.servers=${kafkaHost} \
+                          -Dcustom.environment=runtime \
                           -Dkafka.version=3.4.1 \
                           install
                       """
                     }
                   }
                 } finally {
-                  junit testResults: '**/target/surefire-reports/*.xml'
+                  junit testResults: '**/target-runtime/surefire-reports/*.xml'
                 }
               }
             }

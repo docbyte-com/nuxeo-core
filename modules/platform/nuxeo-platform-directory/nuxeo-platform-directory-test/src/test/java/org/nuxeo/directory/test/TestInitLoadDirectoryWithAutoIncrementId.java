@@ -21,12 +21,11 @@ package org.nuxeo.directory.test;
 
 import static java.util.Comparator.naturalOrder;
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.nuxeo.directory.test.DirectoryConfiguration.DIRECTORY_MONGODB;
-import static org.nuxeo.directory.test.DirectoryConfiguration.DIRECTORY_SQL;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.DIRECTORY_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Map;
 
 import jakarta.inject.Inject;
@@ -67,24 +66,22 @@ public class TestInitLoadDirectoryWithAutoIncrementId {
         hotDeployer.deploy(
                 "org.nuxeo.ecm.directory.tests:csv-on-missing-columns-autoincrement-directory-update-duplicate-contrib.xml");
         // two different cases depending on underlying implementation
-        String directoryType = directoryFeature.directoryConfiguration.directoryType;
-        switch (directoryType) {
-        case DIRECTORY_SQL:
+        switch (DIRECTORY_SERVICE_VALUE) {
             // we now have an update_duplicate dataLoadingPolicy, table already exists, directory won't be touched
-            assertDirectoryEntries();
-            break;
-        case DIRECTORY_MONGODB:
+            case STORAGE_SQL -> assertDirectoryEntries();
             // we now have an update_duplicate dataLoadingPolicy, collection is empty, directory will be loaded
-            assertDirectoryEntries("America", "Europe");
-            break;
-        default:
-            throw new AssertionError("Implementation: " + directoryType + " is not handled");
+            case STORAGE_MONGODB -> assertDirectoryEntries("America", "Europe");
+            default -> throw new AssertionError("Implementation: " + DIRECTORY_SERVICE_VALUE + " is not handled");
         }
     }
 
     protected void assertDirectoryEntries(String... expectedLabels) {
         try (Session session = directoryService.open(CSV_LOAD_DIRECTORY)) {
-            String[] labels = session.query(Map.of()).stream().map(d -> (String) d.getPropertyValue("label")).sorted().toArray(String[]::new);
+            String[] labels = session.query(Map.of())
+                                     .stream()
+                                     .map(d -> (String) d.getPropertyValue("label"))
+                                     .sorted()
+                                     .toArray(String[]::new);
             Arrays.sort(expectedLabels, naturalOrder());
             assertArrayEquals(expectedLabels, labels);
         }

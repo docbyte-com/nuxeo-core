@@ -29,6 +29,8 @@ import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.storage.dbs.DBSHelper;
 import org.nuxeo.ecm.core.storage.sql.DatabaseDB2;
@@ -57,7 +59,11 @@ public class StorageConfiguration {
 
     private static final Logger log = LogManager.getLogger(StorageConfiguration.class);
 
-    public static final String CORE_PROPERTY = "nuxeo.test.core";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#CORE_SERVICE_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String CORE_PROPERTY = ThirdPartyUnderTest.CORE_SERVICE_PROPERTY.key();
 
     public static final String CORE_VCS = "vcs";
 
@@ -65,21 +71,29 @@ public class StorageConfiguration {
 
     public static final String CORE_MONGODB = "mongodb";
 
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_SQL} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final String DEFAULT_CORE = CORE_VCS;
 
-    private static final String MONGODB_SERVER_PROPERTY = "nuxeo.test.mongodb.server";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_SERVER_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_SERVER = ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY.defaultValue();
 
-    private static final String MONGODB_DBNAME_PROPERTY = "nuxeo.test.mongodb.dbname";
-
-    public static final String DEFAULT_MONGODB_SERVER = "localhost:27017";
-
-    public static final String DEFAULT_MONGODB_DBNAME = "unittests";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_DBNAME_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_DBNAME = ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY.defaultValue();
 
     private static final String CHANGE_TOKEN_ENABLED_PROPERTY = "nuxeo.test.changetoken.enabled";
 
     private static final String CHANGE_TOKEN_ENABLED_DEFAULT = "true";
 
-    private String coreType;
+    private final String coreType;
 
     private boolean isVCS;
 
@@ -94,16 +108,18 @@ public class StorageConfiguration {
     private boolean changeTokenEnabled;
 
     public StorageConfiguration(CoreFeature feature) {
-        coreType = defaultSystemProperty(CORE_PROPERTY, DEFAULT_CORE);
+        coreType = ThirdPartyUnderTest.CORE_SERVICE_VALUE.equals(ThirdPartyUnderTest.STORAGE_SQL) ? CORE_VCS
+                : ThirdPartyUnderTest.CORE_SERVICE_VALUE;
         this.feature = feature;
     }
 
+    /**
+     * @deprecated since 2025.0, use
+     *             {@link ThirdPartyUnderTest#computeSystemProperty(SystemProperty, SystemProperty...)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String defaultSystemProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            System.setProperty(name, value = def);
-        }
-        return value;
+        return ThirdPartyUnderTest.computeSystemProperty(new SystemProperty(name, def));
     }
 
     protected static String defaultProperty(String name, String def) {
@@ -139,7 +155,7 @@ public class StorageConfiguration {
     public void initJDBC() {
         databaseHelper = DatabaseHelper.DATABASE;
 
-        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying JDBC using " + databaseHelper.getClass().getSimpleName());
+        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying JDBC using: {}", databaseHelper.getClass().getSimpleName());
 
         // setup system properties for generic XML extension points
         // this is used both for VCS (org.nuxeo.ecm.core.storage.sql.RepositoryService)
@@ -152,10 +168,9 @@ public class StorageConfiguration {
     }
 
     protected void initMongoDB() {
-        String mongoDBServer = defaultProperty(MONGODB_SERVER_PROPERTY, DEFAULT_MONGODB_SERVER);
-        String mongoDBDbName = defaultProperty(MONGODB_DBNAME_PROPERTY, DEFAULT_MONGODB_DBNAME);
-        try (MongoClient mongoClient = MongoDBConnectionHelper.newMongoClient(mongoDBServer)) {
-            MongoDatabase database = mongoClient.getDatabase(mongoDBDbName);
+        try (MongoClient mongoClient = MongoDBConnectionHelper.newMongoClient(
+                ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_VALUE)) {
+            MongoDatabase database = mongoClient.getDatabase(ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_VALUE);
             database.drop();
         }
     }

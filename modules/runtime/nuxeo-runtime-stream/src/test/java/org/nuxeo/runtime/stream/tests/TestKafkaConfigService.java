@@ -50,7 +50,7 @@ public class TestKafkaConfigService {
     public void testService() {
         assertNotNull(service);
         assertFalse(service.listConfigNames().isEmpty());
-        // when using -Pkafka there are 3 config else 2
+        // depending on test configuration (mainly from system properties) there's at least two configurations
         assertTrue(service.listConfigNames().toString(), service.listConfigNames().size() >= 2);
 
         String config1 = "config1";
