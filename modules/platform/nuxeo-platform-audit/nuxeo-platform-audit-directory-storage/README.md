@@ -16,11 +16,6 @@ This module requires Java 8 and Maven 3.
 
 # Building
 
-Get the source code:
-
-    git clone git@github.com:nuxeo/nuxeo-audit-storage-directory.git
-    cd nuxeo-audit-storage-directory
-
 Build using Maven:
 
     mvn clean install

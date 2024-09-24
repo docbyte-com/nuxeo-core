@@ -13,7 +13,7 @@
   <dependencies>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-audit-storage-directory</artifactId>
+      <artifactId>nuxeo-platform-audit-directory-storage</artifactId>
     </dependency>
   </dependencies>
 </project>
