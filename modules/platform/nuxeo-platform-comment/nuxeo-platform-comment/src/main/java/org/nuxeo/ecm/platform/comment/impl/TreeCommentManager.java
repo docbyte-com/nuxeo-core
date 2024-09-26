@@ -30,6 +30,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.nuxeo.ecm.core.api.VersioningOption.NONE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYTHING;
+import static org.nuxeo.ecm.core.api.versioning.VersioningService.DISABLE_AUTOMATIC_VERSIONING;
 import static org.nuxeo.ecm.core.api.versioning.VersioningService.VERSIONING_OPTION;
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonReader.applyDirtyPropertyValues;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_ANCESTORID;
@@ -536,6 +537,7 @@ public class TreeCommentManager extends AbstractCommentManager {
         topLevelDoc.setPropertyValue(RELATED_TEXT_RESOURCES, (Serializable) resources);
         topLevelDoc.putContextData(DISABLE_NOTIFICATION_SERVICE, TRUE);
         topLevelDoc.putContextData(VERSIONING_OPTION, NONE);
+        topLevelDoc.putContextData(DISABLE_AUTOMATIC_VERSIONING, TRUE);
         topLevelDoc.putContextData(DISABLE_DUBLINCORE_LISTENER, TRUE);
         session.saveDocument(topLevelDoc);
     }
