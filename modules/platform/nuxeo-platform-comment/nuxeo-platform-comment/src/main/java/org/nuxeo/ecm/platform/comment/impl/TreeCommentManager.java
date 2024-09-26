@@ -30,6 +30,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.nuxeo.ecm.core.api.VersioningOption.NONE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYTHING;
+import static org.nuxeo.ecm.core.api.versioning.VersioningService.DISABLE_AUTOMATIC_VERSIONING;
 import static org.nuxeo.ecm.core.api.versioning.VersioningService.VERSIONING_OPTION;
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonReader.applyDirtyPropertyValues;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_ANCESTORID;
@@ -108,7 +109,7 @@ public class TreeCommentManager extends AbstractCommentManager {
     protected static final String GET_EXTERNAL_COMMENT_PAGE_PROVIDER_NAME = "GET_EXTERNAL_COMMENT_BY_ECM_ANCESTOR";
 
     protected static final String GET_COMMENTS_FOR_DOCUMENT_PAGE_PROVIDER_NAME = "GET_COMMENTS_FOR_DOCUMENT_BY_ECM_PARENT";
-    
+
     protected static final String GET_COMMENTS_FOR_DOCUMENTS_PAGE_PROVIDER_NAME = "GET_COMMENTS_FOR_DOCUMENTS_BY_COMMENT_ANCESTOR";
 
     protected static final String SERVICE_WITHOUT_IMPLEMENTATION_MESSAGE = "This service implementation does not implement deprecated API.";
@@ -298,6 +299,7 @@ public class TreeCommentManager extends AbstractCommentManager {
     public void deleteComment(CoreSession s, String commentId) {
         removeComment(s, new IdRef(commentId));
     }
+
     /**
      * Returns the {@link DocumentRef} of the comments location in repository for the given commented document model.
      *
@@ -375,7 +377,7 @@ public class TreeCommentManager extends AbstractCommentManager {
         if (documents.isEmpty()) {
             throw new CommentNotFoundException(String.format("The external comment %s does not exist.", entityId));
         }
-        return documents.get(0);
+        return documents.getFirst();
     }
 
     /**
@@ -503,6 +505,7 @@ public class TreeCommentManager extends AbstractCommentManager {
         topLevelDoc.setPropertyValue(RELATED_TEXT_RESOURCES, (Serializable) resources);
         topLevelDoc.putContextData(DISABLE_NOTIFICATION_SERVICE, TRUE);
         topLevelDoc.putContextData(VERSIONING_OPTION, NONE);
+        topLevelDoc.putContextData(DISABLE_AUTOMATIC_VERSIONING, TRUE);
         topLevelDoc.putContextData(DISABLE_DUBLINCORE_LISTENER, TRUE);
         session.saveDocument(topLevelDoc);
     }
