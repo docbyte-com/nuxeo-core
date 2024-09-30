@@ -102,7 +102,6 @@ import org.opensaml.xml.parse.BasicParserPool;
 import org.opensaml.xml.security.BasicSecurityConfiguration;
 import org.opensaml.xml.security.SecurityHelper;
 import org.opensaml.xml.security.credential.Credential;
-import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.security.keyinfo.KeyInfoCredentialResolver;
 import org.opensaml.xml.security.keyinfo.StaticKeyInfoCredentialResolver;
 import org.opensaml.xml.signature.SignatureTrustEngine;
@@ -137,6 +136,8 @@ public class SAMLAuthenticationProvider
     protected static final Class<? extends UserResolver> DEFAULT_USER_RESOLVER_CLASS = EmailBasedUserResolver.class;
 
     protected static final Class<? extends UserResolver> USERMAPPER_USER_RESOLVER_CLASS = UserMapperBasedResolver.class;
+
+    protected static final String SIGNATURE_MANDATORY = "signatureMandatory";
 
     /*
      * SAML Constants
@@ -231,6 +232,7 @@ public class SAMLAuthenticationProvider
             }
 
             // Process IdP roles
+            boolean signatureMandatory = Boolean.parseBoolean(parameters.getOrDefault(SIGNATURE_MANDATORY, "true"));
             for (RoleDescriptor roleDescriptor : getIdPDescriptor().getRoleDescriptors()) {
 
                 // Web SSO role
@@ -242,7 +244,7 @@ public class SAMLAuthenticationProvider
                     // SSO
                     for (SingleSignOnService sso : idpSSO.getSingleSignOnServices()) {
                         if (sso.getBinding().equals(SAMLConstants.SAML2_REDIRECT_BINDING_URI)) {
-                            addProfile(new WebSSOProfileImpl(sso));
+                            addProfile(new WebSSOProfileImpl(sso).setSignatureMandatory(signatureMandatory));
                             break;
                         }
                     }
@@ -270,24 +272,8 @@ public class SAMLAuthenticationProvider
 
     protected void addProfile(AbstractSAMLProfile profile) {
         profile.setTrustEngine(trustEngine);
-        profile.setSignatureRequired(
-                () -> {
-                    try {
-                        return getIdPDescriptor().getIDPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
-                                                .getKeyDescriptors()
-                                                .stream()
-                                                .anyMatch(keyDescriptor -> keyDescriptor.getUse() == UsageType.SIGNING);
-                    } catch (MetadataProviderException e) {
-                        return sneakyThrow(e);
-                    }
-                });
         profile.setDecrypter(decrypter);
         profiles.put(profile.getProfileIdentifier(), profile);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <T extends Throwable, R> R sneakyThrow(Throwable e) throws T {
-        throw (T) e;
     }
 
     protected static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";

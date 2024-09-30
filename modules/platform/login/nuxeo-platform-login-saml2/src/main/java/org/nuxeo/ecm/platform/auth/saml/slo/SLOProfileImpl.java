@@ -88,7 +88,7 @@ public class SLOProfileImpl extends AbstractSAMLProfile implements SLOProfile {
         LogoutRequest request = (LogoutRequest) message;
 
         // Validate signature of the response if present
-        if (signatureRequired.getAsBoolean()) {
+        if (request.getSignature() != null) {
             log.debug("Verifying message signature");
             validateSignature(request.getSignature(), context.getPeerEntityId());
             context.setInboundSAMLMessageAuthenticated(true);

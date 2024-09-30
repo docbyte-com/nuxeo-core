@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.platform.auth.saml;
 
 import java.util.UUID;
-import java.util.function.BooleanSupplier;
 
 import javax.servlet.ServletRequest;
 import javax.xml.namespace.QName;
@@ -70,8 +69,6 @@ public abstract class AbstractSAMLProfile {
 
     protected SignatureTrustEngine trustEngine;
 
-    protected BooleanSupplier signatureRequired = () -> false;
-
     private Decrypter decrypter;
 
     private int skewTimeMillis;
@@ -97,10 +94,6 @@ public abstract class AbstractSAMLProfile {
 
         if (trustEngine == null) {
             throw new SAMLException("Trust engine is not set, signature can't be verified");
-        }
-
-        if (signature == null) {
-            throw new SAMLException("Response signature is not set, signature can't be verified");
         }
 
         try {
@@ -202,7 +195,7 @@ public abstract class AbstractSAMLProfile {
 
         Signature signature = assertion.getSignature();
 
-        if (signatureRequired.getAsBoolean()) {
+        if (signature != null) {
             validateSignature(signature, context.getPeerEntityMetadata().getEntityID());
         }
 
@@ -224,10 +217,6 @@ public abstract class AbstractSAMLProfile {
 
     public void setTrustEngine(SignatureTrustEngine trustEngine) {
         this.trustEngine = trustEngine;
-    }
-
-    public void setSignatureRequired(BooleanSupplier signatureRequired) {
-        this.signatureRequired = signatureRequired;
     }
 
     public Decrypter getDecrypter() {

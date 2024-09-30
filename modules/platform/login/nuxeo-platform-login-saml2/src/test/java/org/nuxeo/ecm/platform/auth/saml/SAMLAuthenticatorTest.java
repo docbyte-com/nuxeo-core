@@ -207,6 +207,7 @@ public class SAMLAuthenticatorTest {
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
         UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(req, resp);
+        assertNotNull(info);
         assertEquals(info.getUserName(), user.getId());
 
         final ArgumentCaptor<Cookie> captor = ArgumentCaptor.forClass(Cookie.class);
@@ -242,6 +243,25 @@ public class SAMLAuthenticatorTest {
 
         UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(req, resp);
         assertNull(info);
+    }
+
+    // NXP-32919
+    @Test
+    public void testRetrieveIdentityRequireSignatureCanBeDisabled() throws Exception {
+        String metadata = getClass().getResource("/idp-meta-with-certificate.xml").toURI().getPath();
+        Map<String, String> params = Map.of("metadata", metadata, SAMLAuthenticationProvider.SIGNATURE_MANDATORY,
+                "false");
+        var samlAuth = new SAMLAuthenticationProvider();
+        samlAuth.initPlugin(params);
+
+        HttpServletRequest req = getMockRequest("/saml-response.xml", "POST", "http://localhost:8080/login",
+                "text/html", "/relay");
+
+        HttpServletResponse resp = mock(HttpServletResponse.class);
+
+        UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(req, resp);
+        assertNotNull(info);
+        assertEquals(info.getUserName(), user.getId());
     }
 
     @Test

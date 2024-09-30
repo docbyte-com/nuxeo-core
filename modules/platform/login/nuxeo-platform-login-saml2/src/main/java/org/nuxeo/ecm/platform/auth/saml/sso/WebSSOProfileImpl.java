@@ -51,9 +51,9 @@ import org.opensaml.saml2.core.RequestedAuthnContext;
 import org.opensaml.saml2.core.Response;
 import org.opensaml.saml2.core.StatusCode;
 import org.opensaml.saml2.core.Subject;
-import org.opensaml.saml2.metadata.SPSSODescriptor;
 import org.opensaml.saml2.metadata.SingleSignOnService;
 import org.opensaml.xml.encryption.DecryptionException;
+import org.opensaml.xml.security.credential.UsageType;
 import org.opensaml.xml.signature.Signature;
 
 /**
@@ -62,6 +62,8 @@ import org.opensaml.xml.signature.Signature;
  * @since 6.0
  */
 public class WebSSOProfileImpl extends AbstractSAMLProfile implements WebSSOProfile {
+
+    protected boolean signatureMandatory = true;
 
     public WebSSOProfileImpl(SingleSignOnService sso) {
         super(sso);
@@ -91,7 +93,7 @@ public class WebSSOProfileImpl extends AbstractSAMLProfile implements WebSSOProf
         }
 
         // Validate signature of the response if present
-        if (signatureRequired.getAsBoolean()) {
+        if (response.getSignature() != null) {
             log.debug("Verifying message signature");
             validateSignature(response.getSignature(), context.getPeerEntityId());
             context.setInboundSAMLMessageAuthenticated(true);
@@ -237,15 +239,24 @@ public class WebSSOProfileImpl extends AbstractSAMLProfile implements WebSSOProf
     protected void validateAssertion(Assertion assertion, SAMLMessageContext context) throws SAMLException {
         super.validateAssertion(assertion, context);
         Signature signature = assertion.getSignature();
-        if (signature == null) {
-            SPSSODescriptor roleMetadata = (SPSSODescriptor) context.getLocalEntityRoleMetadata();
-
-            if (roleMetadata != null && roleMetadata.getWantAssertionsSigned()) {
-                if (!context.isInboundSAMLMessageAuthenticated()) {
-                    throw new SAMLException("Metadata includes wantAssertionSigned, "
-                            + "but neither Response nor included Assertion is signed");
-                }
+        if (signature == null && signatureMandatory) {
+            // authenticated is filled by response signature validation
+            // signature must be present on assertions if the IDP declares a signing descriptor and the response has not
+            // been authenticated (either signature is missing or invalid)
+            if (!context.isInboundSAMLMessageAuthenticated()
+                    && context.getPeerEntityMetadata()
+                              .getIDPSSODescriptor("urn:oasis:names:tc:SAML:2.0:protocol")
+                              .getKeyDescriptors()
+                              .stream()
+                              .anyMatch(desc -> desc.getUse() == UsageType.SIGNING)) {
+                throw new SAMLException(
+                        "Neither Response nor included Assertion is signed whereas IDP declares a signing certificate");
             }
         }
+    }
+
+    public WebSSOProfileImpl setSignatureMandatory(boolean signatureMandatory) {
+        this.signatureMandatory = signatureMandatory;
+        return this;
     }
 }
