@@ -22,6 +22,7 @@ package org.nuxeo.ecm.core.lifecycle.extensions;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Life cycle types mapping descriptor.
@@ -30,7 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @author <a href="mailto:ja@nuxeo.com">Julien Anguenot</a>
  */
 @XObject(value = "type")
-public class LifeCycleTypesDescriptor {
+public class LifeCycleTypesDescriptor implements Descriptor {
     @XNode("@name")
     protected String name;
 
@@ -39,6 +40,11 @@ public class LifeCycleTypesDescriptor {
 
     @XNode
     protected String type;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getDocumentType() {
         return name;
@@ -51,5 +57,4 @@ public class LifeCycleTypesDescriptor {
     public String getLifeCycleName() {
         return type;
     }
-
 }
