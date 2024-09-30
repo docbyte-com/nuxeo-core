@@ -20,8 +20,6 @@
 
 package org.nuxeo.ecm.core.lifecycle.extensions;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import java.util.Collection;
 
 import org.apache.logging.log4j.LogManager;
@@ -30,7 +28,6 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.lifecycle.LifeCycleState;
 import org.nuxeo.ecm.core.lifecycle.LifeCycleTransition;
-import org.nuxeo.runtime.model.Descriptor;
 import org.w3c.dom.Element;
 
 /**
@@ -42,7 +39,7 @@ import org.w3c.dom.Element;
  * @author Florent Guillaume
  */
 @XObject(value = "lifecycle", order = { "@name" })
-public class LifeCycleDescriptor implements Descriptor {
+public class LifeCycleDescriptor {
 
     private static final Logger log = LogManager.getLogger(LifeCycleDescriptor.class);
 
@@ -72,11 +69,6 @@ public class LifeCycleDescriptor implements Descriptor {
 
     @XNode("transitions")
     private Element transitions;
-
-    @Override
-    public String getId() {
-        return name;
-    }
 
     public String getDescription() {
         return description;
@@ -114,16 +106,26 @@ public class LifeCycleDescriptor implements Descriptor {
 
     /** @since 2021.16 */
     @Override
-    public LifeCycleDescriptor merge(Descriptor o) {
-        var other = (LifeCycleDescriptor) o;
-        var merged = new LifeCycleDescriptor();
-        merged.name = name; // we merge based on name, so no name merging needed
-        merged.enabled = defaultIfNull(other.enabled, enabled);
-        merged.initialStateName = defaultIfNull(other.initialStateName, initialStateName);
-        merged.defaultInitialStateName = defaultIfNull(other.defaultInitialStateName, defaultInitialStateName);
-        merged.description = defaultIfNull(other.description, description);
-        merged.states = defaultIfNull(other.states, states);
-        merged.transitions = defaultIfNull(other.transitions, transitions);
-        return merged;
+    public LifeCycleDescriptor clone() {
+        LifeCycleDescriptor clone = new LifeCycleDescriptor();
+        clone.name = name;
+        clone.enabled = enabled;
+        clone.initialStateName = initialStateName;
+        clone.defaultInitialStateName = defaultInitialStateName;
+        clone.description = description;
+        clone.states = states;
+        clone.transitions = transitions;
+        return clone;
+    }
+
+    /** @since 2021.16 */
+    public void merge(LifeCycleDescriptor other) {
+        // we merge based on name, so no name merging needed
+        enabled = other.enabled;
+        initialStateName = other.initialStateName;
+        defaultInitialStateName = other.defaultInitialStateName;
+        description = other.description;
+        states = other.states;
+        transitions = other.transitions;
     }
 }
