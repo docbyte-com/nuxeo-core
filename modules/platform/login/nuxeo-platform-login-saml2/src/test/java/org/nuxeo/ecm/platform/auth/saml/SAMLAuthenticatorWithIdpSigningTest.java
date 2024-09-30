@@ -122,7 +122,23 @@ public class SAMLAuthenticatorWithIdpSigningTest {
     }
 
     @Test
-    public void testRetrieveIdentity() {
+    public void testRetrieveIdentityWithResponseAndAssertionSigned() {
+        testRetrieveIdentityWithSignature(IdpKeyStoreFeature.SignatureType.BOTH);
+    }
+
+    // NXP-32919
+    @Test
+    public void testRetrieveIdentityWithResponseSigned() {
+        testRetrieveIdentityWithSignature(IdpKeyStoreFeature.SignatureType.RESPONSE);
+    }
+
+    // NXP-32919
+    @Test
+    public void testRetrieveIdentityWithAssertionSigned() {
+        testRetrieveIdentityWithSignature(IdpKeyStoreFeature.SignatureType.ASSERTION);
+    }
+
+    protected void testRetrieveIdentityWithSignature(IdpKeyStoreFeature.SignatureType signatureType) {
         Instant now = Instant.now();
         String responseId = "_" + UUID.randomUUID();
         String assertionId = "_" + UUID.randomUUID();
@@ -163,7 +179,7 @@ public class SAMLAuthenticatorWithIdpSigningTest {
                   </saml:Assertion>
                 </samlp:Response>
                 """.formatted(responseId, now, assertionId, now, now, now);
-        samlResponse = idpKeyStoreFeature.signSAMLObject(samlResponse);
+        samlResponse = idpKeyStoreFeature.signSAMLObject(samlResponse, signatureType);
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")

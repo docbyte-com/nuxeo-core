@@ -126,7 +126,7 @@ public class IdpKeyStoreFeature implements RunnerFeature {
         return TEMPORARY_KEY_STORE.getKeyStore();
     }
 
-    public String signSAMLObject(String samlString) {
+    public String signSAMLObject(String samlString, SignatureType signatureType) {
         try {
             // init signature parameters
             var parameters = new SignatureSigningParameters();
@@ -137,13 +137,17 @@ public class IdpKeyStoreFeature implements RunnerFeature {
             // unmarshall object to sign it
             var samlObject = unmarshallSAMLObject(samlString);
             // first sign assertions
-            samlObject.getOrderedChildren()
-                      .stream()
-                      .filter(child -> "Assertion".equals(child.getElementQName().getLocalPart()))
-                      .forEach(ThrowableConsumer.asConsumer(
-                              assertion -> SignatureSupport.signObject((SignableXMLObject) assertion, parameters)));
-            // second sign envelop
-            SignatureSupport.signObject((SignableXMLObject) samlObject, parameters);
+            if (signatureType == SignatureType.ASSERTION || signatureType == SignatureType.BOTH) {
+                samlObject.getOrderedChildren()
+                          .stream()
+                          .filter(child -> "Assertion".equals(child.getElementQName().getLocalPart()))
+                          .forEach(ThrowableConsumer.asConsumer(
+                                  assertion -> SignatureSupport.signObject((SignableXMLObject) assertion, parameters)));
+            }
+            // second sign response
+            if (signatureType == SignatureType.RESPONSE || signatureType == SignatureType.BOTH) {
+                SignatureSupport.signObject((SignableXMLObject) samlObject, parameters);
+            }
             // finally marshall back
             String samlResponse = marshallSAMLMessage(samlObject);
             log.debug("Signed SAML object: {}", samlResponse);
@@ -187,5 +191,9 @@ public class IdpKeyStoreFeature implements RunnerFeature {
         } catch (MarshallingException | TransformerException e) {
             throw new AssertionError("Unable to marshall the message", e);
         }
+    }
+
+    public enum SignatureType {
+        RESPONSE, ASSERTION, BOTH;
     }
 }
