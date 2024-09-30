@@ -20,14 +20,11 @@ package org.nuxeo.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.elasticsearch.api.ESClient;
-import org.nuxeo.elasticsearch.api.ESClientFactory;
-import org.nuxeo.elasticsearch.client.ESRestClientFactory;
-import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
 import org.nuxeo.launcher.config.ConfigurationException;
 import org.nuxeo.launcher.config.ConfigurationHolder;
 import org.nuxeo.launcher.config.backingservices.BackingChecker;
-import org.opensearch.cluster.health.ClusterHealthStatus;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClientConfig;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchRestClientFactory;
 
 /**
  * @since 11.3
@@ -39,8 +36,6 @@ public class ElasticSearchChecker implements BackingChecker {
     protected static final String ELASTIC_ENABLED_PROP = "elasticsearch.enabled";
 
     protected static final String ELASTIC_REST_CLIENT_PROP = "elasticsearch.client";
-
-    protected static final String ADDRESS_LIST_OPT = "addressList";
 
     protected static final String CONFIG_NAME = "elasticsearch-config.xml";
 
@@ -61,37 +56,20 @@ public class ElasticSearchChecker implements BackingChecker {
 
     @Override
     public void check(ConfigurationHolder configHolder) throws ConfigurationException {
-        ElasticSearchClientConfig config = getDescriptor(configHolder, CONFIG_NAME, ElasticSearchClientConfig.class,
+        var config = getDescriptor(configHolder, CONFIG_NAME, OpenSearchClientConfig.class,
                 // avoid XMap to fail when trying to load class value by removing class attribute
-                content -> content.replace("class=", "ignore="));
-        String addressList = config.getOption(ADDRESS_LIST_OPT);
-        if (addressList == null || addressList.isEmpty()) {
+                content -> content.replace("class=", "ignore="), OpenSearchClientConfig.Store.class);
+        if (config.getEmbedServer().isPresent()) {
             log.debug("Elasticsearch config check skipped on embedded configuration");
             return;
         }
         log.debug("Check elastic config: {}", config);
-        ClusterHealthStatus status = getHealthStatus(config);
-        switch (status) {
-            case GREEN:
-            case YELLOW:
-                log.debug("Check is ok, cluster health is {}", status);
-                return;
-            default:
-                throw new ConfigurationException("Elasticsearch cluster is not healthy: " + status);
-        }
-    }
-
-    protected ClusterHealthStatus getHealthStatus(ElasticSearchClientConfig config) throws ConfigurationException {
-        try (ESClient client = getClient(config)) {
-            return client.getHealthStatus(null);
+        try (var client = new OpenSearchRestClientFactory().create(config)) {
+            if (!client.isReady()) {
+                throw new ConfigurationException("Elasticsearch cluster is not healthy");
+            }
         } catch (Exception e) {
-            throw new ConfigurationException(
-                    "Unable to connect to Elasticsearch: " + config.getOption(ADDRESS_LIST_OPT), e);
+            throw new ConfigurationException("Unable to connect to Elasticsearch: " + config.getServers(), e);
         }
-    }
-
-    protected ESClient getClient(ElasticSearchClientConfig config) {
-        ESClientFactory clientFactory = new ESRestClientFactory();
-        return clientFactory.create(config);
     }
 }

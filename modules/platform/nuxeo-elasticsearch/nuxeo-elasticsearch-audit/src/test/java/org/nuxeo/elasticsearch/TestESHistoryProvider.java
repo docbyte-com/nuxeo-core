@@ -68,7 +68,6 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.elasticsearch.audit")
 @Deploy("org.nuxeo.admin.center")
 @Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-index-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.audit:elasticsearch-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit:elasticsearch-audit-index-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit:audit-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit:es-audit-pageprovider-test-contrib.xml")

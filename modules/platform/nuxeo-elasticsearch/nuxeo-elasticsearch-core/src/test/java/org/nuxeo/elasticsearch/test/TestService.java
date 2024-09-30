@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -31,11 +32,11 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -64,7 +65,7 @@ public class TestService {
         assertNotNull(esa);
 
         @SuppressWarnings("resource") // not ours to close
-        ESClient client = esa.getClient();
+        OpenSearchClient client = esa.getClient();
         assertNotNull(client);
 
         assertEquals(0, esa.getTotalCommandProcessed());
@@ -84,7 +85,7 @@ public class TestService {
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
         assertNotNull(esa);
 
-        assertTrue(esa.getClient().waitForYellowStatus(null, 10));
+        assertTrue(esa.getClient().waitForYellowStatus(null, Duration.ofSeconds(10)));
     }
 
     @Test

@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch.test.append.false.mapping.without.mappingfile.contrib">
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="nxutest-mapping">
+      <mapping append="false">
+        {
+          "properties": {
+            "ecm:name": {
+              "type": "keyword",
+              "ignore_above": 256,
+              "copy_to": "all_field"
+            }
+          }
+        }
+      </mapping>
+    </index>
+  </extension>
+</component>

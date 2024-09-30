@@ -229,6 +229,18 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1</artifactId>
+        <type>test-jar</type>
+        <scope>test</scope>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -2438,6 +2450,16 @@
       <dependency>
         <groupId>org.opensearch</groupId>
         <artifactId>opensearch</artifactId>
+        <version>${opensearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch-core</artifactId>
+        <version>${opensearch.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch-x-content</artifactId>
         <version>${opensearch.version}</version>
       </dependency>
       <dependency>

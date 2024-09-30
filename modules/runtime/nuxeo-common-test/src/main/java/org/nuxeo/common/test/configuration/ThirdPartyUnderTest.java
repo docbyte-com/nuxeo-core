@@ -31,7 +31,13 @@ public final class ThirdPartyUnderTest {
 
     // Third Party service possibilities
 
+    public static final String STORAGE_ELASTICSEARCH_7 = "elasticsearch7";
+
+    public static final String STORAGE_ELASTICSEARCH_8 = "elasticsearch8";
+
     public static final String STORAGE_MONGODB = "mongodb";
+
+    public static final String STORAGE_OPENSEARCH_1 = "opensearch1";
 
     public static final String STORAGE_SQL = "sql";
 

@@ -32,10 +32,10 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
+import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -130,13 +130,13 @@ public class TestMapping {
         try {
             ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description LIKE 'Upper%'"));
             fail("phrase prefix on keyword should raise error on elastic 7.x");
-        } catch (NuxeoException e) {
+        } catch (RuntimeServiceException e) {
             // expected
         }
         try {
             ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Document WHERE dc:description LIKE 'UPPER%'"));
             fail("phrase prefix on keyword should raise error on elastic 7.x");
-        } catch (NuxeoException e) {
+        } catch (RuntimeServiceException e) {
             // expected
         }
         ret = ess.query(new NxQueryBuilder(session).nxql(

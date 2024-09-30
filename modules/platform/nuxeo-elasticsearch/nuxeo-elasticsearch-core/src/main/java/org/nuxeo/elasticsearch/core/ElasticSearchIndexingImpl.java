@@ -41,6 +41,7 @@ import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.commands.IndexingCommand;
 import org.nuxeo.elasticsearch.commands.IndexingCommand.Type;
 import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
+import org.nuxeo.runtime.ConcurrentException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.metrics.MetricsService;
 import org.opensearch.action.bulk.BulkItemResponse;
@@ -319,7 +320,7 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
         }
         try {
             esa.getClient().index(request);
-        } catch (ConcurrentUpdateException e) {
+        } catch (ConcurrentException e) {
             log.info("Ignore indexing of doc: {} a more recent version has already been indexed: {}", documentId,
                     e.getMessage());
         }
@@ -412,7 +413,7 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
                 "Scroll request: -XGET 'localhost:9200/_search/scroll' -d '{\"scroll\": \"{}\", \"scroll_id\": \"{}\" }'",
                 keepAlive, response.getScrollId());
         SearchScrollRequest request = new SearchScrollRequest(response.getScrollId()).scroll(keepAlive);
-        return esa.getClient().searchScroll(request);
+        return esa.getClient().scroll(request);
     }
 
     /**

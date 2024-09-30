@@ -26,6 +26,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.runtime.RuntimeMessage.Level;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -38,6 +39,11 @@ public class OpenSearchEmbedComponent extends DefaultComponent implements OpenSe
     protected static final String XP_SERVER = "server";
 
     protected final Map<String, OpenSearchEmbedNode> nodes = new HashMap<>();
+
+    @Override
+    public int getApplicationStartedOrder() {
+        return ComponentStartOrders.OPENSEARCH - 1;
+    }
 
     @Override
     public void start(ComponentContext context) {

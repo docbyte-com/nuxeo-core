@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch.test.append.disable.mapping.contrib">
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="nxutest-mapping" enabled="false" />
+  </extension>
+</component>

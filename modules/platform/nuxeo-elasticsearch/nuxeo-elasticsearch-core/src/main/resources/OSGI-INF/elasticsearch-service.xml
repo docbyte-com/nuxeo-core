@@ -9,33 +9,6 @@
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchAdmin" />
   </service>
 
-  <extension-point name="elasticSearchClient">
-    <documentation>
-      Extension point to define how to access the Elasticsearch cluster.
-
-      For the TransportClient protocol:
-      <code>
-        <elasticSeachClient class="org.nuxeo.elasticsearch.client.ESTransportClientFactory">
-          <option name="addressList">localhost:9300</option>
-          <option name="clusterName">elasticsearch</option>
-          <option name="clientTransportSniff">false</option>
-          <option name="clientTransportIgnoreClusterName">false</option>
-          <option name="clientTransportPingTimeout">5s</option>
-          <option name="clientTransportNodesSamplerInterval">5s</option>
-        </elasticSeachClient>
-      </code>
-
-      For a Rest client:
-      <code>
-        <elasticSeachClient class="org.nuxeo.elasticsearch.client.ESRestClientFactory">
-          <option name="addressList">localhost:9200</option>
-        </elasticSeachClient>
-      </code>
-
-    </documentation>
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchClientConfig" />
-  </extension-point>
-
   <extension-point name="elasticSearchIndex">
     <documentation>
       Extension point used to setup an Elasticsearch index.

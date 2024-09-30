@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.client.Client;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -40,7 +41,7 @@ public interface ElasticSearchAdmin {
      *
      * @since 5.9.3
      */
-    ESClient getClient();
+    OpenSearchClient getClient();
 
     /**
      * Initialize Elasticsearch indexes. Setup the index settings and mapping for each index that has been registered.

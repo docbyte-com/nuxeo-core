@@ -77,11 +77,11 @@ import org.nuxeo.ecm.platform.audit.service.extension.AuditBackendDescriptor;
 import org.nuxeo.ecm.platform.query.api.PredicateDefinition;
 import org.nuxeo.ecm.platform.query.api.PredicateFieldDefinition;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.query.NxqlQueryConverter;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.action.bulk.BulkItemResponse;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
@@ -154,7 +154,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
         super();
     }
 
-    protected ESClient esClient;
+    protected OpenSearchClient esClient;
 
     protected BaseLogEntryProvider provider = new BaseLogEntryProvider() {
 
@@ -172,10 +172,10 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
 
     };
 
-    protected ESClient getClient() {
+    protected OpenSearchClient getClient() {
         log.info("Activate Elasticsearch backend for Audit");
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        ESClient client = esa.getClient();
+        OpenSearchClient client = esa.getClient();
         ensureUIDSequencer(client);
         return client;
     }
@@ -686,7 +686,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
         log.debug(
                 "Scroll request: -XGET 'localhost:9200/_search/scroll' -d '{\"scroll\": \"{}\", \"scroll_id\": \"{}\" }'",
                 keepAlive, scrollId);
-        SearchResponse response = esClient.searchScroll(new SearchScrollRequest(scrollId).scroll(keepAlive));
+        SearchResponse response = esClient.scroll(new SearchScrollRequest(scrollId).scroll(keepAlive));
         logSearchResponse(response);
         return response;
     }
@@ -703,7 +703,7 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
     /**
      * Ensures the audit sequence returns an UID greater or equal than the maximum log entry id.
      */
-    protected void ensureUIDSequencer(ESClient esClient) {
+    protected void ensureUIDSequencer(OpenSearchClient esClient) {
         boolean auditIndexExists = esClient.indexExists(getESIndexName());
         if (!auditIndexExists) {
             return;

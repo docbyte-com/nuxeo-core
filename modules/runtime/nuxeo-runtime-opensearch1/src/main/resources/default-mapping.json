@@ -1,0 +1,20 @@
+{
+  "dynamic_templates": [
+    {
+      "strings": {
+        "mapping": {
+          "type": "keyword",
+          "copy_to": "all_field",
+          "ignore_above": 256
+        },
+        "match_mapping_type": "string"
+      }
+    }
+  ],
+  "properties": {
+    "all_field": {
+      "type": "text",
+      "analyzer": "fulltext"
+    }
+  }
+}

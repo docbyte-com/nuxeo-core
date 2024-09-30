@@ -31,13 +31,13 @@ import org.nuxeo.ecm.core.bulk.BulkCodecs;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.bulk.message.DataBucket;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.AbstractComputation;
 import org.nuxeo.lib.stream.computation.ComputationContext;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.stream.StreamNoRetryException;
 import org.opensearch.action.DocWriteRequest;
 import org.opensearch.action.bulk.BackoffPolicy;
@@ -153,7 +153,7 @@ public class BulkIndexComputation extends AbstractComputation implements BulkPro
         }
     }
 
-    protected ESClient getESClient() {
+    protected OpenSearchClient getESClient() {
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
         return esa.getClient();
     }

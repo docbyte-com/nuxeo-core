@@ -29,20 +29,20 @@ import static org.junit.Assert.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.core.IncrementalIndexNameGenerator;
 import org.nuxeo.elasticsearch.core.ReindexingMessage;
 import org.nuxeo.elasticsearch.core.ReindexingState;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -60,7 +60,7 @@ public class TestManageAliasAndWriteAlias {
     @Test
     public void testClientAliasMethods() {
         @SuppressWarnings("resource") // not ours to close
-        ESClient client = esa.getClient();
+        OpenSearchClient client = esa.getClient();
         assertFalse("Expecting alias does not exist", client.aliasExists("unknown-name"));
         assertFalse("Expecting alias does not exist", client.indexExists("unknown-name"));
 
@@ -78,12 +78,12 @@ public class TestManageAliasAndWriteAlias {
 
         assertEquals(index, client.getFirstIndexForAlias(alias));
         try {
-            client.deleteIndex(alias, 10);
+            client.dropIndex(alias, Duration.ofSeconds(10));
             fail("Deleting an alias is not possible in 6.0 you must delete the index");
         } catch (IllegalArgumentException e) {
             // expected
         }
-        client.deleteIndex(index, 10);
+        client.dropIndex(index, Duration.ofSeconds(10));
         assertFalse(client.indexExists(alias));
         assertFalse(client.aliasExists(alias));
         assertFalse(client.indexExists(index));
@@ -121,7 +121,7 @@ public class TestManageAliasAndWriteAlias {
         assertNull(esa.getSecondaryWriteIndexName(alias));
         assertTrue("Expecting an index", esa.getClient().indexExists(searchIndex));
         assertTrue(writeIndex, writeIndex.startsWith("nxutestalias-0"));
-        assertTrue(esa.getClient().mappingExists(alias, ElasticSearchConstants.DOC_TYPE));
+        assertTrue(esa.getClient().mappingExists(alias));
         assertEquals(repo, esa.getRepositoryForIndex(alias));
         // recreate repo the alias are in sync
         esa.dropAndInitRepositoryIndex(repo);

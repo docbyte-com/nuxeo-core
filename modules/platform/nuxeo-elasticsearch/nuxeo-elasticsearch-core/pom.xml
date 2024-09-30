@@ -48,6 +48,10 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
     </dependency>
     <dependency>
@@ -87,22 +91,6 @@
       <artifactId>nuxeo-platform-tag</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>org.opensearch.client</groupId>
-      <artifactId>opensearch-rest-high-level-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opensearch.client</groupId>
-      <artifactId>transport</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opensearch.plugin</groupId>
-      <artifactId>transport-netty4-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.httpcomponents</groupId>
-      <artifactId>httpcore</artifactId>
-    </dependency>
     <dependency>
       <groupId>net.htmlparser.jericho</groupId>
       <artifactId>jericho-html</artifactId>
@@ -152,6 +140,11 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
       <type>test-jar</type>
     </dependency>
@@ -180,10 +173,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.opensearch.plugin</groupId>
-      <artifactId>analysis-common</artifactId>
     </dependency>
     <dependency>
       <groupId>org.skyscreamer</groupId>

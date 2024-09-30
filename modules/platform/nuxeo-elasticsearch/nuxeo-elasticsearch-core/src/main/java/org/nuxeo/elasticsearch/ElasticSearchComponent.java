@@ -44,7 +44,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
@@ -53,7 +52,6 @@ import org.nuxeo.elasticsearch.api.EsResult;
 import org.nuxeo.elasticsearch.api.EsScrollResult;
 import org.nuxeo.elasticsearch.commands.IndexingCommand;
 import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
-import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
 import org.nuxeo.elasticsearch.config.ElasticSearchDocWriterDescriptor;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.elasticsearch.core.ElasticSearchAdminImpl;
@@ -68,6 +66,7 @@ import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.opensearch.common.bytes.BytesReference;
 
@@ -82,8 +81,6 @@ public class ElasticSearchComponent extends DefaultComponent
         implements ElasticSearchAdmin, ElasticSearchIndexing, ElasticSearchService {
 
     private static final Logger log = LogManager.getLogger(ElasticSearchComponent.class);
-
-    protected static final String EP_CLIENT_INIT = "elasticSearchClient";
 
     protected static final String EP_INDEX = "elasticSearchIndex";
 
@@ -103,8 +100,6 @@ public class ElasticSearchComponent extends DefaultComponent
 
     protected final AtomicInteger runIndexingWorkerCount = new AtomicInteger(0);
 
-    protected ElasticSearchClientConfig clientConfig;
-
     protected ElasticSearchAdminImpl esa;
 
     protected ElasticSearchIndexingImpl esi;
@@ -119,9 +114,6 @@ public class ElasticSearchComponent extends DefaultComponent
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-            case EP_CLIENT_INIT:
-                clientConfig = (ElasticSearchClientConfig) contribution;
-                break;
             case EP_INDEX:
                 ElasticSearchIndexConfig idx = (ElasticSearchIndexConfig) contribution;
                 ElasticSearchIndexConfig previous = indexConfig.get(idx.getName());
@@ -162,7 +154,7 @@ public class ElasticSearchComponent extends DefaultComponent
             log.info("Elasticsearch service is disabled");
             return;
         }
-        esa = new ElasticSearchAdminImpl(clientConfig, indexConfig, getDescriptors(EP_HINTS));
+        esa = new ElasticSearchAdminImpl(indexConfig, getDescriptors(EP_HINTS));
         esi = new ElasticSearchIndexingImpl(esa, jsonESDocumentWriter);
         ess = new ElasticSearchServiceImpl(esa);
         initListenerThreadPool();
@@ -231,7 +223,7 @@ public class ElasticSearchComponent extends DefaultComponent
     // Es Admin ================================================================
 
     @Override
-    public ESClient getClient() {
+    public OpenSearchClient getClient() {
         return esa.getClient();
     }
 

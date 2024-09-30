@@ -44,8 +44,11 @@ public class ComponentStartOrders {
     // @since 2021.14
     public static final int MONGODB = 40;
 
+    /** @since 2025.0 */
+    public static final int OPENSEARCH = 50;
+
     // @since 2021.14
-    public static final int ELASTIC = 50;
+    public static final int ELASTIC = OPENSEARCH + 10;
 
     public static final int REPOSITORY = 100;
 

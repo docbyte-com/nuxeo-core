@@ -40,14 +40,13 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.client.ESRestClient;
 import org.nuxeo.elasticsearch.http.readonly.filter.DefaultSearchRequestFilter;
 import org.nuxeo.elasticsearch.http.readonly.filter.RequestValidator;
 import org.nuxeo.elasticsearch.http.readonly.filter.SearchRequestFilter;
 import org.nuxeo.elasticsearch.http.readonly.service.RequestFilterService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchRestClient;
 import org.opensearch.client.Request;
 import org.opensearch.client.Response;
 
@@ -248,11 +247,9 @@ public class Main extends ModuleRoot {
     }
 
     protected String getWithRestClient(String endpoint, String payload) {
-        ESClient esClient = Framework.getService(ElasticSearchAdmin.class).getClient();
-        if (!(esClient instanceof ESRestClient)) {
+        if (!(Framework.getService(ElasticSearchAdmin.class).getClient() instanceof OpenSearchRestClient client)) {
             throw new IllegalStateException("Passthrough works only with a RestClient");
         }
-        ESRestClient client = (ESRestClient) esClient;
         Request request = new Request("GET", endpoint);
         if (payload != null) {
             request.setJsonEntity(payload);

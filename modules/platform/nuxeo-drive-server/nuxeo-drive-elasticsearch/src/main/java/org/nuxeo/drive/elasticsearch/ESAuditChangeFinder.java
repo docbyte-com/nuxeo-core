@@ -36,9 +36,9 @@ import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchType;
@@ -227,7 +227,7 @@ public class ESAuditChangeFinder extends AuditChangeFinder {
         SearchSourceBuilder source = new SearchSourceBuilder();
         source.sort("id", SortOrder.DESC).size(1);
         // scroll on previous days with a times 2 step up to 32
-        ESClient esClient = getClient();
+        OpenSearchClient esClient = getClient();
         for (int i = 1; i <= 32; i = i * 2) {
             ZonedDateTime lowerLogDateTime = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(i);
             // set lower bound in query
@@ -276,7 +276,7 @@ public class ESAuditChangeFinder extends AuditChangeFinder {
         return postFilteredEntries;
     }
 
-    protected ESClient getClient() {
+    protected OpenSearchClient getClient() {
         return Framework.getService(ElasticSearchAdmin.class).getClient();
     }
 

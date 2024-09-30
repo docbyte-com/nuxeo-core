@@ -23,18 +23,18 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import org.opensearch.action.index.IndexRequest;
-import org.opensearch.action.index.IndexResponse;
-import org.opensearch.common.xcontent.XContentType;
-import org.opensearch.index.VersionType;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.uidgen.AbstractUIDSequencer;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
+import org.opensearch.action.index.IndexRequest;
+import org.opensearch.action.index.IndexResponse;
+import org.opensearch.common.xcontent.XContentType;
+import org.opensearch.index.VersionType;
 
 /**
  * Elasticsearch implementation of {@link UIDSequencer}.
@@ -50,7 +50,7 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
 
     protected static final int MAX_RETRY = 3;
 
-    protected ESClient esClient = null;
+    protected OpenSearchClient esClient = null;
 
     protected String indexName;
 
@@ -87,19 +87,17 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
     @Override
     public void initSequence(String key, long id) {
         String source = "{ \"ts\" : " + System.currentTimeMillis() + "}";
-        esClient.index(
-                new IndexRequest(indexName).id(key)
-                                           .versionType(VersionType.EXTERNAL)
-                                           .version(id)
-                                           .source(source, XContentType.JSON));
+        esClient.index(new IndexRequest(indexName).id(key)
+                                                  .versionType(VersionType.EXTERNAL)
+                                                  .version(id)
+                                                  .source(source, XContentType.JSON));
     }
 
     @Override
     public long getNextLong(String sequenceName) {
         String source = "{ \"ts\" : " + System.currentTimeMillis() + "}";
         IndexResponse res = esClient.index(
-                new IndexRequest(indexName).id(sequenceName).source(source,
-                        XContentType.JSON));
+                new IndexRequest(indexName).id(sequenceName).source(source, XContentType.JSON));
         return res.getVersion();
     }
 

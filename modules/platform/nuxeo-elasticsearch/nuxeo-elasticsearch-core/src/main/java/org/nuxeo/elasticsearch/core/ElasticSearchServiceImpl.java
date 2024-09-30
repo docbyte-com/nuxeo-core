@@ -222,7 +222,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         try (Context ignored = scrollTimer.time()) {
             SearchScrollRequest request = buildEsScrollRequest(scrollId, keepAlive);
             logScrollRequest(scrollId, keepAlive);
-            SearchResponse response = esa.getClient().searchScroll(request);
+            SearchResponse response = esa.getClient().scroll(request);
             log.debug("Response: {}", response);
             return response;
         }
