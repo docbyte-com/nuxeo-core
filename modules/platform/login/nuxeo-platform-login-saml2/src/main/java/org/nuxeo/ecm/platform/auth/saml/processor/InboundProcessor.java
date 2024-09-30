@@ -61,9 +61,13 @@ public class InboundProcessor extends AbstractSAMLProcessor {
 
     protected final MessageHandler inboundHandler;
 
-    public InboundProcessor(SAMLInboundBinding inboundBinding, MessageHandler inboundHandler) {
+    protected final boolean signatureMandatory;
+
+    public InboundProcessor(SAMLInboundBinding inboundBinding, MessageHandler inboundHandler,
+            boolean signatureMandatory) {
         this.inboundBinding = inboundBinding;
         this.inboundHandler = inboundHandler;
+        this.signatureMandatory = signatureMandatory;
     }
 
     @Override
@@ -96,14 +100,17 @@ public class InboundProcessor extends AbstractSAMLProcessor {
         });
         var validationContextBuilder = new DefaultAssertionValidationContextBuilder();
         validationContextBuilder.setCheckAddress(prc -> false);
-        validationContextBuilder.setSignatureRequired(
-                prc -> prc.getInboundMessageContext()
-                          .getSubcontext(SAMLPeerEntityContext.class)
-                          .getSubcontext(SAMLMetadataContext.class)
-                          .getRoleDescriptor()
-                          .getKeyDescriptors()
-                          .stream()
-                          .anyMatch(keyDescriptor -> keyDescriptor.getUse() == UsageType.SIGNING));
+        validationContextBuilder.setSignatureRequired(prc -> {
+            var peerEntityContext = prc.getInboundMessageContext().getSubcontext(SAMLPeerEntityContext.class);
+            // authenticated field is filled by the response signature validation, in such case don't require assertion
+            // signature, nevertheless validate the signature if present in assertion
+            return signatureMandatory && !peerEntityContext.isAuthenticated()
+                    && peerEntityContext.getSubcontext(SAMLMetadataContext.class)
+                                        .getRoleDescriptor()
+                                        .getKeyDescriptors()
+                                        .stream()
+                                        .anyMatch(keyDescriptor -> keyDescriptor.getUse() == UsageType.SIGNING);
+        });
         validationContextBuilder.setInResponseToRequired(prc -> false);
         // we don't handle the inResponse attribute for now, set it to the one present in the response to allow
         // validation
