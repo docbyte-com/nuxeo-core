@@ -79,6 +79,7 @@
         <module>nuxeo-quota-ftests</module>
         <module>nuxeo-saml2-login-ftests</module>
         <module>nuxeo-scan-importer-ftests</module>
+        <module>nuxeo-scim-v2-ftests</module>
         <module>nuxeo-shibboleth-login-ftests</module>
         <module>nuxeo-signature-ftests</module>
         <module>nuxeo-template-rendering-ftests</module>
