@@ -4,17 +4,22 @@
   <require>org.nuxeo.elasticsearch.ElasticSearchComponent</require>
 
 <#if "${elasticsearch.addressList}" == "">
-  <extension target="org.nuxeo.elasticsearch.ElasticSearchComponent" point="elasticSearchEmbeddedServer">
-    <elasticSearchEmbeddedServer clusterName="${elasticsearch.clusterName}" nodeName="${elasticsearch.nodeName}"
-      pathData="${nuxeo.data.dir}/elasticsearch" pathLogs="${nuxeo.log.dir}/elasticsearch"
-      httpEnabled="${elasticsearch.httpEnabled}" networkHost="${elasticsearch.networkHost}" />
+  <extension target="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent" point="server">
+    <server name="${elasticsearch.clusterName}" networkHost="${elasticsearch.networkHost}">
+      <nodeName>${elasticsearch.nodeName}</nodeName>
+      <dataPath>${nuxeo.data.dir}/elasticsearch</dataPath>
+    </server>
   </extension>
 </#if>
 
   <extension target="org.nuxeo.elasticsearch.ElasticSearchComponent" point="elasticSearchClient">
 <#if (elasticsearch.client)?? && "${elasticsearch.client}" == "RestClient">
     <elasticSearchClient class="org.nuxeo.elasticsearch.client.ESRestClientFactory">
+      <#if "${elasticsearch.addressList}" == "">
+      <option name="embedServer">${elasticsearch.clusterName}</option>
+      <#else>
       <option name="addressList">${elasticsearch.addressList}</option>
+      </#if>
       <option name="connection.timeout.ms">${elasticsearch.restClient.connectionTimeoutMs}</option>
       <option name="socket.timeout.ms">${elasticsearch.restClient.socketTimeoutMs}</option>
       <option name="username">${elasticsearch.restClient.username}</option>

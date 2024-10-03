@@ -22,12 +22,15 @@ import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ESClientFactory;
 import org.nuxeo.elasticsearch.client.ESRestClientFactory;
 import org.nuxeo.elasticsearch.client.ESTransportClientFactory;
 import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.core.ElasticSearchEmbeddedNode;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedFeature;
+import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedService;
 
 /**
  * This ES client factory uses environment properties to choose the type of client during tests.
@@ -46,54 +49,47 @@ public class ESTestClientFactory implements ESClientFactory {
 
     public static final String CLIENT_PROPERTY = "nuxeo.test.elasticsearch.client";
 
-    public static final String ADDRESS_LIST_PROPERTY = "nuxeo.test.elasticsearch.addressList";
-
     public static final String CLUSTER_NAME_PROPERTY = "nuxeo.test.elasticsearch.clusterName";
 
     @Override
-    public ESClient create(ElasticSearchEmbeddedNode node, ElasticSearchClientConfig config) {
+    public ESClient create(ElasticSearchClientConfig config) {
         // we don't use the provided config for the client
         String clientType = System.getProperty(CLIENT_PROPERTY);
         return switch (clientType != null ? clientType : DEFAULT_CLIENT) {
-            case TRANSPORT_CLIENT -> createTransportClient(node);
-            case REST_CLIENT -> createRestClient(node);
+            case TRANSPORT_CLIENT -> createTransportClient();
+            case REST_CLIENT -> createRestClient();
             default -> throw new IllegalArgumentException("Unknown Elasticsearch client type: " + clientType);
         };
     }
 
-    protected ESClient createTransportClient(ElasticSearchEmbeddedNode node) {
+    protected ESClient createTransportClient() {
         ESTransportClientFactory factory = new ESTransportClientFactory();
         ElasticSearchClientConfig config = new ElasticSearchClientConfig();
-        String addressList = System.getProperty(ADDRESS_LIST_PROPERTY);
         addOptions(config);
-        if (addressList == null) {
-            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: TransportClient");
-            return factory.create(node, config);
-        } else {
-            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: TransportClient on {}", addressList);
-            return factory.create(null, config);
-        }
+        log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: TransportClient on {}",
+                config.getOption("addressList"));
+        return factory.create(config);
     }
 
-    protected ESClient createRestClient(ElasticSearchEmbeddedNode node) {
+    protected ESClient createRestClient() {
         ESRestClientFactory factory = new ESRestClientFactory();
         ElasticSearchClientConfig config = new ElasticSearchClientConfig();
-        String addressList = System.getProperty(ADDRESS_LIST_PROPERTY);
         addOptions(config);
-        if (addressList == null) {
-            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: RestClient");
-            return factory.create(node, config);
-        } else {
-            log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: RestClient on {}", addressList);
-            return factory.create(null, config);
-        }
+        log.info(MARKER_CONSOLE_OVERRIDE, "ElasticSearchClient: RestClient on {}", config.getOption("addressList"));
+        return factory.create(config);
     }
 
     protected void addOptions(ElasticSearchClientConfig config) {
-        String addressList = System.getProperty(ADDRESS_LIST_PROPERTY);
-        if (addressList != null) {
-            config.options.put("addressList", addressList);
+        String addressList;
+        if (!ThirdPartyUnderTest.STORAGE_OPENSEARCH_1_SERVERS_PROPERTY.isConfigured()) {
+            // 1 embedded
+            addressList = Framework.getService(OpenSearchEmbedService.class)
+                                   .getServerUrl(OpenSearchEmbedFeature.SERVER_NAME);
+        } else {
+            // 2 explicit + legacy
+            addressList = ThirdPartyUnderTest.STORAGE_OPENSEARCH_1_SERVERS_VALUE;
         }
+        config.options.put("addressList", addressList);
         String clusterName = System.getProperty(CLUSTER_NAME_PROPERTY);
         if (clusterName != null) {
             config.options.put("clusterName", clusterName);

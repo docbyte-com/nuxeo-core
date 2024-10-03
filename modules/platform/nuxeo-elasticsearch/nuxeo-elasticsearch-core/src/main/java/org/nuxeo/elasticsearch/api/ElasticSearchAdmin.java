@@ -78,10 +78,9 @@ public interface ElasticSearchAdmin {
     void dropAndInitRepositoryIndex(String repositoryName, boolean syncAlias);
 
     /**
-     * Creates a new index for the repository applying the mapping and settings.
-     * Update the write alias to point to this new index.
-     * The search alias is updated to the new index only for the initial creation.
-     * Otherwise, there are two write indexes until an explicit call to {@link #syncSearchAndWriteAlias(String)}.
+     * Creates a new index for the repository applying the mapping and settings. Update the write alias to point to this
+     * new index. The search alias is updated to the new index only for the initial creation. Otherwise, there are two
+     * write indexes until an explicit call to {@link #syncSearchAndWriteAlias(String)}.
      *
      * @since 2021.12
      */
@@ -236,13 +235,6 @@ public interface ElasticSearchAdmin {
      * @since 5.9.4
      */
     int getTotalCommandProcessed();
-
-    /**
-     * Returns true if the Elasticsearch is embedded with Nuxeo, sharing the same JVM.
-     *
-     * @since 7.2
-     */
-    boolean isEmbedded();
 
     /**
      * When true use an external version for Elasticsearch document, this enable an optimistic concurrency control

@@ -65,6 +65,9 @@ public final class ThirdPartyUnderTest {
     public static final SystemProperty STORAGE_MONGODB_DBNAME_PROPERTY = new SystemProperty("nuxeo.test.mongodb.dbname",
             "unittests");
 
+    public static final SystemProperty STORAGE_OPENSEARCH_1_SERVERS_PROPERTY = new SystemProperty(
+            "nuxeo.test.opensearch1.servers", "http://localhost:9200");
+
     public static final SystemProperty STREAM_KAFKA_SERVERS_PROPERTY = new SystemProperty("nuxeo.test.kafka.servers",
             "localhost:9092");
 
@@ -73,6 +76,11 @@ public final class ThirdPartyUnderTest {
     public static final String STORAGE_MONGODB_SERVER_VALUE = computeSystemProperty(STORAGE_MONGODB_SERVER_PROPERTY);
 
     public static final String STORAGE_MONGODB_DBNAME_VALUE = computeSystemProperty(STORAGE_MONGODB_DBNAME_PROPERTY);
+
+    public static final String STORAGE_OPENSEARCH_1_SERVERS_VALUE = computeSystemProperty(
+            STORAGE_OPENSEARCH_1_SERVERS_PROPERTY,
+            // fallback on deprecated property
+            new SystemProperty("nuxeo.test.elasticsearch.addressList", "http://localhost:9200"));
 
     public static String computeSystemProperty(String key, String defaultValue) {
         return computeSystemProperty(new SystemProperty(key, defaultValue));

@@ -162,6 +162,7 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
+import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -178,9 +179,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * Uses CMISQL to NXQL conversion for queries, which disallows JOINs.
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CmisFeature.class, CmisFeatureConfiguration.class })
-@Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-contrib.xml")
+@Features({ CmisFeature.class, CmisFeatureConfiguration.class, RepositoryLightElasticSearchFeature.class })
 @Deploy("org.nuxeo.elasticsearch.seqgen")
 @Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-index-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit")

@@ -229,6 +229,18 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
+        <type>test-jar</type>
+        <scope>test</scope>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-kv</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>

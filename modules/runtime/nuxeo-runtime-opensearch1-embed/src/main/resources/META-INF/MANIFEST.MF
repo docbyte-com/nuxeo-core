@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo Runtime OpenSearch 1.x Embed
+Bundle-SymbolicName: org.nuxeo.runtime.opensearch1.embed;singleton:=true
+Bundle-Version: 1.0.0
+Nuxeo-Component: OSGI-INF/opensearch-embed-service.xml

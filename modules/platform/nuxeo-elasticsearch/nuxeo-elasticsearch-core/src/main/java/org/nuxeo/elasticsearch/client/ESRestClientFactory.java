@@ -18,6 +18,8 @@
  */
 package org.nuxeo.elasticsearch.client;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -27,7 +29,6 @@ import java.security.KeyStore;
 
 import javax.net.ssl.SSLContext;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -42,14 +43,12 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ESClientFactory;
 import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.core.ElasticSearchEmbeddedNode;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedService;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.RestHighLevelClient;
-import org.opensearch.common.transport.TransportAddress;
-import org.opensearch.http.HttpServerTransport;
 
 /**
  * @since 9.3
@@ -107,35 +106,14 @@ public class ESRestClientFactory implements ESClientFactory {
     public static final String SSL_CERTIFICATE_VERIFICATION_OPT = "sslCertificateVerification";
 
     @Override
-    public ESClient create(ElasticSearchEmbeddedNode node, ElasticSearchClientConfig config) {
-        if (node != null) {
-            return createLocalRestClient(node);
-        }
+    public ESClient create(ElasticSearchClientConfig config) {
         return createRestClient(config);
     }
 
     @SuppressWarnings("resource") // factory for ESClient / RestHighLevelClient
-    protected ESClient createLocalRestClient(ElasticSearchEmbeddedNode node) {
-        if (!node.getConfig().httpEnabled()) {
-            throw new IllegalArgumentException(
-                    "Embedded configuration has no HTTP port enable, use TransportClient instead of Rest");
-        }
-        HttpServerTransport http = node.getNode().injector().getInstance(HttpServerTransport.class);
-        TransportAddress[] addresses = http.boundAddress().boundAddresses();
-        if (ArrayUtils.isEmpty(addresses)) {
-            throw new IllegalStateException("Embedded node did not bind any address");
-        }
-        int port = addresses[0].getPort();
-        RestClientBuilder lowLevelRestClientBuilder = RestClient.builder(new HttpHost("localhost", port));
-        RestHighLevelClient client = new RestHighLevelClient(lowLevelRestClientBuilder); // NOSONAR (factory)
-        // checkConnection(client);
-        return new ESRestClient(client.getLowLevelClient(), client);
-    }
-
-    @SuppressWarnings("resource") // factory for ESClient / RestHighLevelClient
     protected ESClient createRestClient(ElasticSearchClientConfig config) {
-        String addressList = config.getOption("addressList", "");
-        if (addressList.isEmpty()) {
+        String addressList = getAddressList(config.getOption("embedServer"), config.getOption("addressList"));
+        if (isBlank(addressList)) {
             throw new IllegalArgumentException("No addressList option provided cannot connect RestClient");
         }
         String[] hosts = addressList.split(",");
@@ -157,6 +135,18 @@ public class ESRestClientFactory implements ESClientFactory {
         return new ESRestClient(client.getLowLevelClient(), client);
     }
 
+    protected String getAddressList(String embedServer, String servers) {
+        if (isBlank(embedServer)) {
+            return servers;
+        }
+        String embedServerUrl = Framework.getService(OpenSearchEmbedService.class).getServerUrl(embedServer);
+        log.debug("Embed server defined: {}, with url: {}, default: {}", embedServer, embedServerUrl, servers);
+        if (isBlank(embedServerUrl)) {
+            return servers;
+        }
+        return embedServerUrl;
+    }
+
     private void addClientCallback(ElasticSearchClientConfig config, RestClientBuilder builder) {
         BasicCredentialsProvider credentialProvider = getCredentialProvider(config);
         SSLContext sslContext = getSslContext(config);
@@ -174,7 +164,7 @@ public class ESRestClientFactory implements ESClientFactory {
     }
 
     protected BasicCredentialsProvider getCredentialProvider(ElasticSearchClientConfig config) {
-        if (StringUtils.isBlank(config.getOption(AUTH_USER_OPT))) {
+        if (isBlank(config.getOption(AUTH_USER_OPT))) {
             return null;
         }
         String user = config.getOption(AUTH_USER_OPT);
@@ -207,7 +197,7 @@ public class ESRestClientFactory implements ESClientFactory {
             }
             if (keyStore != null) {
                 sslContextBuilder.loadKeyMaterial(keyStore,
-                        StringUtils.isBlank(keyStorePassword) ? null : keyStorePassword.toCharArray());
+                        isBlank(keyStorePassword) ? null : keyStorePassword.toCharArray());
             }
             return sslContextBuilder.build();
         } catch (GeneralSecurityException | IOException e) {
@@ -248,12 +238,12 @@ public class ESRestClientFactory implements ESClientFactory {
 
     protected KeyStore loadKeyStore(String path, String password, String type)
             throws GeneralSecurityException, IOException {
-        if (StringUtils.isBlank(path)) {
+        if (isBlank(path)) {
             return null;
         }
         String keyStoreType = StringUtils.defaultIfBlank(type, KeyStore.getDefaultType());
         KeyStore keyStore = KeyStore.getInstance(keyStoreType);
-        char[] passwordChars = StringUtils.isBlank(password) ? null : password.toCharArray();
+        char[] passwordChars = isBlank(password) ? null : password.toCharArray();
         try (InputStream is = Files.newInputStream(Paths.get(path))) {
             keyStore.load(is, passwordChars);
         }

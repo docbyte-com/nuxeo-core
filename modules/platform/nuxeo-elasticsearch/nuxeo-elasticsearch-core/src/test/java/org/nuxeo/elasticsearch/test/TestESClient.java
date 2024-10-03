@@ -22,70 +22,44 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.io.IOException;
 
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.junit.runner.RunWith;
 import org.nuxeo.common.test.ModuleUnderTest;
+import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
+import org.nuxeo.elasticsearch.api.ESClient;
+import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedFeature;
+import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
 import org.opensearch.action.index.IndexResponse;
 import org.opensearch.common.xcontent.XContentType;
 import org.opensearch.index.VersionType;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.ClassRule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
-import org.nuxeo.elasticsearch.api.ESClient;
-import org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig;
-import org.nuxeo.elasticsearch.core.ElasticSearchEmbeddedNode;
 
 /**
  * Low level test on ESClient
  *
  * @since 10.2
  */
+@RunWith(FeaturesRunner.class)
+@Features(OpenSearchEmbedFeature.class)
 public abstract class TestESClient {
     @ClassRule
     public static TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
-    protected static ElasticSearchEmbeddedNode embeddedNode;
-
     protected ESClient client;
 
-    public abstract ESClient createClient(ElasticSearchEmbeddedNode embeddedNode);
-
-    protected static void createEmbeddedNode() throws IOException {
-        ElasticSearchEmbeddedServerConfig config = new ElasticSearchEmbeddedServerConfig();
-        config.setHttpEnabled(true);
-        config.setClusterName("nuxeoESClientCluster");
-        config.setIndexStorageType("mmapfs");
-        config.setNodeName("nuxeoESClientTestNode");
-        config.setDataPath(folder.newFolder().getAbsolutePath());
-        config.setHomePath(folder.newFolder().getAbsolutePath());
-        embeddedNode = new ElasticSearchEmbeddedNode(config);
-        embeddedNode.start();
-    }
-
-    @BeforeClass
-    public static void initEmbeddedNode() throws IOException {
-        createEmbeddedNode();
-    }
-
-    @AfterClass
-    public static void stopEmbeddedNode() throws IOException {
-        if (embeddedNode != null) {
-            embeddedNode.close();
-        }
-        embeddedNode = null;
-    }
+    public abstract ESClient createClient();
 
     @Before
     public void initESClient() {
-        client = createClient(embeddedNode);
+        client = createClient();
     }
 
     @After

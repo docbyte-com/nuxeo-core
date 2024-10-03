@@ -20,7 +20,6 @@ package org.nuxeo.elasticsearch;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.opensearch.cluster.health.ClusterHealthStatus;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ESClientFactory;
 import org.nuxeo.elasticsearch.client.ESRestClientFactory;
@@ -28,6 +27,7 @@ import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
 import org.nuxeo.launcher.config.ConfigurationException;
 import org.nuxeo.launcher.config.ConfigurationHolder;
 import org.nuxeo.launcher.config.backingservices.BackingChecker;
+import org.opensearch.cluster.health.ClusterHealthStatus;
 
 /**
  * @since 11.3
@@ -72,12 +72,12 @@ public class ElasticSearchChecker implements BackingChecker {
         log.debug("Check elastic config: {}", config);
         ClusterHealthStatus status = getHealthStatus(config);
         switch (status) {
-        case GREEN:
-        case YELLOW:
-            log.debug("Check is ok, cluster health is {}", status);
-            return;
-        default:
-            throw new ConfigurationException("Elasticsearch cluster is not healthy: " + status);
+            case GREEN:
+            case YELLOW:
+                log.debug("Check is ok, cluster health is {}", status);
+                return;
+            default:
+                throw new ConfigurationException("Elasticsearch cluster is not healthy: " + status);
         }
     }
 
@@ -92,6 +92,6 @@ public class ElasticSearchChecker implements BackingChecker {
 
     protected ESClient getClient(ElasticSearchClientConfig config) {
         ESClientFactory clientFactory = new ESRestClientFactory();
-        return clientFactory.create(null, config);
+        return clientFactory.create(config);
     }
 }

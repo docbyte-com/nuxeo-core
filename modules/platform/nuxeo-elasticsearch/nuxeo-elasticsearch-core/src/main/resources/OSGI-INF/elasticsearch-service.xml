@@ -9,38 +9,6 @@
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchAdmin" />
   </service>
 
-  <extension-point name="elasticSearchEmbeddedServer">
-    <documentation>
-      Extension point to setup an embedded Elasticsearch instance.
-
-      It creates a local node using the same JVM as Nuxeo.
-
-      This is a test configuration and must NOT be used in production,
-      it is limited to one shard and no replica.
-
-      <code>
-        <elasticSearchLocal clusterName="MyCluster" httpEnabled="true" indexStoreType="mmapfs" nodeName="MyNuxeo"
-                            pathData="/var/lib/nuxeo/elasticsearch/" />
-      </code>
-
-      Please refer to the Elasticsearch node configuration
-
-      clusterName is the cluster.name
-
-      nodeName is the node.name, default to nuxeoNode
-
-      pathData is the path.data
-
-      indexStoreType is the index.store_type
-
-      httpEnabled is the node.enable_http
-
-    </documentation>
-
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig" />
-  </extension-point>
-
-
   <extension-point name="elasticSearchClient">
     <documentation>
       Extension point to define how to access the Elasticsearch cluster.

@@ -28,7 +28,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.nuxeo.elasticsearch.api.ESClientFactory;
 import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.core.ElasticSearchEmbeddedNode;
 import org.opensearch.client.transport.TransportClient;
 import org.opensearch.common.settings.Settings;
 import org.opensearch.common.transport.TransportAddress;
@@ -56,12 +55,9 @@ public class ESTransportClientFactory implements ESClientFactory {
     }
 
     @Override
-    public ESClient create(ElasticSearchEmbeddedNode node, ElasticSearchClientConfig config) {
+    public ESClient create(ElasticSearchClientConfig config) {
         log.info("Creating an Elasticsearch TransportClient");
-        if (node == null) {
-            return createRemoteClient(config);
-        }
-        return createLocalClient(node);
+        return createRemoteClient(config);
     }
 
     @SuppressWarnings("resource")
@@ -85,10 +81,5 @@ public class ESTransportClientFactory implements ESClientFactory {
             }
         }
         return new ESTransportClient(client);
-    }
-
-    protected ESClient createLocalClient(ElasticSearchEmbeddedNode node) {
-        log.info("Creating a TransportClient to a local Elasticsearch");
-        return new ESTransportClient(node.getNode().client());
     }
 }

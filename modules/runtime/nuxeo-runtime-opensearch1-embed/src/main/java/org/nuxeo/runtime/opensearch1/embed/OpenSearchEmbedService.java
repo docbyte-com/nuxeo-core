@@ -1,5 +1,6 @@
+
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +15,24 @@
  * limitations under the License.
  *
  * Contributors:
- *     Funsho David
+ *     bdelbosc
  */
-
-package org.nuxeo.elasticsearch.api;
-
-import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
+package org.nuxeo.runtime.opensearch1.embed;
 
 /**
- * Factory to create an Elasticsearch client
+ * Service used to get an embedded server url.
  *
- * @since 9.3
+ * @since 2025.0
  */
-public interface ESClientFactory {
+public interface OpenSearchEmbedService {
 
-    ESClient create(ElasticSearchClientConfig config);
+    /**
+     * Gets the opensearch server url for an embedded node id.
+     *
+     * @param id the embedded server id
+     * @return the server url
+     * @throws IllegalArgumentException if embedded server with given {@code id} is not found
+     * @throws IllegalStateException if embedded server is not started
+     */
+    String getServerUrl(String id);
 }

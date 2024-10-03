@@ -46,7 +46,6 @@ import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
 import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
@@ -88,11 +87,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
 
     protected Map<String, ESHintQueryBuilder> hints;
 
-    protected final ElasticSearchEmbeddedServerConfig embeddedServerConfig;
-
     protected final ElasticSearchClientConfig clientConfig;
-
-    protected ElasticSearchEmbeddedNode embeddedServer;
 
     protected ESClient client;
 
@@ -110,10 +105,9 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
      *
      * @since 9.1
      */
-    public ElasticSearchAdminImpl(ElasticSearchEmbeddedServerConfig embeddedServerConfig,
-            ElasticSearchClientConfig clientConfig, Map<String, ElasticSearchIndexConfig> indexConfig,
+    public ElasticSearchAdminImpl(ElasticSearchClientConfig clientConfig,
+            Map<String, ElasticSearchIndexConfig> indexConfig,
             Collection<ESHintQueryBuilderDescriptor> hintDescriptors) {
-        this.embeddedServerConfig = embeddedServerConfig;
         this.indexConfig = indexConfig;
         this.clientConfig = clientConfig;
         this.hints = hintDescriptors.stream()
@@ -137,11 +131,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
         if (client != null) {
             return;
         }
-        if (embeddedServerConfig != null) {
-            embeddedServer = new ElasticSearchEmbeddedNode(embeddedServerConfig);
-            embeddedServer.start();
-        }
-        client = createClient(embeddedServer);
+        client = createClient();
         try {
             checkClusterHealth();
             log.info("Elasticsearch Connected");
@@ -162,23 +152,14 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             indexInitDone = false;
             log.info("Elasticsearch Disconnected");
         }
-        if (embeddedServer != null) {
-            try {
-                embeddedServer.close();
-            } catch (IOException e) {
-                log.error("Failed to close embedded node: {}", e.getMessage(), e);
-            }
-            embeddedServer = null;
-            log.info("Elasticsearch embedded Node Stopped");
-        }
     }
 
-    protected ESClient createClient(ElasticSearchEmbeddedNode node) {
+    protected ESClient createClient() {
         log.info("Connecting to Elasticsearch");
         ESClient ret;
         try {
             ESClientFactory clientFactory = clientConfig.getKlass().getDeclaredConstructor().newInstance();
-            ret = clientFactory.create(node, clientConfig);
+            ret = clientFactory.create(clientConfig);
         } catch (ReflectiveOperationException e) {
             log.error("Cannot instantiate Elasticsearch Client from class: {}", clientConfig::getKlass);
             throw new NuxeoException(e);
@@ -564,11 +545,6 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
     @Override
     public int getTotalCommandProcessed() {
         return totalCommandProcessed.get();
-    }
-
-    @Override
-    public boolean isEmbedded() {
-        return embeddedServer != null;
     }
 
     @Override

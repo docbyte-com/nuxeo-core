@@ -17,10 +17,10 @@
  *     bdelbosc
  */
 
-package org.nuxeo.elasticsearch.core;
+package org.nuxeo.runtime.opensearch1.embed;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Map;
 
 import org.opensearch.common.settings.Settings;
 import org.opensearch.node.InternalSettingsPreparer;
@@ -30,10 +30,10 @@ import org.opensearch.plugins.Plugin;
 /**
  * @since 9.2
  */
-public class PluginConfigurableNode extends Node {
+class PluginConfigurableNode extends Node {
     public PluginConfigurableNode(Settings settings, Collection<Class<? extends Plugin>> classpathPlugins) {
-        super(InternalSettingsPreparer.prepareEnvironment(settings, Collections.emptyMap(), null, () -> "someNodeName"), classpathPlugins,
-                true);
+        super(InternalSettingsPreparer.prepareEnvironment(settings, Map.of(), null, () -> "someNodeName"),
+                classpathPlugins, true);
     }
 
 }
