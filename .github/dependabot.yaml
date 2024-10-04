@@ -175,6 +175,9 @@ updates:
       # Ignore Jakarta EE minor update
       - dependency-name: "jakarta.*:*"
         update-types: ["version-update:semver-minor"]
+      # Pre-release version that is taking precedence over the regular one
+      - dependency-name: "jakarta.inject:jakarta.inject-api"
+        versions: ["2.0.1.MR"]
 
       # Patch version update breaking compilation
       - dependency-name: "org.apache.directory.server:*"
@@ -203,6 +206,8 @@ updates:
         versions: [ ">3.1" ] # no update to 3.1-jenkins-x
       - dependency-name: "org.glassfish.web:jakarta.servlet.jsp.jstl"
         versions: [ ">3.0.1" ] # no update to 3.0.1-jbossorg-1
+      - dependency-name: "org.codehaus.mojo:license-maven-plugin"
+        versions: ["1.20.jbossorg-*"]
 
   # Ignore pip dependencies
   - package-ecosystem: "pip"
