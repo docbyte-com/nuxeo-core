@@ -10,7 +10,7 @@
   <groupId>org.nuxeo.ftests</groupId>
   <artifactId>nuxeo-ftests</artifactId>
   <packaging>pom</packaging>
-  <name>Nuxeo Functional Tests</name>
+  <name>Nuxeo Functional Tests Parent</name>
 
   <properties>
     <maven.deploy.skip>true</maven.deploy.skip>
@@ -19,6 +19,10 @@
     <nuxeo.ftests.tier7>false</nuxeo.ftests.tier7>
     <nuxeo.bench.itests>true</nuxeo.bench.itests>
   </properties>
+
+  <modules>
+    <module>nuxeo-functional-tests</module>
+  </modules>
 
   <profiles>
     <profile>
@@ -94,11 +98,6 @@
           <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>org.nuxeo.ecm.distribution</groupId>
-          <artifactId>nuxeo-functional-tests</artifactId>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
           <groupId>org.nuxeo</groupId>
           <artifactId>nuxeo-ftest</artifactId>
           <scope>test</scope>
@@ -119,11 +118,6 @@
           <groupId>org.nuxeo.ecm.distribution</groupId>
           <artifactId>nuxeo-server-tomcat</artifactId>
           <type>zip</type>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>org.nuxeo.ecm.distribution</groupId>
-          <artifactId>nuxeo-functional-tests</artifactId>
           <scope>test</scope>
         </dependency>
         <dependency>

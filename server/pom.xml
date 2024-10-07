@@ -12,7 +12,6 @@
   <name>Nuxeo Server</name>
 
   <modules>
-    <module>nuxeo-functional-tests</module>
     <module>nuxeo-launcher</module>
     <module>nuxeo-nxr-server</module>
     <module>nuxeo-server-tomcat</module>

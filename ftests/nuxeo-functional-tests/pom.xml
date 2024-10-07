@@ -1,14 +1,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.ecm.distribution</groupId>
-    <artifactId>nuxeo-server</artifactId>
+    <groupId>org.nuxeo.ftests</groupId>
+    <artifactId>nuxeo-ftests</artifactId>
     <version>2025.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-functional-tests</artifactId>
   <name>Nuxeo Functional Tests</name>
-  <description>Framework for testing Nuxeo distributions</description>
+  <description>Framework for Nuxeo Functional Tests</description>
 
   <dependencies>
     <dependency>
@@ -17,25 +17,9 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>commons-io</groupId>
-      <artifactId>commons-io</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.nuxeo.common</groupId>
-      <artifactId>nuxeo-common</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-features-test</artifactId>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.activation</groupId>
-      <artifactId>jakarta.activation</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.httpcomponents</groupId>

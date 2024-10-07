@@ -48,7 +48,6 @@ Ant usage: `ant package`
 
 ## Modules listing
 
- * nuxeo-functional-tests: Framework for testing Nuxeo distributions
  * nuxeo-launcher: Control Panel and Launcher
  * nuxeo-nxr-server: Server NXR
  * nuxeo-server-tomcat: Nuxeo Server packaged with Tomcat

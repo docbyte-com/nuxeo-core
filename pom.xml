@@ -1888,7 +1888,7 @@
         <classifier>jar-with-dependencies</classifier>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.distribution</groupId>
+        <groupId>org.nuxeo.ftests</groupId>
         <artifactId>nuxeo-functional-tests</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>

@@ -66,7 +66,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.distribution</groupId>
+      <groupId>org.nuxeo.ftests</groupId>
       <artifactId>nuxeo-functional-tests</artifactId>
       <scope>test</scope>
     </dependency>
