@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.runners.model.TestClass;
+import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.runtime.RuntimeServiceException;
 
 import com.google.inject.Module;
@@ -50,10 +51,10 @@ class FeaturesLoader {
 
         protected RunnerFeature feature;
 
-        Holder(Class<? extends RunnerFeature> aType) throws ReflectiveOperationException {
-            type = aType;
-            testClass = new TestClass(aType);
-            feature = aType.getDeclaredConstructor().newInstance();
+        Holder(Class<? extends RunnerFeature> type, RunnerFeature feature) {
+            this.type = type;
+            this.testClass = new TestClass(type);
+            this.feature = feature;
         }
 
         @Override
@@ -98,7 +99,6 @@ class FeaturesLoader {
                 loadFeature(new HashSet<>(), cl);
             }
         }
-
     }
 
     protected void loadFeature(Set<Class<?>> cycles, Class<? extends RunnerFeature> clazz) throws Exception {
@@ -119,9 +119,24 @@ class FeaturesLoader {
         } catch (TypeNotPresentException e) {
             throw new RuntimeServiceException(e.getMessage() + ", a test-jar dependency is probably missing", e);
         }
-        Holder actual = new Holder(clazz);
+        var dynamicFeaturesLoader = new DynamicFeaturesLoader();
+        // instantiate the feature and store it in the loader context
+        Holder actual = new Holder(clazz, instantiateFeature(clazz, dynamicFeaturesLoader));
         holders.add(actual);
         index.put(clazz, actual);
+        // load the features added dynamically
+        dynamicFeaturesLoader.features.forEach(ThrowableConsumer.asConsumer(f -> loadFeature(cycles, f)));
+    }
+
+    protected RunnerFeature instantiateFeature(Class<? extends RunnerFeature> clazz,
+            DynamicFeaturesLoader dynamicFeaturesLoader) throws ReflectiveOperationException {
+        RunnerFeature feature;
+        try {
+            feature = clazz.getDeclaredConstructor(DynamicFeaturesLoader.class).newInstance(dynamicFeaturesLoader);
+        } catch (NoSuchMethodException e) {
+            feature = clazz.getDeclaredConstructor().newInstance();
+        }
+        return feature;
     }
 
     public <T extends RunnerFeature> T getFeature(Class<T> aType) {
