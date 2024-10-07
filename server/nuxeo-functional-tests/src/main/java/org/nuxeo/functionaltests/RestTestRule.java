@@ -27,7 +27,6 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
 
 import java.io.File;
 import java.io.IOException;
@@ -97,7 +96,6 @@ public class RestTestRule implements TestRule {
 
     public RestTestRule() {
         this(HttpClientTestRule.builder()
-                               .url(NUXEO_URL)
                                .adminCredentials()
                                .accept(MediaType.APPLICATION_JSON)
                                .contentType(MediaType.APPLICATION_JSON)
@@ -112,7 +110,7 @@ public class RestTestRule implements TestRule {
      * <p>
      * Note that you must not declare your {@link HttpClientTestRule} as {@link org.junit.Rule JUnit Rule} when using
      * this constructor, because this is {@link RestTestRule} which handles the Rule mechanism, see below:
-     * 
+     *
      * <pre>{@code
      * protected final HttpClientTestRule httpClient = HttpClientTestRule.builder().build();
      *
@@ -513,7 +511,7 @@ public class RestTestRule implements TestRule {
     }
 
     /**
-     * @param source the logger source, usually RestHelper or WebDriver
+     * @param source the logger source, usually RestTestRule
      * @param level the log level
      */
     public void logOnServer(String source, String level, String message) {

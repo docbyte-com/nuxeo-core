@@ -20,7 +20,6 @@
 <%
     String productName = Framework.getProperty(Environment.PRODUCT_NAME);
     String productVersion = Framework.getProperty(Environment.PRODUCT_VERSION);
-    String testerName = Framework.getProperty("org.nuxeo.ecm.tester.name");
     String context = request.getContextPath();
 
 // Read Seam locale cookie
@@ -392,7 +391,7 @@ body {
             </form>
         </td>
         <td class="news_container" align="right" valign="middle">
-            <% if (showNews && !"Nuxeo-Selenium-Tester".equals(testerName)) { %>
+            <% if (showNews) { %>
             <iframe class="block_container" style="visibility:hidden"
                     onload="javascript:this.style.visibility='visible';"
                     src="<%=iframeUrl%>"></iframe>

@@ -110,8 +110,7 @@ public final class NuxeoDriveIntegrationTestsHelper {
     }
 
     public static void checkOperationAllowed() {
-        if (!(Framework.isDevModeSet() || Framework.isTestModeSet()
-                || Framework.getProperty("org.nuxeo.ecm.tester.name") != null)) {
+        if (!(Framework.isDevModeSet() || Framework.isTestModeSet())) {
             throw new UnsupportedOperationException("This operation cannot be run unless test mode is set.");
         }
     }

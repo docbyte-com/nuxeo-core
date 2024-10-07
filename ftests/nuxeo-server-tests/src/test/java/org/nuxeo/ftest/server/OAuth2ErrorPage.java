@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo SA (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,43 +14,65 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer <ataillefer@nuxeo.com>
+ *     Antoine Taillefer
  */
 package org.nuxeo.ftest.server;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.nuxeo.functionaltests.Required;
-import org.nuxeo.functionaltests.pages.AbstractPage;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
+import org.nuxeo.http.test.HttpClientTestRule;
+import org.nuxeo.http.test.HttpResponse;
+
+import net.htmlparser.jericho.Source;
 
 /**
- * Representation of the {@code oauth2error.jsp} page for WebDriver.
+ * HTML representation of the {@code oauth2error.jsp} page.
  *
  * @since 9.2
  */
-public class OAuth2ErrorPage extends AbstractPage {
+public class OAuth2ErrorPage {
 
-    @Required
-    @FindBy(tagName = "h1")
-    WebElement title;
+    protected static final String ELEMENT_CODE = "code";
 
-    @Required
-    @FindBy(tagName = "code")
-    WebElement description;
+    protected static final String ELEMENT_H1 = "h1";
 
-    public OAuth2ErrorPage(WebDriver driver) {
-        super(driver);
+    protected static final String ELEMENT_TITLE = "title";
+
+    protected Source html;
+
+    protected String title;
+
+    protected String h1;
+
+    protected String description;
+
+    public static OAuth2ErrorPage getErrorPage(HttpClientTestRule client, String path) {
+        return new OAuth2ErrorPage(
+                new Source(client.buildGetRequest(path).executeAndThen(HttpResponse::getEntityString)));
     }
 
-    public void checkTitle(String expectedTitle) {
-        assertEquals(expectedTitle, title.getText());
+    public OAuth2ErrorPage(Source html) {
+        this.html = html;
+        title = getElementValue(ELEMENT_TITLE);
+        h1 = getElementValue(ELEMENT_H1);
+        description = getElementValue(ELEMENT_CODE);
     }
 
-    public void checkDescription(String expectedDescription) {
-        assertEquals(expectedDescription, description.getText());
+    public void checkTitle(String expected) {
+        assertTrue(title.endsWith(expected));
+    }
+
+    public void checkH1(String expected) {
+        assertEquals(expected, h1);
+    }
+
+    public void checkDescription(String expected) {
+        assertEquals(expected, description);
+    }
+
+    protected String getElementValue(String element) {
+        return html.getFirstElement(element).getTextExtractor().toString();
     }
 
 }

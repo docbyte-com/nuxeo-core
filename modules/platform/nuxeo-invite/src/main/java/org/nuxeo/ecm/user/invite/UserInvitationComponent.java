@@ -518,7 +518,7 @@ public class UserInvitationComponent extends DefaultComponent implements UserInv
     }
 
     protected static boolean isTestModeSet() {
-        return Framework.isTestModeSet() || !isBlank(Framework.getProperty("org.nuxeo.ecm.tester.name"));
+        return Framework.isTestModeSet();
     }
 
     protected boolean checkUserFromRegistrationExistence(DocumentModel registrationDoc) {

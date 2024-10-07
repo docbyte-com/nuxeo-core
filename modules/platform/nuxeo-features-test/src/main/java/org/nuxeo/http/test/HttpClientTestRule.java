@@ -61,16 +61,16 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * This is an HttpClient wrapped as a JUnit {@link TestRule} to perform needed cleanup on teardown.
  * <p>
  * In a unit test with an embedded Nuxeo, the client can be instantiated like below:
- * 
+ *
  * <pre>
  * &#64;Inject
  * protected ServletContainerFeature servletContainerFeature;
- * 
+ *
  * &#64;Rule
  * public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
  *         () -> servletContainerFeature.getHttpUrl());
  * </pre>
- * 
+ *
  * The client is now ready to execute requests on {@code http://localhost:PORT}. The default JSON client has the
  * following configuration:
  * <ul>
@@ -80,14 +80,14 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * </ul>
  * The most interesting way to use the client is with {@link ResponseHandler handler} and {@code executeAnd*} APIs, for
  * example:
- * 
+ *
  * <pre>
  * httpClient.buildGetRequest("/api/v1/me").executeAndConsume(new JsonNodeHandler(), node -> {
  *     assertEquals("user", node.get("entity-type").asText());
  *     assertEquals("Administrator", node.get("id").asText());
  * });
  * </pre>
- * 
+ *
  * In this example, we execute a GET request to {@code /api/v1/me} endpoint, and then we consume the HTTP response with
  * the {@link org.nuxeo.http.test.handler.JsonNodeHandler} handler which asserts that the HTTP response status code has
  * the value {@code 200}, asserts that the header {@code Content-Type} has the {@code application/json} value,
@@ -109,6 +109,9 @@ public class HttpClientTestRule implements TestRule {
     public static final String ADMINISTRATOR = "Administrator";
 
     public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+
+    public static final String NUXEO_URL = System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo")
+                                                 .replaceAll("/$", "");
 
     protected final Supplier<String> url;
 
@@ -244,7 +247,7 @@ public class HttpClientTestRule implements TestRule {
         private boolean redirectsEnabled;
 
         public Builder() {
-            this.url = () -> System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo").replaceAll("/$", "");
+            this.url = () -> NUXEO_URL;
             this.timeout = DEFAULT_TIMEOUT;
             this.headers = new HashMap<>();
             this.redirectsEnabled = true;

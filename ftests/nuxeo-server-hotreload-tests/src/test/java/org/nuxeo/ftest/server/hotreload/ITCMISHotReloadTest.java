@@ -20,7 +20,7 @@ package org.nuxeo.ftest.server.hotreload;
 
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.junit.Assert.assertEquals;
-import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
+import static org.nuxeo.http.test.HttpClientTestRule.NUXEO_URL;
 
 import java.util.HashMap;
 import java.util.Map;

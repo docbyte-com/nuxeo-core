@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,20 +18,11 @@
  */
 package org.nuxeo.functionaltests;
 
-import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.junit.internal.runners.statements.RunAfters;
 import org.junit.rules.TestWatchman;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
-import org.openqa.selenium.remote.RemoteWebDriver;
 
 /**
  * Watchman to log info about the test and create snapshot on failure.
@@ -42,25 +33,7 @@ public class LogTestWatchman extends TestWatchman {
 
     private static final Logger log = LogManager.getLogger(LogTestWatchman.class);
 
-    protected String lastScreenshot;
-
-    protected String lastPageSource;
-
-    protected String filePrefix;
-
-    protected RemoteWebDriver driver;
-
-    protected String serverURL;
-
     protected final RestTestRule restHelper = new RestTestRule();
-
-    public LogTestWatchman(final RemoteWebDriver driver, final String serverURL) {
-        this.driver = driver;
-        this.serverURL = serverURL;
-    }
-
-    public LogTestWatchman() {
-    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -70,44 +43,6 @@ public class LogTestWatchman extends TestWatchman {
             public void evaluate() throws Throwable {
                 starting(method);
                 try {
-                    if (base instanceof RunAfters) {
-                        // Hack JUnit: in order to take screenshot at the right
-                        // time we add through reflection an after
-                        // function that will be executed before all other
-                        // ones. See NXP-12742
-                        Field aftersField = RunAfters.class.getDeclaredField("afters");
-                        aftersField.setAccessible(true);
-
-                        List<FrameworkMethod> afters = (List<FrameworkMethod>) aftersField.get(base);
-                        if (afters != null && !afters.isEmpty()) {
-                            try {
-                                // Improve this and instead of finding a
-                                // special function, we could register
-                                // functions specially annotated.
-                                FrameworkMethod first = afters.get(0);
-                                Method m = AbstractTest.class.getMethod("runBeforeAfters", (Class<?>[]) null);
-                                FrameworkMethod f = new FrameworkMethod(m);
-                                if (first != null && !first.equals(f)) {
-                                    for (;;) {
-                                        String aftersClassName = afters.getClass().getName();
-                                        if (aftersClassName.endsWith("$UnmodifiableList")
-                                                || aftersClassName.endsWith("$UnmodifiableRandomAccessList")) {
-                                            Class<?> unmodifiableListClass = Collections.unmodifiableList(
-                                                    new LinkedList<>()).getClass();
-                                            Field listField = unmodifiableListClass.getDeclaredField("list");
-                                            listField.setAccessible(true);
-                                            afters = (List<FrameworkMethod>) listField.get(afters);
-                                        } else {
-                                            break;
-                                        }
-                                    }
-                                    afters.add(0, f);
-                                }
-                            } catch (NoSuchMethodException e) {
-                                // Do nothing
-                            }
-                        }
-                    }
                     base.evaluate();
                     succeeded(method);
                 } catch (Throwable t) {
@@ -125,41 +60,14 @@ public class LogTestWatchman extends TestWatchman {
         String className = getTestClassName(method);
         String methodName = method.getName();
         log.error("Test '{}#{}' failed", className, methodName, e);
-
-        if (lastScreenshot == null || lastPageSource == null) {
-            ScreenshotTaker taker = new ScreenshotTaker();
-
-            if (lastScreenshot == null) {
-                File temp = taker.takeScreenshot(driver, filePrefix);
-                lastScreenshot = temp != null ? temp.getAbsolutePath() : null;
-            }
-
-            if (lastPageSource == null) {
-                File temp = taker.dumpPageSource(driver, filePrefix);
-                lastPageSource = temp != null ? temp.getAbsolutePath() : null;
-            }
-
-        }
-        log.info("Created screenshot file named '{}'", lastScreenshot);
-        log.info("Created page source file named '{}'", lastPageSource);
         super.failed(e, method);
     }
 
     @Override
     public void finished(FrameworkMethod method) {
         log.info("Finished test '{}#{}'", () -> getTestClassName(method), method::getName);
-        lastScreenshot = null;
-        lastPageSource = null;
         restHelper.finished();
         super.finished(method);
-    }
-
-    public RemoteWebDriver getDriver() {
-        return driver;
-    }
-
-    public String getServerURL() {
-        return serverURL;
     }
 
     protected String getTestClassName(FrameworkMethod method) {
@@ -170,41 +78,12 @@ public class LogTestWatchman extends TestWatchman {
         restHelper.logOnServer(message);
     }
 
-    public void runBeforeAfters() {
-        if (driver != null) {
-            ScreenshotTaker taker = new ScreenshotTaker();
-            lastScreenshot = taker.takeScreenshot(driver, filePrefix).getAbsolutePath();
-            lastPageSource = taker.dumpPageSource(driver, filePrefix).getAbsolutePath();
-        }
-    }
-
-    public void setDriver(RemoteWebDriver driver) {
-        this.driver = driver;
-    }
-
-    public void setServerURL(String serverURL) {
-        this.serverURL = serverURL;
-    }
-
     @Override
     public void starting(FrameworkMethod method) {
         restHelper.starting();
         String message = String.format("Starting test '%s#%s'", getTestClassName(method), method.getName());
         log.info(message);
-        String className = getTestClassName(method);
-        String methodName = method.getName();
-        filePrefix = String.format("screenshot-lastpage-%s-%s", className, methodName);
         logOnServer(message);
-    }
-
-    @Override
-    public void succeeded(FrameworkMethod method) {
-        if (lastPageSource != null && !new File(lastPageSource).delete()) {
-            log.warn("file deletion failed for: {}", lastPageSource);
-        }
-        if (lastScreenshot != null && !new File(lastScreenshot).delete()) {
-            log.warn("file deletion failed for: {}", lastScreenshot);
-        }
     }
 
 }

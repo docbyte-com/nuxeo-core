@@ -80,6 +80,10 @@
       <artifactId>nuxeo-platform-oauth1</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>net.htmlparser.jericho</groupId>
+      <artifactId>jericho-html</artifactId>
+    </dependency>
   </dependencies>
 
   <build>

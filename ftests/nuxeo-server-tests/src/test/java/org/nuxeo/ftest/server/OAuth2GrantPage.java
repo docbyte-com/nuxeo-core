@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo SA (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,90 +14,249 @@
  * limitations under the License.
  *
  * Contributors:
- *     Antoine Taillefer <ataillefer@nuxeo.com>
+ *     Antoine Taillefer
  */
 package org.nuxeo.ftest.server;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.nuxeo.functionaltests.Required;
-import org.nuxeo.functionaltests.pages.AbstractPage;
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.remote.RemoteWebDriver;
-import org.openqa.selenium.support.FindBy;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.nuxeo.common.utils.URIUtils;
+import org.nuxeo.http.test.HttpClientTestRule;
+import org.nuxeo.http.test.HttpResponse;
+
+import net.htmlparser.jericho.Element;
+import net.htmlparser.jericho.Source;
 
 /**
- * Representation of the {@code oauth2Grant.jsp} page for WebDriver.
+ * HTML representation of the {@code oauth2Grant.jsp} page.
  *
  * @since 9.2
  */
-public class OAuth2GrantPage extends AbstractPage {
+public class OAuth2GrantPage {
 
-    @Required
-    @FindBy(tagName = "form")
-    WebElement form;
+    protected static final String ATTRIBUTE_NAME = "name";
 
-    @Required
-    @FindBy(name = "response_type")
-    WebElement responseType;
+    protected static final String ATTRIBUTE_VALUE = "value";
 
-    @Required
-    @FindBy(name = "client_id")
-    WebElement clientId;
+    protected static final String ELEMENT_FORM = "form";
 
-    @FindBy(name = "redirect_uri")
-    WebElement redirectURI;
+    protected static final String INPUT_CLIENT_ID = "client_id";
 
-    @Required
-    @FindBy(name = "deny_access")
-    WebElement denyAccess;
+    protected static final String INPUT_CODE_CHALLENGE = "code_challenge";
 
-    @Required
-    @FindBy(name = "grant_access")
-    WebElement grantAccess;
+    protected static final String INPUT_CODE_CHALLENGE_METHOD = "code_challenge_method";
 
-    public OAuth2GrantPage(WebDriver driver) {
-        super(driver);
+    protected static final String INPUT_DENY_ACCESS = "deny_access";
+
+    protected static final String INPUT_GRANT_ACCESS = "grant_access";
+
+    protected static final String INPUT_REDIRECT_URI = "redirect_uri";
+
+    protected static final String INPUT_RESPONSE_TYPE = "response_type";
+
+    protected static final String INPUT_SCOPE = "scope";
+
+    protected static final String INPUT_STATE = "state";
+
+    protected Element form;
+
+    protected String clientId;
+
+    protected String responseType;
+
+    protected String redirectURI;
+
+    protected String scope;
+
+    protected String state;
+
+    protected String codeChallenge;
+
+    protected String codeChallengeMethod;
+
+    protected HttpClientTestRule httpClient;
+
+    public static OAuth2GrantPage getDefaultGrantPage(HttpClientTestRule client) {
+        return getOAuth2GrantPageBuilder(client).build();
     }
 
-    public void checkClientName(String name) {
-        assertTrue(form.getText().contains(name));
+    public static OAuth2GrantPage getEmptyGrantPage(HttpClientTestRule client) {
+        return getGrantPage(client, "/oauth2Grant.jsp");
     }
 
-    public void checkResponseType(String expected) {
-        assertEquals(expected, responseType.getAttribute("value"));
+    public static OAuth2GrantPage getGrantPage(HttpClientTestRule client, String path) {
+        return new OAuth2GrantPage(
+                new Source(client.buildGetRequest(path).executeAndThen(HttpResponse::getEntityString)));
+    }
+
+    public static OAuth2GrantPageBuilder getOAuth2GrantPageBuilder(HttpClientTestRule client) {
+        return new OAuth2GrantPageBuilder(client);
+    }
+
+    protected static class OAuth2GrantPageBuilder {
+
+        protected HttpClientTestRule client;
+
+        protected Map<String, String> extraParameters;
+
+        protected OAuth2GrantPageBuilder(HttpClientTestRule client) {
+            this.client = client;
+        }
+
+        public OAuth2GrantPageBuilder extraParameters(final Map<String, String> extraParameters) {
+            this.extraParameters = extraParameters;
+            return this;
+        }
+
+        public OAuth2GrantPage build() {
+            String path = "/oauth2/authorize?client_id=test-client&response_type=code";
+            if (extraParameters != null) {
+                path = URIUtils.addParametersToURIQuery(path, extraParameters);
+            }
+            OAuth2GrantPage grantPage = getGrantPage(client, path);
+            grantPage.checkClientName("Test Client");
+            grantPage.checkResponseType("code");
+            grantPage.checkClientId("test-client");
+            int fieldCount = 2;
+            if (extraParameters != null) {
+                extraParameters.forEach(grantPage::checkExtraParameter);
+                fieldCount += extraParameters.size();
+            }
+            grantPage.checkFieldCount(fieldCount);
+            grantPage.setHttpClient(client);
+            return grantPage;
+        }
+
+    }
+
+    public OAuth2GrantPage(Source html) {
+        form = html.getFirstElement(ELEMENT_FORM);
+        clientId = getInputValue(INPUT_CLIENT_ID);
+        responseType = getInputValue(INPUT_RESPONSE_TYPE);
+        redirectURI = getInputValue(INPUT_REDIRECT_URI);
+        scope = getInputValue(INPUT_SCOPE);
+        state = getInputValue(INPUT_STATE);
+        codeChallenge = getInputValue(INPUT_CODE_CHALLENGE);
+        codeChallengeMethod = getInputValue(INPUT_CODE_CHALLENGE_METHOD);
+    }
+
+    public void checkClientName(String expected) {
+        assertTrue(form.getTextExtractor().toString().contains(expected));
     }
 
     public void checkClientId(String expected) {
-        assertEquals(expected, clientId.getAttribute("value"));
+        assertEquals(expected, clientId);
+    }
+
+    public void checkResponseType(String expected) {
+        assertEquals(expected, responseType);
     }
 
     public void checkExtraParameter(String name, String expected) {
-        assertEquals(expected, driver.findElement(By.name(name)).getAttribute("value"));
+        assertEquals(expected, getInputValue(name));
     }
 
     public void checkFieldCount(int count) {
-        assertEquals(count, driver.findElements(By.tagName("input")).size());
+        assertEquals(count, form.getAllElements("input").size());
     }
 
-    public void setFieldValue(String name, String value) {
-        ((RemoteWebDriver) driver).executeScript(
-                String.format("document.getElementsByName('%s')[0].value = '%s' ;", name, value));
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 
-    public void removeField(String name) {
-        ((RemoteWebDriver) driver).executeScript(String.format("document.getElementsByName('%s')[0].remove() ;", name));
+    public void setResponseType(String responseType) {
+        this.responseType = responseType;
     }
 
-    public void deny() {
-        denyAccess.click();
+    public void setRedirectURI(String redirectURI) {
+        this.redirectURI = redirectURI;
     }
 
-    public void grant() {
-        grantAccess.click();
+    public void setScope(String scope) {
+        this.scope = scope;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setCodeChallenge(String codeChallenge) {
+        this.codeChallenge = codeChallenge;
+    }
+
+    public void setCodeChallengeMethod(String codeChallengeMethod) {
+        this.codeChallengeMethod = codeChallengeMethod;
+    }
+
+    public void setHttpClient(HttpClientTestRule httpClient) {
+        this.httpClient = httpClient;
+    }
+
+    public Source deny() {
+        return postForm(false);
+    }
+
+    public String getDenyLocation() {
+        return getPostLocation(false);
+    }
+
+    public Source grant() {
+        return postForm(true);
+    }
+
+    public String getGrantLocation() {
+        return getPostLocation(true);
+    }
+
+    protected Source postForm(boolean grant) {
+        return new Source(httpClient.buildPostRequest("/oauth2/authorize_submit")
+                                    .entity(getFormData(grant))
+                                    .executeAndThen(HttpResponse::getEntityString));
+    }
+
+    protected String getPostLocation(boolean grant) {
+        return httpClient.buildPostRequest("/oauth2/authorize_submit")
+                         .entity(getFormData(grant))
+                         .executeAndThen(response -> response.getLocation().toString());
+    }
+
+    protected Map<String, String> getFormData(boolean grant) {
+        Map<String, String> formData = new HashMap<>();
+        formData.put(INPUT_RESPONSE_TYPE, responseType);
+        formData.put(INPUT_CLIENT_ID, clientId);
+        if (redirectURI != null) {
+            formData.put(INPUT_REDIRECT_URI, redirectURI);
+        }
+        if (scope != null) {
+            formData.put(INPUT_SCOPE, scope);
+        }
+        if (state != null) {
+            formData.put(INPUT_STATE, state);
+        }
+        if (codeChallenge != null) {
+            formData.put(INPUT_CODE_CHALLENGE, codeChallenge);
+        }
+        if (codeChallengeMethod != null) {
+            formData.put(INPUT_CODE_CHALLENGE_METHOD, codeChallengeMethod);
+        }
+        if (grant) {
+            formData.put(INPUT_GRANT_ACCESS, "1");
+        } else {
+            formData.put(INPUT_DENY_ACCESS, "1");
+        }
+        return formData;
+    }
+
+    protected String getInputValue(String name) {
+        var element = form.getFirstElement(ATTRIBUTE_NAME, name, true);
+        if (element == null) {
+            return null;
+        }
+        return element.getAttributeValue(ATTRIBUTE_VALUE);
     }
 
 }

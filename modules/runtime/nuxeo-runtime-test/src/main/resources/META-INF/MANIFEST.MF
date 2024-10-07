@@ -1,7 +1,6 @@
 Export-Package: org.nuxeo.runtime.test,
  org.nuxeo.runtime.test.runner.web,
  org.nuxeo.runtime.test.runner.distrib,
- org.openqa.selenium.support.ui,
  jetty,
  org.nuxeo.runtime.test.runner
 Private-Package: .
@@ -38,12 +37,5 @@ Import-Package: com.google.common.base,
  org.nuxeo.runtime.model,
  org.nuxeo.runtime.model.impl,
  org.nuxeo.runtime.osgi,
- org.openqa.selenium,
- org.openqa.selenium.chrome,
- org.openqa.selenium.firefox,
- org.openqa.selenium.htmlunit,
- org.openqa.selenium.ie,
- org.openqa.selenium.support,
- org.openqa.selenium.support.ui,
  org.osgi.framework;version="1.4"
 Require-Bundle: org.nuxeo.runtime.launcher

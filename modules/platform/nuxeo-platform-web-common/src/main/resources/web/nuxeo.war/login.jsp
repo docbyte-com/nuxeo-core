@@ -25,8 +25,6 @@
 <%
 String productName = Framework.getProperty(Environment.PRODUCT_NAME);
 String productVersion = Framework.getProperty(Environment.PRODUCT_VERSION);
-String testerName = Framework.getProperty("org.nuxeo.ecm.tester.name");
-boolean isTesting = "Nuxeo-Selenium-Tester".equals(testerName);
 String context = request.getContextPath();
 
 HttpSession httpSession = request.getSession(false);
@@ -469,7 +467,7 @@ if (selectedLanguage != null) { %>
 </head>
 
 <body>
-<% if (hasVideos && !isTesting) { %>
+<% if (hasVideos) { %>
 <video autoplay <%= muted + loop %> preload="auto" poster="<%=backgroundPath%>" id="bgvid">
   <% for (LoginVideo video : screenConfig.getVideos()) { %>
   <source src="<%= video.getSrc() %>" type="<%= video.getType() %>">
@@ -556,7 +554,7 @@ if (selectedLanguage != null) { %>
         <%}%>
       </form>
     </div>
-    <% if (showNews && !isTesting) { %>
+    <% if (showNews) { %>
     <div class="news">
       <iframe id="news" class="news-container" style="visibility: hidden"
         onload="javascript:this.style.visibility='visible';"
@@ -648,7 +646,7 @@ if (selectedLanguage != null) { %>
 <script type="text/javascript">
   document.getElementById('username').focus();
 
-  <% if (showNews && !isTesting) { %>
+  <% if (showNews) { %>
   // Don't load iframe on mobile devices
   if (window.matchMedia("(min-device-width: 850px)").matches) {
     newsIframe = document.getElementById('news');

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.nuxeo.ecm.platform.web.common.idempotency.NuxeoIdempotentFilter.HEADER_KEY;
-import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
+import static org.nuxeo.http.test.HttpClientTestRule.NUXEO_URL;
 
 import java.util.Date;
 
@@ -32,7 +32,9 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.MethodRule;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.functionaltests.LogTestWatchman;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -52,6 +54,9 @@ public class ITNuxeoIdempotentRequestTest {
             NXQL.ECM_PATH, PARENT_PATH);
 
     private static final String TEST_TITLE = "testdoc";
+
+    @Rule
+    public MethodRule watchman = new LogTestWatchman();
 
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
