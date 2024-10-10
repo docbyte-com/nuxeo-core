@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.io.marshallers.json.ExtensibleEntityJsonWriter;
@@ -172,4 +173,11 @@ public class LogEntryJsonWriter extends ExtensibleEntityJsonWriter<LogEntry> {
         }
     }
 
+    /**
+     * @since 2025.0
+     */
+    public static boolean isJsonContent(String value) {
+        value = StringUtils.trimToEmpty(value);
+        return (value.startsWith("{") && value.endsWith("}")) || (value.startsWith("[") && value.endsWith("]"));
+    }
 }

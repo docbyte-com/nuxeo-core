@@ -37,6 +37,8 @@ public final class ThirdPartyUnderTest {
 
     public static final String STORAGE_ELASTICSEARCH_8 = "elasticsearch8";
 
+    public static final String STORAGE_MEM = "mem";
+
     public static final String STORAGE_MONGODB = "mongodb";
 
     public static final String STORAGE_OPENSEARCH_1 = "opensearch1";
@@ -49,7 +51,7 @@ public final class ThirdPartyUnderTest {
 
     // System properties declaration
 
-    public static final SystemProperty AUDIT_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.audit", STORAGE_SQL);
+    public static final SystemProperty AUDIT_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.audit", STORAGE_MEM);
 
     public static final SystemProperty CORE_SERVICE_PROPERTY = new SystemProperty("nuxeo.test.core", STORAGE_SQL);
 

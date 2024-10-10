@@ -16,29 +16,17 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.audit;
+package org.nuxeo.audit.mem;
 
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
  * @since 2025.0
  */
-@RunWith(FeaturesRunner.class)
-@Features(AuditCoreFeature.class)
-// audit core requires to have an audit backend in order to start
 @Deploy("org.nuxeo.ecm.platform.audit.tests:OSGI-INF/mem-audit-backend-factory-test-contrib.xml")
-public class AuditCoreFeatureTest {
-
-    @Test
-    public void testRuntimeStarted() {
-        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
-                Framework.getRuntime().getStatusMessage(new StringBuilder()));
-    }
+@Features(AuditCoreFeature.class)
+public class MemAuditFeature implements RunnerFeature {
 }

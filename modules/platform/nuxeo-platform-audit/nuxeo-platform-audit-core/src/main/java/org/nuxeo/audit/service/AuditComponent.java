@@ -45,6 +45,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.api.LogEntryBuilder;
+import org.nuxeo.audit.mem.MemAuditBackendFactory;
 import org.nuxeo.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor;
 import org.nuxeo.audit.service.extension.EventDescriptor;
@@ -63,6 +64,7 @@ import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
 import org.nuxeo.lib.stream.log.Name;
+import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentStartOrders;
@@ -149,6 +151,16 @@ public class AuditComponent extends DefaultComponent implements AuditService {
         auditBackendFactories.putAll( //
                 this.<AuditBackendFactoryDescriptor> getDescriptors(BACKEND_FACTORY_EXT_POINT)
                     .stream()
+                    .peek(descriptor -> {
+                        if (!Framework.isTestModeSet()
+                                && descriptor.getFactory().isAssignableFrom(MemAuditBackendFactory.class)) {
+                            String message = ("In-Memory implementation for audit backend \"%s\" is ONLY for testing purpose."
+                                    + " Use a dedicated implementation for production.").formatted(
+                                            descriptor.getName());
+                            log.warn(message);
+                            addRuntimeMessage(RuntimeMessage.Level.WARNING, message);
+                        }
+                    })
                     .collect(toMap(AuditBackendFactoryDescriptor::getName,
                             descriptor -> Framework.getService(descriptor.getFactory()))));
     }
