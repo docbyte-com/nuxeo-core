@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
-
 package org.nuxeo.drive.listener;
 
 import java.util.ArrayList;
@@ -25,13 +24,13 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.drive.service.NuxeoDriveEvents;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventBundle;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.PostCommitFilteringEventListener;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -51,8 +50,8 @@ public class NuxeoDriveVirtualEventLogger implements PostCommitFilteringEventLis
 
     @Override
     public void handleEvent(EventBundle events) {
-        AuditLogger logger = Framework.getService(AuditLogger.class);
-        if (logger != null) {
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend != null) {
             for (Event event : events) {
                 EventContext ctx = event.getContext();
                 Object[] args = ctx.getArguments();
@@ -60,19 +59,17 @@ public class NuxeoDriveVirtualEventLogger implements PostCommitFilteringEventLis
                     return;
                 }
                 List<LogEntry> logEntries = new ArrayList<>();
-                for (int i = 0; i < args.length; i++) {
-                    Object arg = args[i];
-                    if (arg instanceof LogEntry) {
-                        logEntries.add((LogEntry) arg);
+                for (Object arg : args) {
+                    if (arg instanceof LogEntry logEntry) {
+                        logEntries.add(logEntry);
                     }
                 }
                 if (!logEntries.isEmpty()) {
-                    logger.addLogEntries(logEntries);
+                    auditBackend.addLogEntries(logEntries);
                 }
             }
         } else {
-            log.error("Can not reach AuditLogger");
+            log.error("Can not reach AuditBackend");
         }
     }
-
 }

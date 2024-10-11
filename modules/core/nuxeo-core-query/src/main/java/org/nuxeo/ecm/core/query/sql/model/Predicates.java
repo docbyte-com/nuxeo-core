@@ -19,9 +19,12 @@
  */
 package org.nuxeo.ecm.core.query.sql.model;
 
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
+
+import org.apache.commons.lang3.ArrayUtils;
 
 /**
  * Predicate builders.
@@ -39,9 +42,39 @@ public class Predicates {
         return new Predicate(left, Operator.AND, right);
     }
 
+    /** @since 2025.0 */
+    public static Predicate and(Predicate predicate, Predicate... predicates) {
+        return and(List.of(ArrayUtils.add(predicates, predicate)));
+    }
+
+    /** @since 2025.0 */
+    public static Predicate and(List<Predicate> predicates) {
+        return andOrOr(Operator.AND, predicates);
+    }
+
     /** @since 10.3 */
     public static Predicate or(Predicate left, Predicate right) {
         return new Predicate(left, Operator.OR, right);
+    }
+
+    /** @since 2025.0 */
+    public static Predicate or(Predicate predicate, Predicate... predicates) {
+        return or(List.of(ArrayUtils.add(predicates, predicate)));
+    }
+
+    /** @since 2025.0 */
+    public static Predicate or(List<Predicate> predicates) {
+        return andOrOr(Operator.OR, predicates);
+    }
+
+    protected static Predicate andOrOr(Operator operator, List<Predicate> predicates) {
+        if (predicates.size() == 1) {
+            return predicates.getFirst();
+        } else if (predicates.size() == 2) {
+            return new Predicate(predicates.getFirst(), operator, predicates.getLast());
+        } else {
+            return new MultiExpression(operator, predicates);
+        }
     }
 
     /** @since 10.3 */
@@ -97,7 +130,6 @@ public class Predicates {
     public static Predicate notilike(String name, Object value) {
         return createPredicate(name, Operator.NOTILIKE, value);
     }
-
 
     public static Predicate in(String name, Iterable<?> values) {
         return createPredicate(name, Operator.IN, StreamSupport.stream(values.spliterator(), false));

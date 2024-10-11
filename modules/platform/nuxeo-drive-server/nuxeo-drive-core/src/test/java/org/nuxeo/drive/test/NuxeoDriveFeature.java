@@ -16,14 +16,19 @@
  */
 package org.nuxeo.drive.test;
 
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStoreFeature;
 import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.RuntimeHarness;
 
 @Deploy("org.nuxeo.drive.core")
 @Deploy("org.nuxeo.ecm.platform.search.core")
@@ -35,12 +40,27 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-types-contrib.xml")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-descendants-scrolling-cache-contrib.xml")
 @Features({ //
+        AuditFeature.class, //
         AutomationCoreFeature.class, //
         CollectionFeature.class, //
         FileManagerFeature.class, //
         KeyValueBlobTransientStoreFeature.class, //
-        PlatformFeature.class, //
-        SQLAuditFeature.class })
+        PlatformFeature.class })
 public class NuxeoDriveFeature implements RunnerFeature {
 
+    @Override
+    public void start(FeaturesRunner runner) {
+        String contrib;
+        if (runner.getFeature(AuditFeature.class).isBackendSql()) {
+            contrib = "OSGI-INF/test-nuxeodrive-sql-change-finder-contrib.xml";
+        } else {
+            contrib = "OSGI-INF/test-nuxeodrive-sql-change-finder-empty-contrib.xml";
+        }
+        try {
+            RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
+            harness.deployContrib("org.nuxeo.drive.core.test", contrib);
+        } catch (Exception e) {
+            throw new NuxeoException(e);
+        }
+    }
 }

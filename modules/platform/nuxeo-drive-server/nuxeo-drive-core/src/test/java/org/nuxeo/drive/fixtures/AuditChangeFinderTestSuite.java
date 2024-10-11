@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,8 +218,10 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         try {
             changes = getChanges();
             assertEquals(1, changes.size());
-            assertEquals(new SimpleFileSystemItemChange(doc3.getId(), DELETED_EVENT, TEST_REPOSITORY,
-                    FILE_SYSTEM_ITEM_ID_PREFIX + doc3.getId()), toSimpleFileSystemItemChange(changes.get(0)));
+            assertEquals(
+                    new SimpleFileSystemItemChange(doc3.getId(), DELETED_EVENT, TEST_REPOSITORY,
+                            FILE_SYSTEM_ITEM_ID_PREFIX + doc3.getId()),
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Create a doc and copy it from a sync root to another one");
             docToCopy = session.createDocumentModel(FOLDER_1_PATH, "docToCopy", "File");
@@ -251,7 +253,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges();
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(doc1.getId(), DELETED_EVENT, TEST_REPOSITORY),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Move a doc from a sync root to another sync root");
             session.move(copiedDoc.getRef(), folder1.getRef(), null);
@@ -263,7 +265,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges();
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(copiedDoc.getId(), "documentMoved", TEST_REPOSITORY),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Move a doc from a sync root to a non synchronized folder");
             session.move(copiedDoc.getRef(), folder3.getRef(), null);
@@ -275,7 +277,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges();
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(copiedDoc.getId(), DELETED_EVENT, TEST_REPOSITORY),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Create a doc, create a version of it, update doc and restore the version");
             docToVersion = session.createDocumentModel(FOLDER_1_PATH, "docToVersion", "File");
@@ -287,7 +289,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             docToVersion = session.saveDocument(docToVersion);
             List<DocumentModel> versions = session.getVersions(docToVersion.getRef());
             assertEquals(1, versions.size());
-            DocumentModel version = versions.get(0);
+            DocumentModel version = versions.getFirst();
             session.restoreToVersion(docToVersion.getRef(), version.getRef());
         } finally {
             commitAndWaitForAsyncCompletion();
@@ -319,6 +321,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     public void testFindSecurityChanges() {
         List<FileSystemItemChange> changes;
         DocumentModel subFolder;
@@ -432,7 +435,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             // Expecting 1 change: securityUpdated for subFolder with a non-null FileSystemItem and FileSystemItem name
             // since the user can still access it by inheritance
             assertEquals(1, changes.size());
-            FileSystemItemChange change = changes.get(0);
+            FileSystemItemChange change = changes.getFirst();
             assertEquals(
                     new SimpleFileSystemItemChange(subFolder.getId(), SECURITY_UPDATED_EVENT, TEST_REPOSITORY,
                             DEFAULT_SYNC_ROOT_FOLDER_ITEM_FACTORY_PREFIX + subFolder.getId(), SUB_FOLDER),
@@ -451,7 +454,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             // Expecting 1 change: securityUpdated for subFolder with a null FileSystemItem and FileSystemItem name
             // since the user cannot access it anymore
             assertEquals(1, changes.size());
-            FileSystemItemChange change = changes.get(0);
+            FileSystemItemChange change = changes.getFirst();
             assertEquals(
                     new SimpleFileSystemItemChange(subFolder.getId(), SECURITY_UPDATED_EVENT, TEST_REPOSITORY,
                             FILE_SYSTEM_ITEM_ID_PREFIX + subFolder.getId(), SUB_FOLDER),
@@ -505,7 +508,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             // Expecting 1 change: securityUpdated for the subfolder with a null FileSystemItem and FileSystemItem name
             // since the user cannot access it anymore
             assertEquals(1, changes.size());
-            FileSystemItemChange change = changes.get(0);
+            FileSystemItemChange change = changes.getFirst();
             SimpleFileSystemItemChange simpleChange = new SimpleFileSystemItemChange(subFolder.getId(),
                     SECURITY_UPDATED_EVENT, TEST_REPOSITORY, FILE_SYSTEM_ITEM_ID_PREFIX + subFolder.getId(),
                     SUB_FOLDER);
@@ -688,7 +691,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(folder1.getId(), ROOT_REGISTERED, TEST_REPOSITORY,
                             DEFAULT_SYNC_ROOT_FOLDER_ITEM_FACTORY_PREFIX + folder1.getId()),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             // Check that root unregistration is detected as a deletion
             nuxeoDriveManager.unregisterSynchronizationRoot(admin, folder1, session);
@@ -706,7 +709,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(folder1.getId(), DELETED_EVENT, TEST_REPOSITORY,
                             FILE_SYSTEM_ITEM_ID_PREFIX + folder1.getId()),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             // Register back the root, it's activity is again detected by the
             // client
@@ -726,7 +729,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(folder1.getId(), ROOT_REGISTERED, TEST_REPOSITORY,
                             DEFAULT_SYNC_ROOT_FOLDER_ITEM_FACTORY_PREFIX + folder1.getId()),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             // Test deletion of a root
             trashService.trashDocument(folder1);
@@ -870,7 +873,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             List<FileSystemItemChange> changes = getChanges();
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(folder1.getId(), DELETED_EVENT),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
         } finally {
             commitAndWaitForAsyncCompletion();
         }
@@ -918,7 +921,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges(user1Session.getPrincipal());
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(subFolder.getId(), DELETED_EVENT),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
         } finally {
             commitAndWaitForAsyncCompletion();
         }
@@ -987,7 +990,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges(session.getPrincipal());
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(doc1.getId(), DOCUMENT_UPDATED),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Remove doc1 from the 'Locally Edited' collection, delete doc2 and add doc 3 to the collection");
             collectionManager.removeFromCollection(locallyEditedCollection, doc1, session);
@@ -1028,7 +1031,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges(session.getPrincipal());
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(locallyEditedCollection.getId(), DELETED_EVENT),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Register the 'Locally Edited' collection back as a sync root");
             nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), locallyEditedCollection, session);
@@ -1042,7 +1045,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             changes = getChanges(session.getPrincipal());
             assertEquals(1, changes.size());
             assertEquals(new SimpleFileSystemItemChange(locallyEditedCollection.getId(), ROOT_REGISTERED),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Delete the 'Locally Edited' collection");
             trashService.trashDocument(locallyEditedCollection);
@@ -1133,12 +1136,15 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         DocumentModel testDoc;
         List<FileSystemItemChange> changes;
         try {
-            log.trace("testFolderishCollection1():"
-                    + "\nCreate a folder with the Collection facet (\"collectionFolder1\") inside a folder (\"folder1\");"
-                    + "\nCreate a folder with the Collection facet (\"collectionFolder2\") inside a folder (\"folder1\");"
-                    + "\nAdd \"folder1\" to the \"collectionFolder2\" collection;"
-                    + "\nCreate a collection \"collectionSyncRoot\" and register it as a synchronization root;"
-                    + "\nCreate a document \"testDoc\" and add it to both collections \"collectionFolder1\" and \"collectionSyncRoot\".\n");
+            log.trace(
+                    """
+                            testFolderishCollection1():
+                              Create a folder with the Collection facet ("collectionFolder1") inside a folder ("folder1");
+                              Create a folder with the Collection facet ("collectionFolder2") inside a folder ("folder1");
+                              Add "folder1" to the "collectionFolder2" collection;
+                              Create a collection "collectionSyncRoot" and register it as a synchronization root;
+                              Create a document "testDoc" and add it to both collections "collectionFolder1" and "collectionSyncRoot".
+                            """);
             DocumentModel collectionFolder1 = session.createDocumentModel(FOLDER_1_PATH, COLLECTION_FOLDER,
                     FOLDERISH_COLLECTION);
             collectionFolder1 = session.createDocument(collectionFolder1);
@@ -1195,12 +1201,15 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         DocumentModel testDoc;
         List<FileSystemItemChange> changes;
         try {
-            log.trace("testFolderishCollection2():"
-                    + "\nCreate a folder with the Collection facet (\"collectionFolder\") inside a folder (\"folder1\");"
-                    + "\nAdd \"folder1\" to the \"collectionFolder\" collection;"
-                    + "\nRegister \"folder1\" as a synchronization root;"
-                    + "\nCreate a collection \"collectionSyncRoot\" and register it as a synchronization root;"
-                    + "\nCreate a document \"testDoc\" and add it to both collections \"collectionFolder\" and \"collectionSyncRoot\".\n");
+            log.trace(
+                    """
+                            testFolderishCollection2():
+                              Create a folder with the Collection facet ("collectionFolder") inside a folder ("folder1");
+                              Add "folder1" to the "collectionFolder" collection;
+                              Register "folder1" as a synchronization root;
+                              Create a collection "collectionSyncRoot" and register it as a synchronization root;
+                              Create a document "testDoc" and add it to both collections "collectionFolder" and "collectionSyncRoot".
+                            """);
             collectionFolder = session.createDocumentModel(FOLDER_1_PATH, COLLECTION_FOLDER, FOLDERISH_COLLECTION);
             collectionFolder = session.createDocument(collectionFolder);
             collectionManager.addToCollection(collectionFolder, folder1, session);
@@ -1265,11 +1274,14 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         DocumentModel testDoc;
         List<FileSystemItemChange> changes;
         try {
-            log.trace("testFolderishCollection3():"
-                    + "\nCreate a folder with the Collection facet (\"collectionFolder\") inside a folder (\"folder1\") and register it as a sycnhronization root;"
-                    + "\nAdd \"folder1\" to the \"collectionFolder\" collection;"
-                    + "\nCreate a collection \"collectionSyncRoot\" and register it as a synchronization root;"
-                    + "\nCreate a document \"testDoc\" and add it to both collections \"collectionFolder\" and \"collectionSyncRoot\".\n");
+            log.trace(
+                    """
+                            testFolderishCollection3():
+                              Create a folder with the Collection facet ("collectionFolder") inside a folder ("folder1") and register it as a sycnhronization root;
+                              Add "folder1" to the "collectionFolder" collection;
+                              Create a collection "collectionSyncRoot" and register it as a synchronization root;
+                              Create a document "testDoc" and add it to both collections "collectionFolder" and "collectionSyncRoot".
+                            """);
             collectionFolder = session.createDocumentModel(FOLDER_1_PATH, COLLECTION_FOLDER, FOLDERISH_COLLECTION);
             collectionFolder = session.createDocument(collectionFolder);
             nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), collectionFolder, session);
@@ -1335,12 +1347,15 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         DocumentModel testDoc;
         List<FileSystemItemChange> changes;
         try {
-            log.trace("testFolderishCollection4():"
-                    + "\nCreate a collection \"collectionSyncRoot1\" and register it as a synchronization root;"
-                    + "\nAdd \"folder1\" to the \"collectionSyncRoot1\" collection;"
-                    + "\nCreate a folder with the Collection facet (\"collectionFolder\") inside (\"folder1\");"
-                    + "\nCreate a collection \"collectionSyncRoot\" and register it as a synchronization root;"
-                    + "\nCreate a document \"testDoc\" and add it to both collections \"collectionFolder\" and \"collectionSyncRoot\".\n");
+            log.trace(
+                    """
+                            testFolderishCollection4():
+                              Create a collection "collectionSyncRoot1" and register it as a synchronization root;
+                              Add "folder1" to the "collectionSyncRoot1" collection;
+                              Create a folder with the Collection facet ("collectionFolder") inside ("folder1");
+                              Create a collection "collectionSyncRoot" and register it as a synchronization root;
+                              Create a document "testDoc" and add it to both collections "collectionFolder" and "collectionSyncRoot".
+                            """);
             collectionSyncRoot1 = collectionManager.createCollection(session, "collectionSyncRoot1", null, "/");
             nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), collectionSyncRoot1, session);
             collectionManager.addToCollection(collectionSyncRoot1, folder1, session);
@@ -1511,7 +1526,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(proxy1.getId(), "documentProxyPublished", TEST_REPOSITORY,
                             DEFAULT_FILE_SYSTEM_ITEM_FACTORY_PREFIX + proxy1.getId(), "doc1"),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
         } finally {
             commitAndWaitForAsyncCompletion();
         }
@@ -1550,7 +1565,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             // - blobDigestUpdated for doc
             changes = getChanges();
             assertEquals(1, changes.size());
-            FileSystemItemChange change = changes.get(0);
+            FileSystemItemChange change = changes.getFirst();
             assertEquals(
                     new SimpleFileSystemItemChange(doc.getId(), "blobDigestUpdated", "test",
                             "defaultFileSystemItemFactory#test#" + doc.getId(), "doc"),
@@ -1598,7 +1613,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(doc.getId(), "documentLocked", TEST_REPOSITORY,
                             DEFAULT_FILE_SYSTEM_ITEM_FACTORY_PREFIX + doc.getId(), "doc"),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
 
             log.trace("Unlock doc");
             session.removeLock(doc.getRef());
@@ -1614,7 +1629,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             assertEquals(
                     new SimpleFileSystemItemChange(doc.getId(), "documentUnlocked", TEST_REPOSITORY,
                             DEFAULT_FILE_SYSTEM_ITEM_FACTORY_PREFIX + doc.getId(), "doc"),
-                    toSimpleFileSystemItemChange(changes.get(0)));
+                    toSimpleFileSystemItemChange(changes.getFirst()));
         } finally {
             commitAndWaitForAsyncCompletion();
         }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@
  */
 package org.nuxeo.drive.operations.test;
 
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.common.utils.IdUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -30,7 +32,6 @@ import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.user.center.profile.UserProfileService;
 import org.nuxeo.runtime.api.Framework;
@@ -103,7 +104,7 @@ public final class NuxeoDriveIntegrationTestsHelper {
         if (results.size() > 1) {
             log.debug("Found more than one domain in repository {}, using first one.", session::getRepositoryName);
         }
-        DocumentModel defaultDomain = results.get(0);
+        DocumentModel defaultDomain = results.getFirst();
         String defaultDomainPath = defaultDomain.getPathAsString();
         log.debug("Using default domain {}", defaultDomainPath);
         return defaultDomainPath;
@@ -122,7 +123,7 @@ public final class NuxeoDriveIntegrationTestsHelper {
     }
 
     public static void waitForAuditIngestion() throws InterruptedException {
-        if (!Framework.getService(AuditLogger.class).await(2, TimeUnit.MINUTES)) {
+        if (!Framework.getService(AuditService.class).await(Duration.ofMinutes(2))) {
             throw new AssertionError("Cannot synch with audi in 2 minutes");
         }
     }

@@ -33,6 +33,6 @@ import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
  */
 @RunWith(ContributableFeaturesRunner.class)
 @SuiteClasses({ AuditChangeFinderTestSuite.class, GroupChangesTestSuite.class })
-public class TestSQLAuditChangeFinder {
+public class TestAuditChangeFinder {
 
 }

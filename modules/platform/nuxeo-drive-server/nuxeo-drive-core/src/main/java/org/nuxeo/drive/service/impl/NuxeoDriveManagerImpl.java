@@ -19,6 +19,7 @@
  */
 package org.nuxeo.drive.service.impl;
 
+import static org.nuxeo.audit.service.AuditComponent.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
 
 import java.io.Serializable;
@@ -67,7 +68,6 @@ import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
@@ -242,11 +242,11 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                     subscriptions.add(subscription);
                 }
                 newRootContainer.setPropertyValue(DRIVE_SUBSCRIPTIONS_PROPERTY, (Serializable) subscriptions);
-                newRootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+                newRootContainer.putContextData(DISABLE_AUDIT_LOGGER, true);
                 newRootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
                 newRootContainer.putContextData(CoreSession.SOURCE, "drive");
                 DocumentModel savedNewRootContainer = session.saveDocument(newRootContainer);
-                newRootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, false);
+                newRootContainer.putContextData(DISABLE_AUDIT_LOGGER, false);
                 newRootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, false);
                 fireEvent(savedNewRootContainer, session, NuxeoDriveEvents.ROOT_REGISTERED, userName);
                 session.save();
@@ -282,11 +282,11 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                     }
                 }
                 rootContainer.setPropertyValue(DRIVE_SUBSCRIPTIONS_PROPERTY, (Serializable) subscriptions);
-                rootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+                rootContainer.putContextData(DISABLE_AUDIT_LOGGER, true);
                 rootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
                 rootContainer.putContextData(CoreSession.SOURCE, "drive");
                 session.saveDocument(rootContainer);
-                rootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, false);
+                rootContainer.putContextData(DISABLE_AUDIT_LOGGER, false);
                 rootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, false);
                 fireEvent(rootContainer, session, NuxeoDriveEvents.ROOT_UNREGISTERED, userName);
                 session.save();
@@ -343,7 +343,7 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
         // Truncate sync date to 0 milliseconds
         syncDate = System.currentTimeMillis();
         syncDate = syncDate - (syncDate % 1000);
-        boolean hasTooManyChanges = Boolean.FALSE;
+        boolean hasTooManyChanges = false;
         int limit = Integer.parseInt(Framework.getProperty(DOCUMENT_CHANGE_LIMIT_PROPERTY, "1000"));
         if (!allRepositories.isEmpty() && lowerBound >= 0 && upperBound > lowerBound) {
             for (String repositoryName : allRepositories) {
@@ -371,7 +371,7 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                             repoCollectionSyncRootMemberIds, lowerBound, upperBound, limit);
                     allChanges.addAll(changes);
                 } catch (TooManyChangesException e) {
-                    hasTooManyChanges = Boolean.TRUE;
+                    hasTooManyChanges = true;
                     allChanges.clear();
                     break;
                 }

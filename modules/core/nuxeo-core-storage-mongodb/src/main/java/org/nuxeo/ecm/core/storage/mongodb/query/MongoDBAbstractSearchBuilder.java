@@ -368,14 +368,15 @@ public abstract class MongoDBAbstractSearchBuilder {
     protected String walkLikeLiteral(String like) {
         // MongoDB native matches are unanchored: optimize the regex for faster matches
         String regex = ExpressionEvaluator.likeToRegex(like);
+        boolean inputHandleStartOrStop = like.startsWith("^") || like.endsWith("$");
         if (regex.startsWith(".*")) {
             regex = regex.substring(2);
-        } else if (likeAnchored) {
+        } else if (likeAnchored && !inputHandleStartOrStop) {
             regex = "^" + regex;
         }
         if (regex.endsWith(".*")) {
             regex = regex.substring(0, regex.length() - 2); // better range index use
-        } else if (likeAnchored) {
+        } else if (likeAnchored && !inputHandleStartOrStop) {
             regex = regex + "$";
         }
         return regex;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,40 @@
  *
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
 package org.nuxeo.drive.service.impl;
+
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
+import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.asc;
+import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.desc;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.and;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.eq;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.gt;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.in;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.lte;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.noteq;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.or;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.startsWith;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.RootlessItemException;
 import org.nuxeo.drive.adapter.impl.AbstractFileSystemItem;
@@ -43,14 +66,15 @@ import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
+import org.nuxeo.ecm.core.query.sql.model.Predicate;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Implementation of {@link FileSystemChangeFinder} using the {@link AuditReader}.
+ * Implementation of {@link FileSystemChangeFinder} using the {@link AuditBackend}.
  *
  * @author Antoine Taillefer
+ * @since 2025.0
+ * @implNote before 2025.0 this finder only handles SQL audit, now it can work with any implementation
  */
 public class AuditChangeFinder implements FileSystemChangeFinder {
 
@@ -214,13 +238,9 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
      * log id range clause in the change query.
      */
     @Override
-    @SuppressWarnings("unchecked")
     public long getUpperBound() {
-        AuditReader auditService = Framework.getService(AuditReader.class);
-        String auditQuery = "from LogEntry log order by log.id desc";
-        log.debug("Querying audit log for greatest id: {}", auditQuery);
-
-        List<LogEntry> entries = (List<LogEntry>) auditService.nativeQuery(auditQuery, 1, 1);
+        var queryBuilder = new AuditQueryBuilder().order(desc(LOG_ID)).limit(1);
+        List<LogEntry> entries = Framework.getService(AuditBackend.class).queryLogs(queryBuilder);
         if (entries.isEmpty()) {
             log.debug("Found no audit log entries, returning -1");
             return -1;
@@ -231,105 +251,49 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
     @SuppressWarnings("unchecked")
     protected List<LogEntry> queryAuditEntries(CoreSession session, SynchronizationRoots activeRoots,
             Set<String> collectionSyncRootMemberIds, long lowerBound, long upperBound, int limit) {
-        AuditReader auditService = Framework.getService(AuditReader.class);
-        // Set fixed query parameters
-        Map<String, Object> params = new HashMap<>();
-        params.put("repositoryId", session.getRepositoryName());
-
-        // Build query and set dynamic parameters
-        StringBuilder auditQuerySb = new StringBuilder("from LogEntry log where ");
-        auditQuerySb.append("log.repositoryId = :repositoryId");
-        auditQuerySb.append(" and ");
-        auditQuerySb.append("(");
-        if (!activeRoots.getPaths().isEmpty()) {
-            // detect changes under the currently active roots for the
-            // current user
-            auditQuerySb.append("(");
-            auditQuerySb.append("log.category = 'eventDocumentCategory'");
-            // TODO: don't hardcode event ids (contribute them?)
-            auditQuerySb.append(
-                    " and (log.eventId = 'documentCreated' or log.eventId = 'documentModified' or log.eventId = 'documentMoved' or log.eventId = 'documentCreatedByCopy' or log.eventId = 'documentRestored' or log.eventId = 'addedToCollection' or log.eventId = 'documentProxyPublished' or log.eventId = 'documentLocked' or log.eventId = 'documentUnlocked' or log.eventId = 'documentUntrashed' or log.eventId = 'blobDigestUpdated')");
-            auditQuerySb.append(") and (");
-            auditQuerySb.append("(");
-            auditQuerySb.append(getCurrentRootFilteringClause(activeRoots.getPaths(), params));
-            auditQuerySb.append(")");
-            if (collectionSyncRootMemberIds != null && !collectionSyncRootMemberIds.isEmpty()) {
-                auditQuerySb.append(" or (");
-                auditQuerySb.append(getCollectionSyncRootFilteringClause(collectionSyncRootMemberIds, params));
-                auditQuerySb.append(")");
-            }
-            auditQuerySb.append(") or ");
+        // build the audit query
+        var isPlatformEventsList = new ArrayList<Predicate>();
+        isPlatformEventsList.add(eq(LOG_CATEGORY, "eventDocumentCategory"));
+        isPlatformEventsList.add(in(LOG_EVENT_ID, "documentCreated", "documentModified", "documentMoved",
+                "documentCreatedByCopy", "documentRestored", "addedToCollection", "documentProxyPublished",
+                "documentLocked", "documentUnlocked", "documentUntrashed", "blobDigestUpdated"));
+        // handle active roots & collection sync root members
+        var isRootList = activeRoots.getPaths()
+                                    .stream()
+                                    .map(path -> startsWith(LOG_DOC_PATH, path))
+                                    .collect(Collectors.toCollection(ArrayList::new));
+        if (!collectionSyncRootMemberIds.isEmpty()) {
+            isRootList.add(in(LOG_DOC_UUID, collectionSyncRootMemberIds));
         }
-        // Detect any root (un-)registration changes for the roots previously
-        // seen by the current user.
-        // Exclude 'rootUnregistered' since root unregistration is covered by a
-        // "deleted" virtual event.
-        auditQuerySb.append("(");
-        auditQuerySb.append("log.category = '");
-        auditQuerySb.append(NuxeoDriveEvents.EVENT_CATEGORY);
-        auditQuerySb.append("' and log.eventId != 'rootUnregistered'");
-        auditQuerySb.append(")");
-        auditQuerySb.append(") and (");
-        auditQuerySb.append(getJPARangeClause(lowerBound, upperBound, params));
-        // we intentionally sort by eventDate even if the range filtering is
-        // done on the log id: eventDate is useful to reflect the ordering of
-        // events occurring inside the same transaction while the
-        // monotonic behavior of log id is useful for ensuring that consecutive
-        // range queries to the audit won't miss any events even when long
-        // running transactions are logged after a delay.
-        auditQuerySb.append(") order by log.repositoryId asc, log.eventDate desc");
-        String auditQuery = auditQuerySb.toString();
+        if (!isRootList.isEmpty()) {
+            isPlatformEventsList.add(or(isRootList));
+        }
+        var isPlatformEvents = and(isPlatformEventsList);
+        var isDriveEvents = and(eq(LOG_CATEGORY, "NuxeoDrive"), noteq(LOG_EVENT_ID, "rootUnregistered"));
+        var queryBuilder = new AuditQueryBuilder().predicate(eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
+                                                  // interesting events
+                                                  .and(or(isPlatformEvents, isDriveEvents))
+                                                  // id range
+                                                  .and(and(gt(LOG_ID, lowerBound), lte(LOG_ID, upperBound)))
+                                                  // is current user
+                                                  // TODO search in extended
+                                                  // .and(Predicates.or(Predicates.isnull("extended.impactedUserName"),
+                                                  // Predicates.eq("extended.impactedUserName",
+                                                  // session.getPrincipal().getName())))
+                                                  .order(asc(LOG_REPOSITORY_ID))
+                                                  .order(desc(LOG_EVENT_DATE))
+                                                  .limit(limit);
+        log.debug("Querying audit log for changes: {}", queryBuilder);
+        var auditBackend = Framework.getService(AuditBackend.class);
+        var entries = auditBackend.queryLogs(queryBuilder);
 
-        log.debug("Querying audit log for changes: {} with params: {}", auditQuery, params);
-
-        List<LogEntry> entries = (List<LogEntry>) auditService.nativeQuery(auditQuery, params, 1, limit);
-
-        // Post filter the output to remove (un)registration that are unrelated
-        // to the current user.
-        List<LogEntry> postFilteredEntries = new ArrayList<>();
+        // Post filter the output to remove (un)registration that are unrelated to the current user.
         String principalName = session.getPrincipal().getName();
-        for (LogEntry entry : entries) {
-            String impactedUser = entry.getExtendedValue("impactedUserName");
-            if (!principalName.equals(impactedUser)) {
-                // ignore event that only impact other users
-                continue;
-            }
-            log.debug("Change detected: {}", entry);
-            postFilteredEntries.add(entry);
-        }
-        return postFilteredEntries;
-    }
-
-    protected String getCurrentRootFilteringClause(Set<String> rootPaths, Map<String, Object> params) {
-        StringBuilder rootPathClause = new StringBuilder();
-        int rootPathCount = 0;
-        for (String rootPath : rootPaths) {
-            rootPathCount++;
-            String rootPathParam = "rootPath" + rootPathCount;
-            if (!rootPathClause.isEmpty()) {
-                rootPathClause.append(" or ");
-            }
-            rootPathClause.append(String.format("log.docPath like :%s", rootPathParam));
-            params.put(rootPathParam, rootPath + '%');
-
-        }
-        return rootPathClause.toString();
-    }
-
-    protected String getCollectionSyncRootFilteringClause(Set<String> collectionSyncRootMemberIds,
-            Map<String, Object> params) {
-        String paramName = "collectionMemberIds";
-        params.put(paramName, collectionSyncRootMemberIds);
-        return String.format("log.docUUID in (:%s)", paramName);
-    }
-
-    /**
-     * Using event log id to ensure consistency, see https://jira.nuxeo.com/browse/NXP-14826.
-     */
-    protected String getJPARangeClause(long lowerBound, long upperBound, Map<String, Object> params) {
-        params.put("lowerBound", lowerBound);
-        params.put("upperBound", upperBound);
-        return "log.id > :lowerBound and log.id <= :upperBound";
+        return entries.stream()
+                      .filter(entry -> entry.getExtendedValue("impactedUserName") == null
+                              || principalName.equals(entry.getExtendedValue("impactedUserName")))
+                      .peek(entry -> log.debug("Change detected: {}", entry))
+                      .toList();
     }
 
     protected FileSystemItemChange getFileSystemItemChange(CoreSession session, DocumentRef docRef, LogEntry entry,
@@ -373,5 +337,4 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         return new FileSystemItemChangeImpl(entry.getEventId(), entry.getEventDate().getTime(), entry.getRepositoryId(),
                 entry.getDocUUID(), fsItem);
     }
-
 }

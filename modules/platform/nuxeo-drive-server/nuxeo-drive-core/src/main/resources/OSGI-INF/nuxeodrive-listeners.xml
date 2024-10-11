@@ -79,7 +79,7 @@
 
   </extension>
 
-  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
     <event name="rootRegistered" />
     <event name="rootUnregistered" />
   </extension>
