@@ -45,6 +45,7 @@ import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.NodesRegistrationManagement;
 import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
+import org.keycloak.common.util.KeycloakUriBuilder;
 import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
@@ -123,13 +124,15 @@ public class KeycloakAuthenticatorProvider {
         return resolvedDeployment;
     }
 
+    protected KeycloakUriBuilder logoutQueryParam(KeycloakUriBuilder builder, String redirectTo, String idTokenHint) {
+        return builder.replaceQueryParam(POST_LOGOUT_REDIRECT_URI_PARAM, redirectTo)
+                      .replaceQueryParam(ID_TOKEN_HINT_PARAM, idTokenHint);
+    }
+
     protected String getLogoutUri(Request request) {
+        KeycloakUriBuilder builder = resolvedDeployment.getLogoutUrl();
         String redirectTo = VirtualHostHelper.getBaseURL(request) + LoginScreenHelper.getStartupPagePath();
-        return resolvedDeployment.getLogoutUrl()
-                                 .queryParam(POST_LOGOUT_REDIRECT_URI_PARAM, redirectTo)
-                                 .queryParam(ID_TOKEN_HINT_PARAM, getIdTokenHint())
-                                 .build()
-                                 .toString();
+        return logoutQueryParam(builder, redirectTo, getIdTokenHint()).build().toString();
     }
 
     protected String getIdTokenHint() {
