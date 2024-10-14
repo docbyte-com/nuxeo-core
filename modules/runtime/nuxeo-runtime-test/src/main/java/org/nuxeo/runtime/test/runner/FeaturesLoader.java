@@ -122,10 +122,11 @@ class FeaturesLoader {
         var dynamicFeaturesLoader = new DynamicFeaturesLoader();
         // instantiate the feature and store it in the loader context
         Holder actual = new Holder(clazz, instantiateFeature(clazz, dynamicFeaturesLoader));
-        holders.add(actual);
-        index.put(clazz, actual);
         // load the features added dynamically
         dynamicFeaturesLoader.features.forEach(ThrowableConsumer.asConsumer(f -> loadFeature(cycles, f)));
+        // finally fill loader state
+        holders.add(actual);
+        index.put(clazz, actual);
     }
 
     protected RunnerFeature instantiateFeature(Class<? extends RunnerFeature> clazz,
