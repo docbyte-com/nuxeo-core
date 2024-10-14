@@ -46,6 +46,7 @@ import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.NodesRegistrationManagement;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.common.crypto.CryptoIntegration;
+import org.keycloak.common.util.KeycloakUriBuilder;
 import org.keycloak.representations.AccessToken;
 import org.mockito.Matchers;
 import org.mockito.Mockito;
@@ -62,6 +63,8 @@ import org.nuxeo.usermapper.test.UserMapperFeature;
 @Deploy("org.nuxeo.ecm.platform.login.keycloak.test:OSGI-INF/keycloak-descriptor-bundle.xml")
 @LoggerLevel(klass = NodesRegistrationManagement.class, level = "FATAL") // hide "failed to register node to keycloak"
 public class TestKeycloakAuthenticationPlugin {
+
+    protected static final String KEYCLOAK_URL = "https://example.com/auth/realms/demo/protocol/openid-connect/";
 
     private KeycloakRequestAuthenticator authenticatorMock = Mockito.mock(KeycloakRequestAuthenticator.class);
 
@@ -166,8 +169,7 @@ public class TestKeycloakAuthenticationPlugin {
         Mockito.verify(responseMock).setStatus(302);
         Mockito.verify(responseMock)
                .setHeader(Matchers.matches("Location"),
-                       Matchers.startsWith("https://example.com/auth/realms/demo/protocol/openid-connect/auth?"
-                               + "response_type=code&" + "client_id=customer-portal&"
+                       Matchers.startsWith(KEYCLOAK_URL + "auth?" + "response_type=code&" + "client_id=customer-portal&"
                                + "redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fpath%2Fto%2Fresource"));
     }
 
@@ -190,8 +192,29 @@ public class TestKeycloakAuthenticationPlugin {
         assertNotNull(result);
         assertEquals(true, result);
 
-        String location = "https://example.com/auth/realms/demo/protocol/openid-connect/logout?post_logout_redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fhome.html&id_token_hint=wink";
+        String location = KEYCLOAK_URL
+                + "logout?post_logout_redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fhome.html&id_token_hint=wink";
         Mockito.verify(responseMock).sendRedirect(location);
+    }
+
+    @Test
+    public void testKeycloakLogoutQueryParams() {
+        KeycloakAuthenticationPlugin keycloakAuthenticationPlugin = new KeycloakAuthenticationPlugin();
+        initPlugin(keycloakAuthenticationPlugin);
+
+        KeycloakUriBuilder builder = KeycloakUriBuilder.fromUri(KEYCLOAK_URL + "logout");
+        String logoutUri = keycloakAuthenticationPlugin.keycloakAuthenticatorProvider.logoutQueryParam(builder,
+                "https://example.com/foo/home.html", "wink").build().toString();
+        assertEquals(KEYCLOAK_URL
+                + "logout?post_logout_redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fhome.html&id_token_hint=wink",
+                logoutUri);
+
+        // simulate logout a second time
+        logoutUri = keycloakAuthenticationPlugin.keycloakAuthenticatorProvider.logoutQueryParam(builder,
+                "https://example.com/foo/home.html", "wink").build().toString();
+        assertEquals(KEYCLOAK_URL
+                + "logout?post_logout_redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fhome.html&id_token_hint=wink",
+                logoutUri);
     }
 
     private KeycloakAuthenticationPlugin initPlugin(KeycloakAuthenticationPlugin keycloakAuthenticationPlugin) {
