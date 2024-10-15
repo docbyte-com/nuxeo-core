@@ -3756,7 +3756,7 @@
       <dependency>
         <groupId>org.apache.xbean</groupId>
         <artifactId>xbean-naming</artifactId>
-        <version>4.25</version>
+        <version>4.26</version>
       </dependency>
 
       <dependency>
