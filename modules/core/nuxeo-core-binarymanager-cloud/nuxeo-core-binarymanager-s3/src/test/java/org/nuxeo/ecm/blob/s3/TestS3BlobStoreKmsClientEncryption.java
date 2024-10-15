@@ -56,12 +56,14 @@ public class TestS3BlobStoreKmsClientEncryption extends TestAbstractBlobStore {
         return false;
     }
 
+    @Test
     @Override
     @RandomBug.Repeat(issue = "NXP-32924", onFailure = 10, onSuccess = 30)
     public void testCopy() throws IOException {
         super.testCopy();
     }
 
+    @Test
     @Override
     @RandomBug.Repeat(issue = "NXP-32924", onFailure = 10, onSuccess = 30)
     public void testMove() throws IOException {
