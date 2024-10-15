@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.audit.service.AuditComponent.defaultContrib">
 
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
+    <backend name="default" factory="${nuxeo.audit.backend.default.factory:=}" />
+  </extension>
+
   <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
     <documentation>
       Those default auditable events match Nuxeo core base events.

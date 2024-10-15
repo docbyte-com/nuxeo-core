@@ -18,6 +18,9 @@
  */
 package org.nuxeo.audit.opensearch1;
 
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERTY;
+import static org.nuxeo.audit.opensearch1.OpenSearchAuditFeature.AUDIT_BACKEND_FACTORY;
+
 import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
@@ -27,6 +30,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2025.0
@@ -35,7 +39,11 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.audit.opensearch1")
 @Deploy("org.nuxeo.audit.opensearch1.test")
 @Features({ AuditCoreFeature.class, OpenSearchFeature.class })
+@WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = AUDIT_BACKEND_FACTORY)
 public class OpenSearchAuditFeature implements RunnerFeature {
+
+    public static final String AUDIT_BACKEND_FACTORY = "org.nuxeo.audit.opensearch1.OpenSearchAuditBackendFactory";
+
     @Override
     public void initialize(FeaturesRunner runner) {
         runner.getFeature(TransactionalFeature.class).addWaiter(duration -> {

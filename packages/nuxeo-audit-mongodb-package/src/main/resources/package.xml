@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package type="addon" name="nuxeo-audit-mongodb" version="@VERSION@">
+  <title>Audit MongoDB Backend</title>
+  <description>
+    This package sets up MongoDB as a backend for audit logs.
+  </description>
+  <vendor>Nuxeo</vendor>
+  <target-platform>
+    <name>@DISTRIBUTION_NAME@</name>
+    <version>@VERSION@</version>
+  </target-platform>
+  <license>Apache 2.0</license>
+  <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+</package>

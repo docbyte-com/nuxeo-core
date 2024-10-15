@@ -27,7 +27,6 @@
     <link name="jdbc/nxsqldirectory" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/nxrelations-default-jena" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/comment-relations" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
-    <link name="jdbc/nxaudit-logs" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/nxjbpm" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/placeful_service_ds" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/nxwebwidgets" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />

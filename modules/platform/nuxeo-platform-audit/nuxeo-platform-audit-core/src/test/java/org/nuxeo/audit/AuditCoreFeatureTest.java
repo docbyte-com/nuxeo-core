@@ -19,22 +19,28 @@
 package org.nuxeo.audit;
 
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_FACTORY;
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERTY;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
 @Features(AuditCoreFeature.class)
-// audit core requires to have an audit backend in order to start
-@Deploy("org.nuxeo.ecm.platform.audit.tests:OSGI-INF/mem-audit-backend-factory-test-contrib.xml")
+// audit core requires to have an audit backend in order to start - at server level this is configured in templates
+@WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = DEFAULT_AUDIT_BACKEND_FACTORY)
 public class AuditCoreFeatureTest {
+
+    public static final String DEFAULT_AUDIT_BACKEND_PROPERTY = "nuxeo.audit.backend.default.factory";
+
+    public static final String DEFAULT_AUDIT_BACKEND_FACTORY = "org.nuxeo.audit.mem.MemAuditBackendFactory";
 
     @Test
     public void testRuntimeStarted() {

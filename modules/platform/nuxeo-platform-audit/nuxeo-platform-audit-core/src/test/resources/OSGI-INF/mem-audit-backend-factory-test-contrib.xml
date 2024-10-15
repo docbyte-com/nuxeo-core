@@ -1,8 +1,0 @@
-<?xml version="1.0"?>
-<component name="org.nuxeo.audit.mem.backend.test.contrib">
-
-  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
-    <backend name="default" factory="org.nuxeo.audit.mem.MemAuditBackendFactory" />
-  </extension>
-
-</component>

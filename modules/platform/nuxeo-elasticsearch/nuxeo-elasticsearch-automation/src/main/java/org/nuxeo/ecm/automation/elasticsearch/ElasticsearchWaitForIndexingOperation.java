@@ -52,7 +52,7 @@ public class ElasticsearchWaitForIndexingOperation {
     /**
      * @since 9.10
      */
-    public static final String AUDIT_ELASTICSEARCH_ENABLED = "audit.elasticsearch.enabled";
+    public static final String AUDIT_OPENSEARCH_ENABLED = "nuxeo.audit.backend.default.opensearch1.enabled";
 
     @Context
     protected ElasticSearchAdmin esa;
@@ -77,7 +77,7 @@ public class ElasticsearchWaitForIndexingOperation {
         long start = System.currentTimeMillis();
         WorkManager workManager = Framework.getService(WorkManager.class);
         var auditService = Framework.getService(AuditService.class);
-        boolean waitForAuditStoredInEs = waitForAudit && Framework.isBooleanPropertyTrue(AUDIT_ELASTICSEARCH_ENABLED);
+        boolean waitForAuditStoredInEs = waitForAudit && Framework.isBooleanPropertyTrue(AUDIT_OPENSEARCH_ENABLED);
         try {
             if (!workManager.awaitCompletion(timeout, TimeUnit.SECONDS)) {
                 throw new TimeoutException();

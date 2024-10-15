@@ -119,7 +119,7 @@ public class OpenSearchAuditBackend extends AbstractAuditBackend {
     public static final String SEQ_NAME = "audit";
 
     // @since 2021.21
-    protected static final String AUDIT_LATEST_LOG_ID_AFTER_DATE_PROP = "audit.elasticsearch.latestLogId.afterDate";
+    protected static final String AUDIT_LATEST_LOG_ID_AFTER_DATE_PROP = "nuxeo.audit.opensearch1.latestLogId.afterDate";
 
     protected final OpenSearchClient client;
 

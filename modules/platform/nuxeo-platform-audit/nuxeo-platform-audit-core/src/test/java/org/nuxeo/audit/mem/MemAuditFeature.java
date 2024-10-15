@@ -18,15 +18,18 @@
  */
 package org.nuxeo.audit.mem;
 
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_FACTORY;
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERTY;
+
 import org.nuxeo.audit.AuditCoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.platform.audit.tests:OSGI-INF/mem-audit-backend-factory-test-contrib.xml")
+@WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = DEFAULT_AUDIT_BACKEND_FACTORY)
 @Features(AuditCoreFeature.class)
 public class MemAuditFeature implements RunnerFeature {
 }

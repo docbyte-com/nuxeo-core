@@ -79,6 +79,11 @@ mail.user=nobody
 mail.debug=false
 mail.from=noreply@nuxeo.com
 
+#######
+# Audit
+#######
+nuxeo.audit.backend.default.factory=org.nuxeo.audit.mem.MemAuditBackendFactory
+
 nuxeo.core.binarymanager=org.nuxeo.ecm.core.blob.LocalBlobProvider
 nuxeo.core.binarymanager_key=
 nuxeo.quartz.enable=false
@@ -140,16 +145,6 @@ elasticsearch.indexing.clearCompletedAfterSeconds=90
 elasticsearch.adminCenter.displayClusterInfo=false
 # Reindex the repository content on startup if the index is empty
 elasticsearch.reindex.onStartup=false
-# Use Elasticsearch as a backend for audit logs
-audit.elasticsearch.enabled=false
-# Name of the Elasticsearch index for audit logs
-audit.elasticsearch.indexName=${elasticsearch.indexName}-audit
-# Migrate audit logs from SQL storage to Elasticsearch indexing, requires audit.elasticsearch.enabled=true
-audit.elasticsearch.migration=false
-# Batch size for audit logs migration, only useful with audit.elasticsearch.migration=true
-audit.elasticsearch.migration.batchSize=1000
-# Improve performance on getLatestLogId limiting events to the past 2 weeks, using elastic date syntax
-audit.elasticsearch.latestLogId.afterDate=now-14d/d
 # Refresh interval for the health check
 nuxeo.healthcheck.refresh.interval.seconds=20
 # Default request durability means that Elasticsearch is doing one fsync per request. With async durability it is one fsync every 5s.

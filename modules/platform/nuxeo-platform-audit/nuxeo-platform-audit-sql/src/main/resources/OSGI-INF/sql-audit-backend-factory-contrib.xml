@@ -10,10 +10,6 @@
     </hibernateConfiguration>
   </extension>
 
-  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
-    <backend name="default" factory="org.nuxeo.audit.sql.SQLAuditBackendFactory" />
-  </extension>
-
   <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
     <event name="search" enabled="false" />
   </extension>

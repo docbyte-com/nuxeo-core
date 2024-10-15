@@ -30,6 +30,21 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-mongodb-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-sql-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
       <artifactId>nuxeo-audit-storage-directory-package</artifactId>
       <type>zip</type>
     </dependency>

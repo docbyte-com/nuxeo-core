@@ -68,8 +68,4 @@
              clientId="audit/default"  indexName="${nuxeo.audit.backend.default.opensearch1.index.name:=audit}" />
   </extension>
 
-  <extension target="org.nuxeo.audit.service.AuditComponent" point="backendFactory">
-    <backend name="default" factory="org.nuxeo.audit.opensearch1.OpenSearchAuditBackendFactory" />
-  </extension>
-
 </component>

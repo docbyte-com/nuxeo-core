@@ -18,12 +18,16 @@
  */
 package org.nuxeo.audit.mongodb;
 
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERTY;
+import static org.nuxeo.audit.mongodb.MongoDBAuditFeature.AUDIT_BACKEND_FACTORY;
+
 import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.mongodb.MongoDBFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 9.1
@@ -34,5 +38,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.mongodb.audit")
 @Deploy("org.nuxeo.mongodb.audit.test")
 @Features({ AuditCoreFeature.class, MongoDBFeature.class, CoreFeature.class })
+@WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = AUDIT_BACKEND_FACTORY)
 public class MongoDBAuditFeature implements RunnerFeature {
+
+    public static final String AUDIT_BACKEND_FACTORY = "org.nuxeo.audit.mongodb.MongoDBAuditBackendFactory";
 }

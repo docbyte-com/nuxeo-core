@@ -16,6 +16,9 @@
     <module>nuxeo-3d-package</module>
     <module>nuxeo-adobe-connector-package</module>
     <module>nuxeo-amazon-s3-package</module>
+    <module>nuxeo-audit-mongodb-package</module>
+    <module>nuxeo-audit-opensearch1-package</module>
+    <module>nuxeo-audit-sql-package</module>
     <module>nuxeo-audit-storage-directory-package</module>
     <module>nuxeo-cas2-login-package</module>
     <module>nuxeo-csv-package</module>

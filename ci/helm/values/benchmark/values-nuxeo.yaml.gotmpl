@@ -54,7 +54,7 @@ customProperties:
     metrics.datadog.host=${env:DD_AGENT_HOST}
     metrics.datadog.port=8125
 {{- if eq (env "INSTALL_NEEDED_PACKAGES") "true" }}
-packages: amazon-s3-online-storage nuxeo-platform-importer nuxeo-web-ui
+packages: amazon-s3-online-storage nuxeo-audit-opensearch1 nuxeo-platform-importer nuxeo-web-ui
 {{- end }}
 extraVolumeMounts:
 - name: log4j2-launcher
