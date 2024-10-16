@@ -38,6 +38,7 @@
     <module>nuxeo-multi-tenant-package</module>
     <module>nuxeo-mysql-package</module>
     <module>nuxeo-openid-login-package</module>
+    <module>nuxeo-opensearch1-embed-package</module>
     <module>nuxeo-oracle-package</module>
     <module>nuxeo-quota-package</module>
     <module>nuxeo-saml2-login-package</module>

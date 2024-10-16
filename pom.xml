@@ -2071,6 +2071,12 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-opensearch1-embed-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
         <artifactId>nuxeo-oracle-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
