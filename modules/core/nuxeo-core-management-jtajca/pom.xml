@@ -24,10 +24,6 @@
       <artifactId>metrics-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>jakarta.inject</groupId>
-      <artifactId>jakarta.inject-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.javasimon</groupId>
       <artifactId>javasimon-core</artifactId>
     </dependency>
@@ -71,6 +67,12 @@
     <dependency>
       <groupId>com.datadoghq</groupId>
       <artifactId>dd-trace-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
