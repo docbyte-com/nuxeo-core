@@ -147,13 +147,6 @@ public interface ElasticSearchAdmin {
     void syncSearchAndWriteAlias(String searchIndexName);
 
     /**
-     * Returns true if there are indexing activities scheduled or running.
-     *
-     * @since 5.9.5
-     */
-    boolean isIndexingInProgress();
-
-    /**
      * A {@link java.util.concurrent.Future} that accepts callback on completion when all the indexing worker are done.
      *
      * @since 7.2
@@ -214,28 +207,6 @@ public interface ElasticSearchAdmin {
      * @since 7.3
      */
     void optimizeIndex(String indexName);
-
-    /**
-     * Returns the number of indexing worker scheduled waiting to be executed.
-     *
-     * @since 7.1
-     */
-    long getPendingWorkerCount();
-
-    /**
-     * Returns the number of indexing worker that are currently running.
-     *
-     * @since 7.1
-     */
-    long getRunningWorkerCount();
-
-    /**
-     * Returns the total number of command processed by Elasticsearch for this Nuxeo instance. Useful for test
-     * assertion.
-     *
-     * @since 5.9.4
-     */
-    int getTotalCommandProcessed();
 
     /**
      * When true use an external version for Elasticsearch document, this enable an optimistic concurrency control

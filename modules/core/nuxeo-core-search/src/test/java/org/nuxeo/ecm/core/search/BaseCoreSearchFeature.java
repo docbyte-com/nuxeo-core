@@ -69,6 +69,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     // Helper methods
     // --------------
 
+    public static void forceRefresh() {
+        Framework.getService(SearchIndexingService.class)
+                 .refresh(Framework.getService(SearchService.class).getDefaultSearchIndex());
+    }
+
     public static void assertNotIndexed(String documentId) {
         assertNotIndexed(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId);
     }

@@ -42,7 +42,9 @@ import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.api.model.PropertyConversionException;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.search.index.IndexingAction;
+import org.nuxeo.ecm.core.search.index.IndexingBackgroundAction;
 import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 import org.nuxeo.ecm.core.search.index.IndexingProcessor;
 import org.nuxeo.lib.stream.log.Name;
@@ -66,6 +68,8 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
     protected static final String SELECT_DOCUMENTS_IN = "SELECT * FROM Document WHERE ecm:uuid IN ('%s')";
+
+    protected static final String NXQL_ALL_DOCUMENTS = "SELECT * FROM Document";
 
     protected final Map<String, SearchClient> searchClients = new HashMap<>();
 
@@ -258,6 +262,37 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String reindexRepository(String repository) {
+        log.debug("Reindexing repository: {}", repository);
+        BulkService bulkService = Framework.getService(BulkService.class);
+        var searchIndexes = getSearchIndexForRepository(repository);
+        searchIndexes.forEach(searchIndex -> getClient(searchIndex.client()).dropAndInitIndex(searchIndex.index()));
+        String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME,
+                NXQL_ALL_DOCUMENTS, SYSTEM_USERNAME).repository(repository).build());
+        log.warn("Reindexing repository: {}, with bulk command: {} on indexes: {}", repository, commandId,
+                searchIndexes);
+        return commandId;
+    }
+
+    @Override
+    public String reindexDocuments(String repository, String nxql) {
+        log.debug("Reindexing repository: {} with nxql: {}", repository, nxql);
+        BulkService bulkService = Framework.getService(BulkService.class);
+        String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
+                nxql, SYSTEM_USERNAME).repository(repository).build());
+        var searchIndexes = getSearchIndexForRepository(repository);
+        log.warn("Reindexing documents on repository: {} using {}, with bulk command: {} on indexes: {}", repository,
+                nxql, commandId, searchIndexes);
+        return commandId;
+    }
+
+    @Override
+    public void refresh(SearchIndex index) {
+        log.debug("Refreshing index: {}", index);
+        getClient(index.client()).refresh(index.index());
     }
 
     @Override

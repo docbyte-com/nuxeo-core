@@ -65,6 +65,11 @@ public interface SearchClient extends AutoCloseable {
     void indexDocuments(BulkIndexingRequest request) throws SearchClientRetryableException;
 
     /**
+     * Refreshes an index so newly indexed documents are searchable.
+     */
+    void refresh(String indexName);
+
+    /**
      * Returns a Json document representation or null if not found.
      */
     String getDocument(String indexName, String documentId);

@@ -6,8 +6,7 @@
 
   <documentation>@author Bogdan Stefanescu (bs@nuxeo.com)</documentation>
 
-  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent"
-    point="operations">
+  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="operations">
 
     <operation class="org.nuxeo.ecm.automation.core.operations.services.query.DocumentPaginatedQuery">
       <widgets>
@@ -170,13 +169,14 @@
     <operation class="org.nuxeo.ecm.automation.core.operations.services.MetricsStart" />
     <operation class="org.nuxeo.ecm.automation.core.operations.services.MetricsStop" />
 
+    <operation class="org.nuxeo.ecm.automation.core.operations.services.search.SearchIndexOperation" />
+    <operation class="org.nuxeo.ecm.automation.core.operations.services.search.SearchWaitForIndexingOperation" />
+
   </extension>
 
-  <extension point="chains"
-    target="org.nuxeo.ecm.core.operation.OperationServiceComponent">
+  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="chains">
     <chain id="VersionAndAttachFile">
-      <operation id="Context.PushBlobList">
-      </operation>
+      <operation id="Context.PushBlobList" />
       <operation id ="Repository.GetDocument">
         <param type="string" name="value">expr:Context.get("currentDocument")</param>
       </operation>
@@ -191,8 +191,7 @@
         <param type="string" name="name">currentDocument</param>
         <param type="string" name="value">expr:Context.get("newDocument").id</param>
       </operation>
-      <operation id="Context.PopBlobList">
-      </operation>
+      <operation id="Context.PopBlobList" />
       <operation id="BlobHolder.AttachOnCurrentDocument">
         <param type="boolean" name="useMainBlob">true</param>
       </operation>
@@ -203,8 +202,7 @@
       </operation>
     </chain>
     <chain id="VersionAndAttachFiles">
-      <operation id="Context.PushBlobList">
-      </operation>
+      <operation id="Context.PushBlobList" />
       <operation id ="Repository.GetDocument">
         <param type="string" name="value">expr:Context.get("currentDocument")</param>
       </operation>
@@ -219,8 +217,7 @@
         <param type="string" name="name">currentDocument</param>
         <param type="string" name="value">expr:Context.get("newDocument").id</param>
       </operation>
-      <operation id="Context.PopBlobList">
-      </operation>
+      <operation id="Context.PopBlobList" />
       <operation id="BlobHolder.AttachOnCurrentDocument">
         <param type="boolean" name="useMainBlob">false</param>
       </operation>

@@ -62,7 +62,7 @@ object NuxeoBulk {
   def reindexAll = () => {
     exitBlockOnFail (
       http("Submit Reindex")
-        .post(Constants.AUTOMATION_PATH + "/Elasticsearch.BulkIndex")
+        .post(Constants.AUTOMATION_PATH + "/Search.Index")
         .basicAuth("#{adminId}", "#{adminPassword}")
         .headers(Headers.base)
         .header("content-type", "application/json")

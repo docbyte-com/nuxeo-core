@@ -132,6 +132,11 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
         }
     }
 
+    @Override
+    public void refresh(String indexName) {
+        client.refresh(indexName);
+    }
+
     protected void doRecurseDelete(String indexName, QueryBuilder queryBuilder) throws SearchClientRetryableException {
         log.debug("delete recurse: {}", queryBuilder);
         try {

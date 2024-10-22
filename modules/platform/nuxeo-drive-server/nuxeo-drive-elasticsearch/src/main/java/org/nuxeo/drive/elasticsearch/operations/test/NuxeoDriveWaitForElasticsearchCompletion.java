@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-204 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
-import org.nuxeo.ecm.automation.elasticsearch.ElasticsearchWaitForIndexingOperation;
+import org.nuxeo.ecm.automation.core.operations.services.search.SearchWaitForIndexingOperation;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -50,7 +50,7 @@ public class NuxeoDriveWaitForElasticsearchCompletion {
         Map<String, Serializable> params = new HashMap<>();
         params.put("refresh", true);
         params.put("waitForAudit", true);
-        Framework.getService(AutomationService.class).run(ctx, ElasticsearchWaitForIndexingOperation.ID, params);
+        Framework.getService(AutomationService.class).run(ctx, SearchWaitForIndexingOperation.ID, params);
     }
 
 }

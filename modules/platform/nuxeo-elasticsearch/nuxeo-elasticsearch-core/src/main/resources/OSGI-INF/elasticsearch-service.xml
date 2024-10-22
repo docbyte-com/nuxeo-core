@@ -5,7 +5,6 @@
 
   <service>
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchService" />
-    <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchIndexing" />
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchAdmin" />
   </service>
 
@@ -51,20 +50,6 @@
 
     <object class="org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig" />
   </extension-point>
-
-  <extension-point name="elasticSearchDocWriter">
-    <documentation>
-      Extension point used to setup the writer used when a document is indexed.
-      Must extend the IndexingJsonWriter class.
-
-      <code>
-        <writer class="org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter" />
-      </code>
-
-    </documentation>
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchDocWriterDescriptor" />
-  </extension-point>
-
 
   <extension-point name="elasticSearchHints">
     <documentation>

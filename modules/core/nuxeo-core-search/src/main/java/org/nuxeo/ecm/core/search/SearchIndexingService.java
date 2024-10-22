@@ -33,6 +33,25 @@ public interface SearchIndexingService {
     void indexDocuments(BulkIndexingRequest request);
 
     /**
+     * Internal: reindex the repository
+     *
+     * @return the bulk command id in charge of reindexing
+     */
+    String reindexRepository(String repository);
+
+    /**
+     * Internal: reindex documents of the given  repository according to the given NXQL query.
+     *
+     * @return the bulk command id in charge of reindexing
+     */
+    String reindexDocuments(String repository, String nxql);
+
+    /**
+     * Refreshes an index so newly indexed documents are searchable.
+     */
+    void refresh(SearchIndex index);
+
+    /**
      * Internal: Gets a given search client.
      */
     SearchClient getClient(String clientName);

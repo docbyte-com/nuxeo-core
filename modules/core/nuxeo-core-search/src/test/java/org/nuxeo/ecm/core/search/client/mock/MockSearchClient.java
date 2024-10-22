@@ -76,7 +76,7 @@ public class MockSearchClient extends AbstractSearchClient {
 
     @Override
     public void dropAndInitIndex(String indexName) {
-
+        dropIndex(indexName);
     }
 
     @Override
@@ -108,6 +108,11 @@ public class MockSearchClient extends AbstractSearchClient {
                 indexTime.put(key, now);
             }
         }
+    }
+
+    @Override
+    public void refresh(String indexName) {
+        log.debug("Refresh: {}", indexName);
     }
 
     protected String getPathFromDoc(String doc) {

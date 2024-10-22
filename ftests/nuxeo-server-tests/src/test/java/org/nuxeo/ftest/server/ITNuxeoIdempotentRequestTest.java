@@ -20,7 +20,6 @@ package org.nuxeo.ftest.server;
 
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_NO_CONTENT;
-import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.nuxeo.ecm.platform.web.common.idempotency.NuxeoIdempotentFilter.HEADER_KEY;
@@ -91,18 +90,11 @@ public class ITNuxeoIdempotentRequestTest {
      * Prevents from random failures when counting children.
      */
     protected void waitForAsyncWork() {
-        String entity = """
-                {
-                  "params": {
-                    "timeoutSecond": 110,
-                    "refresh": true,
-                    "waitForBulkService": true
-                  }
-                }
-                """;
-        httpClient.buildPostRequest("/automation/Elasticsearch.WaitForIndexing")
-                  .entity(entity)
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        httpClient.buildPostRequest("/management/search/wait")
+                  .addQueryParameter("timeoutSecond", "110")
+                  .addQueryParameter("refresh", "true")
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_NO_CONTENT, status.intValue()));
     }
 
     protected int getNumberOfChildren() {

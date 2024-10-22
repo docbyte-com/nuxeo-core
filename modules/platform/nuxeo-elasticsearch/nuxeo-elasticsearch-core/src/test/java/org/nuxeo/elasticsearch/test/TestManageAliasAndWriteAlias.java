@@ -16,7 +16,6 @@
  * Contributors:
  *     mcedica@nuxeo.com
  */
-
 package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
@@ -37,8 +36,8 @@ import jakarta.inject.Inject;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.core.IncrementalIndexNameGenerator;
 import org.nuxeo.elasticsearch.core.ReindexingMessage;
 import org.nuxeo.elasticsearch.core.ReindexingState;
@@ -142,12 +141,11 @@ public class TestManageAliasAndWriteAlias {
     public void testIndexWithManageAliasReindex() throws Exception {
         String repo = esa.getRepositoryNames().iterator().next();
         assertEquals("test", repo);
-        ElasticSearchIndexing esi = Framework.getService(ElasticSearchIndexing.class);
         String searchAlias = esa.getIndexNameForRepository(repo);
         String writeAlias = esa.getWriteIndexName(searchAlias);
 
         // reindex repo here search and write index are different until reindexing is done
-        esi.reindexRepository(repo);
+        Framework.getService(SearchIndexingService.class).reindexRepository(repo);
         String writeIndex = esa.getClient().getFirstIndexForAlias(writeAlias);
         String searchIndex = esa.getClient().getFirstIndexForAlias(searchAlias);
         assertNotEquals(searchIndex, writeIndex);

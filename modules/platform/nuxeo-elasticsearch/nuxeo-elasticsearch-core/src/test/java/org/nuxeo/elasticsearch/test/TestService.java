@@ -18,25 +18,20 @@
  */
 package org.nuxeo.elasticsearch.test;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -54,27 +49,6 @@ public class TestService {
 
     @Inject
     protected ElasticSearchService ess;
-
-    @Inject
-    protected ElasticSearchIndexing esi;
-
-    @Test
-    public void checkDeclaredServices() {
-        assertNotNull(ess);
-        assertNotNull(esi);
-        assertNotNull(esa);
-
-        @SuppressWarnings("resource") // not ours to close
-        OpenSearchClient client = esa.getClient();
-        assertNotNull(client);
-
-        assertEquals(0, esa.getTotalCommandProcessed());
-        assertEquals(0, esa.getPendingWorkerCount());
-        assertEquals(0, esa.getRunningWorkerCount());
-        assertFalse(esa.isIndexingInProgress());
-        assertEquals(1, esa.getRepositoryNames().size());
-        assertEquals("test", esa.getRepositoryNames().get(0));
-    }
 
     @Test
     public void verifyNodeStartedWithConfig() {
@@ -95,23 +69,6 @@ public class TestService {
         assertTrue(futureRet.get());
         assertTrue(futureRet.isDone());
         assertTrue(futureRet.get());
-    }
-
-    @Test
-    public void verifyPrepareWaitForIndexingTimeout() throws Exception {
-        // when a worker is created it is pending
-        assertFalse(esa.isIndexingInProgress());
-        esi.runReindexingWorker("test", "select * from Document");
-        ListenableFuture<Boolean> futureRet = esa.prepareWaitForIndexing();
-        try {
-            futureRet.get(0, TimeUnit.MILLISECONDS);
-            // sometime we don't timeout
-            assertTrue(futureRet.isDone());
-        } catch (TimeoutException e) {
-            assertTrue(futureRet.get());
-        } finally {
-            assertFalse(esa.isIndexingInProgress());
-        }
     }
 
     @Test

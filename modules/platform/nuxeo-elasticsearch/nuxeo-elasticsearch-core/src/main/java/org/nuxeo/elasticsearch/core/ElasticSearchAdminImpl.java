@@ -512,32 +512,9 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
     }
 
     @Override
-    public long getPendingWorkerCount() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public long getRunningWorkerCount() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public int getTotalCommandProcessed() {
-        return totalCommandProcessed.get();
-    }
-
-    @Override
     public boolean useExternalVersion() {
         // always true, no false case in our code base
         return true;
-    }
-
-    @Override
-    public boolean isIndexingInProgress() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
     }
 
     @Override

@@ -96,10 +96,6 @@ public final class ElasticSearchConstants {
 
     public static final String ACL_FIELD = "ecm:acl";
 
-    public static final String PATH_FIELD = "ecm:path";
-
-    public static final String CHILDREN_FIELD = "ecm:path.children";
-
     public static final String BINARYTEXT_FIELD = "ecm:binarytext";
 
     public static final String ALL_FIELDS = "*";
@@ -107,24 +103,6 @@ public final class ElasticSearchConstants {
     public static final String ES_ENABLED_PROPERTY = "elasticsearch.enabled";
 
     public static final String FETCH_DOC_FROM_ES_PROPERTY = "elasticsearch.fetchDocFromEs";
-
-    public static final String REINDEX_BUCKET_READ_PROPERTY = "elasticsearch.reindex.bucketReadSize";
-
-    public static final String REINDEX_BUCKET_WRITE_PROPERTY = "elasticsearch.reindex.bucketWriteSize";
-
-    public static final String REINDEX_ON_STARTUP_PROPERTY = "elasticsearch.reindex.onStartup";
-
-    public static final String INDEX_BULK_MAX_SIZE_PROPERTY = "elasticsearch.index.bulkMaxSize";
-
-    public static final String DISABLE_AUTO_INDEXING = "disableAutoIndexing";
-
-    public static final String REINDEX_USING_CHILDREN_TRAVERSAL_PROPERTY = "elasticsearch.reindex.useChildrenTraversal";
-
-    /** @since 2021.21 */
-    public static final String RECURSIVE_INDEXING_USING_BULK_SERVICE_PROPERTY = "elasticsearch.index.recursive.bulkService";
-
-    /** @since 7.4 */
-    public static final String INDEXING_QUEUE_ID = "elasticSearchIndexing";
 
     public static final String EPOCH_MILLIS_FORMAT = "epoch_millis";
 

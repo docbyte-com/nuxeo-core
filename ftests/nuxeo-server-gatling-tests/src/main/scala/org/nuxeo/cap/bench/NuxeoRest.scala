@@ -377,17 +377,20 @@ object NuxeoRest {
 
   def waitForAsyncJobs = () => {
     http("Wait For Async")
-      .post(Constants.AUTOMATION_PATH + "/Elasticsearch.WaitForIndexing")
+      .post(Constants.API_MANAGEMENT + "/search/wait")
       .basicAuth("#{adminId}", "#{adminPassword}")
       .headers(Headers.base)
       .header("content-type", "application/json")
-      .body(StringBody( """{"params":{"timeoutSecond": "3600", "refresh": "true", "waitForAudit": "true", "waitForBulkService": "true"},"context":{}}"""))
+      .queryParam("timeoutSecond", 3600)
+      .queryParam("waitForAudit", true)
+      .queryParam("waitForBulkService", true)
+      .queryParam("refresh", true)
   }
 
   def reindexAll = () => {
     exitBlockOnFail (
       http("Reindex All repository")
-        .post(Constants.AUTOMATION_PATH + "/Elasticsearch.Index")
+        .post(Constants.AUTOMATION_PATH + "/Search.Index")
         .basicAuth("#{adminId}", "#{adminPassword}")
         .headers(Headers.base)
         .header("content-type", "application/json")
