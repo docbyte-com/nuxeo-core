@@ -3778,7 +3778,7 @@
       <dependency>
         <groupId>software.amazon.awssdk.crt</groupId>
         <artifactId>aws-crt</artifactId>
-        <version>0.31.3</version>
+        <version>0.33.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
