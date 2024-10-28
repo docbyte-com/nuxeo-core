@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.scheduler;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import jakarta.inject.Inject;
 
 import org.junit.Test;
@@ -30,8 +32,6 @@ import org.quartz.JobDetail;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * Tests {@link EventJobFactory} by contributing a job using {@link org.quartz.DisallowConcurrentExecution}.
@@ -54,12 +54,12 @@ public class EventJobFactoryTest {
         JobKey jobKey = new JobKey("testSchedulerMultipleExecutions", "nuxeo");
         JobDetail jobDetail = scheduler.getJobDetail(jobKey);
         assertThat(jobDetail).isNotNull();
-        assertThat(jobDetail.isConcurrentExectionDisallowed()).isFalse();
+        assertThat(jobDetail.isConcurrentExecutionDisallowed()).isFalse();
 
         // job with the DisallowConcurrentExecution annotation
         jobKey = new JobKey("testSchedulerSingleExecution", "nuxeo");
         jobDetail = scheduler.getJobDetail(jobKey);
         assertThat(jobDetail).isNotNull();
-        assertThat(jobDetail.isConcurrentExectionDisallowed()).isTrue();
+        assertThat(jobDetail.isConcurrentExecutionDisallowed()).isTrue();
     }
 }
