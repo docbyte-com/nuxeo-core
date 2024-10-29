@@ -13,7 +13,6 @@
   <name>Nuxeo Functional Tests Parent</name>
 
   <properties>
-    <maven.deploy.skip>true</maven.deploy.skip>
     <nuxeo.ftests.tier5>false</nuxeo.ftests.tier5>
     <nuxeo.ftests.tier6>false</nuxeo.ftests.tier6>
     <nuxeo.ftests.tier7>false</nuxeo.ftests.tier7>
@@ -36,6 +35,9 @@
         <module>nuxeo-server-cmis-tests</module>
         <module>nuxeo-server-tests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
     </profile>
 
     <profile>
@@ -49,6 +51,9 @@
         <module>nuxeo-server-gatling-tests</module>
         <module>nuxeo-server-hotreload-tests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
     </profile>
 
     <profile>
@@ -90,6 +95,9 @@
         <module>nuxeo-tree-snapshot-ftests</module>
         <module>nuxeo-wopi-ftests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
       <dependencies>
         <dependency>
           <groupId>org.nuxeo.ecm.distribution</groupId>
