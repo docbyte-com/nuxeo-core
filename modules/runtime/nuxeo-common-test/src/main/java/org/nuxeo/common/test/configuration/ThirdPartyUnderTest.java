@@ -22,6 +22,8 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * Helper class to retrieve current ongoing test configuration regarding Third Party services.
  * 
@@ -98,9 +100,10 @@ public final class ThirdPartyUnderTest {
         if (isBlank(value) || value.equals("${" + key + "}")) {
             value = Stream.of(dependencies)
                           .filter(SystemProperty::isConfigured)
+                          .map(p -> System.getProperty(p.key()))
+                          .filter(StringUtils::isNotBlank) // should not happen
                           .findFirst()
-                          .orElse(property)
-                          .defaultValue();
+                          .orElse(property.defaultValue());
             System.setProperty(key, value);
         }
         return value;
