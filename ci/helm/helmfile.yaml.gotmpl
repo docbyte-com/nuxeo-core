@@ -57,7 +57,7 @@ releases:
   - values/{{ $valuesDir }}/values-nuxeo.yaml.gotmpl
 - name: mongodb
   chart: oci://registry-1.docker.io/bitnamicharts/mongodb
-  version: 15.6.22
+  version: 16.1.1
   namespace: {{ requiredEnv "NAMESPACE" }}
   condition: mongodb.enabled
   values:
