@@ -109,7 +109,10 @@ public class OpenSearchRestClient implements OpenSearchClient {
                     new Request("GET", "/_cluster/health?wait_for_status=yellow&timeout=20s"));
             try (InputStream is = response.getEntity().getContent()) {
                 Map<String, Object> map = XContentHelper.convertToMap(XContentType.JSON.xContent(), is, true);
-                return switch (ClusterHealthStatus.fromString((String) map.get("status"))) {
+                ClusterHealthStatus status = ClusterHealthStatus.fromString((String) map.get("status"));
+                log.trace("OpenSearch Cluster: {} is {}",
+                        () -> client.getLowLevelClient().getNodes().getFirst().getHost(), () -> status);
+                return switch (status) {
                     case GREEN, YELLOW -> true;
                     case ClusterHealthStatus healthStatus -> {
                         log.warn("OpenSearch client not ready status: {}", healthStatus);
@@ -140,7 +143,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
         }
         return switch (healthStatus) {
             case GREEN -> {
-                log.info("OpenSearch Cluster ready: {}", response);
+                log.trace("OpenSearch Cluster ready: {}", response);
                 yield true;
             }
             case YELLOW -> {
@@ -158,8 +161,10 @@ public class OpenSearchRestClient implements OpenSearchClient {
 
     @Override
     public void refresh(String indexName) {
+        log.trace("Refreshing index: {}", indexName);
         try {
             performRequestWithTracing(new Request("POST", "/" + indexName + "/_refresh"));
+            log.trace("Index: {} refreshed", indexName);
         } catch (RuntimeServiceException e) {
             Throwable cause = ExceptionUtils.getRootCause(e);
             if (cause instanceof SocketTimeoutException) {
@@ -173,16 +178,21 @@ public class OpenSearchRestClient implements OpenSearchClient {
 
     @Override
     public void flush(String indexName) {
+        log.trace("Flushing index: {}", indexName);
         performRequestWithTracing(new Request("POST", "/" + indexName + "/_flush?wait_if_ongoing=true"));
+        log.trace("Index: {} flushed", indexName);
     }
 
     @Override
     public void optimize(String indexName) {
+        log.trace("Optimizing index: {}", indexName);
         performRequestWithTracing(new Request("POST", "/" + indexName + "/_forcemerge?max_num_segments=1"));
+        log.trace("Index: {} optimized", indexName);
     }
 
     @Override
     public void createIndex(String indexName, String jsonSettings) {
+        log.trace("Creating index: {} with setting: {}", indexName, jsonSettings);
         Request request = new Request("PUT",
                 "/" + indexName + "?master_timeout=" + LONG_TIMEOUT + "&timeout=" + LONG_TIMEOUT);
         // since elastic 7 REST API needs an additional level
@@ -191,21 +201,30 @@ public class OpenSearchRestClient implements OpenSearchClient {
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new RuntimeServiceException("Fail to create index: " + indexName + " :" + response);
         }
+        log.trace("Index: {} created", indexName);
     }
 
     @Override
     public boolean indexExists(String indexName) {
+        log.trace("Checking if index: {} exits", indexName);
         Response response = performRequestWithTracing(new Request("HEAD", "/" + indexName));
         return switch (response.getStatusLine().getStatusCode()) {
-            case HttpStatus.SC_OK -> true;
-            case HttpStatus.SC_NOT_FOUND -> false;
+            case HttpStatus.SC_OK -> {
+                log.trace("Index: {} exists", indexName);
+                yield true;
+            }
+            case HttpStatus.SC_NOT_FOUND -> {
+                log.trace("Index: {} not found", indexName);
+                yield false;
+            }
             default ->
-                throw new IllegalStateException(String.format("Checking index %s returns: %s", indexName, response));
+                throw new IllegalStateException(String.format("Checking index: %s returns: %s", indexName, response));
         };
     }
 
     @Override
     public void dropIndex(String indexName, Duration timeout) {
+        log.trace("Dropping index: {}", indexName);
         try {
             long timeoutSeconds = timeout.toSeconds();
             Response response = client.getLowLevelClient()
@@ -223,25 +242,35 @@ public class OpenSearchRestClient implements OpenSearchClient {
             }
             throw new RuntimeServiceException(e);
         }
+        log.trace("Index: {} dropped", indexName);
     }
 
     @Override
     public void createMapping(String indexName, String jsonMapping) {
+        log.trace("Creating mapping for index {}: {}", indexName, jsonMapping);
         Request request = new Request("PUT", String.format("/%s/_mapping", indexName));
         request.setJsonEntity(jsonMapping);
         Response response = performRequestWithTracing(request);
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new RuntimeServiceException(String.format("Fail to create mapping on %s: %s", indexName, response));
         }
+        log.trace("Mapping for index: {} created", indexName);
     }
 
     @Override
     public boolean mappingExists(String indexName) {
+        log.trace("Checking if mapping exists for index: {}", indexName);
         // HEAD is not supported anymore since elastic 7.x
         Response response = performRequestWithTracing(new Request("GET", String.format("/%s/_mapping", indexName)));
         return switch (response.getStatusLine().getStatusCode()) {
-            case HttpStatus.SC_OK -> true;
-            case HttpStatus.SC_NOT_FOUND -> false;
+            case HttpStatus.SC_OK -> {
+                log.trace("Mapping for index: {} exists", indexName);
+                yield true;
+            }
+            case HttpStatus.SC_NOT_FOUND -> {
+                log.trace("Mapping for index: {} not found", indexName);
+                yield false;
+            }
             default ->
                 throw new IllegalStateException(String.format("Checking mapping %s returns: %s", indexName, response));
         };
@@ -263,11 +292,13 @@ public class OpenSearchRestClient implements OpenSearchClient {
 
     // method is there to have CRUD ordering
     protected void createAlias(String aliasName, String indexName) {
+        log.trace("Creating alias: {} -> {}", aliasName, indexName);
         Response response = performRequestWithTracing(
                 new Request("PUT", String.format("/%s/_alias/%s", indexName, aliasName)));
         if (response.getStatusLine().getStatusCode() != HttpStatus.SC_OK) {
             throw new RuntimeServiceException("Fail to create alias: " + indexName + " :" + response);
         }
+        log.trace("Alias: {} created", aliasName);
     }
 
     @Override
@@ -302,6 +333,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
     @Override
     public void updateAlias(String aliasName, String indexName) {
         // TODO do this in a single call to make it atomically
+        log.trace("Updating alias to: {} -> {}", aliasName, indexName);
         if (aliasExists(aliasName)) {
             deleteAlias(aliasName);
         }
@@ -310,6 +342,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
                     "Can't create an alias because an index with the same name exists: " + aliasName);
         }
         createAlias(aliasName, indexName);
+        log.trace("Alias: {} updated", aliasName);
     }
 
     protected void deleteAlias(String aliasName) {
@@ -318,6 +351,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
             // there is no alias to delete
             return;
         }
+        log.trace("Deleting alias: {}", aliasName);
         Response response = performRequestWithTracing(
                 new Request("DELETE", String.format("/%s/_alias/%s", indexName, aliasName)));
         int code = response.getStatusLine().getStatusCode();
@@ -325,6 +359,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
             throw new IllegalStateException(
                     String.format("Fail to delete alias %s -> %s: %s", aliasName, indexName, response));
         }
+        log.trace("Alias: {} deleted", aliasName);
     }
 
     /**
@@ -367,6 +402,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
                 // use a longer timeout than the default one
                 request.timeout(LONG_TIMEOUT);
             }
+            log.trace("Indexing request: {}", request);
             return client.index(request, COMPAT_ES_OPTIONS);
         } catch (OpenSearchStatusException e) {
             if (RestStatus.CONFLICT.equals(e.status())) {
@@ -412,6 +448,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
 
     protected BulkResponse doBulk(BulkRequest request) throws RetryableException {
         try (Scope ignored = getScopedSpan("opensearch/_bulk", "actions: " + request.numberOfActions())) {
+            log.trace("Bulk indexing actions: {}", request.numberOfActions());
             BulkResponse response = client.bulk(request, COMPAT_ES_OPTIONS);
             if (response.hasFailures()) {
                 for (var item : response.getItems()) {
@@ -421,6 +458,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
                     }
                 }
             }
+            log.trace("Bulk indexed");
             return response;
         } catch (ResponseException e) {
             if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
@@ -459,12 +497,12 @@ public class OpenSearchRestClient implements OpenSearchClient {
     @Override
     public ClearScrollResponse clearScroll(ClearScrollRequest request) {
         try {
-            log.debug("Clearing scroll ids: {}", () -> Arrays.toString(request.getScrollIds().toArray()));
+            log.trace("Clearing scroll ids: {}", () -> Arrays.toString(request.getScrollIds().toArray()));
             return performRequestWithTracing(client::clearScroll, request, "opensearch/_clearScroll");
         } catch (RuntimeServiceException e) {
             if (e.getCause() instanceof OpenSearchStatusException statusException
                     && RestStatus.NOT_FOUND.equals(statusException.status())) {
-                log.debug("Scroll ids not found, they have certainly been already closed: {}",
+                log.trace("Scroll ids not found, they have certainly been already closed: {}",
                         () -> Arrays.toString(request.getScrollIds().toArray()));
                 return new ClearScrollResponse(true, 0);
             }
@@ -475,7 +513,11 @@ public class OpenSearchRestClient implements OpenSearchClient {
     protected <I extends ActionRequest, O extends ActionResponse> O performRequestWithTracing(
             ThrowableBiFunction<I, RequestOptions, O, IOException> runner, I request, String spanName) {
         try (var ignored = getScopedSpan(spanName, request.toString())) {
-            log.trace("Running request: {}", request);
+            if (request instanceof ClearScrollRequest scrollRequest) {
+                log.trace("Running request: ClearScrollRequest({})", scrollRequest::getScrollIds);
+            } else {
+                log.trace("Running request: {}", request);
+            }
             O response = runner.apply(request, COMPAT_ES_OPTIONS);
             log.trace("Received response: {}", response);
             return response;

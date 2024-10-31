@@ -169,7 +169,7 @@ public class OpenSearchComponent extends DefaultComponent implements OpenSearchC
         return client;
     }
 
-    // used by tests
+    // used by tests and reindex
     public void dropAndInitIndex(String indexName) {
         log.info("Drop and init index: {}", indexName);
         var config = this.<OpenSearchIndexConfig> getDescriptors(XP_INDEX)
