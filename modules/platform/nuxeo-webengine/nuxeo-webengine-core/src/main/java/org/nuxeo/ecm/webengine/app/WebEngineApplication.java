@@ -28,6 +28,7 @@ import org.nuxeo.ecm.webengine.model.io.BlobWriter;
 import org.nuxeo.ecm.webengine.model.io.DocumentBlobHolderWriter;
 import org.nuxeo.ecm.webengine.model.io.DownloadContextBlobHolderWriter;
 import org.nuxeo.ecm.webengine.model.io.FileWriter;
+import org.nuxeo.ecm.webengine.model.io.MultivaluedMapProvider;
 import org.nuxeo.ecm.webengine.model.io.ScriptFileWriter;
 import org.nuxeo.ecm.webengine.model.io.TemplateViewWriter;
 import org.nuxeo.ecm.webengine.model.io.TemplateWriter;
@@ -54,6 +55,7 @@ public class WebEngineApplication extends Application {
         result.add(URLWriter.class);
         result.add(TemplateViewWriter.class);
         result.add(JsonNuxeoExceptionWriter.class);
+        result.add(MultivaluedMapProvider.class);
         return result;
     }
 }
