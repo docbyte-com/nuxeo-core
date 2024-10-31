@@ -408,17 +408,19 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         amazonS3 = createSyncClient();
         amazonS3Async = createASyncClient();
         encryptClients();
-        retentionMode = computeBucketRetentionMode();
-        s3RetentionEnabled = retentionMode != null;
         if (Boolean.parseBoolean(properties.get(RECORD))) {
+            retentionMode = computeBucketRetentionMode();
+            s3RetentionEnabled = retentionMode != null;
             if (!s3RetentionEnabled) {
                 log.warn("Blob provider is configured for records but retention is not enabled on s3 bucket {}",
                         bucketName);
             } else {
                 log.info("Computed bucket {}'s retention mode: {}", bucketName, retentionMode);
             }
+        } else {
+            retentionMode = null;
+            s3RetentionEnabled = false;
         }
-
         transferManager = createTransferManager();
     }
 
