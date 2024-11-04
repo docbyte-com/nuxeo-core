@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_FORBIDDEN;
@@ -30,6 +31,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -153,7 +155,7 @@ public class UserGroupTest extends BaseUserTest {
 
         // When i POST it on the user endpoint
         httpClient.buildPostRequest("/user")
-                  .entity(getPrincipalAsJson(principal))
+                  .entity(getPrincipalAsJson(principal, "testPassword"))
                   .executeAndConsume(new JsonNodeHandler(SC_CREATED),
                           // Then a user is created
                           node -> assertEqualsUser("newuser", "test", "user", node));
@@ -181,6 +183,50 @@ public class UserGroupTest extends BaseUserTest {
                   .executeAndConsume(new HttpStatusCodeHandler(),
                           // Then it returns the JSON
                           status -> assertEquals(SC_CONFLICT, status.intValue()));
+    }
+
+    @Test
+    public void itReturnsA400OnEmptyUsername() throws IOException {
+        // Given a user with a null username
+        NuxeoPrincipal principal = new NuxeoPrincipalImpl(null);
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+
+        // Given a user with a blank username
+        principal.setName("");
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+    }
+
+    @Test
+    public void itReturnsA400OnEmptyPassword() throws IOException {
+        // Given a user with a null password
+        NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+
+        // Given a user with a blank password
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal, ""))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     @Test
@@ -656,7 +702,7 @@ public class UserGroupTest extends BaseUserTest {
         principal.setGroups(List.of("unknownGroup"));
 
         httpClient.buildPostRequest("/user")
-                  .entity(getPrincipalAsJson(principal))
+                  .entity(getPrincipalAsJson(principal, "testPassword"))
                   .executeAndConsume(new JsonNodeHandler(SC_FORBIDDEN),
                           node -> assertEquals("group does not exist: unknownGroup", node.get("message").textValue()));
     }

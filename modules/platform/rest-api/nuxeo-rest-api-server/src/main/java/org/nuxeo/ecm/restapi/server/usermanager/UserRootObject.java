@@ -28,6 +28,7 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
@@ -59,6 +60,7 @@ public class UserRootObject extends AbstractUMRootObject<NuxeoPrincipal> {
         checkCurrentUserCanCreateArtifact(principal);
         checkPrincipalDoesNotAlreadyExists(principal, um);
         checkPrincipalHasAName(principal);
+        checkPrincipalHasAPassword(principal);
     }
 
     @Override
@@ -77,6 +79,17 @@ public class UserRootObject extends AbstractUMRootObject<NuxeoPrincipal> {
     private void checkPrincipalHasAName(NuxeoPrincipal principal) {
         if (isBlank(principal.getName())) {
             throw new NuxeoException("User MUST have a name", SC_BAD_REQUEST);
+        }
+    }
+
+    private void checkPrincipalHasAPassword(NuxeoPrincipal principal) {
+        var directoryService = Framework.getService(DirectoryService.class);
+        var userDirectory = um.getUserDirectoryName();
+        var userSchema = directoryService.getDirectorySchema(userDirectory);
+        var passwordField = directoryService.getDirectoryPasswordField(userDirectory);
+        var password = (String) principal.getModel().getProperty(userSchema, passwordField);
+        if (isBlank(password)) {
+            throw new NuxeoException("User MUST have a password", SC_BAD_REQUEST);
         }
     }
 
