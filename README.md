@@ -48,7 +48,7 @@ mvn install -Pdistrib,docker -DskipTests -Dnuxeo.skip.enforcer=true -T6
 To take the shortest path for building the Docker image, run the following command. It starts by building the Docker image's dependencies (server modules and ZIP), then the Docker image itself.
 
 ```shell
-mvn install -Pdistrib,docker -pl docker -am -DskipTests -Dnuxeo.skip.enforcer=true -T6
+mvn install -Pdistrib,docker -pl docker/nuxeo -am -DskipTests -Dnuxeo.skip.enforcer=true -T6
 ```
 
 See the [docker](docker) directory for more information on how to build, run and configure the Nuxeo Docker Image.
