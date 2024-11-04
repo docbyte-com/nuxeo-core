@@ -36,7 +36,7 @@ RUN mkdir -p /tmp/nuxeo-distribution \
 
 # ------------------------------------------------------------------------
 # Target stage
-FROM oraclelinux:$ORACLE_LINUX_TAG
+FROM oraclelinux:${ORACLE_LINUX_TAG}
 
 ARG BUILD_TAG
 ARG SCM_REF
