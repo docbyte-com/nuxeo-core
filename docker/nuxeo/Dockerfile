@@ -5,7 +5,7 @@
 # It uses a multi-stage build to copy and unzip the Nuxeo server ZIP file.
 
 ARG EL_VERSION=9
-ARG ORACLE_LINUX_TAG=$EL_VERSION-slim
+ARG ORACLE_LINUX_TAG=${EL_VERSION}-slim
 
 # ------------------------------------------------------------------------
 # Build stage
@@ -36,7 +36,7 @@ RUN mkdir -p /tmp/nuxeo-distribution \
 
 # ------------------------------------------------------------------------
 # Target stage
-FROM oraclelinux:$ORACLE_LINUX_TAG
+FROM oraclelinux:${ORACLE_LINUX_TAG}
 
 ARG BUILD_TAG
 ARG SCM_REF
