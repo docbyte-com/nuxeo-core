@@ -21,6 +21,7 @@ package org.nuxeo.ecm.restapi.test;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.api.NuxeoGroup;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -29,11 +30,37 @@ import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * @since 5.7.3
  */
 public class BaseUserTest {
+
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    protected static final String ENTITY_TYPE = "entity-type";
+
+    protected static final String USER = "user";
+
+    protected static final String ID = "id";
+
+    protected static final String PROPERTIES = "properties";
+
+    protected static final String USERNAME = "username";
+
+    protected static final String PASSWORD = "password";
+
+    protected static final String FIRST_NAME = "firstName";
+
+    protected static final String LAST_NAME = "lastName";
+
+    protected static final String COMPANY = "company";
+
+    protected static final String EMAIL = "email";
+
+    protected static final String GROUPS = "groups";
 
     /**
      * Returns the json representation of a group
@@ -65,6 +92,28 @@ public class BaseUserTest {
      */
     protected String getPrincipalAsJson(NuxeoPrincipal user) throws IOException {
         return MarshallerHelper.objectToJson(user, CtxBuilder.get());
+    }
+
+    /**
+     * Returns the Json representation of a user with a password.
+     */
+    protected String getPrincipalAsJson(NuxeoPrincipal user, String password) {
+        // Don't use marshaller as we need to pass the password
+        var node = MAPPER.createObjectNode();
+        node.put(ENTITY_TYPE, USER);
+        node.put(ID, user.getName());
+        var properties = MAPPER.createObjectNode();
+        properties.put(USERNAME, user.getName());
+        properties.put(PASSWORD, password);
+        properties.put(FIRST_NAME, user.getFirstName());
+        properties.put(LAST_NAME, user.getLastName());
+        properties.put(COMPANY, user.getCompany());
+        properties.put(EMAIL, user.getEmail());
+        var groups = MAPPER.createArrayNode();
+        groups.addAll(user.getGroups().stream().map(TextNode::new).collect(Collectors.toList()));
+        properties.set(GROUPS, groups);
+        node.set(PROPERTIES, properties);
+        return node.toString();
     }
 
     /**
