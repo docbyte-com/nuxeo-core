@@ -101,7 +101,11 @@ public class MongoDBAuditChangeFinder extends AuditChangeFinder {
                 () -> filter.toBsonDocument(Document.class, auditCollection.getCodecRegistry()).toJson());
         Bson order = orderBy(ascending("repositoryId"), descending("eventDate"));
 
-        return auditCollection.find(filter).sort(order).map(MongoDBAuditEntryReader::read).into(new ArrayList<>());
+        return auditCollection.find(filter)
+                              .sort(order)
+                              .limit(limit)
+                              .map(MongoDBAuditEntryReader::read)
+                              .into(new ArrayList<>());
     }
 
     protected Bson addRoots(Bson baseFilter, Set<String> rootPaths, Set<String> collectionSyncRootMemberIds) {
