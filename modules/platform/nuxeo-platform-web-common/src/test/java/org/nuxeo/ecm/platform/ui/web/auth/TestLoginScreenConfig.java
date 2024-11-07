@@ -81,7 +81,6 @@ public class TestLoginScreenConfig {
         assertTrue(config.hasVideos());
         assertEquals(2, config.getVideos().size());
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
 
         LoginVideo loginVideo = config.getVideos().get(0);
         assertTrue(isNotBlank(loginVideo.getType()));
@@ -132,7 +131,6 @@ public class TestLoginScreenConfig {
         assertNotNull(config.getProvider("facebook"));
         assertNotNull(config.getProvider("linkedin"));
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
         assertNull(config.getDisableBackgroundSizeCover());
 
         assertEquals("XXXX", config.getProvider("google").getLink(null, null));
@@ -150,7 +148,6 @@ public class TestLoginScreenConfig {
         assertEquals("#DDDDDD", config.getHeaderStyle());
         assertEquals("Something", config.getFooterStyle());
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
         assertEquals(2, config.getProviders().size());
         assertNotNull(config.getProvider("google"));
         assertNotNull(config.getProvider("linkedin"));
@@ -371,32 +368,29 @@ public class TestLoginScreenConfig {
 
     // NXP-30831
     @Test
-    public void testRemoveNewsDisplayMobileBannerMerge() throws Exception {
+    public void testRemoveNewsDisplayMerge() throws Exception {
         LoginScreenConfig config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
         hotDeployer.deploy(
-                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner.xml");
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews.xml");
 
         config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
         hotDeployer.deploy(
-                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner2.xml");
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews2.xml");
 
         config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
         assertEquals("aNewURLWhichShouldntCauseNewsActivationAsRemoveNewsIsTrueInPreviousContrib",
                 config.getNewsIframeUrl());
     }
