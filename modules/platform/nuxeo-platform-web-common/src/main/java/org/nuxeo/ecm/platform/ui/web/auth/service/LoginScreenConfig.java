@@ -91,7 +91,9 @@ public class LoginScreenConfig {
 
     /**
      * @since 2021.12
+     * @deprecated since 2021.63, the mobile banner was removed from the login page
      */
+    @Deprecated(since = "2021.63")
     @XNode("displayMobileBanner")
     protected Boolean displayMobileBanner;
 
@@ -283,6 +285,10 @@ public class LoginScreenConfig {
         return isNotTrue(removeNews) && isNotBlank(internalGetNewsIframeUrl());
     }
 
+    /**
+     * @deprecated since 2021.63, the mobile banner was removed from the login page
+     */
+    @Deprecated(since = "2021.63")
     public boolean getDisplayMobileBanner() {
         return toBooleanDefaultIfNull(displayMobileBanner, true);
     }
