@@ -38,8 +38,8 @@ import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.webengine.model.WebContext;
+import org.nuxeo.scim.v2.api.ScimV2Helper;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
 import com.unboundid.scim2.common.ScimResource;
@@ -144,12 +144,8 @@ public class ScimV2UserObject extends ScimV2BaseUMObject {
     }
 
     protected Response doDeleteUser(String uid) throws ScimException {
-        try {
-            um.deleteUser(uid);
-            return Response.noContent().build();
-        } catch (DirectoryException e) {
-            throw new ResourceNotFoundException("Cannot find user: " + uid);
-        }
+        um.deleteUser(ScimV2Helper.getUserModel(uid));
+        return Response.noContent().build();
     }
 
     @Override
