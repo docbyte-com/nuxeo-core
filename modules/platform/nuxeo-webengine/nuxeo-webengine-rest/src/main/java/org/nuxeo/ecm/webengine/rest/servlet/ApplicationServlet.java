@@ -33,6 +33,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.glassfish.jersey.CommonProperties;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -237,6 +238,9 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
 
     protected ServletContainer createServletContainer(ApplicationHost app) {
         ResourceConfig config = ResourceConfig.forApplication(app);
+        // disable Jersey buffering because we have MessageBodyWriter which doesn't use the given OutputStream which
+        // results in Jersey setting the ContentLength of the response to 0, leading to an empty response
+        config.property(CommonProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, -1);
         // disable wadl since we got class loader pb in JAXB under equinox
         config.property(ServerProperties.WADL_FEATURE_DISABLE, true);
         config.property(ServerProperties.RESPONSE_SET_STATUS_OVER_SEND_ERROR, true);
