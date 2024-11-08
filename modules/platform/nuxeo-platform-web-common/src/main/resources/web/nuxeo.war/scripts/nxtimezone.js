@@ -39,3 +39,4 @@ var nxtz = (function() {
     resetTimeZoneCookieIfNotSet : resetTimeZoneCookieIfNotSet
   };
 }());
+nxtz.resetTimeZoneCookieIfNotSet();
