@@ -77,16 +77,7 @@ a.block.dump { background-image: url("<%=context%>/img/error_pages/view.png") }
   width: 100% }
 -->
   </style>
-  <script language="javascript" type="text/javascript">
-    function toggleError(id) {
-      var style = document.getElementById(id).style;
-      if ("block" == style.display) {
-        style.display = "none";
-      } else {
-        style.display = "block";
-      }
-    }
-  </script>
+  <script language="javascript" type="text/javascript" src="<%=context%>/scripts/nuxeo-error.js"></script>
 </head>
 <body>
 

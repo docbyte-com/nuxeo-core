@@ -11,15 +11,6 @@
 
   </head>
   <body>
-    <script type="text/javascript">
-
-    var indexEndServerName = location.href.indexOf('/', 8);
-    var indexEndBaseURL = location.href.indexOf('/', indexEndServerName + 2);
-    var logoutURL = location.href.substring(0, indexEndBaseURL) + '/logout';
-
-    var obj = 'window.location.replace("' + logoutURL + '");';
-    setTimeout(obj,0);
-
-    </script>
+    <script type="text/javascript" src="<%=context%>/scripts/cas2.js"></script>
   </body>
 </html>

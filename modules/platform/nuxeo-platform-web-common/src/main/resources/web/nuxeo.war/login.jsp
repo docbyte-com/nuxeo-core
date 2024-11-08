@@ -84,9 +84,6 @@ if (selectedLanguage != null) { %>
 <link rel="shortcut icon" type="image/x-icon" href="<%=context%>/icons/favicon.ico" />
 <script type="text/javascript" src="<%=context%>/scripts/detect_timezone.js"></script>
 <script type="text/javascript" src="<%=context%>/scripts/nxtimezone.js"></script>
-<script type="text/javascript">
-  nxtz.resetTimeZoneCookieIfNotSet();
-</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -497,7 +494,6 @@ if (selectedLanguage != null) { %>
     <% if (showNews) { %>
     <div class="news">
       <iframe id="news" class="news-container" style="visibility: hidden"
-        onload="javascript:this.style.visibility='visible';"
         data-src="<%=iframeUrl%>"></iframe>
     </div>
 
@@ -513,19 +509,10 @@ if (selectedLanguage != null) { %>
   </footer>
 </div>
 
-<script type="text/javascript">
-  document.getElementById('username').focus();
-
-  <% if (showNews) { %>
-  // Don't load iframe on mobile devices
-  if (window.matchMedia("(min-device-width: 850px)").matches) {
-    newsIframe = document.getElementById('news');
-    if (newsIframe) {
-      newsIframe.src = newsIframe.getAttribute('data-src');
-    }
-  }
-  <% } %>
-</script>
+<script type="text/javascript" src="<%=context%>/scripts/username-focus.js"></script>
+<% if (showNews) { %>
+<script type="text/javascript" src="<%=context%>/scripts/news-iframe.js"></script>
+<% } %>
 
 <!--   Current User = <%=request.getRemoteUser()%> -->
 
