@@ -5,8 +5,7 @@
     <documentation>
       Contribute the Hibernate based sequencer as the default one.
     </documentation>
-    <sequencer name="hibernateSequencer" class="org.nuxeo.ecm.platform.uidgen.JPAUIDSequencerImpl"
-      default="true" />
+    <sequencer name="default" class="org.nuxeo.ecm.platform.uidgen.JPAUIDSequencerImpl" />
   </extension>
 
   <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent" point="hibernate">

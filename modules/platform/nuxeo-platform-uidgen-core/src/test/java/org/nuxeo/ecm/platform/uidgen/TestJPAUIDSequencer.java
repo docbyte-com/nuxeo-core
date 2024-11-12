@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.platform.uidgen;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.uidgen.UIDGeneratorComponent.DEFAULT_SEQUENCER_NAME;
 
 import jakarta.inject.Inject;
 
@@ -49,7 +50,7 @@ public class TestJPAUIDSequencer {
     @Test
     public void testSequencer() {
 
-        UIDSequencer seq = service.getSequencer("hibernateSequencer");
+        UIDSequencer seq = service.getSequencer(DEFAULT_SEQUENCER_NAME);
 
         // Test UIDSequencer#getNext
         assertEquals(1, seq.getNextLong("mySequence"));

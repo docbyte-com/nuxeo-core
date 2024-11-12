@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,14 +30,18 @@ public class UIDSequencerProviderDescriptor {
     @XNode("@name")
     protected String name;
 
-    @XNode("@default")
-    protected boolean isdefault;
-
     @XNode("@class")
     protected Class<? extends UIDSequencer> sequencerClass;
 
     @XNode("@enabled")
     protected boolean enabled = true;
+
+    public String getName() {
+        if (name == null && sequencerClass != null) {
+            name = sequencerClass.getSimpleName();
+        }
+        return name;
+    }
 
     public boolean isEnabled() {
         return enabled;
@@ -51,16 +55,4 @@ public class UIDSequencerProviderDescriptor {
 
         return null;
     }
-
-    public String getName() {
-        if (name == null && sequencerClass != null) {
-            name = sequencerClass.getSimpleName();
-        }
-        return name;
-    }
-
-    public boolean isIsdefault() {
-        return isdefault;
-    }
-
 }

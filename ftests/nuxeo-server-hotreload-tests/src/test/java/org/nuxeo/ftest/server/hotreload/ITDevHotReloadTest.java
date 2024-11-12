@@ -26,7 +26,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.http.test.HttpClientTestRule.NUXEO_URL;
 
 import java.io.File;
@@ -41,7 +40,6 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.http.test.HttpClientTestRule;
@@ -92,10 +90,8 @@ public class ITDevHotReloadTest {
 
     @Test
     public void testHotReloadSequence() {
-        assumeTrue("This test only works with SQL",
-                ThirdPartyUnderTest.STORAGE_SQL.equals(ThirdPartyUnderTest.CORE_SERVICE_VALUE));
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("sequenceName", "hibernateSequencer");
+        parameters.put("sequenceName", "default");
         restHelper.operation("javascript.getSequence", parameters);
     }
 
