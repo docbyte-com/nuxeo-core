@@ -44,7 +44,6 @@ import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -53,8 +52,6 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
 public class PlatformFunctions extends CoreFunctions {
 
     private static final Logger log = LogManager.getLogger(PlatformFunctions.class);
-
-    public static final String HIBERNATE_SEQUENCER_PROPERTY = "org.nuxeo.ecm.core.uidgen.sequencer.hibernate";
 
     public UserManager getUserManager() {
         return Framework.getService(UserManager.class);
@@ -173,9 +170,7 @@ public class PlatformFunctions extends CoreFunctions {
     }
 
     public String getNextId(final String key) {
-        ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
-        boolean useHibernate = configurationService.isBooleanTrue(HIBERNATE_SEQUENCER_PROPERTY);
-        return getNextId(key, useHibernate ? "hibernateSequencer" : null);
+        return getNextId(key, null);
     }
 
     public String getNextId(final String key, final String sequencerName) {

@@ -27,8 +27,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
-import org.nuxeo.runtime.RuntimeMessage.Level;
-import org.nuxeo.runtime.RuntimeMessage.Source;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
@@ -46,11 +44,6 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
     public static final String UID_GENERATORS_EXTENSION_POINT = "generators";
 
     public static final String SEQUENCERS_EXTENSION_POINT = "sequencers";
-
-    /**
-     * Extension point is deprecated should be removed - preserved for now only for startup warnings.
-     */
-    public static final String EXTENSION_POINT_SEQUENCER_FACTORY = "sequencerFactory";
 
     protected final Map<String, UIDGenerator> generators = new HashMap<>();
 
@@ -87,11 +80,6 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
             final Object[] contribs = extension.getContributions();
             registerSequencers(extension, contribs);
             computeDefault();
-        } else if (EXTENSION_POINT_SEQUENCER_FACTORY.equals(extPoint)) {
-            String msg = "UIDSequencer factory no more supported from version 5.4. Faulty component: "
-                    + extension.getComponent();
-            addRuntimeMessage(Level.WARNING, msg, Source.EXTENSION, extension.getComponent().getName().getName());
-            log.error(msg);
         } else {
             log.warn("extension not handled: {}", extPoint);
         }

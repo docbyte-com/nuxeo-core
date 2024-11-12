@@ -135,17 +135,7 @@ public class PlatformFunctionTest {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.automation.features:test-platform-sequencers.xml")
-    public void testGetNextIdUsingHibernate() {
-        // for backwards compatibility the default sequenceId generator can be switched to hibernate,
-        // our test hibernateSequencer skips every 10 so we know we are using it.
-        assertEquals(Long.valueOf("10"), Long.valueOf(pf.getNextId("testin")));
-        assertEquals(Long.valueOf("20"), Long.valueOf(pf.getNextId("testin")));
-        assertEquals(Long.valueOf("30"), Long.valueOf(pf.getNextId("testin")));
-    }
-
-    @Test
-    public void testGetNextWithoutHibernate() {
+    public void testGetNext() {
         assertEquals(Long.valueOf("1"), Long.valueOf(pf.getNextId("testin")));
         assertEquals(Long.valueOf("2"), Long.valueOf(pf.getNextId("testin")));
         assertEquals(Long.valueOf("3"), Long.valueOf(pf.getNextId("testin")));
