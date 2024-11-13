@@ -20,11 +20,13 @@
 
 package org.nuxeo.ecm.restapi.server.jaxrs.rendition;
 
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_RENDITION;
 
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Predicate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
@@ -35,8 +37,10 @@ import javax.ws.rs.core.Request;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.blobholder.DownloadContextBlobHolder;
 import org.nuxeo.ecm.platform.rendition.Rendition;
+import org.nuxeo.ecm.platform.rendition.service.RenditionDefinition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionService;
 import org.nuxeo.ecm.platform.rendition.work.RenditionWork;
 import org.nuxeo.ecm.webengine.model.WebObject;
@@ -65,6 +69,14 @@ public class RenditionObject extends DefaultObject {
         assert args != null && args.length == 2;
         doc = (DocumentModel) args[0];
         renditionName = (String) args[1];
+        // check if the rendition exists
+        if (Framework.getService(RenditionService.class)
+                     .getDeclaredRenditionDefinitions()
+                     .stream()
+                     .map(RenditionDefinition::getName)
+                     .noneMatch(Predicate.isEqual(renditionName))) {
+            throw new NuxeoException("Rendition does not exist", SC_BAD_REQUEST);
+        }
     }
 
     @Override
