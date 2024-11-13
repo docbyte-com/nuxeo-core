@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
@@ -151,8 +151,7 @@ public class RenditionTest {
 
         httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/unexistingRendition")
                   .executeAndConsume(new HttpStatusCodeHandler(),
-                          // should be 404?
-                          status -> assertEquals(SC_INTERNAL_SERVER_ERROR, status.intValue()));
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     // NXP-31166
