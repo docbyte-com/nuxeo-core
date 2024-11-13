@@ -10,4 +10,17 @@
     </datasource>
   </extension>
 
+  <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent" point="hibernate">
+    <hibernateConfiguration name="NXUIDSequencer">
+      <datasource>nxuidsequencer</datasource>
+      <properties>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+      </properties>
+    </hibernateConfiguration>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="default" class="org.nuxeo.ecm.platform.uidgen.JPAUIDSequencerImpl" />
+  </extension>
+
 </component>

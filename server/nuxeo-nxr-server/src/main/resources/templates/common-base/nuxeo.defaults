@@ -424,3 +424,6 @@ nuxeo.bulk.action.updateReadAcls.defaultPartitions=1
 
 # Primitive type strict validation
 nuxeo.primitive.type.strict.validation=false
+
+# UIDSequencer default implementation
+nuxeo.uidsequencer.default.class=org.nuxeo.elasticsearch.seqgen.ESUIDSequencer

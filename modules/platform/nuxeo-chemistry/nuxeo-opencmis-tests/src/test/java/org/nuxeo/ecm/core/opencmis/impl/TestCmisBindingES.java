@@ -29,8 +29,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
  */
 @Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
-@Deploy("org.nuxeo.ecm.core.persistence")
-@Deploy("org.nuxeo.ecm.platform.uidgen.core")
 public class TestCmisBindingES extends TestCmisBinding {
 
     @Override

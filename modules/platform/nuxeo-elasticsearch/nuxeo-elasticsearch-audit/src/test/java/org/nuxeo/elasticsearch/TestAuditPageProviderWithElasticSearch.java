@@ -50,10 +50,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.ecm.platform.audit.api")
 @Deploy("org.nuxeo.ecm.platform.audit")
-@Deploy("org.nuxeo.ecm.platform.uidgen.core")
 @Deploy("org.nuxeo.elasticsearch.core")
 @Deploy("org.nuxeo.elasticsearch.seqgen")
-@Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-index-test-contrib.xml")
+@Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit")
 @Deploy("org.nuxeo.admin.center")
 @RunWith(FeaturesRunner.class)
@@ -169,8 +168,7 @@ public class TestAuditPageProviderWithElasticSearch {
     public void testMaxResultWindow() throws Exception {
         LogEntryGen.generate("uuid2", "aentry", "acategory", 10);
 
-        PageProvider<?> pp = pps.getPageProvider("ADMIN_HISTORY", null, 2L, 0L,
-                new HashMap<String, Serializable>());
+        PageProvider<?> pp = pps.getPageProvider("ADMIN_HISTORY", null, 2L, 0L, new HashMap<String, Serializable>());
         // get current page
         pp.getCurrentPage();
         // limit the result window to the 6 first results
