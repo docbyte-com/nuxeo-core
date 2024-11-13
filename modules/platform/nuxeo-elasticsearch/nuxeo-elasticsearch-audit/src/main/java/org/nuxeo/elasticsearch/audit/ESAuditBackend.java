@@ -107,8 +107,8 @@ import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.SearchHit;
 import org.opensearch.search.SearchModule;
-import org.opensearch.search.aggregations.Aggregation;
 import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.metrics.Max;
 import org.opensearch.search.builder.SearchSourceBuilder;
 import org.opensearch.search.sort.SortOrder;
 
@@ -714,22 +714,19 @@ public class ESAuditBackend extends AbstractAuditBackend implements AuditBackend
         request.source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery())
                                                 .aggregation(AggregationBuilders.max("maxAgg").field("id")));
         SearchResponse searchResponse = esClient.search(request);
-        Aggregation agg = searchResponse.getAggregations().get("maxAgg");
-        long maxLogEntryId = 0;
-        if (agg.getMetadata() != null && agg.getMetadata().containsKey(Aggregation.CommonFields.VALUE)) {
-            maxLogEntryId = (long) agg.getMetadata().get(Aggregation.CommonFields.VALUE);
-        }
+        Max agg = searchResponse.getAggregations().get("maxAgg");
+        long maxLogEntryId = (long) agg.getValue();
 
         // Get next sequence id
         UIDGeneratorService uidGeneratorService = Framework.getService(UIDGeneratorService.class);
         UIDSequencer seq = uidGeneratorService.getSequencer();
         seq.init();
-        long nextSequenceId = seq.getNextLong(SEQ_NAME);
+        long currentSequenceValue = seq.getCurrent(SEQ_NAME);
 
         // Increment sequence to max log entry id if needed
-        if (nextSequenceId < maxLogEntryId) {
-            log.info("Next UID returned by {} sequence is {}, initializing sequence to {}", SEQ_NAME, nextSequenceId,
-                    maxLogEntryId);
+        if (currentSequenceValue < maxLogEntryId) {
+            log.info("UID returned by sequence: {} is: {}, initializing sequence to: {}", SEQ_NAME,
+                    currentSequenceValue, maxLogEntryId);
             seq.initSequence(SEQ_NAME, maxLogEntryId);
         }
     }

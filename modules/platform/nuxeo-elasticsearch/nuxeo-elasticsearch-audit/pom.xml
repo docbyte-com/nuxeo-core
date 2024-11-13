@@ -51,8 +51,8 @@
       <artifactId>nuxeo-elasticsearch-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-seqgen</artifactId>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
     </dependency>
     <dependency>
       <groupId>org.nuxeo.runtime</groupId>
@@ -109,8 +109,8 @@
       <artifactId>nuxeo-automation-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-seqgen</artifactId>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

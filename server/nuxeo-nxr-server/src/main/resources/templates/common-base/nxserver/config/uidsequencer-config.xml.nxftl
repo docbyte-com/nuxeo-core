@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.uidsequencer.config">
 
-<#if "${nuxeo.uidsequencer.default.class}" == "org.nuxeo.elasticsearch.seqgen.ESUIDSequencer">
-  <extension target="org.nuxeo.elasticsearch.ElasticSearchComponent" point="elasticSearchIndex">
-    <elasticSearchIndex name="${seqgen.elasticsearch.indexName}" type="seqId">
+<#if "${nuxeo.uidsequencer.default.class}" == "org.nuxeo.uidgen.opensearch1.OpenSearchUIDSequencer">
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="${nuxeo.uidsequencer.default.opensearch1.index.name}">
+      <client id="seq/default" />
       <settings>
         {
           "number_of_shards" : 1,
-          "index.translog.durability": "${elasticsearch.index.translog.durability}",
+          "index.translog.durability": "${nuxeo.uidsequencer.default.opensearch1.settings.indexTranslogDurability}",
           "auto_expand_replicas" : "0-all"
         }
       </settings>
@@ -19,7 +20,7 @@
           "enabled" : false
         }
       </mapping>
-    </elasticSearchIndex>
+    </index>
   </extension>
 <#elseif "${nuxeo.uidsequencer.default.class}" == "org.nuxeo.ecm.platform.uidgen.JPAUIDSequencerImpl">
   <extension target="org.nuxeo.runtime.datasource" point="datasources">

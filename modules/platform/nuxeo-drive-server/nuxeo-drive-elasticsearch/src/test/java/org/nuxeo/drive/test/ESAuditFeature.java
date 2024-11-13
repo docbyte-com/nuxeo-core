@@ -42,8 +42,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 8.2
  */
 @Features({ AutomationFeature.class, AuditFeature.class, RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.seqgen")
-@Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-test-contrib.xml")
+@Deploy("org.nuxeo.uidgen.opensearch1")
+@Deploy("org.nuxeo.uidgen.opensearch1.test:OSGI-INF/opensearch-uidgen-test-contrib.xml")
 @Deploy("org.nuxeo.admin.center")
 @Deploy("org.nuxeo.elasticsearch.audit")
 @Deploy("org.nuxeo.elasticsearch.audit.test:elasticsearch-audit-index-test-contrib.xml")

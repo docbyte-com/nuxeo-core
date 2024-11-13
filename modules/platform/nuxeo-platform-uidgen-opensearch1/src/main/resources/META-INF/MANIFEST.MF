@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: OpenSearch 1.x Sequence Generator
+Bundle-SymbolicName: org.nuxeo.uidgen.opensearch1;singleton:=true
+Bundle-Version: 1.0.0

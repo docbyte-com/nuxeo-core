@@ -102,10 +102,6 @@ public interface OpenSearchClient extends AutoCloseable {
     // Search
     //
 
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
-    @Deprecated(forRemoval = true)
     IndexResponse index(IndexRequest request);
 
     BulkResponse bulk(BulkRequest request);

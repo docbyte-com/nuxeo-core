@@ -5,7 +5,7 @@ nuxeo-elasticsearch-audit
 
 This project provides a backend based on Elasticsearch for Nuxeo for Audit Service.
 
-The idea is to use Lucene / Elastocsearch as storage backend for the Audit trail entries.
+The idea is to use Lucene / Elasticsearch as storage backend for the Audit trail entries.
 
 Usage of Elasticsearch as a replacement for the JPA based default backend allows to easily make the Audit service scale :
 
@@ -19,13 +19,13 @@ Usage of Elasticsearch as a replacement for the JPA based default backend allows
 
 ## How it works
 
-An Elasticsearch  based `AuditBackend` is contributed at startup to replace the default JPA based one and it use dedicated `audit` Elasticsearch index to handle storage and queries.
+An Elasticsearch based `AuditBackend` is contributed at startup to replace the default JPA based one and it use dedicated `audit` Elasticsearch index to handle storage and queries.
 
 The queries and PageProviders are based on Elasticsearch native DSL : no automatic conversion is done between EJBQL and Elasticsearch DSL.
 
-The orginal Audit service uses a JPA sequence to assign each audit entry a unique id.
+The original Audit service uses a JPA sequence to assign each audit entry a unique id.
 
-In the Elasticsearch implementation, an alternate sequence genaration system is used : `nuxeo-elasticsearch-seqgen`.
+In the Elasticsearch implementation, an alternate sequence generation system is used : `nuxeo-platform-uidgen-opensearch1`.
 
 ## Data Migration
 

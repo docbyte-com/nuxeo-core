@@ -16,7 +16,7 @@
  * Contributors:
  *     Thierry Delprat <tdelprat@nuxeo.com>
  */
-package org.nuxeo.elasticsearch.seqgen;
+package org.nuxeo.uidgen.opensearch1;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,13 +25,12 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.uidgen.AbstractUIDSequencer;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
+import org.nuxeo.runtime.ConcurrentException;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
 import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.index.IndexRequest;
@@ -44,7 +43,7 @@ import org.opensearch.search.SearchHit;
 import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
- * Elasticsearch implementation of {@link UIDSequencer}.
+ * OpenSearch 1.x implementation of {@link UIDSequencer}.
  * <p>
  * Since elasticsearch does not seem to support a notion of native sequence, the implementation uses the auto-increment
  * of the version attribute as described in the <a href=
@@ -52,29 +51,34 @@ import org.opensearch.search.builder.SearchSourceBuilder;
  * >ElasticSearch::Sequence - a blazing fast ticket server</a> blog post.
  *
  * @since 7.3
+ * @implNote since 2025 it has been reworked to be OpenSearch instead of ElasticSearch
  */
-public class ESUIDSequencer extends AbstractUIDSequencer {
+public class OpenSearchUIDSequencer extends AbstractUIDSequencer {
+
+    protected static final String DEFAULT_INDEX_NAME = "uidgen";
+
+    protected static final String INDEX_NAME_PATTERN_CONFIGURATION_KEY = "nuxeo.uidsequencer.%s.opensearch1.index.name";
 
     protected static final int MAX_RETRY = 3;
 
-    protected OpenSearchClient esClient = null;
+    protected OpenSearchClient client;
 
     protected String indexName;
 
     @Override
     public void init() {
-        if (esClient != null) {
+        if (client != null) {
             return;
         }
-        ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        esClient = esa.getClient();
-        indexName = esa.getIndexNameForType(ElasticSearchConstants.SEQ_ID_TYPE);
+        // retrieve OpenSearchClient with name seq/SEQ_NAME
+        client = Framework.getService(OpenSearchClientService.class).getClient("seq/" + getName());
+        indexName = Framework.getProperty(INDEX_NAME_PATTERN_CONFIGURATION_KEY.formatted(getName()),
+                DEFAULT_INDEX_NAME);
         try {
-            boolean indexExists = esClient.indexExists(indexName);
+            boolean indexExists = client.indexExists(indexName);
             if (!indexExists) {
                 throw new NuxeoException(
-                        String.format("Sequencer %s needs an elasticSearchIndex contribution with type %s", getName(),
-                                ElasticSearchConstants.SEQ_ID_TYPE));
+                        String.format("Sequencer: %s needs an OpenSearch index contribution", getName()));
             }
         } catch (NoSuchElementException | NuxeoException e) {
             dispose();
@@ -84,10 +88,10 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
 
     @Override
     public void dispose() {
-        if (esClient == null) {
+        if (client == null) {
             return;
         }
-        esClient = null;
+        client = null;
         indexName = null;
     }
 
@@ -95,15 +99,15 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
     public void initSequence(String key, long id) {
         validateKey(key);
         String source = "{ \"ts\" : " + System.currentTimeMillis() + "}";
-        esClient.index(new IndexRequest(indexName).id(key)
-                                                  .versionType(VersionType.EXTERNAL)
-                                                  .version(id)
-                                                  .source(source, XContentType.JSON));
+        client.index(new IndexRequest(indexName).id(key)
+                                                .versionType(VersionType.EXTERNAL)
+                                                .version(id)
+                                                .source(source, XContentType.JSON));
     }
 
     @Override
     public List<String> getKeys() {
-        var response = esClient.search(
+        var response = client.search(
                 new SearchRequest(indexName).source(new SearchSourceBuilder().query(QueryBuilders.matchAllQuery())));
         return Stream.of(response.getHits().getHits()).map(SearchHit::getId).toList();
     }
@@ -111,7 +115,7 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
     @Override
     public long getCurrent(String sequenceName) {
         validateKey(sequenceName);
-        var document = esClient.get(new GetRequest(indexName, sequenceName));
+        var document = client.get(new GetRequest(indexName, sequenceName));
         if (!document.isExists()) {
             return SEQUENCE_DOES_NOT_EXIST;
         }
@@ -122,7 +126,7 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
     public long getNextLong(String sequenceName) {
         validateKey(sequenceName);
         String source = "{ \"ts\" : " + System.currentTimeMillis() + "}";
-        IndexResponse res = esClient.index(
+        IndexResponse res = client.index(
                 new IndexRequest(indexName).id(sequenceName).source(source, XContentType.JSON));
         return res.getVersion();
     }
@@ -148,7 +152,7 @@ public class ESUIDSequencer extends AbstractUIDSequencer {
             try {
                 initSequence(key, ret + blockSize - 1);
                 return ret;
-            } catch (ConcurrentUpdateException e) {
+            } catch (ConcurrentException e) {
                 if (i == MAX_RETRY - 1) {
                     throw e;
                 }

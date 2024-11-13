@@ -16,7 +16,7 @@
  * Contributors:
  *     Tiry
  */
-package org.nuxeo.elasticsearch.seqgen;
+package org.nuxeo.uidgen.opensearch1;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -34,16 +34,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.runtime.opensearch1.OpenSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
-@Deploy("org.nuxeo.elasticsearch.seqgen")
-@Deploy("org.nuxeo.elasticsearch.seqgen:elasticsearch-seqgen-test-contrib.xml")
-public class TestSequenceGeneratorWithElasticSearch {
+@Features(OpenSearchFeature.class)
+@Deploy("org.nuxeo.ecm.core:OSGI-INF/uidgenerator-service.xml")
+@Deploy("org.nuxeo.uidgen.opensearch1")
+@Deploy("org.nuxeo.uidgen.opensearch1:OSGI-INF/opensearch-uidgen-test-contrib.xml")
+public class TestSequenceGeneratorWithOpenSearch {
 
     @Inject
     protected UIDGeneratorService uidGeneratorService;
@@ -52,7 +53,7 @@ public class TestSequenceGeneratorWithElasticSearch {
     public void testIncrement() {
         UIDSequencer seq = uidGeneratorService.getSequencer();
         assertNotNull(seq);
-        assertTrue(seq.getClass().isAssignableFrom(ESUIDSequencer.class));
+        assertTrue(seq.getClass().isAssignableFrom(OpenSearchUIDSequencer.class));
 
         assertEquals(1, seq.getNextLong("myseq"));
         assertEquals(2, seq.getNextLong("myseq"));

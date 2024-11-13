@@ -344,11 +344,7 @@ public class OpenSearchRestClient implements OpenSearchClient {
         }
     }
 
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
     @Override
-    @Deprecated(forRemoval = true)
     public IndexResponse index(IndexRequest request) {
         // 3 retries with backoff of 20s jitter 0.5:
         // retry 1: 20s +/-10 [t+10, t+30]

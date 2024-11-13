@@ -94,11 +94,6 @@ public final class ElasticSearchConstants {
      */
     public static final String ENTRY_TYPE = "entry";
 
-    /**
-     * Elasticsearch type name used for the UID sequencer index
-     */
-    public static final String SEQ_ID_TYPE = "seqId";
-
     public static final String ACL_FIELD = "ecm:acl";
 
     public static final String PATH_FIELD = "ecm:path";

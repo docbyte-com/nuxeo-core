@@ -46,6 +46,8 @@ import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.audit.ESAuditBackend;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
+import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -55,8 +57,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.elasticsearch.seqgen")
-@Deploy("org.nuxeo.elasticsearch.seqgen.test:elasticsearch-seqgen-test-contrib.xml")
+@Deploy("org.nuxeo.uidgen.opensearch1")
+@Deploy("org.nuxeo.uidgen.opensearch1.test:OSGI-INF/opensearch-uidgen-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit")
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
@@ -78,6 +80,7 @@ public class TestAuditWithElasticSearch extends AbstractAuditStorageTest {
         // make sure that the audit bulker don't drain pending log entries while we reset the index
         LogEntryGen.flushAndSync();
         esa.initIndexes(true);
+        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex("uidgen");
     }
 
     @Test

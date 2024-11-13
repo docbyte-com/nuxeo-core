@@ -1,15 +1,24 @@
-nuxeo-elasticsearch-seqgen
-==========================
+nuxeo-platform-uidgen-opensearch1
+=================================
 
 ## About
 
-This project provides a sequence number generator based on Elasticsearch by contributing to the `sequencers` extension point of the `UIDGeneratorService`.
+This project provides a sequence number generator based on OpenSearch 1.x.
+
+You need to contribute the sequencer to the Nuxeo Server, for example:
+```
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="my-sequencer" class="org.nuxeo.uidgen.opensearch1.OpenSearchUIDSequencer" />
+  </extension>
+```
+
+If you want to make it the default for the whole Nuxeo Server you need to name it `default`.
 
 ## Why this module?
 
 The Elasticsearch backend for the Nuxeo Audit service `ESAuditBackend` needs to generate sequence ids.
 
-It seems bad to use a SQL database just for handling these sequences: that's why this ES based implementation does exist.
+It seems bad to use a SQL database just for handling these sequences: that's why this OpenSearch based implementation does exist.
 
 ## How it works
 
@@ -20,9 +29,7 @@ Basically, it uses an index with a single entry where the revision number is use
 ## Using it
 
     UIDGeneratorService service = Framework.getService(UIDGeneratorService.class);
-    UIDSequencer seq = service.getSequencer();
-    // The previous call assumes the `uidgen` contribution is the default one, else you need to specify the sequencer name explicitely:
-    // UIDSequencer seq = service.getSequencer("uidgen");
+    UIDSequencer seq = service.getSequencer("my-sequencer");
     int number = seq.getNext(key);
 
 ## Building
