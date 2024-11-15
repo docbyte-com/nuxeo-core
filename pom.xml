@@ -4242,7 +4242,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.42.1</version>
+        <version>1.42.2</version>
       </dependency>
 
       <!-- Nashorn -->
