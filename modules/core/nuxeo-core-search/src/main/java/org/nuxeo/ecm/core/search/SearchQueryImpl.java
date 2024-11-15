@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.search;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
 import static org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter.REPOSITORY_PROP;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -62,6 +63,12 @@ public class SearchQueryImpl implements SearchQuery {
 
     protected final int limit;
 
+    protected final boolean scrollSearch;
+
+    protected final Duration scrollKeepAlive;
+
+    protected final int scrollSize;
+
     protected final List<String> highlights;
 
     protected final List<Aggregate<? extends Bucket>> aggregates;
@@ -74,6 +81,9 @@ public class SearchQueryImpl implements SearchQuery {
         this.principal = builder.principal;
         this.offset = builder.offset;
         this.limit = builder.limit;
+        this.scrollSearch = builder.scrollSearch;
+        this.scrollKeepAlive = builder.scrollKeepAlive;
+        this.scrollSize = builder.scrollSize;
         this.highlights = Collections.unmodifiableList(builder.highlights);
         this.aggregates = Collections.unmodifiableList(builder.aggregates);
         this.selectFields = Collections.unmodifiableMap(buildSelectFields(this.query));
@@ -158,6 +168,21 @@ public class SearchQueryImpl implements SearchQuery {
     }
 
     @Override
+    public boolean isScrollSearch() {
+        return scrollSearch;
+    }
+
+    @Override
+    public Duration getScrollKeepAlive() {
+        return scrollKeepAlive;
+    }
+
+    @Override
+    public int getScrollSize() {
+        return scrollSize;
+    }
+
+    @Override
     public List<String> getHighlights() {
         return highlights;
     }
@@ -183,6 +208,10 @@ public class SearchQueryImpl implements SearchQuery {
 
         protected static final String SELECT_ALL_WHERE = "SELECT * FROM Document WHERE ";
 
+        protected static final Duration DEFAULT_SCROLL_TIMEOUT_DURATION = Duration.ofMinutes(5);
+
+        protected static final int DEFAULT_SCROLL_SIZE = 250;
+
         protected static final int DEFAULT_LIMIT = 10;
 
         // collection fields
@@ -204,6 +233,12 @@ public class SearchQueryImpl implements SearchQuery {
         protected int offset = 0;
 
         protected int limit = DEFAULT_LIMIT;
+
+        protected boolean scrollSearch;
+
+        protected Duration scrollKeepAlive = DEFAULT_SCROLL_TIMEOUT_DURATION;
+
+        protected int scrollSize = DEFAULT_SCROLL_SIZE;
 
         /**
          * Creates a SearchQuery builder.
@@ -240,6 +275,32 @@ public class SearchQueryImpl implements SearchQuery {
         public Builder limit(int limit) {
             this.limit = limit;
             return this;
+        }
+
+        /**
+         * A scroll search is for deep pagination, returning large amount of results, use
+         * {@link SearchService#searchScroll(SearchScrollContext)} to iterate.
+         */
+        public Builder scrollSearch(boolean value) {
+            this.scrollSearch = value;
+            return this;
+        }
+
+        /**
+         * Sets the scroll context keep alive duration, this is the maximum duration between calls of searchScroll API,
+         * which is the time to process a SearchResponse.
+         */
+        public Builder scrollKeepAlive(Duration value) {
+            this.scrollKeepAlive = value;
+            return scrollSearch(true);
+        }
+
+        /**
+         * Sets the maximum number of hits to return when using the scroll API.
+         */
+        public Builder scrollSize(int scrollSize) {
+            this.scrollSize = scrollSize;
+            return scrollSearch(true);
         }
 
         /**

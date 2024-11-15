@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,9 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -54,8 +56,9 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 8.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ NuxeoDriveFeature.class, RepositoryElasticSearchFeature.class })
+@Features({ NuxeoDriveFeature.class, CoreSearchFeature.class })
 @Deploy("org.nuxeo.drive.elasticsearch:OSGI-INF/nuxeodrive-elasticsearch-adapter-contrib.xml")
+@ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class, cause = "RepositorySearchClient can not order by ecm:path")
 public class TestESSyncRootFolderItem {
 
     protected static final String DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX = "defaultFileSystemItemFactory#test#";

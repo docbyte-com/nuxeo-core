@@ -22,8 +22,11 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.annotation.Nullable;
+
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.platform.query.api.Aggregate;
 import org.nuxeo.ecm.platform.query.api.Bucket;
@@ -74,6 +77,13 @@ public interface SearchResponse {
     PartialList<Map<String, Serializable>> getHitsAsMap();
 
     /**
+     * Returns search hits as an iterator, the query must be a scroll query.
+     *
+     * @throws IllegalArgumentException if the query is not of scroll type.
+     */
+    IterableQueryResult getHitsAsIterator();
+
+    /**
      * Get the total number of match for the query. Limit is not taken in account.
      *
      * @return -1 if unknown.
@@ -84,6 +94,13 @@ public interface SearchResponse {
      * Returns true if the total is accurate, i.e. not an estimation.
      */
     boolean isTotalAccurate();
+
+    /**
+     * Returns a scroll context to use in {@link SearchService#searchScroll(SearchScrollContext)} to fetch the next
+     * batch of results.
+     */
+    @Nullable
+    SearchScrollContext getScrollContext();
 
     /**
      * Returns the aggregates.

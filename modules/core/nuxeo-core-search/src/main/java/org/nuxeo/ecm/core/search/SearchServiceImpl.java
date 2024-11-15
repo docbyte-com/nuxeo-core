@@ -174,6 +174,24 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     @Override
+    public SearchResponse searchScroll(SearchScrollContext scrollContext) {
+        log.debug("Searching next scroll: {}", scrollContext);
+        var client = searchClients.get(scrollContext.searchQuery().getSearchIndex().client());
+        SearchResponse response = client.searchScroll(scrollContext);
+        log.debug("Response: {}", response);
+        return response;
+    }
+
+    @Override
+    public boolean clearSearchScroll(SearchScrollContext scrollContext) {
+        log.debug("Clear search scroll: {}", scrollContext);
+        var client = searchClients.get(scrollContext.searchQuery().getSearchIndex().client());
+        boolean response = client.clearScroll(scrollContext);
+        log.debug("Response: {}", response);
+        return response;
+    }
+
+    @Override
     public void indexDocuments(BulkIndexingRequest request) {
         loadSources(request);
         try {

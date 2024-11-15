@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -46,6 +47,12 @@ public interface SearchQuery {
     int getOffset();
 
     int getLimit();
+
+    boolean isScrollSearch();
+
+    Duration getScrollKeepAlive();
+
+    int getScrollSize();
 
     List<String> getHighlights();
 

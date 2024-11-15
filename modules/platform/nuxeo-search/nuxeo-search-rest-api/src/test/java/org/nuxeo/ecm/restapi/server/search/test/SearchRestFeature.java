@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.restapi.server.search.test;
 
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -33,7 +33,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.search.core")
 @Deploy("org.nuxeo.ecm.platform.restapi.server.search")
 @Deploy("org.nuxeo.ecm.platform.restapi.test:pageprovider-test-contrib.xml")
-@Features({ RestServerFeature.class, RepositoryElasticSearchFeature.class, PlatformFeature.class })
+@Features({ RestServerFeature.class, CoreSearchFeature.class, PlatformFeature.class })
 public class SearchRestFeature implements RunnerFeature {
 
 }

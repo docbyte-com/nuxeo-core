@@ -51,7 +51,6 @@ import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * Automation operation that can run an http enabled Bulk Action.
@@ -149,11 +148,8 @@ public class BulkRunAction {
             query = addExcludeClause(query, excludeDocs);
         }
 
-        String scroller = Framework.getService(PageProviderService.class)
-                                   .getPageProviderType(provider)
-                                   .getScrollerName();
         BulkCommand.Builder builder = new BulkCommand.Builder(action, query, session.getPrincipal().getName()).scroller(
-                scroller);
+                provider.getScroller());
 
         Map<String, Serializable> params = getParams(parametersAsJson);
         builder.params(params);

@@ -38,7 +38,6 @@ import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
-import org.nuxeo.ecm.platform.query.api.PageProviderType;
 import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -280,9 +279,9 @@ public class TestSearchServicePageProvider {
      * @since 2021.8
      */
     @Test
-    public void testPageProviderType() {
+    public void testPageProviderScroller() {
         PageProvider<?> pageProvider = pageProviderService.getPageProvider("NXQL_PP_PATTERN", null, null, null, null);
-        assertEquals(PageProviderType.SEARCH, pageProviderService.getPageProviderType(pageProvider));
+        assertEquals("search", pageProvider.getScroller());
     }
 
 }

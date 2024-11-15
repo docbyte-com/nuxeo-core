@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,13 @@
  * Contributors:
  *     Kevin Leturc
  */
-package org.nuxeo.elasticsearch.test.api;
+package org.nuxeo.ecm.core.search;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,95 +33,73 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsIterableQueryResultImpl;
-import org.nuxeo.elasticsearch.api.EsScrollResult;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
+@Features(CoreSearchFeature.class)
 @Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
-public class TestEsIterableQueryResultImpl {
+@ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class, cause = "RepositorySearchClient can not select on ecm:path")
+public class TestSearchIterableQueryResult {
 
     @Inject
     protected CoreSession session;
 
     @Inject
-    protected ElasticSearchService ess;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
+    protected SearchService searchService;
 
     @Inject
     protected TransactionalFeature txFeature;
 
     @Test
     public void testIterableScroll() {
-
-        buildAndIndexTree(100);
+        int nbDocs = 100;
+        buildAndIndexTree(nbDocs);
 
         String nxql = "select ecm:uuid, ecm:path from Document";
         // Request the first batch
-        NxQueryBuilder queryBuilder = new NxQueryBuilder(session).nxql(nxql).limit(20).onlyElasticsearchResponse();
-        EsScrollResult res = ess.scroll(queryBuilder, 10000);
+        var res = searchService.search(
+                SearchQuery.builder(session, nxql).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
+        assertEquals(nbDocs, res.getTotal());
+        assertEquals(20, res.getHitsCount());
 
-        // Init wrapper
-        ElasticSearchService spiedEss = spy(ess);
-        EsIterableQueryResultImpl iterable = new EsIterableQueryResultImpl(spiedEss, res);
-        assertEquals(100, iterable.size());
+        var iterable = (IterableQueryResultImpl) res.getHitsAsIterator();
+        assertEquals(nbDocs, iterable.size());
         assertEquals(0, iterable.pos());
         assertTrue(iterable.mustBeClosed());
         assertTrue(iterable.hasNext());
 
-        List<Map<String, Serializable>> rows = new ArrayList<>(100);
+        List<Map<String, Serializable>> rows = new ArrayList<>(nbDocs);
         while (iterable.hasNext()) {
             rows.add(iterable.next());
         }
-        assertEquals(100, rows.size());
-        // Each 20 items, a request is made to ES, check that
-        // So a request is made at 20, 40, 60, 80
-        verify(spiedEss, times(4)).scroll(any());
-
+        assertEquals(nbDocs, rows.size());
         iterable.close();
-        verify(spiedEss, times(1)).clearScroll(any());
-
     }
 
     @Test
     public void testIterableSkipTo() {
-
-        buildAndIndexTree(100);
+        int nbDocs = 100;
+        buildAndIndexTree(nbDocs);
 
         String nxql = "select ecm:uuid, ecm:path from Document";
         // Request the first batch
-        NxQueryBuilder queryBuilder = new NxQueryBuilder(session).nxql(nxql).limit(20).onlyElasticsearchResponse();
-        EsScrollResult res = ess.scroll(queryBuilder, 10000);
+        var res = searchService.search(
+                SearchQuery.builder(session, nxql).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
+        var iterable = (IterableQueryResultImpl) res.getHitsAsIterator();
 
-        // Init wrapper
-        ElasticSearchService spiedEss = spy(ess);
-        EsIterableQueryResultImpl iterable = new EsIterableQueryResultImpl(spiedEss, res);
         iterable.skipTo(70);
-        // Each 20 items, a request is made to ES, check that
-        // So a request is made at 20, 40, 60
-        verify(spiedEss, times(3)).scroll(any());
-
         List<Map<String, Serializable>> rows = new ArrayList<>(30);
         while (iterable.hasNext()) {
             rows.add(iterable.next());
         }
         assertEquals(30, rows.size());
-
-        // A request is made at 80
-        verify(spiedEss, times(4)).scroll(any());
-
         iterable.close();
-        verify(spiedEss, times(1)).clearScroll(any());
 
     }
 

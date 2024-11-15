@@ -124,16 +124,7 @@ public class SearchObject extends QueryExecutor {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         PageProvider<?> pageProvider = getPageProvider(pageProviderName, queryParams);
         String query = getQueryString(pageProvider);
-        String scrollName;
-        String scrollParam = queryParams.getFirst(SCROLL_PARAM);
-        if (StringUtils.isEmpty(scrollParam)) {
-            // no scroll parameter, fall back on page provider type
-            scrollName = Framework.getService(PageProviderService.class)
-                                  .getPageProviderType(pageProvider)
-                                  .getScrollerName();
-        } else {
-            scrollName = scrollParam;
-        }
+        String scrollName = StringUtils.defaultIfBlank(queryParams.getFirst(SCROLL_PARAM), pageProvider.getScroller());
         String queryLimit = queryParams.getFirst(QUERY_LIMIT_PARAM);
         return newObject("bulkAction", query, scrollName, queryLimit);
     }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,55 +16,52 @@
  * Contributors:
  *     Kevin Leturc
  */
-package org.nuxeo.elasticsearch.api;
+package org.nuxeo.ecm.core.search;
 
 import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.opensearch.search.SearchHit;
 import org.nuxeo.ecm.core.api.IterableQueryResult;
-import org.nuxeo.elasticsearch.core.EsSearchHitConverter;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
+import org.nuxeo.runtime.api.Framework;
 
 /**
- * Iterable query result of results of an ElasticSearch scroll query and next ones.
- * <p>
- * Queries ElasticSearch when there's no more result in current response and there's more in cluster.
- * <p>
- * For better performance use {@link NxQueryBuilder#onlyElasticsearchResponse()} for the first scroll requests.
+ * Iterable query result based on scroll search results.
  *
  * @since 8.4
  */
-public class EsIterableQueryResultImpl implements IterableQueryResult, Iterator<Map<String, Serializable>> {
+public class IterableQueryResultImpl implements IterableQueryResult, Iterator<Map<String, Serializable>> {
 
-    private final ElasticSearchService searchService;
+    protected final SearchService searchService;
 
-    private final EsSearchHitConverter converter;
+    protected final long size;
 
-    private final long size;
+    protected SearchResponse searchResponse;
 
-    private EsScrollResult scrollResult;
+    protected boolean closed;
 
-    private boolean closed;
+    protected long pos;
 
-    private long pos;
+    protected int relativePos;
 
-    private int relativePos;
-
-    public EsIterableQueryResultImpl(ElasticSearchService searchService, EsScrollResult scrollResult) {
-        assert !scrollResult.getQueryBuilder().getSelectFieldsAndTypes().isEmpty();
-        this.searchService = searchService;
-        this.scrollResult = scrollResult;
-        this.converter = new EsSearchHitConverter(scrollResult.getQueryBuilder().getSelectFieldsAndTypes());
-        this.size = scrollResult.getElasticsearchResponse().getHits().getTotalHits().value;
+    public IterableQueryResultImpl(SearchResponse searchResponse) {
+        if (searchResponse.getScrollContext() == null) {
+            throw new IllegalArgumentException("The SearchQuery must be of type scroll to create an iterator");
+        }
+        this.searchService = Framework.getService(SearchService.class);
+        this.searchResponse = searchResponse;
+        if (searchResponse.isTotalAccurate()) {
+            this.size = searchResponse.getTotal();
+        } else {
+            this.size = -1;
+        }
     }
 
     @Override
     public void close() {
         if (!closed) {
-            searchService.clearScroll(scrollResult);
+            searchService.clearSearchScroll(searchResponse.getScrollContext());
             closed = true;
             pos = -1;
         }
@@ -90,7 +87,7 @@ public class EsIterableQueryResultImpl implements IterableQueryResult, Iterator<
         checkNotClosed();
         if (pos < this.pos) {
             throw new IllegalArgumentException("Cannot go back in Iterable.");
-        } else if (pos > size) {
+        } else if (size >= 0 && pos > size) {
             pos = size;
         } else {
             while (pos > this.pos) {
@@ -108,29 +105,44 @@ public class EsIterableQueryResultImpl implements IterableQueryResult, Iterator<
     @Override
     public boolean hasNext() {
         checkNotClosed();
+        if (size < 0) {
+            if (relativePos < searchResponse.getHitsCount()) {
+                return true;
+            } else {
+                try {
+                    nextHit();
+                    // decrement pos and relativePos as we didn't consume the hit
+                    pos--;
+                    relativePos--;
+                    return true;
+                } catch (NoSuchElementException e) {
+                    return false;
+                }
+            }
+        }
         return pos < size;
     }
 
     @Override
     public Map<String, Serializable> next() {
         checkNotClosed();
-        if (pos == size) {
+        if (size >= 0 && pos == size) {
             throw new NoSuchElementException();
         }
-        SearchHit hit = nextHit();
-        return converter.convert(hit);
+        return nextHit();
     }
 
-    private SearchHit nextHit() {
-        if (relativePos == scrollResult.getElasticsearchResponse().getHits().getHits().length) {
+    private Map<String, Serializable> nextHit() {
+        if (relativePos == searchResponse.getHitsCount()) {
             // Retrieve next scroll
-            scrollResult = searchService.scroll(scrollResult);
+            searchResponse = searchService.searchScroll(searchResponse.getScrollContext());
             relativePos = 0;
         }
-        SearchHit hit = scrollResult.getElasticsearchResponse().getHits().getAt(relativePos);
-        relativePos++;
+        if (searchResponse.getHitsCount() == 0) {
+            throw new NoSuchElementException();
+        }
         pos++;
-        return hit;
+        return searchResponse.getHits().get(relativePos++).getFields();
     }
 
     private void checkNotClosed() {

@@ -37,6 +37,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.core.api.model.PropertyConversionException;
@@ -65,6 +66,9 @@ public class SearchResponseImpl implements SearchResponse {
 
     protected final boolean totalAccurate;
 
+    @Nullable
+    protected final SearchScrollContext scrollContext;
+
     protected final List<Aggregate<? extends Bucket>> aggregates;
 
     protected SearchResponseImpl(Builder builder) {
@@ -74,6 +78,7 @@ public class SearchResponseImpl implements SearchResponse {
         this.hits = builder.hits;
         this.total = builder.total;
         this.totalAccurate = builder.totalAccurate;
+        this.scrollContext = builder.scrollContext;
         this.aggregates = builder.aggregates;
     }
 
@@ -118,6 +123,11 @@ public class SearchResponseImpl implements SearchResponse {
     }
 
     @Override
+    public IterableQueryResult getHitsAsIterator() {
+        return new IterableQueryResultImpl(this);
+    }
+
+    @Override
     public long getTotal() {
         return total;
     }
@@ -125,6 +135,12 @@ public class SearchResponseImpl implements SearchResponse {
     @Override
     public boolean isTotalAccurate() {
         return totalAccurate;
+    }
+
+    @Override
+    @Nullable
+    public SearchScrollContext getScrollContext() {
+        return scrollContext;
     }
 
     @Override
@@ -213,6 +229,8 @@ public class SearchResponseImpl implements SearchResponse {
 
         protected List<Aggregate<? extends Bucket>> aggregates = List.of();
 
+        protected SearchScrollContext scrollContext;
+
         protected Builder(List<SearchHit> hits, int elapsedMillis) {
             this.error = null;
             // success case
@@ -239,6 +257,11 @@ public class SearchResponseImpl implements SearchResponse {
 
         public Builder totalAccurate(boolean totalAccurate) {
             this.totalAccurate = totalAccurate;
+            return this;
+        }
+
+        public Builder scroll(SearchScrollContext scrollContext) {
+            this.scrollContext = scrollContext;
             return this;
         }
 

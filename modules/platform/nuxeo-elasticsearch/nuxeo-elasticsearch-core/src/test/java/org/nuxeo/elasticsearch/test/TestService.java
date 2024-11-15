@@ -30,7 +30,6 @@ import jakarta.inject.Inject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -47,14 +46,8 @@ public class TestService {
     @Inject
     protected ElasticSearchAdmin esa;
 
-    @Inject
-    protected ElasticSearchService ess;
-
     @Test
     public void verifyNodeStartedWithConfig() {
-
-        ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-        assertNotNull(ess);
 
         ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
         assertNotNull(esa);

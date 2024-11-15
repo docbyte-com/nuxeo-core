@@ -473,4 +473,13 @@ public interface PageProvider<T> extends Serializable {
      * @since 9.3
      */
     long getResultsCountLimit();
+
+    /**
+     * @return the {@link org.nuxeo.ecm.core.api.scroll.Scroll scroller} name that performs the query when the PP is
+     *         used to run a Bulk Command
+     * @since 2025.0
+     */
+    default String getScroller() {
+        return "default";
+    }
 }

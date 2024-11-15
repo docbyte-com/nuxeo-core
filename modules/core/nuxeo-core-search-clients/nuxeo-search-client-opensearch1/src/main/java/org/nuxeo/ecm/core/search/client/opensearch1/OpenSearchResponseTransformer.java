@@ -37,6 +37,7 @@ import org.nuxeo.ecm.core.search.SearchHit;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchResponseTransformer;
+import org.nuxeo.ecm.core.search.SearchScrollContext;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateDateHistogramParser;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateDateRangeParser;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateHistogramParser;
@@ -89,6 +90,10 @@ public class OpenSearchResponseTransformer
         if (osTotalHits != null) {
             responseBuilder.total(osTotalHits.value)
                            .totalAccurate(osTotalHits.relation.equals(TotalHits.Relation.EQUAL_TO));
+        }
+        // scroll
+        if (searchQuery.isScrollSearch()) {
+            responseBuilder.scroll(new SearchScrollContext(searchQuery, osSearchResponse.getScrollId()));
         }
         // aggregations
         responseBuilder.aggregates(makeAggregates(searchQuery, osSearchResponse.getAggregations()));

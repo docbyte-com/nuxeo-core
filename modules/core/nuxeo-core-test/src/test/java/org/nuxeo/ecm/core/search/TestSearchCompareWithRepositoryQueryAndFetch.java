@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * Contributors:
  *     Benoit Delbosc
  */
-package org.nuxeo.elasticsearch.test.nxql;
+package org.nuxeo.ecm.core.search;
 
 import static java.util.Calendar.JANUARY;
 import static org.junit.Assert.assertEquals;
@@ -32,7 +32,6 @@ import java.util.TimeZone;
 
 import jakarta.inject.Inject;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,22 +42,21 @@ import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsResult;
-import org.nuxeo.elasticsearch.core.EsResultSetImpl;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
+@Features(CoreSearchFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-public class TestCompareQueryAndFetch {
+@ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
+public class TestSearchCompareWithRepositoryQueryAndFetch {
 
     @Inject
     protected CoreFeature coreFeature;
@@ -67,15 +65,13 @@ public class TestCompareQueryAndFetch {
     protected CoreSession session;
 
     @Inject
-    protected ElasticSearchService ess;
+    protected SearchService searchService;
 
     @Inject
     protected TrashService trashService;
 
     @Inject
     protected TransactionalFeature txFeature;
-
-    private String proxyPath;
 
     @Before
     public void initWorkingDocuments() {
@@ -111,7 +107,6 @@ public class TestCompareQueryAndFetch {
 
         DocumentModel file = session.getDocument(new PathRef("/file3"));
         DocumentModel proxy = session.publishDocument(file, folder);
-        proxyPath = proxy.getPathAsString();
 
         trashService.trashDocument(session.getDocument(new PathRef("/file1")));
         trashService.trashDocument(session.getDocument(new PathRef("/note5")));
@@ -120,12 +115,6 @@ public class TestCompareQueryAndFetch {
 
         // wait for async jobs
         txFeature.nextTransaction();
-    }
-
-    @After
-    public void cleanWorkingDocuments() {
-        // prevent NXP-14686 bug that prevent cleanupSession to remove version
-        session.removeDocument(new PathRef(proxyPath));
     }
 
     protected String getDigest(IterableQueryResult docs) {
@@ -165,34 +154,18 @@ public class TestCompareQueryAndFetch {
         assertEquals(getDigest(expected), getDigest(actual));
     }
 
-    protected void compareESAndCore(String nxql) {
-        IterableQueryResult coreResult = session.queryAndFetch(nxql, NXQL.NXQL);
-        EsResult esRes = ess.queryAndAggregate(new NxQueryBuilder(session).nxql(nxql).limit(20));
-        try (IterableQueryResult esResult = esRes.getRows()) {
-            assertSameDocumentLists(coreResult, esResult);
-            coreResult.close();
+    protected void compareSearchAndCore(String nxql) {
+        try (IterableQueryResult coreResult = session.queryAndFetch(nxql, NXQL.NXQL);
+                IterableQueryResult searchResult = searchService.search(
+                        SearchQuery.builder(session, nxql).scrollSize(20).build()).getHitsAsIterator()) {
+            assertSameDocumentLists(coreResult, searchResult);
         }
     }
 
     @Test
     public void testSimpleSearchWithSort() {
-        compareESAndCore("select ecm:uuid, dc:title, dc:nature from Document order by ecm:uuid");
-        compareESAndCore("select ecm:uuid, dc:title from Document where ecm:isTrashed = 0 order by ecm:uuid");
-        compareESAndCore("select ecm:uuid, dc:nature from File order by dc:nature, ecm:uuid");
-        // TODO some timezone issues here...
-        // compareESAndCore("select ecm:uuid, dc:issued from File order by ecm:uuid");
-    }
-
-    @Test
-    public void testIteratorWithLimit() {
-        int LIMIT = 5;
-        EsResult esRes = ess.queryAndAggregate(
-                new NxQueryBuilder(session).nxql("select ecm:uuid From Document").limit(LIMIT));
-        try (IterableQueryResult res = esRes.getRows()) {
-            // the number of doc in the iterator
-            assertEquals(LIMIT, res.size());
-            // the total number of docs that match for the query
-            assertEquals(20, ((EsResultSetImpl) res).totalSize());
-        }
+        compareSearchAndCore("select ecm:uuid, dc:title, dc:nature from Document order by ecm:uuid");
+        compareSearchAndCore("select ecm:uuid, dc:title from Document where ecm:isTrashed = 0 order by ecm:uuid");
+        compareSearchAndCore("select ecm:uuid, dc:nature from File order by dc:nature, ecm:uuid");
     }
 }

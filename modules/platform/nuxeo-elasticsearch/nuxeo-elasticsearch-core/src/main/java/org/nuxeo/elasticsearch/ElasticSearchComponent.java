@@ -34,14 +34,9 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsResult;
-import org.nuxeo.elasticsearch.api.EsScrollResult;
 import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.elasticsearch.core.ElasticSearchAdminImpl;
-import org.nuxeo.elasticsearch.core.ElasticSearchServiceImpl;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
@@ -56,7 +51,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 /**
  * Component used to configure and manage ElasticSearch integration
  */
-public class ElasticSearchComponent extends DefaultComponent implements ElasticSearchAdmin, ElasticSearchService {
+public class ElasticSearchComponent extends DefaultComponent implements ElasticSearchAdmin {
 
     private static final Logger log = LogManager.getLogger(ElasticSearchComponent.class);
 
@@ -70,8 +65,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
     protected final Map<String, ElasticSearchIndexConfig> indexConfig = new HashMap<>();
 
     protected ElasticSearchAdminImpl esa;
-
-    protected ElasticSearchServiceImpl ess;
 
     protected ListeningExecutorService waiterExecutorService;
 
@@ -111,7 +104,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
             return;
         }
         esa = new ElasticSearchAdminImpl(indexConfig, getDescriptors(EP_HINTS));
-        ess = new ElasticSearchServiceImpl(esa);
         initListenerThreadPool();
     }
 
@@ -128,7 +120,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
                 esa.disconnect();
             } finally {
                 esa = null;
-                ess = null;
             }
         }
     }
@@ -272,28 +263,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
     @Override
     public void optimizeIndex(String indexName) {
         esa.optimizeIndex(indexName);
-    }
-
-    // ES Search ===============================================================
-
-    @Override
-    public EsResult queryAndAggregate(NxQueryBuilder queryBuilder) {
-        return ess.queryAndAggregate(queryBuilder);
-    }
-
-    @Override
-    public EsScrollResult scroll(NxQueryBuilder queryBuilder, long keepAlive) {
-        return ess.scroll(queryBuilder, keepAlive);
-    }
-
-    @Override
-    public EsScrollResult scroll(EsScrollResult scrollResult) {
-        return ess.scroll(scrollResult);
-    }
-
-    @Override
-    public void clearScroll(EsScrollResult scrollResult) {
-        ess.clearScroll(scrollResult);
     }
 
     // misc ====================================================================

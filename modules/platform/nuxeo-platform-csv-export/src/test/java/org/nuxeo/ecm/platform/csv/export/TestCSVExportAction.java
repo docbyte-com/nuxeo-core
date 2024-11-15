@@ -62,20 +62,20 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
-import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.io.DummyServletOutputStream;
 import org.nuxeo.ecm.core.io.download.DownloadService;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.DocumentSetRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.ecm.platform.csv.export.action.CSVExportAction;
-import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -87,8 +87,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreBulkFeature.class, CoreFeature.class, DirectoryFeature.class,
-        RepositoryLightElasticSearchFeature.class })
+@Features({ CoreSearchFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.ecm.platform.csv.export")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
@@ -318,8 +317,9 @@ public class TestCSVExportAction {
     }
 
     @Test
-    public void testDownloadCSVWithElasticScroller() throws Exception {
-        testDownloadCSV("elastic");
+    @ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
+    public void testDownloadCSVWithOpensearchScroller() throws Exception {
+        testDownloadCSV("opensearch");
     }
 
     @Test

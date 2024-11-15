@@ -30,11 +30,18 @@ import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 @XObject("searchServicePageProvider")
 public class SearchServicePageProviderDescriptor extends BasePageProviderDescriptor implements PageProviderDefinition {
 
+    @XNode("scroller")
+    protected String scroller;
+
     @XNode("searchClient")
     protected String searchClient;
 
     @XNode("searchIndex")
     protected String searchIndex;
+
+    public String getScroller() {
+        return scroller;
+    }
 
     public String getSearchClient() {
         return searchClient;

@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.search.client.repository;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -28,12 +29,16 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.ScrollResult;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
+import org.nuxeo.ecm.core.search.SearchHit;
+import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchScrollContext;
 import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -140,9 +145,46 @@ public class RepositorySearchClient extends AbstractSearchClient {
     @Override
     public SearchResponse search(SearchQuery query) {
         CoreSession session = CoreInstance.getCoreSession(query.getSearchIndex().repository(), query.getPrincipal());
-        var repositorySearchResponse = session.queryProjection(query.getQuery().toString(), query.getLimit(),
-                query.getOffset(), true);
+        String nxql = query.getQuery().toString();
+        if (query.isScrollSearch()) {
+            ScrollResult<String> repositoryScrollResponse = session.scroll(nxql, query.getScrollSize(),
+                    Math.toIntExact(query.getScrollKeepAlive().toSeconds()));
+            SearchScrollContext scrollContext = new SearchScrollContext(query, repositoryScrollResponse.getScrollId());
+            return SearchResponse.builder(makeSearchHits(query.getSearchIndex(), repositoryScrollResponse), -1)
+                                 .scroll(scrollContext)
+                                 .build();
+        }
+        var repositorySearchResponse = session.queryProjection(nxql, query.getLimit(), query.getOffset(), true);
         return RESPONSE_TRANSFORMER.apply(query, repositorySearchResponse);
+    }
+
+    @Override
+    public SearchResponse searchScroll(SearchScrollContext scrollContext) {
+        var searchIndex = scrollContext.searchQuery().getSearchIndex();
+        CoreSession session = CoreInstance.getCoreSession(searchIndex.repository());
+        ScrollResult<String> repositoryScrollResponse = session.scroll(scrollContext.scrollId());
+        SearchScrollContext newScrollId = new SearchScrollContext(scrollContext.searchQuery(),
+                repositoryScrollResponse.getScrollId());
+        return SearchResponse.builder(makeSearchHits(searchIndex, repositoryScrollResponse), -1)
+                             .scroll(newScrollId)
+                             .build();
+    }
+
+    protected List<SearchHit> makeSearchHits(SearchIndex searchIndex, ScrollResult<String> repositoryScrollResponse) {
+        String index = searchIndex.index();
+        String repository = searchIndex.repository();
+        return repositoryScrollResponse.getResults()
+                                       .stream()
+                                       .map(docId -> SearchHit.builder(index, docId)
+                                                              .repository(repository)
+                                                              .docId(docId)
+                                                              .build())
+                                       .toList();
+    }
+
+    @Override
+    public boolean clearScroll(SearchScrollContext scrollContext) {
+        return true;
     }
 
     @Override

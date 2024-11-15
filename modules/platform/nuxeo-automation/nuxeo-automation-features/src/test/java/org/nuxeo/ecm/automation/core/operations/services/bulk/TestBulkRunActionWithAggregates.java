@@ -16,7 +16,7 @@
  * Contributors:
  *     Funsho David
  */
-package org.nuxeo.elasticsearch.test.bulk;
+package org.nuxeo.ecm.automation.core.operations.services.bulk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -38,7 +38,6 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.core.operations.services.bulk.BulkRunAction;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -49,9 +48,9 @@ import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.action.SetPropertiesAction;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.search.IgnoreIfSearchClientDoesNotHaveAggregateCapability;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -62,12 +61,12 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 10.10
  */
 @RunWith(FeaturesRunner.class)
-@Features({ AutomationFeaturesFeature.class, RepositoryElasticSearchFeature.class, CoreBulkFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core:pageprovider-bulk-test-contrib.xml")
+@Features({ AutomationFeaturesFeature.class, CoreBulkFeature.class, CoreSearchFeature.class })
+@Deploy("org.nuxeo.ecm.automation.features.tests:test-providers-aggregate-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveAggregateCapability.class)
-public class TestBulkActionWithAggregates {
+public class TestBulkRunActionWithAggregates {
 
     protected static final int DOCUMENT_COUNT = 20;
 

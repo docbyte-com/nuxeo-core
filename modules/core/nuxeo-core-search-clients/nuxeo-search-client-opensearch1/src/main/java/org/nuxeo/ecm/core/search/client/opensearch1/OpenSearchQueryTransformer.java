@@ -35,6 +35,7 @@ import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_RANGE
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_SIGNIFICANT_TERMS;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_TERMS;
 
+import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -47,6 +48,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.FuzzyQuery;
+import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.query.sql.model.DefaultQueryVisitor;
 import org.nuxeo.ecm.core.query.sql.model.EsHint;
@@ -85,6 +87,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchType;
+import org.opensearch.common.unit.TimeValue;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.MatchPhrasePrefixQueryBuilder;
 import org.opensearch.index.query.QueryBuilder;
@@ -112,14 +115,22 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
 
     protected static final String SCORE_FIELD = "_score";
 
+    // opensearch keep alive must be less than 1d
+    protected static final long MAX_KEEP_ALIVE_SECONDS = Duration.ofDays(1).minusMinutes(10).toSeconds();
+
     @Override
     public SearchRequest apply(SearchQuery searchQuery) {
         var osSearchBuilder = new SearchSourceBuilder();
         osSearchBuilder.trackTotalHits(true);
         // fields selection
         osSearchBuilder.fetchSource(searchQuery.getSelectFields().keySet().toArray(String[]::new), null);
-        // from and size
-        osSearchBuilder.from(searchQuery.getOffset()).size(searchQuery.getLimit());
+        if (searchQuery.isScrollSearch()) {
+            // scroll size
+            osSearchBuilder.size(searchQuery.getScrollSize());
+        } else {
+            // from and size
+            osSearchBuilder.from(searchQuery.getOffset()).size(searchQuery.getLimit());
+        }
         // sort
         makeSortBuilders(searchQuery).forEach(osSearchBuilder::sort);
         // highlight
@@ -135,6 +146,10 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         var osSearchRequest = new SearchRequest(searchQuery.getSearchIndex().index());
         osSearchRequest.searchType(SearchType.DFS_QUERY_THEN_FETCH);
         osSearchRequest.source(osSearchBuilder);
+        // scroll
+        if (searchQuery.isScrollSearch()) {
+            osSearchRequest.scroll(getKeepAlive(searchQuery));
+        }
         return osSearchRequest;
     }
 
@@ -157,9 +172,10 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
                         return;
                     }
                     Set<String> types = schemaManager.getDocumentTypeNamesExtending(type);
-                    if (types != null) {
-                        fromList.addAll(types);
+                    if (types == null) {
+                        throw new QueryParseException("Unknown type: " + type);
                     }
+                    fromList.addAll(types);
                 }
             }
 
@@ -625,6 +641,14 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         BoolQueryBuilder ret = QueryBuilders.boolQuery();
         searchQuery.getAggregates().stream().map(this::getAggregateFilter).filter(Objects::nonNull).forEach(ret::must);
         return ret.hasClauses() ? ret : null;
+    }
+
+    protected static TimeValue getKeepAlive(SearchQuery query) {
+        long keepAlive = query.getScrollKeepAlive().toSeconds();
+        if (keepAlive <= 0 || keepAlive > MAX_KEEP_ALIVE_SECONDS) {
+            keepAlive = MAX_KEEP_ALIVE_SECONDS;
+        }
+        return TimeValue.timeValueSeconds(keepAlive);
     }
 
     /**

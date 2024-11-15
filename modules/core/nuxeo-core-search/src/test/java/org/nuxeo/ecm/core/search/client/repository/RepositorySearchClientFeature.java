@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.search.client.repository;
 
+import static org.nuxeo.ecm.core.search.SearchClient.DEFAULT_CLIENT_NAME_PROP;
+
 import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -29,6 +31,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  */
 @Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/repository-search-client-test-contrib.xml")
 @Features(BaseCoreSearchFeature.class)
+@WithFrameworkProperty(name = DEFAULT_CLIENT_NAME_PROP, value = "repository")
 @WithFrameworkProperty(name = "nuxeo.test.search.client.repository.default", value = "true")
 public class RepositorySearchClientFeature implements RunnerFeature {
 }

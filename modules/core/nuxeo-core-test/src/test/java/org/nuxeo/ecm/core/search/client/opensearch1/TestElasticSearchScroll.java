@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,19 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.elasticsearch.test.scroll;
+package org.nuxeo.ecm.core.search.client.opensearch1;
 
-import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.scroll.TestRepositoryScroll;
-import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-@RunWith(FeaturesRunner.class)
-@Features({ RepositoryLightElasticSearchFeature.class })
+/**
+ * @deprecated since 2025.0, test the backward compatibility
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
+@Features(CoreSearchFeature.class)
+@ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
 public class TestElasticSearchScroll extends TestRepositoryScroll {
 
     @Override

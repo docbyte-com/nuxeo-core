@@ -20,8 +20,6 @@ package org.nuxeo.elasticsearch;
 
 public final class ElasticSearchConstants {
 
-    public static final String ID_FIELD = "_id";
-
     /**
      * Elasticsearch type name used to index Nuxeo documents
      */
@@ -32,15 +30,11 @@ public final class ElasticSearchConstants {
      */
     public static final String ENTRY_TYPE = "entry";
 
-    public static final String ACL_FIELD = "ecm:acl";
-
     public static final String BINARYTEXT_FIELD = "ecm:binarytext";
 
     public static final String ALL_FIELDS = "*";
 
     public static final String ES_ENABLED_PROPERTY = "elasticsearch.enabled";
-
-    public static final String FETCH_DOC_FROM_ES_PROPERTY = "elasticsearch.fetchDocFromEs";
 
     private ElasticSearchConstants() {
     }

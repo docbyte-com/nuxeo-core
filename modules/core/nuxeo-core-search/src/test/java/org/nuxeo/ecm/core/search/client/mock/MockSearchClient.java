@@ -32,6 +32,7 @@ import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchScrollContext;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -154,7 +155,18 @@ public class MockSearchClient extends AbstractSearchClient {
     }
 
     @Override
+    public SearchResponse searchScroll(SearchScrollContext scrollContext) {
+        return SearchResponse.builder(501, getName() + ": SearchScroll not implemented", 0).build();
+    }
+
+    @Override
+    public boolean clearScroll(SearchScrollContext scrollContext) {
+        return false;
+    }
+
+    @Override
     public void close() {
         // nothing to do
     }
+
 }

@@ -31,6 +31,7 @@ import static org.nuxeo.ecm.core.opencmis.impl.server.NuxeoObjectData.REND_STREA
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -176,9 +177,6 @@ import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionService;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsIterableQueryResultImpl;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -1600,11 +1598,12 @@ public class NuxeoCmisService extends AbstractCmisService
             IterableQueryResult it;
             try {
                 if (useElasticsearch) {
-                    ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-                    NxQueryBuilder qb = new NxQueryBuilder(coreSession).nxql(nxql)
-                                                                       .limit(1000)
-                                                                       .onlyElasticsearchResponse();
-                    it = new EsIterableQueryResultImpl(ess, ess.scroll(qb, 1000));
+                    SearchService searchService = Framework.getService(SearchService.class);
+                    SearchQuery searchQuery = SearchQuery.builder(coreSession, nxql)
+                                                         .scrollSize(1000)
+                                                         .scrollKeepAlive(Duration.ofSeconds(1000))
+                                                         .build();
+                    it = searchService.search(searchQuery).getHitsAsIterator();
                 } else {
                     // distinct documents - new Object[0] is necessary for compilation
                     it = coreSession.queryAndFetch(nxql, NXQL.NXQL, true, new Object[0]);

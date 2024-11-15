@@ -162,7 +162,6 @@ import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
@@ -180,7 +179,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * Uses CMISQL to NXQL conversion for queries, which disallows JOINs.
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CmisFeature.class, CmisFeatureConfiguration.class, RepositoryLightElasticSearchFeature.class })
+@Features({ CmisFeature.class, CmisFeatureConfiguration.class })
 @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/types-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestCmisBinding extends TestCmisBindingBase {
@@ -2344,6 +2343,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Test
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/test-relax-cmis-spec.xml")
     @ConditionalIgnore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support multiple CONTAINS")
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "The search client needs fulltext search")
     public void testQueryMultiContainsRelaxingSpec() {
         // when using JOINs, we use the CMISQLQueryMaker which hasn't been updated to allow multiple CONTAINs
         assumeFalse("JOINs are not supported", supportsJoins());

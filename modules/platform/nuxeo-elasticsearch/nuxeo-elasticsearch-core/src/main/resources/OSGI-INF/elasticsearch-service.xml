@@ -4,7 +4,6 @@
   <implementation class="org.nuxeo.elasticsearch.ElasticSearchComponent" />
 
   <service>
-    <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchService" />
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchAdmin" />
   </service>
 

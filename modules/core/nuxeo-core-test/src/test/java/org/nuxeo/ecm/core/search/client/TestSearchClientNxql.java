@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.search.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_FULLTEXT_SCORE;
@@ -27,6 +28,7 @@ import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_FULLTEXT_SCORE;
 import java.util.GregorianCalendar;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.search.SearchHit;
 import org.nuxeo.ecm.core.search.SearchResponse;
 
@@ -38,6 +40,11 @@ public class TestSearchClientNxql extends AbstractTestSearchClient {
     @Override
     protected String getSourceToIndex() {
         return "OSGI-INF/search/search-client-nxql-documents.ndjson";
+    }
+
+    @Test
+    public void testBadNxl() {
+        assertThrows(QueryParseException.class, () -> search("SELECT * FROM nowhere"));
     }
 
     @Test

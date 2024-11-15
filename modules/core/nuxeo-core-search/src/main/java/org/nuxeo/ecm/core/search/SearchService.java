@@ -62,4 +62,19 @@ public interface SearchService {
      * }
      */
     SearchResponse search(SearchQuery query);
+
+    /**
+     * Iterate on results for a scroll search. The end of scroll is reached when there is no more hit, i.e.
+     * {@link SearchResponse#getHitsCount()} returns {@code 0}.
+     *
+     * @param scrollContext provided by the previous {@link SearchResponse#getScrollContext()};
+     */
+    SearchResponse searchScroll(SearchScrollContext scrollContext);
+
+    /**
+     * Explicit clear the search scroll context, without waiting for the scroll keep alive to timeout.
+     *
+     * @return {@code true} if the context is successfully cleared.
+     */
+    boolean clearSearchScroll(SearchScrollContext scrollContext);
 }

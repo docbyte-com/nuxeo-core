@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
+import static org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchQueryTransformer.getKeepAlive;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
@@ -28,6 +30,7 @@ import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchClientRetryableException;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchScrollContext;
 import org.nuxeo.runtime.RetryableException;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
@@ -212,6 +215,22 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             // OpenSearchStatusException is raised when using phrase prefix on keyword type
             throw new SearchClientException(e);
         }
+    }
+
+    @Override
+    public SearchResponse searchScroll(SearchScrollContext scrollContext) {
+        var osRequest = new SearchScrollRequest(scrollContext.scrollId()).scroll(
+                getKeepAlive(scrollContext.searchQuery()));
+        var osSearchResponse = client.scroll(osRequest);
+        return new OpenSearchResponseTransformer().apply(scrollContext.searchQuery(), osSearchResponse);
+    }
+
+    @Override
+    public boolean clearScroll(SearchScrollContext scrollContext) {
+        ClearScrollRequest request = new ClearScrollRequest();
+        request.addScrollId(scrollContext.scrollId());
+        var response = client.clearScroll(request);
+        return response.isSucceeded();
     }
 
     @Override

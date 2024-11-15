@@ -25,6 +25,8 @@ package org.nuxeo.ecm.core.search;
  */
 public interface SearchClient extends AutoCloseable {
 
+    String DEFAULT_CLIENT_NAME_PROP = "nuxeo.search.client.default.name";
+
     /**
      * Gets the client name.
      */
@@ -83,6 +85,21 @@ public interface SearchClient extends AutoCloseable {
      * Executes a search query.
      */
     SearchResponse search(SearchQuery query);
+
+    /**
+     * Iterate on results for a scroll search. The end of scroll is reached when there is no more hit, i.e.
+     * {@link SearchResponse#getHitsCount()} returns {@code 0}.
+     *
+     * @param scrollContext provided by the previous {@link SearchResponse#getScrollContext()};
+     */
+    SearchResponse searchScroll(SearchScrollContext scrollContext);
+
+    /**
+     * Explicitly clear the search scroll context, without waiting for the scroll keep alive to timeout.
+     *
+     * @return {@code true} if the context is successfully cleared.
+     */
+    boolean clearScroll(SearchScrollContext scrollContext);
 
     @Override
     void close();

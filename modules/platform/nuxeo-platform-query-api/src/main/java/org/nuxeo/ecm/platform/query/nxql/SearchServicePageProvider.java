@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -331,4 +332,13 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
         this.maxResultWindow = maxResultWindow;
     }
 
+    @Override
+    public String getScroller() {
+        if (getDefinition() instanceof SearchServicePageProviderDescriptor searchServiceDescriptor) {
+            return StringUtils.defaultIfBlank(searchServiceDescriptor.getScroller(), "search");
+        } else {
+            // SSPP replaces another PP implementation, the query and scroll are processed by the search service
+            return "search";
+        }
+    }
 }

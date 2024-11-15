@@ -34,7 +34,6 @@ import org.nuxeo.ecm.core.api.SortInfo;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
-import org.nuxeo.ecm.platform.query.api.PageProviderType;
 import org.nuxeo.ecm.platform.query.api.QuickFilter;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
 import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
@@ -296,14 +295,6 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     @Override
     public Set<String> getPageProviderDefinitionNames() {
         return Set.copyOf(providers.keySet());
-    }
-
-    @Override
-    public PageProviderType getPageProviderType(PageProvider<?> pageProvider) {
-        return switch (pageProvider) {
-            case SearchServicePageProvider ignored -> PageProviderType.SEARCH;
-            default -> PageProviderType.DEFAULT;
-        };
     }
 
     record PageProviderReplacerWithName(String replacedName, Class<? extends PageProvider<?>> providerClass) {

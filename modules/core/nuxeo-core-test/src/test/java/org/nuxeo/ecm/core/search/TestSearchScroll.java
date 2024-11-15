@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
-package org.nuxeo.elasticsearch.test;
+package org.nuxeo.ecm.core.search;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -32,61 +33,56 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsScrollResult;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
- * Tests the scroll search API exposed by {@link ElasticSearchService}.
+ * Tests the scroll search API exposed by {@link SearchService}.
  *
  * @since 8.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RepositoryElasticSearchFeature.class })
-public class TestScrollSearch {
+@Features(CoreSearchFeature.class)
+public class TestSearchScroll {
 
     @Inject
     protected CoreSession session;
 
     @Inject
-    protected ElasticSearchService ess;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
+    protected SearchService searchService;
 
     @Inject
     protected TransactionalFeature txFeature;
 
     @Test
     public void testScroll() {
-
-        buildAndIndexTree(100);
+        int nbDocs = 100;
+        buildAndIndexTree(nbDocs);
 
         // Initial search request, includes the first batch of results
-        String query = "select * from Document order by ecm:path";
-        EsScrollResult res = ess.scroll(new NxQueryBuilder(session).nxql(query).limit(20), 10000);
+        String query = "select * from Document order by dc:title";
+        var res = searchService.search(
+                SearchQuery.builder(session, query).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
         assertNotNull(res);
-        assertNotNull(res.getQueryBuilder());
-        assertEquals(10000, res.getKeepAlive());
-        assertNotNull(res.getScrollId());
+        assertNotNull(res.getScrollContext());
+        assertEquals(10_000, res.getScrollContext().searchQuery().getScrollKeepAlive().toSeconds());
+        assertNotNull(res.getScrollContext().scrollId());
 
         // Next result batches
         int totalDocCount = 0;
         List<String> docPaths = new ArrayList<>();
-        DocumentModelList docs = res.getDocuments();
+        DocumentModelList docs = res.loadDocuments(session);
         while (!docs.isEmpty()) {
             int hitCount = docs.size();
             assertEquals(20, hitCount);
             totalDocCount += hitCount;
-            docPaths.addAll(docs.stream().map(DocumentModel::getPathAsString).collect(Collectors.toList()));
-            res = ess.scroll(res);
-            docs = res.getDocuments();
+            docPaths.addAll(docs.stream().map(DocumentModel::getPathAsString).toList());
+            res = searchService.searchScroll(res.getScrollContext());
+            docs = res.loadDocuments(session);
         }
-        assertEquals(100, totalDocCount);
+        assertEquals(nbDocs, totalDocCount);
 
         // Check order
         assertEquals(session.query(query).stream().map(DocumentModel::getPathAsString).collect(Collectors.toList()),

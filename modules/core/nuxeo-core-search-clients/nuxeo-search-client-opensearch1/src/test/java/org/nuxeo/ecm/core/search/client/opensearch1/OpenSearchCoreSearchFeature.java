@@ -18,11 +18,14 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
+import static org.nuxeo.ecm.core.search.SearchClient.DEFAULT_CLIENT_NAME_PROP;
+
 import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
 import org.nuxeo.runtime.opensearch1.OpenSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2025.0
@@ -30,5 +33,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.core.search.client.opensearch1")
 @Deploy("org.nuxeo.ecm.core.search.client.opensearch1.test")
 @Features({ BaseCoreSearchFeature.class, OpenSearchFeature.class })
+@WithFrameworkProperty(name = DEFAULT_CLIENT_NAME_PROP, value = "opensearch")
 public class OpenSearchCoreSearchFeature implements RunnerFeature {
 }
