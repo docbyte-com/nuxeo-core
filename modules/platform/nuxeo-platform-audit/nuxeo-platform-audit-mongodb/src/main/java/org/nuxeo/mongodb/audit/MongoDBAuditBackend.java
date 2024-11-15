@@ -146,6 +146,7 @@ public class MongoDBAuditBackend extends AbstractAuditBackend implements AuditBa
         collection.createIndex(Indexes.descending(LOG_ID)); // query by log id - sort
         collection.createIndex(Indexes.compoundIndex( //
                 Indexes.ascending(LOG_REPOSITORY_ID), Indexes.descending(LOG_EVENT_DATE))); // query by drive - sort
+        initUIDSequencer(collection);
         cursorService = new CursorService<>(doc -> {
             Object id = doc.remove(MONGODB_ID);
             if (id != null) {
@@ -167,6 +168,26 @@ public class MongoDBAuditBackend extends AbstractAuditBackend implements AuditBa
      */
     public MongoCollection<Document> getAuditCollection() {
         return collection;
+    }
+
+    /**
+     * Ensures the audit sequence returns an UID greater or equal than the maximum log entry id.
+     */
+    protected static void initUIDSequencer(MongoCollection<Document> collection) {
+        var lastLogEntry = collection.find(Filters.empty()).sort(Sorts.descending(MONGODB_ID)).limit(1).first();
+        if (lastLogEntry == null) {
+            log.debug("There's no LogEntries, skip UIDSequencer initialization");
+            return;
+        }
+        Long lastLogEntryId = lastLogEntry.getLong(MONGODB_ID);
+
+        var uidSequencer = Framework.getService(UIDSequencer.class);
+        long currentSequenceValue = uidSequencer.getCurrent(SEQ_NAME);
+        if (currentSequenceValue < lastLogEntryId) {
+            log.info("UID returned by sequence: {} is: {}, initializing sequence to: {}", SEQ_NAME,
+                    currentSequenceValue, lastLogEntryId);
+            uidSequencer.initSequence(SEQ_NAME, lastLogEntryId);
+        }
     }
 
     @Override
