@@ -56,10 +56,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 8.2
  */
 @Deploy("org.nuxeo.runtime.metrics")
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.audit.api")
 @Deploy("org.nuxeo.ecm.platform.audit")
-@Deploy("org.nuxeo.uidgen.opensearch1")
-@Deploy("org.nuxeo.uidgen.opensearch1.test:OSGI-INF/opensearch-uidgen-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit")
 @Deploy("org.nuxeo.admin.center")
 @RunWith(FeaturesRunner.class)

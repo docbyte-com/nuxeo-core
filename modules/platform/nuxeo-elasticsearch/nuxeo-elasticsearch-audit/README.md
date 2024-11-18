@@ -25,7 +25,7 @@ The queries and PageProviders are based on Elasticsearch native DSL : no automat
 
 The original Audit service uses a JPA sequence to assign each audit entry a unique id.
 
-In the Elasticsearch implementation, an alternate sequence generation system is used : `nuxeo-platform-uidgen-opensearch1`.
+In the Elasticsearch implementation, an alternate sequence generation system is used : `KeyValueStoreUIDSequencer`.
 
 ## Data Migration
 

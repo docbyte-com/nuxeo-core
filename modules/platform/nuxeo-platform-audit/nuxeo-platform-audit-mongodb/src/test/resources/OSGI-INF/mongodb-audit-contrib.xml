@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.mongodb.audit.contrib">
 
-  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
-    <sequencer name="default" class="org.nuxeo.ecm.core.mongodb.seqgen.MongoDBUIDSequencer" />
-  </extension>
-
   <require>org.nuxeo.runtime.mongodb.MongoDBComponent</require>
   <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="backend">
     <backend class="org.nuxeo.mongodb.audit.MongoDBAuditBackend">

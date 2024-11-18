@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer.DEFAULT_STORE_NAME;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -46,8 +47,8 @@ import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.audit.ESAuditBackend;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
-import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
+import org.nuxeo.runtime.kv.KeyValueService;
+import org.nuxeo.runtime.kv.KeyValueStoreProvider;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -55,10 +56,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.ecm.platform.audit.api")
 @Deploy("org.nuxeo.ecm.core.persistence")
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.audit")
 @Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.uidgen.opensearch1")
-@Deploy("org.nuxeo.uidgen.opensearch1.test:OSGI-INF/opensearch-uidgen-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.audit")
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
@@ -80,7 +80,8 @@ public class TestAuditWithElasticSearch extends AbstractAuditStorageTest {
         // make sure that the audit bulker don't drain pending log entries while we reset the index
         LogEntryGen.flushAndSync();
         esa.initIndexes(true);
-        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex("uidgen");
+        ((KeyValueStoreProvider) Framework.getService(KeyValueService.class)
+                                          .getKeyValueStore(DEFAULT_STORE_NAME)).clear();
     }
 
     @Test
