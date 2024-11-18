@@ -1932,7 +1932,7 @@ public class TestOpenSearchQueryTransformer {
     @Deploy("org.nuxeo.ecm.core.search.client.opensearch1.test:OSGI-INF/opensearch-search-client-max-expansions-test-contrib.xml")
     public void testMatchPhrasePrefixWithCustomMaxExpansions() {
         String es = BUILDER.apply("select * from Document where f1 LIKE 'foo%'");
-        assertEqualsEvenUnderWindows("""
+        final String expected = """
                 {
                   "match_phrase_prefix" : {
                     "f1" : {
@@ -1943,7 +1943,11 @@ public class TestOpenSearchQueryTransformer {
                       "boost" : 1.0
                     }
                   }
-                }""", es);
+                }""";
+        assertEqualsEvenUnderWindows(expected, es);
+        es = newQueryBuilder(Map.of("match_phrase_prefix", new MatchPhrasePrefixOpenSearchHintQueryBuilder())).apply(
+                "SELECT * FROM Document WHERE /*+ES: INDEX(f1) OPERATOR(match_phrase_prefix) */ ecm:fulltext.dc:title LIKE 'foo'");
+        assertEqualsEvenUnderWindows(expected, es);
     }
 
     @Test

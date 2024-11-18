@@ -18,8 +18,11 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1.hint;
 
+import org.apache.lucene.search.FuzzyQuery;
 import org.nuxeo.ecm.core.query.sql.model.EsHint;
 import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchHintQueryBuilder;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 
@@ -44,7 +47,17 @@ public class MatchPhrasePrefixOpenSearchHintQueryBuilder implements OpenSearchHi
             // remove useless trailing *, this is not mandatory but cleaner
             value = valueString.substring(0, valueString.length() - 1);
         }
+        return QueryBuilders.matchPhrasePrefixQuery(fieldName, value)
+                            .analyzer(hint.analyzer)
+                            .maxExpansions(getMaxExpansions());
+    }
 
-        return QueryBuilders.matchPhrasePrefixQuery(fieldName, value).analyzer(hint.analyzer);
+    protected int getMaxExpansions() {
+        int defaultMax = FuzzyQuery.defaultMaxExpansions;
+        ConfigurationService cs = Framework.getService(ConfigurationService.class);
+        if (cs != null) {
+            return cs.getInteger("elasticsearch.max_expansions", defaultMax);
+        }
+        return defaultMax;
     }
 }
