@@ -364,7 +364,42 @@ public class S3BlobStore extends AbstractBlobStore {
 
     @Override
     public OptionalOrUnknown<InputStream> getStream(String key) throws IOException {
-        return OptionalOrUnknown.unknown();
+        ByteRange byteRange;
+        if (allowByteRange) {
+            MutableObject<String> keyHolder = new MutableObject<>(key);
+            byteRange = getByteRangeFromKey(keyHolder);
+            key = keyHolder.getValue();
+        } else {
+            byteRange = null;
+        }
+        key = getBlobKeyReplacement(key);
+        String objectKey;
+        String versionId;
+        int seppos;
+        if (useVersion && (seppos = key.indexOf(VER_SEP)) > 0) {
+            objectKey = key.substring(0, seppos);
+            versionId = key.substring(seppos + 1);
+        } else {
+            objectKey = key;
+            versionId = null;
+        }
+        String bucketKey = bucketKey(objectKey);
+        String debugKey = bucketKey + (versionId == null ? "" : "@" + versionId);
+        String debugObject = "s3://" + bucketName + "/" + debugKey;
+        try {
+            log.debug("Reading {}", debugObject);
+            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, bucketKey, versionId);
+            if (byteRange != null) {
+                getObjectRequest.setRange(byteRange.getStart(), byteRange.getEnd());
+            }
+            return OptionalOrUnknown.of(amazonS3.getObject(getObjectRequest).getObjectContent());
+        } catch (AmazonServiceException e) {
+            if (isMissingKey(e)) {
+                log.debug("Blob {} does not exist", debugObject);
+                return OptionalOrUnknown.missing();
+            }
+            throw new IOException(e);
+        }
     }
 
     @Override
