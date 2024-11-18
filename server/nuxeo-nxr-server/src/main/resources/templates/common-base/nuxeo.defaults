@@ -425,7 +425,3 @@ nuxeo.primitive.type.strict.validation=false
 
 # UIDSequencer default implementation
 nuxeo.uidsequencer.default.class=org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer
-
-# Name of the OpenSearch index for the uid sequencer
-nuxeo.uidsequencer.default.opensearch1.index.name=${seqgen.elasticsearch.indexName:=${elasticsearch.indexName:=nuxeo}-uidgen}
-nuxeo.uidsequencer.default.opensearch1.settings.indexTranslogDurability=${elasticsearch.index.translog.durability:=request}

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.uidsequencer.sql.config">
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/nxuidsequencer" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent" point="hibernate">
+    <hibernateConfiguration name="NXUIDSequencer">
+      <datasource>nxuidsequencer</datasource>
+      <properties>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+      </properties>
+    </hibernateConfiguration>
+  </extension>
+
+</component>

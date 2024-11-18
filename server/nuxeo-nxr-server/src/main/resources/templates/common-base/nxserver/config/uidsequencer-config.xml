@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.uidsequencer.config">
+
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="default" class="${nuxeo.uidsequencer.default.class}" />
+  </extension>
+
+</component>

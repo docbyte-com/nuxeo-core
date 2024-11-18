@@ -192,6 +192,16 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-uidgen-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-uidgen-sql-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
       <artifactId>nuxeo-wopi-package</artifactId>
       <type>zip</type>
     </dependency>

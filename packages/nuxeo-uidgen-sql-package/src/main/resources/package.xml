@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package type="addon" name="nuxeo-uidgen-sql" version="@VERSION@">
+  <title>UIDGenerator SQL Backend</title>
+  <description>
+    This package sets up SQL as a backend for UID sequencer.
+  </description>
+  <vendor>Nuxeo</vendor>
+  <target-platform>
+    <name>@DISTRIBUTION_NAME@</name>
+    <version>@VERSION@</version>
+  </target-platform>
+  <license>Apache 2.0</license>
+  <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+</package>
