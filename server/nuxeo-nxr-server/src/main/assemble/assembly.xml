@@ -57,7 +57,7 @@
       <artifact:file artifactId="quartz-mongodb" />
     </copy>
     <copy todir="${nxr}/templates/mysql/lib">
-      <artifact:file artifactId="mysql-connector-java" />
+      <artifact:file artifactId="mysql-connector-j" />
     </copy>
     <copy todir="${nxr}/templates/mariadb/lib">
       <artifact:file artifactId="mariadb-java-client" />
