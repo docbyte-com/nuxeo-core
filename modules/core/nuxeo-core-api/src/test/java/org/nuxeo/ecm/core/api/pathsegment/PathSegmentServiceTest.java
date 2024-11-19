@@ -127,6 +127,13 @@ public class PathSegmentServiceTest {
         s = "foo/bar";
         assertEquals("foo-bar", service.generatePathSegment(s));
 
+        // converts @
+        s = "@";
+        assertEquals("_", service.generatePathSegment(s));
+        s = "@foo";
+        assertEquals("_foo", service.generatePathSegment(s));
+        s = "foo@bar";
+        assertEquals("foo@bar", service.generatePathSegment(s));
     }
 
 }
