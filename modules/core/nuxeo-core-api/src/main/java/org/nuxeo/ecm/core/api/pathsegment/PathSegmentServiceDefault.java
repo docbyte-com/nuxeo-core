@@ -30,7 +30,7 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
  */
 public class PathSegmentServiceDefault implements PathSegmentService {
 
-    public static final Pattern stupidRegexp = Pattern.compile("^[- .,;?!:/\\\\'\"]*$");
+    public static final Pattern FORBIDDEN_REGEX = Pattern.compile("^[- .,;?!:/\\\\'\"]*$");
 
     @Override
     public String generatePathSegment(DocumentModel doc) {
@@ -49,7 +49,7 @@ public class PathSegmentServiceDefault implements PathSegmentService {
         s = s.replace('/', '-');
         s = s.replace('\\', '-');
         s = s.replaceFirst("^@", "_");
-        if (stupidRegexp.matcher(s).matches()) {
+        if (FORBIDDEN_REGEX.matcher(s).matches()) {
             return IdUtils.generateStringId();
         }
         return s;
