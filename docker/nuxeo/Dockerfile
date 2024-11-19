@@ -98,7 +98,7 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
      fi \
   # ImageMagick 7 for Oracle Linux 9 is only provided by Remi's RPM repository
   && dnf -y install https://rpms.remirepo.net/enterprise/remi-release-${EL_VERSION}.rpm \
-  && dnf -y --enablerepo=remi install ImageMagick7 \
+  && dnf -y --enablerepo=remi --exclude=python3-setuptools install ImageMagick7 \
   && dnf clean all
 
 # Remove perl-Net-SSLeay example private key
