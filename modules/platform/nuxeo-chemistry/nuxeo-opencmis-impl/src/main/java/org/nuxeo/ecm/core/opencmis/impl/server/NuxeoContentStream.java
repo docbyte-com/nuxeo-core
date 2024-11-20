@@ -237,7 +237,7 @@ public class NuxeoContentStream
         protected Supplier<InputStream> supplier;
 
         public LazyInputStream(Supplier<InputStream> supplier) {
-            super(null);
+            super((InputStream) null);
             this.supplier = supplier;
         }
 
