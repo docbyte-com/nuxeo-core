@@ -283,7 +283,7 @@ object NuxeoRest {
       .post(Constants.API_PATH + path + "/@op/Document.Delete")
       .basicAuth("#{adminId}", "#{adminPassword}")
       .headers(Headers.base)
-      .header("content-type", "application/json+nxrequest")
+      .header("content-type", "application/json")
       .body(StringBody( """{"params":{},"context":{}}"""))
       .check(status.in(200, 404))
   }
@@ -294,7 +294,7 @@ object NuxeoRest {
         .post(Constants.API_PATH + source + "/@op/Document.Move")
         .basicAuth("#{adminId}", "#{adminPassword}")
         .headers(Headers.base)
-        .header("content-type", "application/json+nxrequest")
+        .header("content-type", "application/json")
         .body(StringBody("""{"params":{"target":"""" + dest + """"},"context":{}}""".stripMargin))
         .check(status.in(200)),
       waitForAsyncJobs(),

@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.automation.io.rest.operations;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 
 import java.io.IOException;
@@ -54,7 +55,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @Singleton
 @Provider
-@Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_JSON + "+nxrequest" })
+@Consumes(MediaType.APPLICATION_JSON)
 public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
 
     @Context
@@ -66,12 +67,6 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
     public CoreSession getCoreSession() {
         return SessionFactory.getSession(request);
     }
-
-    /**
-     * @deprecated since 10.3. only 'application/json' media type should be used.
-     */
-    @Deprecated
-    public static final MediaType targetMediaTypeNXReq = new MediaType("application", "json+nxrequest");
 
     protected static final HashMap<String, InputResolver<?>> inputResolvers = new HashMap<>();
 
@@ -104,8 +99,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
 
     @Override
     public boolean isReadable(Class<?> arg0, Type arg1, Annotation[] arg2, MediaType arg3) {
-        return ((targetMediaTypeNXReq.isCompatible(arg3) || MediaType.APPLICATION_JSON_TYPE.isCompatible(arg3))
-                && ExecutionRequest.class.isAssignableFrom(arg0));
+        return MediaType.APPLICATION_JSON_TYPE.isCompatible(arg3) && ExecutionRequest.class.isAssignableFrom(arg0);
     }
 
     @Override
@@ -121,7 +115,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
         // TODO: add introspection on the first bytes to detect other admissible
         // json encodings, namely: UTF-8, UTF-16 (BE or LE), or UTF-32 (BE or
         // LE)
-        String content = IOUtils.toString(in, "UTF-8");
+        String content = IOUtils.toString(in, UTF_8);
         if (content.isEmpty()) {
             throw new WebApplicationException(SC_BAD_REQUEST);
         }
@@ -154,7 +148,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
         jp.nextToken(); // skip {
         JsonToken tok = jp.nextToken();
         while (tok != null && tok != JsonToken.END_OBJECT) {
-            String key = jp.getCurrentName();
+            String key = jp.currentName();
             jp.nextToken();
             if ("input".equals(key)) {
                 JsonNode inputNode = jp.readValueAsTree();
@@ -190,7 +184,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
         ObjectCodecService codecService = Framework.getService(ObjectCodecService.class);
         JsonToken tok = jp.nextToken(); // move to first entry
         while (tok != null && tok != JsonToken.END_OBJECT) {
-            String key = jp.getCurrentName();
+            String key = jp.currentName();
             tok = jp.nextToken();
             req.setParam(key, codecService.readNode(jp.readValueAsTree(), session));
             tok = jp.nextToken();
@@ -204,7 +198,7 @@ public class JsonRequestReader implements MessageBodyReader<ExecutionRequest> {
         ObjectCodecService codecService = Framework.getService(ObjectCodecService.class);
         JsonToken tok = jp.nextToken(); // move to first entry
         while (tok != null && tok != JsonToken.END_OBJECT) {
-            String key = jp.getCurrentName();
+            String key = jp.currentName();
             tok = jp.nextToken();
             req.setContextParam(key, codecService.readNode(jp.readValueAsTree(), session));
             tok = jp.nextToken();
