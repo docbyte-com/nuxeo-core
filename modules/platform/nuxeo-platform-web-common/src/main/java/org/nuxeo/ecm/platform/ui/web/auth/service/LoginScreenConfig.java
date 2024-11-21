@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,33 +185,6 @@ public class LoginScreenConfig {
             }
         }
         return null;
-    }
-
-    /**
-     * @deprecated since 10.10, use {@link #LoginScreenConfig(LoginProviderLink)} instead
-     */
-    @Deprecated
-    public void registerLoginProvider(String name, String iconUrl, String link, String label, String description,
-            LoginProviderLinkComputer computer) {
-        LoginProviderLink newProvider = new LoginProviderLink();
-        newProvider.name = name;
-        newProvider.iconPath = iconUrl;
-        newProvider.link = link;
-        newProvider.label = label;
-        newProvider.description = description;
-        if (computer != null) {
-            newProvider.urlComputer = computer;
-        }
-
-        LoginProviderLink existingProvider = getProvider(name);
-        if (existingProvider != null) {
-            existingProvider.merge(newProvider);
-        } else {
-            if (providers == null) {
-                providers = new ArrayList<>();
-            }
-            providers.add(newProvider);
-        }
     }
 
     /**
@@ -443,7 +416,7 @@ public class LoginScreenConfig {
 
         if (providers == null) {
             providers = newConfig.providers;
-        } else if (newConfig.providers != null && newConfig.providers.size() > 0) {
+        } else if (newConfig.providers != null && !newConfig.providers.isEmpty()) {
             for (LoginProviderLink link : newConfig.providers) {
 
                 int idx = providers.indexOf(link);

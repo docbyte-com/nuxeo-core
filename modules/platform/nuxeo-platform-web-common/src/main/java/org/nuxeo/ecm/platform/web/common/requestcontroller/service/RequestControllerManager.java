@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,11 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
 
 import java.util.Map;
 
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.http.HttpServletRequest;
 
 import com.thetransactioncompany.cors.CORSFilter;
@@ -44,16 +40,6 @@ public interface RequestControllerManager {
      * @since 10.1
      */
     CORSFilter getCorsFilterForRequest(HttpServletRequest request);
-
-    /**
-     * Get contributed FilterConfig for an HttpServletRequest.
-     *
-     * @return filter config to init CorsFilter if there is a matching request, null otherwise.
-     * @since 5.7.2
-     * @deprecated since 10.1, unused, use {@link #getCorsFilterForRequest(HttpServletRequest)} instead
-     */
-    @Deprecated
-    FilterConfig getCorsConfigForRequest(HttpServletRequest request);
 
     /**
      * @since 6.0

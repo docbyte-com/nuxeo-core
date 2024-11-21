@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
 
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
@@ -27,7 +25,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jakarta.servlet.FilterConfig;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
@@ -69,15 +66,11 @@ public class RequestControllerService extends DefaultComponent implements Reques
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (FILTER_CONFIG_EP.equals(extensionPoint)) {
-            FilterConfigDescriptor desc = (FilterConfigDescriptor) contribution;
-            registerFilterConfig(desc);
-        } else if (CORS_CONFIG_EP.equals(extensionPoint)) {
-            corsFilterRegistry.addContribution((NuxeoCorsFilterDescriptor) contribution);
-        } else if (HEADERS_CONFIG_EP.equals(extensionPoint)) {
-            headersRegistry.addContribution((NuxeoHeaderDescriptor) contribution);
-        } else {
-            log.error("Unknown ExtensionPoint: {}", extensionPoint);
+        switch (extensionPoint) {
+            case FILTER_CONFIG_EP -> registerFilterConfig((FilterConfigDescriptor) contribution);
+            case CORS_CONFIG_EP -> corsFilterRegistry.addContribution((NuxeoCorsFilterDescriptor) contribution);
+            case HEADERS_CONFIG_EP -> headersRegistry.addContribution((NuxeoHeaderDescriptor) contribution);
+            case null, default -> log.error("Unknown ExtensionPoint: {}", extensionPoint);
         }
     }
 
@@ -112,14 +105,6 @@ public class RequestControllerService extends DefaultComponent implements Reques
         String uri = request.getRequestURI();
         NuxeoCorsFilterDescriptor descriptor = corsFilterRegistry.getFirstMatchingDescriptor(uri);
         return descriptor == null ? null : descriptor.getFilter();
-    }
-
-    @Override
-    @Deprecated
-    public FilterConfig getCorsConfigForRequest(HttpServletRequest request) {
-        String uri = request.getRequestURI();
-        NuxeoCorsFilterDescriptor descriptor = corsFilterRegistry.getFirstMatchingDescriptor(uri);
-        return descriptor != null ? descriptor.buildFilterConfig() : null;
     }
 
     @Override
