@@ -790,7 +790,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         GregorianCalendar end = new GregorianCalendar(2015, Calendar.JULY, 14, 12, 34, 56);
         String error = session.newRequest(AddPermission.ID)
                               .setInput("doc:/")
-                              .set("username", username)
+                              .set("users", username)
                               .set("permission", "Write")
                               .set("begin", begin)
                               .set("end", end)
@@ -816,7 +816,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
             GregorianCalendar end = new GregorianCalendar(2015, Calendar.JULY, 14, 12, 34, 56);
             session.newRequest(AddPermission.ID)
                    .setInput("doc:/")
-                   .set("username", username)
+                   .set("users", username)
                    .set("permission", "Write")
                    .set("begin", begin)
                    .set("end", end)

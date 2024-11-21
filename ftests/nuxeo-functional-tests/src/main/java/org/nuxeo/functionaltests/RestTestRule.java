@@ -357,7 +357,7 @@ public class RestTestRule implements TestRule {
         var params = new HashMap<>();
         params.put("acl", "local");
         params.put("permission", permission);
-        params.put("user", username);
+        params.put("users", username);
 
         var entity = new HashMap<String, Object>();
         entity.put("input", "doc:" + idOrPath);

@@ -108,7 +108,7 @@ public class PermissionAutomationTest {
 
             // Add permission
             Map<String, Object> params = new HashMap<>();
-            params.put("user", "existingUser");
+            params.put("users", "existingUser");
             params.put("permission", "Write");
             automationService.run(ctx, AddPermission.ID, params);
             ctx.setInput(src);
@@ -118,10 +118,10 @@ public class PermissionAutomationTest {
             params.put("permission", "Everything");
             params.put("id", "existingUser:Write:true:Administrator::");
 
-            assertEquals("Write", src.getACP().getACL(ACL.LOCAL_ACL).get(0).getPermission());
+            assertEquals("Write", src.getACP().getACL(ACL.LOCAL_ACL).getFirst().getPermission());
             automationService.run(ctx, ReplacePermission.ID, params);
             src.refresh();
-            assertEquals("Everything", src.getACP().getACL(ACL.LOCAL_ACL).get(0).getPermission());
+            assertEquals("Everything", src.getACP().getACL(ACL.LOCAL_ACL).getFirst().getPermission());
         } finally {
             // Tear down
             src.getACP().removeACEsByUsername(ACL.LOCAL_ACL, "existingUser");
