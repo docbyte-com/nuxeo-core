@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -121,14 +121,6 @@ public class NotificationRegistryImpl implements NotificationRegistry {
     @Override
     public List<Notification> getNotifications() {
         return notificationList;
-    }
-
-    /**
-     * @deprecated since 10.2, seems unused
-     */
-    @Deprecated
-    public Map<String, List<Notification>> getNotificationRegistry() {
-        return notificationRegistry;
     }
 
     @Override

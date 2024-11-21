@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.service.AuditComponent;
@@ -81,10 +82,6 @@ public class NotificationService extends DefaultComponent implements Notificatio
 
     public static final ComponentName NAME = new ComponentName(
             "org.nuxeo.ecm.platform.ec.notification.service.NotificationService");
-
-    /** @deprecated since 10.2, seems unused */
-    @Deprecated
-    public static final String SUBSCRIPTION_NAME = "UserSubscription";
 
     protected static final String NOTIFICATIONS_EP = "notifications";
 
@@ -361,7 +358,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     }
 
     private static void registerTemplate(TemplateDescriptor td) {
-        if (td.src != null && !td.src.isEmpty()) {
+        if (StringUtils.isNotEmpty(td.src)) {
             URL url = td.getContext().getResource(td.src);
             TEMPLATES_MAP.put(td.name, url);
         }

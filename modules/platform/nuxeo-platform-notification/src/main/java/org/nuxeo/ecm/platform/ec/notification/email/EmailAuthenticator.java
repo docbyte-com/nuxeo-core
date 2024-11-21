@@ -48,28 +48,7 @@ public class EmailAuthenticator extends Authenticator {
         return new PasswordAuthentication(user, password);
     }
 
-    /**
-     * @deprecated since 10.2, use {@link #protocolValue(String)} instead
-     */
-    @Deprecated
-    protected String value(String name) {
-        String value = protocolValue(name);
-        if (value != null) {
-            return value;
-        }
-        return defaultValue(name);
-    }
-
     protected String protocolValue(String name) {
-        String key = "mail." + getRequestingProtocol() + "." + name;
-        return properties.getProperty(key);
-    }
-
-    /**
-     * @deprecated since 10.2, use {@link #protocolValue(String)} instead
-     */
-    @Deprecated
-    protected String defaultValue(String name) {
         String key = "mail." + getRequestingProtocol() + "." + name;
         return properties.getProperty(key);
     }
