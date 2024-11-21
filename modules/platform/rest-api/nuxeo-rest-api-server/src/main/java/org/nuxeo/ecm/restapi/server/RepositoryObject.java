@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,6 @@
  */
 package org.nuxeo.ecm.restapi.server;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import jakarta.ws.rs.MatrixParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 
@@ -29,7 +25,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.restapi.server.adapters.EmptyDocumentAdapter;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -66,29 +61,6 @@ public class RepositoryObject extends DefaultObject {
         CoreSession session = getContext().getCoreSession();
         DocumentModel doc = session.getDocument(new IdRef(id));
         return newObject("Document", doc);
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link BulkActionFrameworkObject BAF} instead
-     */
-    @Path("bulk")
-    @Deprecated
-    public Object getBulkDocuments(@MatrixParam("id") List<String> ids) {
-        return getBulkDocuments(this, ids);
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link BulkActionFrameworkObject BAF} instead
-     */
-    @Deprecated
-    protected static Object getBulkDocuments(DefaultObject obj, List<String> ids) {
-        CoreSession session = obj.getContext().getCoreSession();
-        List<DocumentModel> docs = new ArrayList<>(ids.size());
-        for (String loopid : ids) {
-            docs.add(session.getDocument(new IdRef(loopid)));
-        }
-
-        return obj.newObject("bulk", new DocumentModelListImpl(docs));
     }
 
     @Path("@" + EmptyDocumentAdapter.NAME)

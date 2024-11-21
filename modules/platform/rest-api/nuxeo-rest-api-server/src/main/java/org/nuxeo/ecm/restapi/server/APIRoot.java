@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,8 @@
  * Contributors:
  *     dmetzler
  */
-
 package org.nuxeo.ecm.restapi.server;
 
-import java.util.List;
-
-import jakarta.ws.rs.MatrixParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -95,14 +91,8 @@ public class APIRoot extends ModuleRoot {
      * @since 10.3
      */
     @Path("/bulk")
-    @SuppressWarnings("deprecation")
-    // we need to handle ids matrix because matrix aren't present in path used for dispatch
-    public Object bulk(@MatrixParam("id") List<String> ids) {
-        if (ids.isEmpty()) {
-            return newObject("bulkActionFramework");
-        } else {
-            return RepositoryObject.getBulkDocuments(this, ids);
-        }
+    public Object bulk() {
+        return newObject("bulkActionFramework");
     }
 
     /**

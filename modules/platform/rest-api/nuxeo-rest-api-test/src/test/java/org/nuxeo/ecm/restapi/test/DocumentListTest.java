@@ -19,9 +19,7 @@
 package org.nuxeo.ecm.restapi.test;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
-import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assume.assumeTrue;
 
 import java.util.List;
@@ -41,7 +39,6 @@ import org.nuxeo.ecm.restapi.server.adapters.ChildrenAdapter;
 import org.nuxeo.ecm.restapi.server.adapters.PageProviderAdapter;
 import org.nuxeo.ecm.restapi.server.adapters.SearchAdapter;
 import org.nuxeo.http.test.HttpClientTestRule;
-import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -309,54 +306,6 @@ public class DocumentListTest {
         httpClient.buildGetRequest("/path" + folder.getPathAsString() + "/@" + PageProviderAdapter.NAME + "/TEST_PP")
                   .executeAndConsume(new JsonNodeHandler(),
                           node -> assertEquals(2, JsonNodeHelper.getEntriesSize(node)));
-    }
-
-    @Test
-    public void iCanDeleteAListOfDocuments() {
-        // Given two notes
-        DocumentModel note1 = RestServerInit.getNote(1, session);
-        DocumentModel folder0 = RestServerInit.getFolder(0, session);
-
-        // When i call a bulk delete
-        httpClient.buildDeleteRequest("/bulk")
-                  .addMatrixParameter("id", note1.getId())
-                  .addMatrixParameter("id", folder0.getId())
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
-
-        // Then the documents are removed from repository
-        transactionalFeature.nextTransaction();
-
-        assertFalse(session.exists(note1.getRef()));
-        assertFalse(session.exists(folder0.getRef()));
-    }
-
-    @Test
-    public void iCanUpdateDocumentLists() {
-        // Given two notes
-        DocumentModel note1 = RestServerInit.getNote(1, session);
-        DocumentModel note2 = RestServerInit.getNote(2, session);
-
-        String data = """
-                {
-                  "entity-type": "document",
-                  "type": "Note",
-                  "properties": {
-                    "dc:description": "bulk description"
-                  }
-                }""";
-
-        // When i call a bulk update
-        httpClient.buildPutRequest("/bulk")
-                  .addMatrixParameter("id", note1.getId())
-                  .addMatrixParameter("id", note2.getId())
-                  .entity(data)
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
-        // Then the documents are updated accordingly
-        transactionalFeature.nextTransaction();
-        for (int i : new int[] { 1, 2 }) {
-            note1 = RestServerInit.getNote(i, session);
-            assertEquals("bulk description", note1.getPropertyValue("dc:description"));
-        }
     }
 
     /**

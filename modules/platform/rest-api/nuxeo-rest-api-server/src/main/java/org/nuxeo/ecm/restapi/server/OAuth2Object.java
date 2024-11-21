@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.ecm.platform.oauth2.Constants.TOKEN_SERVICE;
 import static org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token.SCHEMA;
 
@@ -244,20 +245,6 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
     }
 
     /**
-     * Retrieves an OAuth2 Token.
-     *
-     * @since 9.2
-     * @deprecated since 10.2 Use {@link #getProviderToken(String, String, HttpServletRequest)} instead.
-     */
-    @Deprecated
-    @GET
-    @Path("token/{providerId}/{nxuser}")
-    public Response getToken(@PathParam("providerId") String providerId, @PathParam("nxuser") String nxuser,
-            @Context HttpServletRequest request) {
-        return getProviderToken(providerId, nxuser, request);
-    }
-
-    /**
      * Updates an OAuth2 provider token.
      *
      * @since 10.2
@@ -273,22 +260,6 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
     }
 
     /**
-     * Updates an OAuth2 Token.
-     *
-     * @since 9.2
-     * @deprecated since 10.2 Use {@link #updateProviderToken(String, String, HttpServletRequest, NuxeoOAuth2Token)}
-     *             instead.
-     */
-    @Deprecated
-    @PUT
-    @Path("token/{providerId}/{nxuser}")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response updateToken(@PathParam("providerId") String providerId, @PathParam("nxuser") String nxuser,
-            @Context HttpServletRequest request, NuxeoOAuth2Token token) {
-        return updateProviderToken(providerId, nxuser, request, token);
-    }
-
-    /**
      * Deletes an OAuth2 provider token.
      *
      * @since 10.2
@@ -301,20 +272,6 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
         NuxeoOAuth2ServiceProvider provider = getProvider(providerId);
         deleteToken(getTokenDoc(provider, nxuser));
         return Response.noContent().build();
-    }
-
-    /**
-     * Deletes an OAuth2 Token.
-     *
-     * @since 9.2
-     * @deprecated since 10.2 Use {@link #deleteProviderToken(String, String, HttpServletRequest)} instead.
-     */
-    @Deprecated
-    @DELETE
-    @Path("token/{providerId}/{nxuser}")
-    public Response deleteToken(@PathParam("providerId") String providerId, @PathParam("nxuser") String nxuser,
-            @Context HttpServletRequest request) {
-        return deleteProviderToken(providerId, nxuser, request);
     }
 
     /**
@@ -472,7 +429,7 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
     protected NuxeoOAuth2ServiceProvider getProvider(String providerId) {
         OAuth2ServiceProvider provider = Framework.getService(OAuth2ServiceProviderRegistry.class)
                                                   .getProvider(providerId);
-        if (provider == null || !(provider instanceof NuxeoOAuth2ServiceProvider)) {
+        if (!(provider instanceof NuxeoOAuth2ServiceProvider)) {
             throw new WebResourceNotFoundException("Invalid provider: " + providerId);
         }
         return (NuxeoOAuth2ServiceProvider) provider;
@@ -515,7 +472,7 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
         } else if (tokens.isEmpty()) {
             throw new WebResourceNotFoundException("No token found for provider: " + provider.getServiceName());
         } else {
-            return tokens.get(0);
+            return tokens.getFirst();
         }
     }
 
@@ -524,16 +481,13 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
         filter.put("clientId", client.getId());
         filter.put(NuxeoOAuth2Token.KEY_NUXEO_LOGIN, nxuser);
         OAuth2TokenStore tokenStore = new OAuth2TokenStore(TOKEN_SERVICE);
-        List<DocumentModel> tokens = tokenStore.query(filter)
-                                               .stream()
-                                               .filter(Objects::nonNull)
-                                               .collect(Collectors.toList());
+        List<DocumentModel> tokens = tokenStore.query(filter).stream().filter(Objects::nonNull).toList();
         if (tokens.size() > 1) {
             throw new NuxeoException("Found multiple " + client.getId() + " accounts for " + nxuser);
-        } else if (tokens.size() == 0) {
+        } else if (tokens.isEmpty()) {
             throw new WebResourceNotFoundException("No token found for client: " + client.getId());
         } else {
-            return tokens.get(0);
+            return tokens.getFirst();
         }
     }
 
@@ -590,7 +544,7 @@ public class OAuth2Object extends AbstractResource<ResourceTypeImpl> {
         String message = mapper.writeValueAsString(obj);
 
         return Response.status(status)
-                       .header("Content-Length", message.getBytes("UTF-8").length)
+                       .header("Content-Length", message.getBytes(UTF_8).length)
                        .type(MediaType.APPLICATION_JSON + "; charset=UTF-8")
                        .entity(message)
                        .build();
