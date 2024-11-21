@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,6 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 
-import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.automation.core.util.DocumentHelper;
 import org.nuxeo.ecm.automation.core.util.PageProviderHelper;
@@ -59,7 +58,6 @@ import org.nuxeo.ecm.platform.search.core.SavedSearchConstants;
 import org.nuxeo.ecm.platform.search.core.SavedSearchRequest;
 import org.nuxeo.ecm.platform.search.core.SavedSearchService;
 import org.nuxeo.ecm.webengine.model.WebObject;
-import org.nuxeo.ecm.webengine.model.exceptions.IllegalParameterException;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -83,17 +81,6 @@ public class SearchObject extends QueryExecutor {
     }
 
     /**
-     * @deprecated since 10.3, use {@link #doQueryByLang(UriInfo)} instead.
-     */
-    @GET
-    @Path("lang/{queryLanguage}/execute")
-    @Deprecated
-    public DocumentModelList doQueryByLang(@Context UriInfo uriInfo, @PathParam("queryLanguage") String queryLanguage) {
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        return queryByLang(queryLanguage, queryParams);
-    }
-
-    /**
      * @since 10.3
      */
     @GET
@@ -101,20 +88,6 @@ public class SearchObject extends QueryExecutor {
     public DocumentModelList doQueryByLang(@Context UriInfo uriInfo) {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
         return queryByLang(queryParams);
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link #doBulkActionByLang(UriInfo)} instead.
-     */
-    @Path("lang/{queryLanguage}/bulk")
-    @Deprecated
-    public Object doBulkActionByLang(@Context UriInfo uriInfo, @PathParam("queryLanguage") String queryLanguage) {
-        if (!EnumUtils.isValidEnum(LangParams.class, queryLanguage)) {
-            throw new IllegalParameterException("invalid query language");
-        }
-        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
-        String query = getQueryString(null, queryParams);
-        return newObject("bulkAction", query);
     }
 
     /**
@@ -299,8 +272,7 @@ public class SearchObject extends QueryExecutor {
                             ? search.getDocument()
                             : null);
         } else if (!StringUtils.isEmpty(search.getQuery()) && !StringUtils.isEmpty(search.getQueryLanguage())) {
-            return querySavedSearchByLang(search.getQueryLanguage(), search.getQuery(),
-                    pageSize != null ? pageSize : search.getPageSize(),
+            return querySavedSearchByLang(search.getQuery(), pageSize != null ? pageSize : search.getPageSize(),
                     currentPageIndex != null ? currentPageIndex : search.getCurrentPageIndex(),
                     currentPageOffset != null ? currentPageOffset : search.getCurrentPageOffset(),
                     maxResults != null ? maxResults : search.getMaxResults(), search.getQueryParams(),
@@ -311,9 +283,9 @@ public class SearchObject extends QueryExecutor {
         }
     }
 
-    protected DocumentModelList querySavedSearchByLang(String queryLanguage, String query, Long pageSize,
-            Long currentPageIndex, Long currentPageOffset, Long maxResults, String orderedParams,
-            Map<String, String> namedParameters, List<SortInfo> sortInfo) {
+    protected DocumentModelList querySavedSearchByLang(String query, Long pageSize, Long currentPageIndex,
+            Long currentPageOffset, Long maxResults, String orderedParams, Map<String, String> namedParameters,
+            List<SortInfo> sortInfo) {
         Map<String, String> namedParametersProps = getNamedParameters(namedParameters);
         Object[] parameters = replaceParameterPattern(new Object[] { orderedParams });
         Map<String, Serializable> props = getProperties();
@@ -339,7 +311,7 @@ public class SearchObject extends QueryExecutor {
                     namedParametersProps);
         } else {
             documentModel = searchDocumentModel;
-            if (namedParametersProps.size() > 0) {
+            if (!namedParametersProps.isEmpty()) {
                 documentModel.putContextData(PageProviderService.NAMED_PARAMETERS, (Serializable) namedParametersProps);
             }
         }

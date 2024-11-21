@@ -83,7 +83,7 @@ public class SearchTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
             () -> restServerFeature.getRestApiUrl());
 
-    protected static final String QUERY_EXECUTE_PATH = "search/lang/NXQL/execute";
+    protected static final String QUERY_EXECUTE_PATH = "search/execute";
 
     protected static final String SAVED_SEARCH_PATH = "search/saved";
 
