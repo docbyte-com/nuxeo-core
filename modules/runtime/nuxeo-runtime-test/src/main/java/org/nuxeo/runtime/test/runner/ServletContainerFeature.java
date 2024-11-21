@@ -42,15 +42,9 @@ public class ServletContainerFeature implements RunnerFeature {
 
     protected int port;
 
-    @SuppressWarnings("deprecation")
     @Override
     public void initialize(FeaturesRunner runner) throws Exception {
-        ServletContainer conf = runner.getConfig(ServletContainer.class);
-        int port = conf == null ? 0 : conf.port();
-        if (port <= 0) {
-            port = findFreePort();
-        }
-        this.port = port;
+        port = findFreePort();
         System.setProperty(ServerComponent.PORT_SYSTEM_PROP, String.valueOf(port));
         System.setProperty(PARAM_HTTP_PORT, String.valueOf(port));
     }

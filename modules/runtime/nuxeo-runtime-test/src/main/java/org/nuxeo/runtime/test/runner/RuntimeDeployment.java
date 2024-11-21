@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.nuxeo.runtime.test.runner;
 
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,7 +34,6 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 import org.nuxeo.runtime.model.ComponentManager;
-import org.nuxeo.runtime.osgi.OSGiRuntimeService;
 import org.osgi.framework.Bundle;
 
 import com.google.common.collect.Multimaps;
@@ -54,22 +52,9 @@ public class RuntimeDeployment {
 
     SetMultimap<String, String> mainIndex = Multimaps.newSetMultimap(mainContribs, LinkedHashSet::new);
 
-    /**
-     * @deprecated since 10.1
-     */
-    @Deprecated
-    Map<String, Collection<String>> localContribs = new HashMap<>();
-
-    /**
-     * @deprecated since 10.1
-     */
-    @Deprecated
-    SetMultimap<String, String> localIndex = Multimaps.newSetMultimap(localContribs, LinkedHashSet::new);
-
     protected void index(Class<?> clazz) {
         AnnotationScanner scanner = FeaturesRunner.getScanner();
         scanner.getAnnotations(clazz, Deploy.class).forEach(this::index);
-        scanner.getAnnotations(clazz, LocalDeploy.class).forEach(this::index);
         scanner.getAnnotations(clazz, PartialDeploy.class).forEach(this::index);
     }
 
@@ -79,7 +64,6 @@ public class RuntimeDeployment {
 
     protected void index(Method method) {
         List.of(method.getAnnotationsByType(Deploy.class)).forEach(this::index);
-        index(method.getAnnotation(LocalDeploy.class));
         index(method.getAnnotation(PartialDeploy.class));
     }
 
@@ -89,19 +73,6 @@ public class RuntimeDeployment {
         }
         for (String each : config.value()) {
             index(each, mainIndex);
-        }
-    }
-
-    /**
-     * @deprecated since 10.1, use {@link #index(Deploy)}
-     */
-    @Deprecated
-    protected void index(LocalDeploy config) {
-        if (config == null) {
-            return;
-        }
-        for (String each : config.value()) {
-            index(each, localIndex);
         }
     }
 
@@ -140,9 +111,8 @@ public class RuntimeDeployment {
         }
     }
 
-    protected void deploy(FeaturesRunner runner, RuntimeHarness harness) {
+    protected void deploy(RuntimeHarness harness) {
         AssertionError errors = new AssertionError("deployment errors");
-        OSGiRuntimeService runtime = (OSGiRuntimeService) harness.getContext().getRuntime();
         for (String name : bundles) {
             Bundle bundle = harness.getOSGiAdapter().getBundle(name);
             if (bundle == null) {
@@ -166,21 +136,6 @@ public class RuntimeDeployment {
                         errors.addSuppressed(error);
                     }
                 }
-                // deploy local contribs
-                // this block is dreprecated since 10.1 with @LocalDeploy
-                for (String resource : localIndex.removeAll(name)) {
-                    URL url = runner.getTargetTestResource(resource);
-                    if (url == null) {
-                        url = bundle.getEntry(resource);
-                    }
-                    if (url == null) {
-                        url = runner.getTargetTestClass().getClassLoader().getResource(resource);
-                    }
-                    if (url == null) {
-                        throw new AssertionError("Cannot find " + resource + " in " + name);
-                    }
-                    harness.deployTestContrib(name, url);
-                }
             } catch (Exception error) {
                 errors.addSuppressed(error);
             }
@@ -189,14 +144,6 @@ public class RuntimeDeployment {
         for (Map.Entry<String, String> resource : mainIndex.entries()) {
             try {
                 harness.deployContrib(resource.getKey(), resource.getValue());
-            } catch (Exception error) {
-                errors.addSuppressed(error);
-            }
-        }
-        // this block is deprecated since 10.1 with @LocalDeploy
-        for (Map.Entry<String, String> resource : localIndex.entries()) {
-            try {
-                harness.deployTestContrib(resource.getKey(), resource.getValue());
             } catch (Exception error) {
                 errors.addSuppressed(error);
             }
@@ -238,19 +185,16 @@ public class RuntimeDeployment {
         public Statement apply(Statement base, FrameworkMethod method, Object target) {
             RuntimeDeployment deployment = new RuntimeDeployment();
             deployment.index(method.getMethod());
-            return deployment.onStatement(runner, runner.getFeature(RuntimeFeature.class).harness, method, base);
+            return deployment.onStatement(runner.getFeature(RuntimeFeature.class).harness, method, base);
         }
 
     }
 
-    protected Statement onStatement(FeaturesRunner runner, RuntimeHarness harness, FrameworkMethod method,
-            Statement base) {
-        return new DeploymentStatement(runner, harness, method, base);
+    protected Statement onStatement(RuntimeHarness harness, FrameworkMethod method, Statement base) {
+        return new DeploymentStatement(harness, method, base);
     }
 
     protected class DeploymentStatement extends Statement {
-
-        protected final FeaturesRunner runner;
 
         protected final RuntimeHarness harness;
 
@@ -259,9 +203,7 @@ public class RuntimeDeployment {
 
         protected final Statement base;
 
-        protected DeploymentStatement(FeaturesRunner runner, RuntimeHarness harness, FrameworkMethod method,
-                Statement base) {
-            this.runner = runner;
+        protected DeploymentStatement(RuntimeHarness harness, FrameworkMethod method, Statement base) {
             this.harness = harness;
             this.method = method;
             this.base = base;
@@ -279,7 +221,7 @@ public class RuntimeDeployment {
                 // the registry is now stopped
             }
             // deploy current test contributions if any
-            deploy(runner, harness);
+            deploy(harness);
             mgr.refresh(true);
             // now the stash is empty
             mgr.start(); // ensure components are started

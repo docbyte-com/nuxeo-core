@@ -121,7 +121,7 @@ public class RuntimeFeature implements RunnerFeature {
         });
 
         harness.start();
-        deployment.deploy(runner, harness);
+        deployment.deploy(harness);
     }
 
     @Override

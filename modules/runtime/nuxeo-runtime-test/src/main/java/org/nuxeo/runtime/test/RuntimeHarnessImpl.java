@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -35,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -163,14 +161,6 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    @Deprecated
-    public void deployFolder(File folder, ClassLoader loader) throws Exception {
-        DirectoryBundleFile bf = new DirectoryBundleFile(folder);
-        BundleImpl bundle = new BundleImpl(osgi, bf, loader);
-        osgi.install(bundle);
-    }
-
-    @Override
     public RuntimeContext deployPartial(String name, Set<TargetExtensions> targetExtensions) throws Exception {
         // Do not install bundle; we only need the Object to list his components
         Bundle bundle = new BundleImpl(osgi, lookupBundle(name), getClass().getClassLoader());
@@ -182,25 +172,6 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                 log.error("PartialBundle: {} failed to load: {}", name, component, e);
             }
         });
-        return ctx;
-    }
-
-    @Override
-    @Deprecated
-    public RuntimeContext deployTestContrib(String bundle, String contrib) throws Exception {
-        URL url = targetResourceLocator.getTargetTestResource(contrib);
-        return deployTestContrib(bundle, url);
-    }
-
-    @Override
-    @Deprecated
-    public RuntimeContext deployTestContrib(String bundle, URL contrib) throws Exception {
-        Bundle b = bundleLoader.getOSGi().getRegistry().getBundle(bundle);
-        if (b == null) {
-            b = osgi.getSystemBundle();
-        }
-        OSGiRuntimeContext ctx = new OSGiRuntimeContext(runtime, b);
-        ctx.deploy(contrib);
         return ctx;
     }
 
@@ -227,16 +198,6 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    @Deprecated
-    public List<String> getClassLoaderFiles() throws URISyntaxException {
-        List<String> files = new ArrayList<>(urls.length);
-        for (URL url : urls) {
-            files.add(url.toURI().getPath());
-        }
-        return files;
-    }
-
-    @Override
     public RuntimeContext getContext() {
         return runtime.getContext();
     }
@@ -247,29 +208,13 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    @Deprecated
-    public Properties getProperties() {
-        return runtime.getProperties();
-    }
-
-    @Override
     public File getWorkingDir() {
         return workingDir;
     }
 
     @Override
-    public boolean isRestart() {
-        return false;
-    }
-
-    @Override
     public boolean isStarted() {
         return runtime != null;
-    }
-
-    @Override
-    public void restart() throws Exception {
-        // do nothing
     }
 
     @Override
