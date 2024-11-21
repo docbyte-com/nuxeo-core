@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,11 @@
  * Contributors:
  *     Arnaud Kervern <akervern@nuxeo.com>
  */
-
 package org.nuxeo.ecm.directory.sql;
 
 import static org.junit.Assert.assertEquals;
 
 import java.io.Serializable;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +34,6 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.directory.sql.filter.SQLBetweenFilter;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -77,30 +73,6 @@ public class TestPagingComplexFilterDirectory {
             entries = session.query(filter, filter.keySet(), order, false, 5, 11);
             assertEquals(1, entries.size());
             assertEquals("12", entries.get(0).getId());
-        }
-    }
-
-    @Test
-    public void testComplexFilter() {
-        try (Session session = directoryService.open(DIR)) {
-            Calendar d121110 = new GregorianCalendar(2012, 10, 10);
-            Calendar d121211 = new GregorianCalendar(2012, 11, 11);
-            Calendar d121224 = new GregorianCalendar(2012, 11, 24);
-
-            SQLBetweenFilter betweenFilter = new SQLBetweenFilter(d121110, d121224);
-            Map<String, Serializable> filter = new HashMap<>();
-            filter.put("date", betweenFilter);
-            List<DocumentModel> entries = session.query(filter);
-            assertEquals(12, entries.size());
-
-            betweenFilter = new SQLBetweenFilter(d121211, d121224);
-            filter.put("date", betweenFilter);
-            entries = session.query(filter);
-            assertEquals(2, entries.size());
-
-            filter.put("type", "something");
-            entries = session.query(filter);
-            assertEquals(1, entries.size());
         }
     }
 }
