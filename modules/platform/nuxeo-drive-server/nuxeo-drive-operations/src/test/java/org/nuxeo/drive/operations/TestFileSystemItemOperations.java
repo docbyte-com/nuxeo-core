@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,7 @@ import static org.junit.Assert.fail;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -52,7 +48,6 @@ import org.nuxeo.drive.adapter.impl.DocumentBackedFolderItem;
 import org.nuxeo.drive.adapter.impl.ScrollFileSystemItemListImpl;
 import org.nuxeo.drive.service.FileSystemItemAdapterService;
 import org.nuxeo.drive.service.NuxeoDriveManager;
-import org.nuxeo.ecm.automation.test.HttpAutomationClient;
 import org.nuxeo.ecm.automation.test.HttpAutomationSession;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -61,15 +56,8 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.security.ACE;
-import org.nuxeo.ecm.core.api.security.ACL;
-import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.trash.TrashService;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -114,23 +102,17 @@ public class TestFileSystemItemOperations {
 
     protected static final String SYNC_ROOT_FOLDER_ITEM_ID_PREFIX = "defaultSyncRootFolderItemFactory#test#";
 
-    protected static final TypeReference<List<DefaultSyncRootFolderItem>> LIST_DEFAULT_SYNC_ROOT_FOLDER_ITEM = new TypeReference<List<DefaultSyncRootFolderItem>>() {
+    protected static final TypeReference<List<DefaultSyncRootFolderItem>> LIST_DEFAULT_SYNC_ROOT_FOLDER_ITEM = new TypeReference<>() {
     };
 
-    protected static final TypeReference<List<DocumentBackedFileItem>> LIST_DOCUMENT_BACKED_FILE_ITEM = new TypeReference<List<DocumentBackedFileItem>>() {
+    protected static final TypeReference<List<DocumentBackedFileItem>> LIST_DOCUMENT_BACKED_FILE_ITEM = new TypeReference<>() {
     };
 
-    protected static final TypeReference<DefaultTopLevelFolderItem> DEFAULT_TOP_LEVEL_FOLDER_FOLDER_ITEM = new TypeReference<DefaultTopLevelFolderItem>() {
+    protected static final TypeReference<DefaultTopLevelFolderItem> DEFAULT_TOP_LEVEL_FOLDER_FOLDER_ITEM = new TypeReference<>() {
     };
-
-    @Inject
-    protected CoreFeature coreFeature;
 
     @Inject
     protected CoreSession session;
-
-    @Inject
-    protected DirectoryService directoryService;
 
     @Inject
     protected FileSystemItemAdapterService fileSystemItemAdapterService;
@@ -140,9 +122,6 @@ public class TestFileSystemItemOperations {
 
     @Inject
     protected NuxeoDriveManager nuxeoDriveManager;
-
-    @Inject
-    protected HttpAutomationClient automationClient;
 
     @Inject
     protected HttpAutomationSession clientSession;
@@ -388,8 +367,7 @@ public class TestFileSystemItemOperations {
         assertNotNull(descendants);
         assertNotNull(descendants.getScrollId());
         assertEquals(4, descendants.size());
-        List<String> expectedIds = Arrays.asList(file1, subFolder1, file3, file4)
-                                         .stream()
+        List<String> expectedIds = Stream.of(file1, subFolder1, file3, file4)
                                          .map(doc -> DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + doc.getId())
                                          .collect(Collectors.toList());
         List<String> descendantIds = descendants.stream().map(FileSystemItem::getId).collect(Collectors.toList());
@@ -401,18 +379,16 @@ public class TestFileSystemItemOperations {
         int batchSize = 2;
         String scrollId = "";
         for (;;) {
-            ScrollFileSystemItemListImpl descendantsBatch;
-            descendantsBatch = clientSession.newRequest(NuxeoDriveScrollDescendants.ID)
-                                            .set("id", SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot1.getId())
-                                            .set(BATCH_SIZE, batchSize)
-                                            .set("scrollId", scrollId)
-                                            .executeReturning(ScrollFileSystemItemListImpl.class);
+            var descendantsBatch = clientSession.newRequest(NuxeoDriveScrollDescendants.ID)
+                                                .set("id", SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot1.getId())
+                                                .set(BATCH_SIZE, batchSize)
+                                                .set("scrollId", scrollId)
+                                                .executeReturning(ScrollFileSystemItemListImpl.class);
             if (descendantsBatch.isEmpty()) {
                 break;
             }
-            assertFalse(descendantsBatch.isEmpty());
             scrollId = descendantsBatch.getScrollId();
-            descendantIds.addAll(descendantsBatch.stream().map(FileSystemItem::getId).collect(Collectors.toList()));
+            descendantIds.addAll(descendantsBatch.stream().map(FileSystemItem::getId).toList());
         }
         assertEquals(4, descendantIds.size());
         // Note that order is not determined
@@ -651,113 +627,6 @@ public class TestFileSystemItemOperations {
         assertEquals("Internal Server Error", error);
     }
 
-    /**
-     * @deprecated since 10.3, see {@link NuxeoDriveCanMove}
-     */
-    @Test
-    @Deprecated
-    public void testCanMove() throws IOException {
-
-        // ------------------------------------------------------
-        // File to File => false
-        // ------------------------------------------------------
-        Boolean canMoveFSItem = clientSession.newRequest(NuxeoDriveCanMove.ID)
-                                             .set(SRC_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file1.getId())
-                                             .set(DEST_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file2.getId())
-                                             .executeReturning(Boolean.class);
-        assertFalse(canMoveFSItem);
-
-        // ------------------------------------------------------
-        // Sync root => false
-        // ------------------------------------------------------
-        canMoveFSItem = clientSession.newRequest(NuxeoDriveCanMove.ID)
-                                     .set(SRC_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot1.getId())
-                                     .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                     .executeReturning(Boolean.class);
-        assertFalse(canMoveFSItem);
-
-        // ------------------------------------------------------
-        // Top level folder => false
-        // ------------------------------------------------------
-        canMoveFSItem = clientSession.newRequest(NuxeoDriveCanMove.ID)
-                                     .set(SRC_ID,
-                                             fileSystemItemAdapterService.getTopLevelFolderItemFactory()
-                                                                         .getTopLevelFolderItem(session.getPrincipal())
-                                                                         .getId())
-                                     .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                     .executeReturning(Boolean.class);
-        assertFalse(canMoveFSItem);
-
-        // --------------------------------------------------------
-        // No REMOVE permission on the source backing doc => false
-        // --------------------------------------------------------
-        NuxeoPrincipal joe = createUser("joe", "joe");
-        DocumentModel rootDoc = session.getRootDocument();
-        setPermission(rootDoc, "joe", SecurityConstants.READ, true);
-
-        nuxeoDriveManager.registerSynchronizationRoot(joe, syncRoot1, session);
-        nuxeoDriveManager.registerSynchronizationRoot(joe, syncRoot2, session);
-
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-
-        HttpAutomationSession joeSession = automationClient.getSession("joe", "joe");
-        canMoveFSItem = joeSession.newRequest(NuxeoDriveCanMove.ID)
-                                  .set(SRC_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file1.getId())
-                                  .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                  .executeReturning(Boolean.class);
-        assertFalse(canMoveFSItem);
-
-        // -------------------------------------------------------------------
-        // No ADD_CHILDREN permission on the destination backing doc => false
-        // -------------------------------------------------------------------
-        setPermission(syncRoot1, "joe", SecurityConstants.WRITE, true);
-        canMoveFSItem = joeSession.newRequest(NuxeoDriveCanMove.ID)
-                                  .set(SRC_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file1.getId())
-                                  .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                  .executeReturning(Boolean.class);
-        assertFalse(canMoveFSItem);
-
-        // ----------------------------------------------------------------------
-        // REMOVE permission on the source backing doc + REMOVE_CHILDREN
-        // permission on its parent + ADD_CHILDREN permission on the destination
-        // backing doc => true
-        // ----------------------------------------------------------------------
-        setPermission(syncRoot2, "joe", SecurityConstants.WRITE, true);
-
-        nuxeoDriveManager.unregisterSynchronizationRoot(joe, syncRoot2, session);
-
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-
-        canMoveFSItem = joeSession.newRequest(NuxeoDriveCanMove.ID)
-                                  .set(SRC_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file1.getId())
-                                  .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                  .executeReturning(Boolean.class);
-        // syncRoot2 is not registered as a sync root for joe
-        assertFalse(canMoveFSItem);
-
-        nuxeoDriveManager.registerSynchronizationRoot(joe, syncRoot2, session);
-
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-
-        canMoveFSItem = joeSession.newRequest(NuxeoDriveCanMove.ID)
-                                  .set(SRC_ID, DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX + file1.getId())
-                                  .set(DEST_ID, SYNC_ROOT_FOLDER_ITEM_ID_PREFIX + syncRoot2.getId())
-                                  .executeReturning(Boolean.class);
-        // syncRoot2 is now a registered root for joe
-        assertTrue(canMoveFSItem);
-
-        // ----------------------------------------------------------------------
-        // Reset permissions
-        // ----------------------------------------------------------------------
-        resetPermissions(rootDoc, "joe");
-        resetPermissions(syncRoot1, "joe");
-        resetPermissions(syncRoot2, "joe");
-        deleteUser("joe");
-    }
-
     @Test
     public void testMove() throws IOException {
 
@@ -814,89 +683,6 @@ public class TestFileSystemItemOperations {
         assertEquals("MD5", movedFileItem.getDigestAlgorithm());
         assertEquals(movedFileBlob.getDigest(), movedFileItem.getDigest());
         assertEquals(movedFileBlob.getLength(), movedFileItem.getSize());
-    }
-
-    /**
-     * @deprecated since 10.3, see {@link NuxeoDriveGenerateConflictedItemName}
-     */
-    @Test
-    @Deprecated
-    public void testConflictedNames() throws IOException {
-        // Try a canonical example with the Administrator user
-        String newName = clientSession.newRequest(NuxeoDriveGenerateConflictedItemName.ID)
-                                      .set("name", "My file (with accents \u00e9).doc")
-                                      .executeReturning(String.class);
-        assertTrue(newName.startsWith("My file (with accents \u00e9) (Administrator - "));
-        assertTrue(newName.endsWith(").doc"));
-
-        // Try with a filename with filename extension
-        newName = clientSession.newRequest(NuxeoDriveGenerateConflictedItemName.ID)
-                               .set("name", "My file")
-                               .executeReturning(String.class);
-        assertTrue(newName.startsWith("My file (Administrator - "));
-        assertTrue(newName.endsWith(")"));
-
-        // Test with a user that has a firstname and a lastname
-        // Joe Strummer likes conflicting files
-        createUser("joe", "joe", "Joe", "Strummer");
-        HttpAutomationSession joeSession = automationClient.getSession("joe", "joe");
-        newName = joeSession.newRequest(NuxeoDriveGenerateConflictedItemName.ID)
-                            .set("name", "The Clashing File.xls")
-                            .executeReturning(String.class);
-        assertTrue(newName.startsWith("The Clashing File (Joe Strummer - "));
-        assertTrue(newName.endsWith(").xls"));
-
-        deleteUser("joe");
-    }
-
-    protected NuxeoPrincipal createUser(String userName, String password) {
-        return createUser(userName, password, null, null);
-    }
-
-    protected NuxeoPrincipal createUser(String userName, String password, String firstName, String lastName) {
-        try (org.nuxeo.ecm.directory.Session userDir = directoryService.open("userDirectory")) {
-            Map<String, Object> user = new HashMap<>();
-            user.put("username", userName);
-            user.put("password", password);
-            user.put("firstName", firstName);
-            user.put("lastName", lastName);
-            userDir.createEntry(user);
-        }
-        // commit directory changes
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-        UserManager userManager = Framework.getService(UserManager.class);
-        return userManager.getPrincipal(userName);
-    }
-
-    protected void deleteUser(String userName) {
-        try (org.nuxeo.ecm.directory.Session userDir = directoryService.open("userDirectory")) {
-            userDir.deleteEntry(userName);
-        }
-    }
-
-    protected void setPermission(DocumentModel doc, String userName, String permission, boolean isGranted) {
-        ACP acp = session.getACP(doc.getRef());
-        ACL localACL = acp.getOrCreateACL(ACL.LOCAL_ACL);
-        localACL.add(new ACE(userName, permission, isGranted));
-        session.setACP(doc.getRef(), acp, true);
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-    }
-
-    protected void resetPermissions(DocumentModel doc, String userName) {
-        ACP acp = session.getACP(doc.getRef());
-        ACL localACL = acp.getOrCreateACL(ACL.LOCAL_ACL);
-        Iterator<ACE> localACLIt = localACL.iterator();
-        while (localACLIt.hasNext()) {
-            ACE ace = localACLIt.next();
-            if (userName.equals(ace.getUsername())) {
-                localACLIt.remove();
-            }
-        }
-        session.setACP(doc.getRef(), acp, true);
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
     }
 
     protected void checkChildren(List<DocumentBackedFileItem> folderChildren, String folderId, String child1Id,
