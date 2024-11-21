@@ -706,14 +706,6 @@ public class WorkflowEndpointTest {
         });
     }
 
-    /**
-     * @deprecated Since 10.3. Use {@link #assertThatContainsActors} instead.
-     */
-    @Deprecated
-    protected static void assertActorIs(String expectedActor, JsonNode taskNode) {
-        assertThatContainsActors(List.of(expectedActor), taskNode.get("actors"));
-    }
-
     protected static void assertThatContainsActors(List<String> expectedActors, JsonNode actorsNode) {
         Iterator<JsonNode> actorNode = actorsNode.elements();
         List<String> actors = new ArrayList<>();
@@ -1065,7 +1057,7 @@ public class WorkflowEndpointTest {
                                     .createTask(session, session.getPrincipal(), note, "testNoWorkflowTask",
                                             List.of("user:Administrator"), false, null, null, null, Map.of(), null);
         assertEquals(1, tasks.size());
-        Task task = tasks.get(0);
+        Task task = tasks.getFirst();
         txFeature.nextTransaction();
 
         JsonNode node = httpClient.buildGetRequest("/id/" + note.getId())
