@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -131,17 +131,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
         super.deactivate(context);
     }
 
-    /**
-     * Shoudn't be used since it doesn't take into account the rendition definitions made available for a given document
-     * by the contributed {@link RenditionDefinitionProvider}s.
-     *
-     * @deprecated since 10.10, use {@link #getAvailableRenditionDefinition(DocumentModel, String)} instead
-     */
-    @Deprecated(since = "10.10")
-    public RenditionDefinition getRenditionDefinition(String name) {
-        return renditionDefinitionRegistry.getRenditionDefinition(name);
-    }
-
     @Override
     public List<RenditionDefinition> getDeclaredRenditionDefinitions() {
         return new ArrayList<>(renditionDefinitionRegistry.descriptors.values());
@@ -165,16 +154,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
     }
 
     /**
-     * @since 8.1
-     * @deprecated since 10.10, use {@link #storeRendition(DocumentModel, Rendition, RenditionDefinition)} instead
-     */
-    @Deprecated(since = "10.10")
-    protected StoredRendition storeRendition(DocumentModel sourceDocument, Rendition rendition) {
-        RenditionDefinition renditionDefinition = getAvailableRenditionDefinition(sourceDocument, rendition.getName());
-        return storeRendition(sourceDocument, rendition, renditionDefinition);
-    }
-
-    /**
      * @since 10.10
      */
     protected StoredRendition storeRendition(DocumentModel sourceDocument, Rendition rendition,
@@ -188,7 +167,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             log.debug("No rendition blobs for source document {}.", sourceDocument);
             return null;
         }
-        Blob renderedBlob = renderedBlobs.get(0);
+        Blob renderedBlob = renderedBlobs.getFirst();
         String mimeType = renderedBlob.getMimeType();
         if (mimeType != null
                 && (mimeType.contains(LazyRendition.ERROR_MARKER) || mimeType.contains(LazyRendition.STALE_MARKER))) {
@@ -240,21 +219,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             // Save contribution
             defaultRenditionDescriptors.add((DefaultRenditionDescriptor) contribution);
         }
-    }
-
-    protected RenditionDefinition mergeRenditions(RenditionDefinition oldRenditionDefinition,
-            RenditionDefinition newRenditionDefinition) {
-        String label = newRenditionDefinition.getLabel();
-        if (label != null) {
-            oldRenditionDefinition.label = label;
-        }
-
-        String operationChain = newRenditionDefinition.getOperationChain();
-        if (operationChain != null) {
-            oldRenditionDefinition.operationChain = operationChain;
-        }
-
-        return oldRenditionDefinition;
     }
 
     @Override
@@ -386,7 +350,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
         cleaner.runUnrestricted();
     }
 
-    private final class StoredRenditionsCleaner extends UnrestrictedSessionRunner {
+    private static final class StoredRenditionsCleaner extends UnrestrictedSessionRunner {
 
         private static final int BATCH_SIZE = 100;
 
@@ -431,8 +395,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             int processedSourceIds = 0;
             while (processedSourceIds < liveDocumentRefs.size()) {
                 // compute the batch of source ids to check for existence
-                int limit = processedSourceIds + BATCH_SIZE > liveDocumentRefs.size() ? liveDocumentRefs.size()
-                        : processedSourceIds + BATCH_SIZE;
+                int limit = Math.min(processedSourceIds + BATCH_SIZE, liveDocumentRefs.size());
                 List<String> batchSourceIds = liveDocumentRefs.subList(processedSourceIds, limit);
 
                 // retrieve still existing documents
