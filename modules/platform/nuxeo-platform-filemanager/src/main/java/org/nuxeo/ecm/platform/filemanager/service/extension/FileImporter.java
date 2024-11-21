@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,24 +15,15 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- *
- * $Id: Plugin.java 4449 2006-10-19 11:51:56Z janguenot $
  */
-
 package org.nuxeo.ecm.platform.filemanager.service.extension;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
-import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
-import org.nuxeo.ecm.platform.filemanager.service.FileManagerService;
-import org.nuxeo.ecm.platform.types.TypeManager;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * FileManagerServiceCommon plugin default interface.
@@ -95,35 +86,11 @@ public interface FileImporter extends Serializable, Comparable<FileImporter> {
     void setFilters(List<String> filters);
 
     /**
-     * Embeds a reference to the holding FileManagerService instance to be able to reuse generic file creation utility
-     * methods in specific plugin implementations.
-     *
-     * @param fileManagerService instance where the Plugin is registered as a contribution
-     * @deprecated since 10.3, use {@link Framework#getService(Class)} instead if needed
-     */
-    @Deprecated
-    void setFileManagerService(FileManagerService fileManagerService);
-
-    /**
      * Tests whether plugin is suitable for the given mimetype.
      *
      * @param mimeType the mimetype to test
      */
     boolean matches(String mimeType);
-
-    /**
-     * Creates the document.
-     *
-     * @param documentManager the manager used to create the Document
-     * @param content the content of the File
-     * @param path the path of current document
-     * @param overwrite a boolean deciding whether to create or update if we find a document with the same fileName
-     * @param filename the filename of the File
-     * @deprecated since 10.10. Use {@link #createOrUpdate(FileImporterContext)} instead.
-     */
-    @Deprecated
-    DocumentModel create(CoreSession documentManager, Blob content, String path, boolean overwrite, String filename,
-            TypeManager typeService) throws IOException;
 
     /**
      * Returns a created or updated document based on the given {@code context}.
