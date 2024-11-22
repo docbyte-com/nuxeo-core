@@ -70,7 +70,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common-test</artifactId>
     </dependency>
   </dependencies>

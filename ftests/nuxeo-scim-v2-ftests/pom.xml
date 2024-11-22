@@ -11,7 +11,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-scim-v2-package</artifactId>
       <type>zip</type>
       <scope>test</scope>

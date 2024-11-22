@@ -178,7 +178,7 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>cloud.nuxeo.common</groupId>
+        <groupId>cloud.docbyte.nuxeo.common</groupId>
         <artifactId>nuxeo-common</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -5594,7 +5594,7 @@
               <groups>
                 <group>
                   <title>Nuxeo Common Packages</title>
-                  <packages>org.nuxeo.common:org.nuxeo.common.*</packages>
+                  <packages>>cloud.docbyte.nuxeo.common:>cloud.docbyte.nuxeo.common.*</packages>
                 </group>
                 <group>
                   <title>Nuxeo Runtime Packages</title>
