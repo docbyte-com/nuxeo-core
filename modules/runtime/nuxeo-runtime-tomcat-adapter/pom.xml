@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.13-SNAPSHOT</version>
+    <version>2023.17-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
@@ -25,6 +25,10 @@
     <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>javax.servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
     </dependency>
   </dependencies>
 

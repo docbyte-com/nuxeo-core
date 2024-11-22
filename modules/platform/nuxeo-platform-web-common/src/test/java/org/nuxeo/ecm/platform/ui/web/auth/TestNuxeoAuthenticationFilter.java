@@ -28,16 +28,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyBoolean;
-import static org.mockito.Matchers.anyString;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.ui.web.auth.DummyAuthPluginAnonymous.DUMMY_ANONYMOUS_LOGIN;
@@ -86,6 +86,7 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
+import org.nuxeo.ecm.platform.api.login.RestrictedLoginHelper;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.mockito.MockitoFeature;
 import org.nuxeo.runtime.mockito.RuntimeService;
@@ -253,7 +254,7 @@ public class TestNuxeoAuthenticationFilter {
 
     protected void checkEvents(String... expectedEventNames) {
         if (expectedEventNames.length == 0) {
-            verifyZeroInteractions(eventProducer);
+            verifyNoInteractions(eventProducer);
         } else {
             verify(eventProducer).fireEvent(eventCaptor.capture());
             List<Event> events = eventCaptor.getAllValues();
@@ -401,6 +402,30 @@ public class TestNuxeoAuthenticationFilter {
         // chain called, no auth
         assertTrue(chain.called);
         assertNull(chain.principal);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
+    public void testRestrictedModeAuth() throws IOException, ServletException {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        when(request.getSession(anyBoolean())).thenReturn(session);
+        mockRequestURI(request, "/foo/bar", "", "");
+        when(request.getParameter(eq(DUMMY_AUTH_TOKEN_KEY))).thenReturn("bob");
+        filter.doFilter(request, response, chain);
+        // bob can login
+        assertTrue(chain.called);
+        assertEquals("bob", chain.principal.getName());
+        try {
+            RestrictedLoginHelper.setRestrictedModeActivated(true);
+            filter.doFilter(request, response, chain);
+            // bob can no longer login
+            assertTrue(chain.called);
+            assertNull(chain.principal);
+        } finally {
+            RestrictedLoginHelper.setRestrictedModeActivated(false);
+        }
     }
 
     /**

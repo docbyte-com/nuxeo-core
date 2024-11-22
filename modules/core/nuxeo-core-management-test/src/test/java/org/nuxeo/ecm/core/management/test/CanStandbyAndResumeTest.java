@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,11 @@
  */
 package org.nuxeo.ecm.core.management.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import javax.management.JMX;
 import javax.management.MBeanServer;
 
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.management.standby.StandbyCommand;
@@ -28,20 +29,21 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.ObjectNameFactory;
 import org.nuxeo.runtime.management.ServerLocator;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
- *
- *
  * @since 9.2
  */
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.runtime.management")
 @Deploy("org.nuxeo.ecm.core.management")
+// it registers a locator after the standby bean registration, so test doesn't get the same server as StandbyComponent
+@BlacklistComponent("org.nuxeo.runtime.management.tests.isolated-server-contrib")
 public class CanStandbyAndResumeTest {
 
     @Test
@@ -53,11 +55,11 @@ public class CanStandbyAndResumeTest {
         // commit transaction before standby, to release resources held in thread-locals
         TransactionHelper.commitOrRollbackTransaction();
 
-        Assertions.assertThat(bean.isStandby()).isFalse();
+        assertThat(bean.isStandby()).isFalse();
         bean.standby(10);
-        Assertions.assertThat(bean.isStandby()).isTrue();
+        assertThat(bean.isStandby()).isTrue();
         bean.resume();
-        Assertions.assertThat(bean.isStandby()).isFalse();
+        assertThat(bean.isStandby()).isFalse();
     }
 
 }

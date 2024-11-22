@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
  *       Kevin Leturc <kleturc@nuxeo.com>
  */
 package org.nuxeo.ecm.core.work;
+
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
@@ -85,19 +87,12 @@ public class WorkManagerFeature implements RunnerFeature {
         RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
         workManagerType = defaultProperty(WORK_MANAGER_PROPERTY, WORK_MANAGER_DEFAULT);
         try {
-            String msg = "Deploying WorkManager using " + workManagerType + " implementation";
-            // System.out used on purpose, don't remove
-            System.out.println(getClass().getSimpleName() + ": " + msg); // NOSONAR
-            log.info(msg);
+            log.info(MARKER_CONSOLE_OVERRIDE, "Deploying WorkManager using {} implementation", workManagerType);
             switch (workManagerType) {
-            case WORK_MANAGER_DEFAULT:
-                initDefaultImplementation(harness);
-                break;
-            case WORK_MANAGER_STREAM:
-                initStreamImplementation(harness);
-                break;
-            default:
-                throw new UnsupportedOperationException(workManagerType + " work manager type is not supported");
+                case WORK_MANAGER_DEFAULT -> initDefaultImplementation(harness);
+                case WORK_MANAGER_STREAM -> initStreamImplementation(harness);
+                default ->
+                    throw new UnsupportedOperationException(workManagerType + " work manager type is not supported");
             }
         } catch (Exception e) {
             throw new RuntimeServiceException("Unable to configure the work manager implementation", e);

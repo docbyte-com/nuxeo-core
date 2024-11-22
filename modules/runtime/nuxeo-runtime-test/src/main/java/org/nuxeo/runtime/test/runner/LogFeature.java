@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,26 @@
  */
 package org.nuxeo.runtime.test.runner;
 
+import static org.apache.logging.log4j.core.config.AppenderRef.createAppenderRef;
+
 import java.lang.annotation.ElementType;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.core.Logger;
 import org.apache.logging.log4j.core.LoggerContext;
 import org.apache.logging.log4j.core.appender.ConsoleAppender;
 import org.apache.logging.log4j.core.appender.ConsoleAppender.Target;
-import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.AppenderRef;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.apache.logging.log4j.core.filter.ThresholdFilter;
 import org.junit.runners.model.FrameworkMethod;
 
@@ -36,6 +45,8 @@ import org.junit.runners.model.FrameworkMethod;
  * @since 9.3
  */
 public class LogFeature implements RunnerFeature {
+
+    private static final org.apache.logging.log4j.Logger log = LogManager.getLogger(LogFeature.class);
 
     protected static final String CONSOLE_APPENDER = "CONSOLE";
 
@@ -51,7 +62,7 @@ public class LogFeature implements RunnerFeature {
      *
      * @since 11.1
      */
-    protected Map<LoggerLevelKey, Level> originalLevelByLogger = new ConcurrentHashMap<>();
+    protected Map<LoggerLevelKey, LoggerLightConfig> originalConfigurationByLogger = new ConcurrentHashMap<>();
 
     /**
      * {@inheritDoc}
@@ -60,8 +71,8 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     @Override
-    public void beforeRun(FeaturesRunner runner) {
-        originalLevelByLogger.clear();
+    public void initialize(FeaturesRunner runner) {
+        originalConfigurationByLogger.clear();
         addOrUpdateLoggerLevel(runner, null);
         addConsoleThresholdLogLevel(runner, null);
     }
@@ -73,7 +84,7 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     @Override
-    public void afterRun(FeaturesRunner runner) {
+    public void stop(FeaturesRunner runner) {
         restoreLoggerLevel(runner, null);
         restoreConsoleThresholdLogLevel(runner, null);
     }
@@ -133,11 +144,11 @@ public class LogFeature implements RunnerFeature {
         consoleAppender = (ConsoleAppender) rootLogger.getAppenders().get(CONSOLE_APPENDER);
         rootLogger.removeAppender(consoleAppender);
         ConsoleAppender newAppender = ConsoleAppender.newBuilder()
-                .withName(CONSOLE_LOG_FEATURE_APPENDER)
-                .setTarget(Target.SYSTEM_OUT)
-                .withFilter(ThresholdFilter.createFilter(Level.toLevel(level),
-                        null, null))
-                .build();
+                                                     .setName(CONSOLE_LOG_FEATURE_APPENDER)
+                                                     .setTarget(Target.SYSTEM_OUT)
+                                                     .setFilter(ThresholdFilter.createFilter(Level.toLevel(level), null,
+                                                             null))
+                                                     .build();
         newAppender.start();
         rootLogger.addAppender(newAppender);
         hiddenAppender = newAppender;
@@ -157,10 +168,10 @@ public class LogFeature implements RunnerFeature {
 
     /**
      * Adds the console threshold log level. To be proceed a {@code Class} / {@code Method} should be annotated by
+     * 
      * @see ConsoleLogLevelThreshold
-     * <p>
+     *      <p>
      * @see #setConsoleLogThreshold(String)
-     *
      * @param runner the feature runner, cannot be {@code null}
      * @param method the framework method, can be {@code null}
      * @since 11.1
@@ -206,21 +217,56 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     protected void addOrUpdateLoggerLevel(FeaturesRunner runner, FrameworkMethod method) {
+        var loggerContext = LoggerContext.getContext(false);
+        var configuration = loggerContext.getConfiguration();
+        boolean updateLoggers = false;
         for (LoggerLevel logger : runner.getMethodOrTestAnnotations(LoggerLevel.class, method)) {
-            if (logger.level() != null) {
-                String loggerName = getLoggerName(logger);
-                LoggerContext context = LoggerContext.getContext(false);
-                // Initialize the undefined logger to simplify the restoring step. There is no way to remove / delete
-                // a logger this is why we turned it to OFF.
-                if (!context.hasLogger(loggerName)) {
-                    Configurator.setLevel(loggerName, Level.OFF);
-                }
-
-                // Save the original value.
-                originalLevelByLogger.put(buildKey(logger, method), context.getLogger(loggerName).getLevel());
-                // Set the new level that we want
-                Configurator.setLevel(loggerName, Level.toLevel(logger.level()));
+            var loggerName = getLoggerName(logger);
+            var loggerConfig = configuration.getLoggerConfig(loggerName);
+            // backup original values
+            var previouslyConfigured = false;
+            var originalLevel = loggerConfig.getLevel();
+            var originalAppenderRefs = //
+                    loggerConfig.getAppenderRefs().stream().map(AppenderRef::getRef).collect(Collectors.toSet());
+            if (loggerName.equals(loggerConfig.getName())) {
+                previouslyConfigured = true;
+                configuration.removeLogger(loggerName);
             }
+            // create a new logger config
+            var loggerConfigBuilder = LoggerConfig.newBuilder()
+                                                  .withConfig(configuration)
+                                                  .withLoggerName(loggerName)
+                                                  .withLevel(originalLevel)
+                                                  .withRefs(loggerConfig.getAppenderRefs().toArray(AppenderRef[]::new));
+
+            // configure logger level
+            if (logger.level() != null) {
+                loggerConfigBuilder.withLevel(Level.toLevel(logger.level()));
+                updateLoggers = updateLoggers || !loggerConfigBuilder.getLevel().equals(originalLevel);
+            }
+
+            // configure logger appender references
+            if (logger.appenders().length > 0) {
+                var desiredAppenderRefs = new HashSet<>(originalAppenderRefs);
+                desiredAppenderRefs.addAll(List.of(logger.appenders()));
+                loggerConfigBuilder.withRefs(desiredAppenderRefs.stream()
+                                                                .map(a -> createAppenderRef(a, null, null))
+                                                                .toArray(AppenderRef[]::new));
+                updateLoggers = updateLoggers || originalAppenderRefs.size() < desiredAppenderRefs.size();
+            }
+
+            // finalise logger configuration by computing appenders from configured references
+            loggerConfig = loggerConfigBuilder.build();
+            addAppendersFromRefs(loggerConfig, configuration);
+            configuration.addLogger(loggerName, loggerConfig);
+
+            // backup the original values
+            originalConfigurationByLogger.put(buildKey(logger, method), new LoggerLightConfig(previouslyConfigured,
+                    originalLevel, originalAppenderRefs.toArray(String[]::new)));
+        }
+        // update loggers if needed
+        if (updateLoggers) {
+            loggerContext.updateLoggers();
         }
     }
 
@@ -235,11 +281,46 @@ public class LogFeature implements RunnerFeature {
      * @since 11.1
      */
     protected void restoreLoggerLevel(FeaturesRunner runner, FrameworkMethod method) {
+        var loggerContext = LoggerContext.getContext(false);
+        var configuration = loggerContext.getConfiguration();
+        boolean updateLoggers = false;
         for (LoggerLevel logger : runner.getMethodOrTestAnnotations(LoggerLevel.class, method)) {
-            if (logger.level() != null) {
+            if (logger.level() != null || logger.appenders().length > 0) {
+                updateLoggers = true;
                 String loggerName = getLoggerName(logger);
-                Level level = originalLevelByLogger.remove(buildKey(logger, method));
-                Configurator.setLevel(loggerName, level);
+                // restore the logger config
+                var previousConfig = originalConfigurationByLogger.remove(buildKey(logger, method));
+                // could happen if there's duplicate, like a feature extends another one + reference it in @Features
+                if (previousConfig != null) {
+                    configuration.removeLogger(loggerName);
+                    if (previousConfig.configured()) {
+                        LoggerConfig loggerConfig = LoggerConfig.newBuilder()
+                                .withConfig(configuration)
+                                .withLoggerName(loggerName)
+                                .withLevel(previousConfig.level())
+                                .withRefs(Stream.of(previousConfig.appenderRefs())
+                                        .map(a -> createAppenderRef(a, null, null))
+                                        .toArray(AppenderRef[]::new))
+                                .build();
+                        addAppendersFromRefs(loggerConfig, configuration);
+                        configuration.addLogger(loggerName, loggerConfig);
+                    }
+                }
+            }
+        }
+        // update loggers if needed
+        if (updateLoggers) {
+            loggerContext.updateLoggers();
+        }
+    }
+
+    protected void addAppendersFromRefs(LoggerConfig loggerConfig, Configuration configuration) {
+        for (var appenderRef : loggerConfig.getAppenderRefs()) {
+            var appender = configuration.getAppender(appenderRef.getRef());
+            if (appender == null) {
+                log.error("Unable to locate appender: {} for logger config: {}", appenderRef, loggerConfig);
+            } else {
+                loggerConfig.addAppender(appender, appenderRef.getLevel(), appenderRef.getFilter());
             }
         }
     }
@@ -262,5 +343,8 @@ public class LogFeature implements RunnerFeature {
         ElementType type = method != null ? ElementType.METHOD : ElementType.TYPE;
         String loggerName = getLoggerName(logger);
         return new LoggerLevelKey(type, loggerName);
+    }
+
+    protected record LoggerLightConfig(boolean configured, Level level, String[] appenderRefs) {
     }
 }

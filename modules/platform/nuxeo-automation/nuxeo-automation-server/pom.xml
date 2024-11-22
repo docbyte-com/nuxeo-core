@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
     <artifactId>nuxeo-automation-parent</artifactId>
-    <version>2023.13-SNAPSHOT</version>
+    <version>2023.17-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-automation-server</artifactId>
@@ -22,6 +22,10 @@
     <dependency>
       <groupId>com.sun.jersey</groupId>
       <artifactId>jersey-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-multipart</artifactId>
     </dependency>
     <dependency>
       <groupId>javax.servlet</groupId>

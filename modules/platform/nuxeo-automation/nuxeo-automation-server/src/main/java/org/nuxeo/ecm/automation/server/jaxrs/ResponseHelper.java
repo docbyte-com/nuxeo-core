@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.automation.server.jaxrs;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
@@ -31,6 +32,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
+import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.automation.core.util.RecordSet;
@@ -46,12 +48,19 @@ import org.nuxeo.ecm.core.api.DocumentRefList;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.DocumentModelListImpl;
 import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
+import org.nuxeo.runtime.api.Framework;
+
+import com.sun.jersey.core.header.ContentDisposition;
+import com.sun.jersey.multipart.BodyPart;
+import com.sun.jersey.multipart.MultiPart;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * @author <a href="mailto:ataillefer@nuxeo.com">Antoine Taillefer</a>
  */
 public class ResponseHelper {
+
+    public static final String MULTIPART_FILENAME_UTF_8 = "nuxeo.multipart.filename.utf8.encoding";
 
     private ResponseHelper() {
     }
@@ -80,6 +89,21 @@ public class ResponseHelper {
         if (blobs.isEmpty()) {
             return emptyBlobs();
         }
+        if (Framework.isBooleanPropertyTrue(MULTIPART_FILENAME_UTF_8)) {
+            try (var multipart = new MultiPart()) {
+                for (var blob : blobs) {
+                    var mediaType = Optional.ofNullable(blob.getMimeType())
+                                            .map(ThrowableFunction.asFunction(MediaType::valueOf))
+                                            .orElse(MediaType.APPLICATION_OCTET_STREAM_TYPE);
+                    var contentDisposition = ContentDisposition.type("attachment")
+                                                               .fileName(blob.getFilename())
+                                                               .size(blob.getLength())
+                                                               .build();
+                    multipart.bodyPart(new BodyPart(mediaType).entity(blob.getStream()).contentDisposition(contentDisposition));
+                }
+                return Response.status(httpStatus).entity(multipart).type(multipart.getMediaType()).build();
+            }
+        }
         MultipartBlobs multipartBlobs = new MultipartBlobs(blobs);
         return Response.status(httpStatus)
                        .entity(multipartBlobs)
@@ -106,17 +130,19 @@ public class ResponseHelper {
         }
         if (result instanceof Blob) {
             return result; // BlobWriter will do all the processing and call the DownloadService
-        } else if (result instanceof BlobList) {
-            return blobs((BlobList) result);
-        } else if (result instanceof DocumentRef) {
+        } else if (result instanceof BlobList blobList) {
+            return blobs(blobList);
+        } else if (result instanceof DocumentRef docRef) {
             CoreSession session = SessionFactory.getSession(request);
-            return Response.status(httpStatus).entity(session.getDocument((DocumentRef) result)).build();
-        } else if (result instanceof DocumentRefList) {
+            return Response.status(httpStatus).entity(session.getDocument(docRef)).build();
+        } else if (result instanceof DocumentRefList docRefs) {
             CoreSession session = SessionFactory.getSession(request);
-            return Response.status(httpStatus).entity(((DocumentRefList) result).stream().map(session::getDocument)
-                    .collect(Collectors.toCollection(DocumentModelListImpl::new))).build();
-        } else if (result instanceof List && !((List<?>) result).isEmpty()
-                && ((List<?>) result).get(0) instanceof NuxeoPrincipal) {
+            return Response.status(httpStatus)
+                           .entity(docRefs.stream()
+                                          .map(session::getDocument)
+                                          .collect(Collectors.toCollection(DocumentModelListImpl::new)))
+                           .build();
+        } else if (result instanceof List list && !list.isEmpty() && list.get(0) instanceof NuxeoPrincipal) {
             return Response.status(httpStatus)
                            .entity(new GenericEntity<>(result,
                                    TypeUtils.parameterize(List.class, NuxeoPrincipal.class)))

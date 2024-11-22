@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.test;
 
 import static org.junit.Assert.assertNotNull;
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import java.net.URL;
 import java.sql.SQLException;
@@ -119,29 +120,26 @@ public class StorageConfiguration {
                 defaultProperty(CHANGE_TOKEN_ENABLED_PROPERTY, CHANGE_TOKEN_ENABLED_DEFAULT));
         initJDBC();
         switch (coreType) {
-        case CORE_VCS:
-            isVCS = true;
-            break;
-        case CORE_MEM:
-            isDBS = true;
-            break;
-        case CORE_MONGODB:
-            isDBS = true;
-            initMongoDB();
-            break;
-        default:
-            isDBS = true;
-            initExternal();
+            case CORE_VCS:
+                isVCS = true;
+                break;
+            case CORE_MEM:
+                isDBS = true;
+                break;
+            case CORE_MONGODB:
+                isDBS = true;
+                initMongoDB();
+                break;
+            default:
+                isDBS = true;
+                initExternal();
         }
     }
 
     public void initJDBC() {
         databaseHelper = DatabaseHelper.DATABASE;
 
-        String msg = "Deploying JDBC using " + databaseHelper.getClass().getSimpleName();
-        // System.out used on purpose, don't remove
-        System.out.println(getClass().getSimpleName() + ": " + msg);
-        log.info(msg);
+        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying JDBC using " + databaseHelper.getClass().getSimpleName());
 
         // setup system properties for generic XML extension points
         // this is used both for VCS (org.nuxeo.ecm.core.storage.sql.RepositoryService)
@@ -304,9 +302,7 @@ public class StorageConfiguration {
         } else {
             throw new NuxeoException("Unkown test configuration (not vcs/dbs)");
         }
-        // System.out used on purpose, don't remove
-        System.out.println(getClass().getSimpleName() + ": " + msg);
-        log.info(msg);
+        log.info(MARKER_CONSOLE_OVERRIDE, msg);
 
         String contribPath;
         String bundleName;

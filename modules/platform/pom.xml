@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.13-SNAPSHOT</version>
+    <version>2023.17-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -93,6 +93,7 @@
     <module>nuxeo-preview-core</module>
     <module>nuxeo-quota</module>
     <module>nuxeo-scim-server</module>
+    <module>nuxeo-scim-v2</module>
     <module>nuxeo-search</module>
     <module>nuxeo-signature</module>
     <module>nuxeo-target-platforms</module>
