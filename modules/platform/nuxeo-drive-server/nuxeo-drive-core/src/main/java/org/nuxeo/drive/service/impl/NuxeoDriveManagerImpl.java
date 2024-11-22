@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.drive.service.impl;
 
 import static org.nuxeo.audit.service.AuditComponent.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -112,8 +113,6 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
      * key).
      */
     protected Cache collectionSyncRootMemberCache;
-
-    protected ChangeFinderRegistry changeFinderRegistry;
 
     protected FileSystemChangeFinder changeFinder;
 
@@ -547,38 +546,6 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
 
     /*------------------------ DefaultComponent -----------------------------*/
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CHANGE_FINDER_EP.equals(extensionPoint)) {
-            changeFinderRegistry.addContribution((ChangeFinderDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CHANGE_FINDER_EP.equals(extensionPoint)) {
-            changeFinderRegistry.removeContribution((ChangeFinderDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        if (changeFinderRegistry == null) {
-            changeFinderRegistry = new ChangeFinderRegistry();
-        }
-    }
-
-    @Override
-    public void deactivate(ComponentContext context) {
-        super.deactivate(context);
-        changeFinderRegistry = null;
-    }
-
-    @Override
     public int getApplicationStartedOrder() {
         ComponentInstance cacheComponent = Framework.getRuntime()
                                                     .getComponentInstance("org.nuxeo.ecm.core.cache.CacheService");
@@ -596,7 +563,12 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
         syncRootCache = Framework.getService(CacheService.class).getCache(DRIVE_SYNC_ROOT_CACHE);
         collectionSyncRootMemberCache = Framework.getService(CacheService.class)
                                                  .getCache(DRIVE_COLLECTION_SYNC_ROOT_MEMBER_CACHE);
-        changeFinder = changeFinderRegistry.changeFinder;
+        try {
+            changeFinder = this.<ChangeFinderDescriptor> getDescriptor(CHANGE_FINDER_EP, UNIQUE_DESCRIPTOR_ID)
+                               .getChangeFinder();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Cannot instantiate changeFinder.", e);
+        }
     }
 
     @Override

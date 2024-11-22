@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,13 @@ package org.nuxeo.drive.service.impl;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.drive.service.FileSystemChangeFinder;
 import org.nuxeo.drive.service.NuxeoDriveManager;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for contributions to the {@code changeFinder} extension point of the {@link NuxeoDriveManager}.
@@ -34,7 +36,7 @@ import org.nuxeo.drive.service.NuxeoDriveManager;
  * @since 7.3
  */
 @XObject("changeFinder")
-public class ChangeFinderDescriptor {
+public class ChangeFinderDescriptor implements Descriptor {
 
     @XNode("@class")
     protected Class<? extends FileSystemChangeFinder> changeFinderClass;
@@ -42,34 +44,29 @@ public class ChangeFinderDescriptor {
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
     protected Map<String, String> parameters = new HashMap<>();
 
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
+
     public FileSystemChangeFinder getChangeFinder() throws ReflectiveOperationException {
         FileSystemChangeFinder changeFinder = changeFinderClass.getDeclaredConstructor().newInstance();
         changeFinder.handleParameters(parameters);
         return changeFinder;
     }
 
-    public Class<? extends FileSystemChangeFinder> getChangeFinderClass() {
-        return changeFinderClass;
-    }
-
-    public void setChangeFinderClass(Class<? extends FileSystemChangeFinder> changeFinderClass) {
-        this.changeFinderClass = changeFinderClass;
-    }
-
     public Map<String, String> getParameters() {
         return parameters;
     }
 
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
-
-    public String getparameter(String name) {
-        return parameters.get(name);
-    }
-
-    public void setParameter(String name, String value) {
-        parameters.put(name, value);
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (ChangeFinderDescriptor) o;
+        var merged = new ChangeFinderDescriptor();
+        merged.changeFinderClass = ObjectUtils.defaultIfNull(other.changeFinderClass, changeFinderClass);
+        merged.parameters = new HashMap<>(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
     }
 
     @Override
@@ -92,5 +89,4 @@ public class ChangeFinderDescriptor {
     public String toString() {
         return changeFinderClass.getName();
     }
-
 }
