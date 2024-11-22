@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ import org.apache.commons.lang3.BooleanUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.1
  */
 @XObject("rule")
-public class MetadataRuleDescriptor {
+public class MetadataRuleDescriptor implements Descriptor {
 
     @XNode("@id")
     protected String id;
@@ -52,6 +53,7 @@ public class MetadataRuleDescriptor {
     @XNodeList(value = "filters/filter-id", type = ArrayList.class, componentType = String.class)
     protected List<String> filterIds;
 
+    @Override
     public String getId() {
         return id;
     }
@@ -62,6 +64,10 @@ public class MetadataRuleDescriptor {
 
     public Boolean getEnabled() {
         return enabled;
+    }
+
+    public boolean isEnabled() {
+        return BooleanUtils.toBooleanDefaultIfNull(enabled, true);
     }
 
     public Boolean getIsAsync() {

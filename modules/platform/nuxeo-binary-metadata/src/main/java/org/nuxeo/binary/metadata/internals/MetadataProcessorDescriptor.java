@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,21 +21,28 @@ package org.nuxeo.binary.metadata.internals;
 import org.nuxeo.binary.metadata.api.BinaryMetadataProcessor;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("processor")
-public class MetadataProcessorDescriptor {
+public class MetadataProcessorDescriptor implements Descriptor {
 
     @XNode("@id")
     protected String id;
 
-    protected BinaryMetadataProcessor processor;
-
     @XNode("@class")
-    public void setClass(Class<? extends BinaryMetadataProcessor> aType) throws ReflectiveOperationException {
-        processor = aType.getDeclaredConstructor().newInstance();
-    }
+    protected Class<? extends BinaryMetadataProcessor> processorClass;
 
+    @Override
     public String getId() {
         return id;
+    }
+
+    public BinaryMetadataProcessor getProcessor() {
+        try {
+            return processorClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Unable to instantiate the binary metadata processor", e);
+        }
     }
 }
