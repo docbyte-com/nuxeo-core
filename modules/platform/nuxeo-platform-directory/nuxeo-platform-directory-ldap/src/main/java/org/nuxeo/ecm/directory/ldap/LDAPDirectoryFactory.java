@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,20 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.directory.ldap;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.directory.DefaultDirectoryFactory;
-import org.nuxeo.ecm.directory.DirectoryServiceImpl;
-import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.directory.ldap.registry.LDAPServerRegistry;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.Descriptor;
 
 public class LDAPDirectoryFactory extends DefaultDirectoryFactory {
 
     public static final String SERVERS_XP = "servers";
 
-    protected LDAPServerRegistry servers = new LDAPServerRegistry();
-
     public LDAPServerDescriptor getServer(String name) {
-        return servers.getServer(name);
-    }
-
-    protected static DirectoryServiceImpl getDirectoryService() {
-        return (DirectoryServiceImpl) Framework.getService(DirectoryService.class);
+        return getDescriptor(SERVERS_XP, name);
     }
 
     @Override
@@ -48,7 +36,7 @@ public class LDAPDirectoryFactory extends DefaultDirectoryFactory {
         if (DIRECTORIES_XP.equals(extensionPoint)) {
             super.registerContribution(contribution, extensionPoint, contributor);
         } else if (SERVERS_XP.equals(extensionPoint)) {
-            registerServerContribution((LDAPServerDescriptor) contribution);
+            register(SERVERS_XP, (Descriptor) contribution);
         } else {
             throw new NuxeoException("Unknown extension point: " + extensionPoint);
         }
@@ -59,16 +47,7 @@ public class LDAPDirectoryFactory extends DefaultDirectoryFactory {
         if (DIRECTORIES_XP.equals(extensionPoint)) {
             super.unregisterContribution(contribution, extensionPoint, contributor);
         } else if (SERVERS_XP.equals(extensionPoint)) {
-            unregisterServerContribution((LDAPServerDescriptor) contribution);
+            unregister(SERVERS_XP, (Descriptor) contribution);
         }
     }
-
-    public void registerServerContribution(LDAPServerDescriptor descriptor) {
-        servers.addContribution(descriptor);
-    }
-
-    public void unregisterServerContribution(LDAPServerDescriptor descriptor) {
-        servers.removeContribution(descriptor);
-    }
-
 }
