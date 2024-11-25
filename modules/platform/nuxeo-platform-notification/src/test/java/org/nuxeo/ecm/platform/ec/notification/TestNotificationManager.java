@@ -26,7 +26,7 @@ import static java.util.Comparator.naturalOrder;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.ecm.platform.audit.service.NXAuditEventsService.DISABLE_AUDIT_LOGGER;
+import static org.nuxeo.audit.service.AuditComponent.DISABLE_AUDIT_LOGGER;
 
 import java.util.List;
 

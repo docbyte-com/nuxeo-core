@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentLocation;
@@ -49,7 +50,6 @@ import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.ec.notification.NotificationListenerHook;
@@ -267,7 +267,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     protected void disableEvents(DocumentModel doc) {
         doc.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, TRUE);
         doc.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, TRUE);
-        doc.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, TRUE);
+        doc.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, TRUE);
         doc.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, TRUE);
         doc.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, TRUE);
     }
@@ -275,7 +275,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     protected void restoreEvents(DocumentModel doc) {
         doc.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, null);
         doc.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, null);
-        doc.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, null);
+        doc.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, null);
         doc.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, null);
         doc.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, null);
     }

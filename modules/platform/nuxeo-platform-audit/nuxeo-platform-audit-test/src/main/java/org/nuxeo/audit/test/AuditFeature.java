@@ -41,12 +41,10 @@ import org.nuxeo.audit.mem.MemAuditFeature;
 import org.nuxeo.audit.mongodb.MongoDBAuditFeature;
 import org.nuxeo.audit.opensearch1.OpenSearchAuditFeature;
 import org.nuxeo.audit.sql.SQLAuditFeature;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
@@ -55,7 +53,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.dublincore")
 @Deploy("org.nuxeo.audit.test")
 @Features(AuditCoreFeature.class)
-@LoggerLevel(klass = NXAuditEventsService.class, level = "DEBUG")
 public class AuditFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(AuditFeature.class);
