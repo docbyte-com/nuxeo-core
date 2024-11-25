@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@ package org.nuxeo.ecm.web.resources.core;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.web.resources.api.Processor;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.3
@@ -39,7 +41,7 @@ public class ProcessorDescriptor implements Processor {
     protected Boolean enabled;
 
     @XNode("class")
-    Class<?> klass;
+    protected Class<?> klass;
 
     @XNode("@order")
     protected int order = 0;
@@ -56,13 +58,6 @@ public class ProcessorDescriptor implements Processor {
     @Override
     public String getName() {
         return name;
-    }
-
-    /**
-     * Returns true if the enabled element was set on the descriptor, useful for merging.
-     */
-    public boolean isEnableSet() {
-        return enabled != null;
     }
 
     @Override
@@ -101,27 +96,17 @@ public class ProcessorDescriptor implements Processor {
     }
 
     @Override
-    public ProcessorDescriptor clone() {
-        ProcessorDescriptor clone = new ProcessorDescriptor();
-        clone.name = name;
-        clone.enabled = enabled;
-        clone.klass = klass;
-        clone.order = order;
-        clone.type = type;
-        clone.appendTypes = appendTypes;
-        if (types != null) {
-            clone.types = new ArrayList<>(types);
-        }
-        return clone;
+    public Descriptor merge(Descriptor o) {
+        var other = (ProcessorDescriptor) o;
+        var merged = new ProcessorDescriptor();
+        merged.name = name;
+        // support merge only for enabled boolean
+        merged.enabled = ObjectUtils.defaultIfNull(other.enabled, enabled);
+        merged.klass = klass;
+        merged.order = order;
+        merged.type = type;
+        merged.appendTypes = appendTypes;
+        merged.types = types;
+        return merged;
     }
-
-    public void merge(ProcessorDescriptor other) {
-        if (other == null) {
-            return;
-        }
-        if (other.isEnableSet()) {
-            enabled = other.enabled;
-        }
-    }
-
 }
