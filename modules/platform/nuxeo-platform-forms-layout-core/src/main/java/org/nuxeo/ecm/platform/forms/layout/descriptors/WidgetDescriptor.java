@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
- *
- * $Id: WidgetDescriptor.java 28478 2008-01-04 12:53:58Z sfermigier $
  */
-
 package org.nuxeo.ecm.platform.forms.layout.descriptors;
 
 import static org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition.REQUIRED_PROPERTY_NAME;
@@ -45,6 +42,7 @@ import org.nuxeo.ecm.platform.forms.layout.api.WidgetReference;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetSelectOption;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.WidgetDefinitionImpl;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.WidgetReferenceImpl;
+import org.nuxeo.runtime.model.Descriptor;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -55,33 +53,31 @@ import org.w3c.dom.Node;
  * @author <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
  */
 @XObject("widget")
-public class WidgetDescriptor {
+public class WidgetDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(WidgetDescriptor.class);
 
     @XNode("@name")
-    String name;
+    protected String name;
 
     @XNode("@type")
-    String type;
+    protected String type;
 
-    /**
-     * @since 5.7.3
-     */
+    /** @since 5.7.3 */
     @XNode("@typeCategory")
-    String typeCategory;
+    protected String typeCategory;
 
     @XNodeList(value = "fields/field", type = FieldDescriptor[].class, componentType = FieldDescriptor.class)
-    FieldDescriptor[] fields = new FieldDescriptor[0];
+    protected FieldDescriptor[] fields = new FieldDescriptor[0];
 
     @XNodeMap(value = "widgetModes/mode", key = "@value", type = HashMap.class, componentType = String.class)
-    Map<String, String> modes = new HashMap<>();
+    protected Map<String, String> modes = new HashMap<>();
 
     @XNodeMap(value = "labels/label", key = "@mode", type = HashMap.class, componentType = String.class)
-    Map<String, String> labels = new HashMap<>();
+    protected Map<String, String> labels = new HashMap<>();
 
     @XNodeMap(value = "helpLabels/label", key = "@mode", type = HashMap.class, componentType = String.class)
-    Map<String, String> helpLabels = new HashMap<>();
+    protected Map<String, String> helpLabels = new HashMap<>();
 
     /**
      * Defaults to true, contrary to {@link WidgetDefinition} interface, but kept as is for compatibility.
@@ -90,37 +86,38 @@ public class WidgetDescriptor {
     boolean translated = true;
 
     @XNodeMap(value = "properties", key = "@mode", type = HashMap.class, componentType = PropertiesDescriptor.class)
-    Map<String, PropertiesDescriptor> properties = new HashMap<>();
+    protected Map<String, PropertiesDescriptor> properties = new HashMap<>();
 
     @XNodeMap(value = "controls", key = "@mode", type = HashMap.class, componentType = ControlsDescriptor.class)
-    Map<String, ControlsDescriptor> controls = new HashMap<>();
+    protected Map<String, ControlsDescriptor> controls = new HashMap<>();
 
     @XNodeMap(value = "properties", key = "@widgetMode", type = HashMap.class, componentType = PropertiesDescriptor.class)
-    Map<String, PropertiesDescriptor> widgetModeProperties = new HashMap<>();
+    protected Map<String, PropertiesDescriptor> widgetModeProperties = new HashMap<>();
 
     @XNodeList(value = "subWidgets/widget", type = WidgetDescriptor[].class, componentType = WidgetDescriptor.class)
-    WidgetDescriptor[] subWidgets = new WidgetDescriptor[0];
+    protected WidgetDescriptor[] subWidgets = new WidgetDescriptor[0];
 
-    /**
-     * @since 5.6
-     */
+    /** @since 5.6 */
     @XNodeList(value = "subWidgetRefs/widget", type = WidgetReferenceDescriptor[].class, componentType = WidgetReferenceDescriptor.class)
-    WidgetReferenceDescriptor[] subWidgetRefs = new WidgetReferenceDescriptor[0];
+    protected WidgetReferenceDescriptor[] subWidgetRefs = new WidgetReferenceDescriptor[0];
 
     // set in method to mix single and multiple options
-    WidgetSelectOption[] selectOptions = new WidgetSelectOption[0];
+    protected WidgetSelectOption[] selectOptions = new WidgetSelectOption[0];
 
     @XNodeMap(value = "renderingInfos", key = "@mode", type = HashMap.class, componentType = RenderingInfosDescriptor.class)
-    Map<String, RenderingInfosDescriptor> renderingInfos = new HashMap<>();
+    protected Map<String, RenderingInfosDescriptor> renderingInfos = new HashMap<>();
 
     @XNodeList(value = "categories/category", type = String[].class, componentType = String.class)
-    String[] categories = new String[0];
+    protected String[] categories = new String[0];
 
-    /**
-     * @since 6.0
-     */
+    /** @since 6.0 */
     @XNodeList(value = "aliases/alias", type = ArrayList.class, componentType = String.class)
-    List<String> aliases;
+    protected List<String> aliases;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;

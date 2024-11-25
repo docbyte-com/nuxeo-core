@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
- *
- * $Id: WidgetTypeDescriptor.java 26053 2007-10-16 01:45:43Z atchertchian $
  */
-
 package org.nuxeo.ecm.platform.forms.layout.descriptors;
 
 import java.util.ArrayList;
@@ -33,6 +30,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetTypeConfiguration;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetTypeDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.WidgetTypeDefinitionImpl;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Widget type descriptor.
@@ -40,28 +38,31 @@ import org.nuxeo.ecm.platform.forms.layout.api.impl.WidgetTypeDefinitionImpl;
  * @author <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
  */
 @XObject("widgetType")
-public class WidgetTypeDescriptor {
+public class WidgetTypeDescriptor implements Descriptor {
 
     @XNode("@name")
-    String name;
+    protected String name;
 
-    /**
-     * @since 6.0
-     */
+    /** @since 6.0 */
     @XNodeList(value = "aliases/alias", type = ArrayList.class, componentType = String.class)
-    List<String> aliases;
+    protected List<String> aliases;
 
     @XNode("handler-class")
-    String handlerClassName;
+    protected String handlerClassName;
 
     @XNodeMap(value = "property", key = "@name", type = HashMap.class, componentType = String.class)
-    Map<String, String> properties;
+    protected Map<String, String> properties;
 
     @XNode("configuration")
-    WidgetTypeConfigurationDescriptor configuration;
+    protected WidgetTypeConfigurationDescriptor configuration;
 
     @XNodeList(value = "categories/category", type = String[].class, componentType = String.class)
-    String[] categories = new String[0];
+    protected String[] categories = new String[0];
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -96,11 +97,9 @@ public class WidgetTypeDescriptor {
     }
 
     public WidgetTypeDefinition getWidgetTypeDefinition() {
-        WidgetTypeDefinitionImpl res = new WidgetTypeDefinitionImpl(name, handlerClassName, properties,
-                getConfiguration());
+        var res = new WidgetTypeDefinitionImpl(name, handlerClassName, properties, getConfiguration());
         res.setAliases(getAliases());
         return res;
-
     }
 
 }

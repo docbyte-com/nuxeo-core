@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  *
  * Contributors:
  *     <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
- *
- * $Id: LayoutDescriptor.java 28478 2008-01-04 12:53:58Z sfermigier $
  */
 
 package org.nuxeo.ecm.platform.forms.layout.descriptors;
@@ -38,6 +36,7 @@ import org.nuxeo.ecm.platform.forms.layout.api.LayoutRowDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.RenderingInfo;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.LayoutDefinitionImpl;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Layout definition descriptor.
@@ -45,51 +44,50 @@ import org.nuxeo.ecm.platform.forms.layout.api.impl.LayoutDefinitionImpl;
  * @author <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
  */
 @XObject("layout")
-public class LayoutDescriptor {
+public class LayoutDescriptor implements Descriptor {
 
     @XNode("@name")
-    String name;
+    protected String name;
 
-    /**
-     * @since 6.0
-     */
+    /** @since 6.0 */
     @XNode("@type")
-    String type;
+    protected String type;
 
-    /**
-     * @since 6.0
-     */
+    /** @since 6.0 */
     @XNode("@typeCategory")
-    String typeCategory;
+    protected String typeCategory;
 
     @XNodeMap(value = "templates/template", key = "@mode", type = HashMap.class, componentType = String.class)
-    Map<String, String> templates = new HashMap<>();
+    protected Map<String, String> templates = new HashMap<>();
 
     @XNodeList(value = "rows/row", type = LayoutRowDescriptor[].class, componentType = LayoutRowDescriptor.class)
-    LayoutRowDescriptor[] rows = new LayoutRowDescriptor[0];
+    protected LayoutRowDescriptor[] rows = new LayoutRowDescriptor[0];
 
     @XNodeList(value = "columns/column", type = LayoutRowDescriptor[].class, componentType = LayoutRowDescriptor.class)
-    LayoutRowDescriptor[] rowsAsColumns = new LayoutRowDescriptor[0];
+    protected LayoutRowDescriptor[] rowsAsColumns = new LayoutRowDescriptor[0];
 
     @XNodeMap(value = "widget", key = "@name", type = HashMap.class, componentType = WidgetDescriptor.class)
-    Map<String, WidgetDescriptor> widgets = new HashMap<>();
+    protected Map<String, WidgetDescriptor> widgets = new HashMap<>();
 
     @XNodeMap(value = "properties", key = "@mode", type = HashMap.class, componentType = PropertiesDescriptor.class)
-    Map<String, PropertiesDescriptor> properties = new HashMap<>();
+    protected Map<String, PropertiesDescriptor> properties = new HashMap<>();
 
     @XNodeMap(value = "renderingInfos", key = "@mode", type = HashMap.class, componentType = RenderingInfosDescriptor.class)
-    Map<String, RenderingInfosDescriptor> renderingInfos = new HashMap<>();
+    protected Map<String, RenderingInfosDescriptor> renderingInfos = new HashMap<>();
 
     @XNodeList(value = "categories/category", type = String[].class, componentType = String.class)
-    String[] categories = new String[0];
+    protected String[] categories = new String[0];
 
-    /**
-     * @since 6.0
-     */
+    /** @since 6.0 */
     @XNodeList(value = "aliases/alias", type = ArrayList.class, componentType = String.class)
-    List<String> aliases;
+    protected List<String> aliases;
 
-    Integer columns;
+    protected Integer columns;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -187,8 +185,7 @@ public class LayoutDescriptor {
     public LayoutDefinition getLayoutDefinition() {
         Map<String, String> ctemplates = null;
         if (templates != null) {
-            ctemplates = new HashMap<>();
-            ctemplates.putAll(templates);
+            ctemplates = new HashMap<>(templates);
         }
         LayoutRowDefinition[] crows = getRows();
         Map<String, WidgetDefinition> cwidgets = null;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,27 +30,33 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.forms.layout.api.LayoutTypeConfiguration;
 import org.nuxeo.ecm.platform.forms.layout.api.LayoutTypeDefinition;
 import org.nuxeo.ecm.platform.forms.layout.api.impl.LayoutTypeDefinitionImpl;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 6.0
  */
 @XObject("layoutType")
-public class LayoutTypeDescriptor {
+public class LayoutTypeDescriptor implements Descriptor {
 
     @XNode("@name")
-    String name;
+    protected String name;
 
     @XNodeList(value = "aliases/alias", type = ArrayList.class, componentType = String.class)
-    List<String> aliases;
+    protected List<String> aliases;
 
     @XNodeMap(value = "templates/template", key = "@mode", type = HashMap.class, componentType = String.class)
-    Map<String, String> templates = new HashMap<>();
+    protected Map<String, String> templates = new HashMap<>();
 
     @XNode("configuration")
-    LayoutTypeConfigurationDescriptor configuration;
+    protected LayoutTypeConfigurationDescriptor configuration;
 
     @XNodeList(value = "categories/category", type = String[].class, componentType = String.class)
-    String[] categories = new String[0];
+    protected String[] categories = new String[0];
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;

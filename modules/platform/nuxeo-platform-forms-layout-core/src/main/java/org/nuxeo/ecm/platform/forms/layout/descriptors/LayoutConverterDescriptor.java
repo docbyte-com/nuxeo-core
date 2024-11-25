@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,24 +21,30 @@ package org.nuxeo.ecm.platform.forms.layout.descriptors;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 5.5
  */
 @XObject("layoutConverter")
-public class LayoutConverterDescriptor implements Comparable<LayoutConverterDescriptor> {
+public class LayoutConverterDescriptor implements Descriptor, Comparable<LayoutConverterDescriptor> {
 
     @XNode("@name")
-    String name;
+    protected String name;
 
     @XNode("@order")
-    int order = 0;
+    protected int order = 0;
 
     @XNode("converter-class")
-    String converterClassName;
+    protected String converterClassName;
 
     @XNodeList(value = "categories/category", type = String[].class, componentType = String.class)
-    String[] categories = new String[0];
+    protected String[] categories = new String[0];
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
