@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.nuxeo.targetplatforms.core.descriptors;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Service configuration descriptor
@@ -27,13 +28,17 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 5.7.1
  */
 @XObject("configuration")
-public class ServiceConfigurationDescriptor {
+public class ServiceConfigurationDescriptor implements Descriptor {
 
     @XNode("overrideDirectory")
-    String overrideDirectory;
+    protected String overrideDirectory;
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public String getOverrideDirectory() {
         return overrideDirectory;
     }
-
 }
