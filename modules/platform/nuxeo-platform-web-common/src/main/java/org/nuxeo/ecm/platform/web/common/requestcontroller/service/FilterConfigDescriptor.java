@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,17 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.util.regex.Pattern;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for {@link RequestFilterConfig}
@@ -34,7 +34,7 @@ import org.nuxeo.runtime.api.Framework;
  * @author ldoguin
  */
 @XObject(value = "filterConfig")
-public class FilterConfigDescriptor {
+public class FilterConfigDescriptor implements Descriptor {
 
     public static final String DEFAULT_CACHE_DURATION = "3599";
 
@@ -81,6 +81,11 @@ public class FilterConfigDescriptor {
         this.cacheTime = cacheTime;
     }
 
+    @Override
+    public String getId() {
+        return name + '-' + grant;
+    }
+
     public String getName() {
         if (name == null) {
             return pattern;
@@ -113,7 +118,7 @@ public class FilterConfigDescriptor {
     }
 
     public String getCacheTime() {
-        if (cacheTime == null || cacheTime.equals("")) {
+        if (isEmpty(cacheTime)) {
             cacheTime = DEFAULT_CACHE_DURATION;
         }
         return cacheTime;

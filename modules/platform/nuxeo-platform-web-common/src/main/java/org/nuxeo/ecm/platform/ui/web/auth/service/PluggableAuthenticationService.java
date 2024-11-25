@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
+
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,29 +77,26 @@ public class PluggableAuthenticationService extends DefaultComponent {
 
     private final List<String> startupURLs = new ArrayList<>();
 
-    private LoginScreenConfigRegistry loginScreenConfigRegistry;
-
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         authenticatorsDescriptors = new HashMap<>();
         authChain = new ArrayList<>();
         authenticators = new HashMap<>();
         sessionManagers = new HashMap<>();
-        loginScreenConfigRegistry = new LoginScreenConfigRegistry();
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         authenticatorsDescriptors = null;
         authenticators = null;
         authChain = null;
         sessionManagers = null;
-        loginScreenConfigRegistry = null;
     }
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-
         if (extensionPoint.equals(EP_AUTHENTICATOR)) {
             AuthenticationPluginDescriptor descriptor = (AuthenticationPluginDescriptor) contribution;
             if (authenticatorsDescriptors.containsKey(descriptor.getName())) {
@@ -152,6 +148,7 @@ public class PluggableAuthenticationService extends DefaultComponent {
             SpecificAuthChainDescriptor desc = (SpecificAuthChainDescriptor) contribution;
             specificAuthChains.put(desc.name, desc);
         } else if (extensionPoint.equals(EP_LOGINSCREEN)) {
+            // don't leverage generic mechanism as we need to keep registerLoginScreenConfig LoginScreenHelper
             LoginScreenConfig newConfig = (LoginScreenConfig) contribution;
             registerLoginScreenConfig(newConfig);
         }
@@ -165,6 +162,7 @@ public class PluggableAuthenticationService extends DefaultComponent {
             authenticatorsDescriptors.remove(descriptor.getName());
             log.debug("unregistered AuthenticationPlugin: {}", descriptor::getName);
         } else if (extensionPoint.equals(EP_LOGINSCREEN)) {
+            // don't leverage generic mechanism as we need to keep unregisterLoginScreenConfig LoginScreenHelper
             LoginScreenConfig newConfig = (LoginScreenConfig) contribution;
             unregisterLoginScreenConfig(newConfig);
         }
@@ -201,8 +199,7 @@ public class PluggableAuthenticationService extends DefaultComponent {
     }
 
     public List<String> getAuthChain(HttpServletRequest request) {
-
-        if (specificAuthChains == null || specificAuthChains.isEmpty()) {
+        if (specificAuthChains.isEmpty()) {
             return authChain;
         }
 
@@ -216,7 +213,7 @@ public class PluggableAuthenticationService extends DefaultComponent {
     }
 
     public boolean doHandlePrompt(HttpServletRequest request) {
-        if (specificAuthChains == null || specificAuthChains.isEmpty()) {
+        if (specificAuthChains.isEmpty()) {
             return true;
         }
 
@@ -228,8 +225,7 @@ public class PluggableAuthenticationService extends DefaultComponent {
 
     private SpecificAuthChainDescriptor getAuthChainDescriptor(HttpServletRequest request) {
         String specificAuthChainName = getSpecificAuthChainName(request);
-        SpecificAuthChainDescriptor desc = specificAuthChains.get(specificAuthChainName);
-        return desc;
+        return specificAuthChains.get(specificAuthChainName);
     }
 
     public String getSpecificAuthChainName(HttpServletRequest request) {
@@ -376,21 +372,21 @@ public class PluggableAuthenticationService extends DefaultComponent {
     }
 
     public LoginScreenConfig getLoginScreenConfig() {
-        return loginScreenConfigRegistry.getConfig();
+        return getDescriptor(EP_LOGINSCREEN, UNIQUE_DESCRIPTOR_ID);
     }
 
     /**
      * @since 10.10
      */
     public void registerLoginScreenConfig(LoginScreenConfig config) {
-        loginScreenConfigRegistry.addContribution(config);
+        register(EP_LOGINSCREEN, config);
     }
 
     /**
      * @since 10.10
      */
     public void unregisterLoginScreenConfig(LoginScreenConfig config) {
-        loginScreenConfigRegistry.removeContribution(config);
+        unregister(EP_LOGINSCREEN, config);
     }
 
 }

@@ -19,9 +19,12 @@
 package org.nuxeo.ecm.platform.ui.web.auth.service;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.collections4.MapUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -31,7 +34,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import jakarta.ws.rs.core.UriBuilder;
 
@@ -42,6 +44,7 @@ import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * {@link XMap} object to manage configuration of the login screen (login.jsp)
@@ -50,40 +53,30 @@ import org.nuxeo.runtime.api.Framework;
  * @since 5.7
  */
 @XObject("loginScreenConfig")
-public class LoginScreenConfig {
+public class LoginScreenConfig implements Descriptor {
 
     public static final String NUXEO_NEWS_URL = "//www.nuxeo.com/login-page-embedded-1/";
 
-    /**
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNodeMap(value = "startupPages/startupPage", key = "@id", type = HashMap.class, componentType = LoginStartupPage.class)
     protected Map<String, LoginStartupPage> startupPages = new HashMap<>();
 
     @XNodeList(value = "loginProviders/loginProvider", type = ArrayList.class, componentType = LoginProviderLink.class)
     protected List<LoginProviderLink> providers;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     @XNodeList(value = "videos/video", type = ArrayList.class, componentType = LoginVideo.class, nullByDefault = true)
     protected List<LoginVideo> videos;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     @XNode("videos@muted")
     protected Boolean muted;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     @XNode("videos@loop")
     protected Boolean loop;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     protected String backgroundImage;
 
     @XNode("removeNews")
@@ -115,9 +108,7 @@ public class LoginScreenConfig {
     @XNode("logoHeight")
     protected String logoHeight;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     @XNode("fieldAutocomplete")
     protected Boolean fieldAutocomplete;
 
@@ -130,29 +121,21 @@ public class LoginScreenConfig {
     @XNode("disableBackgroundSizeCover")
     protected Boolean disableBackgroundSizeCover;
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     @XNode("loginButtonBackgroundColor")
     protected String loginButtonBackgroundColor;
 
-    /**
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNode("defaultLocale")
     protected String defaultLocale;
 
-    /**
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNode("supportedLocales@append")
-    Boolean appendSupportedLocales;
+    protected Boolean appendSupportedLocales;
 
-    /**
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNodeList(value = "supportedLocales/locale", type = ArrayList.class, componentType = String.class)
-    List<String> supportedLocales;
+    protected List<String> supportedLocales;
 
     public LoginScreenConfig() {
     }
@@ -165,6 +148,11 @@ public class LoginScreenConfig {
     public LoginScreenConfig(LoginProviderLink provider) {
         providers = new ArrayList<>();
         providers.add(provider);
+    }
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
     }
 
     public List<LoginProviderLink> getProviders() {
@@ -358,154 +346,57 @@ public class LoginScreenConfig {
         return res;
     }
 
-    protected void merge(LoginScreenConfig newConfig) {
-        if (newConfig.newsIframeUrl != null) {
-            setNewsIframeUrl(newConfig.newsIframeUrl);
-        }
-        if (newConfig.headerStyle != null) {
-            headerStyle = newConfig.headerStyle;
-        }
-        if (newConfig.footerStyle != null) {
-            footerStyle = newConfig.footerStyle;
-        }
-        if (newConfig.bodyBackgroundStyle != null) {
-            bodyBackgroundStyle = newConfig.bodyBackgroundStyle;
-        }
-        if (newConfig.loginBoxBackgroundStyle != null) {
-            loginBoxBackgroundStyle = newConfig.loginBoxBackgroundStyle;
-        }
-        if (newConfig.loginBoxWidth != null) {
-            loginBoxWidth = newConfig.loginBoxWidth;
-        }
-        if (newConfig.disableBackgroundSizeCover != null) {
-            disableBackgroundSizeCover = newConfig.disableBackgroundSizeCover;
-        }
-        if (newConfig.logoAlt != null) {
-            logoAlt = newConfig.logoAlt;
-        }
-        if (newConfig.logoHeight != null) {
-            logoHeight = newConfig.logoHeight;
-        }
-        if (newConfig.logoUrl != null) {
-            logoUrl = newConfig.logoUrl;
-        }
-        if (newConfig.logoWidth != null) {
-            logoWidth = newConfig.logoWidth;
-        }
-        if (newConfig.fieldAutocomplete != null) {
-            fieldAutocomplete = newConfig.fieldAutocomplete;
-        }
-        if (newConfig.videos != null) {
-            videos = newConfig.videos;
-        }
-        if (newConfig.loop != null) {
-            loop = newConfig.loop;
-        }
-        if (newConfig.removeNews != null) {
-            removeNews = newConfig.removeNews;
-        }
-        if (newConfig.muted != null) {
-            muted = newConfig.muted;
-        }
-        if (newConfig.loginButtonBackgroundColor != null) {
-            loginButtonBackgroundColor = newConfig.loginButtonBackgroundColor;
-        }
-        if (newConfig.backgroundImage != null) {
-            backgroundImage = newConfig.backgroundImage;
-        }
-
-        if (providers == null) {
-            providers = newConfig.providers;
-        } else if (newConfig.providers != null && !newConfig.providers.isEmpty()) {
-            for (LoginProviderLink link : newConfig.providers) {
-
-                int idx = providers.indexOf(link);
-                if (idx >= 0) {
-                    if (link.remove) {
-                        providers.remove(idx);
-                    } else {
-                        providers.get(idx).merge(link);
-                    }
-                } else {
-                    providers.add(link);
-                }
-            }
-        }
-
-        if (startupPages == null) {
-            startupPages = newConfig.startupPages;
-        } else if (newConfig.startupPages != null && !newConfig.startupPages.isEmpty()) {
-            for (Map.Entry<String, LoginStartupPage> startupPage : newConfig.startupPages.entrySet()) {
-                if (startupPages.containsKey(startupPage.getKey())) {
-                    startupPages.get(startupPage.getKey()).merge(startupPage.getValue());
-                } else {
-                    startupPages.put(startupPage.getKey(), startupPage.getValue());
-                }
-            }
-        }
-
-        if (newConfig.defaultLocale != null) {
-            defaultLocale = newConfig.defaultLocale;
-        }
-
-        Boolean append = newConfig.isAppendSupportedLocales();
-        List<String> newLocales = newConfig.getSupportedLocales();
-        Set<String> mergedLocales = new HashSet<>();
-        if (!Boolean.FALSE.equals(append) && supportedLocales != null) {
-            mergedLocales.addAll(supportedLocales);
-        }
-        if (newLocales != null) {
-            mergedLocales.addAll(newLocales);
-        }
-        supportedLocales = new ArrayList<>(mergedLocales);
-    }
-
-    /**
-     * @since 7.10
-     */
     @Override
-    public LoginScreenConfig clone() {
-        LoginScreenConfig clone = new LoginScreenConfig();
-        clone.bodyBackgroundStyle = bodyBackgroundStyle;
-        clone.disableBackgroundSizeCover = disableBackgroundSizeCover;
-        clone.fieldAutocomplete = fieldAutocomplete;
-        clone.footerStyle = footerStyle;
-        clone.headerStyle = headerStyle;
-        clone.loginBoxBackgroundStyle = loginBoxBackgroundStyle;
-        clone.loginBoxWidth = loginBoxWidth;
-        clone.loginButtonBackgroundColor = loginButtonBackgroundColor;
-        clone.logoAlt = logoAlt;
-        clone.logoHeight = logoHeight;
-        clone.logoUrl = logoUrl;
-        clone.logoWidth = logoWidth;
-        clone.loop = loop;
-        clone.muted = muted;
-        clone.newsIframeUrl = newsIframeUrl;
-        if (providers != null) {
-            clone.providers = new ArrayList<>();
-            for (LoginProviderLink l : providers) {
-                clone.providers.add(l.clone());
-            }
-        }
-        if (startupPages != null) {
-            clone.startupPages = new HashMap<>();
-            for (Map.Entry<String, LoginStartupPage> startupPage : startupPages.entrySet()) {
-                clone.startupPages.put(startupPage.getKey(), startupPage.getValue().clone());
-            }
-        }
-        clone.removeNews = removeNews;
-        if (videos != null) {
-            clone.videos = new ArrayList<>();
-            for (LoginVideo v : videos) {
-                clone.videos.add(v.clone());
-            }
-        }
-        clone.defaultLocale = defaultLocale;
-        clone.appendSupportedLocales = appendSupportedLocales;
-        if (supportedLocales != null) {
-            clone.supportedLocales = new ArrayList<>(supportedLocales);
-        }
-        return clone;
-    }
+    public Descriptor merge(Descriptor o) {
+        var other = (LoginScreenConfig) o;
+        var merged = new LoginScreenConfig();
+        merged.newsIframeUrl = defaultIfNull(other.newsIframeUrl, newsIframeUrl);
+        merged.headerStyle = defaultIfNull(other.headerStyle, headerStyle);
+        merged.footerStyle = defaultIfNull(other.footerStyle, footerStyle);
+        merged.bodyBackgroundStyle = defaultIfNull(other.bodyBackgroundStyle, bodyBackgroundStyle);
+        merged.loginBoxBackgroundStyle = defaultIfNull(other.loginBoxBackgroundStyle, loginBoxBackgroundStyle);
+        merged.loginBoxWidth = defaultIfNull(other.loginBoxWidth, loginBoxWidth);
+        merged.disableBackgroundSizeCover = defaultIfNull(other.disableBackgroundSizeCover, disableBackgroundSizeCover);
+        merged.logoAlt = defaultIfNull(other.logoAlt, logoAlt);
+        merged.logoHeight = defaultIfNull(other.logoHeight, logoHeight);
+        merged.logoUrl = defaultIfNull(other.logoUrl, logoUrl);
+        merged.logoWidth = defaultIfNull(other.logoWidth, logoWidth);
+        merged.fieldAutocomplete = defaultIfNull(other.fieldAutocomplete, fieldAutocomplete);
+        merged.videos = defaultIfNull(other.videos, videos);
+        merged.loop = defaultIfNull(other.loop, loop);
+        merged.removeNews = defaultIfNull(other.removeNews, removeNews);
+        merged.muted = defaultIfNull(other.muted, muted);
+        merged.loginButtonBackgroundColor = defaultIfNull(other.loginButtonBackgroundColor, loginButtonBackgroundColor);
+        merged.backgroundImage = defaultIfNull(other.backgroundImage, backgroundImage);
 
+        // handle providers merge
+        var providersMap = new HashMap<String, LoginProviderLink>();
+        emptyIfNull(providers).forEach(provider -> providersMap.put(provider.getName(), provider));
+        emptyIfNull(other.providers).forEach(
+                provider -> providersMap.compute(provider.getName(), (name, previousProvider) -> {
+                    if (previousProvider == null) {
+                        return provider;
+                    } else if (provider.remove) {
+                        return null;
+                    } else {
+                        return previousProvider.merge(provider);
+                    }
+                }));
+        merged.providers = new ArrayList<>(providersMap.values());
+
+        // handle startupPages merge
+        merged.startupPages = new HashMap<>(emptyIfNull(startupPages));
+        emptyIfNull(other.startupPages).forEach(
+                (key, value) -> merged.startupPages.merge(key, value, LoginStartupPage::merge));
+
+        merged.defaultLocale = defaultIfNull(other.defaultLocale, defaultLocale);
+
+        var supportedLocalesSet = new HashSet<String>();
+        if (!Boolean.FALSE.equals(other.isAppendSupportedLocales())) { // true by default
+            supportedLocalesSet.addAll(emptyIfNull(supportedLocales));
+        }
+        supportedLocalesSet.addAll(emptyIfNull(other.supportedLocales));
+        merged.supportedLocales = new ArrayList<>(supportedLocalesSet);
+        return merged;
+    }
 }

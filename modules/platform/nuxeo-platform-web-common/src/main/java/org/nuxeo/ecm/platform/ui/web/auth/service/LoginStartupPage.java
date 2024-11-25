@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,26 +42,12 @@ public class LoginStartupPage implements Comparable<LoginStartupPage> {
         return priority;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LoginStartupPage && path != null) {
-            return path.equals(((LoginStartupPage) obj).getPath())
-                    && priority == ((LoginStartupPage) obj).getPriority();
-        }
-        return super.equals(obj);
-    }
-
-    @Override
-    protected LoginStartupPage clone() {
-        LoginStartupPage clone = new LoginStartupPage();
-        clone.path = path;
-        clone.priority = priority;
-        return clone;
-    }
-
-    @Override
-    public String toString() {
-        return path + "," + priority;
+    public LoginStartupPage merge(LoginStartupPage newStartupPage) {
+        var merged = new LoginStartupPage();
+        merged.path = StringUtils.defaultIfEmpty(newStartupPage.path, path);
+        // Keep the highest priority
+        merged.priority = newStartupPage.compareTo(this) > 0 ? newStartupPage.priority : priority;
+        return merged;
     }
 
     @Override
@@ -75,14 +61,17 @@ public class LoginStartupPage implements Comparable<LoginStartupPage> {
         return 0;
     }
 
-    public void merge(LoginStartupPage newStartupPage) {
-        if (StringUtils.isNotEmpty(newStartupPage.path)) {
-            path = newStartupPage.path;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof LoginStartupPage && path != null) {
+            return path.equals(((LoginStartupPage) obj).getPath())
+                    && priority == ((LoginStartupPage) obj).getPriority();
         }
-        // Keep highest priority
-        if (newStartupPage.compareTo(this) > 0) {
-            priority = newStartupPage.priority;
-        }
+        return super.equals(obj);
     }
 
+    @Override
+    public String toString() {
+        return path + "," + priority;
+    }
 }
