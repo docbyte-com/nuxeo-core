@@ -49,7 +49,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(WorkflowFeature.class)
-@Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-route-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.routing.core.test:OSGI-INF/test-route-contrib.xml")
 // needs NotificationService & MailService
 @BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class TaskWriterActionContextTest extends AbstractJsonWriterTest.External<TaskWriter, Task> {
