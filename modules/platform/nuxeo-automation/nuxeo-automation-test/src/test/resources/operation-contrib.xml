@@ -1,22 +1,17 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.automation.rest.test.operationContrib"
-  version="1.0">
+<component name="org.nuxeo.automation.rest.test.operationContrib" version="1.0">
 
-  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent"
-    point="operations">
-
-    <operation
-      class="org.nuxeo.ecm.automation.test.helpers.TestOperation" />
-    <operation
-      class="org.nuxeo.ecm.automation.server.test.business.client.TestBusinessArray" />
-    <operation
-            class="org.nuxeo.ecm.automation.server.test.TestContextReaderOperation" />
-    <operation
-      class="org.nuxeo.ecm.automation.server.test.operations.UpdateMailOperation" />
+  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="operations">
+    <operation class="org.nuxeo.ecm.automation.server.test.DummyOperation" />
+    <operation class="org.nuxeo.ecm.automation.server.test.MyObjectOperation" />
+    <operation class="org.nuxeo.ecm.automation.server.test.TestContextReaderOperation" />
+    <operation class="org.nuxeo.ecm.automation.server.test.TestDataCapsule" />
+    <operation class="org.nuxeo.ecm.automation.server.test.business.client.TestBusinessArray" />
+    <operation class="org.nuxeo.ecm.automation.server.test.operations.UpdateMailOperation" />
+    <operation class="org.nuxeo.ecm.automation.test.helpers.TestOperation" />
   </extension>
 
-  <extension point="chains"
-    target="org.nuxeo.ecm.core.operation.OperationServiceComponent">
+  <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="chains">
     <chain id="testChain">
 
       <operation id="testOp">
@@ -37,9 +32,7 @@
     </chain>
   </extension>
 
-  <extension
-          target="org.nuxeo.automation.scripting.internals.AutomationScriptingComponent"
-          point="operation">
+  <extension target="org.nuxeo.automation.scripting.internals.AutomationScriptingComponent" point="operation">
 
     <scriptedOperation id="javascript.RemoteScriptWithDoc">
       <inputType>document</inputType>

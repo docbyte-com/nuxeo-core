@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,35 +14,30 @@
  * limitations under the License.
  *
  * Contributors:
- *     bstefanescu
- *     vpasquier <vpasquier@nuxeo.com>
- *     slacoin <slacoin@nuxeo.com>
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
 package org.nuxeo.ecm.automation.core;
 
-import org.nuxeo.common.xmap.annotation.XContent;
-import org.nuxeo.common.xmap.annotation.XNode;
-import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.runtime.model.Descriptor;
 
 /**
- * @since 5.7.3 The Automation Filter declaration.
+ * @since 2025.0
  */
-@XObject("filter")
-public class AutomationFilterDescriptor implements Descriptor {
+public interface OperationDescriptor extends Descriptor {
 
-    @XNode("@id")
-    protected String id;
+    /**
+     * @return whether this operation is enabled or not
+     */
+    boolean isEnabled();
 
-    @XContent
-    protected String value;
+    /**
+     * @return whether this operation replaces an existing one
+     */
+    boolean replace();
 
-    @Override
-    public String getId() {
-        return id;
-    }
-
-    public String getValue() {
-        return value;
-    }
+    /**
+     * @return the {@link OperationType} for this descriptor
+     */
+    OperationType toType();
 }

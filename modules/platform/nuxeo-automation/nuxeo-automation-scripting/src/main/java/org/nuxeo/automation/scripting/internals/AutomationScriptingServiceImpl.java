@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,13 @@
 package org.nuxeo.automation.scripting.internals;
 
 import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.AUTOMATION_SCRIPTING_PRECOMPILE;
-import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.COMPLIANT_JAVA_VERSION_CACHE;
-import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.COMPLIANT_JAVA_VERSION_CLASS_FILTER;
 import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.DEFAULT_PRECOMPILE_STATUS;
-import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.NASHORN_JAVA_VERSION;
-import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.NASHORN_WARN_CACHE;
-import static org.nuxeo.automation.scripting.api.AutomationScriptingConstants.NASHORN_WARN_CLASS_FILTER;
-import static org.nuxeo.launcher.config.ConfigurationChecker.checkJavaVersion;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.script.Compilable;
@@ -40,8 +33,6 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptException;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -53,8 +44,6 @@ import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 public class AutomationScriptingServiceImpl implements AutomationScriptingService {
 
-    private static final Logger log = LogManager.getLogger(AutomationScriptingServiceImpl.class);
-
     /** @since 2023.9 */
     public static final String OPTIMISTIC_TYPES_ENABLED_PROPERTY_KEY = "nuxeo.automation.scripting.optimistic.types.enabled";
 
@@ -62,10 +51,12 @@ public class AutomationScriptingServiceImpl implements AutomationScriptingServic
 
     protected volatile CompiledScript mapperScript;
 
-    protected AutomationScriptingParamsInjector paramsInjector;
-
     // updated in-place only by extension points, so no concurrency issues
-    protected Set<String> allowedClassNames = new HashSet<>();
+    protected final Set<String> allowedClassNames;
+
+    public AutomationScriptingServiceImpl(Set<String> allowedClassNames) {
+        this.allowedClassNames = allowedClassNames;
+    }
 
     @Override
     public Session get(CoreSession session) {
@@ -88,13 +79,7 @@ public class AutomationScriptingServiceImpl implements AutomationScriptingServic
         return mapperScript;
     }
 
-    protected synchronized void clearMapperScript() {
-        this.mapperScript = null;
-    }
-
     class Bridge implements Session {
-
-        final Compilable compilable = ((Compilable) engine);
 
         final Invocable invocable = ((Invocable) engine);
 
@@ -141,10 +126,6 @@ public class AutomationScriptingServiceImpl implements AutomationScriptingServic
             }
         }
 
-        <T> T handleof(Class<T> typeof) {
-            return invocable.getInterface(global, typeof);
-        }
-
         @Override
         public <T> T adapt(Class<T> typeof) {
             if (typeof.isAssignableFrom(engine.getClass())) {
@@ -166,47 +147,26 @@ public class AutomationScriptingServiceImpl implements AutomationScriptingServic
     }
 
     protected ScriptEngine getScriptEngine() {
-        String version = Framework.getProperty("java.version");
-        // Check if jdk8
-        if (!checkJavaVersion(version, NASHORN_JAVA_VERSION)) {
-            throw new UnsupportedOperationException(NASHORN_JAVA_VERSION);
-        }
-        // Check if version < jdk8u25 -> no cache.
-        if (!checkJavaVersion(version, COMPLIANT_JAVA_VERSION_CACHE)) {
-            log.warn(NASHORN_WARN_CACHE);
-            return getScriptEngine(false, false);
-        }
         boolean cache = Boolean.parseBoolean(
                 Framework.getProperty(AUTOMATION_SCRIPTING_PRECOMPILE, DEFAULT_PRECOMPILE_STATUS));
-        // Check if jdk8u25 <= version < jdk8u40 -> only cache.
-        if (!checkJavaVersion(version, COMPLIANT_JAVA_VERSION_CLASS_FILTER)) {
-            log.warn(NASHORN_WARN_CLASS_FILTER);
-            return getScriptEngine(cache, false);
-        }
-        // Else if version >= jdk8u40 -> cache + class filter
-        try {
-            return getScriptEngine(cache, true);
-        } catch (NoClassDefFoundError cause) {
-            log.warn(NASHORN_WARN_CLASS_FILTER);
-            return getScriptEngine(cache, false);
-        }
+        return getScriptEngine(cache);
     }
 
-    protected ScriptEngine getScriptEngine(boolean cache, boolean filter) {
+    protected ScriptEngine getScriptEngine(boolean cache) {
         NashornScriptEngineFactory nashorn = new NashornScriptEngineFactory();
         String[] args = cache
                 ? new String[] { "-strict", "--optimistic-types=" + isOptimisticTypesEnabled(),
                         "--persistent-code-cache", "--class-cache-size=50" }
                 : new String[] { "-strict" };
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-        ClassFilter classFilter = filter ? getClassFilter() : null;
-        return nashorn.getScriptEngine(args, classLoader, classFilter);
+        return nashorn.getScriptEngine(args, classLoader, getClassFilter());
     }
 
     protected boolean isOptimisticTypesEnabled() {
         return Boolean.parseBoolean(Framework.getProperty(OPTIMISTIC_TYPES_ENABLED_PROPERTY_KEY));
     }
 
+    @SuppressWarnings("Convert2MethodRef")
     protected ClassFilter getClassFilter() {
         return className -> allowedClassNames.contains(className);
     }

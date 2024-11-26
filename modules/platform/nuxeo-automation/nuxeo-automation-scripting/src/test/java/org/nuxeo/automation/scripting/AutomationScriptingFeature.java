@@ -19,8 +19,7 @@ package org.nuxeo.automation.scripting;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-
-import jakarta.inject.Inject;
+import java.util.Set;
 
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
 import org.nuxeo.automation.scripting.internals.AutomationScriptingServiceImpl;
@@ -31,6 +30,7 @@ import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -52,9 +52,6 @@ import com.google.inject.Binder;
         WebEngineCoreFeature.class })
 public class AutomationScriptingFeature implements RunnerFeature {
 
-    @Inject
-    protected AutomationScriptingService scripting;
-
     protected FeaturesRunner runner;
 
     @Override
@@ -66,23 +63,24 @@ public class AutomationScriptingFeature implements RunnerFeature {
         return runner.getTargetTestResource(location).openStream();
     }
 
-    public <T> T run(String location, CoreSession session, Class<T> typeof) throws Exception {
-        try (AutomationScriptingService.Session context = scripting.get(session)) {
-            return typeof.cast(context.run(load(location)));
+    public <T> T run(String location, CoreSession coreSession, Class<T> typeof) throws Exception {
+        try (var session = Framework.getService(AutomationScriptingService.class).get(coreSession);
+                var stream = load(location)) {
+            return typeof.cast(session.run(stream));
         }
     }
 
     /**
      * This version receives an explicit {@code scripting} parameter because of a bug in injection that doesn't allow to
      * use the previous method with a test-method-level {@code Deploy} (the old value of a component stays injected).
-     *
+     * TODO fix the bug this method is talking about
+     * 
      * @since 10.2
+     * @deprecated since 2025.0, use {@link #run(String, CoreSession, Class)} instead reports
      */
     public <T> T run(AutomationScriptingService scripting, String location, CoreSession session, Class<T> typeof)
             throws Exception {
-        try (AutomationScriptingService.Session context = scripting.get(session)) {
-            return typeof.cast(context.run(load(location)));
-        }
+        return run(location, session, typeof);
     }
 
     /**
@@ -93,11 +91,10 @@ public class AutomationScriptingFeature implements RunnerFeature {
     public void runScriptWithFrameworkProperties(Object input, Map<String, Object> params, String location,
             CoreSession session) throws Exception {
         // The ScriptEngine is final and instantiated before annotations are taken into account. We need a new one.
-        try (AutomationScriptingService.Session s = new AutomationScriptingServiceImpl().get(session)) {
+        try (AutomationScriptingService.Session s = new AutomationScriptingServiceImpl(Set.of()).get(session)) {
             @SuppressWarnings("ConstantConditions")
             var scriptInputStream = getClass().getClassLoader().getResource(location).openStream();
             s.handleof(scriptInputStream, ScriptingOperationImpl.Runnable.class).run(input, params);
         }
     }
-
 }

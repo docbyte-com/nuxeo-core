@@ -51,8 +51,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.AutomationService;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessCreateOperation;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessFetchOperation;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessUpdateOperation;
@@ -120,9 +118,8 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
     private TransactionalFeature txFeature;
 
     @BeforeClass
-    public static void setupCodecs() throws Exception {
+    public static void setupCodecs() {
         Framework.getService(ObjectCodecService.class).addCodec(new MyObjectCodec());
-        Framework.getService(AutomationService.class).putOperation(MyObjectOperation.class);
         // Fire application start on AutomationServer component forcing to load
         // correctly Document Adapter Codec in Test scope (to take into account
         // of document adapters contributed into test) -> see execution order
@@ -159,11 +156,6 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
                .set("name", "testDoc")
                .set("properties", session.propertyMapToString(creationProps))
                .execute();
-    }
-
-    @BeforeClass
-    public static void addDataCapsuleOperation() throws OperationException {
-        Framework.getService(AutomationService.class).putOperation(TestDataCapsule.class);
     }
 
     @Test

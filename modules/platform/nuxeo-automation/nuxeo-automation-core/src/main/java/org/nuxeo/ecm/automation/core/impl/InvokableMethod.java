@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 
+import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationType;
@@ -33,6 +34,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -92,28 +94,14 @@ public class InvokableMethod implements Comparable<InvokableMethod> {
         }
         this.op = op;
         this.method = method;
-        String inputType = this.op.getInputType();
-        if (inputType != null) {
-            switch (inputType) {
-            case "document":
-                consume = DocumentModel.class;
-                break;
-            case "documents":
-                consume = DocumentModelList.class;
-                break;
-            case "blob":
-                consume = Blob.class;
-                break;
-            case "blobs":
-                consume = BlobList.class;
-                break;
-            default:
-                consume = Object.class;
-                break;
-            }
-        } else {
-            consume = p.length == 0 ? Void.TYPE : p[0];
-        }
+        this.consume = switch (this.op.getInputType()) {
+            case "document" -> DocumentModel.class;
+            case "documents" -> DocumentModelList.class;
+            case "blob" -> Blob.class;
+            case "blobs" -> BlobList.class;
+            case null -> p.length == 0 ? Void.TYPE : p[0];
+            default -> Object.class;
+        };
     }
 
     public boolean isIterable() {
@@ -146,7 +134,7 @@ public class InvokableMethod implements Comparable<InvokableMethod> {
         if (consume.isAssignableFrom(in)) {
             return priority > 0 ? priority : ISTANCE_OF_PRIORITY;
         }
-        if (op.getService().isTypeAdaptable(in, consume)) {
+        if (Framework.getService(AutomationService.class).isTypeAdaptable(in, consume)) {
             return priority > 0 ? priority : ADAPTABLE_PRIORITY;
         }
         if (consume == Void.TYPE) {
@@ -166,7 +154,7 @@ public class InvokableMethod implements Comparable<InvokableMethod> {
         }
         if (input == null || !consume.isAssignableFrom(input.getClass())) {
             // try to adapt
-            input = op.getService().getAdaptedValue(ctx, input, consume);
+            input = Framework.getService(AutomationService.class).getAdaptedValue(ctx, input, consume);
         }
         return method.invoke(target, input);
     }
@@ -178,10 +166,8 @@ public class InvokableMethod implements Comparable<InvokableMethod> {
             Throwable t = e.getTargetException();
             if (t instanceof OperationException) {
                 throw (OperationException) t;
-            } else if (t instanceof NuxeoException) {
-                NuxeoException nuxeoException = (NuxeoException) t;
-                nuxeoException.addInfo(getExceptionMessage());
-                throw nuxeoException;
+            } else if (t instanceof NuxeoException nuxeoException) {
+                throw nuxeoException.addInfo(getExceptionMessage());
             } else {
                 throw new OperationException(getExceptionMessage(), t);
             }

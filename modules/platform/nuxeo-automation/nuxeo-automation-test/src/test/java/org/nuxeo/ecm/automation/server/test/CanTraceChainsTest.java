@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,14 +32,12 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import jakarta.inject.Inject;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -69,25 +67,25 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Features(AutomationFeature.class)
 @Deploy("org.nuxeo.ecm.automation.test")
 @Deploy("org.nuxeo.ecm.automation.test:test-bindings.xml")
+@Deploy("org.nuxeo.ecm.automation.test.test:operation-contrib.xml")
 public class CanTraceChainsTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    OperationContext context;
+    protected OperationContext context;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    TracerFactory factory;
+    protected TracerFactory factory;
 
-    DocumentModel src;
+    protected DocumentModel src;
 
     @Before
     public void setup() throws OperationException {
-        service.putOperation(DummyOperation.class);
         // Setup a document
         src = session.createDocumentModel("/", "src", "Workspace");
         src.setPropertyValue("dc:title", "Source");
@@ -97,11 +95,6 @@ public class CanTraceChainsTest {
         if (!factory.getRecordingState()) {
             factory.toggleRecording();
         }
-    }
-
-    @After
-    public void teardown() {
-        service.removeOperation(DummyOperation.class);
     }
 
     @Test
@@ -121,7 +114,7 @@ public class CanTraceChainsTest {
         assertEquals(DummyOperation.ID, trace.getOutput());
         List<Call> calls = trace.getCalls();
         assertEquals(3, calls.size());
-        Call firstCall = calls.get(0);
+        Call firstCall = calls.getFirst();
         assertEquals(DummyOperation.ID, firstCall.getType().getId());
         assertEquals(DummyOperation.ID, firstCall.getVariables().get(DummyOperation.ID));
         assertEquals(DummyOperation.ID, firstCall.getParameters().get(DummyOperation.ID));
@@ -141,15 +134,15 @@ public class CanTraceChainsTest {
         runOnListParams.set("id", chainid);
         chain.add(runOnListParams);
         context.setInput(src);
-        context.put("list", Arrays.asList(new String[] { "one", "two" }));
+        context.put("list", List.of("one", "two"));
         service.run(context, chain);
         Trace trace = factory.getTrace("parentChain");
         List<Call> calls = trace.getCalls();
         assertEquals(1, calls.size());
-        List<Trace> nested = calls.get(0).getNested();
+        List<Trace> nested = calls.getFirst().getNested();
         assertEquals(2, nested.size());
-        assertEquals(nested.get(0).getCalls().get(0).getVariables().get("item"), "one");
-        assertEquals(nested.get(1).getCalls().get(0).getVariables().get("item"), "two");
+        assertEquals(nested.get(0).getCalls().getFirst().getVariables().get("item"), "one");
+        assertEquals(nested.get(1).getCalls().getFirst().getVariables().get("item"), "two");
     }
 
     @Test

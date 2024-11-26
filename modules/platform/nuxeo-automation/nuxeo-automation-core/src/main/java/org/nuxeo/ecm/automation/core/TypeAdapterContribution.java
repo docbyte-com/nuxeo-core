@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,13 @@ package org.nuxeo.ecm.automation.core;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.automation.TypeAdapter;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @XObject("adapter")
-public class TypeAdapterContribution {
+public class TypeAdapterContribution implements Descriptor {
 
     /**
      * Adapter implementation class
@@ -40,4 +41,8 @@ public class TypeAdapterContribution {
     @XNode("@produce")
     public Class<?> produce;
 
+    @Override
+    public String getId() {
+        return accept.getName() + ":" + produce.getName();
+    }
 }

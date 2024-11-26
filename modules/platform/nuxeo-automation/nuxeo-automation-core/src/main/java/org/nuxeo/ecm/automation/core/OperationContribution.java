@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,29 @@
  */
 package org.nuxeo.ecm.automation.core;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
+import org.nuxeo.ecm.automation.core.impl.OperationTypeImpl;
 import org.nuxeo.ecm.platform.forms.layout.descriptors.WidgetDescriptor;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * @author <a href="mailto:grenard@nuxeo.com">Guillaume Renard</a>
  */
 @XObject("operation")
-public class OperationContribution {
+public class OperationContribution implements OperationDescriptor {
 
     /**
      * The operation class that must be annotated using {@link Operation} annotation.
@@ -41,7 +49,7 @@ public class OperationContribution {
     public String type;
 
     /**
-     * Put it to true to override an existing contribution having the same ID. By default overriding is not permitted
+     * Put it to true to override an existing contribution having the same ID. By default, overriding is not permitted
      * and an exception is thrown when this flag is on false.
      */
     @XNode("@replace")
@@ -55,4 +63,49 @@ public class OperationContribution {
     @XNodeList(componentType = WidgetDescriptor.class, type = ArrayList.class, value = "widgets/widget")
     public List<WidgetDescriptor> widgets;
 
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
+
+    /** @since 2025.0 */
+    @Override
+    public String getId() {
+        return StringUtils.defaultIfBlank(getOperationAnnotation().id(), type);
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public boolean replace() {
+        return replace;
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public OperationType toType() {
+        return new OperationTypeImpl(getId(), getTypeClass(), contributingComponent.getName().getRawName(),
+                emptyIfNull(widgets).stream().map(WidgetDescriptor::getWidgetDefinition).toList());
+    }
+
+    protected Operation getOperationAnnotation() {
+        var typeClass = getTypeClass();
+        var annotation = typeClass.getAnnotation(Operation.class);
+        if (annotation == null) {
+            throw new IllegalArgumentException(
+                    "Invalid operation class: " + type + ". No @Operation annotation found on class.");
+        }
+        return annotation;
+    }
+
+    protected Class<?> getTypeClass() {
+        try {
+            return Class.forName(type);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalArgumentException("Invalid operation class: " + type + ". Class is not found.");
+        }
+    }
 }

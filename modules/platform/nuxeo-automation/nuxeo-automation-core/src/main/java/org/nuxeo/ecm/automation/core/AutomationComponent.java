@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,13 @@
  */
 package org.nuxeo.ecm.automation.core;
 
-import java.util.ArrayList;
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
+
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.InstanceNotFoundException;
@@ -35,16 +39,11 @@ import javax.management.ObjectName;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.AutomationAdmin;
-import org.nuxeo.ecm.automation.AutomationFilter;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.ChainException;
-import org.nuxeo.ecm.automation.OperationChain;
-import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.OperationNotFoundException;
 import org.nuxeo.ecm.automation.OperationParameters;
-import org.nuxeo.ecm.automation.TypeAdapter;
+import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.context.ContextHelperDescriptor;
-import org.nuxeo.ecm.automation.context.ContextHelperRegistry;
 import org.nuxeo.ecm.automation.context.ContextService;
 import org.nuxeo.ecm.automation.context.ContextServiceImpl;
 import org.nuxeo.ecm.automation.core.events.EventHandler;
@@ -53,9 +52,9 @@ import org.nuxeo.ecm.automation.core.exception.ChainExceptionFilter;
 import org.nuxeo.ecm.automation.core.exception.ChainExceptionImpl;
 import org.nuxeo.ecm.automation.core.impl.ChainTypeImpl;
 import org.nuxeo.ecm.automation.core.impl.OperationServiceImpl;
+import org.nuxeo.ecm.automation.core.impl.TypeAdapterKey;
 import org.nuxeo.ecm.automation.core.trace.TracerFactory;
-import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
-import org.nuxeo.ecm.platform.forms.layout.descriptors.WidgetDescriptor;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.RuntimeMessage.Level;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.ServerLocator;
@@ -73,6 +72,9 @@ public class AutomationComponent extends DefaultComponent {
 
     private static final Logger log = LogManager.getLogger(AutomationComponent.class);
 
+    /** @since 2025.0 */
+    public static final String AUTOMATION_COMPONENT_NAME = "org.nuxeo.ecm.core.operation.OperationServiceComponent";
+
     public static final String XP_OPERATIONS = "operations";
 
     public static final String XP_ADAPTERS = "adapters";
@@ -87,156 +89,69 @@ public class AutomationComponent extends DefaultComponent {
 
     public static final String XP_CONTEXT_HELPER = "contextHelpers";
 
+    /**
+     * This constant is internal, <strong>IT SHOULD NOT BE USED</strong>.
+     *
+     * @since 2025.0
+     * @apiNote This is a fake extension point used to register all type of {@link OperationDescriptor operations}.
+     */
+    public static final String XP_INTERNAL_OPERATIONS = "internalOperations";
+
+    protected static final Set<String> RESERVED_CONTEXT_HELPER_IDS = new LinkedHashSet<>(
+            List.of("CurrentDate", "Context", "ctx", "This", "Session", "CurrentUser", "currentUser", "Env", "Document",
+                    "currentDocument", "Documents", "params", "input"));
+
     protected OperationServiceImpl service;
 
     protected EventHandlerRegistry handlers;
 
     protected TracerFactory tracerFactory;
 
-    protected ContextHelperRegistry contextHelperRegistry;
-
     protected ContextService contextService;
 
     @Override
-    public void activate(ComponentContext context) {
-        service = new OperationServiceImpl();
-        tracerFactory = new TracerFactory();
-        handlers = new EventHandlerRegistry(service);
-        contextHelperRegistry = new ContextHelperRegistry();
-        contextService = new ContextServiceImpl(contextHelperRegistry);
-    }
-
-    protected void bindManagement() throws JMException {
-        ObjectName objectName = new ObjectName("org.nuxeo.automation:name=tracerfactory");
-        MBeanServer mBeanServer = Framework.getService(ServerLocator.class).lookupServer();
-        mBeanServer.registerMBean(tracerFactory, objectName);
-    }
-
-    protected void unBindManagement() throws MalformedObjectNameException, NotCompliantMBeanException,
-            InstanceAlreadyExistsException, MBeanRegistrationException, InstanceNotFoundException {
-        final ObjectName on = new ObjectName("org.nuxeo.automation:name=tracerfactory");
-        final ServerLocator locator = Framework.getService(ServerLocator.class);
-        if (locator != null) {
-            MBeanServer mBeanServer = locator.lookupServer();
-            mBeanServer.unregisterMBean(on);
-        }
-    }
-
-    @Override
-    public void deactivate(ComponentContext context) {
-        service = null;
-        handlers = null;
-        tracerFactory = null;
-    }
-
-    @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP_OPERATIONS.equals(extensionPoint)) {
-            OperationContribution opc = (OperationContribution) contribution;
-            List<WidgetDefinition> widgetDefinitionList = new ArrayList<>();
-            if (opc.widgets != null) {
-                for (WidgetDescriptor widgetDescriptor : opc.widgets) {
-                    widgetDefinitionList.add(widgetDescriptor.getWidgetDefinition());
+        if (contribution instanceof OperationDescriptor descriptor) {
+            OperationDescriptor existing = getDescriptor(XP_INTERNAL_OPERATIONS, descriptor.getId());
+            if (existing != null) {
+                // check if descriptor can be replaced
+                if (!descriptor.replace()) {
+                    throw new NuxeoException("An operation is already bound to: " + descriptor.getId()
+                            + ". Use 'replace=true' to replace an existing operation");
+                }
+                // check operation can be merged
+                if (!descriptor.getClass().equals(existing.getClass())) {
+                    // instantiate the type to have a better message
+                    throw new UnsupportedOperationException("Can't merge operations with id: " + existing.getId()
+                            + ". The type " + descriptor.toType() + " cannot be merged in " + existing.toType() + ".");
                 }
             }
-            try {
-                Class<?> type = Class.forName(opc.type);
-                service.putOperation(type, opc.replace, contributor.getName().toString(), widgetDefinitionList);
-            } catch (ClassNotFoundException e) {
-                throw new IllegalArgumentException("Invalid operation class '" + opc.type + "': class not found.");
-            } catch (OperationException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (XP_CHAINS.equals(extensionPoint)) {
-            OperationChainContribution occ = (OperationChainContribution) contribution;
-            try {
-                ChainTypeImpl docChainType = new ChainTypeImpl(service,
-                        occ.toOperationChain(contributor.getContext().getBundle()), occ,
-                        contributor.getName().toString());
-                service.putOperation(docChainType, occ.replace);
-            } catch (OperationException e) {
-                throw new RuntimeException(e);
-            }
-        } else if (XP_CHAIN_EXCEPTION.equals(extensionPoint)) {
-            ChainExceptionDescriptor chainExceptionDescriptor = (ChainExceptionDescriptor) contribution;
-            ChainException chainException = new ChainExceptionImpl(chainExceptionDescriptor);
-            service.putChainException(chainException);
-        } else if (XP_AUTOMATION_FILTER.equals(extensionPoint)) {
-            AutomationFilterDescriptor automationFilterDescriptor = (AutomationFilterDescriptor) contribution;
-            ChainExceptionFilter chainExceptionFilter = new ChainExceptionFilter(automationFilterDescriptor);
-            service.putAutomationFilter(chainExceptionFilter);
-        } else if (XP_ADAPTERS.equals(extensionPoint)) {
-            TypeAdapterContribution tac = (TypeAdapterContribution) contribution;
-            TypeAdapter adapter;
-            try {
-                adapter = tac.clazz.getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
-            service.putTypeAdapter(tac.accept, tac.produce, adapter);
-        } else if (XP_EVENT_HANDLERS.equals(extensionPoint)) {
-            EventHandler eh = (EventHandler) contribution;
-            if (eh.isPostCommit()) {
-                handlers.putPostCommitEventHandler(eh);
-            } else {
-                handlers.putEventHandler(eh);
-            }
-        } else if (XP_CONTEXT_HELPER.equals(extensionPoint)) {
-            contextHelperRegistry.addContribution((ContextHelperDescriptor) contribution);
         }
+        if (XP_OPERATIONS.equals(extensionPoint) || XP_CHAINS.equals(extensionPoint)) {
+            // also register the contribution to internalOperations
+            super.registerContribution(contribution, XP_INTERNAL_OPERATIONS, contributor);
+        }
+        super.registerContribution(contribution, extensionPoint, contributor);
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP_OPERATIONS.equals(extensionPoint)) {
-            try {
-                Class<?> type = Class.forName(((OperationContribution) contribution).type);
-                service.removeOperation(type);
-            } catch (ClassNotFoundException e) {
-                // ignore
-            }
-        } else if (XP_CHAINS.equals(extensionPoint)) {
-            try {
-                OperationChainContribution occ = (OperationChainContribution) contribution;
-                service.removeOperation(service.getOperation(occ.getId()));
-            } catch (OperationNotFoundException e) {
-                log.debug("The operation chain with id: {} was not found", ((OperationChainContribution) contribution).getId(), e);
-            }
-        } else if (XP_CHAIN_EXCEPTION.equals(extensionPoint)) {
-            ChainExceptionDescriptor chainExceptionDescriptor = (ChainExceptionDescriptor) contribution;
-            ChainException chainException = new ChainExceptionImpl(chainExceptionDescriptor);
-            service.removeExceptionChain(chainException);
-        } else if (XP_AUTOMATION_FILTER.equals(extensionPoint)) {
-            AutomationFilterDescriptor automationFilterDescriptor = (AutomationFilterDescriptor) contribution;
-            AutomationFilter automationFilter = new ChainExceptionFilter(automationFilterDescriptor);
-            service.removeAutomationFilter(automationFilter);
-        } else if (XP_ADAPTERS.equals(extensionPoint)) {
-            TypeAdapterContribution tac = (TypeAdapterContribution) contribution;
-            service.removeTypeAdapter(tac.accept, tac.produce);
-        } else if (XP_EVENT_HANDLERS.equals(extensionPoint)) {
-            EventHandler eh = (EventHandler) contribution;
-            if (eh.isPostCommit()) {
-                handlers.removePostCommitEventHandler(eh);
-            } else {
-                handlers.removeEventHandler(eh);
-            }
-        } else if (XP_CONTEXT_HELPER.equals(extensionPoint)) {
-            contextHelperRegistry.removeContribution((ContextHelperDescriptor) contribution);
+        if (XP_OPERATIONS.equals(extensionPoint) || XP_CHAINS.equals(extensionPoint)) {
+            // also unregister the contribution to internalOperations
+            super.unregisterContribution(contribution, XP_INTERNAL_OPERATIONS, contributor);
         }
+        super.unregisterContribution(contribution, extensionPoint, contributor);
     }
 
     @Override
     public <T> T getAdapter(Class<T> adapter) {
         if (adapter == AutomationService.class || adapter == AutomationAdmin.class) {
             return adapter.cast(service);
-        }
-        if (adapter == EventHandlerRegistry.class) {
+        } else if (adapter == EventHandlerRegistry.class) {
             return adapter.cast(handlers);
-        }
-        if (adapter == TracerFactory.class) {
+        } else if (adapter == TracerFactory.class) {
             return adapter.cast(tracerFactory);
-        }
-        if (adapter == ContextService.class) {
+        } else if (adapter == ContextService.class) {
             return adapter.cast(contextService);
         }
         return null;
@@ -244,9 +159,79 @@ public class AutomationComponent extends DefaultComponent {
 
     @Override
     public void start(ComponentContext context) {
-        checkOperationChains();
+        var operations = this.<OperationDescriptor> getDescriptors(XP_INTERNAL_OPERATIONS)
+                             .stream()
+                             .filter(OperationDescriptor::isEnabled)
+                             .map(OperationDescriptor::toType)
+                             .<OperationTypeWithId> mapMulti((operationType, consumer) -> {
+                                 consumer.accept(new OperationTypeWithId(operationType.getId(), operationType));
+                                 for (var alias : nullToEmpty(operationType.getAliases())) {
+                                     consumer.accept(new OperationTypeWithId(alias, operationType));
+                                 }
+                             })
+                             .collect(Collectors.toMap(OperationTypeWithId::idOrAlias,
+                                     OperationTypeWithId::operationType, (operationType1, operationType2) -> {
+                                         throw new NuxeoException(
+                                                 "The operation: " + operationType2 + " is overriding: "
+                                                         + operationType1 + " with its alias which is not permitted");
+                                     }));
+        var chainExceptions = this.<ChainExceptionDescriptor> getDescriptors(XP_CHAIN_EXCEPTION)
+                                  .stream()
+                                  .map(ChainExceptionImpl::new)
+                                  .collect(Collectors.toMap(ChainExceptionImpl::getId,
+                                          Function.<ChainException> identity()));
+        var filters = this.<AutomationFilterDescriptor> getDescriptors(XP_AUTOMATION_FILTER)
+                          .stream()
+                          .map(ChainExceptionFilter::new)
+                          .collect(Collectors.toMap(ChainExceptionFilter::getId, Function.identity()));
+        var adapters = this.<TypeAdapterContribution> getDescriptors(XP_ADAPTERS)
+                           .stream()
+                           .collect(Collectors.toMap(
+                                   descriptor -> new TypeAdapterKey(descriptor.accept, descriptor.produce),
+                                   descriptor -> {
+                                       try {
+                                           return descriptor.clazz.getDeclaredConstructor().newInstance();
+                                       } catch (ReflectiveOperationException e) {
+                                           throw new NuxeoException("Unable to instantiate adapter", e);
+                                       }
+                                   }));
+        var eventHandlers = this.<EventHandler> getDescriptors(XP_EVENT_HANDLERS)
+                                .stream()
+                                .filter(EventHandler::isEnabled)
+                                .collect(Collectors.partitioningBy(EventHandler::isPostCommit,
+                                        // flatMap the handlers for each of them eventIds
+                                        Collectors.flatMapping(
+                                                handler -> handler.getEvents()
+                                                                  .stream()
+                                                                  .map(eventId -> new EventHandlerWithEventId(eventId,
+                                                                          handler)),
+                                                // groupBy eventIds -> List<EventHandler>
+                                                Collectors.groupingBy(EventHandlerWithEventId::eventId,
+                                                        Collectors.mapping(EventHandlerWithEventId::handler,
+                                                                Collectors.toList())))));
+        var contextHelpers = this.<ContextHelperDescriptor> getDescriptors(XP_CONTEXT_HELPER)
+                                 .stream()
+                                 .filter(ContextHelperDescriptor::isEnabled)
+                                 .filter(descriptor -> {
+                                     if (RESERVED_CONTEXT_HELPER_IDS.contains(descriptor.getId())) {
+                                         log.warn("The context helper with id: {} cannot be registered because the id "
+                                                 + "is reserved. Please use another one. The Nuxeo reserved aliases are: {}",
+                                                 descriptor.getId(), String.join(",", RESERVED_CONTEXT_HELPER_IDS));
+                                         return false;
+                                     }
+                                     return true;
+                                 })
+                                 .collect(Collectors.toMap(ContextHelperDescriptor::getId,
+                                         ContextHelperDescriptor::instantiateContextHelper));
+
+        service = new OperationServiceImpl(operations, chainExceptions, filters, adapters);
+        handlers = new EventHandlerRegistry(eventHandlers.get(Boolean.FALSE), eventHandlers.get(Boolean.TRUE));
+        tracerFactory = new TracerFactory();
+        contextService = new ContextServiceImpl(contextHelpers);
+
+        checkOperationChains(); // TODO move it to register to have the contributing component?
         if (!tracerFactory.getRecordingState()) {
-            log.info("You can activate automation trace mode to get more informations on automation executions");
+            log.info("You can activate automation trace mode to get more information on automation executions");
         }
         try {
             bindManagement();
@@ -285,5 +270,27 @@ public class AutomationComponent extends DefaultComponent {
         } catch (JMException e) {
             throw new RuntimeException("Cannot unbind management", e);
         }
+    }
+
+    protected void bindManagement() throws JMException {
+        ObjectName objectName = new ObjectName("org.nuxeo.automation:name=tracerfactory");
+        MBeanServer mBeanServer = Framework.getService(ServerLocator.class).lookupServer();
+        mBeanServer.registerMBean(tracerFactory, objectName);
+    }
+
+    protected void unBindManagement() throws MalformedObjectNameException, NotCompliantMBeanException,
+            InstanceAlreadyExistsException, MBeanRegistrationException, InstanceNotFoundException {
+        final ObjectName on = new ObjectName("org.nuxeo.automation:name=tracerfactory");
+        final ServerLocator locator = Framework.getService(ServerLocator.class);
+        if (locator != null) {
+            MBeanServer mBeanServer = locator.lookupServer();
+            mBeanServer.unregisterMBean(on);
+        }
+    }
+
+    record OperationTypeWithId(String idOrAlias, OperationType operationType) {
+    }
+
+    record EventHandlerWithEventId(String eventId, EventHandler handler) {
     }
 }

@@ -19,8 +19,10 @@
 package org.nuxeo.ecm.automation.core;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.nuxeo.runtime.RuntimeMessage.Source.EXTENSION;
 
 import jakarta.inject.Inject;
 
@@ -28,7 +30,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.automation.scripting.internals.ScriptingOperationTypeImpl;
 import org.nuxeo.ecm.automation.AutomationService;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationNotFoundException;
 import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.core.impl.ChainTypeImpl;
@@ -38,6 +39,7 @@ import org.nuxeo.ecm.automation.core.operations.document.SaveDocument;
 import org.nuxeo.ecm.automation.core.operations.login.Logout;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.helpers.TestOperation;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -60,23 +62,20 @@ public class TestOperationRegistration {
         assertEquals(CreateDocument.class, op.getType());
 
         // register new operation to override existing one, but replace = false
-        // (default value)
-        try {
-            service.putOperation(DummyCreateDocument.class);
-        } catch (OperationException e) {
-            assertTrue(e.getMessage().startsWith("An operation is already bound to: " + DummyCreateDocument.ID));
-        }
+        hotDeployer.deploy("org.nuxeo.ecm.automation.test.test:test-operation-replace-disable-contrib.xml");
+        assertEquals("Failed to register extension to: service:org.nuxeo.ecm.core.operation.OperationServiceComponent, "
+                + "xpoint: operations in component: service:org.nuxeo.automation.test.operation.replace.disable.contrib "
+                + "(org.nuxeo.ecm.core.api.NuxeoException: An operation is already bound to: Document.Create. Use 'replace=true' to replace an existing operation)",
+                getFirstExtensionMessage());
         // check nothing has changed
         op = service.getOperation(CreateDocument.ID);
         assertEquals(CreateDocument.class, op.getType());
+        hotDeployer.undeploy("org.nuxeo.ecm.automation.test.test:test-operation-replace-disable-contrib.xml");
 
         // register new operation to override existing one with replace = true,
-        service.putOperation(DummyCreateDocument.class, true);
-        try {
-            op = service.getOperation(CreateDocument.ID);
-        } catch (OperationException e) {
-            // should not happen
-        }
+        hotDeployer.deploy("org.nuxeo.ecm.automation.test.test:test-operation-replace-enable-contrib.xml");
+        assertNotNull(service);
+        op = service.getOperation(CreateDocument.ID);
         assertEquals(DummyCreateDocument.class, op.getType());
     }
 
@@ -114,31 +113,63 @@ public class TestOperationRegistration {
     public void testDisableScriptingOperationType() throws Exception {
         service.getOperation("testScript");
         hotDeployer.deploy("org.nuxeo.ecm.automation.test.test:test-scripted-operation-disable-contrib.xml");
-        try {
-            service.getOperation("testScript");
-            fail("should not have found a disabled scripted operation");
-        } catch (OperationNotFoundException e) {
-            assertEquals("No operation was bound on ID: testScript", e.getMessage());
-        }
+        var e = assertThrows(OperationNotFoundException.class, () -> service.getOperation("testScript"));
+        assertEquals("No operation was bound on ID: testScript", e.getMessage());
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.automation.test.test:test-scripted-operation-contrib.xml")
     public void testMixingOperationTypes() throws Exception {
-        // Trying to merge a ChainTypeImpl into a ScriptingOperationTypeImpl
         var scriptedOperation = service.getOperation("testScript");
         assertEquals(ScriptingOperationTypeImpl.class, scriptedOperation.getClass());
-        hotDeployer.deploy("org.nuxeo.ecm.automation.test.test:test-chain-operation-disable-contrib.xml");
+
+        // Trying to merge a ChainTypeImpl into a ScriptingOperationTypeImpl
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.automation.test.test:test-merge-chain-operation-into-scripting-operation-contrib.xml");
+        assertTrue(getFirstExtensionMessage().matches("^Failed to register extension to: "
+                + "service:org.nuxeo.ecm.core.operation.OperationServiceComponent, xpoint: chains in component: "
+                + "service:org.nuxeo.ecm.automation.test.merge.chain.to.scripting.contrib \\(java.lang.UnsupportedOperationException: "
+                + "Can't merge operations with id: testScript. The type org.nuxeo.ecm.automation.core.impl.ChainTypeImpl"
+                + "@.+\\[id=testScript] cannot be merged in org.nuxeo.automation.scripting.internals.ScriptingOperationTypeImpl@.+\\[id=testScript].\\)$"));
         scriptedOperation = service.getOperation("testScript");
         assertEquals(ScriptingOperationTypeImpl.class, scriptedOperation.getClass());
-        hotDeployer.undeploy("org.nuxeo.ecm.automation.test.test:test-chain-operation-disable-contrib.xml");
+        hotDeployer.undeploy(
+                "org.nuxeo.ecm.automation.test.test:test-merge-chain-operation-into-scripting-operation-contrib.xml");
 
-        // Trying to merge a ChainTypeImpl into an OperationTypeImpl
         var operation = service.getOperation(Logout.ID);
         assertEquals(OperationTypeImpl.class, operation.getClass());
-        hotDeployer.deploy("org.nuxeo.ecm.automation.test.test:test-mix-operationType-contrib.xml");
+
+        // Trying to merge a ChainTypeImpl into an OperationTypeImpl
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.automation.test.test:test-merge-chain-operation-into-java-operation-contrib.xml");
+        assertTrue(getFirstExtensionMessage().matches("^Failed to register extension to: "
+                + "service:org.nuxeo.ecm.core.operation.OperationServiceComponent, xpoint: chains in component: "
+                + "service:org.nuxeo.ecm.automation.test.merge.chain.to.java.contrib \\(java.lang.UnsupportedOperationException: "
+                + "Can't merge operations with id: Auth.Logout. The type org.nuxeo.ecm.automation.core.impl.ChainTypeImpl"
+                + "@.+\\[id=Auth.Logout] cannot be merged in org.nuxeo.ecm.automation.core.impl.OperationTypeImpl@.+"
+                + "\\[id=Auth.Logout,type=org.nuxeo.ecm.automation.core.operations.login.Logout,params=\\{}].\\)$"));
+        operation = service.getOperation(Logout.ID);
+        assertEquals(OperationTypeImpl.class, operation.getClass());
+        hotDeployer.undeploy(
+                "org.nuxeo.ecm.automation.test.test:test-merge-chain-operation-into-java-operation-contrib.xml");
+
+        // Trying to merge a ScriptingOperationTypeImpl into an OperationTypeImpl
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.automation.test.test:test-merge-scripting-operation-into-java-operation-contrib.xml");
+        assertTrue(getFirstExtensionMessage().matches("^Failed to register extension to: "
+                + "service:org.nuxeo.automation.scripting.internals.AutomationScriptingComponent, xpoint: operation in component: "
+                + "service:org.nuxeo.ecm.automation.test.merge.scripting.to.java.contrib \\(java.lang.UnsupportedOperationException: "
+                + "Can't merge operations with id: Auth.Logout. The type org.nuxeo.automation.scripting.internals.ScriptingOperationTypeImpl"
+                + "@.+\\[id=Auth.Logout] cannot be merged in org.nuxeo.ecm.automation.core.impl.OperationTypeImpl@.+"
+                + "\\[id=Auth.Logout,type=org.nuxeo.ecm.automation.core.operations.login.Logout,params=\\{}].\\)$"));
         operation = service.getOperation(Logout.ID);
         assertEquals(OperationTypeImpl.class, operation.getClass());
     }
 
+    protected static String getFirstExtensionMessage() {
+        return Framework.getRuntime()
+                        .getMessageHandler()
+                        .getMessages(runtimeMessage -> runtimeMessage.getSource() == EXTENSION)
+                        .getFirst();
+    }
 }

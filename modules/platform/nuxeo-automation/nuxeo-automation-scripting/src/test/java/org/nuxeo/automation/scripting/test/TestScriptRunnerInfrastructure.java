@@ -96,12 +96,9 @@ public class TestScriptRunnerInfrastructure {
     @Inject
     protected TracerFactory factory;
 
-    @Inject
-    protected AutomationScriptingFeature scripting;
-
     @Test
     public void shouldExecuteSimpleScript() throws Exception {
-        DocumentModelList docs = scripting.run("simpleAutomationScript.js", session, DocumentModelList.class);
+        DocumentModelList docs = feature.run("simpleAutomationScript.js", session, DocumentModelList.class);
         assertEquals(10, docs.size());
     }
 
@@ -174,7 +171,7 @@ public class TestScriptRunnerInfrastructure {
 
     @Test
     public void simpleCallToScriptingOperationsChain() throws Exception {
-        String message = scripting.run("simpleCallToChain.js", session, String.class);
+        String message = feature.run("simpleCallToChain.js", session, String.class);
         assertEquals("Hello Bonjour John", message);
 
     }
@@ -251,14 +248,14 @@ public class TestScriptRunnerInfrastructure {
             DocumentModel result = (DocumentModel) automationService.run(ctx, "Scripting.TestComplexProperties",
                     params);
             assertEquals("complexes 0 string",
-                    ((Map<?, ?>) ((List<?>) result.getPropertyValue(COMMON_COMPLEXES_PROP)).get(0)).get("string"));
+                    ((Map<?, ?>) ((List<?>) result.getPropertyValue(COMMON_COMPLEXES_PROP)).getFirst()).get("string"));
         }
     }
 
     @Test
     public void testClassFilter() throws Exception {
         try {
-            scripting.run("classFilterScript.js", session, Void.class);
+            feature.run("classFilterScript.js", session, Void.class);
         } catch (RuntimeException cause) {
             assertEquals(ClassNotFoundException.class, cause.getCause().getClass());
         }
@@ -267,16 +264,14 @@ public class TestScriptRunnerInfrastructure {
     @Test
     @Deploy("org.nuxeo.ecm.automation.scripting.tests:OSGI-INF/classfilter-contrib.xml")
     public void testClassFilterAllowed() throws Exception {
-        // injected fields in features aren't recomputed correctly (bug), so pass service explicitly
-        feature.run(service, "classFilterScript.js", session, Void.class);
+        feature.run("classFilterScript.js", session, Void.class);
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.automation.scripting.tests:OSGI-INF/classfilter2-contrib.xml")
     public void testClassFilterDenied() throws Exception {
-        // injected fields in features aren't recomputed correctly (bug), so pass service explicitly
         try {
-            feature.run(service, "classFilterScript.js", session, Void.class);
+            feature.run("classFilterScript.js", session, Void.class);
         } catch (RuntimeException cause) {
             assertEquals(ClassNotFoundException.class, cause.getCause().getClass());
         }
@@ -285,7 +280,7 @@ public class TestScriptRunnerInfrastructure {
     @Test
     public void testFn() throws Exception {
         // Test platform functions injection
-        String message = scripting.run("platformFunctions.js", session, String.class);
+        String message = feature.run("platformFunctions.js", session, String.class);
         assertEquals("devnull@nuxeo.com", message);
     }
 

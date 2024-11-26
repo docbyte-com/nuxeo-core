@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,48 +19,33 @@
 package org.nuxeo.ecm.automation.core.impl;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationDocumentation;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.OutputCollector;
-import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
-import org.nuxeo.ecm.automation.core.util.BlobList;
-import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.DocumentRefList;
 import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  * @author <a href="mailto:grenard@nuxeo.com">Guillaume Renard</a>
  */
-public class OperationTypeImpl implements OperationType {
-
-    /**
-     * The service that registered the operation
-     */
-    protected AutomationService service;
+public class OperationTypeImpl extends AbstractOperationType {
 
     /**
      * The operation ID - used for lookups.
@@ -79,10 +64,7 @@ public class OperationTypeImpl implements OperationType {
      */
     protected Class<?> type;
 
-    /**
-     * Injectable parameters. a map between the parameter name and the Field object
-     */
-    protected Map<String, Field> params;
+    protected String contributingComponent;
 
     /**
      * Invocable methods
@@ -90,81 +72,33 @@ public class OperationTypeImpl implements OperationType {
     protected List<InvokableMethod> methods;
 
     /**
+     * Injectable parameters. a map between the parameter name and the Field object
+     */
+    protected Map<String, Field> params;
+
+    /**
      * Fields that should be injected from context
      */
     protected List<Field> injectableFields;
 
-    /**
-     * The input type of a chain/operation. If set, the following input types {"document", "documents", "blob", "blobs"}
-     * for all 'run method(s)' will handled. Other values will be adapted as java.lang.Object. If not set, Automation
-     * will set the input type(s) as the 'run methods(s)' parameter types (by introspection).
-     *
-     * @since 7.4
-     */
-    protected String inputType;
-
-    protected String contributingComponent;
-
     protected List<WidgetDefinition> widgetDefinitionList;
 
-    /** @since 2021.17 */
-    protected boolean enabled = true;
-
-    public OperationTypeImpl(AutomationService service, Class<?> type) {
-        this(service, type, null);
-    }
-
-    public OperationTypeImpl(AutomationService service, Class<?> type, String contributingComponent) {
-        this(service, type, contributingComponent, null);
-    }
-
-    /**
-     * @since 5.9.5
-     */
-    public OperationTypeImpl(AutomationService service, Class<?> type, String contributingComponent,
+    /** @since 2025.0 */
+    public OperationTypeImpl(String id, Class<?> type, String contributingComponent,
             List<WidgetDefinition> widgetDefinitionList) {
         Operation anno = type.getAnnotation(Operation.class);
         if (anno == null) {
             throw new IllegalArgumentException(
                     "Invalid operation class: " + type + ". No @Operation annotation found on class.");
         }
-        this.service = service;
+        this.id = id;
+        this.aliases = anno.aliases();
         this.type = type;
-        this.widgetDefinitionList = widgetDefinitionList;
         this.contributingComponent = contributingComponent;
-        id = anno.id().length() == 0 ? type.getName() : anno.id();
-        aliases = anno.aliases();
-        params = new HashMap<>();
-        methods = new ArrayList<>();
-        injectableFields = new ArrayList<>();
-        initMethods();
-        initFields();
-    }
-
-    static class Match implements Comparable<Match> {
-        protected InvokableMethod method;
-
-        int priority;
-
-        Match(InvokableMethod method, int priority) {
-            this.method = method;
-            this.priority = priority;
-        }
-
-        @Override
-        public int compareTo(Match o) {
-            return o.priority - priority;
-        }
-
-        @Override
-        public String toString() {
-            return "Match(" + method + ", " + priority + ")";
-        }
-    }
-
-    @Override
-    public AutomationService getService() {
-        return service;
+        this.methods = initMethods(this, type);
+        this.params = initParams(type);
+        this.injectableFields = initFields(type);
+        this.widgetDefinitionList = widgetDefinitionList;
     }
 
     @Override
@@ -178,46 +112,83 @@ public class OperationTypeImpl implements OperationType {
     }
 
     @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    @Override
     public Class<?> getType() {
         return type;
     }
 
     @Override
-    public String getInputType() {
-        return inputType;
+    public OperationDocumentation getDocumentation() {
+        Operation op = type.getAnnotation(Operation.class);
+        OperationDocumentation doc = new OperationDocumentation(op.id());
+        doc.label = op.label();
+        doc.requires = op.requires();
+        doc.category = op.category();
+        doc.since = op.since();
+        doc.deprecatedSince = op.deprecatedSince();
+        doc.addToStudio = op.addToStudio();
+        doc.setAliases(op.aliases());
+        doc.implementationClass = type.getName();
+        if (doc.requires.isEmpty()) {
+            doc.requires = null;
+        }
+        if (doc.label.isEmpty()) {
+            doc.label = doc.id;
+        }
+        doc.description = op.description();
+        // load parameters information
+        List<OperationDocumentation.Param> paramsAccumulator = new LinkedList<>();
+        for (Field field : params.values()) {
+            Param p = field.getAnnotation(Param.class);
+            OperationDocumentation.Param param = new OperationDocumentation.Param();
+            param.name = p.name();
+            param.description = p.description();
+            param.type = getParamDocumentationType(field.getType());
+            param.widget = p.widget();
+            if (param.widget.isEmpty()) {
+                param.widget = null;
+            }
+            param.order = p.order();
+            param.values = p.values();
+            param.required = p.required();
+            paramsAccumulator.add(param);
+        }
+        Collections.sort(paramsAccumulator);
+        doc.params = paramsAccumulator.toArray(OperationDocumentation.Param[]::new);
+        // load signature
+        doc.signature = buildSignature(methods, InvokableMethod::getOutputType).toArray(String[]::new);
+        // widgets descriptor
+        if (widgetDefinitionList != null) {
+            doc.widgetDefinitions = widgetDefinitionList.toArray(WidgetDefinition[]::new);
+        }
+        return doc;
     }
 
-    protected void initMethods() {
-        for (Method method : type.getMethods()) {
-            OperationMethod anno = method.getAnnotation(OperationMethod.class);
-            if (anno == null) { // skip method
-                continue;
-            }
-            // register regular method
-            InvokableMethod im = new InvokableMethod(this, method, anno);
-            methods.add(im);
-            // check for iterable input support
-            if (anno.collector() != OutputCollector.class) {
-                // an iterable method - register it
-                im = new InvokableIteratorMethod(this, method, anno);
-                methods.add(im);
-            }
-        }
-        // method order depends on the JDK, make it deterministic
-        Collections.sort(methods);
+    @Override
+    public String getContributingComponent() {
+        return contributingComponent;
     }
 
-    protected void initFields() {
-        for (Field field : type.getDeclaredFields()) {
-            Param param = field.getAnnotation(Param.class);
-            if (param != null) {
-                field.setAccessible(true);
-                params.put(param.name(), field);
-            } else if (field.isAnnotationPresent(Context.class)) {
-                field.setAccessible(true);
-                injectableFields.add(field);
-            }
-        }
+    @Override
+    public InvokableMethod[] getMethodsMatchingInput(Class<?> in) {
+        return methods.stream()
+                      .map(method -> new Match(method, method.inputMatch(in)))
+                      .filter(match -> match.priority > 0)
+                      .sorted()
+                      .map(match -> match.method)
+                      .toArray(InvokableMethod[]::new);
+    }
+
+    /**
+     * @since 5.7.2
+     */
+    @Override
+    public List<InvokableMethod> getMethods() {
+        return methods;
     }
 
     @Override
@@ -232,18 +203,8 @@ public class OperationTypeImpl implements OperationType {
         return obj;
     }
 
-    /**
-     * @since 5.9.2
-     */
-    protected Object resolveObject(final OperationContext ctx, final String key, Map<String, ?> args) {
-        Object obj = args.get(key);
-        if (obj != null) {
-            return ctx.resolve(obj);
-        }
-        return ctx.getChainParameter(key);
-    }
-
     public void inject(OperationContext ctx, Map<String, ?> args, Object target) throws OperationException {
+        var automationService = Framework.getService(AutomationService.class);
         for (Map.Entry<String, Field> entry : params.entrySet()) {
             Object obj = resolveObject(ctx, entry.getKey(), args);
             if (obj == null) {
@@ -269,7 +230,7 @@ public class OperationTypeImpl implements OperationType {
                 Class<?> cl = obj.getClass();
                 if (!field.getType().isAssignableFrom(cl)) {
                     // try to adapt
-                    obj = service.getAdaptedValue(ctx, obj, field.getType());
+                    obj = automationService.getAdaptedValue(ctx, obj, field.getType());
                 }
                 try {
                     field.set(target, obj);
@@ -288,165 +249,21 @@ public class OperationTypeImpl implements OperationType {
         }
     }
 
-    @Override
-    public InvokableMethod[] getMethodsMatchingInput(Class<?> in) {
-        List<Match> result = new ArrayList<>();
-        for (InvokableMethod m : methods) {
-            int priority = m.inputMatch(in);
-            if (priority > 0) {
-                result.add(new Match(m, priority));
-            }
-        }
-        int size = result.size();
-        if (size == 0) {
-            return new InvokableMethod[] {};
-        }
-        if (size == 1) {
-            return new InvokableMethod[] { result.get(0).method };
-        }
-        Collections.sort(result);
-        InvokableMethod[] ar = new InvokableMethod[result.size()];
-        for (int i = 0; i < ar.length; i++) {
-            ar[i] = result.get(i).method;
-        }
-        return ar;
-    }
-
-    @Override
-    public OperationDocumentation getDocumentation() {
-        Operation op = type.getAnnotation(Operation.class);
-        OperationDocumentation doc = new OperationDocumentation(op.id());
-        doc.label = op.label();
-        doc.requires = op.requires();
-        doc.category = op.category();
-        doc.since = op.since();
-        doc.deprecatedSince = op.deprecatedSince();
-        doc.addToStudio = op.addToStudio();
-        doc.setAliases(op.aliases());
-        doc.implementationClass = type.getName();
-        if (doc.requires.length() == 0) {
-            doc.requires = null;
-        }
-        if (doc.label.length() == 0) {
-            doc.label = doc.id;
-        }
-        doc.description = op.description();
-        // load parameters information
-        List<OperationDocumentation.Param> paramsAccumulator = new LinkedList<>();
-        for (Field field : params.values()) {
-            Param p = field.getAnnotation(Param.class);
-            OperationDocumentation.Param param = new OperationDocumentation.Param();
-            param.name = p.name();
-            param.description = p.description();
-            param.type = getParamDocumentationType(field.getType());
-            param.widget = p.widget();
-            if (param.widget.length() == 0) {
-                param.widget = null;
-            }
-            param.order = p.order();
-            param.values = p.values();
-            param.required = p.required();
-            paramsAccumulator.add(param);
-        }
-        Collections.sort(paramsAccumulator);
-        doc.params = paramsAccumulator.toArray(new OperationDocumentation.Param[paramsAccumulator.size()]);
-        // load signature
-        ArrayList<String> result = new ArrayList<>(methods.size() * 2);
-        Collection<String> collectedSigs = new HashSet<>();
-        for (InvokableMethod m : methods) {
-            String in = getParamDocumentationType(m.getInputType(), m.isIterable());
-            String out = getParamDocumentationType(m.getOutputType());
-            String sigKey = in + ":" + out;
-            if (!collectedSigs.contains(sigKey)) {
-                result.add(in);
-                result.add(out);
-                collectedSigs.add(sigKey);
-            }
-        }
-        doc.signature = result.toArray(new String[result.size()]);
-        // widgets descriptor
-        if (widgetDefinitionList != null) {
-            doc.widgetDefinitions = widgetDefinitionList.toArray(new WidgetDefinition[widgetDefinitionList.size()]);
-        }
-        return doc;
-    }
-
-    @Override
-    public String getContributingComponent() {
-        return contributingComponent;
-    }
-
-    protected String getParamDocumentationType(Class<?> type) {
-        return getParamDocumentationType(type, false);
-    }
-
-    protected String getParamDocumentationType(Class<?> type, boolean isIterable) {
-        String t;
-        if (DocumentModel.class.isAssignableFrom(type) || DocumentRef.class.isAssignableFrom(type)) {
-            t = isIterable ? Constants.T_DOCUMENTS : Constants.T_DOCUMENT;
-        } else if (DocumentModelList.class.isAssignableFrom(type) || DocumentRefList.class.isAssignableFrom(type)) {
-            t = Constants.T_DOCUMENTS;
-        } else if (BlobList.class.isAssignableFrom(type)) {
-            t = Constants.T_BLOBS;
-        } else if (Blob.class.isAssignableFrom(type)) {
-            t = isIterable ? Constants.T_BLOBS : Constants.T_BLOB;
-        } else if (URL.class.isAssignableFrom(type)) {
-            t = Constants.T_RESOURCE;
-        } else if (Calendar.class.isAssignableFrom(type)) {
-            t = Constants.T_DATE;
-        } else {
-            t = type.getSimpleName().toLowerCase();
-        }
-        return t;
-    }
-
-    @Override
-    public String toString() {
-        return "OperationTypeImpl [id=" + id + ", type=" + type + ", params=" + params + "]";
-    }
-
     /**
-     * @since 5.7.2
+     * @since 5.9.2
      */
-    @Override
-    public List<InvokableMethod> getMethods() {
-        return methods;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    @Override
-    public OperationTypeImpl clone() {
-        OperationTypeImpl clone = new OperationTypeImpl(service, type, contributingComponent, widgetDefinitionList);
-        clone.inputType = inputType;
-        return clone;
-    }
-
-    @Override
-    public void merge(OperationType other) {
-        var ot = (OperationTypeImpl) other;
-        enabled = ot.isEnabled();
-        service = ot.service;
-        aliases = ot.aliases;
-        params = ot.params;
-        inputType = ot.getInputType();
-        contributingComponent = ot.getContributingComponent();
-        methods = ot.getMethods();
-        type = ot.type;
-        injectableFields = ot.injectableFields;
-        widgetDefinitionList = ot.widgetDefinitionList;
+    protected Object resolveObject(final OperationContext ctx, final String key, Map<String, ?> args) {
+        Object obj = args.get(key);
+        if (obj != null) {
+            return ctx.resolve(obj);
+        }
+        return ctx.getChainParameter(key);
     }
 
     /** @since 2021.17 */
     @Override
     public int hashCode() {
-        return new HashCodeBuilder().append(id)
-                                    .append(type)
-                                    .append(enabled)
-                                    .hashCode();
+        return new HashCodeBuilder().append(id).append(type).hashCode();
     }
 
     /** @since 2021.17 */
@@ -455,10 +272,80 @@ public class OperationTypeImpl implements OperationType {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof OperationTypeImpl)) {
+        if (!(obj instanceof OperationTypeImpl ot)) {
             return false;
         }
-        var ot = (OperationTypeImpl) obj;
-        return id.equals(ot.getId()) && type.equals(ot.type) && enabled == ot.enabled;
+        return id.equals(ot.getId()) && type.equals(ot.type);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", id)
+                                        .append("type", type.getName())
+                                        .append("params", params)
+                                        .toString();
+    }
+
+    protected static Map<String, Field> initParams(Class<?> type) {
+        var params = new HashMap<String, Field>();
+        for (Field field : type.getDeclaredFields()) {
+            Param param = field.getAnnotation(Param.class);
+            if (param != null) {
+                field.setAccessible(true);
+                params.put(param.name(), field);
+            }
+        }
+        return params;
+    }
+
+    protected static List<InvokableMethod> initMethods(OperationTypeImpl operationType, Class<?> type) {
+        return Stream.of(type.getMethods())
+                     // skip method that doesn't have OperationMethod annotation
+                     .filter(method -> method.isAnnotationPresent(OperationMethod.class))
+                     .<InvokableMethod> mapMulti((method, consumer) -> {
+                         var annotation = method.getAnnotation(OperationMethod.class);
+                         // register regular method
+                         consumer.accept(new InvokableMethod(operationType, method, annotation));
+                         // check for iterable input support
+                         if (annotation.collector() != OutputCollector.class) {
+                             // an iterable method - register it
+                             consumer.accept(new InvokableIteratorMethod(operationType, method, annotation));
+                         }
+                     })
+                     // method order depends on the JDK, make it deterministic
+                     .sorted()
+                     .toList();
+    }
+
+    protected static List<Field> initFields(Class<?> type) {
+        var injectableFields = new ArrayList<Field>();
+        for (Field field : type.getDeclaredFields()) {
+            if (field.isAnnotationPresent(Context.class)) {
+                field.setAccessible(true);
+                injectableFields.add(field);
+            }
+        }
+        return injectableFields;
+    }
+
+    protected static class Match implements Comparable<Match> {
+        protected InvokableMethod method;
+
+        protected int priority;
+
+        protected Match(InvokableMethod method, int priority) {
+            this.method = method;
+            this.priority = priority;
+        }
+
+        @Override
+        public int compareTo(Match o) {
+            return o.priority - priority;
+        }
+
+        @Override
+        public String toString() {
+            return "Match(" + method + ", " + priority + ")";
+        }
     }
 }
