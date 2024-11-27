@@ -46,7 +46,6 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.routing.api")
 @Deploy("org.nuxeo.ecm.platform.routing.core")
-@Deploy("org.nuxeo.elasticsearch.http.readonly")
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-sql-directories-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-graph-operations-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-graph-types-contrib.xml")

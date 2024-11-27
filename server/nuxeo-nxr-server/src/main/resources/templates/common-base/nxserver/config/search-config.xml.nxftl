@@ -1,6 +1,15 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.core.search.contrib">
 
+<#if "${elasticsearch.addressList}" == "">
+  <extension target="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent" point="server">
+    <server name="${elasticsearch.clusterName}" networkHost="${elasticsearch.networkHost}">
+      <nodeName>${elasticsearch.nodeName}</nodeName>
+      <dataPath>${nuxeo.data.dir}/elasticsearch</dataPath>
+    </server>
+  </extension>
+</#if>
+
   <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="client">
     <client id="search/default">
 <#if "${nuxeo.search.client.default.opensearch1.client.server}" == "">

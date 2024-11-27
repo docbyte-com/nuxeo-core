@@ -1448,11 +1448,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-http-read-only</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-io</artifactId>
         <version>${nuxeo.platform.version}</version>
@@ -1467,6 +1462,11 @@
         <artifactId>nuxeo-rest-api-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-rest-opensearch1-passthrough</artifactId>
+        <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
