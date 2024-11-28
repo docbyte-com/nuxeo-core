@@ -32,6 +32,7 @@ import java.util.Map;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.collections4.IterableUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.ec.notification.email.EmailHelper;
@@ -71,7 +72,7 @@ public class TestRegisterNotificationService {
 
         assertEquals(1, notifications.size());
 
-        Notification notif = notifications.get(0);
+        Notification notif = notifications.getFirst();
         assertEquals("email", notif.getChannel());
         assertFalse(notif.getAutoSubscribed());
         assertEquals("section", notif.getAvailableIn());
@@ -90,7 +91,7 @@ public class TestRegisterNotificationService {
         notifications = getService().getNotificationsForSubscriptions("section");
         assertEquals(1, notifications.size());
 
-        URL newModifTemplate = NotificationService.getTemplateURL("test-template");
+        URL newModifTemplate = Framework.getService(NotificationManager.class).getTemplateUrl("test-template");
         assertTrue(newModifTemplate.getFile().endsWith("templates/test-template.ftl"));
 
     }
@@ -120,7 +121,7 @@ public class TestRegisterNotificationService {
         notifications = getService().getNotificationsForEvents("testEvent-ov");
         assertEquals(1, notifications.size());
 
-        Notification notif = notifications.get(0);
+        Notification notif = notifications.getFirst();
         assertEquals("email-ov", notif.getChannel());
         assertTrue(notif.getAutoSubscribed());
         assertEquals("folder", notif.getAvailableIn());
@@ -137,7 +138,7 @@ public class TestRegisterNotificationService {
         notifications = getService().getNotificationsForSubscriptions("folder");
         assertEquals(0, notifications.size());
 
-        URL newModifTemplate = NotificationService.getTemplateURL("test-template");
+        URL newModifTemplate = Framework.getService(NotificationManager.class).getTemplateUrl("test-template");
         assertTrue(newModifTemplate.getFile().endsWith("templates/test-template-ov.ftl"));
     }
 
@@ -168,9 +169,9 @@ public class TestRegisterNotificationService {
         Collection<NotificationListenerVeto> vetos = getService().getNotificationVetos();
         assertEquals(2, vetos.size());
         assertEquals("org.nuxeo.ecm.platform.ec.notification.veto.NotificationVeto1",
-                getService().getNotificationListenerVetoRegistry().getVeto("veto1").getClass().getCanonicalName());
+                IterableUtils.get(vetos, 0).getClass().getCanonicalName());
         assertEquals("org.nuxeo.ecm.platform.ec.notification.veto.NotificationVeto20",
-                getService().getNotificationListenerVetoRegistry().getVeto("veto2").getClass().getCanonicalName());
+                IterableUtils.get(vetos, 1).getClass().getCanonicalName());
 
     }
 
