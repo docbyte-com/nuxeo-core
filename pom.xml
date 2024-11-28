@@ -112,7 +112,7 @@
     <restlet.version>2.4.2</restlet.version>
     <batik.version>1.16</batik.version>
     <jmock.version>2.12.0</jmock.version>
-    <wro4j.version>1.9.0</wro4j.version>
+    <wro4j.version>1.10.2-NX01</wro4j.version>
     <xalan.version>2.7.3</xalan.version>
 
     <!-- JBoss properties -->
@@ -2262,7 +2262,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.8.0</version>
+        <version>2.18.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2337,7 +2337,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.21</version>
+        <version>1.27.1</version>
       </dependency>
       <dependency>
         <groupId>commons-jexl</groupId>
