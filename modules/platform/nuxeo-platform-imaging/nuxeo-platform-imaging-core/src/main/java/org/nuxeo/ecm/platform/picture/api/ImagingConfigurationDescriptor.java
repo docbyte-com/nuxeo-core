@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
 package org.nuxeo.ecm.platform.picture.api;
 
@@ -26,6 +23,7 @@ import java.util.Map;
 
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for configuration information contribution that will be used by the ImagingService.
@@ -33,13 +31,26 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @author btatar
  */
 @XObject(value = "configuration")
-public class ImagingConfigurationDescriptor {
+public class ImagingConfigurationDescriptor implements Descriptor {
 
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
-    Map<String, String> parameters = new HashMap<>();
+    protected Map<String, String> parameters = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public Map<String, String> getParameters() {
         return parameters;
     }
 
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (ImagingConfigurationDescriptor) o;
+        var merged = new ImagingConfigurationDescriptor();
+        merged.parameters.putAll(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
+    }
 }
