@@ -16,10 +16,6 @@ updates:
       # Minor update that breaks compatibility
       - dependency-name: "com.h2database:h2"
         versions: ["[2.2,)"]
-      - dependency-name: "commons-io:commons-io"
-        versions: ["[2.9,)"]
-      - dependency-name: "org.apache.commons:commons-compress"
-        versions: ["[1.22,)"]
       - dependency-name: "org.apache.poi:*"
         versions: ["[5.0,)"]
 
@@ -117,8 +113,6 @@ updates:
         versions: ["[0.12,)"]
       - dependency-name: "org.apache.poi:*"
         versions: ["[5.2.4,)"]
-      - dependency-name: "commons-io:commons-io"
-        versions: ["[2.9.0,)"]
       - dependency-name: "org.apache.commons:commons-csv"
         versions: ["[1.11.0,)"]
 
