@@ -16,11 +16,14 @@ nuxeo.bind.address=0.0.0.0
 # publicly visible URL
 nuxeo.url=http://localhost:8080/core
 
+# allowed values for Host HTTP header
+nuxeo.allowed.hosts=
+
 # Application context path
 org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Docbyte
-org.nuxeo.ecm.product.version=2023.13-SNAPSHOT
+org.nuxeo.ecm.product.version=2023.17-SNAPSHOT
 
 # Various other default values
 #nuxeo.db.host=

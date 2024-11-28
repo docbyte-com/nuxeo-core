@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.rules.ExternalResource;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.common.test.ModuleUnderTest;
 
 /**
  * @since 2023.0
@@ -92,7 +92,7 @@ public class TemporaryKeyStore extends ExternalResource {
             keyPairEntries.forEach(asConsumer(entry -> keyStore.setKeyEntry(entry.alias(), entry.key().getPrivate(),
                     entry.password().toCharArray(), entry.certificates())));
             // write the keyStore content to the disk
-            keyStorePath = Files.createTempFile(Path.of(FeaturesRunner.getBuildDirectory()), "nuxeo-keyStore-",
+            keyStorePath = Files.createTempFile(Path.of(ModuleUnderTest.getOutputDirectory()), "nuxeo-keyStore-",
                     "." + keyStoreType.toLowerCase());
             try (OutputStream out = Files.newOutputStream(keyStorePath)) {
                 keyStore.store(out, keyStorePassword.toCharArray());
@@ -201,7 +201,7 @@ public class TemporaryKeyStore extends ExternalResource {
         }
     }
 
-    public record KeyStoreEntry<K> (String alias, String password, K key, X509Certificate certificate) {
+    public record KeyStoreEntry<K>(String alias, String password, K key, X509Certificate certificate) {
 
         public Certificate[] certificates() {
             if (certificate == null) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,12 +51,12 @@ import org.junit.runners.model.Statement;
 import org.junit.runners.model.TestClass;
 import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.common.function.ThrowableRunnable;
+import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.test.TargetResourceLocator;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Module;
 import com.google.inject.Stage;
 import com.google.inject.name.Names;
 
@@ -70,12 +70,6 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     private static final Logger log = LogManager.getLogger(FeaturesRunner.class);
 
     protected static final AnnotationScanner scanner = new AnnotationScanner();
-
-    /** @since 11.1 */
-    protected static final String CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY = "custom.environment";
-
-    /** @since 11.1 */
-    protected static final String DEFAULT_BUILD_DIRECTORY = "target";
 
     /**
      * Guice injector.
@@ -91,14 +85,13 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     }
 
     /**
-     * Returns the Maven build directory, depending on the {@value #CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY} system property.
+     * Returns the Maven build directory, depending on the {@code custom.environment} system property.
      *
      * @since 11.1
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String getBuildDirectory() {
-        String customEnvironment = System.getProperty(CUSTOM_ENVIRONMENT_SYSTEM_PROPERTY);
-        return customEnvironment == null ? DEFAULT_BUILD_DIRECTORY
-                : String.format("%s-%s", DEFAULT_BUILD_DIRECTORY, customEnvironment);
+        return ModuleUnderTest.getOutputDirectory();
     }
 
     public FeaturesRunner(Class<?> classToRun) throws InitializationError {
@@ -363,7 +356,7 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     }
 
     protected Injector onInjector(final RunNotifier aNotifier) {
-        return Guice.createInjector(Stage.DEVELOPMENT, (Module) aBinder -> {
+        return Guice.createInjector(Stage.DEVELOPMENT, aBinder -> {
             aBinder.bind(FeaturesRunner.class).toInstance(FeaturesRunner.this);
             aBinder.bind(RunNotifier.class).toInstance(aNotifier);
             aBinder.bind(TargetResourceLocator.class).toInstance(locator);
@@ -565,7 +558,7 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
                 @Override
                 @SuppressWarnings({ "unchecked", "rawtypes" })
                 public void evaluate() throws Throwable {
-                    injector = injector.createChildInjector((Module) binder -> {
+                    injector = injector.createChildInjector(binder -> {
                         for (Object each : rules) {
                             binder.bind((Class) each.getClass()).annotatedWith(Names.named(name)).toInstance(each);
                             binder.requestInjection(each);

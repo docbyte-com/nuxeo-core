@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,22 @@
  */
 package org.nuxeo.runtime.test.runner;
 
+import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_HTTP_PORT;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.tomcat.util.descriptor.DigesterFactory;
 import org.nuxeo.runtime.server.ServerComponent;
-
-import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_HTTP_PORT;
 
 /**
  * Runs an embedded servlet container.
  */
 @Deploy("org.nuxeo.runtime.server")
-@Features(RuntimeFeature.class)
+@Features({ RuntimeFeature.class, LogFeature.class })
+@LoggerLevel(klass = DigesterFactory.class, level = "ERROR")
 public class ServletContainerFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(ServletContainerFeature.class);
@@ -75,4 +76,10 @@ public class ServletContainerFeature implements RunnerFeature {
         return port;
     }
 
+    /**
+     * @since 2023.13
+     */
+    public String getHttpUrl() {
+        return "http://localhost:" + port;
+    }
 }

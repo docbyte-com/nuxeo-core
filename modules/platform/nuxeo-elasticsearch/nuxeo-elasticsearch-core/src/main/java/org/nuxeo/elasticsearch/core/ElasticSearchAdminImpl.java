@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -156,7 +156,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             try {
                 client.close();
             } catch (Exception e) {
-                log.error("Failed to close client: " + e.getMessage(), e);
+                log.error("Failed to close client: {}", e.getMessage(), e);
             }
             client = null;
             indexInitDone = false;
@@ -427,7 +427,8 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
         getClient().updateAlias(writeAlias, nextWriteIndex);
         if (useSecondaryWriteIndex && writeIndex != null) {
             // we have 2 write indexes until alias are in sync
-            log.warn(String.format("Managed index aliases, new write index created : %s -> %s with secondary write index: %s",
+            log.warn(String.format(
+                    "Managed index aliases, new write index created : %s -> %s with secondary write index: %s",
                     writeAlias, nextWriteIndex, writeIndex));
             useSecondaryWriteIndex = false;
             secondaryWriteIndexNames.put(conf.getName(), writeIndex);
@@ -479,8 +480,9 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
                     searchAlias, writeIndex, searchIndex);
             getClient().updateAlias(searchAlias, writeIndex);
             searchIndex = writeIndex;
-            String newIndex = secondaryWriteIndexNames.remove(conf.getName());
-            reindexingPubSub.sendMessage(new ReindexingMessage(conf.getRepositoryName(), conf.getName(), newIndex, ReindexingState.END));
+            secondaryWriteIndexNames.remove(conf.getName());
+            reindexingPubSub.sendMessage(
+                    new ReindexingMessage(conf.getRepositoryName(), conf.getName(), writeIndex, ReindexingState.END));
             getKvStore().put(conf.getName(), (String) null);
         }
         repoNames.put(searchIndex, conf.getRepositoryName());
@@ -535,7 +537,8 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
                 try {
                     getClient().createMapping(indexName, conf.getType(), extraMapping);
                 } catch (NuxeoException e) {
-                    throw e.addInfo("An error occurred while putting the mapping: " + extraMapping + " into ElasticSearch configuration");
+                    throw e.addInfo("An error occurred while putting the mapping: " + extraMapping
+                            + " into ElasticSearch configuration");
                 }
             }
             if (!dropIfExists && conf.getRepositoryName() != null) {
@@ -635,27 +638,26 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             return ReindexingMessage.deserialize(in);
         }
 
-        @Override public void sendMessage(ReindexingMessage message) {
-            if (log.isDebugEnabled()) {
-                log.debug("sendMessage " + message);
-            }
+        @Override
+        public void sendMessage(ReindexingMessage message) {
+            log.debug("sendMessage {}", message);
             super.sendMessage(message);
         }
 
         @Override
         public void receivedMessage(ReindexingMessage message) {
-            if (log.isDebugEnabled()) {
-                log.debug("Receiving message " + message);
-            }
+            log.debug("Receiving message {}", message);
             switch (message.state) {
-            case START:
-                secondaryWriteIndexNames.put(message.indexName, message.secondWriteIndexName);
-                break;
-            case END:
-            case ABORT:
-                repoNames.put(message.secondWriteIndexName, message.repository);
-                secondaryWriteIndexNames.remove(message.indexName);
-                break;
+                case START:
+                    secondaryWriteIndexNames.put(message.indexName, message.otherIndex);
+                    break;
+                case END:
+                case ABORT:
+                    repoNames.put(message.otherIndex, message.repository);
+                    String oldIndex = secondaryWriteIndexNames.remove(message.indexName);
+                    log.warn("Receive index alias update {} -> {} (old index: {}, can be deleted)", message.indexName,
+                            message.otherIndex, oldIndex);
+                    break;
             }
         }
     }

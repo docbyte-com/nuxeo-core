@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-parent</artifactId>
-    <version>2023.13-SNAPSHOT</version>
+    <version>2023.17-SNAPSHOT</version>
   </parent>
   <artifactId>nuxeo-core-api</artifactId>
   <name>Nuxeo Core API</name>
@@ -71,7 +71,7 @@
     </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
-      <artifactId>bcprov-jdk15on</artifactId>
+      <artifactId>bcprov-jdk18on</artifactId>
     </dependency>
 
     <dependency>

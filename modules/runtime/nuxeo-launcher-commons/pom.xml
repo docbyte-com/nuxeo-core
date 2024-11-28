@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.13-SNAPSHOT</version>
+    <version>2023.17-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-launcher-commons</artifactId>
@@ -68,6 +68,10 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
     </dependency>
   </dependencies>
 

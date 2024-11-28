@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.automation.server.jaxrs.ResponseHelper.MULTIPART_FILENAME_UTF_8;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_DOCUMENT;
 import static org.nuxeo.ecm.automation.test.HttpAutomationRequest.ENTITY_TYPE_EXCEPTION;
@@ -53,7 +54,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.entity.StringEntity;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.automation.core.operations.blob.AttachBlob;
 import org.nuxeo.ecm.automation.core.operations.blob.CreateZip;
@@ -78,6 +78,7 @@ import org.nuxeo.ecm.platform.ec.notification.NotificationFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -92,10 +93,10 @@ public abstract class AbstractAutomationClientTest {
     protected JsonNode automationTestFolder;
 
     @Inject
-    HttpAutomationSession session;
+    protected HttpAutomationSession session;
 
     @Inject
-    HttpAutomationClient client;
+    protected HttpAutomationClient client;
 
     public String getId(JsonNode node) {
         return node.get("uid").asText();
@@ -500,14 +501,13 @@ public abstract class AbstractAutomationClientTest {
         assertNotNull(blob);
         assertEquals(filename, blob.getFilename());
         assertEquals(mimeType, blob.getMimeType());
-        assertEquals("<doc>mydoc</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc</doc>", IOUtils.toString(blob.getStream(), UTF_8));
     }
 
     /**
      * Test blobs input / output
      */
     @Test
-    @Ignore("NXP-22652")
     public void testGetBlobs() throws Exception {
         // create a note
         session.newRequest(CreateDocument.ID)
@@ -519,25 +519,14 @@ public abstract class AbstractAutomationClientTest {
         // attach 2 files to that note
         Blob fb1 = Blobs.createBlob("<doc>mydoc1</doc>", "text/xml", null, "doc1.xml");
         Blob fb2 = Blobs.createBlob("<doc>mydoc2</doc>", "text/xml", null, "doc2.xml");
-        // TODO attachblob cannot set multiple blobs at once.
-        Blob blob = session.newRequest(AttachBlob.ID)
+        var blobs = session.newRequest(AttachBlob.ID)
                            .setHeader(VOID_OPERATION, "true")
-                           .setInput(fb1)
+                           .setInput(List.of(fb1, fb2))
                            .set("document", "/automation-test-folder/blobs")
                            .set("xpath", "files:files")
-                           .executeReturningBlob();
+                           .executeReturningBlobs();
         // test that output was avoided using Constants.HEADER_NX_VOIDOP
-        assertNull(blob);
-
-        // attach second blob
-        blob = session.newRequest(AttachBlob.ID)
-                      .setHeader(VOID_OPERATION, "true")
-                      .setInput(fb2)
-                      .set("document", "/automation-test-folder/blobs")
-                      .set("xpath", "files:files")
-                      .executeReturningBlob();
-        // test that output was avoided using Constants.HEADER_NX_VOIDOP
-        assertNull(blob);
+        assertNull(blobs);
 
         // now retrieve the note with full schemas
         JsonNode note = session.newRequest(FetchDocument.ID)
@@ -554,11 +543,11 @@ public abstract class AbstractAutomationClientTest {
 
         // get the data URL
         String path = map.get("data").asText();
-        blob = session.newRequest().getFile(path);
+        var blob = session.newRequest().getFile(path);
         assertNotNull(blob);
         assertEquals("doc1.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // the same for the second file
         map = list.get(1).get("file");
@@ -571,13 +560,13 @@ public abstract class AbstractAutomationClientTest {
         assertNotNull(blob);
         assertEquals("doc2.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // now test the GetDocumentBlobs operation on the note document
-        List<Blob> blobs = session.newRequest(GetDocumentBlobs.ID) //
-                                  .setInput(note)
-                                  .set("xpath", "files:files")
-                                  .executeReturningBlobs();
+        blobs = session.newRequest(GetDocumentBlobs.ID) //
+                       .setInput(note)
+                       .set("xpath", "files:files")
+                       .executeReturningBlobs();
         assertNotNull(blobs);
         assertEquals(2, blobs.size());
 
@@ -585,13 +574,76 @@ public abstract class AbstractAutomationClientTest {
         blob = blobs.get(0);
         assertEquals("doc1.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc1</doc>", IOUtils.toString(blob.getStream(), UTF_8));
 
         // test the second one
         blob = blobs.get(1);
         assertEquals("doc2.xml", blob.getFilename());
         assertEquals("text/xml", blob.getMimeType());
-        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), "utf-8"));
+        assertEquals("<doc>mydoc2</doc>", IOUtils.toString(blob.getStream(), UTF_8));
+    }
+
+    @Test
+    public void testGetBlobsFilenameEncodingISO88591() throws Exception {
+        // create a note
+        var note = session.newRequest(CreateDocument.ID)
+                          .setInput(automationTestFolder)
+                          .set("type", "Note")
+                          .set("name", "blobs")
+                          .set("properties", "dc:title=Blobs Filename Encoding Test")
+                          .executeReturningDocument();
+        // attach 2 files to that note
+        Blob fb1 = Blobs.createBlob("<doc>mydoc1</doc>", "text/xml", null, "doc1é.xml");
+        Blob fb2 = Blobs.createBlob("<doc>mydoc2</doc>", "text/xml", null, "doc2ù.xml");
+        session.newRequest(AttachBlob.ID)
+               .setHeader(VOID_OPERATION, "true")
+               .setInput(List.of(fb1, fb2))
+               .set("document", "/automation-test-folder/blobs")
+               .set("xpath", "files:files")
+               .executeReturningBlobs();
+
+        // now retrieve the blobs and test their filenames
+        var blobs = session.newRequest(GetDocumentBlobs.ID) //
+                           .setInput(note)
+                           .set("xpath", "files:files")
+                           .executeReturningBlobs();
+        assertNotNull(blobs);
+        assertEquals(2, blobs.size());
+        // our automation client for tests expects to receive a ISO-8859-1 string
+        assertEquals("doc1é.xml", blobs.get(0).getFilename());
+        assertEquals("doc2ù.xml", blobs.get(1).getFilename());
+    }
+
+    @Test
+    @WithFrameworkProperty(name = MULTIPART_FILENAME_UTF_8, value = "true")
+    public void testGetBlobsFilenameEncodingUTF8() throws Exception {
+        // create a note
+        var note = session.newRequest(CreateDocument.ID)
+                          .setInput(automationTestFolder)
+                          .set("type", "Note")
+                          .set("name", "blobs")
+                          .set("properties", "dc:title=Blobs Filename Encoding Test")
+                          .executeReturningDocument();
+        // attach 2 files to that note
+        Blob fb1 = Blobs.createBlob("<doc>mydoc1</doc>", "text/xml", null, "doc1é.xml");
+        Blob fb2 = Blobs.createBlob("<doc>mydoc2</doc>", "text/xml", null, "doc2ù.xml");
+        session.newRequest(AttachBlob.ID)
+               .setHeader(VOID_OPERATION, "true")
+               .setInput(List.of(fb1, fb2))
+               .set("document", "/automation-test-folder/blobs")
+               .set("xpath", "files:files")
+               .executeReturningBlobs();
+
+        // now retrieve the blobs and test their filenames
+        var blobs = session.newRequest(GetDocumentBlobs.ID) //
+                           .setInput(note)
+                           .set("xpath", "files:files")
+                           .executeReturningBlobs();
+        assertNotNull(blobs);
+        assertEquals(2, blobs.size());
+        // our automation client for tests expects to receive a ISO-8859-1 string
+        assertEquals("doc1Ã©.xml", blobs.get(0).getFilename());
+        assertEquals("doc2Ã¹.xml", blobs.get(1).getFilename());
     }
 
     /**

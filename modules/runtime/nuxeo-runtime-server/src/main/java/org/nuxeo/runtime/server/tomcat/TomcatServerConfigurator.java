@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
 import org.apache.catalina.Wrapper;
 import org.apache.catalina.connector.Connector;
+import org.apache.catalina.core.StandardContext;
 import org.apache.catalina.startup.Tomcat;
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
@@ -50,6 +51,7 @@ import org.nuxeo.runtime.server.ServletDescriptor;
  *
  * @since 10.2
  */
+@SuppressWarnings("unused") // instantiated by reflection
 public class TomcatServerConfigurator implements ServerConfigurator {
 
     private static final Logger log = LogManager.getLogger(TomcatServerConfigurator.class);
@@ -113,6 +115,11 @@ public class TomcatServerConfigurator implements ServerConfigurator {
         jarScanner.setScanAllFiles(false);
         jarScanner.setScanBootstrapClassPath(false);
         jarScanner.setScanClassPath(false);
+
+        if (context instanceof StandardContext standardContext) {
+            // we don't need it, and it produces WARN logs
+            standardContext.setClearReferencesRmiTargets(false);
+        }
     }
 
     @Override
