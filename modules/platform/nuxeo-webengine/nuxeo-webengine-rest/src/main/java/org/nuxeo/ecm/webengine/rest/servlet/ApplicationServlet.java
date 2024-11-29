@@ -47,6 +47,8 @@ import org.nuxeo.ecm.webengine.rest.Reloadable;
 import org.nuxeo.ecm.webengine.rest.Utils;
 import org.nuxeo.ecm.webengine.rest.servlet.config.ServletDescriptor;
 import org.nuxeo.ecm.webengine.rest.views.ResourceContext;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.ComponentManager;
 import org.osgi.framework.Bundle;
 
 /**
@@ -98,10 +100,16 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
         }
         container = createServletContainer(app);
 
-        initContainer(config);
+        initContainer();
         app.setRendering(initRendering(config));
 
         app.addReloadListener(this);
+        Framework.getRuntime().getComponentManager().addListener(new ComponentManager.Listener() {
+            @Override
+            public void afterStart(ComponentManager mgr, boolean isResume) {
+                ApplicationServlet.this.reload();
+            }
+        });
     }
 
     @Override
@@ -148,9 +156,8 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
         }
         String method = request.getMethod().toUpperCase();
         if (!"GET".equals(method)) {
-            // force reading properties because jersey is consuming one
-            // character
-            // from the input stream - see WebComponent.isEntityPresent.
+            // force reading properties because Jersey is consuming one character from the input stream
+            // see WebComponent.filterFormParameters and the related containerRequest.hasEntity call
             request.getParameterMap();
         }
         ResourceContext ctx = new ResourceContext(app);
@@ -214,7 +221,7 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
         // do nothing
     }
 
-    protected void initContainer(ServletConfig config) throws ServletException {
+    protected void initContainer() throws ServletException {
         container.init(getServletConfig());
     }
 
@@ -224,9 +231,6 @@ public class ApplicationServlet extends HttpServlet implements ManagedServlet, R
     }
 
     protected synchronized void reloadContainer() throws ServletException {
-        // reload is not working correctly since old classes are still referenced
-        // for this to work we need a custom ResourceConfig but all fields in jersey
-        // classes are private so we cannot set it ...
         try {
             container.destroy();
             container = createServletContainer(app);
