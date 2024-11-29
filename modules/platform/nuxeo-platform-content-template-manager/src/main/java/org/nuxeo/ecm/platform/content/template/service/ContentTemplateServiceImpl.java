@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,11 @@
  */
 package org.nuxeo.ecm.platform.content.template.service;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +31,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.repository.RepositoryInitializationHandler;
 import org.nuxeo.ecm.platform.content.template.listener.RepositoryInitializationListener;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 public class ContentTemplateServiceImpl extends DefaultComponent implements ContentTemplateService {
@@ -44,63 +45,62 @@ public class ContentTemplateServiceImpl extends DefaultComponent implements Cont
 
     public static final String POST_CONTENT_CREATION_HANDLERS_EP = "postContentCreationHandlers";
 
-    private final Map<String, ContentFactoryDescriptor> factories = new HashMap<>();
+    protected Map<String, ContentFactoryDescriptor> factories;
 
-    private FactoryBindingRegistry factoryBindings;
+    protected Map<String, FactoryBindingDescriptor> factoryBindings;
 
-    private PostContentCreationHandlerRegistry postContentCreationHandlers;
+    protected List<PostContentCreationHandlerDescriptor> postContentCreationHandlers;
 
-    private RepositoryInitializationHandler initializationHandler;
+    protected RepositoryInitializationHandler initializationHandler;
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         // register our Repo init listener
         initializationHandler = new RepositoryInitializationListener();
         initializationHandler.install();
+    }
 
-        factoryBindings = new FactoryBindingRegistry();
-        postContentCreationHandlers = new PostContentCreationHandlerRegistry();
+    @Override
+    public void start(ComponentContext context) {
+        factories = this.<ContentFactoryDescriptor> getDescriptors(FACTORY_DECLARATION_EP)
+                        .stream()
+                        .collect(Collectors.toMap(ContentFactoryDescriptor::getName, Function.identity(),
+                                // keep the last ones
+                                (a, b) -> b));
+        factoryBindings = this.<FactoryBindingDescriptor> getDescriptors(FACTORY_BINDING_EP)
+                              .stream()
+                              .filter(FactoryBindingDescriptor::isEnabled)
+                              .<FactoryBindingDescriptor> mapMulti((descriptor, consumer) -> {
+                                  if (factories.containsKey(descriptor.getFactoryName())) {
+                                      consumer.accept(descriptor);
+                                  } else {
+                                      log.error(
+                                              "Factory Binding: {} can not be registered since Factory: {} is not registered",
+                                              descriptor::getName, descriptor::getFactoryName);
+                                  }
+                              })
+                              .collect(Collectors.toMap(FactoryBindingDescriptor::getId, Function.identity()));
+        postContentCreationHandlers = this.<PostContentCreationHandlerDescriptor> getDescriptors(
+                POST_CONTENT_CREATION_HANDLERS_EP)
+                                          .stream()
+                                          .filter(PostContentCreationHandlerDescriptor::isEnabled)
+                                          .sorted()
+                                          .toList();
+    }
+
+    @Override
+    public void stop(ComponentContext context) {
+        factories = null;
+        factoryBindings = null;
+        postContentCreationHandlers = null;
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         if (initializationHandler != null) {
             initializationHandler.uninstall();
-        }
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals(FACTORY_DECLARATION_EP)) {
-            // store factories
-            ContentFactoryDescriptor descriptor = (ContentFactoryDescriptor) contribution;
-            factories.put(descriptor.getName(), descriptor);
-        } else if (extensionPoint.equals(FACTORY_BINDING_EP)) {
-            // store factories binding to types
-            FactoryBindingDescriptor descriptor = (FactoryBindingDescriptor) contribution;
-            if (factories.containsKey(descriptor.getFactoryName())) {
-                factoryBindings.addContribution(descriptor);
-            } else {
-                log.error("Factory Binding: {} can not be registered since Factory: {} is not registered",
-                        descriptor::getName, descriptor::getFactoryName);
-            }
-        } else if (POST_CONTENT_CREATION_HANDLERS_EP.equals(extensionPoint)) {
-            PostContentCreationHandlerDescriptor descriptor = (PostContentCreationHandlerDescriptor) contribution;
-            postContentCreationHandlers.addContribution(descriptor);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals(FACTORY_DECLARATION_EP)) {
-            ContentFactoryDescriptor descriptor = (ContentFactoryDescriptor) contribution;
-            factories.remove(descriptor.getName());
-        } else if (extensionPoint.equals(FACTORY_BINDING_EP)) {
-            FactoryBindingDescriptor descriptor = (FactoryBindingDescriptor) contribution;
-            factoryBindings.removeContribution(descriptor);
-        } else if (POST_CONTENT_CREATION_HANDLERS_EP.equals(extensionPoint)) {
-            PostContentCreationHandlerDescriptor descriptor = (PostContentCreationHandlerDescriptor) contribution;
-            postContentCreationHandlers.removeContribution(descriptor);
         }
     }
 
@@ -110,7 +110,7 @@ public class ContentTemplateServiceImpl extends DefaultComponent implements Cont
      */
     @Override
     public ContentFactory getFactoryForType(String documentType) {
-        FactoryBindingDescriptor descriptor = factoryBindings.getContribution(documentType);
+        FactoryBindingDescriptor descriptor = factoryBindings.get(documentType);
         if (descriptor == null || !documentType.equals(descriptor.getTargetType())) {
             return null;
         }
@@ -122,7 +122,7 @@ public class ContentTemplateServiceImpl extends DefaultComponent implements Cont
      * their root.
      */
     public ContentFactory getFactoryForFacet(String facet) {
-        FactoryBindingDescriptor descriptor = factoryBindings.getContribution(facet);
+        FactoryBindingDescriptor descriptor = factoryBindings.get(facet);
         if (descriptor == null || !facet.equals(descriptor.getTargetFacet())) {
             return null;
         }
@@ -163,8 +163,13 @@ public class ContentTemplateServiceImpl extends DefaultComponent implements Cont
 
     @Override
     public void executePostContentCreationHandlers(CoreSession session) {
-        for (PostContentCreationHandler handler : postContentCreationHandlers.getOrderedHandlers()) {
-            handler.execute(session);
+        for (var descriptor : postContentCreationHandlers) {
+            try {
+                var handler = descriptor.getClazz().getDeclaredConstructor().newInstance();
+                handler.execute(session);
+            } catch (ReflectiveOperationException e) {
+                log.error("Unable to instantiate class for handler: {}", descriptor.getName(), e);
+            }
         }
     }
 
@@ -174,7 +179,7 @@ public class ContentTemplateServiceImpl extends DefaultComponent implements Cont
     }
 
     public Map<String, FactoryBindingDescriptor> getFactoryBindings() {
-        return factoryBindings.toMap();
+        return factoryBindings;
     }
 
 }
