@@ -317,8 +317,6 @@ public class NxQueryBuilder {
         case "boolean":
         case "date":
             return fieldType;
-        case "string":
-            return "text";
         }
         return "keyword";
     }
