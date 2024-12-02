@@ -89,6 +89,7 @@ RUN yum -y update \
     poppler-utils \
     ufraw \
     unzip \
+    vim-enhanced-7.4.629-8.0.1.el7_9 \
     wget \
     # Add CJK fonts
     google-noto-cjk-fonts \
@@ -101,6 +102,8 @@ RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true
 # These directories must be owned by the root group and be readable/writable by that group.
 # See https://docs.openshift.com/container-platform/3.5/creating_images/guidelines.html#use-uid
 RUN chmod g=u /etc/passwd
+
+ENV EDITOR=/usr/bin/vim
 
 # Set an UTF-8 LANG
 ENV LANG=en_US.utf8
