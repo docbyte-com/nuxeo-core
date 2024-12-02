@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,15 +57,15 @@ public class SuggesterGroupContribTest {
         assertTrue(suggestionService instanceof SuggestionServiceImpl);
 
         // check suggesterGroup registry
-        SuggesterGroupRegistry suggesterGroups = ((SuggestionServiceImpl) suggestionService).getSuggesterGroups();
+        var suggesterGroups = ((SuggestionServiceImpl) suggestionService).getSuggesterGroups();
         assertNotNull(suggesterGroups);
 
         // check suggesterGroup count
-        assertNotNull(suggesterGroups.getFragments());
-        assertEquals(1, suggesterGroups.getFragments().length);
+        assertNotNull(suggesterGroups);
+        assertEquals(1, suggesterGroups.size());
 
         // check 'searchbox' suggesterGroup
-        SuggesterGroupDescriptor sgd = suggesterGroups.getSuggesterGroupDescriptor("searchbox");
+        SuggesterGroupDescriptor sgd = suggesterGroups.get("searchbox");
         assertNotNull(sgd);
 
         // check 'searchbox' suggesterGroup's suggesters

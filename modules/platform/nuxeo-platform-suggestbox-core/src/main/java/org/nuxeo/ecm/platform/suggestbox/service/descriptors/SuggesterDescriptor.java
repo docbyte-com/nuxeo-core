@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,22 @@
  */
 package org.nuxeo.ecm.platform.suggestbox.service.descriptors;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
+
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.suggestbox.service.ComponentInitializationException;
 import org.nuxeo.ecm.platform.suggestbox.service.Suggester;
-import org.nuxeo.runtime.model.RuntimeContext;
+import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for registering overridable parameterized Suggester implementation on the SuggesterService.
@@ -34,7 +41,7 @@ import org.nuxeo.runtime.model.RuntimeContext;
  * @author ogrisel
  */
 @XObject("suggester")
-public class SuggesterDescriptor implements Cloneable {
+public class SuggesterDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name = "default";
@@ -48,9 +55,13 @@ public class SuggesterDescriptor implements Cloneable {
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
     protected Map<String, String> parameters = new HashMap<>();
 
-    protected Suggester suggester;
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
 
-    protected RuntimeContext runtimeContext;
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -64,61 +75,46 @@ public class SuggesterDescriptor implements Cloneable {
         return parameters;
     }
 
-    public void setRuntimeContext(RuntimeContext context) throws ComponentInitializationException {
-        // store the runtime context for later usage if a merge is required
-        this.runtimeContext = context;
-        loadParameterizedSuggester();
+    public ComponentInstance getContributingComponent() {
+        return contributingComponent;
     }
 
-    protected void loadParameterizedSuggester() throws ComponentInitializationException {
-        if (enabled && className != null) {
-            // try build the suggester instance as early as possible to throw
-            // errors at deployment time rather than lazily at first access time
-            // by the user: fail early.
-            try {
-                suggester = (Suggester) runtimeContext.loadClass(className).newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new ComponentInitializationException(String.format(
-                        "Failed to initialize suggester '%s' with class '%s'", name, className), e);
-            }
-            suggester.initWithParameters(this);
-        }
-        // if the the descriptor is enabled but does not provide any
-        // contrib this is probably just for overriding some parameters
-        // handled at merge time
-    }
-
-    public Suggester getSuggester() {
-        return suggester;
-    }
-
-    public void mergeFrom(SuggesterDescriptor newDescriptor) throws ComponentInitializationException {
-        if (name == null || !name.equals(newDescriptor.name)) {
-            throw new RuntimeException("Cannot merge descriptor with name '" + name
-                    + "' with another descriptor with different name " + newDescriptor.getName() + "'");
-        }
-        if (className == null) {
-            if (enabled && newDescriptor.className == null) {
-                throw new RuntimeException("Cannot merge descriptor with name '" + name
-                        + "' with source a source version that has no" + " className defined.");
-            }
-            className = newDescriptor.className;
-            runtimeContext = newDescriptor.runtimeContext;
-        }
-        // merged the parameters
-        Map<String, String> mergedParameters = new HashMap<>();
-        mergedParameters.putAll(parameters);
-        mergedParameters.putAll(newDescriptor.parameters);
-        parameters = mergedParameters;
-        loadParameterizedSuggester();
-    }
-
-    /*
-     * Override the Object.clone to make it public
-     */
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public Descriptor merge(Descriptor o) {
+        var other = (SuggesterDescriptor) o;
+        var merged = new SuggesterDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        // merge className and related contributingComponent
+        if (StringUtils.isNotBlank(other.className)) {
+            merged.className = other.className;
+            merged.contributingComponent = other.contributingComponent;
+        } else {
+            merged.className = className;
+            merged.contributingComponent = contributingComponent;
+        }
+        merged.className = defaultIfEmpty(other.className, className);
+        merged.enabled = other.enabled;
+        // merged the parameters
+        merged.parameters = new HashMap<>(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
     }
 
+    public Suggester instantiateSuggester() {
+        // try build the suggester instance as early as possible to throw errors at deployment time rather than lazily
+        // at first access time by the user: fail early.
+        try {
+            var suggester = (Suggester) contributingComponent.getRuntimeContext()
+                                                             .loadClass(className)
+                                                             .getDeclaredConstructor()
+                                                             .newInstance();
+            suggester.initWithParameters(this);
+            return suggester;
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException(
+                    String.format("Failed to instantiate suggester: %s with class: %s", name, className), e);
+        } catch (ComponentInitializationException e) {
+            throw new NuxeoException(String.format("Failed to init suggester: %s with class: %s", name, className), e);
+        }
+    }
 }
