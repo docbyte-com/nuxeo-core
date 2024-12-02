@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,17 @@ package org.nuxeo.template.api.descriptor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.template.api.context.ContextExtensionFactory;
 
 @XObject("contextFactory")
-public class ContextExtensionFactoryDescriptor {
+public class ContextExtensionFactoryDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(ContextExtensionFactoryDescriptor.class);
 
@@ -47,8 +49,21 @@ public class ContextExtensionFactoryDescriptor {
 
     protected ContextExtensionFactory factory;
 
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public List<String> getAliases() {
+        return aliasNames;
     }
 
     public ContextExtensionFactory getExtensionFactory() {
@@ -64,32 +79,15 @@ public class ContextExtensionFactoryDescriptor {
         return factory;
     }
 
-    public String getName() {
-        return name;
-    }
-
     @Override
-    public ContextExtensionFactoryDescriptor clone() {
-        ContextExtensionFactoryDescriptor copy = new ContextExtensionFactoryDescriptor();
-        copy.name = name;
-        copy.factoryClass = factoryClass;
-        copy.enabled = enabled;
-        copy.aliasNames = aliasNames;
-        return copy;
+    public Descriptor merge(Descriptor o) {
+        var other = (ContextExtensionFactoryDescriptor) o;
+        var merged = new ContextExtensionFactoryDescriptor();
+        merged.name = name; // we merge based on name, so no need for merging it
+        merged.factoryClass = ObjectUtils.defaultIfNull(other.factoryClass, factoryClass);
+        merged.enabled = other.enabled;
+        merged.aliasNames = new ArrayList<>(aliasNames);
+        merged.aliasNames.addAll(other.aliasNames);
+        return merged;
     }
-
-    public void merge(ContextExtensionFactoryDescriptor src) {
-        if (src.factoryClass != null) {
-            factoryClass = src.factoryClass;
-        }
-        if (src.aliasNames != null) {
-            aliasNames.addAll(src.aliasNames);
-        }
-        enabled = src.enabled;
-    }
-
-    public List<String> getAliases() {
-        return aliasNames;
-    }
-
 }
