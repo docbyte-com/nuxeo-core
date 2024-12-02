@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,31 @@
  * Contributors:
  *     Benoit Delbosc
  */
-
 package org.nuxeo.ecm.platform.query.api;
 
 import java.util.List;
+
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Class replacer descriptor interface enable to supersede a class of an existing Page provider.
  *
  * @since 6.0
  */
-public interface PageProviderClassReplacerDefinition {
+public interface PageProviderClassReplacerDefinition extends Descriptor {
+
+    /** @since 2025.0 */
+    @Override
+    default String getId() {
+        return getPageProviderClassName();
+    }
 
     boolean isEnabled();
 
     String getPageProviderClassName();
+
+    /** @since Z0Z5.0 */
+    Class<? extends PageProvider<?>> getPageProviderClass();
 
     List<String> getPageProviderNames();
 }

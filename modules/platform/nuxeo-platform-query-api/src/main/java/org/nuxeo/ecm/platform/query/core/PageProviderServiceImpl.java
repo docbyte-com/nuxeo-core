@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,24 +19,26 @@
 package org.nuxeo.ecm.platform.query.core;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.SortInfo;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
-import org.nuxeo.ecm.platform.query.api.PageProviderClassReplacerDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.api.PageProviderType;
 import org.nuxeo.ecm.platform.query.api.QuickFilter;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -47,24 +49,23 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     private static final long serialVersionUID = 1L;
 
+    private static final Logger log = LogManager.getLogger(PageProviderServiceImpl.class);
+
     public static final String PROVIDER_EP = "providers";
 
     // @since 6.0
     public static final String REPLACER_EP = "replacers";
 
-    /**
-     * @since 2021.8
-     */
+    /** @since 2021.8 */
     public static final String ELASTICSEARCH_NXQL_PAGE_PROVIDER_CLASS_NAME = "org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider";
 
-    protected PageProviderRegistry providerReg = new PageProviderRegistry();
+    protected Map<String, PageProviderDefinition> providers;
 
-    // @since 6.0
-    protected PageProviderClassReplacerRegistry replacersReg = new PageProviderClassReplacerRegistry();
+    protected Map<String, Class<? extends PageProvider<?>>> replacers;
 
     @Override
     public PageProviderDefinition getPageProviderDefinition(String name) {
-        PageProviderDefinition def = providerReg.getPageProvider(name);
+        PageProviderDefinition def = providers.get(name);
         if (def == null) {
             return null;
         }
@@ -181,7 +182,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     protected PageProvider<?> newCoreQueryPageProviderInstance(String name) {
         PageProvider<?> ret;
-        Class<? extends PageProvider<?>> klass = replacersReg.getClassForPageProvider(name);
+        Class<? extends PageProvider<?>> klass = replacers.get(name);
         if (klass == null) {
             ret = new CoreQueryDocumentPageProvider();
         } else {
@@ -191,26 +192,25 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     }
 
     protected PageProvider<?> newPageProviderInstance(String name, Class<? extends PageProvider<?>> klass) {
-        PageProvider<?> ret;
         if (klass == null) {
             throw new NuxeoException(String.format(
-                    "Cannot find class for page provider definition with name '%s': check" + " ERROR logs at startup",
+                    "Cannot find class for page provider definition with name: '%s', check ERROR logs at startup",
                     name));
         }
         try {
-            ret = klass.getDeclaredConstructor().newInstance();
+            return klass.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
-            throw new NuxeoException(String.format(
-                    "Cannot create an instance of class %s for page provider definition" + " with name '%s'",
-                    klass.getName(), name), e);
+            throw new NuxeoException(
+                    String.format("Cannot create an instance of class: %s for page provider definition with name: '%s'",
+                            klass.getName(), name),
+                    e);
         }
-        return ret;
     }
 
     @Override
     public PageProvider<?> getPageProvider(String name, DocumentModel searchDocument, List<SortInfo> sortInfos,
             Long pageSize, Long currentPage, Map<String, Serializable> properties, Object... parameters) {
-        PageProviderDefinition desc = providerReg.getPageProvider(name);
+        PageProviderDefinition desc = providers.get(name);
         if (desc == null) {
             throw new NuxeoException(String.format("Could not resolve page provider with name '%s'", name));
         }
@@ -222,7 +222,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     public PageProvider<?> getPageProvider(String name, DocumentModel searchDocument, List<SortInfo> sortInfos,
             Long pageSize, Long currentPage, Map<String, Serializable> properties, List<String> highlights,
             List<QuickFilter> quickFilters, Object... parameters) {
-        PageProviderDefinition desc = providerReg.getPageProvider(name);
+        PageProviderDefinition desc = providers.get(name);
         if (desc == null) {
             throw new NuxeoException(String.format("Could not resolve page provider with name '%s'", name));
         }
@@ -234,7 +234,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     public PageProvider<?> getPageProvider(String name, DocumentModel searchDocument, List<SortInfo> sortInfos,
             Long pageSize, Long currentPage, Long currentOffset, Map<String, Serializable> properties,
             List<String> highlights, List<QuickFilter> quickFilters, Object... parameters) {
-        PageProviderDefinition desc = providerReg.getPageProvider(name);
+        PageProviderDefinition desc = providers.get(name);
         if (desc == null) {
             throw new NuxeoException(String.format("Could not resolve page provider with name '%s'", name));
         }
@@ -246,7 +246,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     public PageProvider<?> getPageProvider(String name, DocumentModel searchDocument, List<SortInfo> sortInfos,
             Long pageSize, Long currentPage, Map<String, Serializable> properties, List<QuickFilter> quickFilters,
             Object... parameters) {
-        PageProviderDefinition desc = providerReg.getPageProvider(name);
+        PageProviderDefinition desc = providers.get(name);
         if (desc == null) {
             throw new NuxeoException(String.format("Could not resolve page provider with name '%s'", name));
         }
@@ -257,46 +257,45 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     @Override
     public PageProvider<?> getPageProvider(String name, List<SortInfo> sortInfos, Long pageSize, Long currentPage,
             Map<String, Serializable> properties, Object... parameters) {
-        return getPageProvider(name, (DocumentModel) null, sortInfos, pageSize, currentPage, properties, parameters);
+        return getPageProvider(name, null, sortInfos, pageSize, currentPage, properties, parameters);
     }
 
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (PROVIDER_EP.equals(extensionPoint)) {
-            PageProviderDefinition desc = (PageProviderDefinition) contribution;
-            registerPageProviderDefinition(desc);
-        } else if (REPLACER_EP.equals(extensionPoint)) {
-            PageProviderClassReplacerDefinition desc = (PageProviderClassReplacerDefinition) contribution;
-            replacersReg.addContribution(desc);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (PROVIDER_EP.equals(extensionPoint)) {
-            PageProviderDefinition desc = (PageProviderDefinition) contribution;
-            unregisterPageProviderDefinition(desc);
-        }
+    public int getApplicationStartedOrder() {
+        return ComponentStartOrders.PAGE_PROVIDER;
     }
 
     @Override
     public void start(ComponentContext context) {
-        replacersReg.dumpReplacerMap();
+        providers = this.<PageProviderDefinition> getDescriptors(PROVIDER_EP)
+                        .stream()
+                        .filter(PageProviderDefinition::isEnabled)
+                        .collect(Collectors.toMap(PageProviderDefinition::getName, Function.identity()));
+        replacers = this.<PageProviderClassReplacerDescriptor> getDescriptors(REPLACER_EP)
+                        .stream()
+                        .filter(PageProviderClassReplacerDescriptor::isEnabled)
+                        .<PageProviderReplacerWithName> mapMulti((descriptor, consumer) -> {
+                            var pageProviderClass = descriptor.getPageProviderClass();
+                            for (var replacedName : descriptor.getPageProviderNames()) {
+                                consumer.accept(new PageProviderReplacerWithName(replacedName, pageProviderClass));
+                            }
+                        })
+                        .collect(Collectors.toMap(PageProviderReplacerWithName::replacedName,
+                                PageProviderReplacerWithName::providerClass, (a, b) -> {
+                                    log.warn("The PageProvider: {} is overriding: {}, check your contributions", b, a);
+                                    return b;
+                                }));
     }
 
     @Override
-    public void registerPageProviderDefinition(PageProviderDefinition desc) {
-        providerReg.addContribution(desc);
-    }
-
-    @Override
-    public void unregisterPageProviderDefinition(PageProviderDefinition desc) {
-        providerReg.removeContribution(desc);
+    public void stop(ComponentContext context) {
+        providers = null;
+        replacers = null;
     }
 
     @Override
     public Set<String> getPageProviderDefinitionNames() {
-        return Collections.unmodifiableSet(providerReg.providers.keySet());
+        return Set.copyOf(providers.keySet());
     }
 
     @Override
@@ -311,4 +310,6 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
         return PageProviderType.DEFAULT;
     }
 
+    record PageProviderReplacerWithName(String replacedName, Class<? extends PageProvider<?>> providerClass) {
+    }
 }

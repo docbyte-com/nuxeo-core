@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -193,16 +193,6 @@ public interface PageProviderService extends Serializable {
             List<SortInfo> sortInfos, Long pageSize, Long currentPage, Long currentOffset,
             Map<String, Serializable> properties, List<String> highlights, List<QuickFilter> quickFilters,
             Object... parameters);
-
-    /**
-     * @since 6.0
-     */
-    void registerPageProviderDefinition(PageProviderDefinition desc);
-
-    /**
-     * @since 6.0
-     */
-    void unregisterPageProviderDefinition(PageProviderDefinition desc);
 
     /**
      * Returns all the registered page provider names, or an empty set if no page provider is registered.
