@@ -71,10 +71,10 @@ public class TypeTest {
 
     @Test
     public void testTypesExtensionPoint() {
-        Collection<Type> types = getTypeService().getTypeRegistry().getTypes();
+        Collection<Type> types = getTypeService().getTypes();
         assertEquals(6, types.size());
 
-        Type type = getTypeService().getTypeRegistry().getType("MyDocType");
+        Type type = getTypeService().getType("MyDocType");
         assertEquals("MyDocType", type.getId());
         assertEquals("type icon", type.getIcon());
         assertEquals("type label", type.getLabel());
@@ -108,7 +108,7 @@ public class TypeTest {
 
     @Test
     public void testTypeViews() {
-        Type type = getTypeService().getTypeRegistry().getType("MyDocType");
+        Type type = getTypeService().getType("MyDocType");
         assertNotNull(type);
 
         assertEquals("default_view", type.getDefaultView());
@@ -120,7 +120,7 @@ public class TypeTest {
 
     @Test
     public void testAllowedSubTypes() {
-        Type type = getTypeService().getTypeRegistry().getType("MyDocType");
+        Type type = getTypeService().getType("MyDocType");
         Map<String, SubType> allowed = type.getAllowedSubTypes();
         assertEquals(2, allowed.size());
         assertTrue(allowed.containsKey("MyOtherDocType"));
@@ -134,17 +134,17 @@ public class TypeTest {
 
     @Test
     public void testDeploymentOverride() throws Exception {
-        Collection<Type> types = getTypeService().getTypeRegistry().getTypes();
+        Collection<Type> types = getTypeService().getTypes();
         assertEquals(6, types.size());
 
         hotDeployer.deploy("org.nuxeo.ecm.platform.types:test-types-override-bundle.xml");
 
         // One removed
-        types = getTypeService().getTypeRegistry().getTypes();
+        types = getTypeService().getTypes();
         assertEquals(6, types.size());
 
         // The Other changed
-        Type type = getTypeService().getTypeRegistry().getType("MyDocType");
+        Type type = getTypeService().getType("MyDocType");
         assertNotNull(type);
 
         assertEquals("MyDocType", type.getId());
@@ -207,7 +207,7 @@ public class TypeTest {
 
     @Test
     public void testLayoutOverride() throws Exception {
-        Type type = getTypeService().getTypeRegistry().getType("DocTypeWithLayout");
+        Type type = getTypeService().getType("DocTypeWithLayout");
         assertEquals("doc type with layout", type.getLabel());
         assertEquals(2, type.getLayouts().size());
         assertEquals(1, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
@@ -216,7 +216,7 @@ public class TypeTest {
         hotDeployer.deploy("org.nuxeo.ecm.platform.types:test-types-override-bundle.xml");
 
         // Test layout is left unchanged
-        type = getTypeService().getTypeRegistry().getType("DocTypeWithLayout");
+        type = getTypeService().getType("DocTypeWithLayout");
         assertEquals("overridden doc type, but layout left unchanged", type.getLabel());
         assertEquals(2, type.getLayouts().size());
         assertEquals(1, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
@@ -225,7 +225,7 @@ public class TypeTest {
 
     @Test
     public void testLayoutOverrideWithAppend() throws Exception {
-        Type type = getTypeService().getTypeRegistry().getType("DocTypeTestLayoutOverride");
+        Type type = getTypeService().getType("DocTypeTestLayoutOverride");
         assertEquals("doc type with layout to override", type.getLabel());
         assertEquals(2, type.getLayouts().size());
         assertEquals(1, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
@@ -233,7 +233,7 @@ public class TypeTest {
 
         hotDeployer.deploy("org.nuxeo.ecm.platform.types:test-types-override-bundle.xml");
 
-        type = getTypeService().getTypeRegistry().getType("DocTypeTestLayoutOverride");
+        type = getTypeService().getType("DocTypeTestLayoutOverride");
         // Test layout is left unchanged
         assertEquals(2, type.getLayouts().size());
         assertEquals(2, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
@@ -242,33 +242,33 @@ public class TypeTest {
 
     @Test
     public void testHotReload() throws Exception {
-        Type type = getTypeService().getTypeRegistry().getType("DocTypeTestLayoutOverride");
+        Type type = getTypeService().getType("DocTypeTestLayoutOverride");
         assertEquals("doc type with layout to override", type.getLabel());
         assertEquals(2, type.getLayouts().size());
         assertEquals(1, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
         assertEquals(2, type.getLayouts().get(BuiltinModes.CREATE).getLayouts().length);
         // check the one to be removed is there
-        Type typeToBeRemoved = getTypeService().getTypeRegistry().getType("MyOtherDocType");
+        Type typeToBeRemoved = getTypeService().getType("MyOtherDocType");
         assertNotNull(typeToBeRemoved);
         assertEquals("initial alternative doc type", typeToBeRemoved.getLabel());
         assertEquals("initial icon", typeToBeRemoved.getIcon());
 
         hotDeployer.deploy("org.nuxeo.ecm.platform.types:test-types-override-bundle.xml");
 
-        type = getTypeService().getTypeRegistry().getType("DocTypeTestLayoutOverride");
+        type = getTypeService().getType("DocTypeTestLayoutOverride");
         // Test layout is left unchanged
         assertEquals(2, type.getLayouts().size());
         assertEquals(2, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
         assertEquals(1, type.getLayouts().get(BuiltinModes.CREATE).getLayouts().length);
         // check the one to be removed is not there
-        typeToBeRemoved = getTypeService().getTypeRegistry().getType("MyOtherDocType");
+        typeToBeRemoved = getTypeService().getType("MyOtherDocType");
         assertNull(typeToBeRemoved);
 
         hotDeployer.deploy("org.nuxeo.ecm.platform.types:test-types-override-remove-bundle.xml");
 
         // check the one to be removed is back there again and has not been
         // merged with the contribution before removal
-        typeToBeRemoved = getTypeService().getTypeRegistry().getType("MyOtherDocType");
+        typeToBeRemoved = getTypeService().getType("MyOtherDocType");
         assertNotNull(typeToBeRemoved);
         assertEquals("Resurrected doc type", typeToBeRemoved.getLabel());
         assertNull(typeToBeRemoved.getIcon());
@@ -276,19 +276,19 @@ public class TypeTest {
         hotDeployer.undeploy("org.nuxeo.ecm.platform.types:test-types-override-remove-bundle.xml");
 
         // check the one to be removed is not there
-        typeToBeRemoved = getTypeService().getTypeRegistry().getType("MyOtherDocType");
+        typeToBeRemoved = getTypeService().getType("MyOtherDocType");
         assertNull(typeToBeRemoved);
 
         // undeploy org.nuxeo.ecm.platform.types.core.tests:test-types-override-bundle.xml contribution
         hotDeployer.undeploy("org.nuxeo.ecm.platform.types:test-types-override-bundle.xml");
 
-        type = getTypeService().getTypeRegistry().getType("DocTypeTestLayoutOverride");
+        type = getTypeService().getType("DocTypeTestLayoutOverride");
         assertEquals("doc type with layout to override", type.getLabel());
         assertEquals(2, type.getLayouts().size());
         assertEquals(1, type.getLayouts().get(BuiltinModes.ANY).getLayouts().length);
         assertEquals(2, type.getLayouts().get(BuiltinModes.CREATE).getLayouts().length);
         // check the one to be removed is back there again and again and again
-        typeToBeRemoved = getTypeService().getTypeRegistry().getType("MyOtherDocType");
+        typeToBeRemoved = getTypeService().getType("MyOtherDocType");
         assertNotNull(typeToBeRemoved);
         assertEquals("initial alternative doc type", typeToBeRemoved.getLabel());
         assertEquals("initial icon", typeToBeRemoved.getIcon());

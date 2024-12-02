@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,28 +15,31 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
  */
-
 package org.nuxeo.ecm.platform.types;
+
+import static org.apache.commons.lang3.ArrayUtils.addAll;
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.forms.layout.api.BuiltinModes;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("type")
-public class Type {
-
-    public static final String[] EMPTY_ACTIONS = new String[0];
+public class Type implements Descriptor {
 
     @XNode("@id")
     protected String id;
@@ -55,14 +58,6 @@ public class Type {
 
     @XNode("label")
     protected String label;
-
-    protected Type(String id) {
-        this.id = id;
-    }
-
-    public Type() {
-
-    }
 
     protected Map<String, SubType> allowedSubTypes = new HashMap<>();
 
@@ -112,7 +107,7 @@ public class Type {
     protected String[] actions;
 
     @XNodeMap(value = "layouts", key = "@mode", type = HashMap.class, componentType = Layouts.class)
-    Map<String, Layouts> layouts;
+    protected Map<String, Layouts> layouts;
 
     @XNodeMap(value = "contentViews", key = "@category", type = HashMap.class, componentType = DocumentContentViews.class)
     protected Map<String, DocumentContentViews> contentViews;
@@ -120,6 +115,13 @@ public class Type {
     // for bundle update::
     @XNode("@remove")
     protected boolean remove = false;
+
+    public Type() {
+    }
+
+    protected Type(String id) {
+        this.id = id;
+    }
 
     public String[] getActions() {
         return actions;
@@ -161,6 +163,7 @@ public class Type {
         this.label = label;
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -242,7 +245,7 @@ public class Type {
     }
 
     public TypeView[] getViews() {
-        return views.values().toArray(new TypeView[views.size()]);
+        return views.values().toArray(TypeView[]::new);
     }
 
     @XNodeList(value = "views/view", type = TypeView[].class, componentType = TypeView.class)
@@ -285,17 +288,6 @@ public class Type {
         this.remove = remove;
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(Type.class.getSimpleName());
-        sb.append(" {");
-        sb.append("id: ");
-        sb.append(id);
-        sb.append('}');
-        return sb.toString();
-    }
-
     public String getIconExpanded() {
         return iconExpanded;
     }
@@ -327,67 +319,67 @@ public class Type {
         this.contentViews = contentViews;
     }
 
-    /**
-     * Clone method to handle hot reload
-     *
-     * @since 5.6
-     */
     @Override
-    public Type clone() {
-        Type clone = new Type();
-        clone.setId(getId());
-        clone.setIcon(getIcon());
-        clone.setIconExpanded(getIconExpanded());
-        clone.setBigIcon(getBigIcon());
-        clone.setBigIconExpanded(getBigIconExpanded());
-        clone.setLabel(getLabel());
-        Map<String, SubType> subs = getAllowedSubTypes();
-        if (subs != null) {
-            Map<String, SubType> csubs = new HashMap<>();
-            for (Map.Entry<String, SubType> item : subs.entrySet()) {
-                csubs.put(item.getKey(), item.getValue().clone());
+    public Type merge(Descriptor o) {
+        var other = (Type) o;
+        var merged = new Type();
+        merged.id = id; // we merge based on id, so no need for merging it
+        merged.icon = defaultIfBlank(other.icon, icon);
+        merged.iconExpanded = defaultIfBlank(other.iconExpanded, iconExpanded);
+        merged.bigIcon = defaultIfBlank(other.bigIcon, bigIcon);
+        merged.bigIconExpanded = defaultIfBlank(other.bigIconExpanded, bigIconExpanded);
+        merged.label = defaultIfBlank(other.label, label);
+        merged.description = defaultIfBlank(other.description, description);
+        merged.category = defaultIfBlank(other.category, category);
+        // merge allowedSubTypes
+        merged.allowedSubTypes = new HashMap<>(allowedSubTypes);
+        merged.allowedSubTypes.putAll(other.allowedSubTypes);
+        merged.allowedSubTypes.keySet().removeIf(Set.of(nullToEmpty(other.deniedSubTypes))::contains);
+
+        merged.defaultView = defaultIfBlank(other.defaultView, defaultView);
+        merged.createView = defaultIfBlank(other.createView, createView);
+        merged.editView = defaultIfBlank(other.editView, editView);
+        // merge views
+        merged.views = new HashMap<>(defaultIfNull(views, Map.of()));
+        merged.views.putAll(defaultIfNull(other.views, Map.of()));
+
+        merged.actions = isNotEmpty(other.actions) ? other.actions : nullToEmpty(actions);
+        // merge layouts
+        merged.layouts = new HashMap<>(defaultIfNull(layouts, Map.of()));
+        for (var entry : defaultIfNull(other.layouts, Map.<String, Layouts> of()).entrySet()) {
+            if (merged.layouts.containsKey(entry.getKey()) && entry.getValue().getAppend()) {
+                merged.layouts.merge(entry.getKey(), entry.getValue(), (inLayouts, otherInLayouts) -> {
+                    var mergedLayouts = new Layouts();
+                    mergedLayouts.layouts = addAll(inLayouts.layouts, otherInLayouts.layouts);
+                    return mergedLayouts;
+                });
+            } else {
+                merged.layouts.put(entry.getKey(), entry.getValue());
             }
-            clone.setAllowedSubTypes(csubs);
         }
-        String[] denied = getDeniedSubTypes();
-        if (denied != null) {
-            clone.setDeniedSubTypes(denied.clone());
-        }
-        clone.setDefaultView(getDefaultView());
-        clone.setCreateView(getCreateView());
-        clone.setEditView(getEditView());
-        clone.setDescription(getDescription());
-        clone.setCategory(getCategory());
-        if (views != null) {
-            Map<String, TypeView> cviews = new HashMap<>();
-            for (Map.Entry<String, TypeView> item : views.entrySet()) {
-                cviews.put(item.getKey(), item.getValue().clone());
+        // merge contentViews
+        merged.contentViews = new HashMap<>(defaultIfNull(contentViews, Map.of()));
+        for (var entry : defaultIfNull(other.contentViews, Map.<String, DocumentContentViews> of()).entrySet()) {
+            if (merged.contentViews.containsKey(entry.getKey()) && entry.getValue().getAppend()) {
+                merged.contentViews.merge(entry.getKey(), entry.getValue(), (inLayouts, otherInLayouts) -> {
+                    var mergedContentViews = new DocumentContentViews();
+                    mergedContentViews.contentViews = addAll(inLayouts.contentViews, otherInLayouts.contentViews);
+                    return mergedContentViews;
+                });
+            } else {
+                merged.contentViews.put(entry.getKey(), entry.getValue());
             }
-            clone.views = cviews;
         }
-        String[] actions = getActions();
-        if (actions != null) {
-            clone.setActions(actions.clone());
-        }
-        // do not clone old layout definition, nobody's using it anymore
-        Map<String, Layouts> layouts = getLayouts();
-        if (layouts != null) {
-            Map<String, Layouts> clayouts = new HashMap<>();
-            for (Map.Entry<String, Layouts> item : layouts.entrySet()) {
-                clayouts.put(item.getKey(), item.getValue().clone());
-            }
-            clone.setLayouts(clayouts);
-        }
-        Map<String, DocumentContentViews> cvs = getContentViews();
-        if (cvs != null) {
-            Map<String, DocumentContentViews> ccvs = new HashMap<>();
-            for (Map.Entry<String, DocumentContentViews> item : cvs.entrySet()) {
-                ccvs.put(item.getKey(), item.getValue().clone());
-            }
-            clone.setContentViews(ccvs);
-        }
-        clone.setRemove(getRemove());
-        return clone;
+        return merged;
     }
 
+    @Override
+    public boolean doesRemove() {
+        return getRemove();
+    }
+
+    @Override
+    public String toString() {
+        return Type.class.getSimpleName() + " {id: " + id + '}';
+    }
 }
