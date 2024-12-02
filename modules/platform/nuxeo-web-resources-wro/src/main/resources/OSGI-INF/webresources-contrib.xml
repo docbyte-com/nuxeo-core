@@ -15,18 +15,6 @@
       <class>ro.isdc.wro.model.resource.processor.impl.js.JSMinProcessor</class>
     </processor>
 
-    <processor name="flavor" type="wroPre">
-      <class>
-        org.nuxeo.ecm.web.resources.wro.processor.FlavorResourceProcessor
-      </class>
-    </processor>
-
-    <processor name="sassCss" type="wroPre">
-      <class>
-        org.nuxeo.ecm.web.resources.wro.processor.SassCssFlavorProcessor
-      </class>
-    </processor>
-
   </extension>
 
 </component>

@@ -26,13 +26,6 @@
 </suppress>
 <suppress>
    <notes><![CDATA[
-   file name: vaadin-sass-compiler-0.9.12-NX01.jar (vulnerability is in vaadin itself, not sass-compiler)
-   ]]></notes>
-   <gav regex="true">^com\.vaadin:vaadin-sass-compiler:.*$</gav>
-   <cve>CVE-2011-0509</cve>
-</suppress>
-<suppress>
-   <notes><![CDATA[
    file name: annotations-12.0.jar (vulnerability is not in annotations)
    ]]></notes>
    <gav regex="true">^com\.intellij:annotations:.*$</gav>

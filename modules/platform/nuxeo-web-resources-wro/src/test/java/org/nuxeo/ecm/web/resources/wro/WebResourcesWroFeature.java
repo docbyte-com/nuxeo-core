@@ -28,7 +28,6 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
  */
 @Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.core.api")
-@Deploy("org.nuxeo.theme.styling")
 @Deploy("org.nuxeo.web.resources.core")
 @Deploy("org.nuxeo.web.resources.wro")
 @Deploy("org.nuxeo.web.resources.wro.test:webresources-test-config.xml")

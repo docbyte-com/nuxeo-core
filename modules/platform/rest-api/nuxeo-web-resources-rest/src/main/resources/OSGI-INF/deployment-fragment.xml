@@ -11,12 +11,6 @@
       </listener-class>
     </listener>
 
-    <listener>
-      <listener-class>
-        org.nuxeo.ecm.web.resources.wro.servlet.NuxeoWroPageServletContextListener
-      </listener-class>
-    </listener>
-
   </extension>
 
   <extension target="web#FILTER">

@@ -970,12 +970,7 @@
         <scope>test</scope>
       </dependency>
 
-      <!-- Nuxeo Theme -->
-      <dependency>
-        <groupId>org.nuxeo.theme</groupId>
-        <artifactId>nuxeo-theme-styling</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
+      <!-- Nuxeo Web Resources -->
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-api</artifactId>
@@ -3992,11 +3987,6 @@
         <artifactId>wro4j-core</artifactId>
         <version>${wro4j.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.vaadin</groupId>
-        <artifactId>vaadin-sass-compiler</artifactId>
-        <version>0.9.13</version>
-      </dependency>
 
       <dependency>
         <groupId>io.gatling</groupId>
@@ -5404,10 +5394,6 @@
                 <group>
                   <title>Nuxeo WebEngine Packages</title>
                   <packages>org.nuxeo.webengine*:org.nuxeo.ecm.webengine*</packages>
-                </group>
-                <group>
-                  <title>Nuxeo Theme Packages</title>
-                  <packages>org.nuxeo.theme:org.nuxeo.theme.*</packages>
                 </group>
               </groups>
             </configuration>

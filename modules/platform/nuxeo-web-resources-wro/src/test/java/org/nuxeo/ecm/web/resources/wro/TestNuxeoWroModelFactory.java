@@ -85,7 +85,7 @@ public class TestNuxeoWroModelFactory {
     @Test
     public void testNuxeoWroModelBundle() throws Exception {
         Collection<Group> groups = model.getGroups();
-        assertEquals(4, groups.size());
+        assertEquals(3, groups.size());
         Iterator<Group> groupsIt = model.getGroups().iterator();
 
         Group all = groupsIt.next();
@@ -115,12 +115,11 @@ public class TestNuxeoWroModelFactory {
         assertTrue(myapp.hasResourcesOfType(ResourceType.CSS));
         assertTrue(myapp.hasResourcesOfType(ResourceType.JS));
         List<Resource> myappResources = myapp.getResources();
-        assertEquals(5, myappResources.size());
+        assertEquals(4, myappResources.size());
         assertEquals("nuxeo:jquery.js", myappResources.get(0).getUri());
         assertEquals("nuxeo:effects", myappResources.get(1).getUri());
         assertEquals("nuxeo:foldable-box.js", myappResources.get(2).getUri());
         assertEquals("nuxeo:foldable-box.css", myappResources.get(3).getUri());
-        assertEquals("nuxeo:nuxeo_dm_default.css", myappResources.get(4).getUri());
     }
 
 }
