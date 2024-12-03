@@ -5,4 +5,4 @@ org.mongodb:mongodb-driver-core
 org.mongodb:mongodb-driver-sync
 org.mariadb.jdbc:mariadb-java-client
 com.microsoft.sqlserver:mssql-jdbc
-com.novemberain:quartz-mongodb
+org.nuxeo.lib.novemberain:quartz-mongodb

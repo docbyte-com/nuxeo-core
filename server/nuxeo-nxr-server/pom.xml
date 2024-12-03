@@ -579,7 +579,7 @@
     </dependency>
 
     <dependency>
-      <groupId>com.novemberain</groupId>
+      <groupId>org.nuxeo.lib.novemberain</groupId>
       <artifactId>quartz-mongodb</artifactId>
     </dependency>
 
