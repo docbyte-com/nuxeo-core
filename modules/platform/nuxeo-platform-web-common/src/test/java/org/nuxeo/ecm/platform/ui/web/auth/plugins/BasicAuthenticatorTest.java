@@ -20,17 +20,13 @@ package org.nuxeo.ecm.platform.ui.web.auth.plugins;
 
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletRequest;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletResponse;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -54,60 +50,32 @@ public class BasicAuthenticatorTest {
     }
 
     @Test
-    public void itDoesntSentBAHeaderWhenExcludeHeaderIsPresent() throws Exception {
+    public void itDoesntSentBAHeaderWhenExcludeHeaderIsPresent() {
+        var req = MockHttpServletRequest.init().whenGetHeaderThenReturn("X-Authorization-token", "bla").mock();
+        var resp = MockHttpServletResponse.init().mock();
 
-        HttpServletRequest req = getRequestWithHeader("X-Authorization-token", "bla");
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
         ba.handleLoginPrompt(req, resp, "/");
 
         verify(resp, never()).addHeader(eq(BasicAuthenticator.BA_HEADER_NAME), anyString());
     }
 
     @Test
-    public void itDoesntSendBaHeaderWhenExcludedCookieIsPresnt() throws Exception {
-        HttpServletRequest req = getRequestWithCookie("X-Authorization-token", "bla");
+    public void itDoesntSendBaHeaderWhenExcludedCookieIsPresent() {
+        var req = MockHttpServletRequest.init().whenGetCookieThenReturn("X-Authorization-token", "bla").mock();
+        var resp = MockHttpServletResponse.init().mock();
 
-        HttpServletResponse resp = mock(HttpServletResponse.class);
         ba.handleLoginPrompt(req, resp, "/");
 
         verify(resp, never()).addHeader(eq(BasicAuthenticator.BA_HEADER_NAME), anyString());
     }
 
     @Test
-    public void itSendsABAHeaderWhenNoExcludeHeaderIsSet() throws Exception {
+    public void itSendsABAHeaderWhenNoExcludeHeaderIsSet() {
+        var req = MockHttpServletRequest.init().mock();
+        var resp = MockHttpServletResponse.init().mock();
 
-        HttpServletRequest req = mock(HttpServletRequest.class);
-
-        HttpServletResponse resp = mock(HttpServletResponse.class);
         ba.handleLoginPrompt(req, resp, "/");
 
         verify(resp).addHeader(eq(BasicAuthenticator.BA_HEADER_NAME), anyString());
-
-    }
-
-    private HttpServletRequest getRequestWithCookie(String cookieName, String value) {
-        return getMockRequest(cookieName, value, false, true);
-    }
-
-    private HttpServletRequest getRequestWithHeader(String headerName, String value) {
-        return getMockRequest(headerName, value, true, false);
-    }
-
-    /**
-     * Mocks a request with a mocked header or cookie
-     *
-     * @param header adds a header if true
-     * @param cookie adds a cookie if true
-     */
-    private HttpServletRequest getMockRequest(String name, String value, boolean header, boolean cookie) {
-        HttpServletRequest req = mock(HttpServletRequest.class);
-        if (cookie && value != null) {
-            when(req.getCookies()).thenReturn(new Cookie[] { new Cookie(name, value) });
-        }
-        if (header && value != null) {
-            when(req.getHeader(name)).thenReturn(value);
-        }
-        return req;
     }
 }
