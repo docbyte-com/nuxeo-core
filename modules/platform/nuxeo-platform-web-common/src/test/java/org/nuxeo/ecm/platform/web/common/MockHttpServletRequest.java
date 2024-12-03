@@ -145,6 +145,11 @@ public class MockHttpServletRequest {
         return this;
     }
 
+    public MockHttpServletRequest whenGetHeaderThenReturn(String name, String value) {
+        when(mock.getHeader(name)).thenReturn(value);
+        return this;
+    }
+
     public MockHttpServletRequest whenGetParameterThenReturn(String name, String value) {
         when(mock.getParameter(name)).thenReturn(value);
         return this;
