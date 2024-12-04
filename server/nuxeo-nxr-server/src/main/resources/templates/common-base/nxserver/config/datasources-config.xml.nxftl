@@ -23,12 +23,7 @@
 <#include "xadatasource-params.ftl" parse=true />
     </datasource>
 </#if>
-    <link name="jdbc/NuxeoDS" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/nxsqldirectory" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
-    <link name="jdbc/comment-relations" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
-    <link name="jdbc/nxjbpm" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
-    <link name="jdbc/placeful_service_ds" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
-    <link name="jdbc/nxwebwidgets" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/keyvaluestore" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
     <link name="jdbc/repository_default" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
 <#if "${nuxeo.quartz.enable}" == "true">
