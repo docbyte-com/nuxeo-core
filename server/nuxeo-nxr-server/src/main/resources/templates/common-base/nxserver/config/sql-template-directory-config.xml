@@ -1,6 +1,10 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.template.directory.sql">
 
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/nxsqldirectory" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
+  </extension>
+
   <require>org.nuxeo.ecm.directories</require>
   <extension target="org.nuxeo.ecm.directory.sql.SQLDirectoryFactory" point="directories">
 

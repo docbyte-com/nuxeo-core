@@ -27,6 +27,10 @@
 
 <#if "${nuxeo.mongodb.server}" == "">
 
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/repository_default" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
+  </extension>
+
   <extension target="org.nuxeo.ecm.core.storage.sql.RepositoryService"
     point="repository">
     <repository name="default" label="label.default.repository">
@@ -122,6 +126,10 @@
       </schema>
 </#if>
     </repository>
+  </extension>
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/keyvaluestore" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
   </extension>
 
   <extension target="org.nuxeo.runtime.kv.KeyValueService" point="configuration">
