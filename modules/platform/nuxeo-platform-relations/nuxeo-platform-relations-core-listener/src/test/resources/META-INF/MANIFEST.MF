@@ -3,4 +3,3 @@ Bundle-ManifestVersion: 1
 Bundle-Name: Nuxeo Comment project
 Bundle-SymbolicName: org.nuxeo.ecm.platform.relations.core.listener.tests;singleton=true
 Bundle-Vendor: Nuxeo
-Nuxeo-Component: OSGI-INF/test-relation-jena-contrib.xml

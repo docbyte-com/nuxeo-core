@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,9 @@ import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
 
+import org.nuxeo.ecm.platform.relations.CoreGraph;
 import org.nuxeo.ecm.platform.relations.api.Graph;
 import org.nuxeo.ecm.platform.relations.api.Statement;
-import org.nuxeo.ecm.platform.relations.jena.JenaGraph;
 
 /**
  * Relation graph importer/exporter.
@@ -53,8 +53,8 @@ public class IORelationGraphHelper {
     }
 
     protected Graph createMemoryGraph() {
-        JenaGraph graph = new JenaGraph();
-        graph.setNamespaces(namespaces);
+        var graph = new CoreGraph(null);
+        graph.getNamespaces().putAll(namespaces);
         return graph;
     }
 

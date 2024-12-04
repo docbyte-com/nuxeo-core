@@ -16,7 +16,6 @@
     <module>nuxeo-platform-relations-core-listener</module>
     <module>nuxeo-platform-relations-default-config</module>
     <module>nuxeo-platform-relations-io</module>
-    <module>nuxeo-platform-relations-jena-plugin</module>
   </modules>
 
 </project>

@@ -73,14 +73,13 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.ecm.platform.publisher")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.task.testing")
 @Deploy("org.nuxeo.ecm.platform.rendition.publisher")
 @Deploy("org.nuxeo.ecm.actions")
-@Deploy("org.nuxeo.ecm.platform.rendition.publisher:relations-default-jena-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.publisher:test-sql-directories-contrib.xml")
 public class TestRenditionPublicationWFReject {
 
@@ -181,14 +180,14 @@ public class TestRenditionPublicationWFReject {
     public void testRejectRenditionPublication() {
 
         changeUser("myuser1");
-        String defaultTreeName = publisherService.getAvailablePublicationTree().get(0);
+        String defaultTreeName = publisherService.getAvailablePublicationTree().getFirst();
         PublicationTree treeUser1 = publisherService.getPublicationTree(defaultTreeName, session, factoryParams);
 
         List<PublicationNode> nodes = treeUser1.getChildrenNodes();
         assertEquals(1, nodes.size());
-        assertEquals("Section1", nodes.get(0).getTitle());
+        assertEquals("Section1", nodes.getFirst().getTitle());
 
-        PublicationNode targetNode = nodes.get(0);
+        PublicationNode targetNode = nodes.getFirst();
 
         PublishedDocument publishedDocument = treeUser1.publish(doc2Publish, targetNode,
                 Collections.singletonMap(RENDITION_NAME_PARAMETER_KEY, "pdf"));
@@ -208,7 +207,7 @@ public class TestRenditionPublicationWFReject {
                 new DocumentLocationImpl(doc2Publish));
         assertEquals(1, publishedDocuments.size());
 
-        publishedDocument = publishedDocuments.get(0);
+        publishedDocument = publishedDocuments.getFirst();
         assertTrue(publishedDocument.isPending());
 
         assertTrue(treeUser2.canManagePublishing(publishedDocument));

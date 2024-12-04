@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.platform.routing.api.operation;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
@@ -29,9 +30,7 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRouteStep;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 
 /***
- * Updates the number of comments stored on the {@link DocumentRouteStep}. This is used to avoid unnecessary jena calls
- * when displaying the number of comments on each step. This updates the number of comments on the documents from the
- * relations. To invoke it: run from nuxeo-shell : run updateCommentsOnDoc
+ * Updates the number of comments stored on the {@link DocumentRouteStep}.
  *
  * @author mcedica
  */
@@ -45,10 +44,10 @@ public class UpdateCommentsInfoOnDocumentOperation {
 
     @OperationMethod
     public void updateCommentsInfo() {
-        DocumentModelList allDocsToUpdate = session.query(String.format(
-                "SELECT * FROM Document WHERE ecm:mixinType = '%s'",
-                DocumentRoutingConstants.COMMENTS_INFO_HOLDER_FACET));
-        if (allDocsToUpdate == null || allDocsToUpdate.size() == 0) {
+        DocumentModelList allDocsToUpdate = session.query(
+                String.format("SELECT * FROM Document WHERE ecm:mixinType = '%s'",
+                        DocumentRoutingConstants.COMMENTS_INFO_HOLDER_FACET));
+        if (CollectionUtils.isEmpty(allDocsToUpdate)) {
             return;
         }
         for (DocumentModel documentModel : allDocsToUpdate) {

@@ -1346,11 +1346,6 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-relations-jena-plugin</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-tag</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -3253,46 +3248,6 @@
         <groupId>cup</groupId>
         <artifactId>java-cup</artifactId>
         <version>0.11a</version>
-      </dependency>
-      <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>jena</artifactId>
-        <version>2.6.4-NX</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>json-jena</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>arq</artifactId>
-        <version>2.8.8</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>json-jena</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- conflicts with woodstox-core needed by jackson-dataformat-xml -->
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>wstx-asl</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>iri</artifactId>
-        <version>0.8</version>
       </dependency>
       <dependency>
         <groupId>com.ibm.icu</groupId>

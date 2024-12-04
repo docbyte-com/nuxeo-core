@@ -49,8 +49,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Features(AutomationFeaturesFeature.class)
 @Deploy("org.nuxeo.ecm.relations.api")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
-@Deploy("org.nuxeo.ecm.automation.core:test-relation-jena-contrib.xml")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 public class RelationOperationsTest {
 
     protected static final String conformsTo = "http://purl.org/dc/terms/ConformsTo";
@@ -111,7 +110,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -159,7 +158,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -207,7 +206,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -235,7 +234,7 @@ public class RelationOperationsTest {
         DocumentModelList docs3 = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs3.size());
-        assertEquals(dst, docs3.get(0));
+        assertEquals(dst, docs3.getFirst());
 
         ctx.clear();
         ctx.setInput(src);

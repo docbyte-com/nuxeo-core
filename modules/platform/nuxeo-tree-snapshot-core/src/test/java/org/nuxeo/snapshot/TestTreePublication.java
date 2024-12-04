@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  * Contributors:
- * Nuxeo - initial API and implementation
+ *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.snapshot;
 
 import static org.junit.Assert.assertEquals;
@@ -49,13 +48,12 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.ecm.platform.publisher")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.task.testing")
 @Deploy("org.nuxeo.snapshot")
-@Deploy("org.nuxeo.snapshot:relations-default-jena-contrib.xml")
 public class TestTreePublication {
 
     @Inject
@@ -97,13 +95,10 @@ public class TestTreePublication {
     }
 
     protected void debugCreationDate(DocumentModel doc) {
-        debug.append(doc.getName())
-             .append("@time=")
-             .append(System.currentTimeMillis())
-             .append(", ");
+        debug.append(doc.getName()).append("@time=").append(System.currentTimeMillis()).append(", ");
     }
 
-    protected void buildTree() throws Exception {
+    protected void buildTree() {
         root = session.createDocumentModel("/", "root", "SnapshotableFolder");
         root = session.createDocument(root);
         debugCreationDate(root);
@@ -161,7 +156,7 @@ public class TestTreePublication {
 
     }
 
-    protected void dumpDBContent() throws Exception {
+    protected void dumpDBContent() {
         System.out.println("\nDumping Live docs in repository");
         DocumentModelList docs = session.query("select * from Document where ecm:isVersion = 0 order by ecm:path");
         for (DocumentModel doc : docs) {
@@ -177,34 +172,33 @@ public class TestTreePublication {
     }
 
     @Test
-    public void shouldPublishATree() throws Exception {
+    public void shouldPublishATree() {
 
         buildTree();
 
         // setup tree
-        String defaultTreeName = publisherService.getAvailablePublicationTree().get(0);
+        String defaultTreeName = publisherService.getAvailablePublicationTree().getFirst();
         PublicationTree tree = publisherService.getPublicationTree(defaultTreeName, session, null);
 
         List<PublicationNode> nodes = tree.getChildrenNodes();
         assertEquals(1, nodes.size());
-        assertEquals("Section1", nodes.get(0).getTitle());
+        assertEquals("Section1", nodes.getFirst().getTitle());
 
-        PublicationNode targetNode = nodes.get(0);
+        PublicationNode targetNode = nodes.getFirst();
         assertTrue(tree.canPublishTo(targetNode));
 
         maybeSleepToNextSecond();
 
         tree.publish(root, targetNode);
         session.save();
-        debug.append("published@time=")
-             .append(System.currentTimeMillis())
-             .append(", ");
+        debug.append("published@time=").append(System.currentTimeMillis()).append(", ");
         if (verbose) {
             dumpDBContent();
         }
 
-        DocumentModelList docs = session.query("select * from Document where ecm:path STARTSWITH '/default-domain/sections/' order by ecm:path");
-        docs.remove(0); // remove head
+        DocumentModelList docs = session.query(
+                "select * from Document where ecm:path STARTSWITH '/default-domain/sections/' order by ecm:path");
+        docs.removeFirst(); // remove head
         assertEquals(9, docs.size()); // 9 proxies
         for (DocumentModel doc : docs) {
             assertTrue(doc.isProxy());
@@ -224,23 +218,19 @@ public class TestTreePublication {
         tree.publish(root, targetNode);
         transactionalFeature.nextTransaction();
         session.save();
-        debug.append("published@time=")
-             .append(System.currentTimeMillis())
-             .append(", ");
+        debug.append("published@time=").append(System.currentTimeMillis()).append(", ");
         if (verbose) {
             dumpDBContent();
         }
 
-        docs = session.query("select * from Document where ecm:path STARTSWITH '/default-domain/sections/' order by ecm:path");
-        docs.remove(0); // remove head
+        docs = session.query(
+                "select * from Document where ecm:path STARTSWITH '/default-domain/sections/' order by ecm:path");
+        docs.removeFirst(); // remove head
         assertEquals(9, docs.size()); // 9 proxies
 
         // gather debug info
         for (DocumentModel doc : docs) {
-            debug.append(doc.getName())
-                 .append("=")
-                 .append(doc.getVersionLabel())
-                 .append(", ");
+            debug.append(doc.getName()).append("=").append(doc.getVersionLabel()).append(", ");
         }
         for (DocumentModel doc : docs) {
             assertTrue(doc.isProxy());

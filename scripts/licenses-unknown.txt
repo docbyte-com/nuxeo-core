@@ -25,7 +25,6 @@
      (BSD 2) howl-logger (howl:howl-logger:0.1.11 - no url defined)
      (HPND) java-cup (cup:java-cup:0.11a - no url defined)
      (BSD) jdbm (jdbm:jdbm:1.0 - no url defined)
-     (BSD) jena (com.hp.hpl.jena:jena:2.6.4-NX - no url defined)
      (GPL 2) jes (com.ericdaugherty.mail:jes:1.6.1 - no url defined)
      (MIT) jmd (com.cforcoding.jmd:jmd:0.8.1-tomasol-3e60e36137 - no url defined)
      (CDDL 1.0 + GPL 2 CPE) jms (javax.jms:jms:1.1 - no url defined)

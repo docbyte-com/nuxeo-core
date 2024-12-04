@@ -106,7 +106,7 @@
     </dependency>
     <dependency>
       <groupId>org.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-relations-jena-plugin</artifactId>
+      <artifactId>nuxeo-platform-relations-default-config</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
