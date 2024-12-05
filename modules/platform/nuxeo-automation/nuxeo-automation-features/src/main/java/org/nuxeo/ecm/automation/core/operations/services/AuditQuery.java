@@ -25,9 +25,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
+import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
@@ -37,12 +35,8 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
-import org.nuxeo.ecm.core.persistence.PersistenceProvider;
-import org.nuxeo.ecm.core.persistence.PersistenceProvider.RunCallback;
-import org.nuxeo.ecm.core.persistence.PersistenceProviderFactory;
 import org.nuxeo.ecm.platform.audit.api.AuditReader;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -94,48 +88,32 @@ public class AuditQuery {
         return Blobs.createJSONBlobFromValue(rows);
     }
 
+    @SuppressWarnings("unchecked")
     public List<LogEntry> query() {
-        PersistenceProviderFactory pf = Framework.getService(PersistenceProviderFactory.class);
-        PersistenceProvider provider = pf.newProvider("nxaudit-logs");
-        return provider.run(false, new RunCallback<List<LogEntry>>() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public List<LogEntry> runWith(EntityManager em) {
-                Query q = em.createQuery(query);
-                if (maxResults > 0) {
-                    q.setMaxResults(maxResults);
-                    q.setFirstResult((pageNo - 1) * maxResults);
-                }
-                for (Map.Entry<String, Object> entry : ctx.entrySet()) {
-                    String key = entry.getKey();
-                    if (key.startsWith("audit.query.")) {
-                        setQueryParam(q, key.substring("audit.query.".length()), entry.getValue());
-                    }
-                }
-                return q.getResultList();
-            }
-        });
-
+        int pageSize = maxResults > 0 ? maxResults : 1000; // 1000 is the default in LogEntryProvider
+        var params = ctx.entrySet()
+                        .stream()
+                        .filter(entry -> entry.getKey().startsWith("audit.query."))
+                        .collect(Collectors.toMap(entry -> entry.getKey().substring("audit.query.".length()),
+                                entry -> mapValue(entry.getValue()), (a, b) -> b, LinkedHashMap::new));
+        return audit.nativeQuery(query, params, pageNo, pageSize);
     }
 
-    protected void setQueryParam(Query q, String key, Object value) {
-        if (value instanceof String) {
-            String v = (String) value;
-            if (v.startsWith("{d ") && v.endsWith("}")) {
-                v = v.substring(3, v.length() - 1).trim();
-                int i = v.indexOf(' ');
+    protected Object mapValue(Object value) {
+        if (value instanceof String string) {
+            if (string.startsWith("{d ") && string.endsWith("}")) {
+                string = string.substring(3, string.length() - 1).trim();
+                int i = string.indexOf(' ');
                 if (i == -1) {
-                    Date date = Date.valueOf(v);
-                    q.setParameter(key, date);
+                    return Date.valueOf(string);
                 } else {
-                    Timestamp ts = Timestamp.valueOf(v);
-                    q.setParameter(key, ts);
+                    return Timestamp.valueOf(string);
                 }
             } else {
-                q.setParameter(key, v);
+                return string;
             }
         } else {
-            q.setParameter(key, value);
+            return value;
         }
     }
 }
