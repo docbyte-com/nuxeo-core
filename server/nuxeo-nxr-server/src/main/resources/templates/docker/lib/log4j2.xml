@@ -61,7 +61,6 @@
       <BurstFilter level="warn" rate="0.0166" maxBurst="1"/>
     </Logger>
     <Logger name="org.nuxeo.ecm.core.storage.dbs.DBSCachingRepository" level="warn" />
-    <Logger name="org.nuxeo.elasticsearch.ElasticSearchComponent" level="warn" />
 
     <!-- Uncomment to debug fragments pre-processing
     <Logger name="org.nuxeo.runtime.deployment.preprocessor" level="info" />
@@ -105,11 +104,6 @@
     </Logger>
     <Logger name="org.nuxeo.ecm.core.storage.sql.jdbc" level="trace" additivity="false">
       <AppenderRef ref="STORAGE" />
-    </Logger>
-    -->
-    <!--
-    <Logger name="org.nuxeo.elasticsearch" level="trace" additivity="false">
-      <AppenderRef ref="ELASTIC" />
     </Logger>
     -->
 

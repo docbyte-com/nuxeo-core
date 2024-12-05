@@ -114,8 +114,8 @@ public class TestQueryObjectSearchService {
     }
 
     /**
-     * Testing the REST_API_SEARCH_ADAPTER page provider when using elasticsearch.override.pageproviders conf variable
-     * to replace the core page provider by ES generic.
+     * Testing the REST_API_SEARCH_ADAPTER page provider when using nuxeo.search.pageproviders.override conf variable to
+     * replace the core page provider by ES generic.
      *
      * @since 7.4
      */

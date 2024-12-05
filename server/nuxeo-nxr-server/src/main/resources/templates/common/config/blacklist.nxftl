@@ -1,6 +1,6 @@
 <#escape x as x?xml>
 org.nuxeo.runtime.trackers.files.threadstracking.config
-<#if elasticsearch.enabled != "true">
+<#if nuxeo.search.client.default.name != "opensearch">
 org.nuxeo.drive.elasticsearch.adapters
 org.nuxeo.drive.elasticsearch.automation.server.bindings
 org.nuxeo.drive.elasticsearch.operations
