@@ -21,7 +21,6 @@ package org.nuxeo.audit.api;
 
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData;
 
 /**
  * Query builder for querying audit.
@@ -32,7 +31,7 @@ public class AuditQueryBuilder extends QueryBuilder {
 
     @Override
     public QueryBuilder defaultOrder() {
-        return order(OrderByExprs.desc(BuiltinLogEntryData.LOG_EVENT_DATE));
+        return order(OrderByExprs.desc(LogEntryConstants.LOG_EVENT_DATE));
     }
 
 }
