@@ -85,7 +85,6 @@
      </logConfig>
   </#if>
   </extension>
-<#if "${nuxeo.pubsub.provider}" == "stream">
   <extension target="org.nuxeo.runtime.stream.service" point="logConfig">
   <#if "${kafka.enabled}" == "true">
      <logConfig name="pubsub" type="kafka">
@@ -107,5 +106,4 @@
       <option name="codec">${nuxeo.stream.pubsub.log.codec}</option>
     </provider>
   </extension>
-</#if>
 </component>
