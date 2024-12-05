@@ -166,8 +166,8 @@ elasticsearch.restClient.keystore.password=
 elasticsearch.restClient.keystore.type=
 elasticsearch.restClient.ssl.certificate.verification=true
 
-elasticsearch.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{runtime-opensearch,common,core-api,elasticsearch-core}*.jar
-elasticsearch.check.class=org.nuxeo.elasticsearch.ElasticSearchChecker
+elasticsearch.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{runtime-opensearch,common}*.jar
+elasticsearch.check.class=org.nuxeo.runtime.opensearch1.OpenSearchChecker
 # Nuxeo managing index alias
 elasticsearch.manageAlias.enabled=false
 # Bulk Index action, fetching content (bulk/index computation)

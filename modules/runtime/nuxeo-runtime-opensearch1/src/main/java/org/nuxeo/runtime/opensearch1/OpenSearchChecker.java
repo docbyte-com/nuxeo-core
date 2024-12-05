@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * Contributors:
  *     bdelbosc
  */
-package org.nuxeo.elasticsearch;
+package org.nuxeo.runtime.opensearch1;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,27 +29,14 @@ import org.nuxeo.runtime.opensearch1.client.OpenSearchRestClientFactory;
 /**
  * @since 11.3
  */
-public class ElasticSearchChecker implements BackingChecker {
+public class OpenSearchChecker implements BackingChecker {
 
-    private static final Logger log = LogManager.getLogger(ElasticSearchChecker.class);
+    private static final Logger log = LogManager.getLogger(OpenSearchChecker.class);
 
-    protected static final String ELASTIC_ENABLED_PROP = "elasticsearch.enabled";
-
-    protected static final String ELASTIC_REST_CLIENT_PROP = "elasticsearch.client";
-
-    protected static final String CONFIG_NAME = "elasticsearch-config.xml";
+    protected static final String CONFIG_NAME = "search-config.xml";
 
     @Override
     public boolean accepts(ConfigurationHolder configHolder) {
-        // not using Boolean.parseValue on purpose, only 'true' must trigger the checker
-        if (!"true".equals(configHolder.getProperty(ELASTIC_ENABLED_PROP))) {
-            log.debug("Checker skipped because elasticsearch is disabled");
-            return false;
-        }
-        if (!"RestClient".equals(configHolder.getProperty(ELASTIC_REST_CLIENT_PROP))) {
-            log.debug("Checker skipped because not using a rest client");
-            return false;
-        }
         log.debug("Checker accepted");
         return true;
     }
@@ -60,16 +47,16 @@ public class ElasticSearchChecker implements BackingChecker {
                 // avoid XMap to fail when trying to load class value by removing class attribute
                 content -> content.replace("class=", "ignore="), OpenSearchClientConfig.Store.class);
         if (config.getEmbedServer().isPresent()) {
-            log.debug("Elasticsearch config check skipped on embedded configuration");
+            log.debug("OpenSearch config check skipped on embedded configuration");
             return;
         }
-        log.debug("Check elastic config: {}", config);
+        log.debug("Check OpenSearch config: {}", config);
         try (var client = new OpenSearchRestClientFactory().create(config)) {
             if (!client.isReady()) {
-                throw new ConfigurationException("Elasticsearch cluster is not healthy");
+                throw new ConfigurationException("OpenSearch cluster is not healthy");
             }
         } catch (Exception e) {
-            throw new ConfigurationException("Unable to connect to Elasticsearch: " + config.getServers(), e);
+            throw new ConfigurationException("Unable to connect to OpenSearch: " + config.getServers(), e);
         }
     }
 }
