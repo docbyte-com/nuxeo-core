@@ -133,9 +133,13 @@ class FeaturesLoader {
             DynamicFeaturesLoader dynamicFeaturesLoader) throws ReflectiveOperationException {
         RunnerFeature feature;
         try {
-            feature = clazz.getDeclaredConstructor(DynamicFeaturesLoader.class).newInstance(dynamicFeaturesLoader);
+            var constructor = clazz.getDeclaredConstructor(DynamicFeaturesLoader.class);
+            constructor.setAccessible(true);
+            feature = constructor.newInstance(dynamicFeaturesLoader);
         } catch (NoSuchMethodException e) {
-            feature = clazz.getDeclaredConstructor().newInstance();
+            var constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            feature = constructor.newInstance();
         }
         return feature;
     }
