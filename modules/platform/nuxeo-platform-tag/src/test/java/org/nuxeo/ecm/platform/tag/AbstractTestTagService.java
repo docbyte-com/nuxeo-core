@@ -28,6 +28,7 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,7 +38,6 @@ import java.util.Set;
 
 import jakarta.inject.Inject;
 
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.api.AuditQueryBuilder;
@@ -112,7 +112,7 @@ public abstract class AbstractTestTagService {
     public void maybeSleep() {
         StorageConfiguration storageConfiguration = coreFeature.getStorageConfiguration();
         if (storageConfiguration.isVCSOracle() || storageConfiguration.isVCSSQLServer()) {
-            await().pollDelay(Duration.FIVE_SECONDS).until(() -> true);
+            await().pollDelay(Duration.ofSeconds(5)).until(() -> true);
         }
     }
 
@@ -428,7 +428,7 @@ public abstract class AbstractTestTagService {
         // Test tag present
         Set<String> tags = tagService.getTags(bobSession, file1Id);
         assertEquals(1, tags.size());
-        assertEquals("mytag", new ArrayList<>(tags).get(0));
+        assertEquals("mytag", new ArrayList<>(tags).getFirst());
 
         // Untag
         tagService.untag(bobSession, file1Id, "mytag");
@@ -592,7 +592,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag = 'tag2'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         nxql = nxql("SELECT * FROM File WHERE ecm:tag IN ('tag1', 'tag2')");
         assertEquals(2, session.query(nxql).size());
@@ -613,7 +613,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag/* = 'tag1' AND ecm:tag/* = 'tag2'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         // any tag instance
         nxql = nxql("SELECT * FROM File WHERE ecm:tag/* = 'tag1' OR ecm:tag/* = 'tag2'");
@@ -625,12 +625,12 @@ public abstract class AbstractTestTagService {
             nxql = nxql("SELECT * FROM File WHERE ecm:tag IS NULL'");
             dml = session.query(nxql);
             assertEquals(1, dml.size());
-            assertEquals(file3.getId(), dml.get(0).getId());
+            assertEquals(file3.getId(), dml.getFirst().getId());
 
             nxql = nxql("SELECT * FROM File WHERE ecm:tag/* IS NULL'");
             dml = session.query(nxql);
             assertEquals(1, dml.size());
-            assertEquals(file3.getId(), dml.get(0).getId());
+            assertEquals(file3.getId(), dml.getFirst().getId());
         }
 
         // numbered tag instance
@@ -653,7 +653,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag IN ('tag1', 'tag2') AND dc:title = 'file1'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         // ----- queryAndFetch -----
 

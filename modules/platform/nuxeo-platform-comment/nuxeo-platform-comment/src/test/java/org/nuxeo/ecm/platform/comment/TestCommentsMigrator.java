@@ -21,7 +21,6 @@ package org.nuxeo.ecm.platform.comment;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Objects.nonNull;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -46,6 +45,7 @@ import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STEP
 import static org.nuxeo.ecm.platform.comment.impl.CommentsMigrator.UNMIGRATED_COMMENTS_FOLDER_NAME;
 import static org.nuxeo.ecm.platform.ec.notification.NotificationConstants.DISABLE_NOTIFICATION_SERVICE;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -53,7 +53,6 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.core.LogEvent;
-import org.awaitility.Duration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -277,9 +276,8 @@ public class TestCommentsMigrator {
             migrationService.runStep(MIGRATION_ID, MIGRATION_STEP_PROPERTY_TO_SECURED);
 
             // Wait a bit for the migration to start and poll until migration done
-            Duration duration = new Duration(1, SECONDS);
-            await().pollDelay(duration)
-                   .pollInterval(duration)
+            await().pollDelay(Duration.ofSeconds(1))
+                   .pollInterval(Duration.ofSeconds(1))
                    .until(() -> !migrationService.getStatus(MIGRATION_ID).isRunning());
         });
         commentManager = Framework.getService(CommentManager.class);
@@ -471,9 +469,9 @@ public class TestCommentsMigrator {
         assertEquals(1, childrenOfProxyFile.size());
 
         // Check that the comments are created under the correct folder
-        checkCommentsForDocument(childrenOfFile1.get(0).getId());
-        checkCommentsForDocument(childrenOfFile2.get(0).getId());
-        checkCommentsForDocument(childrenOfFile2.get(0).getId());
+        checkCommentsForDocument(childrenOfFile1.getFirst().getId());
+        checkCommentsForDocument(childrenOfFile2.getFirst().getId());
+        checkCommentsForDocument(childrenOfFile2.getFirst().getId());
 
         // Ensure that there no more Comments folder
         DocumentModelList rootCommentFolder = session.query(CommentsMigrator.GET_COMMENTS_FOLDERS_QUERY);

@@ -25,10 +25,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
 import jakarta.inject.Inject;
 
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -68,8 +68,8 @@ public class TestCGCache {
         assertEquals(1, ConversionCacheHolder.getNbCacheEntries());
 
         // wait for the GCThread to run - 1s configured
-        await().atMost(Duration.TWO_SECONDS)
-               .pollInterval(Duration.ONE_SECOND)
+        await().atMost(Duration.ofSeconds(2))
+               .pollInterval(Duration.ofSeconds(1))
                .until(() -> ConversionCacheHolder.getNbCacheEntries() == 0);
     }
 

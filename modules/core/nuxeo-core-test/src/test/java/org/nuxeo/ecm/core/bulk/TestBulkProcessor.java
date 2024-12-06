@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.nuxeo.ecm.core.bulk;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.ONE_MINUTE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -273,7 +272,8 @@ public class TestBulkProcessor {
                 results.stream().filter(r -> "dummySequential".equals(r.getAction())).collect(Collectors.toList())));
 
         // sort by processing latencies
-        results.sort(Comparator.comparing(r -> r.getProcessingEndTime().toEpochMilli() - r.getProcessingStartTime().toEpochMilli()));
+        results.sort(Comparator.comparing(
+                r -> r.getProcessingEndTime().toEpochMilli() - r.getProcessingStartTime().toEpochMilli()));
         // the lowest latency must be a concurrent processing
         assertEquals("dummyConcurrent", results.get(0).getAction());
         // the slowest latency should be a sequential processing,
@@ -361,7 +361,7 @@ public class TestBulkProcessor {
                 new BulkCommand.Builder(SetPropertiesAction.ACTION_NAME, "ignored", "system").useExternalScroller()
                                                                                              .build());
         // wait for the scroller
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getState() == SCROLLING_RUNNING);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getState() == SCROLLING_RUNNING);
         BulkStatus status = service.getStatus(commandId);
         assertEquals(0, status.getTotal());
         assertEquals(0, status.getProcessed());
@@ -370,7 +370,7 @@ public class TestBulkProcessor {
         // now append first bucket
         service.appendExternalBucket(new BulkBucket(commandId, docs.subList(0, nbDocs / 2)));
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getProcessed() == nbDocs / 2);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getProcessed() == nbDocs / 2);
         status = service.getStatus(commandId);
         assertEquals(SCROLLING_RUNNING, status.getState());
         assertEquals(0, status.getTotal());
@@ -379,7 +379,7 @@ public class TestBulkProcessor {
         // now append second bucket
         service.appendExternalBucket(new BulkBucket(commandId, docs.subList(nbDocs / 2, nbDocs)));
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getProcessed() == nbDocs);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getProcessed() == nbDocs);
         status = service.getStatus(commandId);
         assertEquals(SCROLLING_RUNNING, status.getState());
         assertEquals(0, status.getTotal());
@@ -387,7 +387,7 @@ public class TestBulkProcessor {
 
         service.completeExternalScroll(commandId, nbDocs);
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getState() == COMPLETED);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getState() == COMPLETED);
         status = service.getStatus(commandId);
         assertEquals(nbDocs, status.getTotal());
         assertEquals(nbDocs, status.getProcessed());
@@ -413,7 +413,7 @@ public class TestBulkProcessor {
                 new BulkCommand.Builder(SetPropertiesAction.ACTION_NAME, "ignored", "system").useExternalScroller()
                                                                                              .build());
         // wait for the scroller
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getState() == SCROLLING_RUNNING);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getState() == SCROLLING_RUNNING);
         BulkStatus status = service.getStatus(commandId);
         assertEquals(0, status.getTotal());
         assertEquals(0, status.getProcessed());
@@ -421,7 +421,7 @@ public class TestBulkProcessor {
 
         service.completeExternalScroll(commandId, nbDocs);
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getState() == RUNNING);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getState() == RUNNING);
         status = service.getStatus(commandId);
         assertEquals(nbDocs, status.getTotal());
         assertEquals(0, status.getProcessed());
@@ -430,7 +430,7 @@ public class TestBulkProcessor {
         // now append first bucket
         service.appendExternalBucket(new BulkBucket(commandId, docs.subList(0, nbDocs / 2)));
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getProcessed() == nbDocs / 2);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getProcessed() == nbDocs / 2);
         status = service.getStatus(commandId);
         assertEquals(RUNNING, status.getState());
         assertEquals(nbDocs, status.getTotal());
@@ -439,7 +439,7 @@ public class TestBulkProcessor {
         // now append second bucket
         service.appendExternalBucket(new BulkBucket(commandId, docs.subList(nbDocs / 2, nbDocs)));
         // wait for the status
-        await().atMost(ONE_MINUTE).until(() -> service.getStatus(commandId).getProcessed() == nbDocs);
+        await().atMost(Duration.ofMinutes(1)).until(() -> service.getStatus(commandId).getProcessed() == nbDocs);
         status = service.getStatus(commandId);
         assertEquals(COMPLETED, status.getState());
         assertEquals(nbDocs, status.getTotal());

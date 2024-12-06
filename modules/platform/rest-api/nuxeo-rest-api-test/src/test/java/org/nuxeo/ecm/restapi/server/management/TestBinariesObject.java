@@ -16,9 +16,9 @@
  * Contributors:
  *     Salem Aouana
  */
-
 package org.nuxeo.ecm.restapi.server.management;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.nuxeo.ecm.core.api.Blobs.createBlob;
@@ -27,16 +27,14 @@ import static org.nuxeo.ecm.core.api.impl.blob.AbstractBlob.UTF_8;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.ENTITY_FIELD_NAME;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.awaitility.Awaitility;
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
@@ -109,20 +107,18 @@ public class TestBinariesObject extends ManagementBaseTest {
     protected void garbageCollectBinariesAndAssert(long expectedNumBinaries, long expectedSizeBinaries,
             long expectedNumBinariesGC, long expectedSizeBinariesGC) {
         // sleep needed because the GC doesn't remove very young files
-        Awaitility.await()
-                  .atMost(Duration.FIVE_SECONDS)
-                  .pollDelay(new Duration(DefaultBinaryGarbageCollector.TIME_RESOLUTION + 100, TimeUnit.MICROSECONDS))
-                  .untilAsserted( //
-                          () -> httpClient.buildDeleteRequest("/management/binaries/orphaned")
-                                          .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
-                                              assertEquals(BinaryManagerStatusJsonWriter.ENTITY_TYPE,
-                                                      jsonNode.get(ENTITY_FIELD_NAME).asText());
-                                              assertEquals(expectedNumBinaries, jsonNode.get("numBinaries").asLong());
-                                              assertEquals(expectedSizeBinaries, jsonNode.get("sizeBinaries").asLong());
-                                              assertEquals(expectedNumBinariesGC,
-                                                      jsonNode.get("numBinariesGC").asLong());
-                                              assertEquals(expectedSizeBinariesGC,
-                                                      jsonNode.get("sizeBinariesGC").asLong());
-                                          }));
+        await().atMost(Duration.ofSeconds(5))
+               .pollDelay(Duration.ofMillis(DefaultBinaryGarbageCollector.TIME_RESOLUTION + 100))
+               .untilAsserted( //
+                       () -> httpClient.buildDeleteRequest("/management/binaries/orphaned")
+                                       .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
+                                           assertEquals(BinaryManagerStatusJsonWriter.ENTITY_TYPE,
+                                                   jsonNode.get(ENTITY_FIELD_NAME).asText());
+                                           assertEquals(expectedNumBinaries, jsonNode.get("numBinaries").asLong());
+                                           assertEquals(expectedSizeBinaries, jsonNode.get("sizeBinaries").asLong());
+                                           assertEquals(expectedNumBinariesGC, jsonNode.get("numBinariesGC").asLong());
+                                           assertEquals(expectedSizeBinariesGC,
+                                                   jsonNode.get("sizeBinariesGC").asLong());
+                                       }));
     }
 }

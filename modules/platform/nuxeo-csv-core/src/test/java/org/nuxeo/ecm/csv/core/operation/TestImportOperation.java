@@ -24,13 +24,13 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.awaitility.Duration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,7 +104,7 @@ public class TestImportOperation {
 
         assertNotNull(importId);
 
-        await().pollInterval(Duration.ONE_HUNDRED_MILLISECONDS).atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS).until(() -> {
+        await().pollInterval(Duration.ofMillis(100)).atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS).until(() -> {
             var statusChain = new OperationChain("test-chain");
             statusChain.add(CSVImportStatusOperation.ID);
 
