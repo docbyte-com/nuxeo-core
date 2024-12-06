@@ -95,7 +95,7 @@ public final class ThirdPartyUnderTest {
     public static final String STORAGE_OPENSEARCH_1_SERVERS_VALUE = computeSystemProperty(
             STORAGE_OPENSEARCH_1_SERVERS_PROPERTY,
             // fallback on deprecated property
-            new SystemProperty("nuxeo.test.elasticsearch.addressList", "http://localhost:9200"));
+            new SystemProperty("nuxeo.test.elasticsearch.addressList"));
 
     public static String computeSystemProperty(String key, String defaultValue) {
         return computeSystemProperty(new SystemProperty(key, defaultValue));
@@ -111,6 +111,10 @@ public final class ThirdPartyUnderTest {
                           .filter(StringUtils::isNotBlank) // should not happen
                           .findFirst()
                           .orElse(property.defaultValue());
+            if (value == null) {
+                throw new IllegalStateException(
+                        "The default value for property: " + key + " is null, check your test configuration");
+            }
             System.setProperty(key, value);
         }
         return value;
@@ -120,8 +124,16 @@ public final class ThirdPartyUnderTest {
     }
 
     public record SystemProperty(String key, String defaultValue, boolean isConfigured) {
+        public SystemProperty(String key) {
+            this(key, null);
+        }
+
         public SystemProperty(String key, String defaultValue) {
             this(key, defaultValue, System.getProperties().containsKey(key));
+        }
+
+        public SystemProperty withDefault(String defaultValue) {
+            return new SystemProperty(key, defaultValue, isConfigured);
         }
     }
 }
