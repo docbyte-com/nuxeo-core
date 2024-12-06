@@ -207,6 +207,8 @@ updates:
       # Minor version update breaking compilation
       - dependency-name: "org.osgi:org.osgi.core"
         versions: ["[4.4,)"]
+      - dependency-name: "io.gatling*:*"
+        versions: ["[3.13.0,)"]
 
       # Nuxeo patch needed
       - dependency-name: "com.googlecode.owasp-java-html-sanitizer:owasp-java-html-sanitizer"
