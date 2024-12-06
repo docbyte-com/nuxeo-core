@@ -22,6 +22,7 @@ import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERT
 import static org.nuxeo.audit.sql.SQLAuditFeature.AUDIT_BACKEND_FACTORY;
 
 import org.nuxeo.audit.AuditCoreFeature;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -33,7 +34,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Deploy("org.nuxeo.audit.sql")
 @Deploy("org.nuxeo.audit.sql.test")
 @Deploy("org.nuxeo.ecm.core.persistence")
-@Features(AuditCoreFeature.class)
+@Features({ DataSourceFeature.class, AuditCoreFeature.class })
 @WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = AUDIT_BACKEND_FACTORY)
 public class SQLAuditFeature implements RunnerFeature {
 

@@ -1,12 +1,9 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.audit.sql.backend.test">
 
+  <require>org.nuxeo.runtime.datasource.test</require>
   <extension target="org.nuxeo.runtime.datasource" point="datasources">
-    <datasource name="jdbc/nxaudit-logs" driverClassName="${nuxeo.test.vcs.driver}">
-      <property name="url">${nuxeo.test.vcs.url}</property>
-      <property name="username">${nuxeo.test.vcs.user}</property>
-      <property name="password">${nuxeo.test.vcs.password}</property>
-    </datasource>
+    <link name="jdbc/nxaudit-logs" global="jdbc/${nuxeo.test.sql.database}"/>
   </extension>
 
   <!-- re-enable page provider tracking for tests, cf TestAuditPageProviderTracking -->

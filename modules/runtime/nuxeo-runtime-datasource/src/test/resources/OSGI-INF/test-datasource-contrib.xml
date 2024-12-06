@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.datasource.test">
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <datasource name="jdbc/${nuxeo.test.sql.database}" driverClassName="${nuxeo.test.sql.driver}"
+                maxTotal="30" minTotal="5" maxWaitMillis="10000">
+      <property name="url">${nuxeo.test.sql.url}</property>
+      <property name="username">${nuxeo.test.sql.user}</property>
+      <property name="password">${nuxeo.test.sql.password:=}</property>
+      <property name="cacheState">false</property> <!-- NXP-29853 workaround for DBCP-568 -->
+    </datasource>
+  </extension>
+
+</component>

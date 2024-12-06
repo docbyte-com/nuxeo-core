@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,15 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.directory.sql.SQLDirectoryFeature;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Defaults;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
@@ -43,20 +45,20 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
  * @author bogdan
  * @since 9.2
  */
-@Features(CoreFeature.class)
+@Features({ LogFeature.class, SQLDirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.directory.sql")
 @Deploy("org.nuxeo.ecm.directory.ldap")
 @Deploy("org.nuxeo.ecm.directory.ldap.tests")
 @Deploy("org.nuxeo.ecm.directory.ldap.tests:ldap-test-setup/DirectoryTypes.xml")
 @Deploy("org.nuxeo.ecm.directory.ldap.tests:TestSQLDirectories.xml")
+@BlacklistComponent("org.nuxeo.ecm.directory.ldap.management") // needs CoreManagementComponent
 // ignore warning explaining that admin password needs to be changed, as it cannot be changed before startup
 @LoggerLevel(name = "org.apache.directory.server.core.DefaultDirectoryService", level = "ERROR")
 public class LDAPDirectoryFeature implements RunnerFeature {
 
     /**
-     * Can be used to change the the local server setup file. The default setup file is
+     * Can be used to change the local server setup file. The default setup file is
      * <code>TestDirectoriesWithInternalApacheDS.xml</code>
      *
      * @author bogdan
@@ -89,8 +91,7 @@ public class LDAPDirectoryFeature implements RunnerFeature {
         boolean isPosixGroupStructural() default true;
 
         /**
-         * change this flag if your test server has support for dynamic groups through the groupOfURLs objectclass, eg
-         * for OpenLDAP: http://www.ldap.org.br/modules/ldap/files/files///dyngroup.schema
+         * change this flag if your test server has support for dynamic groups through the groupOfURLs objectclass.
          */
         boolean hasDynGroupSchema() default false;
 

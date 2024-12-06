@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,21 @@ package org.nuxeo.ecm.core.persistence;
 
 import java.util.List;
 
-import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class) // to init properties for SQL datasources
+@Features({ DataSourceFeature.class, TransactionalFeature.class })
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.core.persistence.test:OSGI-INF/test-persistence-config.xml")
 public class TestPersistenceProvider {
@@ -48,18 +48,19 @@ public class TestPersistenceProvider {
 
     @After
     public void tearDown() {
-        EntityManager em = persistenceProvider.acquireEntityManager();
+        try (var em = persistenceProvider.acquireEntityManager()) {
 
-        // clean all entities
-        Query q = em.createQuery("select id from DummyEntity");
-        @SuppressWarnings("unchecked")
-        List<String> list = q.getResultList();
-        for (String id : list) {
-            DummyEntity entity = em.find(DummyEntity.class, id);
-            em.remove(entity);
+            // clean all entities
+            Query q = em.createQuery("select id from DummyEntity");
+            @SuppressWarnings("unchecked")
+            List<String> list = q.getResultList();
+            for (String id : list) {
+                DummyEntity entity = em.find(DummyEntity.class, id);
+                em.remove(entity);
+            }
+            em.flush();
+            em.clear();
         }
-        em.flush();
-        em.clear();
 
         deactivatePersistenceProvider();
     }
@@ -87,28 +88,27 @@ public class TestPersistenceProvider {
     }
 
     @Test
-    public void testBase() throws Exception {
-        EntityManager em = persistenceProvider.acquireEntityManager();
-        DummyEntity entity = new DummyEntity("1");
-        em.persist(entity);
-        em.flush();
-        em.clear();
-        em.close();
+    public void testBase() {
+        try (var em = persistenceProvider.acquireEntityManager()) {
+            DummyEntity entity = new DummyEntity("1");
+            em.persist(entity);
+            em.flush();
+            em.clear();
+        }
     }
 
     @Test
-    public void testAcquireTwiceInSameTx() throws Exception {
-        EntityManager em;
-        em = persistenceProvider.acquireEntityManager();
-        em.persist(new DummyEntity("1"));
-        em.flush();
-        em.clear();
-        em.close();
-        em = persistenceProvider.acquireEntityManager();
-        em.persist(new DummyEntity("2"));
-        em.flush();
-        em.clear();
-        em.close();
+    public void testAcquireTwiceInSameTx() {
+        try (var em = persistenceProvider.acquireEntityManager()) {
+            em.persist(new DummyEntity("1"));
+            em.flush();
+            em.clear();
+        }
+        try (var em = persistenceProvider.acquireEntityManager()) {
+            em.persist(new DummyEntity("2"));
+            em.flush();
+            em.clear();
+        }
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,22 @@
  * Contributors:
  *     Florent Guillaume
  */
-package org.nuxeo.ecm.core;
+package org.nuxeo.ecm.core.storage.sql;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.runtime.datasource.DataSourceFeature.DATABASE_VALUE;
 
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-
-import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.storage.sql.jdbc.JDBCConnection;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.runtime.datasource.ConnectionHelper;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -44,35 +40,15 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * Test that transaction management does the right thing with the connection.
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(DataSourceFeature.class)
 public class TestConnectionManagement {
-
-    @Inject
-    protected CoreFeature coreFeature;
-
-    /**
-     * H2 cannot have one connection doing an insert in a tx and another using the same table, as it waits for a lock.
-     */
-    protected boolean canUseTwoConnections() {
-        StorageConfiguration database = coreFeature.getStorageConfiguration();
-        return !database.isVCSH2();
-    }
 
     protected String getValidationQuery(Connection connection) {
         return Dialect.createDialect(connection, null).getValidationQuery();
     }
 
-    protected static void assertEqualsInt(int expected, ResultSet rs) throws SQLException {
-        assertTrue(rs.next());
-        int actual = rs.getInt(1);
-        assertEquals(expected, actual);
-        assertFalse(rs.next());
-        rs.close();
-    }
-
     protected Connection getConnection() throws SQLException {
-        String repositoryName = coreFeature.getRepositoryName();
-        return ConnectionHelper.getConnection(JDBCConnection.getDataSourceName(repositoryName));
+        return ConnectionHelper.getConnection(JDBCConnection.getDataSourceName(DATABASE_VALUE));
     }
 
     @Test

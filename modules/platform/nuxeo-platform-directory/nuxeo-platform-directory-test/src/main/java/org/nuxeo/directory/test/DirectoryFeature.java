@@ -18,6 +18,11 @@
  */
 package org.nuxeo.directory.test;
 
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.DIRECTORY_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
+import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,9 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.directory.mongodb.MongoDBDirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -38,8 +46,10 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.directory.multi.MultiDirectory;
+import org.nuxeo.ecm.directory.sql.SQLDirectoryFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -51,27 +61,35 @@ import com.google.inject.name.Names;
 /**
  * @since 9.2
  */
-@Deploy("org.nuxeo.ecm.directory.sql")
-@Deploy("org.nuxeo.directory.mongodb")
 @Deploy("org.nuxeo.directory.test")
 @Features({ CoreFeature.class, DirectoryCoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class DirectoryFeature implements RunnerFeature {
 
+    private static final Logger log = LogManager.getLogger(DirectoryFeature.class);
+
     public static final String USER_DIRECTORY_NAME = "userDirectory";
 
     public static final String GROUP_DIRECTORY_NAME = "groupDirectory";
-
-    protected CoreFeature coreFeature;
-
-    protected DirectoryConfiguration directoryConfiguration;
 
     protected Granularity granularity;
 
     protected Map<String, Map<String, Map<String, Object>>> allDirectoryData;
 
+    public DirectoryFeature(DynamicFeaturesLoader loader) {
+        var feature = switch (DIRECTORY_SERVICE_VALUE) {
+            case STORAGE_MONGODB -> MongoDBDirectoryFeature.class;
+            case STORAGE_SQL -> SQLDirectoryFeature.class;
+            default -> throw new UnsupportedOperationException(
+                    "Directory type: " + DIRECTORY_SERVICE_VALUE + " is not supported");
+        };
+        loader.loadFeature(feature);
+    }
+
     @Override
-    public void beforeRun(FeaturesRunner runner) {
+    public void start(FeaturesRunner runner) {
+        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Directory using {}",
+                () -> StringUtils.capitalize(DIRECTORY_SERVICE_VALUE.toLowerCase()));
         granularity = runner.getFeature(CoreFeature.class).getGranularity();
     }
 
@@ -79,18 +97,6 @@ public class DirectoryFeature implements RunnerFeature {
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindDirectory(binder, USER_DIRECTORY_NAME);
         bindDirectory(binder, GROUP_DIRECTORY_NAME);
-    }
-
-    @Override
-    public void start(FeaturesRunner runner) {
-        coreFeature = runner.getFeature(CoreFeature.class);
-        directoryConfiguration = new DirectoryConfiguration(coreFeature.getStorageConfiguration());
-        directoryConfiguration.init();
-        try {
-            directoryConfiguration.deployContrib(runner);
-        } catch (Exception e) {
-            throw new NuxeoException(e);
-        }
     }
 
     @Override

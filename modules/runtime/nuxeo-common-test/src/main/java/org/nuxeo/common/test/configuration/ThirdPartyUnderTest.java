@@ -20,9 +20,8 @@ package org.nuxeo.common.test.configuration;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
+import java.util.Objects;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Helper class to retrieve current ongoing test configuration regarding Third Party services.
@@ -44,6 +43,10 @@ public final class ThirdPartyUnderTest {
     public static final String STORAGE_OPENSEARCH_1 = "opensearch1";
 
     public static final String STORAGE_SQL = "sql";
+
+    public static final String STORAGE_SQL_DB_H2 = "H2";
+
+    public static final String STORAGE_SQL_DB_POSTGRESQL = "PostgreSQL";
 
     public static final String STREAM_KAFKA = "kafka";
 
@@ -83,6 +86,9 @@ public final class ThirdPartyUnderTest {
     public static final SystemProperty STORAGE_OPENSEARCH_1_SERVERS_PROPERTY = new SystemProperty(
             "nuxeo.test.opensearch1.servers", "http://localhost:9200");
 
+    public static final SystemProperty STORAGE_SQL_DB_PROPERTY = new SystemProperty("nuxeo.test.sql.db",
+            STORAGE_SQL_DB_H2);
+
     public static final SystemProperty STREAM_KAFKA_SERVERS_PROPERTY = new SystemProperty("nuxeo.test.kafka.servers",
             "localhost:9092");
 
@@ -97,6 +103,10 @@ public final class ThirdPartyUnderTest {
             // fallback on deprecated property
             new SystemProperty("nuxeo.test.elasticsearch.addressList"));
 
+    public static final String STORAGE_SQL_DB_VALUE = computeSystemProperty(STORAGE_SQL_DB_PROPERTY,
+            // fallback on deprecated property
+            new SystemProperty("nuxeo.test.vcs.db"));
+
     public static String computeSystemProperty(String key, String defaultValue) {
         return computeSystemProperty(new SystemProperty(key, defaultValue));
     }
@@ -108,7 +118,7 @@ public final class ThirdPartyUnderTest {
             value = Stream.of(dependencies)
                           .filter(SystemProperty::isConfigured)
                           .map(p -> System.getProperty(p.key()))
-                          .filter(StringUtils::isNotBlank) // should not happen
+                          .filter(Objects::nonNull) // should not happen
                           .findFirst()
                           .orElse(property.defaultValue());
             if (value == null) {
