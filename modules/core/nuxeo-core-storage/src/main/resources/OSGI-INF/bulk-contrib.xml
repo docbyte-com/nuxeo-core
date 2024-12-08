@@ -4,12 +4,12 @@
   <require>org.nuxeo.ecm.core.bulk.config</require>
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="extractBinaryFulltext" inputStream="bulk/extractBinaryFulltext" bucketSize="50" batchSize="10" httpEnabled="false" />
+    <action name="extractBinaryFulltext" defaultScroller="repository" inputStream="bulk/extractBinaryFulltext"
+      bucketSize="50" batchSize="10" httpEnabled="false" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
-    <streamProcessor name="extractBinaryFulltext"
-      class="org.nuxeo.ecm.core.storage.action.ExtractBinaryFulltextAction"
+    <streamProcessor name="extractBinaryFulltext" class="org.nuxeo.ecm.core.storage.action.ExtractBinaryFulltextAction"
       defaultConcurrency="${nuxeo.bulk.action.extractBinaryFulltext.defaultConcurrency:=2}"
       defaultPartitions="${nuxeo.bulk.action.extractBinaryFulltext.defaultPartitions:=4}">
       <policy name="default" maxRetries="3" delay="1s" continueOnFailure="true" />

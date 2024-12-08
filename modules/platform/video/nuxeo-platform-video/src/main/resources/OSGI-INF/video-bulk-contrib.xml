@@ -2,8 +2,8 @@
 <component name="org.nuxeo.ecm.platform.video.bulk" version="1.0.0">
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="recomputeVideoConversion" inputStream="bulk/recomputeVideoConversion" bucketSize="2" batchSize="1"
-      validationClass="org.nuxeo.ecm.platform.video.action.RecomputeVideoConversionsActionValidation" />
+    <action name="recomputeVideoConversion" defaultScroller="repository" inputStream="bulk/recomputeVideoConversion"
+      bucketSize="2" batchSize="1" validationClass="org.nuxeo.ecm.platform.video.action.RecomputeVideoConversionsActionValidation" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
