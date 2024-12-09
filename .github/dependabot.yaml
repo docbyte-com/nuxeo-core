@@ -181,7 +181,7 @@ updates:
     ignore:
       # Ignore Jakarta EE minor update
       - dependency-name: "jakarta.*:*"
-        update-types: ["version-update:semver-minor"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       # Pre-release version that is taking precedence over the regular one
       - dependency-name: "jakarta.inject:jakarta.inject-api"
         versions: ["2.0.1.MR"]
