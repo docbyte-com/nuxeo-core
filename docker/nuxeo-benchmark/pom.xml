@@ -33,6 +33,11 @@
       <artifactId>nuxeo-importer-package</artifactId>
       <type>zip</type>
     </dependency>
+    <dependency>
+      <groupId>org.nuxeo.packages</groupId>
+      <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
   </dependencies>
 
   <build>

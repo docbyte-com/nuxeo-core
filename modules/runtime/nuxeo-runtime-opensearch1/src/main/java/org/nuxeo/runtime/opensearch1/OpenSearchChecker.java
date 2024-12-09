@@ -33,7 +33,7 @@ public class OpenSearchChecker implements BackingChecker {
 
     private static final Logger log = LogManager.getLogger(OpenSearchChecker.class);
 
-    protected static final String CONFIG_NAME = "search-config.xml";
+    protected static final String CONFIG_NAME = "opensearch1-search-client-config.xml";
 
     @Override
     public boolean accepts(ConfigurationHolder configHolder) {

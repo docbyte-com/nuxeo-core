@@ -361,7 +361,6 @@ public class ConfigurationChecker {
         var checkers = new ArrayList<BackingChecker>();
         var items = new ArrayList<>(configHolder.getIncludedTemplateNames());
         // Add backing without template
-        items.add("elasticsearch");
         items.add("kafka");
         for (String item : items) {
             try {

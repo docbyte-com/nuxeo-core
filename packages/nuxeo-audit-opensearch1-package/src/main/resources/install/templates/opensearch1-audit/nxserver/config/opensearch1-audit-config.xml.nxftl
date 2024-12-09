@@ -11,16 +11,22 @@
       <connectionTimeout>${nuxeo.audit.backend.default.opensearch1.client.connectionTimeout}</connectionTimeout>
       <socketTimeout>${nuxeo.audit.backend.default.opensearch1.client.socketTimeout}</socketTimeout>
       <sslCertificateVerification>${nuxeo.audit.backend.default.opensearch1.client.sslCertificateVerification}</sslCertificateVerification>
+<#if (nuxeo.audit.backend.default.opensearch1.client.username)?has_content>
       <username>${nuxeo.audit.backend.default.opensearch1.client.username}</username>
       <password>${nuxeo.audit.backend.default.opensearch1.client.password}</password>
+</#if>
+<#if (nuxeo.audit.backend.default.opensearch1.client.trustStore.type)?has_content>
       <trustStore type="${nuxeo.audit.backend.default.opensearch1.client.trustStore.type}">
         <path>${nuxeo.audit.backend.default.opensearch1.client.trustStore.path}</path>
         <password>${nuxeo.audit.backend.default.opensearch1.client.trustStore.password}</password>
       </trustStore>
+</#if>
+<#if (nuxeo.audit.backend.default.opensearch1.client.keyStore.type)?has_content>
       <keyStore type="${nuxeo.audit.backend.default.opensearch1.client.keyStore.type}">
         <path>${nuxeo.audit.backend.default.opensearch1.client.keyStore.path}</path>
         <password>${nuxeo.audit.backend.default.opensearch1.client.keyStore.password}</password>
       </keyStore>
+</#if>
     </client>
   </extension>
 

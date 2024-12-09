@@ -186,7 +186,6 @@
     <Logger name="org.apache.shindig.common.xml.XmlUtil" level="warn" />
     <Logger name="org.apache.myfaces.shared_tomahawk" level="warn" />
 
-    <Logger name="org.elasticsearch.bootstrap" level="error" />
     <!-- Remove WARN on deprecated on [ignore_throttled] parameter -->
     <Logger name="org.opensearch.client.RestClient" level="error" />
 

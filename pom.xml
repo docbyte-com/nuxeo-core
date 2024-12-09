@@ -2151,6 +2151,12 @@
       </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
+        <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.packages</groupId>
         <artifactId>nuxeo-shibboleth-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>

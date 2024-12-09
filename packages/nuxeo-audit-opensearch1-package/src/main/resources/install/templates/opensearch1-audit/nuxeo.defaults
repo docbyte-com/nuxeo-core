@@ -16,14 +16,14 @@ nuxeo.audit.backend.default.opensearch1.client.server=${nuxeo.opensearch1.client
 nuxeo.audit.backend.default.opensearch1.client.connectionTimeout=${nuxeo.opensearch1.client.connectionTimeout:=${elasticsearch.restClient.connectionTimeoutMs:=30000}ms}
 nuxeo.audit.backend.default.opensearch1.client.socketTimeout=${nuxeo.opensearch1.client.socketTimeout:=${elasticsearch.restClient.socketTimeoutMs:=121000}ms}
 nuxeo.audit.backend.default.opensearch1.client.sslCertificateVerification=${nuxeo.opensearch1.client.sslCertificateVerification:=${elasticsearch.restClient.ssl.certificate.verification:=true}}
-nuxeo.audit.backend.default.opensearch1.client.username=${nuxeo.opensearch1.client.username:=${elasticsearch.restClient.username}}
-nuxeo.audit.backend.default.opensearch1.client.password=${nuxeo.opensearch1.client.password:=${elasticsearch.restClient.password}}
-nuxeo.audit.backend.default.opensearch1.client.trustStore.path=${nuxeo.opensearch1.client.trustStore.path:=${elasticsearch.restClient.truststore.path}}
-nuxeo.audit.backend.default.opensearch1.client.trustStore.password=${nuxeo.opensearch1.client.trustStore.password:=${elasticsearch.restClient.truststore.password}}
-nuxeo.audit.backend.default.opensearch1.client.trustStore.type=${nuxeo.opensearch1.client.trustStore.type:=${elasticsearch.restClient.truststore.type}}
-nuxeo.audit.backend.default.opensearch1.client.keyStore.path=${nuxeo.opensearch1.client.keyStore.path:=${elasticsearch.restClient.keystore.path}}
-nuxeo.audit.backend.default.opensearch1.client.keyStore.password=${nuxeo.opensearch1.client.keyStore.password:=${elasticsearch.restClient.keystore.password}}
-nuxeo.audit.backend.default.opensearch1.client.keyStore.type=${nuxeo.opensearch1.client.keyStore.type:=${elasticsearch.restClient.keystore.type}}
+nuxeo.audit.backend.default.opensearch1.client.username=${nuxeo.opensearch1.client.username:=${elasticsearch.restClient.username:=}}
+nuxeo.audit.backend.default.opensearch1.client.password=${nuxeo.opensearch1.client.password:=${elasticsearch.restClient.password:=}}
+nuxeo.audit.backend.default.opensearch1.client.trustStore.path=${nuxeo.opensearch1.client.trustStore.path:=${elasticsearch.restClient.truststore.path:=}}
+nuxeo.audit.backend.default.opensearch1.client.trustStore.password=${nuxeo.opensearch1.client.trustStore.password:=${elasticsearch.restClient.truststore.password:=}}
+nuxeo.audit.backend.default.opensearch1.client.trustStore.type=${nuxeo.opensearch1.client.trustStore.type:=${elasticsearch.restClient.truststore.type:=}}
+nuxeo.audit.backend.default.opensearch1.client.keyStore.path=${nuxeo.opensearch1.client.keyStore.path:=${elasticsearch.restClient.keystore.path:=}}
+nuxeo.audit.backend.default.opensearch1.client.keyStore.password=${nuxeo.opensearch1.client.keyStore.password:=${elasticsearch.restClient.keystore.password:=}}
+nuxeo.audit.backend.default.opensearch1.client.keyStore.type=${nuxeo.opensearch1.client.keyStore.type:=${elasticsearch.restClient.keystore.type:=}}
 
 nuxeo.audit.backend.default.opensearch1.settings.indexTranslogDurability=${elasticsearch.index.translog.durability:=request}
 nuxeo.audit.backend.default.opensearch1.settings.numberOfShards=${elasticsearch.indexNumberOfShards:=5}
