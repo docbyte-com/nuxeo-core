@@ -20,6 +20,7 @@
 package org.nuxeo.ecm.platform.pdf;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  *
  * @since 8.10
  */
-public class PDFLinks {
+public class PDFLinks implements Closeable {
 
     private Blob pdfBlob;
 
@@ -78,6 +79,7 @@ public class PDFLinks {
      * To avoid opening/parsing several times the same document, we don't close it after a get...Link() call. It is
      * important that the caller explcitly closes it.
      */
+    @Override
     public void close() {
         PDFUtils.closeSilently(pdfDoc);
         pdfDoc = null;
@@ -91,6 +93,8 @@ public class PDFLinks {
     /**
      * Here, we not only open and load the PDF, we also prepare regions to get the text behind the annotation
      * rectangles.
+     * <p>
+     * Note that the loaded {@code PDDocument} is not closed, it is the caller's responsibility to do it.
      */
     private void loadAndPreflightPdf() throws NuxeoException {
         if (pdfDoc != null) {

@@ -28,9 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -97,13 +99,13 @@ public class PDFPageNumbering {
         inStartAtPage = inStartAtPage < 1 ? 1 : inStartAtPage;
         int pageNumber = inStartAtNumber < 1 ? 1 : inStartAtNumber;
         inFontSize = inFontSize <= 0 ? DEFAULT_FONT_SIZE : inFontSize;
-        int[] rgb = PDFUtils.hex255ToRGB(inHex255Color);
+        float[] rgb = PDFUtils.hex255ToRGBFloat(inHex255Color);
         try (PDDocument doc = PDFUtils.load(blob, password)) {
             List<?> allPages;
             PDFont font;
             int max;
             if (StringUtils.isBlank(inFontName)) {
-                font = PDType1Font.HELVETICA;
+                font = new PDType1Font(FontName.HELVETICA);
             } else {
                 font = PDFUtils.getStandardType1Font(inFontName);
                 if (font == null) {
@@ -117,7 +119,7 @@ public class PDFPageNumbering {
                 String pageNumAsStr = Integer.toString(pageNumber);
                 pageNumber += 1;
                 PDPage page = (PDPage) allPages.get(i - 1);
-                PDPageContentStream footercontentStream = new PDPageContentStream(doc, page, true, true);
+                PDPageContentStream footercontentStream = new PDPageContentStream(doc, page, AppendMode.APPEND, true);
                 float stringWidth = font.getStringWidth(pageNumAsStr) * inFontSize / 1000f;
                 float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() * inFontSize / 1000;
                 PDRectangle pageRect = page.getMediaBox();
@@ -155,9 +157,9 @@ public class PDFPageNumbering {
                 }
                 footercontentStream.beginText();
                 footercontentStream.setFont(font, inFontSize);
-                footercontentStream.moveTextPositionByAmount(xMoveAmount, yMoveAmount);
+                footercontentStream.newLineAtOffset(xMoveAmount, yMoveAmount);
                 footercontentStream.setNonStrokingColor(rgb[0], rgb[1], rgb[2]);
-                footercontentStream.drawString(pageNumAsStr);
+                footercontentStream.showText(pageNumAsStr);
                 footercontentStream.endText();
                 footercontentStream.close();
             }

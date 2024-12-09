@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
@@ -45,8 +46,6 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 public class PDFEncryption {
 
     private Blob pdfBlob;
-
-    private PDDocument pdfDoc;
 
     private static final List<Integer> ALLOWED_LENGTH = Arrays.asList(40, 128);
 
@@ -111,7 +110,7 @@ public class PDFEncryption {
         ap.setCanFillInForm(false);
         ap.setCanExtractForAccessibility(true);
         ap.setCanAssembleDocument(false);
-        ap.setCanPrintDegraded(true);
+        ap.setCanPrintFaithful(true);
         return encrypt(ap);
     }
 
@@ -141,18 +140,18 @@ public class PDFEncryption {
         try {
             StandardProtectionPolicy spp = new StandardProtectionPolicy(ownerPwd, userPwd, inPerm);
             spp.setEncryptionKeyLength(keyLength);
-            pdfDoc = PDDocument.load(pdfBlob.getFile(), originalOwnerPwd);
-            pdfDoc.protect(spp);
-            Blob result = Blobs.createBlobWithExtension(".pdf");
-            pdfDoc.save(result.getFile());
-            result.setMimeType("application/pdf");
-            if (StringUtils.isNotBlank(pdfBlob.getFilename())) {
-                result.setFilename(pdfBlob.getFilename());
+            try (PDDocument pdfDoc = Loader.loadPDF(pdfBlob.getFile(), originalOwnerPwd)) {
+                pdfDoc.protect(spp);
+                Blob result = Blobs.createBlobWithExtension(".pdf");
+                pdfDoc.save(result.getFile());
+                result.setMimeType("application/pdf");
+                if (StringUtils.isNotBlank(pdfBlob.getFilename())) {
+                    result.setFilename(pdfBlob.getFilename());
+                }
+                FileBlob fb = new FileBlob(result.getFile());
+                fb.setMimeType("application/pdf");
+                return fb;
             }
-            pdfDoc.close();
-            FileBlob fb = new FileBlob(result.getFile());
-            fb.setMimeType("application/pdf");
-            return fb;
         } catch (Exception e) {
             throw new NuxeoException("Failed to encrypt the PDF", e);
         }
@@ -178,22 +177,21 @@ public class PDFEncryption {
     public Blob removeEncryption() {
         try {
             String password = (StringUtils.isBlank(originalOwnerPwd)) ? ownerPwd : originalOwnerPwd;
-            pdfDoc = PDDocument.load(pdfBlob.getFile(), password);
-            if (!pdfDoc.isEncrypted()) {
-                pdfDoc.close();
-                return pdfBlob;
+            try (PDDocument pdfDoc = Loader.loadPDF(pdfBlob.getFile(), password)) {
+                if (!pdfDoc.isEncrypted()) {
+                    return pdfBlob;
+                }
+                pdfDoc.setAllSecurityToBeRemoved(true);
+                Blob result = Blobs.createBlobWithExtension(".pdf");
+                pdfDoc.save(result.getFile());
+                result.setMimeType("application/pdf");
+                if (StringUtils.isNotBlank(pdfBlob.getFilename())) {
+                    result.setFilename(pdfBlob.getFilename());
+                }
+                FileBlob fb = new FileBlob(result.getFile());
+                fb.setMimeType("application/pdf");
+                return fb;
             }
-            pdfDoc.setAllSecurityToBeRemoved(true);
-            Blob result = Blobs.createBlobWithExtension(".pdf");
-            pdfDoc.save(result.getFile());
-            result.setMimeType("application/pdf");
-            if (StringUtils.isNotBlank(pdfBlob.getFilename())) {
-                result.setFilename(pdfBlob.getFilename());
-            }
-            pdfDoc.close();
-            FileBlob fb = new FileBlob(result.getFile());
-            fb.setMimeType("application/pdf");
-            return fb;
         } catch (Exception e) {
             throw new NuxeoException("Failed to remove encryption of the PDF", e);
         }

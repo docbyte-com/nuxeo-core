@@ -21,6 +21,7 @@ package org.nuxeo.ecm.automation.core.operations.blob;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
@@ -63,7 +64,7 @@ public class ConcatenatePDFs {
             return blob;
         }
         handleBlobToAppend(ut);
-        ut.addSource(blob.getStream());
+        ut.addSource(blob.getFile());
         return appendPDFs(ut);
     }
 
@@ -75,7 +76,7 @@ public class ConcatenatePDFs {
         }
         for (Blob blob : blobs) {
             checkPdf(blob);
-            ut.addSource(blob.getStream());
+            ut.addSource(blob.getFile());
         }
         return appendPDFs(ut);
     }
@@ -83,7 +84,7 @@ public class ConcatenatePDFs {
     protected Blob appendPDFs(PDFMergerUtility ut) throws IOException {
         File tempFile = Framework.createTempFile(filename, ".pdf");
         ut.setDestinationFileName(tempFile.getAbsolutePath());
-        ut.mergeDocuments();
+        ut.mergeDocuments(IOUtils.createMemoryOnlyStreamCache());
         Blob fb = Blobs.createBlob(tempFile);
         Framework.trackFile(tempFile, fb);
         fb.setFilename(filename);
@@ -101,7 +102,7 @@ public class ConcatenatePDFs {
                         "The blob to append from variable context: '" + xpathBlobToAppend + "' is null.");
             }
             checkPdf(blobToAppend);
-            ut.addSource(blobToAppend.getStream());
+            ut.addSource(blobToAppend.getFile());
         } catch (ClassCastException e) {
             throw new OperationException(
                     "The blob to append from variable context: '" + xpathBlobToAppend + "' is not a blob.", e);

@@ -25,10 +25,13 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
 import java.io.IOException;
+
 import jakarta.inject.Inject;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -95,20 +98,20 @@ public class PDFPageNumberingTest {
     private void checkPageNumbering(Blob pdfBlob, int firstPage, int firstNumber) throws IOException {
         assertNotNull(pdfBlob);
         assertNotSame(pdfMD5, TestUtils.calculateMd5(pdfBlob.getFile()));
-        PDDocument resultPDF = PDDocument.load(pdfBlob.getFile());
-        assertNotNull(resultPDF);
-        assertEquals(13, resultPDF.getNumberOfPages());
-        if (firstPage > 1) {
-            // there should not be any numbers in the pages before the ones that were numbered
-            assertFalse(TestUtils.extractText(resultPDF, 1, firstPage - 1).replace("\n", "").matches(".*\\d+.*"));
+        try (PDDocument resultPDF = Loader.loadPDF(pdfBlob.getFile())) {
+            assertNotNull(resultPDF);
+            assertEquals(13, resultPDF.getNumberOfPages());
+            if (firstPage > 1) {
+                // there should not be any numbers in the pages before the ones that were numbered
+                assertFalse(TestUtils.extractText(resultPDF, 1, firstPage - 1).replace("\n", "").matches(".*\\d+.*"));
+            }
+            for (int page = firstPage; page <= 13; page++) {
+                // every numbered page should have the right number
+                int currentPageNumber = firstNumber + (page - firstPage);
+                assertEquals(INDEX_OF_NUMBERING_BY_PAGE[page - 1],
+                        TestUtils.extractText(resultPDF, page, page).indexOf(Integer.toString(currentPageNumber)));
+            }
         }
-        for (int page = firstPage; page <= 13; page++) {
-            // every numbered page should have the right number
-            int currentPageNumber = firstNumber + (page - firstPage);
-            assertEquals(INDEX_OF_NUMBERING_BY_PAGE[page - 1],
-                    TestUtils.extractText(resultPDF, page, page).indexOf(Integer.toString(currentPageNumber)));
-        }
-        resultPDF.close();
     }
 
     @Test
@@ -171,7 +174,7 @@ public class PDFPageNumberingTest {
              .set("startAtPage", 2)
              .set("startAtNumber", 10)
              .set("position", "Top left")
-             .set("fontName", PDType1Font.COURIER.getBaseFont())
+             .set("fontName", new PDType1Font(FontName.COURIER).getBaseFont())
              .set("fontSize", 32)
              .set("hex255Color", "ff00ff");
         Blob result = (Blob) automationService.run(ctx, chain);

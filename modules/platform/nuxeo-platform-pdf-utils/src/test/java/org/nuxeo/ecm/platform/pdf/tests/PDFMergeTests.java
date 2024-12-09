@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import jakarta.inject.Inject;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
@@ -106,24 +107,24 @@ public class PDFMergeTests {
     }
 
     private void checkMergedTwoPDFs(File mergedPDFFile) throws IOException {
-        PDDocument mergedPDF = PDDocument.load(mergedPDFFile);
-        assertEquals(5, mergedPDF.getNumberOfPages());
-        assertTrue(TestUtils.extractText(mergedPDF, 1, 1).contains("This is pdf 1. It has 2 pages"));
-        assertTrue(TestUtils.extractText(mergedPDF, 2, 2).contains("End of pdf1"));
-        assertTrue(TestUtils.extractText(mergedPDF, 3, 3).contains("This is pdf 2. It has 3 pages"));
-        assertTrue(TestUtils.extractText(mergedPDF, 5, 5).contains("End of pdf2 - it has 3 pages"));
-        mergedPDF.close();
+        try (PDDocument mergedPDF = Loader.loadPDF(mergedPDFFile)) {
+            assertEquals(5, mergedPDF.getNumberOfPages());
+            assertTrue(TestUtils.extractText(mergedPDF, 1, 1).contains("This is pdf 1. It has 2 pages"));
+            assertTrue(TestUtils.extractText(mergedPDF, 2, 2).contains("End of pdf1"));
+            assertTrue(TestUtils.extractText(mergedPDF, 3, 3).contains("This is pdf 2. It has 3 pages"));
+            assertTrue(TestUtils.extractText(mergedPDF, 5, 5).contains("End of pdf2 - it has 3 pages"));
+        }
     }
 
     private void checkMergedThreePDFs(File mergedPDFFile) throws IOException {
-        PDDocument mergedPDF = PDDocument.load(mergedPDFFile);
-        assertEquals(6, mergedPDF.getNumberOfPages());
-        assertTrue(TestUtils.extractText(mergedPDF, 1, 1).contains("This is pdf 1. It has 2 pages"));
-        assertTrue(TestUtils.extractText(mergedPDF, 2, 2).contains("End of pdf1"));
-        assertTrue(TestUtils.extractText(mergedPDF, 3, 3).contains("This is pdf 2. It has 3 pages"));
-        assertTrue(TestUtils.extractText(mergedPDF, 5, 5).contains("End of pdf2 - it has 3 pages"));
-        assertTrue(TestUtils.extractText(mergedPDF, 6, 6).contains("This is pdf 3. It has 1 page"));
-        mergedPDF.close();
+        try (PDDocument mergedPDF = Loader.loadPDF(mergedPDFFile)) {
+            assertEquals(6, mergedPDF.getNumberOfPages());
+            assertTrue(TestUtils.extractText(mergedPDF, 1, 1).contains("This is pdf 1. It has 2 pages"));
+            assertTrue(TestUtils.extractText(mergedPDF, 2, 2).contains("End of pdf1"));
+            assertTrue(TestUtils.extractText(mergedPDF, 3, 3).contains("This is pdf 2. It has 3 pages"));
+            assertTrue(TestUtils.extractText(mergedPDF, 5, 5).contains("End of pdf2 - it has 3 pages"));
+            assertTrue(TestUtils.extractText(mergedPDF, 6, 6).contains("This is pdf 3. It has 1 page"));
+        }
     }
 
     @Test

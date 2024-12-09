@@ -87,6 +87,11 @@
       <artifactId>nuxeo-core-test</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox</artifactId>
+      <scope>test</scope>
+    </dependency>
     <!-- needed for ImagingFeature -->
     <dependency>
       <groupId>org.nuxeo.ecm.automation</groupId>

@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
@@ -187,7 +188,7 @@ public class PDFInfo {
         fileName = pdfBlob.getFilename();
         File pdfFile = pdfBlob.getFile();
         fileSize = (pdfFile == null) ? -1 : pdfFile.length();
-        try (PDDocument pdfDoc = PDDocument.load(pdfBlob.getStream(), password)) {
+        try (PDDocument pdfDoc = Loader.loadPDF(pdfBlob.getFile(), password)) {
             isEncrypted = pdfDoc.isEncrypted();
             numberOfPages = pdfDoc.getNumberOfPages();
             PDDocumentCatalog docCatalog = pdfDoc.getDocumentCatalog();

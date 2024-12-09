@@ -33,6 +33,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -148,7 +149,7 @@ public class PDFInfoTest {
         PDFInfo info = new PDFInfo(pdfFileBlob);
         assertNotNull(info);
         info.run();
-        HashMap<String, String> values = info.toHashMap();
+        Map<String, String> values = info.toHashMap();
         assertNotNull(values);
         assertEquals(29, values.size());
         assertEquals("document.pdf", values.get("File name"));
@@ -244,7 +245,7 @@ public class PDFInfoTest {
         PDFInfo info = new PDFInfo(fb, TestUtils.PDF_PROTECTED_USER_PASSWORD);
         assertNotNull(info);
         info.run();
-        HashMap<String, String> values = info.toHashMap();
+        Map<String, String> values = info.toHashMap();
         assertNotNull(values);
         assertTrue(info.isEncrypted());
         assertTrue(info.getPermissions().canPrint());

@@ -23,6 +23,7 @@ import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.nio.charset.StandardCharsets;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 
@@ -43,10 +44,10 @@ public final class DocumentUTUtils {
      */
     public static String readPdfText(File pdfFile) throws IOException {
         PDFTextStripper textStripper = new PDFTextStripper();
-        PDDocument document = PDDocument.load(pdfFile);
-        String text = textStripper.getText(document);
-        document.close();
-        return text.trim();
+        try (PDDocument document = Loader.loadPDF(pdfFile)) {
+            String text = textStripper.getText(document);
+            return text.trim();
+        }
     }
 
     public static String readContent(File file) throws IOException {

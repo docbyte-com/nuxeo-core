@@ -35,6 +35,10 @@
     </dependency>
     <dependency>
       <groupId>org.apache.pdfbox</groupId>
+      <artifactId>pdfbox-io</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.pdfbox</groupId>
       <artifactId>pdfbox-tools</artifactId>
     </dependency>
     <dependency>

@@ -19,33 +19,18 @@
  */
 package org.nuxeo.ecm.platform.pdf;
 
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.COURIER;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.COURIER_BOLD;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.COURIER_BOLD_OBLIQUE;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.COURIER_OBLIQUE;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_BOLD_OBLIQUE;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.HELVETICA_OBLIQUE;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.SYMBOL;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.TIMES_BOLD;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.TIMES_BOLD_ITALIC;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.TIMES_ITALIC;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.TIMES_ROMAN;
-import static org.apache.pdfbox.pdmodel.font.PDType1Font.ZAPF_DINGBATS;
-
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -63,14 +48,15 @@ public class PDFUtils {
     protected static final Map<String, PDType1Font> STANDARD_14;
     static {
         Map<String, PDType1Font> map = new HashMap<>();
-        for (PDType1Font font : List.of( //
-                TIMES_ROMAN, TIMES_BOLD, TIMES_ITALIC, TIMES_BOLD_ITALIC, //
-                HELVETICA, HELVETICA_BOLD, HELVETICA_OBLIQUE, HELVETICA_BOLD_OBLIQUE, //
-                COURIER, COURIER_BOLD, COURIER_OBLIQUE, COURIER_BOLD_OBLIQUE, //
-                SYMBOL, ZAPF_DINGBATS)) {
+        for (FontName fontName : FontName.values()) {
+            PDType1Font font = new PDType1Font(fontName);
             map.put(font.getBaseFont(), font);
         }
         STANDARD_14 = Collections.unmodifiableMap(map);
+    }
+
+    private PDFUtils() {
+        // utility class
     }
 
     /**
@@ -96,19 +82,28 @@ public class PDFUtils {
     }
 
     /**
+     * @since 2025.0
+     */
+    public static float[] hex255ToRGBFloat(String inHex) {
+        int[] rgb = hex255ToRGB(inHex);
+        return new float[] { rgb[0] / 255f, rgb[1] / 255f, rgb[2] / 255f };
+    }
+
+    /**
      * This is just a shortcut. We often load() and openProtection().
+     * <p>
+     * The returned {@code PDDocument} is not closed, it is the caller's responsibility to declare it in a
+     * {@code try}-with-resources block, or directly call {@link PDDocument#close()}.
      *
      * @param inBlob Input Blob.
      * @param inPwd Input password.
      */
     public static PDDocument load(Blob inBlob, String inPwd) throws NuxeoException {
-        PDDocument pdfDoc;
         try {
-            pdfDoc = PDDocument.load(inBlob.getStream(), inPwd);
+            return Loader.loadPDF(inBlob.getFile(), inPwd);
         } catch (IOException e) {
             throw new NuxeoException("Failed to load the PDF", e);
         }
-        return pdfDoc;
     }
 
     /**

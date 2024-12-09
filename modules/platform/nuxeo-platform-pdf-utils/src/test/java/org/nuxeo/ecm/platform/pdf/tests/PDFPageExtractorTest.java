@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import jakarta.inject.Inject;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
@@ -104,13 +105,13 @@ public class PDFPageExtractorTest {
     }
 
     private void checkExtractedPDFPages1To3(File extractedPDFPages) throws IOException {
-        PDDocument resultPDF = PDDocument.load(extractedPDFPages);
-        assertEquals(3, resultPDF.getNumberOfPages());
-        String text = TestUtils.extractText(resultPDF, 1, 3);
-        assertEquals(4567, text.length());
-        assertTrue(text.startsWith("Creative Brief\nDo this\nLorem ipsum dolor sit amet, consectetur adipisicing"));
-        assertTrue(text.endsWith("blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et \n"));
-        resultPDF.close();
+        try (PDDocument resultPDF = Loader.loadPDF(extractedPDFPages)) {
+            assertEquals(3, resultPDF.getNumberOfPages());
+            String text = TestUtils.extractText(resultPDF, 1, 3);
+            assertEquals(4567, text.length());
+            assertTrue(text.startsWith("Creative Brief\nDo this\nLorem ipsum dolor sit amet, consectetur adipisicing"));
+            assertTrue(text.endsWith("blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et \n"));
+        }
     }
 
     @Test
@@ -148,11 +149,11 @@ public class PDFPageExtractorTest {
         assertEquals(pdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
         assertEquals("application/pdf", result.getMimeType());
         checkExtractedPDFPages1To3(result.getFile());
-        PDDocument resultPDF = PDDocument.load(result.getFile());
-        assertEquals("Once Upon a Time", resultPDF.getDocumentInformation().getTitle());
-        assertEquals("Fairyland", resultPDF.getDocumentInformation().getSubject());
-        assertEquals("Cool Author", resultPDF.getDocumentInformation().getAuthor());
-        resultPDF.close();
+        try (PDDocument resultPDF = Loader.loadPDF(result.getFile())) {
+            assertEquals("Once Upon a Time", resultPDF.getDocumentInformation().getTitle());
+            assertEquals("Fairyland", resultPDF.getDocumentInformation().getSubject());
+            assertEquals("Cool Author", resultPDF.getDocumentInformation().getAuthor());
+        }
     }
 
     @Test

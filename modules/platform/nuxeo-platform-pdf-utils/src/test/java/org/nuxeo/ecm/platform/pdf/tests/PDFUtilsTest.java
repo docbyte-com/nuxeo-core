@@ -28,6 +28,7 @@ import java.io.IOException;
 
 import jakarta.inject.Inject;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
@@ -84,28 +85,48 @@ public class PDFUtilsTest {
         assertEquals(0, rgb[0]);
         assertEquals(0, rgb[1]);
         assertEquals(0, rgb[2]);
+        float[] rgbFloat = PDFUtils.hex255ToRGBFloat("#000000");
+        assertEquals(3, rgbFloat.length);
+        assertEquals(0f, rgbFloat[0], 0f);
+        assertEquals(0f, rgbFloat[1], 0f);
+        assertEquals(0f, rgbFloat[2], 0f);
+
         rgb = PDFUtils.hex255ToRGB("0xffFfFf");
         assertEquals(255, rgb[0]);
         assertEquals(255, rgb[1]);
         assertEquals(255, rgb[2]);
+        rgbFloat = PDFUtils.hex255ToRGBFloat("0xffFfFf");
+        assertEquals(1f, rgbFloat[0], 0f);
+        assertEquals(1f, rgbFloat[1], 0f);
+        assertEquals(1f, rgbFloat[2], 0f);
+
         rgb = PDFUtils.hex255ToRGB("123456");
         assertEquals(18, rgb[0]);
         assertEquals(52, rgb[1]);
         assertEquals(86, rgb[2]);
+        rgbFloat = PDFUtils.hex255ToRGBFloat("123456");
+        assertEquals(0.07f, rgbFloat[0], 0.01f);
+        assertEquals(0.20f, rgbFloat[1], 0.01f);
+        assertEquals(0.33f, rgbFloat[2], 0.01f);
+
         rgb = PDFUtils.hex255ToRGB("");
         assertEquals(0, rgb[0]);
         assertEquals(0, rgb[1]);
         assertEquals(0, rgb[2]);
+        rgbFloat = PDFUtils.hex255ToRGBFloat("");
+        assertEquals(0f, rgbFloat[0], 0f);
+        assertEquals(0f, rgbFloat[1], 0f);
+        assertEquals(0f, rgbFloat[2], 0f);
     }
 
     @Test
     public void testUtilsSaveInTempFile() throws IOException {
-        PDDocument doc = PDDocument.load(pdfFile);
-        FileBlob fb = PDFUtils.saveInTempFile(doc);
-        assertNotNull(fb);
-        assertEquals("application/pdf", fb.getMimeType());
-        assertEquals(66369, fb.getLength());
-        doc.close();
+        try (PDDocument doc = Loader.loadPDF(pdfFile)) {
+            FileBlob fb = PDFUtils.saveInTempFile(doc);
+            assertNotNull(fb);
+            assertEquals("application/pdf", fb.getMimeType());
+            assertEquals(61789, fb.getLength());
+        }
     }
 
     @Test
@@ -117,15 +138,15 @@ public class PDFUtilsTest {
 
     @Test
     public void testUtilsSetInfos() throws IOException {
-        PDDocument doc = PDDocument.load(pdfFile);
-        assertEquals("Untitled 3", doc.getDocumentInformation().getTitle());
-        assertNull(doc.getDocumentInformation().getSubject());
-        assertNull(doc.getDocumentInformation().getAuthor());
-        PDFUtils.setInfos(doc, "The Title", "The Subject", "The Author");
-        assertEquals("The Title", doc.getDocumentInformation().getTitle());
-        assertEquals("The Subject", doc.getDocumentInformation().getSubject());
-        assertEquals("The Author", doc.getDocumentInformation().getAuthor());
-        doc.close();
+        try (PDDocument doc = Loader.loadPDF(pdfFile)) {
+            assertEquals("Untitled 3", doc.getDocumentInformation().getTitle());
+            assertNull(doc.getDocumentInformation().getSubject());
+            assertNull(doc.getDocumentInformation().getAuthor());
+            PDFUtils.setInfos(doc, "The Title", "The Subject", "The Author");
+            assertEquals("The Title", doc.getDocumentInformation().getTitle());
+            assertEquals("The Subject", doc.getDocumentInformation().getSubject());
+            assertEquals("The Author", doc.getDocumentInformation().getAuthor());
+        }
     }
 
 }

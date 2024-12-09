@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -88,7 +89,7 @@ public class TestUtils {
     }
 
     static boolean hasTextOnAllPages(Blob blob, String watermark) {
-        try (PDDocument doc = PDDocument.load(blob.getStream())) {
+        try (PDDocument doc = Loader.loadPDF(blob.getFile())) {
             for (int i = 1; i <= doc.getNumberOfPages(); i++) {
                 if (!TestUtils.extractText(doc, i, i).replace("\n", "").contains(watermark)) {
                     return false;
@@ -101,7 +102,7 @@ public class TestUtils {
     }
 
     static boolean hasImageOnAllPages(Blob inBlob) {
-        try (PDDocument doc = PDDocument.load(inBlob.getStream())) {
+        try (PDDocument doc = Loader.loadPDF(inBlob.getFile())) {
             for (PDPage page : doc.getDocumentCatalog().getPages()) {
                 PDResources pdResources = page.getResources();
                 boolean gotIt = false;

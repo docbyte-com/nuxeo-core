@@ -98,7 +98,7 @@ public class PDFEncryptOperation {
                     ap.setCanAssembleDocument(value);
                     break;
                 case "printdegraded":
-                    ap.setCanPrintDegraded(value);
+                    ap.setCanPrintFaithful(value);
                     break;
             }
         }

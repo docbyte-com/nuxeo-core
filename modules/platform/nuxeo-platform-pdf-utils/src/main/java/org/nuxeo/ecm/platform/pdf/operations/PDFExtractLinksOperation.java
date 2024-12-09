@@ -67,32 +67,32 @@ public class PDFExtractLinksOperation {
             }
             types.add(type);
         }
-        PDFLinks pdfl = new PDFLinks(inBlob);
-        JSONArray array = new JSONArray();
-        for (String theType : types) {
-            List<LinkInfo> links = new ArrayList<>();
-            switch (theType.toLowerCase()) {
-                case "remote go to":
-                    links = pdfl.getRemoteGoToLinks();
-                    break;
-                case "launch":
-                    links = pdfl.getLaunchLinks();
-                    break;
-                case "uri":
-                    links = pdfl.getURILinks();
-                    break;
+        try (PDFLinks pdfl = new PDFLinks(inBlob)) {
+            JSONArray array = new JSONArray();
+            for (String theType : types) {
+                List<LinkInfo> links = new ArrayList<>();
+                switch (theType.toLowerCase()) {
+                    case "remote go to":
+                        links = pdfl.getRemoteGoToLinks();
+                        break;
+                    case "launch":
+                        links = pdfl.getLaunchLinks();
+                        break;
+                    case "uri":
+                        links = pdfl.getURILinks();
+                        break;
+                }
+                for (LinkInfo li : links) {
+                    JSONObject object = new JSONObject();
+                    object.put("page", li.getPage());
+                    object.put("subType", li.getSubType());
+                    object.put("text", li.getText());
+                    object.put("link", li.getLink());
+                    array.put(object);
+                }
             }
-            for (LinkInfo li : links) {
-                JSONObject object = new JSONObject();
-                object.put("page", li.getPage());
-                object.put("subType", li.getSubType());
-                object.put("text", li.getText());
-                object.put("link", li.getLink());
-                array.put(object);
-            }
+            return array.toString();
         }
-        pdfl.close();
-        return array.toString();
     }
 
 }

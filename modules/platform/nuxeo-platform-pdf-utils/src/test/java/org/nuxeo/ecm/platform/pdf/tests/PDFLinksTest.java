@@ -65,15 +65,15 @@ public class PDFLinksTest {
     public void testLaunchAndRemoteLinks() throws Exception {
         File f = FileUtils.getResourceFileFromContext(TestUtils.PDF_LINKED_1_PATH);
         FileBlob fb = new FileBlob(f);
-        PDFLinks pdfl = new PDFLinks(fb);
-        List<LinkInfo> launchLinks = pdfl.getLaunchLinks();
-        assertEquals(2, launchLinks.size());
-        assertEquals(PDF_LINKED_2_LOCAL_PATH, launchLinks.get(0).getLink());
-        assertEquals(PDF_LINKED_3_LOCAL_PATH, launchLinks.get(1).getLink());
-        List<LinkInfo> remoteLinks = pdfl.getRemoteGoToLinks();
-        assertEquals(1, remoteLinks.size());
-        assertEquals(PDF_LINKED_2_LOCAL_PATH, remoteLinks.get(0).getLink());
-        pdfl.close();
+        try (PDFLinks pdfl = new PDFLinks(fb)) {
+            List<LinkInfo> launchLinks = pdfl.getLaunchLinks();
+            assertEquals(2, launchLinks.size());
+            assertEquals(PDF_LINKED_2_LOCAL_PATH, launchLinks.get(0).getLink());
+            assertEquals(PDF_LINKED_3_LOCAL_PATH, launchLinks.get(1).getLink());
+            List<LinkInfo> remoteLinks = pdfl.getRemoteGoToLinks();
+            assertEquals(1, remoteLinks.size());
+            assertEquals(PDF_LINKED_2_LOCAL_PATH, remoteLinks.get(0).getLink());
+        }
     }
 
     @Test

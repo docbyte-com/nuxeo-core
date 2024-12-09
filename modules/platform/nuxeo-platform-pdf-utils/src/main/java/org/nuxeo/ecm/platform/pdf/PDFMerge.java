@@ -22,6 +22,8 @@ package org.nuxeo.ecm.platform.pdf;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.nuxeo.ecm.automation.core.util.BlobList;
@@ -142,16 +144,16 @@ public class PDFMerge {
             default:
                 PDFMergerUtility ut = new PDFMergerUtility();
                 for (Blob b : blobs) {
-                    ut.addSource(b.getStream());
+                    ut.addSource(b.getFile());
                 }
                 File tempFile = File.createTempFile("mergepdf", ".pdf");
                 ut.setDestinationFileName(tempFile.getAbsolutePath());
-                ut.mergeDocuments();
+                ut.mergeDocuments(IOUtils.createMemoryOnlyStreamCache());
                 if (inTitle != null || inAuthor != null || inSubject != null) {
-                    PDDocument finalDoc = PDDocument.load(tempFile);
-                    PDFUtils.setInfos(finalDoc, inTitle, inSubject, inAuthor);
-                    finalDoc.save(tempFile);
-                    finalDoc.close();
+                    try (PDDocument finalDoc = Loader.loadPDF(tempFile)) {
+                        PDFUtils.setInfos(finalDoc, inTitle, inSubject, inAuthor);
+                        finalDoc.save(tempFile);
+                    }
                 }
                 finalBlob = new FileBlob(tempFile);
                 Framework.trackFile(tempFile, finalBlob);

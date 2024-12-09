@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -146,7 +147,7 @@ public class TestMagickExecutors {
         ImageConverter.convert(file.getAbsolutePath(), out.getAbsolutePath());
 
         assertEquals("pdf", FilenameUtils.getExtension(out.getAbsolutePath()));
-        try (PDDocument doc = PDDocument.load(out)) {
+        try (PDDocument doc = Loader.loadPDF(out)) {
             assertNotNull(doc);
         }
 
