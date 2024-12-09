@@ -34,7 +34,11 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.NuxeoException;
 
-class TestUtils {
+public class TestUtils {
+
+    private TestUtils() {
+        // utility class
+    }
 
     static final String PDF_PATH = "files/document.pdf";
 

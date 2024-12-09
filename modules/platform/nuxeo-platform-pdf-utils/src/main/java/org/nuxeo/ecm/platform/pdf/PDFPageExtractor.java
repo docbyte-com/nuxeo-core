@@ -111,7 +111,7 @@ public class PDFPageExtractor {
      * @return FileBlob
      */
     public Blob extract(int inStartPage, int inEndPage, String inFileName, String inTitle, String inSubject,
-                        String inAuthor) throws NuxeoException {
+            String inAuthor) throws NuxeoException {
         Blob result;
         PDDocument extracted;
         try (PDDocument pdfDoc = PDFUtils.load(pdfBlob, password)) {
@@ -144,7 +144,8 @@ public class PDFPageExtractor {
             // Convert each page to PNG.
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDoc);
             int pageno = 0;
-            for (PDPage page : pdfDoc.getDocumentCatalog().getPages()) {
+            for (@SuppressWarnings("unused")
+            PDPage page : pdfDoc.getDocumentCatalog().getPages()) {
                 pageno++;
                 resultFileName = inFileName + "-" + pageno;
                 BufferedImage bim = pdfRenderer.renderImageWithDPI(pageno - 1, 300, ImageType.RGB);

@@ -22,6 +22,7 @@ package org.nuxeo.ecm.platform.pdf.operations;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -41,9 +42,8 @@ import org.nuxeo.ecm.platform.pdf.PDFLinks;
  *
  * @since 8.10
  */
-@Operation(id = PDFExtractLinksOperation.ID, category = Constants.CAT_CONVERSION, label = "PDF: Extract Links",
-    description = "Returns a JSON string of an array of objects with page, subType, text and link fields. If getAll" +
-        " is true, returns all the links (Remote Go To, Launch and URI in the current version).")
+@Operation(id = PDFExtractLinksOperation.ID, category = Constants.CAT_CONVERSION, label = "PDF: Extract Links", description = "Returns a JSON string of an array of objects with page, subType, text and link fields. If getAll"
+        + " is true, returns all the links (Remote Go To, Launch and URI in the current version).")
 public class PDFExtractLinksOperation {
 
     public static final String ID = "PDF.ExtractLinks";
@@ -72,15 +72,15 @@ public class PDFExtractLinksOperation {
         for (String theType : types) {
             List<LinkInfo> links = new ArrayList<>();
             switch (theType.toLowerCase()) {
-            case "remote go to":
-                links = pdfl.getRemoteGoToLinks();
-                break;
-            case "launch":
-                links = pdfl.getLaunchLinks();
-                break;
-            case "uri":
-                links = pdfl.getURILinks();
-                break;
+                case "remote go to":
+                    links = pdfl.getRemoteGoToLinks();
+                    break;
+                case "launch":
+                    links = pdfl.getLaunchLinks();
+                    break;
+                case "uri":
+                    links = pdfl.getURILinks();
+                    break;
             }
             for (LinkInfo li : links) {
                 JSONObject object = new JSONObject();

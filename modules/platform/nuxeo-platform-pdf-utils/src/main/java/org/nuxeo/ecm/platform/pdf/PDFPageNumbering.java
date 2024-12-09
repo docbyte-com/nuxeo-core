@@ -121,36 +121,37 @@ public class PDFPageNumbering {
                 float stringWidth = font.getStringWidth(pageNumAsStr) * inFontSize / 1000f;
                 float stringHeight = font.getFontDescriptor().getFontBoundingBox().getHeight() * inFontSize / 1000;
                 PDRectangle pageRect = page.getMediaBox();
-                float xMoveAmount, yMoveAmount;
+                float xMoveAmount;
+                float yMoveAmount;
                 if (inPosition == null) {
                     inPosition = PAGE_NUMBER_POSITION.BOTTOM_RIGHT;
                 }
                 switch (inPosition) {
-                case BOTTOM_LEFT:
-                    xMoveAmount = 10;
-                    yMoveAmount = pageRect.getLowerLeftY() + 10;
-                    break;
-                case BOTTOM_CENTER:
-                    xMoveAmount = (pageRect.getUpperRightX() / 2) - (stringWidth / 2);
-                    yMoveAmount = pageRect.getLowerLeftY() + 10;
-                    break;
-                case TOP_LEFT:
-                    xMoveAmount = 10;
-                    yMoveAmount = pageRect.getHeight() - stringHeight - 10;
-                    break;
-                case TOP_CENTER:
-                    xMoveAmount = (pageRect.getUpperRightX() / 2) - (stringWidth / 2);
-                    yMoveAmount = pageRect.getHeight() - stringHeight - 10;
-                    break;
-                case TOP_RIGHT:
-                    xMoveAmount = pageRect.getUpperRightX() - 10 - stringWidth;
-                    yMoveAmount = pageRect.getHeight() - stringHeight - 10;
-                    break;
-                // Bottom-right is the default
-                default:
-                    xMoveAmount = pageRect.getUpperRightX() - 10 - stringWidth;
-                    yMoveAmount = pageRect.getLowerLeftY() + 10;
-                    break;
+                    case BOTTOM_LEFT:
+                        xMoveAmount = 10;
+                        yMoveAmount = pageRect.getLowerLeftY() + 10;
+                        break;
+                    case BOTTOM_CENTER:
+                        xMoveAmount = (pageRect.getUpperRightX() / 2) - (stringWidth / 2);
+                        yMoveAmount = pageRect.getLowerLeftY() + 10;
+                        break;
+                    case TOP_LEFT:
+                        xMoveAmount = 10;
+                        yMoveAmount = pageRect.getHeight() - stringHeight - 10;
+                        break;
+                    case TOP_CENTER:
+                        xMoveAmount = (pageRect.getUpperRightX() / 2) - (stringWidth / 2);
+                        yMoveAmount = pageRect.getHeight() - stringHeight - 10;
+                        break;
+                    case TOP_RIGHT:
+                        xMoveAmount = pageRect.getUpperRightX() - 10 - stringWidth;
+                        yMoveAmount = pageRect.getHeight() - stringHeight - 10;
+                        break;
+                    // Bottom-right is the default
+                    default:
+                        xMoveAmount = pageRect.getUpperRightX() - 10 - stringWidth;
+                        yMoveAmount = pageRect.getLowerLeftY() + 10;
+                        break;
                 }
                 footercontentStream.beginText();
                 footercontentStream.setFont(font, inFontSize);

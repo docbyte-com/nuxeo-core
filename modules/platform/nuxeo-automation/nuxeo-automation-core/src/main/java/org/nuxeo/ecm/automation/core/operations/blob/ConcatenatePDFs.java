@@ -97,14 +97,14 @@ public class ConcatenatePDFs {
         try {
             Blob blobToAppend = (Blob) ctx.get(xpathBlobToAppend);
             if (blobToAppend == null) {
-                throw new OperationException("The blob to append from variable context: '" + xpathBlobToAppend
-                        + "' is null.");
+                throw new OperationException(
+                        "The blob to append from variable context: '" + xpathBlobToAppend + "' is null.");
             }
             checkPdf(blobToAppend);
             ut.addSource(blobToAppend.getStream());
         } catch (ClassCastException e) {
-            throw new OperationException("The blob to append from variable context: '" + xpathBlobToAppend
-                    + "' is not a blob.", e);
+            throw new OperationException(
+                    "The blob to append from variable context: '" + xpathBlobToAppend + "' is not a blob.", e);
         }
     }
 

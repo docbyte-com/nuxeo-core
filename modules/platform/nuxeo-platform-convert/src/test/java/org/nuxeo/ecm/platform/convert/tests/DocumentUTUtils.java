@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
@@ -50,7 +51,7 @@ public final class DocumentUTUtils {
 
     public static String readContent(File file) throws IOException {
         char[] buffer = new char[2048];
-        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), "UTF-8")) {
+        try (InputStreamReader reader = new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8)) {
             StringWriter writer = new StringWriter();
             int length;
             while ((length = reader.read(buffer, 0, 2048)) != -1) {

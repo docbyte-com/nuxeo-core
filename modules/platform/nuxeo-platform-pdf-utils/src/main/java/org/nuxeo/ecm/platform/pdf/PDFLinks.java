@@ -109,8 +109,10 @@ public class PDFLinks {
                     PDAnnotationLink link = (PDAnnotationLink) annot;
                     PDRectangle rect = link.getRectangle();
                     // need to reposition link rectangle to match text space
-                    float x = rect.getLowerLeftX(), y = rect.getUpperRightY();
-                    float width = rect.getWidth(), height = rect.getHeight();
+                    float x = rect.getLowerLeftX();
+                    float y = rect.getUpperRightY();
+                    float width = rect.getWidth();
+                    float height = rect.getHeight();
                     int rotation = page.getRotation();
                     if (rotation == 0) {
                         PDRectangle pageSize = page.getMediaBox();
@@ -181,21 +183,21 @@ public class PDFLinks {
                 String urlText = stripper.getTextForRegion(String.valueOf(annotations.indexOf(annot)));
                 String urlValue = null;
                 switch (inSubType) {
-                case PDActionRemoteGoTo.SUB_TYPE:
-                    goTo = (PDActionRemoteGoTo) action;
-                    fspec = goTo.getFile();
-                    urlValue = fspec.getFile();
-                    break;
-                case PDActionLaunch.SUB_TYPE:
-                    launch = (PDActionLaunch) action;
-                    fspec = launch.getFile();
-                    urlValue = fspec.getFile();
-                    break;
-                case PDActionURI.SUB_TYPE:
-                    uri = (PDActionURI) action;
-                    urlValue = uri.getURI();
-                    break;
-                // others...
+                    case PDActionRemoteGoTo.SUB_TYPE:
+                        goTo = (PDActionRemoteGoTo) action;
+                        fspec = goTo.getFile();
+                        urlValue = fspec.getFile();
+                        break;
+                    case PDActionLaunch.SUB_TYPE:
+                        launch = (PDActionLaunch) action;
+                        fspec = launch.getFile();
+                        urlValue = fspec.getFile();
+                        break;
+                    case PDActionURI.SUB_TYPE:
+                        uri = (PDActionURI) action;
+                        urlValue = uri.getURI();
+                        break;
+                    // others...
                 }
                 if (StringUtils.isNotBlank(urlValue)) {
                     li.add(new LinkInfo(pageno, inSubType, urlText, urlValue));

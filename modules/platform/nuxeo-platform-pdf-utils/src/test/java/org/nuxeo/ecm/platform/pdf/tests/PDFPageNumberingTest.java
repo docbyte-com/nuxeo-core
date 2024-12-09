@@ -24,6 +24,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 
+import java.io.IOException;
 import jakarta.inject.Inject;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -36,6 +37,7 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -73,7 +75,7 @@ public class PDFPageNumberingTest {
     protected OperationContext ctx;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() throws IOException {
         testDocsFolder = coreSession.createDocumentModel("/", "test-pictures", "Folder");
         testDocsFolder.setPropertyValue("dc:title", "test-pdfutils");
         testDocsFolder = coreSession.createDocument(testDocsFolder);
@@ -90,7 +92,7 @@ public class PDFPageNumberingTest {
         coreSession.save();
     }
 
-    private void checkPageNumbering(Blob pdfBlob, int firstPage, int firstNumber) throws Exception {
+    private void checkPageNumbering(Blob pdfBlob, int firstPage, int firstNumber) throws IOException {
         assertNotNull(pdfBlob);
         assertNotSame(pdfMD5, TestUtils.calculateMd5(pdfBlob.getFile()));
         PDDocument resultPDF = PDDocument.load(pdfBlob.getFile());
@@ -110,49 +112,49 @@ public class PDFPageNumberingTest {
     }
 
     @Test
-    public void testPageNumberingBottomLeft() throws Exception {
+    public void testPageNumberingBottomLeft() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(1, 1, null, 0, "ff0000", PAGE_NUMBER_POSITION.BOTTOM_LEFT);
         checkPageNumbering(result, 1, 1);
     }
 
     @Test
-    public void testPageNumberingBottomCenter() throws Exception {
+    public void testPageNumberingBottomCenter() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(5, 3, null, 0, "00ff00", PAGE_NUMBER_POSITION.BOTTOM_CENTER);
         checkPageNumbering(result, 5, 3);
     }
 
     @Test
-    public void testPageNumberingBottomRight() throws Exception {
+    public void testPageNumberingBottomRight() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(10, 10, null, 0, "0000ff", PAGE_NUMBER_POSITION.BOTTOM_RIGHT);
         checkPageNumbering(result, 10, 10);
     }
 
     @Test
-    public void testPageNumberingTopLeft() throws Exception {
+    public void testPageNumberingTopLeft() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(1, 150, null, 0, "FF0000", PAGE_NUMBER_POSITION.TOP_LEFT);
         checkPageNumbering(result, 1, 150);
     }
 
     @Test
-    public void testPageNumberingTopCenter() throws Exception {
+    public void testPageNumberingTopCenter() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(1, 1, null, 0, "0x0000ff", PAGE_NUMBER_POSITION.TOP_CENTER);
         checkPageNumbering(result, 1, 1);
     }
 
     @Test
-    public void testPageNumberingTopRight() throws Exception {
+    public void testPageNumberingTopRight() throws IOException {
         PDFPageNumbering pdfpn = new PDFPageNumbering(pdfFileBlob);
         Blob result = pdfpn.addPageNumbers(1, 1, null, 0, "", PAGE_NUMBER_POSITION.TOP_RIGHT);
         checkPageNumbering(result, 1, 1);
     }
 
     @Test
-    public void testAddPageNumbersOperationSimple() throws Exception {
+    public void testAddPageNumbersOperationSimple() throws IOException, OperationException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFAddPageNumbersOperation.ID);
@@ -162,7 +164,7 @@ public class PDFPageNumberingTest {
     }
 
     @Test
-    public void testAddPageNumbersOperationComplex() throws Exception {
+    public void testAddPageNumbersOperationComplex() throws IOException, OperationException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFAddPageNumbersOperation.ID)

@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 import java.io.File;
+import java.io.IOException;
 
 import jakarta.inject.Inject;
 
@@ -98,7 +99,7 @@ public class PDFUtilsTest {
     }
 
     @Test
-    public void testUtilsSaveInTempFile() throws Exception {
+    public void testUtilsSaveInTempFile() throws IOException {
         PDDocument doc = PDDocument.load(pdfFile);
         FileBlob fb = PDFUtils.saveInTempFile(doc);
         assertNotNull(fb);
@@ -115,7 +116,7 @@ public class PDFUtilsTest {
     }
 
     @Test
-    public void testUtilsSetInfos() throws Exception {
+    public void testUtilsSetInfos() throws IOException {
         PDDocument doc = PDDocument.load(pdfFile);
         assertEquals("Untitled 3", doc.getDocumentInformation().getTitle());
         assertNull(doc.getDocumentInformation().getSubject());

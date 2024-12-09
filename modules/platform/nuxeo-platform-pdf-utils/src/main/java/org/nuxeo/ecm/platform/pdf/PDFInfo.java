@@ -26,7 +26,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -206,7 +205,8 @@ public class PDFInfo {
             permissions = pdfDoc.getCurrentAccessPermission();
             // Getting dimension is a bit tricky
             mediaBoxWidthInPoints = mediaBoxHeightInPoints = cropBoxWidthInPoints = cropBoxHeightInPoints = -1;
-            boolean gotMediaBox = false, gotCropBox = false;
+            boolean gotMediaBox = false;
+            boolean gotCropBox = false;
             for (PDPage page : docCatalog.getPages()) {
                 if (page != null) {
                     PDRectangle r = page.getMediaBox();
@@ -270,7 +270,7 @@ public class PDFInfo {
      * <li>Creation date</li>
      * </ul>
      */
-    public HashMap<String, String> toHashMap() {
+    public Map<String, String> toHashMap() {
         // Parse if needed
         run();
         if (cachedMap == null) {
@@ -307,16 +307,16 @@ public class PDFInfo {
             cachedMap.put("Media box height", String.valueOf(mediaBoxHeightInPoints));
             cachedMap.put("Crop box width", String.valueOf(cropBoxWidthInPoints));
             cachedMap.put("Crop box height", String.valueOf(cropBoxHeightInPoints));
-            if(permissions != null) {
+            if (permissions != null) {
                 cachedMap.put("Can Print", String.valueOf(permissions.canPrint()));
                 cachedMap.put("Can Modify", String.valueOf(permissions.canModify()));
                 cachedMap.put("Can Extract", String.valueOf(permissions.canExtractContent()));
                 cachedMap.put("Can Modify Annotations", String.valueOf(permissions.canModifyAnnotations()));
                 cachedMap.put("Can Fill Forms", String.valueOf(permissions.canFillInForm()));
-                cachedMap.put("Can Extract for Accessibility", String.valueOf(
-                    permissions.canExtractForAccessibility()));
+                cachedMap.put("Can Extract for Accessibility",
+                        String.valueOf(permissions.canExtractForAccessibility()));
                 cachedMap.put("Can Assemble", String.valueOf(permissions.canAssembleDocument()));
-                cachedMap.put("Can Print Degraded", String.valueOf(permissions.canPrintDegraded()));
+                cachedMap.put("Can Print Degraded", String.valueOf(permissions.canPrintFaithful()));
             }
         }
         return cachedMap;
@@ -326,12 +326,15 @@ public class PDFInfo {
      * The <code>inMapping</code> map is an HashMap where the key is the xpath of the destination field, and the value
      * is the exact label of a PDF info as returned by <code>toHashMap()</code>. For example:
      * <p>
-     * <pre><code>
+     *
+     * <pre>
+     * <code>
      * pdfinfo:title=Title
      * pdfinfo:producer=PDF Producer
      * pdfinfo:mediabox_width=Media box width
      * ...
-     * </code></pre>
+     * </code>
+     * </pre>
      * <p>
      * If <code>inSave</code> is false, inSession can be null.
      *
@@ -340,14 +343,14 @@ public class PDFInfo {
      * @param inSave Whether should save.
      * @param inSession If is saving, should do it in this particular session.
      */
-    public DocumentModel toFields(DocumentModel inDoc, HashMap<String, String> inMapping, boolean inSave,
-                                  CoreSession inSession) {
+    public DocumentModel toFields(DocumentModel inDoc, Map<String, String> inMapping, boolean inSave,
+            CoreSession inSession) {
         // Parse if needed
         run();
         Map<String, String> values = toHashMap();
-        for (String inXPath : inMapping.keySet()) {
-            String value = values.get(inMapping.get(inXPath));
-            inDoc.setPropertyValue(inXPath, value);
+        for (var inEntry : inMapping.entrySet()) {
+            String value = values.get(inEntry.getValue());
+            inDoc.setPropertyValue(inEntry.getKey(), value);
         }
         if (inSave) {
             inDoc = inSession.saveDocument(inDoc);

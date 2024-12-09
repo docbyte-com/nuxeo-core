@@ -26,6 +26,7 @@ import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 
 import jakarta.inject.Inject;
@@ -41,6 +42,7 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
@@ -118,7 +120,7 @@ public class PDFEncryptionTest {
         coreSession.save();
     }
 
-    private void checkIsReadOnly(Blob inBlob, String ownerPwd, String userPwd) throws Exception {
+    private void checkIsReadOnly(Blob inBlob, String ownerPwd, String userPwd) throws IOException {
         // load the blob as a PDDocument and check permissions as a user
         PDDocument pdfDoc = PDDocument.load(inBlob.getFile(), userPwd);
         assertTrue(pdfDoc.isEncrypted());
@@ -148,7 +150,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testEncryptReadOnly() throws Exception {
+    public void testEncryptReadOnly() throws IOException {
         PDFEncryption pdfe = new PDFEncryption(pdfFileBlob);
         pdfe.setKeyLength(128);
         pdfe.setUserPwd(TestUtils.PDF_PROTECTED_USER_PASSWORD);
@@ -159,7 +161,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testRemoveEncryption() throws Exception {
+    public void testRemoveEncryption() throws IOException {
         // verify that a given PDF file is encrypted
         File f = FileUtils.getResourceFileFromContext(TestUtils.PDF_ENCRYPTED_PATH);
         assertThrows(InvalidPasswordException.class, () -> PDDocument.load(f).close());
@@ -183,7 +185,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testEncryptOperationSimple() throws Exception {
+    public void testEncryptOperationSimple() throws OperationException, IOException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFEncryptOperation.ID)
@@ -209,7 +211,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testEncryptOperationComplex() throws Exception {
+    public void testEncryptOperationComplex() throws OperationException, IOException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         HashMap<String, String> properties = new HashMap<>();
@@ -244,7 +246,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testRemoveEncryptionOperation() throws Exception {
+    public void testRemoveEncryptionOperation() throws OperationException, IOException {
         assertThrows(InvalidPasswordException.class, () -> PDDocument.load(pdfEncryptedFileBlob.getFile()).close());
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfEncryptedFileBlob);
@@ -257,7 +259,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testEncryptReadOnlyOperationBlob() throws Exception {
+    public void testEncryptReadOnlyOperationBlob() throws IOException, OperationException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
         chain.add(PDFEncryptReadOnlyOperation.ID)
@@ -268,7 +270,7 @@ public class PDFEncryptionTest {
     }
 
     @Test
-    public void testEncryptReadOnlyOperationBlobList() throws Exception {
+    public void testEncryptReadOnlyOperationBlobList() throws OperationException, IOException {
         BlobList bl = new BlobList();
         bl.add(pdfFileBlob);
         File f = FileUtils.getResourceFileFromContext(TestUtils.PDF_ENCRYPTED_PATH);

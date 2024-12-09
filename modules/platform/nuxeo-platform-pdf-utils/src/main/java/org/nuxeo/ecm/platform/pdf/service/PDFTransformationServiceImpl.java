@@ -195,10 +195,10 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
         return new Point2D.Double(xTranslation, yTranslation);
     }
 
-    protected Blob saveInTempFile(PDDocument PdfDoc) throws IOException {
+    protected Blob saveInTempFile(PDDocument pdfDoc) throws IOException {
         Blob blob = Blobs.createBlobWithExtension(".pdf"); // creates a tracked temporary file
         blob.setMimeType(MIME_TYPE);
-        PdfDoc.save(blob.getFile());
+        pdfDoc.save(blob.getFile());
         return blob;
     }
 
