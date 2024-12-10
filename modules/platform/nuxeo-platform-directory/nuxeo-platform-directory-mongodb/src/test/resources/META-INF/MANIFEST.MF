@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-SymbolicName: org.nuxeo.directory.mongodb.test;singleton:=true
+Nuxeo-Component: OSGI-INF/mongodb-directory-test-contrib.xml

@@ -5,7 +5,6 @@
 
   <require>org.nuxeo.runtime.mongodb.MongoDBComponent</require>
   <require>org.nuxeo.ecm.directory.DirectoryServiceImpl</require>
-  <require>org.nuxeo.ecm.directory.sql.SQLDirectoryFactory</require>
 
   <documentation>
     MongoDB-based implementation for Directory
