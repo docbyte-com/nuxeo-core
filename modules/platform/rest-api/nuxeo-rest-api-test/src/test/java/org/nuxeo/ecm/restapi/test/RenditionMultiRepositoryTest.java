@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,14 @@ import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.core.io.registry.context.RenderingContext.REPOSITORY_NAME_REQUEST_HEADER;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -43,14 +44,17 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class })
+@Features({ RestServerFeature.class, MultiRepositoryFeature.class })
 @Deploy("org.nuxeo.ecm.platform.rendition.api")
 @Deploy("org.nuxeo.ecm.platform.rendition.core")
 @Deploy("org.nuxeo.ecm.platform.restapi.test:renditions-test-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-multi-repository-contrib.xml")
 public class RenditionMultiRepositoryTest {
 
     protected static final String OTHER_REPO = "other";
+
+    @Inject
+    @Named(OTHER_REPO)
+    protected CoreSession otherSession;
 
     @Inject
     protected RestServerFeature restServerFeature;
@@ -65,9 +69,8 @@ public class RenditionMultiRepositoryTest {
     // NXP-32944
     @Test
     public void testRendition() {
-        CoreSession otherRepositorySession = CoreInstance.getCoreSession(OTHER_REPO);
-        DocumentModel doc = otherRepositorySession.createDocumentModel("/", "adoc", "File");
-        doc = otherRepositorySession.createDocument(doc);
+        DocumentModel doc = otherSession.createDocumentModel("/", "adoc", "File");
+        doc = otherSession.createDocument(doc);
         txFeature.nextTransaction();
 
         httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/dummyRendition")

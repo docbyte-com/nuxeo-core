@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.junit.After;
@@ -40,12 +41,12 @@ import org.nuxeo.drive.service.FileSystemItemChange;
 import org.nuxeo.drive.service.NuxeoDriveManager;
 import org.nuxeo.drive.service.impl.FileSystemChangeSummaryImpl;
 import org.nuxeo.ecm.automation.test.HttpAutomationSession;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -57,8 +58,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @author Antoine Taillefer
  */
 @RunWith(FeaturesRunner.class)
-@Features(NuxeoDriveAutomationFeature.class)
-@Deploy("org.nuxeo.drive.operations:test-other-repository-config.xml")
+@Features({ NuxeoDriveAutomationFeature.class, MultiRepositoryFeature.class })
 @Deploy("org.nuxeo.drive.operations:OSGI-INF/test-nuxeodrive-change-finder-contrib.xml")
 public class TestGetChangeSummaryMultiRepo {
 
@@ -71,6 +71,8 @@ public class TestGetChangeSummaryMultiRepo {
     @Inject
     protected HttpAutomationSession clientSession;
 
+    @Inject
+    @Named("other")
     protected CoreSession otherSession;
 
     protected long lastEventLogId;
@@ -85,9 +87,6 @@ public class TestGetChangeSummaryMultiRepo {
 
     @Before
     public void init() {
-
-        otherSession = CoreInstance.getCoreSession("other", "Administrator");
-
         lastEventLogId = 0;
         lastSyncActiveRoots = "";
 

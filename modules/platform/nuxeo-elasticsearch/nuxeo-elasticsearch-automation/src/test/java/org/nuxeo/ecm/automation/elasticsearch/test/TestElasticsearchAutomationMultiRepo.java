@@ -22,6 +22,7 @@ package org.nuxeo.ecm.automation.elasticsearch.test;
 import static org.junit.Assert.assertEquals;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -30,9 +31,9 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.elasticsearch.ElasticsearchAutomationFeature;
 import org.nuxeo.ecm.automation.elasticsearch.ElasticsearchBulkIndexOperation;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.elasticsearch.ElasticSearchConstants;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
@@ -43,7 +44,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(ElasticsearchAutomationFeature.class)
+@Features({ ElasticsearchAutomationFeature.class, MultiRepositoryFeature.class })
 @Deploy("org.nuxeo.ecm.automation.elasticsearch.test:test-second-repository-contrib.xml")
 public class TestElasticsearchAutomationMultiRepo {
 
@@ -53,7 +54,9 @@ public class TestElasticsearchAutomationMultiRepo {
     @Inject
     protected CoreSession defaultSession;
 
-    protected CoreSession secondSession;
+    @Inject
+    @Named("other")
+    protected CoreSession otherSession;
 
     @Inject
     protected ElasticSearchService ess;
@@ -66,12 +69,10 @@ public class TestElasticsearchAutomationMultiRepo {
 
     @Before
     public void init() {
-        secondSession = CoreInstance.getCoreSession("second");
-
         // reset index
         esa.initIndexes(true);
         createDocs(defaultSession);
-        createDocs(secondSession);
+        createDocs(otherSession);
     }
 
     protected void createDocs(CoreSession session) {
@@ -95,7 +96,7 @@ public class TestElasticsearchAutomationMultiRepo {
     @Test
     public void testIndexingAllOnAllRepositoriesBulkService() throws Exception {
         try (var defaultCtx = new OperationContext(defaultSession);
-                var secondCtx = new OperationContext(secondSession)) {
+                var secondCtx = new OperationContext(otherSession)) {
             automationService.run(defaultCtx, ElasticsearchBulkIndexOperation.ID);
             automationService.run(secondCtx, ElasticsearchBulkIndexOperation.ID);
 
@@ -103,7 +104,7 @@ public class TestElasticsearchAutomationMultiRepo {
             txFeature.nextTransaction();
 
             assertEquals(2, ess.query(new NxQueryBuilder(defaultSession).nxql("SELECT * from Document")).totalSize());
-            assertEquals(2, ess.query(new NxQueryBuilder(secondSession).nxql("SELECT * from Document")).totalSize());
+            assertEquals(2, ess.query(new NxQueryBuilder(otherSession).nxql("SELECT * from Document")).totalSize());
         }
     }
 

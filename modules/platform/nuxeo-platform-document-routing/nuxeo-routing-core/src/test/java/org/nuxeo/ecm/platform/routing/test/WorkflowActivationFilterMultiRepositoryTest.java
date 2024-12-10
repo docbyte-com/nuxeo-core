@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,38 +14,42 @@
  * limitations under the License.
  *
  * Contributors:
- *     Guillaume Renard
- *     Michael Vachette
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
 package org.nuxeo.ecm.platform.routing.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoute;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingService;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphRoute;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 
 /**
- * @since 11.4
+ * @since 2025.0
  */
+@Features({ WorkflowFeature.class, MultiRepositoryFeature.class })
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-document-routing-activation-filters.xml")
-public class WorkflowActivationFilterTest extends AbstractGraphRouteTest {
+public class WorkflowActivationFilterMultiRepositoryTest extends AbstractGraphRouteTest {
 
     @Inject
     protected CoreSession session;
+
+    @Inject
+    @Named("other")
+    protected CoreSession otherSession;
 
     @Inject
     protected DocumentRoutingService routing;
@@ -69,40 +73,20 @@ public class WorkflowActivationFilterTest extends AbstractGraphRouteTest {
         validate(routeDoc, session);
     }
 
+    // NXP-31351
     @Test
-    public void testWorkflowWithoutFilterCanBeStarted() {
-        setRoute("testWorkflowWithoutFilterCanBeStarted", null, session);
-        assertTrue(routing.canCreateInstance(session, List.of(doc.getId()), routeDoc.getName()));
-    }
-
-    @Test(expected = NuxeoException.class)
-    public void testInvalidWorkflowName() {
-        routing.canCreateInstance(session, List.of(doc.getId()), "WorkflowThatDoesNotExist");
-    }
-
-    @Test
-    public void testWorkflowIsRunnable() {
+    public void testWorkflowIsRunnableMultiRepo() {
         setRoute("testWorkflowIsRunnable", "test_wf_pass", session);
         List<DocumentRoute> runnables = routing.getRunnableWorkflows(session, List.of(doc.getId()));
         assertEquals(1, runnables.size());
-    }
 
-    @Test
-    public void testWorkflowCanBeStarted() {
-        setRoute("testWorkflowCanBeStarted", "test_wf_pass", session);
-        assertTrue(routing.canCreateInstance(session, List.of(doc.getId()), routeDoc.getName()));
-    }
+        // Create another doc in the other repository
+        DocumentModel doc2 = session.createDocumentModel("/", "file2", "File");
+        doc2 = otherSession.createDocument(doc2);
+        setRoute("testWorkflowIsRunnable", "test_wf_pass", otherSession);
 
-    @Test
-    public void testWorkflowIsNotRunnable() {
-        setRoute("testWorkflowIsNotRunnable", "test_wf_fail", session);
-        List<DocumentRoute> runnables = routing.getRunnableWorkflows(session, List.of(doc.getId()));
-        assertEquals(0, runnables.size());
-    }
-
-    @Test
-    public void testWorkflowCannotBeStarted() {
-        setRoute("testWorkflowCannotBeStarted", "test_wf_fail", session);
-        assertFalse(routing.canCreateInstance(session, List.of(doc.getId()), routeDoc.getName()));
+        // Check we are able to retrieve the workflow model from the other repository
+        runnables = routing.getRunnableWorkflows(otherSession, List.of(doc2.getId()));
+        assertEquals(1, runnables.size());
     }
 }

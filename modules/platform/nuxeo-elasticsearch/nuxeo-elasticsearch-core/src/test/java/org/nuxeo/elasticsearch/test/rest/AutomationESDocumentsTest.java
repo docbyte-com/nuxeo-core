@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 20202 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,10 +37,10 @@ import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.io.rest.operations.DocumentInputResolver;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.automation.test.HttpAutomationSession;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
@@ -60,7 +61,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ EmbeddedAutomationServerFeature.class, RepositoryElasticSearchFeature.class })
+@Features({ EmbeddedAutomationServerFeature.class, RepositoryElasticSearchFeature.class, MultiRepositoryFeature.class })
 @Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core.test:pageprovider2-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core.test:pageprovider2-coretype-test-contrib.xml")
@@ -83,14 +84,14 @@ public class AutomationESDocumentsTest {
     @Inject
     protected TransactionalFeature txFeature;
 
+    @Inject
+    @Named("other")
     protected CoreSession sessionOther;
 
     protected DocumentModel docOther;
 
     @Before
     public void initRepo() {
-        sessionOther = CoreInstance.getCoreSession("other");
-
         docOther = sessionOther.createDocumentModel("/", "folder_0", "Folder");
         docOther.setPropertyValue("dc:title", "Other repository folder");
         docOther = sessionOther.createDocument(docOther);
@@ -132,7 +133,7 @@ public class AutomationESDocumentsTest {
     @WithFrameworkProperty(name = DocumentInputResolver.BULK_DOWNLOAD_MULTI_REPOSITORIES, value = "true")
     public void iCanCallAutomationOnMultiRepositoryPageProviderResults() throws IOException {
 
-        // call a PageProvder configured with the "searchAllRepositories" property to true
+        // call a PageProvider configured with the "searchAllRepositories" property to true
         PageProviderDefinition ppdef = pageProviderService.getPageProviderDefinition(SEARCH_ALL_REPOSITORIES_PP);
         assertNotNull(ppdef);
         var props = Map.of(ElasticSearchNativePageProvider.CORE_SESSION_PROPERTY, (Serializable) session);

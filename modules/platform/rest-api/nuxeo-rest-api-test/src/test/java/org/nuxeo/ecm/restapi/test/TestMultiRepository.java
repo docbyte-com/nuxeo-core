@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.core.MediaType;
 
 import org.junit.After;
@@ -36,14 +37,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.function.ThrowableFunction;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -57,8 +57,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class })
-@Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-multi-repository-contrib.xml")
+@Features({ RestServerFeature.class, MultiRepositoryFeature.class })
 public class TestMultiRepository {
 
     protected static final ObjectMapper MAPPER = new ObjectMapper();
@@ -76,17 +75,18 @@ public class TestMultiRepository {
     @Inject
     protected CoreSession defaultRepositorySession;
 
+    @Inject
+    @Named(OTHER_REPO)
+    protected CoreSession otherRepositorySession;
+
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
-
-    protected CoreSession otherRepositorySession;
 
     protected Map<String, CoreSession> sessions;
 
     @Before
     public void init() {
-        otherRepositorySession = CoreInstance.getCoreSession(OTHER_REPO);
         sessions = Stream.of(defaultRepositorySession, otherRepositorySession)
                          .collect(Collectors.toMap(CoreSession::getRepositoryName, Function.identity()));
     }
@@ -370,15 +370,16 @@ public class TestMultiRepository {
     }
 
     protected String buildDocumentCreationJSON(String name, String title) {
-        String json = "{";
-        json += "  \"entity-type\": \"document\",";
-        json += "  \"name\": \"" + name + "\",";
-        json += "  \"type\": \"File\",";
-        json += "  \"properties\": {";
-        json += "    \"dc:title\": \"" + title + "\"";
-        json += "  }";
-        json += "}";
-        return json;
+        return """
+                {
+                  "entity-type": "document",
+                  "name": "%s",
+                  "type": "File",
+                  "properties": {
+                    "dc:title": "%s"
+                  }
+                }
+                """.formatted(name, title);
     }
 
     protected String buildDocumentUpdateJSON(String title, String uid) {
