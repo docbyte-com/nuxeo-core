@@ -30,6 +30,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 
+@Deploy("org.nuxeo.runtime.pubsub") // needed if clustering is enabled
 // deploy partially the bundle because we have features for cache and transient store
 // also because transient store requires more components than cache
 @Deploy("org.nuxeo.ecm.core.cache:OSGI-INF/CacheService.xml")

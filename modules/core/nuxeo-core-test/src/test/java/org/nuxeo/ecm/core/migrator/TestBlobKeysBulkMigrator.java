@@ -22,7 +22,6 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.model.Repository.CAPABILITY_QUERY_BLOB_KEYS;
 import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_AFTER_STATE;
 import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_BEFORE_STATE;
@@ -44,12 +43,16 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.model.Repository;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.capabilities.CapabilitiesService;
 import org.nuxeo.runtime.migration.MigrationService;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -100,8 +103,8 @@ public class TestBlobKeysBulkMigrator {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
     public void testBulkMigrationDBS() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         createDocuments();
         assertEquals(NB_DOCS_WITH_CONTENT + NB_DOCS_WITHOUT_CONTENT, getNbFilesWithoutBlobKeys());
         Framework.getProperties().put("nuxeo.test.repository.disable.blobKeys", "false");
@@ -122,8 +125,9 @@ public class TestBlobKeysBulkMigrator {
     }
 
     @Test
+    @Deploy("org.nuxeo.ecm.core.storage.dbs:OSGI-INF/dbs-blob-keys-migration.xml")
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS feature only")
     public void testBulkMigrationVCS() {
-        assumeTrue("VCS feature only", coreFeature.getStorageConfiguration().isVCS());
         Framework.getProperties().put("nuxeo.test.repository.disable.blobKeys", "false");
         assertBlobKeysCapability(false);
         var beforeState = migrationService.probeAndSetState(MIGRATION_ID);

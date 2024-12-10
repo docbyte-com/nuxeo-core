@@ -35,13 +35,6 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.opensearch.action.search.SearchRequest;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.action.search.SearchType;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.search.SearchHit;
-import org.opensearch.search.builder.SearchSourceBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,6 +81,13 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.opensearch.action.search.SearchRequest;
+import org.opensearch.action.search.SearchResponse;
+import org.opensearch.action.search.SearchType;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
+import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
  * Test "on the fly" indexing via the listener system
@@ -95,6 +95,8 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features({ RepositoryElasticSearchFeature.class })
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.automation.core")
 // @WithFrameworkProperty(name = RECURSIVE_INDEXING_USING_BULK_SERVICE_PROPERTY, value = "true")
 public class TestAutomaticIndexing {
@@ -1276,7 +1278,8 @@ public class TestAutomaticIndexing {
         // Create a plain text note with html content
         startTransaction();
         DocumentModel doc = session.createDocumentModel("/", "note", "Note");
-        doc.setPropertyValue("note:note", "<guten>tag</guten><i>some</i> <b>text</b> to <img src='data:image/png;base64,ABC;'/> search");
+        doc.setPropertyValue("note:note",
+                "<guten>tag</guten><i>some</i> <b>text</b> to <img src='data:image/png;base64,ABC;'/> search");
         doc.setPropertyValue("note:mime_type", "text/plain");
         doc = session.createDocument(doc);
         session.saveDocument(doc);
@@ -1284,10 +1287,12 @@ public class TestAutomaticIndexing {
         waitForCompletion();
         startTransaction();
         // Text is searchable
-        DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Note Where ecm:isVersion=0 AND ecm:fulltext='some text to search'"));
+        DocumentModelList ret = ess.query(new NxQueryBuilder(session).nxql(
+                "SELECT * FROM Note Where ecm:isVersion=0 AND ecm:fulltext='some text to search'"));
         assertEquals(1, ret.totalSize());
         // HTML tags are indexed and searchable because note is plain text
-        ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Note WHERE ecm:isVersion=0 AND ecm:fulltext='guten tag base64'"));
+        ret = ess.query(new NxQueryBuilder(session).nxql(
+                "SELECT * FROM Note WHERE ecm:isVersion=0 AND ecm:fulltext='guten tag base64'"));
         assertEquals(1, ret.totalSize());
 
         // Fix the mime type
@@ -1297,10 +1302,12 @@ public class TestAutomaticIndexing {
         waitForCompletion();
         startTransaction();
         // Text is searchable
-        ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Note Where ecm:isVersion=0 AND ecm:fulltext='some text to search'"));
+        ret = ess.query(new NxQueryBuilder(session).nxql(
+                "SELECT * FROM Note Where ecm:isVersion=0 AND ecm:fulltext='some text to search'"));
         assertEquals(1, ret.totalSize());
         // no more HTML tags
-        ret = ess.query(new NxQueryBuilder(session).nxql("SELECT * FROM Note WHERE ecm:isVersion=0 AND ecm:fulltext='guten tag base64'"));
+        ret = ess.query(new NxQueryBuilder(session).nxql(
+                "SELECT * FROM Note WHERE ecm:isVersion=0 AND ecm:fulltext='guten tag base64'"));
         assertEquals(0, ret.totalSize());
     }
 

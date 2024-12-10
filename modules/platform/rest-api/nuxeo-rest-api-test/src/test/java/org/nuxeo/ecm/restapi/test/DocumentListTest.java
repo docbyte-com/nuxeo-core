@@ -98,7 +98,6 @@ public class DocumentListTest {
 
         // Waiting for all async events work for indexing content before executing fulltext search
         transactionalFeature.nextTransaction();
-        coreFeature.getStorageConfiguration().sleepForFulltext();
 
         // When I search for "nuxeo"
         httpClient.buildGetRequest("/path/@" + SearchAdapter.NAME)

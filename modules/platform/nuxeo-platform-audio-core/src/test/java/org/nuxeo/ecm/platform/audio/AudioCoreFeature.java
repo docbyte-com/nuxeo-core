@@ -30,6 +30,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.ecm.platform.audio.core")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Features({ CoreFeature.class, FileManagerFeature.class, RenditionFeature.class })
 public class AudioCoreFeature implements RunnerFeature {
 }

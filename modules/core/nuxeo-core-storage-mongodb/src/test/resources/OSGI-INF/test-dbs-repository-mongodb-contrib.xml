@@ -10,11 +10,6 @@
 
   <extension target="org.nuxeo.ecm.core.storage.mongodb.MongoDBRepositoryService" point="repository">
     <repository name="test" label="MongoDB Repository">
-      <!--
-      <idType>varchar</idType>
-      <sequenceBlockSize>1</sequenceBlockSize>
-      <nativeId>false</nativeId>
-      -->
       <changeTokenEnabled>${nuxeo.test.changetoken.enabled}</changeTokenEnabled>
       <fulltext disabled="${nuxeo.test.fulltext.disabled}"
                 storedInBlob="${nuxeo.test.fulltext.storedInBlob}"

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -157,6 +157,7 @@ import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoRepository;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoTypeHelper;
 import org.nuxeo.ecm.core.opencmis.tests.Helper;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -165,6 +166,7 @@ import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -783,7 +785,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testCreateDocumentImplicitType() throws Exception {
+    public void testCreateDocumentImplicitType() {
         List<PropertyData<?>> props = new ArrayList<>();
         props.add(factory.createPropertyStringData(PropertyIds.NAME, "doc.txt"));
         props.add(factory.createPropertyIdData(PropertyIds.OBJECT_TYPE_ID, "cmis:document"));
@@ -801,7 +803,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testCreateDocumentWithoutName() throws Exception {
+    public void testCreateDocumentWithoutName() {
         List<PropertyData<?>> props = new ArrayList<>();
         props.add(factory.createPropertyIdData(PropertyIds.OBJECT_TYPE_ID, "cmis:document"));
         Properties properties = factory.createPropertiesData(props);
@@ -823,7 +825,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testUpdateProperties() throws Exception {
+    public void testUpdateProperties() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         assertEquals("testfile1_Title", getString(ob, "dc:title"));
         Properties props = createProperties("dc:title", "new title");
@@ -844,7 +846,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testGetProperties() throws Exception {
+    public void testGetProperties() {
         Properties p;
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
 
@@ -980,7 +982,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testContentStreamFileName() throws Exception {
+    public void testContentStreamFileName() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
 
         // given a filename that contains path separators
@@ -1017,7 +1019,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     // flatten and order children
-    protected static List<String> flatTree(List<ObjectInFolderContainer> tree) throws Exception {
+    protected static List<String> flatTree(List<ObjectInFolderContainer> tree) {
         if (tree == null) {
             return null;
         }
@@ -1202,7 +1204,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testCreateDocumentFromSource() throws Exception {
+    public void testCreateDocumentFromSource() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         String key = "dc:title";
         String value = "new title";
@@ -1218,7 +1220,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testDeleteObject() throws Exception {
+    public void testDeleteObject() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         objService.deleteObject(repositoryId, ob.getId(), Boolean.TRUE, null);
         try {
@@ -1247,7 +1249,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testRemoveObjectFromFolder1() throws Exception {
+    public void testRemoveObjectFromFolder1() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         filingService.removeObjectFromFolder(repositoryId, ob.getId(), null, null);
         try {
@@ -1259,7 +1261,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testRemoveObjectFromFolder2() throws Exception {
+    public void testRemoveObjectFromFolder2() {
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         ObjectData folder = getObjectByPath("/testfolder1");
         filingService.removeObjectFromFolder(repositoryId, ob.getId(), folder.getId(), null);
@@ -1272,7 +1274,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testDeleteTree() throws Exception {
+    public void testDeleteTree() {
         ObjectData ob = getObjectByPath("/testfolder1");
         objService.deleteTree(repositoryId, ob.getId(), null, null, null, null);
         try {
@@ -1291,7 +1293,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testGetAllowableActions() throws Exception {
+    public void testGetAllowableActions() {
         Set<Action> expected;
         ObjectData ob;
         AllowableActions aa;
@@ -1366,7 +1368,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testMoveObject() throws Exception {
+    public void testMoveObject() {
         ObjectData fold = getObjectByPath("/testfolder1");
         ObjectData ob = getObjectByPath("/testfolder2/testfolder3/testfile4");
         Holder<String> objectIdHolder = new Holder<>(ob.getId());
@@ -2295,7 +2297,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         Holder<String> changeTokenHolder = getChangeTokenHolder(ob);
         objService.updateProperties(repositoryId, objectIdHolder, changeTokenHolder, properties, null);
 
-        sleepForFulltext();
+        nextTransaction();
         waitForIndexing();
 
         ObjectList res;
@@ -2346,9 +2348,8 @@ public class TestCmisBinding extends TestCmisBindingBase {
      */
     @Test
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/test-relax-cmis-spec.xml")
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support multiple CONTAINS")
     public void testQueryMultiContainsRelaxingSpec() throws Exception {
-
-        assumeFalse("DBS does not support multiple CONTAINS", coreFeature.getStorageConfiguration().isDBS());
         // when using JOINs, we use the CMISQLQueryMaker which hasn't been updated to allow multiple CONTAINs
         assumeFalse("JOINs are not supported", supportsJoins());
 
@@ -2365,7 +2366,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         Holder<String> changeTokenHolder = getChangeTokenHolder(ob);
         objService.updateProperties(repositoryId, objectIdHolder, changeTokenHolder, properties, null);
 
-        sleepForFulltext();
+        nextTransaction();
         waitForIndexing();
         ObjectList res;
 
@@ -2379,7 +2380,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryMultiConainsFollowingSpec() throws Exception {
+    public void testQueryMultiConainsFollowingSpec() {
 
         ConfigurationService configService = Framework.getService(ConfigurationService.class);
         assertFalse(configService.getBoolean(NuxeoRepository.RELAX_CMIS_SPEC).orElseThrow(AssertionError::new));
@@ -2410,7 +2411,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         Holder<String> changeTokenHolder = getChangeTokenHolder(ob);
         objService.updateProperties(repositoryId, objectIdHolder, changeTokenHolder, properties, null);
 
-        sleepForFulltext();
+        nextTransaction();
         waitForIndexing();
 
         // this failed in CMISQL -> SQL mode (NXP-17512)
@@ -2433,7 +2434,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         Holder<String> changeTokenHolder = getChangeTokenHolder(ob);
         objService.updateProperties(repositoryId, objectIdHolder, changeTokenHolder, properties, null);
 
-        sleepForFulltext();
+        nextTransaction();
         waitForIndexing();
 
         ObjectList res;
@@ -2457,8 +2458,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
     @Test
     public void testQueryScore() throws Exception {
-        sleepForFulltext();
-
+        nextTransaction();
         waitForIndexing();
 
         ObjectList res;
@@ -2704,7 +2704,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testQueryBad() throws Exception {
+    public void testQueryBad() {
         try {
             query("SELECT foo bar baz");
             fail();
@@ -3026,7 +3026,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
         // cancel check out
 
-        waitForAsyncCompletion();
+        nextTransaction();
         verService.cancelCheckOut(repositoryId, coid, null);
         checkValue(PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, Boolean.FALSE, ver2);
         ci = getObject(id);
@@ -3073,11 +3073,11 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testCancelCheckout() throws Exception {
+    public void testCancelCheckout() {
         // initial VersioningState.CHECKEDOUT
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         String id = ob.getId();
-        waitForAsyncCompletion();
+        nextTransaction();
         verService.cancelCheckOut(repositoryId, id, null);
         try {
             getObject(id);
@@ -3114,7 +3114,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         checkValue(PropertyIds.VERSION_SERIES_ID, NOT_NULL, pwc);
         checkValue(PropertyIds.IS_VERSION_SERIES_CHECKED_OUT, Boolean.TRUE, pwc);
 
-        waitForAsyncCompletion();
+        nextTransaction();
         verService.cancelCheckOut(repositoryId, pwcId, null);
         ob = getObject(id);
         assertEquals(id, ob.getId());
@@ -3127,7 +3127,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/cancelcheckout-error-draft.xml")
     public void testCancelCheckoutErrorOnDraft() {
         // initial VersioningState.CHECKEDOUT
-        waitForAsyncCompletion();
+        nextTransaction();
         ObjectData ob = getObjectByPath("/testfolder1/testfile1");
         String id = ob.getId();
         try {
@@ -3557,7 +3557,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
         Thread.sleep(5 * 1000); // wait for audit log to catch up
     }
 
-    protected void checkChange(ObjectData data, String id, ChangeType changeType, String type) throws Exception {
+    protected void checkChange(ObjectData data, String id, ChangeType changeType, String type) {
         Map<String, PropertyData<?>> properties;
         ChangeEventInfo cei;
         cei = data.getChangeEventInfo();
@@ -3722,7 +3722,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testGetACLBase() throws Exception {
+    public void testGetACLBase() {
         String file1Id = getObjectByPath("/testfolder1/testfile1").getId();
 
         Acl acl = aclService.getAcl(repositoryId, file1Id, Boolean.FALSE, null);
@@ -3747,7 +3747,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testGetACL() throws Exception {
+    public void testGetACL() {
         String folder1Id = getObjectByPath("/testfolder1").getId();
         String file1Id = getObjectByPath("/testfolder1/testfile1").getId();
         String file4Id = getObjectByPath("/testfolder2/testfolder3/testfile4").getId();
@@ -3822,7 +3822,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     }
 
     @Test
-    public void testApplyACL() throws Exception {
+    public void testApplyACL() {
         String file1Id = getObjectByPath("/testfolder1/testfile1").getId();
 
         // file1 already has a bob -> Browse permission from setUp
@@ -3866,7 +3866,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
     // listener that will cause a RecoverableClientException to be thrown
     // when a doc whose name starts with "throw" is created
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/recoverable-exc-listener-contrib.xml")
-    public void testRecoverableException() throws Exception {
+    public void testRecoverableException() {
         try {
             createDocument("throw_foo", rootFolderId, "File");
             fail("should throw RecoverableClientException");

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,8 @@
 package org.nuxeo.ecm.core.storage.sql;
 
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_POSTGRESQL;
+import static org.nuxeo.runtime.datasource.DataSourceFeature.DATABASE_VALUE;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -34,7 +36,7 @@ public class TestSQLBackendArrayColumns extends TestSQLBackend {
      */
     @BeforeClass
     public static void assumeArrayColumnsSupported() {
-        assumeTrue(DatabaseHelper.DATABASE.supportsArrayColumns());
+        assumeTrue(DATABASE_VALUE.equals(STORAGE_SQL_DB_POSTGRESQL));
     }
 
     @Override
@@ -46,7 +48,7 @@ public class TestSQLBackendArrayColumns extends TestSQLBackend {
 
     @Override
     protected boolean useArrayColumns() {
-        return DatabaseHelper.DATABASE.supportsArrayColumns();
+        return true;
     }
 
     @Override

@@ -21,10 +21,15 @@ package org.nuxeo.ecm.core.storage.sql;
 import static org.junit.Assume.assumeTrue;
 
 import org.junit.BeforeClass;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * All the tests of TestSQLBackend with sequence-based ids.
  */
+// TODO improve WithFrameworkProperty to support SystemProperties class
+@WithFrameworkProperty(name = "nuxeo.test.vcs.idtype", value = "sequence")
+@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "TestSQLBackend already tests non VCS repositories")
 public class TestSQLBackendSequenceId extends TestSQLBackend {
 
     /**
@@ -32,14 +37,6 @@ public class TestSQLBackendSequenceId extends TestSQLBackend {
      */
     @BeforeClass
     public static void assumeSoftDeleteSupported() {
-        assumeTrue(DatabaseHelper.DATABASE.supportsSequenceId());
+        assumeTrue(VCSRepositoryFeature.isDBSupportsSequenceId());
     }
-
-    @Override
-    protected RepositoryDescriptor newDescriptor(String name) {
-        RepositoryDescriptor descriptor = super.newDescriptor(name);
-        descriptor.idType = "sequence";
-        return descriptor;
-    }
-
 }

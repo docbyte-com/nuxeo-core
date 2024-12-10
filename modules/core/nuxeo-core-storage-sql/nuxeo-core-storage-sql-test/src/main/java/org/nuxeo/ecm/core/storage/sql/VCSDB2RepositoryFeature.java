@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,26 +14,25 @@
  * limitations under the License.
  *
  * Contributors:
- *     Kevin Leturc
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.core.storage.dbs;
+package org.nuxeo.ecm.core.storage.sql;
 
-import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
- * Test helper interface for backend definied as addon.
+ * @since 2025.0
  */
-public interface DBSHelper {
+@Deploy("org.nuxeo.ecm.core.storage.sql.test:OSGI-INF/test-vcs-repository-db2-contrib.xml")
+class VCSDB2RepositoryFeature extends VCSAbstractRepositoryFeature {
 
-    void init();
-
-    default String defaultProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            value = def;
-        }
-        Framework.getProperties().setProperty(name, value);
-        return value;
+    @Override
+    public boolean supportsFulltextSearch() {
+        return true;
     }
 
+    @Override
+    public boolean supportsMultipleFulltextIndexes() {
+        return true;
+    }
 }

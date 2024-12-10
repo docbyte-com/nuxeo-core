@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package org.nuxeo.ecm.core.bulk;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.DRY_RUN_PARAM;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RECORDS_PARAM;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RESULT_DELETED_SIZE_KEY;
@@ -49,7 +48,9 @@ import org.nuxeo.ecm.core.api.scroll.ScrollService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.scroll.GenericScrollRequest;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -63,6 +64,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Features({ CoreFeature.class, CoreBulkFeature.class })
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/disable-schedulers.xml")
 @WithFrameworkProperty(name = ENABLED_PROPERTY_NAME, value = "false")
+@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
 public abstract class AbstractTestFullGCOrphanBlobs {
 
     protected static final String CONTENT = "hello world";
@@ -94,7 +96,6 @@ public abstract class AbstractTestFullGCOrphanBlobs {
 
     @Before
     public void setup() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         sizeOfBinaries = 0L;
         for (int i = 0; i < getNbFiles(); i++) {
             DocumentModel doc = session.createDocumentModel("/", "doc" + i, "File");

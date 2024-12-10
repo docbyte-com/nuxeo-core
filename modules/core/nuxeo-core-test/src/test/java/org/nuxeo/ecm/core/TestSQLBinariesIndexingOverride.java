@@ -46,17 +46,21 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.runtime.reload")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-override-indexing-contrib.xml")
 public class TestSQLBinariesIndexingOverride {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -69,22 +73,6 @@ public class TestSQLBinariesIndexingOverride {
         StorageConfiguration storageConfiguration = coreFeature.getStorageConfiguration();
         assumeTrue("fulltext search not supported", storageConfiguration.supportsFulltextSearch());
         assumeTrue("multiple fulltext indexes not supported", storageConfiguration.supportsMultipleFulltextIndexes());
-
-        // cannot be done through @Deploy, because the framework variables
-        // about repository configuration aren't ready yet
-        deployer.deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-override-indexing-contrib.xml");
-    }
-
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     @Test
@@ -95,7 +83,7 @@ public class TestSQLBinariesIndexingOverride {
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // main index
         res = session.query("SELECT * FROM Document WHERE ecm:fulltext = 'test'");
@@ -114,12 +102,12 @@ public class TestSQLBinariesIndexingOverride {
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // main index
         res = session.query("SELECT * FROM Document WHERE ecm:fulltext = 'test'");
         assertEquals(1, res.size());
-        Map<String, String> map = session.getBinaryFulltext(res.get(0).getRef());
+        Map<String, String> map = session.getBinaryFulltext(res.getFirst().getRef());
         assertTrue(map.containsValue(" test "));
         StorageConfiguration database = coreFeature.getStorageConfiguration();
         if (!(database.isVCSMySQL() || database.isVCSSQLServer())) {
@@ -139,7 +127,7 @@ public class TestSQLBinariesIndexingOverride {
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // indexes the skip file:content
 
@@ -182,7 +170,7 @@ public class TestSQLBinariesIndexingOverride {
             doc = session.createDocument(doc);
             session.save();
 
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
 
             // main index
             res = session.query(String.format(query, NXQL.escapeString(content)));

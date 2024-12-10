@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.nuxeo.ecm.core.blob;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_NEW_DIGEST;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_NEW_KEY;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_OLD_DIGEST;
@@ -43,9 +42,11 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -88,9 +89,8 @@ public class TestComputeDigestHelper {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testReplaceDigest() {
-        assumeTrue("Blob digest replacement only on DBS", coreFeature.getStorageConfiguration().isDBS());
-
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));
         doc = session.createDocument(doc);
@@ -111,9 +111,8 @@ public class TestComputeDigestHelper {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testCoreSessionReplaceBlobDigest() {
-        assumeTrue("Blob digest replacement only on DBS", coreFeature.getStorageConfiguration().isDBS());
-
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
         doc1.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));
         doc1 = session.createDocument(doc1);
@@ -131,7 +130,7 @@ public class TestComputeDigestHelper {
             // check event
             List<Event> events = listener.getCapturedEvents();
             assertEquals(1, events.size());
-            Map<String, Serializable> properties = events.get(0).getContext().getProperties();
+            Map<String, Serializable> properties = events.getFirst().getContext().getProperties();
             assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_KEY));
             assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_DIGEST));
             assertEquals(BAR_MD5, properties.get(BLOB_DIGEST_UPDATED_NEW_KEY));

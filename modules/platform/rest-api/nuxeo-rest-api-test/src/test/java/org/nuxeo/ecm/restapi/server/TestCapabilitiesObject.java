@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.common.Environment.DISTRIBUTION_HOTFIX;
 import static org.nuxeo.common.Environment.DISTRIBUTION_NAME;
 import static org.nuxeo.common.Environment.DISTRIBUTION_SERVER;
@@ -38,11 +37,14 @@ import jakarta.inject.Inject;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.restapi.io.capabilities.CapabilitiesJsonWriter;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -114,21 +116,21 @@ public class TestCapabilitiesObject {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
     public void testHasBlobKeysCapabilityDBS() {
-        assumeTrue("DBS capability check", coreFeature.getStorageConfiguration().isDBS());
         assertBlobKeysCapability(true);
     }
 
     @Test
     @WithFrameworkProperty(name = "nuxeo.test.repository.disable.blobKeys", value = "true")
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
     public void testDoNotHaveBlobKeysCapabilityDBS() {
-        assumeTrue("DBS capability check", coreFeature.getStorageConfiguration().isDBS());
         assertBlobKeysCapability(false);
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS capability check")
     public void testDoNotHaveBlobKeysCapabilityVCS() {
-        assumeTrue("VCS capability check", coreFeature.getStorageConfiguration().isVCS());
         assertBlobKeysCapability(false);
     }
 

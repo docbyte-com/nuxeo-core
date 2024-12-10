@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
 
 import java.io.Serializable;
@@ -47,9 +46,10 @@ import org.nuxeo.ecm.core.api.scroll.Scroll;
 import org.nuxeo.ecm.core.api.scroll.ScrollRequest;
 import org.nuxeo.ecm.core.api.scroll.ScrollService;
 import org.nuxeo.ecm.core.blob.scroll.AbstractBlobScroll;
-import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.ecm.core.scroll.GenericScrollRequest;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -75,9 +75,6 @@ public class TestRepositoryBlobScroll {
 
     @Inject
     protected ScrollService scrollService;
-
-    @Inject
-    protected RepositoryService repositoryService;
 
     protected Map<String, Long> expected = new TreeMap<>();
 
@@ -136,8 +133,8 @@ public class TestRepositoryBlobScroll {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfVCSRepository.class, cause = "MongoDB test only")
     public void testRepositoryBlobScrollMultiRepoSharedProvider() {
-        assumeTrue("MongoDB test only", !coreFeature.getStorageConfiguration().isVCS());
         ScrollRequest request = GenericScrollRequest.builder(SCROLL_NAME, "test").size(SIZE).build();
         assertTrue(scrollService.exists(request));
         assertThrows("Should not be able to scroll in a multi repo with shared provider config.",

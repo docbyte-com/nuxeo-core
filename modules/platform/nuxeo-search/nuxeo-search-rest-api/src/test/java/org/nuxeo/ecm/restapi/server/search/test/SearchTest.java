@@ -739,7 +739,7 @@ public class SearchTest {
     public void iCanExecuteDefaultSavedSearch() {
         assumeTrue("fulltext search not supported", coreFeature.getStorageConfiguration().supportsFulltextSearch());
         // this saved search uses ecm:fulltext so some databases doing async fulltext indexing will need a pause
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
+        transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest(getSavedSearchExecutePath(RestServerInit.getSavedSearchId(3, session)))
                   .executeAndConsume(new JsonNodeHandler(),

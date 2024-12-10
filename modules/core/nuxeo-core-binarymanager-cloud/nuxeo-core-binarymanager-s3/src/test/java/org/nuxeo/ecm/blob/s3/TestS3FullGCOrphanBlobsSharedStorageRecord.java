@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
 package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RECORDS_PARAM;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RESULT_DELETED_SIZE_KEY;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RESULT_TOTAL_SIZE_KEY;
@@ -41,9 +41,11 @@ import org.nuxeo.ecm.core.blob.KeyStrategyDocId;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobs;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.BlacklistComponent;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
@@ -52,6 +54,7 @@ import org.nuxeo.runtime.test.runner.Features;
  */
 @Features({ CoreFeature.class, S3BlobProviderFeature.class })
 @BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
+@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
 public class TestS3FullGCOrphanBlobsSharedStorageRecord extends AbstractTestFullGCOrphanBlobs {
 
     protected DocumentModel doc1;
@@ -66,7 +69,6 @@ public class TestS3FullGCOrphanBlobsSharedStorageRecord extends AbstractTestFull
     @Before
     @Override
     public void setup() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         sizeOfBinaries = 0L;
         doc1 = session.createDocumentModel("/", "doc1", "File");
         Blob blob1 = Blobs.createBlob(CONTENT + 1);
@@ -113,7 +115,7 @@ public class TestS3FullGCOrphanBlobsSharedStorageRecord extends AbstractTestFull
         BulkStatus status = triggerAndWaitGC(RECORDS_PARAM);
         assertNotNull(status);
         assertEquals(COMPLETED, status.getState());
-        assertEquals(false, status.hasError());
+        assertFalse(status.hasError());
 
         // nothing was deleted
         assertTrue(blobProvider1.store.exists(doc1.getId()));

@@ -29,7 +29,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
 import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
@@ -94,15 +93,19 @@ import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.FacetNames;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
@@ -115,6 +118,9 @@ public class TestSQLRepositoryQuery {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -139,20 +145,8 @@ public class TestSQLRepositoryQuery {
         return coreFeature.getStorageConfiguration().isDBSMongoDB();
     }
 
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
     protected void maybeSleepToNextSecond() {
         coreFeature.getStorageConfiguration().maybeSleepToNextSecond();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     /**
@@ -920,9 +914,8 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB cannot query const = const")
     public void testQueryConstantsLeft() {
-        assumeTrue("DBS MongoDB cannot query const = const", !isDBSMongoDB());
-
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -1205,9 +1198,8 @@ public class TestSQLRepositoryQuery {
 
     // new-style date comparisons (casting to native DATE type)
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "MongoDB does not support NXQL DATE casts")
     public void testDateNew() {
-        assumeFalse("MongoDB does not support NXQL DATE casts", isDBSMongoDB());
-
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -2146,7 +2138,7 @@ public class TestSQLRepositoryQuery {
         session.saveDocument(file1);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File Where dc:title = 'hello world 1' ORDER BY ecm:currentLifeCycleState";
 
@@ -2502,7 +2494,7 @@ public class TestSQLRepositoryQuery {
     public void testQueryNow() throws Exception {
         setupDocTest();
         // sleep a second to be sure that the document is found
-        nextTransaction();
+        txFeature.nextTransaction();
         Thread.sleep(1000); // 1s
 
         String testQuery = "SELECT * FROM Folder WHERE dc:title = 'test' AND dc:modified < NOW() AND ecm:isProxy = 0";
@@ -3384,7 +3376,7 @@ public class TestSQLRepositoryQuery {
         session.createDocument(doc3);
 
         session.save();
-        nextTransaction();
+        txFeature.nextTransaction();
 
         DocumentModelList dml = session.query("SELECT dc:source FROM File WHERE ecm:name IN ('doc2', 'doc3')");
         assertEquals(2, dml.size());
@@ -3987,9 +3979,8 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Internal ecm:blobKeys only supported on DBS")
     public void testBlobKeys() {
-        assumeTrue("Internal ecm:blobKeys only supported on DBS", isDBS());
-
         DocumentModel doc = session.createDocumentModel("/", "testfile", "File");
         Blob blob1 = Blobs.createBlob("foo");
         doc.setPropertyValue("content", (Serializable) blob1);

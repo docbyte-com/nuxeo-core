@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
@@ -41,7 +40,9 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.model.Document;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
@@ -69,8 +70,8 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
 
     @Override
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Modern GC is only available on MongoDB")
     public void testBinaryText() throws IOException {
-        assumeTrue("Modern GC is only available on MongoDB", coreFeature.getStorageConfiguration().isDBS());
         super.testBinaryText();
 
         Document doc = mock(Document.class);

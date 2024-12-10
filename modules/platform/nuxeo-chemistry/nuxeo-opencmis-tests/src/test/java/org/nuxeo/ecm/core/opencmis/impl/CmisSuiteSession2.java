@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -34,7 +35,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.io.StringReader;
 import java.io.Writer;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -54,7 +54,6 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.ProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
@@ -86,7 +85,6 @@ import org.nuxeo.ecm.core.blob.BlobManagerComponent;
 import org.nuxeo.ecm.core.blob.BlobProviderDescriptor;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoPropertyData;
 import org.nuxeo.ecm.core.opencmis.tests.Helper;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
@@ -114,9 +112,6 @@ public class CmisSuiteSession2 {
     protected static final String BASIC_AUTH = "Basic " + Base64.encodeBytes((USERNAME + ":" + PASSWORD).getBytes());
 
     @Inject
-    protected CoreFeature coreFeature;
-
-    @Inject
     protected TransactionalFeature txFeature;
 
     @Inject
@@ -139,14 +134,13 @@ public class CmisSuiteSession2 {
         public static final NeverRedirectStrategy INSTANCE = new NeverRedirectStrategy();
 
         @Override
-        public boolean isRedirected(HttpRequest request, HttpResponse response, HttpContext context)
-                throws ProtocolException {
+        public boolean isRedirected(HttpRequest request, HttpResponse response, HttpContext context) {
             return false;
         }
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         isAtomPub = cmisFeatureSession.isAtomPub;
         isBrowser = cmisFeatureSession.isBrowser;
     }
@@ -162,7 +156,7 @@ public class CmisSuiteSession2 {
         blobManagerComponent.registerBlobProvider(descr);
     }
 
-    protected void setUpData() throws Exception {
+    protected void setUpData() {
         Helper.makeNuxeoRepository(coreSession);
 
         DocumentModel file7 = coreSession.createDocumentModel("/testfolder1", "testfile7", "File");
@@ -179,7 +173,6 @@ public class CmisSuiteSession2 {
         file7.checkIn(VersioningOption.MINOR, null);
 
         txFeature.nextTransaction();
-        coreFeature.getStorageConfiguration().sleepForFulltext();
     }
 
     protected String getURI(String path) {
@@ -203,15 +196,14 @@ public class CmisSuiteSession2 {
                 new StringBody("createDocument", ContentType.TEXT_PLAIN)).build();
         FormBodyPart contentPart = FormBodyPartBuilder.create("content",
                 new FileBody(file, ContentType.TEXT_PLAIN, "testfile.txt")).build();
-        HttpEntity entity = MultipartEntityBuilder.create()
-                                                  .addPart(cmisactionPart)
-                                                  .addTextBody("propertyId[0]", "cmis:name")
-                                                  .addTextBody("propertyValue[0]", "testfile01")
-                                                  .addTextBody("propertyId[1]", "cmis:objectTypeId")
-                                                  .addTextBody("propertyValue[1]", "File")
-                                                  .addPart(contentPart)
-                                                  .build();
-        return entity;
+        return MultipartEntityBuilder.create()
+                                     .addPart(cmisactionPart)
+                                     .addTextBody("propertyId[0]", "cmis:name")
+                                     .addTextBody("propertyValue[0]", "testfile01")
+                                     .addTextBody("propertyId[1]", "cmis:objectTypeId")
+                                     .addTextBody("propertyValue[1]", "File")
+                                     .addPart(contentPart)
+                                     .build();
     }
 
     protected HttpEntity getCheckInHttpEntity(File file) {
@@ -219,8 +211,7 @@ public class CmisSuiteSession2 {
                 new StringBody("checkIn", ContentType.TEXT_PLAIN)).build();
         FormBodyPart contentPart = FormBodyPartBuilder.create("content",
                 new FileBody(file, ContentType.TEXT_PLAIN, "testfile.txt")).build();
-        HttpEntity entity = MultipartEntityBuilder.create().addPart(cmisactionPart).addPart(contentPart).build();
-        return entity;
+        return MultipartEntityBuilder.create().addPart(cmisactionPart).addPart(contentPart).build();
     }
 
     protected HttpEntity getSetContentStreamHttpEntity(File file, String changeToken) {
@@ -228,12 +219,11 @@ public class CmisSuiteSession2 {
                 new StringBody("setContent", ContentType.TEXT_PLAIN)).build();
         FormBodyPart contentPart = FormBodyPartBuilder.create("content",
                 new FileBody(file, ContentType.TEXT_PLAIN, "testfile.txt")).build();
-        HttpEntity entity = MultipartEntityBuilder.create()
-                                                  .addPart(cmisactionPart)
-                                                  .addTextBody("changeToken", changeToken)
-                                                  .addPart(contentPart)
-                                                  .build();
-        return entity;
+        return MultipartEntityBuilder.create()
+                                     .addPart(cmisactionPart)
+                                     .addTextBody("changeToken", changeToken)
+                                     .addPart(contentPart)
+                                     .build();
     }
 
     @Test
@@ -300,7 +290,7 @@ public class CmisSuiteSession2 {
             for (int i = 0; i < 2; i++) {
                 boolean okRequest = i == 0;
 
-                List<NameValuePair> paramList = Arrays.asList(new BasicNameValuePair("cmisaction", "checkOut"));
+                List<NameValuePair> paramList = List.of(new BasicNameValuePair("cmisaction", "checkOut"));
                 HttpEntity reqEntity = new UrlEncodedFormEntity(paramList);
                 request.setEntity(reqEntity);
                 try (CloseableHttpResponse response = httpClient.execute(request)) {
@@ -370,7 +360,7 @@ public class CmisSuiteSession2 {
             CloseableHttpResponse response) throws IOException {
         String content;
         try (InputStream is = response.getEntity().getContent()) {
-            content = IOUtils.toString(is, StandardCharsets.UTF_8);
+            content = IOUtils.toString(is, UTF_8);
         }
         assertEquals(content, HttpServletResponse.SC_CREATED, response.getStatusLine().getStatusCode());
         JsonNode root = mapper.readTree(content);
@@ -393,7 +383,7 @@ public class CmisSuiteSession2 {
             throws IOException {
         String content;
         try (InputStream is = response.getEntity().getContent()) {
-            content = IOUtils.toString(is, StandardCharsets.UTF_8);
+            content = IOUtils.toString(is, UTF_8);
         }
         assertEquals(content, HttpServletResponse.SC_BAD_REQUEST, response.getStatusLine().getStatusCode());
         JsonNode root = mapper.readTree(content);
@@ -413,7 +403,7 @@ public class CmisSuiteSession2 {
         return files;
     }
 
-    protected void deleteFiles(File[] files) throws IOException {
+    protected void deleteFiles(File[] files) {
         for (File file : files) {
             file.delete();
         }
@@ -499,7 +489,7 @@ public class CmisSuiteSession2 {
                 // content-length
                 Header lengthHeader = response.getFirstHeader("Content-Length");
                 assertNotNull(lengthHeader);
-                byte[] expectedBytes = FILE1_CONTENT.getBytes("UTF-8");
+                byte[] expectedBytes = FILE1_CONTENT.getBytes(UTF_8);
                 int expectedLength = expectedBytes.length;
                 assertEquals(String.valueOf(expectedLength), lengthHeader.getValue());
                 // content-disposition
@@ -523,7 +513,7 @@ public class CmisSuiteSession2 {
                     }
                     assertEquals(expectedLength, out.size());
                     assertTrue(Arrays.equals(expectedBytes, out.toByteArray()));
-                    assertEquals(Arrays.asList("download:comment=testfile.txt,downloadReason=cmis"), downloadMessages);
+                    assertEquals(List.of("download:comment=testfile.txt,downloadReason=cmis"), downloadMessages);
                 }
             }
         }

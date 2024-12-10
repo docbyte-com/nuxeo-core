@@ -20,11 +20,13 @@
  */
 package org.nuxeo.ecm.core.test;
 
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.CORE_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.ecm.core.model.Session.PROP_ALLOW_DELETE_UNDELETABLE_DOCUMENTS;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +35,8 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.BaseCoreFeature;
+import org.nuxeo.ecm.core.RepositoryFeature;
 import org.nuxeo.ecm.core.api.CloseableCoreSession;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -57,6 +61,9 @@ import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
+import org.nuxeo.ecm.core.storage.mem.DBSMemRepositoryFeature;
+import org.nuxeo.ecm.core.storage.mongodb.DBSMongoDBRepositoryFeature;
+import org.nuxeo.ecm.core.storage.sql.VCSRepositoryFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
@@ -69,6 +76,7 @@ import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.test.runner.Defaults;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
@@ -76,7 +84,6 @@ import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -90,21 +97,11 @@ import com.google.inject.Binder;
  * In addition, by injecting the feature itself, some helper methods are available to open new sessions.
  */
 @Deploy("org.nuxeo.runtime.reload")
-@Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.runtime.mongodb")
 @Deploy("org.nuxeo.ecm.core.query")
-@Deploy("org.nuxeo.ecm.core.api")
-@Deploy("org.nuxeo.ecm.core")
 @Deploy("org.nuxeo.ecm.core.test")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
-@Deploy("org.nuxeo.ecm.core.storage")
-@Deploy("org.nuxeo.ecm.core.storage.sql")
-@Deploy("org.nuxeo.ecm.core.storage.sql.test")
-@Deploy("org.nuxeo.ecm.core.storage.dbs")
-@Deploy("org.nuxeo.ecm.core.storage.mem")
-@Deploy("org.nuxeo.ecm.core.storage.mongodb")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.platform.el")
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blob-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Features({
         // Runtime features
@@ -114,6 +111,7 @@ import com.google.inject.Binder;
         RuntimeStreamFeature.class, //
         TransactionalFeature.class, //
         // Core features
+        BaseCoreFeature.class, //
         CacheFeature.class, //
         ConvertFeature.class, //
         CoreBulkFeature.class, //
@@ -127,6 +125,8 @@ import com.google.inject.Binder;
 public class CoreFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(CoreFeature.class);
+
+    protected final Class<? extends RepositoryFeature> repositoryFeatureClass;
 
     protected ACP rootAcp;
 
@@ -148,6 +148,17 @@ public class CoreFeature implements RunnerFeature {
 
     public StorageConfiguration getStorageConfiguration() {
         return storageConfiguration;
+    }
+
+    public CoreFeature(DynamicFeaturesLoader loader) {
+        repositoryFeatureClass = switch (CORE_SERVICE_VALUE) {
+            case STORAGE_MEM -> DBSMemRepositoryFeature.class;
+            case STORAGE_MONGODB -> DBSMongoDBRepositoryFeature.class;
+            case STORAGE_SQL, "vcs" -> VCSRepositoryFeature.class;
+            default ->
+                throw new UnsupportedOperationException("Core type: " + CORE_SERVICE_VALUE + " is not supported");
+        };
+        loader.loadFeature(repositoryFeatureClass);
     }
 
     /**
@@ -183,11 +194,10 @@ public class CoreFeature implements RunnerFeature {
     }
 
     @Override
-    @SuppressWarnings("deprecation")
     public void initialize(FeaturesRunner runner) {
         runner.getFeature(RuntimeFeature.class).registerHandler(new CoreDeployer());
 
-        storageConfiguration = new StorageConfiguration(this);
+        storageConfiguration = new StorageConfiguration(runner.getFeature(repositoryFeatureClass));
         txFeature = runner.getFeature(TransactionalFeature.class);
         txFeature.addWaiter(this::awaitGC);
         loginFeature = runner.getFeature(DummyLoginFeature.class);
@@ -211,29 +221,11 @@ public class CoreFeature implements RunnerFeature {
 
     @Override
     public void start(FeaturesRunner runner) {
-        try {
-            RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-            storageConfiguration.init();
-            for (String bundle : storageConfiguration.getExternalBundles()) {
-                try {
-                    harness.deployBundle(bundle);
-                } catch (Exception e) {
-                    throw new NuxeoException(e);
-                }
-            }
-            URL blobContribUrl = storageConfiguration.getBlobManagerContrib(runner);
-            harness.getContext().deploy(blobContribUrl);
-            URL repoContribUrl = storageConfiguration.getRepositoryContrib(runner);
-            harness.getContext().deploy(repoContribUrl);
-        } catch (IOException e) {
-            throw new NuxeoException(e);
-        }
     }
 
     @Override
     public void beforeRun(FeaturesRunner runner) {
-        // wait for async tasks that may have been triggered by
-        // RuntimeFeature (typically repo initialization)
+        // wait for async tasks that may have been triggered by RuntimeFeature (typically repo initialization)
         txFeature.nextTransaction(Duration.ofSeconds(10));
         if (granularity != Granularity.METHOD) {
             // we need a transaction to properly initialize the session
@@ -384,7 +376,7 @@ public class CoreFeature implements RunnerFeature {
     }
 
     public String getRepositoryName() {
-        return getStorageConfiguration().getRepositoryName();
+        return "test";
     }
 
     public CoreSession getCoreSession(String username) {

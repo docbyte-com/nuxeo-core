@@ -41,6 +41,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.platform.picture.core.tests:OSGI-INF/empty-picture-configuration-contrib.xml")
 @Features({ //
         AutomationFeature.class, //

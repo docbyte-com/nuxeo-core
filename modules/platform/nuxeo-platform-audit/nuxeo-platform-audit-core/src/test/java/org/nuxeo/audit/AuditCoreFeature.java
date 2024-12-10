@@ -29,7 +29,8 @@ import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.audit.service.AuditCleanerFeature;
 import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.directory.test.DirectoryFeature;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.io.CoreIOFeature;
+import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -41,7 +42,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 2025.0
  */
 @Deploy("org.nuxeo.ecm.platform.audit")
-@Features({ AuditCleanerFeature.class, CoreFeature.class, DirectoryFeature.class })
+@Features({ AuditCleanerFeature.class, CoreIOFeature.class, CoreSchemaFeature.class, DirectoryFeature.class })
 public class AuditCoreFeature implements RunnerFeature {
 
     @Inject

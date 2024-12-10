@@ -66,15 +66,17 @@ import org.nuxeo.ecm.core.event.test.CapturingEventListener;
 import org.nuxeo.ecm.core.model.stream.StreamDocumentGC;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
@@ -89,6 +91,9 @@ public class TestSQLRepositoryFulltextQuery {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected EventService eventService;
@@ -111,21 +116,6 @@ public class TestSQLRepositoryFulltextQuery {
 
     protected void reopenSession() {
         session = coreFeature.reopenCoreSession();
-    }
-
-    protected void waitForFulltextIndexing() {
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
-    protected void waitForAsyncCompletion() {
-        coreFeature.waitForAsyncCompletion();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     protected static void assertIdSet(DocumentModelList dml, String... ids) {
@@ -222,6 +212,7 @@ public class TestSQLRepositoryFulltextQuery {
         file4 = session.createDocument(file4);
 
         session.save();
+        txFeature.nextTransaction();
     }
 
     /**
@@ -244,7 +235,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltext() {
         createDocs();
-        waitForFulltextIndexing();
         String query;
         String nquery = null;
         DocumentModelList dml;
@@ -269,7 +259,7 @@ public class TestSQLRepositoryFulltextQuery {
         file1.setProperty("dublincore", "title", "hello world");
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // query
         dml = session.query(query);
@@ -284,7 +274,7 @@ public class TestSQLRepositoryFulltextQuery {
         file2.setProperty("dublincore", "description", "the world is my oyster");
         session.saveDocument(file2);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // query
         dml = session.query(query);
@@ -300,7 +290,7 @@ public class TestSQLRepositoryFulltextQuery {
         session.saveDocument(file3); // Note with automatic versioning, creates a version too
         session.save();
         DocumentModel file3v2 = session.getLastDocumentVersion(file3.getRef());
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // query
         dml = session.query(query);
@@ -317,19 +307,17 @@ public class TestSQLRepositoryFulltextQuery {
         assertIdSet(dml, file3.getId(), file3v2.getId());
 
         query = "SELECT * FROM Document WHERE ecm:fulltext = 'world' " + "AND dc:contributors = 'pete'";
-        waitForFulltextIndexing();
         dml = session.query(query);
         assertIdSet(dml, file2.getId());
 
         // multi-valued field
         query = "SELECT * FROM Document WHERE ecm:fulltext = 'bzzt'";
-        waitForFulltextIndexing();
         dml = session.query(query);
         assertEquals(0, dml.size());
         file1.setProperty("dublincore", "subjects", new String[] { "bzzt" });
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         query = "SELECT * FROM Document WHERE ecm:fulltext = 'bzzt'";
         dml = session.query(query);
         assertIdSet(dml, file1.getId());
@@ -338,7 +326,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltext2() {
         createDocs();
-        waitForFulltextIndexing();
         String query;
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'restaurant'";
@@ -384,7 +371,6 @@ public class TestSQLRepositoryFulltextQuery {
         Map<String, Serializable> map;
 
         createDocs();
-        waitForFulltextIndexing();
 
         query = "SELECT ecm:uuid, ecm:fulltextScore FROM File WHERE ecm:fulltext = 'restaurant'";
         try (IterableQueryResult res = session.queryAndFetch(query, "NXQL")) {
@@ -448,22 +434,20 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltextCrashingSQLServer2008() {
         createDocs();
-        waitForFulltextIndexing();
 
         String query = "SELECT * FROM File WHERE ecm:fulltext = 'restaurant' AND dc:title = 'testfile1_Title'";
         assertEquals(1, session.query(query).size());
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS cannot do prefix fulltext search")
     public void testFulltextPrefix() {
-        assumeTrue("DBS cannot do prefix fulltext search", !isDBS());
-
         createDocs();
         DocumentModel file1 = session.getDocument(new PathRef("/testfolder1/testfile1"));
         file1.setPropertyValue("dc:title", "Hello World Citizens");
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         String query;
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'wor*'";
@@ -505,11 +489,9 @@ public class TestSQLRepositoryFulltextQuery {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS cannot remove spurious characters in fulltext search")
     public void testFulltextSpuriousCharacters() {
-        assumeTrue("DBS cannot remove spurious characters in fulltext search", !isDBS());
-
         createDocs();
-        waitForFulltextIndexing();
 
         String query = "SELECT * FROM File WHERE ecm:fulltext = 'restaurant :'";
         assertEquals(1, session.query(query).size());
@@ -523,7 +505,7 @@ public class TestSQLRepositoryFulltextQuery {
         file1.setPropertyValue("age:age", "barbar");
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         String query = "SELECT * FROM File WHERE ecm:fulltext = 'barbar'";
         assertEquals(1, session.query(query).size());
@@ -532,7 +514,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltextProxy() {
         createDocs();
-        waitForFulltextIndexing();
 
         String query;
         DocumentModelList dml;
@@ -548,7 +529,7 @@ public class TestSQLRepositoryFulltextQuery {
         DocumentModel proxy = publishDoc();
         String proxyId = proxy.getId();
         String versionId = proxy.getSourceId();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // query must return also proxies and versions
         dml = session.query(query);
@@ -557,7 +538,7 @@ public class TestSQLRepositoryFulltextQuery {
         // remove proxy
         session.removeDocument(proxy.getRef());
         session.save();
-        waitForAsyncCompletion();
+        txFeature.nextTransaction();
         session.save(); // process invalidations
 
         // leaves live doc and version
@@ -569,7 +550,7 @@ public class TestSQLRepositoryFulltextQuery {
         session.save();
 
         // wait for async version removal
-        waitForAsyncCompletion();
+        txFeature.nextTransaction();
 
         // version gone as well
         dml = session.query(query);
@@ -579,7 +560,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltextExpressionSyntax() {
         createDocs();
-        waitForFulltextIndexing();
         String query;
         DocumentModelList dml;
         DocumentModel file1 = session.getDocument(new PathRef("/testfolder1/testfile1"));
@@ -587,7 +567,7 @@ public class TestSQLRepositoryFulltextQuery {
         file1.setProperty("dublincore", "title", "the world is my oyster");
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'pete'";
         dml = session.query(query);
@@ -705,7 +685,7 @@ public class TestSQLRepositoryFulltextQuery {
             f = session.createDocument(f);
         }
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File WHERE ecm:fulltext = '\"international commerce\"'";
         assertEquals(1, session.query(query).size());
@@ -744,7 +724,6 @@ public class TestSQLRepositoryFulltextQuery {
         DocumentModel file1 = session.getDocument(new PathRef("/testfolder1/testfile1"));
         DocumentModel file2 = session.getDocument(new PathRef("/testfolder1/testfile2"));
         DocumentModel file3 = session.getDocument(new PathRef("/testfolder1/testfile3"));
-        DocumentModel file3v1 = session.getLastDocumentVersion(file3.getRef());
 
         file1.setProperty("dublincore", "title", "hello world");
         session.saveDocument(file1);
@@ -754,26 +733,26 @@ public class TestSQLRepositoryFulltextQuery {
         session.saveDocument(file3);
         session.save();
         DocumentModel file3v2 = session.getLastDocumentVersion(file3.getRef());
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // check main fulltext index
         query = "SELECT * FROM Document WHERE ecm:fulltext = 'world'";
         dml = session.query(query);
-        assertIdSet(dml, file1.getId(), file2.getId(), file3.getId(), file3v1.getId(), file3v2.getId());
+        assertIdSet(dml, file1.getId(), file2.getId(), file3.getId(), file3v2.getId());
 
         // check secondary fulltext index, just for title field (no secondary indexes on MongoDB)
         if (!isDBS()) {
             query = "SELECT * FROM Document WHERE ecm:fulltext_title = 'world'";
             dml = session.query(query);
             // file2 has it in descr so is not returned
-            assertIdSet(dml, file1.getId(), file3.getId(), file3v1.getId(), file3v2.getId());
+            assertIdSet(dml, file1.getId(), file3.getId(), file3v2.getId());
         }
 
         // field-based fulltext
         // index exists
         query = "SELECT * FROM Document WHERE ecm:fulltext.dc:title = 'brave'";
         dml = session.query(query);
-        assertIdSet(dml, file3.getId(), file3v1.getId(), file3v2.getId());
+        assertIdSet(dml, file3.getId(), file3v2.getId());
         // no index exists
         query = "SELECT * FROM Document WHERE ecm:fulltext.dc:description = 'oyster'";
         dml = session.query(query);
@@ -786,7 +765,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testFulltextBlob() {
         createDocs();
-        waitForFulltextIndexing();
 
         String query;
         DocumentModelList dml;
@@ -806,7 +784,7 @@ public class TestSQLRepositoryFulltextQuery {
         file1.setPropertyValue("content", (Serializable) blob1);
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
     }
 
     @Test
@@ -819,7 +797,7 @@ public class TestSQLRepositoryFulltextQuery {
         file1.setProperty("dublincore", "title", "hello world");
         session.saveDocument(file1);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'world'";
 
@@ -830,7 +808,7 @@ public class TestSQLRepositoryFulltextQuery {
         DocumentModel copy = session.copy(file1.getRef(), folder1.getRef(), "file1Copy");
         // the save is needed to update the read acls
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         dml = session.query(query);
         assertIdSet(dml, file1.getId(), copy.getId());
@@ -843,7 +821,7 @@ public class TestSQLRepositoryFulltextQuery {
         DocumentRef docRef = doc.getRef();
         session.save();
         reopenSession();
-        waitForAsyncCompletion();
+        txFeature.nextTransaction();
 
         // test setting and reading a map with an empty list
         doc = session.getDocument(docRef);
@@ -855,13 +833,13 @@ public class TestSQLRepositoryFulltextQuery {
         session.saveDocument(doc);
         session.save();
         reopenSession();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // test fulltext indexing of complex property at level one
         DocumentModelList results = session.query("SELECT * FROM Document WHERE ecm:fulltext = 'somename'", 1);
         assertNotNull(results);
         assertEquals(1, results.size());
-        assertEquals("complex-doc", results.get(0).getTitle());
+        assertEquals("complex-doc", results.getFirst().getTitle());
 
         // test setting and reading a list of maps without a complex type in the
         // maps
@@ -873,19 +851,19 @@ public class TestSQLRepositoryFulltextQuery {
         session.saveDocument(doc);
         session.save();
         reopenSession();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // test fulltext indexing of complex property at level 3
         results = session.query("SELECT * FROM Document" + " WHERE ecm:fulltext = 'vignettelabel'", 2);
         assertNotNull(results);
         assertEquals(1, results.size());
-        assertEquals("complex-doc", results.get(0).getTitle());
+        assertEquals("complex-doc", results.getFirst().getTitle());
 
         // test fulltext indexing of complex property at level 3 in blob
         results = session.query("SELECT * FROM Document" + " WHERE ecm:fulltext = 'textblob content'", 2);
         assertNotNull(results);
         assertEquals(1, results.size());
-        assertEquals("complex-doc", results.get(0).getTitle());
+        assertEquals("complex-doc", results.getFirst().getTitle());
 
         // test deleting the list of vignette and ensure that the fulltext index
         // has been properly updated (regression test for NXP-6315)
@@ -893,7 +871,7 @@ public class TestSQLRepositoryFulltextQuery {
         session.saveDocument(doc);
         session.save();
         reopenSession();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         results = session.query("SELECT * FROM Document" + " WHERE ecm:fulltext = 'vignettelabel'", 2);
         assertNotNull(results);
@@ -921,7 +899,7 @@ public class TestSQLRepositoryFulltextQuery {
         doc.setPropertyValue("age:age", "barbar");
         doc = session.createDocument(doc);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         DocumentModelList list = session.query("SELECT * FROM File WHERE ecm:fulltext = 'barbar'");
         assertEquals(1, list.size());
@@ -929,7 +907,7 @@ public class TestSQLRepositoryFulltextQuery {
 
     @Test
     public void testFulltextReindexOnCreateDelete() {
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // create
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
@@ -937,7 +915,7 @@ public class TestSQLRepositoryFulltextQuery {
 
         try (CapturingEventListener listener = new CapturingEventListener()) {
             session.save();
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
             assertEventSet(listener, "sessionSaved=1");
 
             // modify regular
@@ -946,7 +924,7 @@ public class TestSQLRepositoryFulltextQuery {
 
             listener.clear();
             session.save();
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
             // 2 = 1 main save + 1 index
             assertEventSet(listener, "sessionSaved=2");
 
@@ -957,7 +935,7 @@ public class TestSQLRepositoryFulltextQuery {
 
             listener.clear();
             session.save();
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
             // 2 = 1 main save + 1 index
             assertEventSet(listener, "sessionSaved=2", "binaryTextUpdated=1");
 
@@ -966,7 +944,7 @@ public class TestSQLRepositoryFulltextQuery {
 
             listener.clear();
             session.save();
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
             if (coreFeature.getStorageConfiguration().isDBS()) {
                 // With DBS, a blobDeleted event is fired
                 assertEventSet(listener, "blobDeleted=1", "sessionSaved=1");
@@ -981,7 +959,7 @@ public class TestSQLRepositoryFulltextQuery {
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc = session.createDocument(doc);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // modify binary
         Blob blob = Blobs.createBlob("Hello world!");
@@ -990,7 +968,7 @@ public class TestSQLRepositoryFulltextQuery {
 
         try (CapturingEventListener listener = new CapturingEventListener()) {
             session.save();
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
 
             // 2 = 1 main save + 1 index
             assertEventSet(listener, "sessionSaved=2", "binaryTextUpdated=1");
@@ -1009,7 +987,6 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testGetBinaryFulltext() {
         createDocs();
-        waitForFulltextIndexing();
         DocumentModelList list = session.query("SELECT * FROM File WHERE ecm:fulltext = 'Drink'");
         assertFalse(list.isEmpty());
         Map<String, String> map = session.getBinaryFulltext(list.get(0).getRef());
@@ -1020,11 +997,10 @@ public class TestSQLRepositoryFulltextQuery {
     @Test
     public void testGetBinaryFulltextFromProxy() {
         createDocs();
-        waitForFulltextIndexing();
         // Publish testfile1 into testfolder2
         session.publishDocument(session.getDocument(new PathRef("/testfolder1/testfile1")),
                 session.getDocument(new PathRef("/testfolder2")));
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         DocumentModelList list = session.query("SELECT * FROM File WHERE ecm:fulltext = 'Drink' and ecm:isProxy = 1");
         assertFalse(list.isEmpty());
@@ -1043,7 +1019,7 @@ public class TestSQLRepositoryFulltextQuery {
         doc = session.createDocument(doc);
         session.saveDocument(doc);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'world'";
         dml = session.query(query);
@@ -1054,11 +1030,11 @@ public class TestSQLRepositoryFulltextQuery {
         doc.setPropertyValue("dc:title", "universe");
         session.saveDocument(doc);
         session.save();
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         List<DocumentModel> versions = session.getVersions(doc.getRef());
         assertEquals(1, versions.size());
-        DocumentModel ver = versions.get(0);
+        DocumentModel ver = versions.getFirst();
 
         query = "SELECT * FROM File WHERE ecm:fulltext = 'world'";
         dml = session.query(query);

@@ -32,6 +32,7 @@ import com.google.inject.name.Names;
  * @since 2025.0
  */
 @Deploy("org.nuxeo.runtime.datasource")
+@Deploy("org.nuxeo.ecm.core.storage.sql")
 @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-other-repository-contrib.xml")
 @Features(CoreFeature.class)
 public class MultiRepositoryFeature implements RunnerFeature {

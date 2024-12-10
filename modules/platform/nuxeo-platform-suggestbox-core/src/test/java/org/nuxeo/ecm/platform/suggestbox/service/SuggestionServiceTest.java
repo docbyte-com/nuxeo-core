@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(PlatformFeature.class)
@@ -63,6 +63,9 @@ public class SuggestionServiceTest {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -135,15 +138,7 @@ public class SuggestionServiceTest {
         session.createDocument(fileBob);
 
         session.save();
-        waitForFulltextIndexing();
-    }
-
-    protected void waitForFulltextIndexing() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
+        txFeature.nextTransaction();
     }
 
     @Test
@@ -170,7 +165,7 @@ public class SuggestionServiceTest {
          * assertEquals("Search documents with keywords: 'superuni'", sugg0.getLabel());
          * assertEquals("/img/facetedSearch.png", sugg0.getIconURL());
          */
-        Suggestion sugg0 = suggestions.get(0);
+        Suggestion sugg0 = suggestions.getFirst();
         assertEquals("document", sugg0.getType());
         assertEquals("First document with a superuniqueword in the title", sugg0.getLabel());
         assertEquals("/icons/file.gif", sugg0.getIconURL());
@@ -305,7 +300,7 @@ public class SuggestionServiceTest {
          * assertEquals("/img/facetedSearch.png", sugg0.getIconURL());
          */
 
-        sugg1 = suggestions.get(0);
+        sugg1 = suggestions.getFirst();
         assertEquals("user", sugg1.getType());
         assertEquals("noname", sugg1.getLabel());
         assertEquals("/icons/user.png", sugg1.getIconURL());

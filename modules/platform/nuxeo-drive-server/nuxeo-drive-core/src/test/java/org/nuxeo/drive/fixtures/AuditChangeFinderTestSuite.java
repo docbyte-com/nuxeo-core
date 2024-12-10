@@ -23,7 +23,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.DELETED_EVENT;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.ROOT_REGISTERED;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.SECURITY_UPDATED_EVENT;
@@ -61,8 +60,10 @@ import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -1534,9 +1535,8 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blobstore-contrib.xml")
-    public void testReplaceBlobDigest() throws Exception {
-        assumeTrue("Blob digest replacement only on DBS", coreFeature.getStorageConfiguration().isDBS());
-
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
+    public void testReplaceBlobDigest() {
         DocumentModel doc;
         List<FileSystemItemChange> changes;
         String key;

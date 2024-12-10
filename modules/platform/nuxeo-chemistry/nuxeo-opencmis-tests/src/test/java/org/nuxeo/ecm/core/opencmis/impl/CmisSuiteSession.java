@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,14 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.format.DateTimeFormatter.RFC_1123_DATE_TIME;
 import static org.apache.chemistry.opencmis.commons.BasicPermissions.ALL;
 import static org.apache.chemistry.opencmis.commons.BasicPermissions.READ;
 import static org.apache.chemistry.opencmis.commons.BasicPermissions.WRITE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
@@ -36,7 +38,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -106,13 +107,11 @@ import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.security.impl.ACLImpl;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
-import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.opencmis.impl.client.NuxeoSession;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoContentStream;
 import org.nuxeo.ecm.core.opencmis.impl.server.NuxeoTypeHelper;
 import org.nuxeo.ecm.core.opencmis.tests.Helper;
 import org.nuxeo.ecm.core.opencmis.tests.StatusLoggingDefaultHttpInvoker;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -151,16 +150,13 @@ public class CmisSuiteSession {
     public static final String NOT_NULL = "CONSTRAINT_NOT_NULL";
 
     @Inject
-    protected CoreFeature coreFeature;
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CmisFeatureSession cmisFeatureSession;
 
     @Inject
     protected CoreSession coreSession;
-
-    @Inject
-    protected EventService eventService;
 
     @Inject
     protected Session session;
@@ -176,7 +172,7 @@ public class CmisSuiteSession {
     protected Map<String, String> repoDetails;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         setUpData();
         session.clear(); // clear cache
 
@@ -192,14 +188,10 @@ public class CmisSuiteSession {
         isBrowser = cmisFeatureSession.isBrowser;
     }
 
-    protected void setUpData() throws Exception {
+    protected void setUpData() {
         repoDetails = Helper.makeNuxeoRepository(coreSession);
         txFeature.nextTransaction();
-        coreFeature.getStorageConfiguration().sleepForFulltext();
     }
-
-    @Inject
-    TransactionalFeature txFeature;
 
     protected void waitForAsyncCompletion() {
         txFeature.nextTransaction();
@@ -217,7 +209,7 @@ public class CmisSuiteSession {
         assertEquals(NUXEO_ROOT_NAME, root.getName());
         List<Property<?>> props = root.getProperties();
         assertNotNull(props);
-        assertTrue(props.size() > 0);
+        assertFalse(props.isEmpty());
         assertEquals("/", root.getPath());
         assertEquals(Collections.singletonList("/"), root.getPaths());
         assertNull(root.getFolderParent());
@@ -225,18 +217,18 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDefaultProperties() throws Exception {
+    public void testDefaultProperties() {
         Folder root = session.getRootFolder();
         CmisObject child = root.getChildren().iterator().next();
         assertNotNull(child.getProperty("dc:coverage"));
         assertNull(child.getPropertyValue("dc:coverage"));
         Document doc = (Document) session.getObjectByPath("/testfolder1/testfile1");
         List<String> subjects = doc.getPropertyValue("dc:subjects");
-        assertEquals(Arrays.asList("foo", "gee/moo"), subjects);
+        assertEquals(List.of("foo", "gee/moo"), subjects);
     }
 
     @Test
-    public void testPath() throws Exception {
+    public void testPath() {
         Folder folder = (Folder) session.getObjectByPath("/testfolder1");
         assertEquals("/testfolder1", folder.getPath());
         assertEquals(Collections.singletonList("/testfolder1"), folder.getPaths());
@@ -246,7 +238,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testParent() throws Exception {
+    public void testParent() {
         Folder folder = (Folder) session.getObjectByPath("/testfolder1");
         assertEquals(rootFolderId, folder.getFolderParent().getId());
         List<Folder> parents = folder.getParents();
@@ -341,7 +333,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testCreateDocumentWithoutName() throws Exception {
+    public void testCreateDocumentWithoutName() {
         Map<String, Serializable> properties = new HashMap<>();
         properties.put(PropertyIds.OBJECT_TYPE_ID, "File");
         try {
@@ -354,7 +346,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testCreateRelationship() throws Exception {
+    public void testCreateRelationship() {
         if (!(isAtomPub || isBrowser)) {
             // createRelationship admin user only empowered for AtomPub &
             // Browser tests
@@ -386,7 +378,7 @@ public class CmisSuiteSession {
 
     // HiddenRelation, like the standard DefaultRelation, is marked HiddenInNavigation
     @Test
-    public void testCreateHiddenRelation() throws Exception {
+    public void testCreateHiddenRelation() {
         if (!(isAtomPub || isBrowser)) {
             // createRelationship admin user only empowered for AtomPub &
             // Browser tests
@@ -417,38 +409,38 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testCreatePath() throws Exception {
+    public void testCreatePath() {
         session.createPath("/testfolder1/newlevel/newfolder", "Folder");
         session.getObjectByPath("/testfolder1/newlevel");
         session.getObjectByPath("/testfolder1/newlevel/newfolder");
     }
 
     @Test
-    public void testUpdate() throws Exception {
+    public void testUpdate() {
         Document doc;
 
         doc = (Document) session.getObjectByPath("/testfolder1/testfile1");
         Map<String, Object> map = new HashMap<>();
         map.put("dc:title", "new title");
-        map.put("dc:subjects", Arrays.asList("a", "b", "c"));
+        map.put("dc:subjects", List.of("a", "b", "c"));
         doc.updateProperties(map);
 
         doc = (Document) session.getObjectByPath("/testfolder1/testfile1");
         assertEquals("new title", doc.getPropertyValue("dc:title"));
-        assertEquals(Arrays.asList("a", "b", "c"), doc.getPropertyValue("dc:subjects"));
+        assertEquals(List.of("a", "b", "c"), doc.getPropertyValue("dc:subjects"));
 
         // TODO test transient object API
         map.clear();
         map.put("dc:title", "other title");
-        map.put("dc:subjects", Arrays.asList("foo"));
+        map.put("dc:subjects", List.of("foo"));
         doc.updateProperties(map);
         doc.refresh(); // reload
         assertEquals("other title", doc.getPropertyValue("dc:title"));
-        assertEquals(Arrays.asList("foo"), doc.getPropertyValue("dc:subjects"));
+        assertEquals(List.of("foo"), doc.getPropertyValue("dc:subjects"));
     }
 
     @Test
-    public void testUpdateDescription() throws Exception {
+    public void testUpdateDescription() {
         Document doc;
         doc = (Document) session.getObjectByPath("/testfolder1/testfile1");
 
@@ -466,7 +458,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testPropertyFromSecondaryType() throws Exception {
+    public void testPropertyFromSecondaryType() {
         DocumentModel doc = coreSession.getDocument(new PathRef("/testfolder1/testfile1"));
         doc.addFacet("CustomFacetWithMySchema2");
         doc.setPropertyValue("my2:string", "foo");
@@ -538,7 +530,7 @@ public class CmisSuiteSession {
 
         // set stream
         // TODO convenience constructors for ContentStreamImpl
-        byte[] streamBytes = STREAM_CONTENT.getBytes("UTF-8");
+        byte[] streamBytes = STREAM_CONTENT.getBytes(UTF_8);
         ByteArrayInputStream stream = new ByteArrayInputStream(streamBytes);
         cs = new ContentStreamImpl("foo.txt", BigInteger.valueOf(streamBytes.length), "text/plain; charset=UTF-8",
                 stream);
@@ -563,11 +555,11 @@ public class CmisSuiteSession {
         // delete
         file.deleteContentStream();
         file.refresh();
-        assertEquals(null, file.getContentStream());
+        assertNull(file.getContentStream());
     }
 
     @Test
-    public void testAllowableActions() throws Exception {
+    public void testAllowableActions() {
         CmisObject ob;
         AllowableActions aa;
         Set<Action> expected;
@@ -632,7 +624,7 @@ public class CmisSuiteSession {
     private static final int THUMBNAIL_SIZE = 394;
 
     @Test
-    public void testRenditions() throws Exception {
+    public void testRenditions() {
         boolean checkStream = !(isAtomPub || isBrowser);
 
         CmisObject ob = session.getObjectByPath("/testfolder1/testfile1");
@@ -665,8 +657,8 @@ public class CmisSuiteSession {
         ob = session.getObject(session.createObjectId(ob.getId()), oc);
         renditions = ob.getRenditions();
         assertEquals(4, renditions.size());
-        Collections.sort(renditions, RENDITION_CMP);
-        check(renditions.get(0), checkStream);
+        renditions.sort(RENDITION_CMP);
+        check(renditions.getFirst(), checkStream);
 
         // get renditions with query
 
@@ -675,8 +667,8 @@ public class CmisSuiteSession {
         assertEquals(1, results.getTotalNumItems());
         renditions = results.iterator().next().getRenditions();
         assertEquals(4, renditions.size());
-        Collections.sort(renditions, RENDITION_CMP);
-        check(renditions.get(0), false);
+        renditions.sort(RENDITION_CMP);
+        check(renditions.getFirst(), false);
         // no rendition stream, Chemistry deficiency (QueryResultImpl
         // constructor call to of.convertRendition with null)
     }
@@ -697,7 +689,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeletedInTrash() throws Exception {
+    public void testDeletedInTrash() {
         String file5id = repoDetails.get("file5id");
 
         try {
@@ -744,7 +736,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDelete() throws Exception {
+    public void testDelete() {
         Document doc = (Document) session.getObjectByPath("/testfolder1/testfile1");
         doc.delete(true);
 
@@ -758,7 +750,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeleteByPath() throws Exception {
+    public void testDeleteByPath() {
         session.deleteByPath("/testfolder1/testfile1", true);
         session.clear();
         try {
@@ -770,7 +762,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeleteByPath2() throws Exception {
+    public void testDeleteByPath2() {
         session.deleteByPath("/testfolder1", "testfile1");
         session.clear();
         try {
@@ -782,7 +774,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeleteTree() throws Exception {
+    public void testDeleteTree() {
         Folder folder = (Folder) session.getObjectByPath("/testfolder1");
         List<String> failed = folder.deleteTree(true, null, true);
         assertTrue(failed == null || failed.isEmpty());
@@ -806,7 +798,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeleteTreeByPath() throws Exception {
+    public void testDeleteTreeByPath() {
         List<String> failed = session.deleteTreebyPath("/testfolder1", true, null, true);
         assertTrue(failed == null || failed.isEmpty());
 
@@ -829,7 +821,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testCopy() throws Exception {
+    public void testCopy() {
         if (isAtomPub) {
             // copy not implemented by AtomPub bindings
             return;
@@ -851,7 +843,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testMove() throws Exception {
+    public void testMove() {
         Folder folder = (Folder) session.getObjectByPath("/testfolder1");
         Document doc = (Document) session.getObjectByPath("/testfolder2/testfolder3/testfile4");
         String docId = doc.getId();
@@ -872,7 +864,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testVersioning() throws Exception {
+    public void testVersioning() {
         CmisObject ob = session.getObjectByPath("/testfolder1/testfile1");
         String id = ob.getId();
 
@@ -940,7 +932,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testVersionBasedLocking() throws Exception {
+    public void testVersionBasedLocking() {
         CmisObject ob = session.getObjectByPath("/testfolder1/testfile1");
 
         // implicitly checked out after create - unlocked
@@ -980,7 +972,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testDeleteObjectOrCancelCheckOut() throws Exception {
+    public void testDeleteObjectOrCancelCheckOut() {
         // test cancelCheckOut
         CmisObject ob = session.getObjectByPath("/testfolder1/testfile1");
 
@@ -989,7 +981,7 @@ public class CmisSuiteSession {
 
         Map<String, Object> map = new HashMap<>();
         map.put("dc:title", "new title");
-        map.put("dc:subjects", Arrays.asList("a", "b", "c"));
+        map.put("dc:subjects", List.of("a", "b", "c"));
         ob.updateProperties(map);
 
         // wait for fulltext before a cancelCheckOut, which does a copy of the fulltext rows as well
@@ -999,14 +991,14 @@ public class CmisSuiteSession {
 
         session.clear();
         ob = session.getObjectByPath("/testfolder1/testfile1");
-        assertFalse("new title".equals(ob.getPropertyValue("dc:title")));
+        assertNotEquals("new title", ob.getPropertyValue("dc:title"));
 
         // test deleteObject
         ob = session.getObjectByPath("/testfolder1/testfile2");
 
         map = new HashMap<>();
         map.put("dc:title", "new title");
-        map.put("dc:subjects", Arrays.asList("a", "b", "c"));
+        map.put("dc:subjects", List.of("a", "b", "c"));
         ob.updateProperties(map);
 
         // wait for fulltext before a cancelCheckOut, which does a copy of the fulltext rows as well
@@ -1031,7 +1023,7 @@ public class CmisSuiteSession {
         // check in with data
         Map<String, Serializable> props = new HashMap<>();
         props.put("dc:title", "newtitle");
-        byte[] bytes = "foo-bar".getBytes("UTF-8");
+        byte[] bytes = "foo-bar".getBytes(UTF_8);
         ByteArrayInputStream in = new ByteArrayInputStream(bytes);
         ContentStream cs = session.getObjectFactory()
                                   .createContentStream("test.pdf", bytes.length, "application/pdf", in);
@@ -1053,7 +1045,7 @@ public class CmisSuiteSession {
         }
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         IOUtils.copy(cs2.getStream(), os);
-        assertEquals("foo-bar", os.toString("UTF-8"));
+        assertEquals("foo-bar", os.toString(UTF_8));
     }
 
     @Test
@@ -1115,7 +1107,7 @@ public class CmisSuiteSession {
     }
 
     protected static Set<String> set(String... strings) {
-        return new HashSet<>(Arrays.asList(strings));
+        return new HashSet<>(List.of(strings));
     }
 
     /** Get ACL, using * suffix on username to denote non-direct. */
@@ -1128,7 +1120,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testGetACLBase() throws Exception {
+    public void testGetACLBase() {
         String file1Id = session.getObjectByPath("/testfolder1/testfile1").getId();
 
         Acl acl = session.getAcl(session.createObjectId(file1Id), false);
@@ -1156,7 +1148,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testGetACL() throws Exception {
+    public void testGetACL() {
         String folder1Id = coreSession.getDocument(new PathRef("/testfolder1")).getId();
         String file1Id = coreSession.getDocument(new PathRef("/testfolder1/testfile1")).getId();
         String file4Id = coreSession.getDocument(new PathRef("/testfolder2/testfolder3/testfile4")).getId();
@@ -1237,7 +1229,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testApplyACL() throws Exception {
+    public void testApplyACL() {
         String file1Id = session.getObjectByPath("/testfolder1/testfile1").getId();
 
         // file1 already has a bob -> Browse permission from setUp
@@ -1245,8 +1237,8 @@ public class CmisSuiteSession {
         // add
 
         Principal p = new AccessControlPrincipalDataImpl("mary");
-        Ace ace = new AccessControlEntryImpl(p, Arrays.asList(READ));
-        List<Ace> addAces = Arrays.asList(ace);
+        Ace ace = new AccessControlEntryImpl(p, List.of(READ));
+        List<Ace> addAces = List.of(ace);
         List<Ace> removeAces = null;
         Acl acl = session.applyAcl(session.createObjectId(file1Id), addAces, removeAces, null);
 
@@ -1263,9 +1255,9 @@ public class CmisSuiteSession {
 
         // remove
 
-        ace = new AccessControlEntryImpl(p, Arrays.asList(READ, "Read"));
+        ace = new AccessControlEntryImpl(p, List.of(READ, "Read"));
         addAces = null;
-        removeAces = Arrays.asList(ace);
+        removeAces = List.of(ace);
         acl = session.applyAcl(session.createObjectId(file1Id), addAces, removeAces, null);
 
         if (!(isAtomPub || isBrowser)) { // OpenCMIS 0.12 bug
@@ -1283,7 +1275,7 @@ public class CmisSuiteSession {
     // listener that will cause a RecoverableClientException to be thrown
     // when a doc whose name starts with "throw" is created
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/recoverable-exc-listener-contrib.xml")
-    public void testRecoverableException() throws Exception {
+    public void testRecoverableException() {
         Map<String, Serializable> properties = new HashMap<>();
         properties.put(PropertyIds.OBJECT_TYPE_ID, "File");
         properties.put(PropertyIds.NAME, "throw_foo");
@@ -1356,7 +1348,7 @@ public class CmisSuiteSession {
 
         for (String docId : docIds) {
             doc = (Document) session.getObject(docId);
-            String res = (String) doc.getPropertyValue("complexTest:complexItem");
+            String res = doc.getPropertyValue("complexTest:complexItem");
             assertEquals(expectedMap, om.readValue(res, Map.class));
         }
 
@@ -1406,7 +1398,7 @@ public class CmisSuiteSession {
     }
 
     @Test
-    public void testRollbackOnException() throws Exception {
+    public void testRollbackOnException() {
         Folder root = session.getRootFolder();
         Map<String, Serializable> properties = new HashMap<>();
         properties.put(PropertyIds.OBJECT_TYPE_ID, "File");

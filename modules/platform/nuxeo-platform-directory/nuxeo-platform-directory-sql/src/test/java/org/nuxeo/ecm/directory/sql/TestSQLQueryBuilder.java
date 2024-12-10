@@ -21,7 +21,6 @@ package org.nuxeo.ecm.directory.sql;
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -32,9 +31,9 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.core.storage.sql.DatabaseHelper;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.datasource.DataSourceFeature;
@@ -151,10 +150,10 @@ public class TestSQLQueryBuilder {
                         + " AND ([company] NOT IN (?, ?))" //
                         + " AND ([username] IS NULL ))";
             } else {
-                expected = "Unknown VCS backend: " + DatabaseHelper.DATABASE.getClass().getSimpleName();
+                expected = "Unknown VCS backend: " + ThirdPartyUnderTest.STORAGE_SQL_DB_VALUE;
             }
             assertEquals(expected, builder.clause.toString());
-            assertEqualsNormalized(Arrays.asList( //
+            assertEqualsNormalized(List.of( //
                     "user_1", "Administrator", //
                     Long.valueOf(123), //
                     Boolean.TRUE, //

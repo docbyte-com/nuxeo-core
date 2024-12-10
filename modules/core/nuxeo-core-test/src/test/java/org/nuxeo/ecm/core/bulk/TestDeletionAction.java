@@ -21,7 +21,6 @@ package org.nuxeo.ecm.core.bulk;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.bulk.message.BulkStatus.State.COMPLETED;
 import static org.nuxeo.ecm.core.test.DocumentSetRepositoryInit.CREATED_TOTAL;
 
@@ -35,9 +34,11 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DocumentSetRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -50,6 +51,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Features({ CoreFeature.class, CoreBulkFeature.class })
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
 @RepositoryConfig(init = DocumentSetRepositoryInit.class)
+@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
 public class TestDeletionAction {
 
     @Inject
@@ -66,9 +68,6 @@ public class TestDeletionAction {
 
     @Test
     public void testAction() {
-
-        assumeTrue("Ignored for VCS", coreFeature.getStorageConfiguration().isDBS());
-
         DocumentModel model = session.getDocument(new PathRef("/default-domain/workspaces/test"));
         String nxql = String.format("SELECT * from Document where ecm:ancestorId='%s'", model.getId());
         assertEquals(CREATED_TOTAL, session.query(nxql).size());

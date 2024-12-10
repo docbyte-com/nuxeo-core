@@ -40,6 +40,7 @@ import org.nuxeo.elasticsearch.listener.ElasticSearchInlineListener;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
@@ -62,6 +63,9 @@ public class TestFulltextEnabled {
     protected CoreFeature coreFeature;
 
     @Inject
+    protected TransactionalFeature txFeature;
+
+    @Inject
     protected ElasticSearchAdmin esa;
 
     private int commandProcessed;
@@ -78,10 +82,6 @@ public class TestFulltextEnabled {
         workManager.awaitCompletion(20, TimeUnit.SECONDS);
         esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
         esa.refresh();
-    }
-
-    public void sleepForFulltext() {
-        coreFeature.getStorageConfiguration().sleepForFulltext();
     }
 
     protected void startTransaction() {
@@ -107,7 +107,7 @@ public class TestFulltextEnabled {
 
         // binary fulltext is also searcheable with VCS
         if (coreFeature.getStorageConfiguration().supportsFulltextSearch()) {
-            sleepForFulltext();
+            txFeature.nextTransaction();
             DocumentModelList coreRet = session.query(nxql);
             assertEquals(1, coreRet.totalSize());
         }
@@ -124,7 +124,7 @@ public class TestFulltextEnabled {
 
         // binary fulltext is also searcheable with VCS
         if (coreFeature.getStorageConfiguration().supportsFulltextSearch()) {
-            sleepForFulltext();
+            txFeature.nextTransaction();
             DocumentModelList coreRet = session.query(nxql);
             assertEquals(1, coreRet.totalSize());
         }

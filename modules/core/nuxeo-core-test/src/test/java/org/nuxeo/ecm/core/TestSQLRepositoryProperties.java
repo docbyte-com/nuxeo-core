@@ -101,10 +101,13 @@ import org.nuxeo.ecm.core.storage.State;
 import org.nuxeo.ecm.core.storage.State.StateDiff;
 import org.nuxeo.ecm.core.storage.dbs.DBSConnection;
 import org.nuxeo.ecm.core.storage.dbs.DBSRepository;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -391,9 +394,8 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "pull optimization only available on DBS")
     public void testArrayConcurrentPull() throws InterruptedException {
-        assumeTrue("pull optimization only available on DBS", coreFeature.getStorageConfiguration().isDBS());
-
         doc.setPropertyValue("tp:stringArray", (Serializable) List.of("foo", "bar", "baz"));
         session.saveDocument(doc);
         session.save();
@@ -568,9 +570,8 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListNullInStorage() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
         // we check for the fact that storage is null (actually unset) by using
         // a query (which would fail if we stored an empty list)
         String query = "SELECT * FROM TestDocument WHERE tp:complexList IS NULL";
@@ -596,9 +597,8 @@ public class TestSQLRepositoryProperties {
 
     // DBS-only test for in-db data corruption(?) (NXP-21278)
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListElementNullInStorage() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
         doc.setPropertyValue("tp:complexList", (Serializable) List.of( //
                 Map.of("string", "foo"), //
                 Map.of("string", "bar")));
@@ -954,9 +954,8 @@ public class TestSQLRepositoryProperties {
 
     // NOTE that this test cannot pass if DEBUG_UUIDS=true due to the reset of the uuid counter
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
     public void testComplexPropertySchemaUpdate() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         // create a doc
         doc.setPropertyValue("tp:complex/string", "test");
         doc = session.saveDocument(doc);
@@ -1081,9 +1080,8 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         File file = createTempFile();
         HashMap<String, String> map = new HashMap<>();
         String uri = String.format("fs:%s", file.getName());
@@ -1104,9 +1102,8 @@ public class TestSQLRepositoryProperties {
 
     // this time only set the uri
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty2() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         File file = createTempFile();
         String uri = String.format("fs:%s", file.getName());
         doc.setPropertyValue("tp:externalcontent/uri", uri);
@@ -1125,9 +1122,8 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobListValue() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         // not null on list
         String propName = "tp:externalFileList";
         assertTrue(doc.getPropertyValue(propName) instanceof List);
@@ -1161,9 +1157,8 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
     public void testSubExternalBlobValue() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         String propName = "tp:externalFileComplexList";
         // not null on list
         assertTrue(doc.getPropertyValue(propName) instanceof List);
@@ -1552,9 +1547,8 @@ public class TestSQLRepositoryProperties {
 
     // DBS-only test for in-db data migration
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
     public void testMigrationListVsString() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
         // create a doc
         DocumentModel doc = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);

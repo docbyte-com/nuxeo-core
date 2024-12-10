@@ -137,6 +137,7 @@ import org.nuxeo.ecm.core.schema.SchemaManagerImpl;
 import org.nuxeo.ecm.core.schema.types.Schema;
 import org.nuxeo.ecm.core.security.RetentionExpiredAction.RetentionExpiredComputation;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
 import org.nuxeo.ecm.core.storage.sql.listeners.DummyBeforeModificationListener;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -4575,8 +4576,8 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
+    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS repository has incremental GC")
     public void testBinaryGC() throws InterruptedException {
-        assumeTrue("DBS repository has incremental GC", !coreFeature.getStorageConfiguration().isDBS());
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
         runBinariesGC(true, false);

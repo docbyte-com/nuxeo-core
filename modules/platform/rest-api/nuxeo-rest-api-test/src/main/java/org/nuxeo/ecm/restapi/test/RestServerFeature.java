@@ -37,6 +37,8 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 @Deploy("org.nuxeo.ecm.platform.restapi.test")
 @Deploy("org.nuxeo.ecm.platform.restapi.server")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Features({ WebEngineFeature.class, AutomationFeature.class })
 public class RestServerFeature implements RunnerFeature {
 

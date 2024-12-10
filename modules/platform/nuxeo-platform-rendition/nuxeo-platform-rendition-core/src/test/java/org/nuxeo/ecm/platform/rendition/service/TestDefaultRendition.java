@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,6 +51,8 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 @Features(RenditionFeature.class)
 @Deploy("org.nuxeo.ecm.platform.collections.core")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-default-rendition-schemas.xml")
 public class TestDefaultRendition {
 
@@ -112,13 +114,13 @@ public class TestDefaultRendition {
     public void testDefaultRenditionOnFolderishAndCollectionContainers() throws Exception {
         DocumentModel customFolderish01 = session.createDocumentModel("/", "dummy-custom-folderish", "CustomFolderish");
         customFolderish01 = session.createDocument(customFolderish01);
-        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt", "File",
-                session);
-        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt", "File",
-                session);
+        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt",
+                "File", session);
+        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt",
+                "File", session);
 
-        DocumentModel customCollection = session.createDocumentModel(customFolderish01.getPathAsString(), "dummy-custom-collection",
-                "CustomCollection");
+        DocumentModel customCollection = session.createDocumentModel(customFolderish01.getPathAsString(),
+                "dummy-custom-collection", "CustomCollection");
         customCollection = session.createDocument(customCollection);
         DocumentModel folder11 = session.createDocumentModel("/", "dummy-folder", "Folder");
         folder11 = session.createDocument(folder11);

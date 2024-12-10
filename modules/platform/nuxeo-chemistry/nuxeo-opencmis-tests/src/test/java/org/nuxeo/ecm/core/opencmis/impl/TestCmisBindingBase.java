@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -96,6 +96,9 @@ public abstract class TestCmisBindingBase {
     @Inject
     protected CoreFeature coreFeature;
 
+    @Inject
+    protected TransactionalFeature txFeature;
+
     protected void assumeSupportsJoins() {
         assumeTrue("joins not supported", supportsJoins());
     }
@@ -179,25 +182,12 @@ public abstract class TestCmisBindingBase {
         binding.close();
     }
 
-    @Inject
-    TransactionalFeature txFeature;
-
-    protected void setUpData(CoreSession coreSession) throws Exception {
+    protected void setUpData(CoreSession coreSession) {
         Map<String, String> info = Helper.makeNuxeoRepository(coreSession, true); // add a proxy
         txFeature.nextTransaction(); // flush
-        sleepForFulltext();
         file5id = info.get("file5id");
         file6verid = info.get("file6verid");
         proxyid = info.get("proxyid");
-    }
-
-    protected void waitForAsyncCompletion() {
-        nextTransaction();
-    }
-
-    protected void sleepForFulltext() {
-        waitForAsyncCompletion();
-        coreFeature.getStorageConfiguration().sleepForFulltext();
     }
 
     protected boolean supportsMultipleFulltextIndexes() {

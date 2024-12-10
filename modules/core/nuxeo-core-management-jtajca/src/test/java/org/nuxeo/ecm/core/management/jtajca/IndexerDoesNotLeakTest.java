@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.core.management.jtajca;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 
 import java.util.concurrent.TimeUnit;
 
@@ -30,8 +30,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.IgnoreNonPooledCondition;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.work.api.WorkManager;
@@ -43,18 +43,18 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features({ JtajcaManagementFeature.class, CoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@ConditionalIgnoreRule.Ignore(condition = IgnoreNonPooledCondition.class)
+@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
 public class IndexerDoesNotLeakTest {
 
     @Inject
-    CoreSession repo;
+    protected CoreSession repo;
 
     @Inject
-    WorkManager works;
+    protected WorkManager works;
 
     @Inject
     @Named("repository/test")
-    ConnectionPoolMonitor repoMonitor;
+    protected ConnectionPoolMonitor repoMonitor;
 
     @Test
     public void indexerWorkDoesNotLeak() throws InterruptedException {
@@ -65,6 +65,5 @@ public class IndexerDoesNotLeakTest {
         TransactionHelper.startTransaction();
         works.awaitCompletion(10, TimeUnit.SECONDS);
         assertThat(repoCount, is(repoMonitor.getConnectionCount()));
-
     }
 }

@@ -81,7 +81,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ RestServerFeature.class, RepositoryElasticSearchFeature.class, DirectoryFeature.class })
-@Deploy("org.nuxeo.ecm.platform.tag")
 @Deploy("org.nuxeo.ecm.platform.restapi.test:pageprovider-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider2-test-contrib.xml")
 @Deploy("org.nuxeo.elasticsearch.core:pageprovider2-coretype-test-contrib.xml")
