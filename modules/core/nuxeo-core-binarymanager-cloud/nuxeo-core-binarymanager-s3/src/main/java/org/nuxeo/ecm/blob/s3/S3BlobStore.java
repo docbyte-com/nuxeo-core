@@ -799,7 +799,7 @@ public class S3BlobStore extends AbstractBlobStore {
                 logTrace("<--", "missing");
                 log.debug("Blob s3://{}/{} does not exist", bucketName, bucketKey);
             }
-            throw e;
+            throw new IOException(e);
         }
     }
 
