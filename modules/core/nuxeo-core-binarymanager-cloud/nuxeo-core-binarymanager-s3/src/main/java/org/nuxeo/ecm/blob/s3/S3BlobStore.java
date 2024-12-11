@@ -24,6 +24,8 @@ import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
 import static org.nuxeo.ecm.blob.s3.S3Utils.sanitizeETag;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
+import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.OFF;
+import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.ON;
 
 import java.io.File;
 import java.io.IOException;
@@ -737,6 +739,20 @@ public class S3BlobStore extends AbstractBlobStore {
         String bucketKey = bucketKey(objectKey);
         try {
             if (config.s3RetentionEnabled) {
+                if (blobUpdateContext.updateLegalHold != null) {
+                    if (versionId == null) {
+                        throw new IOException("Cannot set legal hold on non-versioned blob");
+                    }
+                    boolean hold = blobUpdateContext.updateLegalHold.hold;
+                    ObjectLockLegalHoldStatus status = hold ? ON : OFF;
+                    logTrace("->", "setObjectLegalHold");
+                    logTrace("hnote right: " + bucketKey + "@" + versionId);
+                    logTrace("rnote right: " + status.toString());
+                    amazonS3.putObjectLegalHold(pb -> pb.bucket(bucketName)
+                                                        .key(bucketKey)
+                                                        .versionId(versionId)
+                                                        .legalHold(b -> b.status(status)));
+                }
                 if (blobUpdateContext.updateRetainUntil != null) {
                     if (versionId == null) {
                         throw new IOException("Cannot set retention on non-versioned blob");
@@ -751,21 +767,6 @@ public class S3BlobStore extends AbstractBlobStore {
                                     .key(bucketKey)
                                     .versionId(versionId)
                                     .retention(b -> b.mode(config.retentionMode).retainUntilDate(retainUntilInstant)));
-                }
-                if (blobUpdateContext.updateLegalHold != null) {
-                    if (versionId == null) {
-                        throw new IOException("Cannot set legal hold on non-versioned blob");
-                    }
-                    boolean hold = blobUpdateContext.updateLegalHold.hold;
-                    ObjectLockLegalHoldStatus status = hold ? ObjectLockLegalHoldStatus.ON
-                            : ObjectLockLegalHoldStatus.OFF;
-                    logTrace("->", "setObjectLegalHold");
-                    logTrace("hnote right: " + bucketKey + "@" + versionId);
-                    logTrace("rnote right: " + status.toString());
-                    amazonS3.putObjectLegalHold(pb -> pb.bucket(bucketName)
-                                                        .key(bucketKey)
-                                                        .versionId(versionId)
-                                                        .legalHold(b -> b.status(status)));
                 }
             }
             if (blobUpdateContext.coldStorageClass != null) {
