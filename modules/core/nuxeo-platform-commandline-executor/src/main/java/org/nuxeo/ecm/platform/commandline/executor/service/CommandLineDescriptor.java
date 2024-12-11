@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,17 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service;
 
 import java.time.Duration;
 
+import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
-import org.apache.commons.lang3.SystemUtils;
-
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for a CommandLine.
@@ -35,7 +33,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @author tiry
  */
 @XObject("command")
-public class CommandLineDescriptor {
+public class CommandLineDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
@@ -43,26 +41,20 @@ public class CommandLineDescriptor {
     @XNode("@enabled")
     protected boolean enabled;
 
-    protected boolean available;
-
     @XNode("commandLine")
     protected String command;
 
     @XNode("parameterString")
     protected String parameterString = "";
 
-    /*
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNode("testParameterString")
     protected String testParameterString = "";
 
     @XNode("winParameterString")
     protected String winParameterString;
 
-    /*
-     * @since 8.4
-     */
+    /** @since 8.4 */
     @XNode("winTestParameterString")
     protected String winTestParameterString = "";
 
@@ -78,19 +70,14 @@ public class CommandLineDescriptor {
     @XNode("installationDirective")
     protected String installationDirective;
 
-    protected String installErrorMessage;
-
-    public String getInstallErrorMessage() {
-        return installErrorMessage;
-    }
-
-    public void setInstallErrorMessage(String installErrorMessage) {
-        this.installErrorMessage = installErrorMessage;
-    }
-
     // @since 11.5
     @XNode("timeout")
     public Duration timeout;
+
+    @Override
+    public String getId() {
+        return getName();
+    }
 
     public String getName() {
         if (name == null) {
@@ -110,26 +97,6 @@ public class CommandLineDescriptor {
         return command;
     }
 
-    public String getInstallationDirective() {
-        return installationDirective;
-    }
-
-    public String getTester() {
-        return tester;
-    }
-
-    public boolean isAvailable() {
-        return available;
-    }
-
-    public void setAvailable(boolean available) {
-        this.available = available;
-    }
-
-    public boolean getReadOutput() {
-        return readOutput;
-    }
-
     public String getParametersString() {
         if (SystemUtils.IS_OS_WINDOWS && winParameterString != null) {
             return winParameterString;
@@ -147,13 +114,16 @@ public class CommandLineDescriptor {
         return testParameterString;
     }
 
-    public String getExecutor() {
-        return CommandLineExecutorComponent.DEFAULT_EXECUTOR;
+    public String getTester() {
+        return tester;
     }
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
+    public boolean getReadOutput() {
+        return readOutput;
+    }
+
+    public String getInstallationDirective() {
+        return installationDirective;
     }
 
     /**
@@ -163,5 +133,14 @@ public class CommandLineDescriptor {
      */
     public Duration getTimeout() {
         return timeout;
+    }
+
+    public String getExecutor() {
+        return CommandLineExecutorComponent.DEFAULT_EXECUTOR;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this, ToStringStyle.SHORT_PREFIX_STYLE);
     }
 }

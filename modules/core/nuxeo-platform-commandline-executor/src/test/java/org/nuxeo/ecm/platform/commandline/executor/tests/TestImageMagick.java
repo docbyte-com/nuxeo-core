@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-package org.nuxeo.ecm.platform.commandline.executor.tests.imagemagic;
+package org.nuxeo.ecm.platform.commandline.executor.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
@@ -45,8 +45,8 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.platform.commandline.executor:OSGI-INF/commandline-imagemagic-test-contrib.xml")
-public class ImageMagickTester {
+@Deploy("org.nuxeo.ecm.platform.commandline.executor.test:OSGI-INF/commandline-imagemagick-test-contrib.xml")
+public class TestImageMagick {
 
     @Inject
     protected CommandLineExecutorService cles;
