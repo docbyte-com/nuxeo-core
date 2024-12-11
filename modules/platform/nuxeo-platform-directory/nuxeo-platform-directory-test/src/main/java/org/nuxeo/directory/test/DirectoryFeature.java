@@ -32,6 +32,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
+import org.nuxeo.ecm.directory.DirectoryCoreFeature;
 import org.nuxeo.ecm.directory.DirectoryDeleteConstraintException;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Session;
@@ -50,13 +51,10 @@ import com.google.inject.name.Names;
 /**
  * @since 9.2
  */
-@Deploy("org.nuxeo.ecm.directory.api")
-@Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.sql")
 @Deploy("org.nuxeo.directory.mongodb")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Features(CoreFeature.class)
+@Deploy("org.nuxeo.directory.test")
+@Features({ CoreFeature.class, DirectoryCoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class DirectoryFeature implements RunnerFeature {
 

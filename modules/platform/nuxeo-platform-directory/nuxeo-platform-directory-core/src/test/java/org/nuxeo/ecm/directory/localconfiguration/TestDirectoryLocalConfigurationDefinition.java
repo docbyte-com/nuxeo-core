@@ -37,6 +37,7 @@ import org.nuxeo.ecm.core.event.EventServiceAdmin;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.directory.DirectoryCoreFeature;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -48,11 +49,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.4.2
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features({ CoreFeature.class, DirectoryCoreFeature.class })
 @RepositoryConfig(init = DirectoryLocalConfigurationRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.directory.api")
-@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.directory.core.tests:types-for-test-directory-local-configuration.xml")
 public class TestDirectoryLocalConfigurationDefinition {
 
