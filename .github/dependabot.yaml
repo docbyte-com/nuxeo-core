@@ -179,9 +179,11 @@ updates:
       # Enable version updates along with security updates on 2025, limit to 10 to prevent CI overload
     open-pull-requests-limit: 10
     ignore:
-      # Spurious major version update
+      # Spurious major version updates
       - dependency-name: "com.google.apis:google-api-services-drive"
         versions: [">v2-rev20201130-1.31.0"]
+      - dependency-name: "net.oauth.core:oauth"
+        versions: [">20090531"] # 20100527 is detected as more recent but is actually older
 
       # Ignore Jakarta EE minor update
       - dependency-name: "jakarta.*:*"
