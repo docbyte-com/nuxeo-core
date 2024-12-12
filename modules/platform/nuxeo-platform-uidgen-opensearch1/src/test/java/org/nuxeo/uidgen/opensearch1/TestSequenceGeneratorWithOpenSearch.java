@@ -20,6 +20,7 @@ package org.nuxeo.uidgen.opensearch1;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -29,11 +30,16 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
+import org.nuxeo.runtime.ConcurrentException;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
+import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.opensearch1.OpenSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -48,6 +54,11 @@ public class TestSequenceGeneratorWithOpenSearch {
 
     @Inject
     protected UIDGeneratorService uidGeneratorService;
+
+    @Before
+    public void dropIndex() {
+        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex("uidgen");
+    }
 
     @Test
     public void testIncrement() {
@@ -76,7 +87,9 @@ public class TestSequenceGeneratorWithOpenSearch {
         assertEquals(1_000_002L, seq.getNextLong("mySequence"));
         seq.initSequence("another", 3_147_483_647L);
         assertTrue("Sequence should be a long", seq.getNextLong("another") > 3_147_483_647L);
-
+        // an existing sequence can only be re-initialized to a higher value
+        assertThrows(ConcurrentException.class, () -> seq.initSequence("mySequence", 100));
+        seq.initSequence("mySequence", 1_000_0003L);
     }
 
     @Test
