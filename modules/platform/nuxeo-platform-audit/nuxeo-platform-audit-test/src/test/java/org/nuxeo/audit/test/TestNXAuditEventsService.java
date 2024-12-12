@@ -43,6 +43,7 @@ import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -58,7 +59,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @SuppressWarnings("removal")
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
+@Features({ AuditFeature.class, CoreFeature.class })
 @RepositoryConfig(init = TestNXAuditEventsService.MyInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.audit.test.test:OSGI-INF/test-compatibility-with-NXAuditEventsService-contrib.xml")
 public class TestNXAuditEventsService {

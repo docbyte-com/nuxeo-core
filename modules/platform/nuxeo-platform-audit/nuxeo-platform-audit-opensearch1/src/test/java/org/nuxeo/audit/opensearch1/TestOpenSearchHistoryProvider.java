@@ -43,6 +43,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.SortInfo;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -51,7 +52,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(OpenSearchAuditFeature.class)
+@Features({ OpenSearchAuditFeature.class, CoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.audit.tests:test-audit-contrib.xml")
 @Deploy("org.nuxeo.audit.opensearch1.test:OSGI-INF/opensearch-audit-pageprovider-test-contrib.xml")
 public class TestOpenSearchHistoryProvider {

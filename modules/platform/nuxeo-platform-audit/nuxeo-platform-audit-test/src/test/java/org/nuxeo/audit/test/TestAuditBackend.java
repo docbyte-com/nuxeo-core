@@ -20,14 +20,11 @@ package org.nuxeo.audit.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
-import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
-import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -40,8 +37,6 @@ import org.junit.runner.RunWith;
 import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.service.AuditBackend;
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.runtime.test.runner.Features;
@@ -65,62 +60,10 @@ public class TestAuditBackend {
     protected AuditBackend backend;
 
     @Inject
-    protected CoreSession session;
-
-    @Inject
     protected AuditFeature auditFeature;
 
     @Inject
     protected TransactionalFeature transactionalFeature;
-
-    @Test
-    public void shouldLogInAudit() {
-        // generate events
-        DocumentModel doc = session.createDocumentModel("/", "a-file", "File");
-        doc.setPropertyValue("dc:title", "A File");
-        doc = session.createDocument(doc);
-
-        transactionalFeature.nextTransaction();
-
-        doc.setPropertyValue("dc:title", "A modified File");
-        doc = session.saveDocument(doc);
-
-        transactionalFeature.nextTransaction();
-
-        // test audit trail
-        List<LogEntry> trail = backend.queryLogs(
-                new AuditQueryBuilder().predicate(Predicates.eq(LOG_DOC_UUID, doc.getId()))
-                                       .and(Predicates.eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
-                                       .defaultOrder());
-
-        assertNotNull(trail);
-        assertEquals(2, trail.size());
-
-        LogEntry entry = trail.get(0);
-        // the hibernate sequencer is not reset so the assertion will fail if the test is not the first one to run
-        if (!auditFeature.isBackendSql()) {
-            assertEquals(2L, entry.getId());
-        }
-        assertEquals("documentModified", entry.getEventId());
-        assertEquals("eventDocumentCategory", entry.getCategory());
-        assertEquals("A modified File", entry.getExtendedValue("title"));
-
-        entry = trail.get(1);
-        if (!auditFeature.isBackendSql()) {
-            assertEquals(1L, entry.getId());
-        }
-        assertEquals("documentCreated", entry.getEventId());
-        assertEquals("eventDocumentCategory", entry.getCategory());
-        assertEquals("A File", entry.getExtendedValue("title"));
-
-        LogEntry entryById = backend.getLogEntryByID(entry.getId());
-        assertEquals(entry.getId(), entryById.getId());
-
-        entryById = backend.getLogEntryByID(123L);
-        assertNull(entryById);
-
-        assertEquals(1L, backend.getEventsCount("documentModified").longValue());
-    }
 
     @Test
     public void shouldSupportMultiCriteriaQueries() {

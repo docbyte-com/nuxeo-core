@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
  * Contributors:
  *     Arnaud Kervern
  */
-
 package org.nuxeo.ecm.platform.shibboleth;
+
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -33,6 +34,7 @@ import org.nuxeo.ecm.core.api.DocumentModelComparator;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.model.InvalidPropertyValueException;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
+import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.shibboleth.computedgroups.ELGroupComputerHelper;
@@ -54,14 +56,27 @@ public class ShibbolethGroupHelper {
         return Framework.getService(UserManager.class);
     }
 
+    /**
+     * @since 2025.0
+     */
+    public static DocumentModel getBareGroupModel() {
+        return BaseSession.createEntryModel(ShibbolethConstants.SHIBBOLETH_SCHEMA);
+    }
+
+    /**
+     * @deprecated since 2025.0, use {@link #getBareGroupModel()} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static DocumentModel getBareGroupModel(CoreSession core) {
-        return core.createDocumentModel(ShibbolethConstants.SHIBBOLETH_DOCTYPE);
+        return getBareGroupModel();
     }
 
     public static DocumentModel createGroup(DocumentModel group) {
         try (Session session = getDirectoryService().open(ShibbolethConstants.SHIBBOLETH_DIRECTORY)) {
-            if (session.hasEntry(group.getPropertyValue(
-                    ShibbolethConstants.SHIBBOLETH_SCHEMA + ":" + ShibbolethConstants.GROUP_ID_PROPERTY).toString())) {
+            if (session.hasEntry(group
+                                      .getPropertyValue(ShibbolethConstants.SHIBBOLETH_SCHEMA + ":"
+                                              + ShibbolethConstants.GROUP_ID_PROPERTY)
+                                      .toString())) {
                 throw new GroupAlreadyExistsException();
             }
 
@@ -116,7 +131,7 @@ public class ShibbolethGroupHelper {
     public static DocumentModelList searchGroup(String fullText) {
         try (Session session = getDirectoryService().open(ShibbolethConstants.SHIBBOLETH_DIRECTORY)) {
             Map<String, Serializable> filters = new HashMap<>();
-            if (fullText != null && !"".equals(fullText)) {
+            if (isNotEmpty(fullText)) {
                 filters.put(ShibbolethConstants.GROUP_ID_PROPERTY, fullText);
             }
 
@@ -127,8 +142,8 @@ public class ShibbolethGroupHelper {
     }
 
     protected static void checkExpressionLanguageValidity(DocumentModel group) {
-        String expressionLanguage = (String) group.getPropertyValue(ShibbolethConstants.SHIBBOLETH_SCHEMA + ":"
-                + ShibbolethConstants.GROUP_EL_PROPERTY);
+        String expressionLanguage = (String) group.getPropertyValue(
+                ShibbolethConstants.SHIBBOLETH_SCHEMA + ":" + ShibbolethConstants.GROUP_EL_PROPERTY);
         if (!ELGroupComputerHelper.isValidEL(expressionLanguage)) {
             throw new InvalidPropertyValueException(expressionLanguage + " : is not a valid expression language");
         }

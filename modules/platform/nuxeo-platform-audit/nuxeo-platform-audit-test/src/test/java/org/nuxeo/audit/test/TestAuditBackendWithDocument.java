@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,15 +12,12 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- *
  */
 package org.nuxeo.audit.test;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
@@ -30,7 +27,6 @@ import java.util.List;
 
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.api.AuditQueryBuilder;
@@ -41,15 +37,15 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RandomBug;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
-@RandomBug.Repeat(issue = "NXP-28711: randomly failing in dev mode", onFailure = 10, onSuccess = 30)
-public class TestAuditTransacted {
+@Features({ AuditFeature.class, CoreFeature.class })
+public class TestAuditBackendWithDocument {
 
     @Inject
     protected AuditBackend backend;
@@ -58,14 +54,62 @@ public class TestAuditTransacted {
     protected CoreSession session;
 
     @Inject
-    protected TransactionalFeature txFeature;
+    protected AuditFeature auditFeature;
 
-    @Before
-    public void isInjected() {
-        assertThat(session, notNullValue());
+    @Inject
+    protected TransactionalFeature transactionalFeature;
+
+    @Test
+    public void shouldLogInAudit() {
+        // generate events
+        DocumentModel doc = session.createDocumentModel("/", "a-file", "File");
+        doc.setPropertyValue("dc:title", "A File");
+        doc = session.createDocument(doc);
+
+        transactionalFeature.nextTransaction();
+
+        doc.setPropertyValue("dc:title", "A modified File");
+        doc = session.saveDocument(doc);
+
+        transactionalFeature.nextTransaction();
+
+        // test audit trail
+        List<LogEntry> trail = backend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_DOC_UUID, doc.getId()))
+                                       .and(Predicates.eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
+                                       .defaultOrder());
+
+        assertNotNull(trail);
+        assertEquals(2, trail.size());
+
+        LogEntry entry = trail.get(0);
+        // the hibernate sequencer is not reset so the assertion will fail if the test is not the first one to run
+        if (!auditFeature.isBackendSql()) {
+            assertEquals(2L, entry.getId());
+        }
+        assertEquals("documentModified", entry.getEventId());
+        assertEquals("eventDocumentCategory", entry.getCategory());
+        assertEquals("A modified File", entry.getExtendedValue("title"));
+
+        entry = trail.get(1);
+        if (!auditFeature.isBackendSql()) {
+            assertEquals(1L, entry.getId());
+        }
+        assertEquals("documentCreated", entry.getEventId());
+        assertEquals("eventDocumentCategory", entry.getCategory());
+        assertEquals("A File", entry.getExtendedValue("title"));
+
+        LogEntry entryById = backend.getLogEntryByID(entry.getId());
+        assertEquals(entry.getId(), entryById.getId());
+
+        entryById = backend.getLogEntryByID(123L);
+        assertNull(entryById);
+
+        assertEquals(1L, backend.getEventsCount("documentModified").longValue());
     }
 
     @Test
+    @RandomBug.Repeat(issue = "NXP-28711: randomly failing in dev mode")
     public void canLogMultipleLifecycleTransitionsInSameTx() {
         // generate events
         DocumentModel doc = session.createDocumentModel("/", "a-file", "File");
@@ -75,7 +119,7 @@ public class TestAuditTransacted {
         String approvedLifeCycle = doc.getCurrentLifeCycleState();
         doc.followTransition("backToProject");
         String projectLifeCycle = doc.getCurrentLifeCycleState();
-        txFeature.nextTransaction();
+        transactionalFeature.nextTransaction();
 
         // test audit trail
         List<LogEntry> trail = backend.queryLogs(
@@ -83,8 +127,8 @@ public class TestAuditTransacted {
                                        .and(Predicates.eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
                                        .defaultOrder());
 
-        assertThat(trail, notNullValue());
-        assertThat(trail.size(), is(3));
+        assertNotNull(trail);
+        assertEquals(3, trail.size());
 
         boolean seenDocCreated = false;
         boolean seenDocApproved = false;
@@ -106,13 +150,13 @@ public class TestAuditTransacted {
             }
         }
 
-        assertThat(seenDocBackToProject, is(true));
-        assertThat(seenDocApproved, is(true));
-        assertThat(seenDocCreated, is(true));
-
+        assertTrue(seenDocBackToProject);
+        assertTrue(seenDocApproved);
+        assertTrue(seenDocCreated);
     }
 
     @Test
+    @RandomBug.Repeat(issue = "NXP-28711: randomly failing in dev mode")
     public void testLogDate() throws InterruptedException {
         // generate doc creation events
         DocumentModel doc = session.createDocumentModel("/", "a-file", "File");
@@ -124,13 +168,13 @@ public class TestAuditTransacted {
         Thread.sleep(1000);
 
         // commit the transaction and let the audit service log the events in the log
-        txFeature.nextTransaction();
+        transactionalFeature.nextTransaction();
 
         // test audit trail
         List<LogEntry> trail = backend.getLogEntriesFor(doc.getId(), doc.getRepositoryName());
 
-        assertThat(trail, notNullValue());
-        assertThat(trail.size(), is(1));
+        assertNotNull(trail);
+        assertEquals(1, trail.size());
 
         Date eventDate = null;
         Date logDate = null;
@@ -144,6 +188,5 @@ public class TestAuditTransacted {
         assertNotNull(eventDate);
         assertNotNull(logDate);
         assertTrue(logDate.after(eventDate));
-
     }
 }

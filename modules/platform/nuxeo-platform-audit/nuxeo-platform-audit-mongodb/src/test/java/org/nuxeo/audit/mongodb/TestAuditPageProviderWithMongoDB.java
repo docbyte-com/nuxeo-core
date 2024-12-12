@@ -32,7 +32,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.audit.AuditCoreFeature;
 import org.nuxeo.audit.api.LogEntry;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -45,9 +44,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.mongodb.audit.test:OSGI-INF/mongodb-audit-pageprovider-test-contrib.xml")
 @SuppressWarnings("unchecked")
 public class TestAuditPageProviderWithMongoDB {
-
-    @Inject
-    protected CoreSession session;
 
     @Inject
     protected PageProviderService pps;

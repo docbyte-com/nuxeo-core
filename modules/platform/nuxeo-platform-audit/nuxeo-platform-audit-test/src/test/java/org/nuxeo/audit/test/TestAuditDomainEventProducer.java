@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,7 @@ import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.lib.stream.log.LogLag;
 import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.stream.StreamService;
@@ -48,7 +49,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 11.4
  */
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
+@Features({ AuditFeature.class, CoreFeature.class })
 @Deploy("org.nuxeo.audit.test.test:OSGI-INF/test-domain-event-producer-contrib.xml")
 public class TestAuditDomainEventProducer {
 

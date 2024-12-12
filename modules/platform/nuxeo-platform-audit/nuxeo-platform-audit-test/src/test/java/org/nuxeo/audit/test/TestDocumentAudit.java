@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.audit.api.DocumentHistoryReader;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.runtime.test.runner.Features;
@@ -44,7 +45,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @Deprecated(since = "2025.0", forRemoval = true)
 @RunWith(FeaturesRunner.class)
-@Features(AuditFeature.class)
+@Features({ AuditFeature.class, CoreFeature.class })
 public class TestDocumentAudit {
 
     @Inject

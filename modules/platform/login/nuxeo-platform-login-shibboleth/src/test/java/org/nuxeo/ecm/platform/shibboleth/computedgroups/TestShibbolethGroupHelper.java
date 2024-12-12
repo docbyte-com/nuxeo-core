@@ -29,7 +29,6 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -52,9 +51,6 @@ public class TestShibbolethGroupHelper {
     protected static final String CORRECT_EL = "empty currentUser";
 
     @Inject
-    protected CoreSession session;
-
-    @Inject
     protected UserManager userManager;
 
     @Inject
@@ -63,7 +59,7 @@ public class TestShibbolethGroupHelper {
     @Test
     public void testCreateGroup() {
         assertEquals(0, ShibbolethGroupHelper.getGroups().size());
-        DocumentModel group = ShibbolethGroupHelper.getBareGroupModel(session);
+        DocumentModel group = ShibbolethGroupHelper.getBareGroupModel();
 
         group.setPropertyValue("shibbolethGroup:groupName", "group1");
         group.setPropertyValue("shibbolethGroup:expressionLanguage", CORRECT_EL);
@@ -104,10 +100,9 @@ public class TestShibbolethGroupHelper {
 
         group.setProperty(userManager.getGroupSchemaName(), userManager.getGroupSubGroupsField(), ref);
         userManager.updateGroup(group);
-        session.save();
 
         Directory dir = directoryService.getDirectory(userManager.getGroupDirectoryName());
-        assertNotNull(dir.getReferences(userManager.getGroupSubGroupsField()).get(0));
+        assertNotNull(dir.getReferences(userManager.getGroupSubGroupsField()).getFirst());
 
         try (Session ses = directoryService.open(userManager.getGroupDirectoryName())) {
             DocumentModel tmp = ses.getEntry("testRef");
@@ -118,11 +113,11 @@ public class TestShibbolethGroupHelper {
             assertEquals(1, subs.size());
         }
 
-        Reference dirRef = dir.getReferences(userManager.getGroupSubGroupsField()).get(0);
+        Reference dirRef = dir.getReferences(userManager.getGroupSubGroupsField()).getFirst();
 
         assertFalse(dirRef.getTargetIdsForSource("testRef").isEmpty());
         assertFalse(dirRef.getSourceIdsForTarget("refShib").isEmpty());
-        assertEquals("testRef", dirRef.getSourceIdsForTarget("refShib").get(0));
+        assertEquals("testRef", dirRef.getSourceIdsForTarget("refShib").getFirst());
         deleteShibbGroups();
     }
 
@@ -170,13 +165,11 @@ public class TestShibbolethGroupHelper {
         userManager.updateGroup(group);
         userManager.updateGroup(group2);
 
-        session.save();
-
         List<String> parent = ShibbolethGroupHelper.getParentsGroups("shibbou");
 
         assertNotNull(parent);
         assertEquals(1, parent.size());
-        assertEquals("trueGroup1", parent.get(0));
+        assertEquals("trueGroup1", parent.getFirst());
 
         parent = ShibbolethGroupHelper.getParentsGroups("group7");
 
@@ -186,12 +179,11 @@ public class TestShibbolethGroupHelper {
     }
 
     protected DocumentModel createShibbGroup(String name) {
-        DocumentModel group = ShibbolethGroupHelper.getBareGroupModel(session);
+        DocumentModel group = ShibbolethGroupHelper.getBareGroupModel();
         group.setPropertyValue("shibbolethGroup:groupName", name);
         group.setPropertyValue("shibbolethGroup:expressionLanguage", CORRECT_EL);
 
         group = ShibbolethGroupHelper.createGroup(group);
-        session.save();
         return group;
     }
 
@@ -199,7 +191,6 @@ public class TestShibbolethGroupHelper {
         for (DocumentModel group : ShibbolethGroupHelper.getGroups()) {
             ShibbolethGroupHelper.deleteGroup(group);
         }
-        session.save();
     }
 
 }

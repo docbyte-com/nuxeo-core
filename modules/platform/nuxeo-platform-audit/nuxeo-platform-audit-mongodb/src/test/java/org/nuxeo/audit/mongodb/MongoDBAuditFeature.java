@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERT
 import static org.nuxeo.audit.mongodb.MongoDBAuditFeature.AUDIT_BACKEND_FACTORY;
 
 import org.nuxeo.audit.AuditCoreFeature;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.mongodb.MongoDBFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -32,12 +31,10 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 /**
  * @since 9.1
  */
-@Deploy("org.nuxeo.ecm.core.event")
-@Deploy("org.nuxeo.ecm.core")
 @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
 @Deploy("org.nuxeo.mongodb.audit")
 @Deploy("org.nuxeo.mongodb.audit.test")
-@Features({ AuditCoreFeature.class, MongoDBFeature.class, CoreFeature.class })
+@Features({ MongoDBFeature.class, AuditCoreFeature.class })
 @WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = AUDIT_BACKEND_FACTORY)
 public class MongoDBAuditFeature implements RunnerFeature {
 

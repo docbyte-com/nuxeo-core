@@ -16,22 +16,26 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.platform.shibboleth;
+package org.nuxeo.audit.mongodb;
 
-import org.nuxeo.directory.test.DirectoryFeature;
-import org.nuxeo.ecm.platform.test.UserManagerFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import static org.junit.Assert.assertTrue;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.platform.content.template")
-@Deploy("org.nuxeo.ecm.platform.dublincore")
-@Deploy("org.nuxeo.ecm.platform.el")
-@Deploy("org.nuxeo.ecm.platform.login.shibboleth")
-@Deploy("org.nuxeo.ecm.platform.web.common")
-@Features({ DirectoryFeature.class, UserManagerFeature.class })
-public class ShibbolethFeature implements RunnerFeature {
+@RunWith(FeaturesRunner.class)
+@Features(MongoDBAuditFeature.class)
+public class MongoDBAuditFeatureTest {
+
+    @Test
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
+    }
 }

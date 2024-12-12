@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +39,6 @@ import org.nuxeo.directory.mongodb.MongoDBDirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryCoreFeature;
 import org.nuxeo.ecm.directory.DirectoryDeleteConstraintException;
@@ -62,8 +62,7 @@ import com.google.inject.name.Names;
  * @since 9.2
  */
 @Deploy("org.nuxeo.directory.test")
-@Features({ CoreFeature.class, DirectoryCoreFeature.class })
-@RepositoryConfig(cleanup = Granularity.METHOD)
+@Features(DirectoryCoreFeature.class)
 public class DirectoryFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(DirectoryFeature.class);
@@ -90,7 +89,9 @@ public class DirectoryFeature implements RunnerFeature {
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Directory using {}",
                 () -> StringUtils.capitalize(DIRECTORY_SERVICE_VALUE.toLowerCase()));
-        granularity = runner.getFeature(CoreFeature.class).getGranularity();
+        granularity = Optional.ofNullable(runner.getFeature(CoreFeature.class))
+                              .map(CoreFeature::getGranularity)
+                              .orElse(Granularity.METHOD);
     }
 
     @Override

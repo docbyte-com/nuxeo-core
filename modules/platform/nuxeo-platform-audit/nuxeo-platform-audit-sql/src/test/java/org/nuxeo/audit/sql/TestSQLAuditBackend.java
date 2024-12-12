@@ -44,6 +44,7 @@ import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.EventContextImpl;
 import org.nuxeo.ecm.core.event.impl.UnboundEventContext;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -60,7 +61,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @SuppressWarnings("removal")
 @Deprecated(since = "2025.0", forRemoval = true)
 @RunWith(FeaturesRunner.class)
-@Features(SQLAuditFeature.class)
+@Features({ SQLAuditFeature.class, CoreFeature.class })
 @RepositoryConfig(init = TestSQLAuditBackend.MyInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.audit.tests:test-audit-contrib.xml")
 public class TestSQLAuditBackend {

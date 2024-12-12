@@ -18,6 +18,8 @@
  */
 package org.nuxeo.audit.service;
 
+import java.util.Optional;
+
 import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -43,7 +45,8 @@ public class AuditCleanerFeature implements RunnerFeature {
 
     @Override
     public void initialize(FeaturesRunner runner) throws Exception {
-        if (runner.getFeature(CoreFeature.class).getGranularity() != null) {
+        // granularity is initialized in CoreFeature#initialize, CoreFeature is already deployed if it is present
+        if (Optional.ofNullable(runner.getFeature(CoreFeature.class)).map(CoreFeature::getGranularity).isPresent()) {
             throw new IllegalStateException(
                     "The AuditFeature must be deployed before the CoreFeature, check your test configuration");
         }
@@ -51,7 +54,9 @@ public class AuditCleanerFeature implements RunnerFeature {
 
     @Override
     public void start(FeaturesRunner runner) {
-        granularity = runner.getFeature(CoreFeature.class).getGranularity();
+        granularity = Optional.ofNullable(runner.getFeature(CoreFeature.class))
+                              .map(CoreFeature::getGranularity)
+                              .orElse(Granularity.METHOD);
     }
 
     @Override

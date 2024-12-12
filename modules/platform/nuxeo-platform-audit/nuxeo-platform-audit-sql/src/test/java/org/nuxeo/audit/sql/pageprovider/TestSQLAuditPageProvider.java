@@ -42,6 +42,7 @@ import org.nuxeo.audit.sql.SQLAuditFeature;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
@@ -60,7 +61,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features({ SQLAuditFeature.class, UserManagerFeature.class })
+@Features({ SQLAuditFeature.class, CoreFeature.class, UserManagerFeature.class })
 @Deploy("org.nuxeo.audit.sql.test:OSGI-INF/sql-audit-pageprovider-test-contrib.xml")
 public class TestSQLAuditPageProvider {
 

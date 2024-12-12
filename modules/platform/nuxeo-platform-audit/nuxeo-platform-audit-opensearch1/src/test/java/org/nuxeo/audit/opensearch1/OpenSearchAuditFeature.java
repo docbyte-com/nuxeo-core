@@ -38,7 +38,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
 @Deploy("org.nuxeo.audit.opensearch1")
 @Deploy("org.nuxeo.audit.opensearch1.test")
-@Features({ AuditCoreFeature.class, OpenSearchFeature.class })
+@Features({ OpenSearchFeature.class, AuditCoreFeature.class })
 @WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = AUDIT_BACKEND_FACTORY)
 public class OpenSearchAuditFeature implements RunnerFeature {
 
