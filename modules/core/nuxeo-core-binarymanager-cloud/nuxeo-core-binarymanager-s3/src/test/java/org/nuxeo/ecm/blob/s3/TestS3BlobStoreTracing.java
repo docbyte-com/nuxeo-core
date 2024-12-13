@@ -48,7 +48,6 @@ import org.apache.logging.log4j.core.impl.Log4jLogEvent;
 import org.apache.logging.log4j.message.SimpleMessage;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -94,7 +93,6 @@ import software.amazon.awssdk.services.s3.model.ObjectStorageClass;
         MockitoFeature.class, TestS3BlobStoreTracing.S3BlobStoreTracingFeature.class })
 @LogCaptureFeature.FilterOn(logLevel = "TRACE", loggerClass = AbstractBlobStore.class)
 @TransactionalConfig(autoStart = false)
-@Ignore("AWS SDK V2")
 public class TestS3BlobStoreTracing {
 
     protected static final String XPATH = "content";

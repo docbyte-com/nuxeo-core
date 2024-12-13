@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
 import static org.nuxeo.ecm.blob.s3.S3Utils.sanitizeETag;
@@ -40,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletionException;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -222,7 +222,7 @@ public class S3BlobStore extends AbstractBlobStore {
                     // otherwise use blob file directly
                     if (blobWriteContext.writeObserver != null) {
                         // but we must still run the writes through the write observer
-                        transfer(blobWriteContext, NULL_OUTPUT_STREAM);
+                        transfer(blobWriteContext, NullOutputStream.INSTANCE);
                     }
                     file = blobFile.toPath();
                     fileTraceSource = "Nuxeo";
