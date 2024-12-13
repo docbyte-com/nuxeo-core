@@ -30,11 +30,8 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.ClassRule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.test.ModuleUnderTest;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedFeature;
 import org.nuxeo.runtime.test.runner.Features;
@@ -46,9 +43,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(OpenSearchEmbedFeature.class)
 public class TestOpenSearchRestClient {
-
-    @ClassRule
-    public static TemporaryFolder folder = new TemporaryFolder(new File(ModuleUnderTest.getOutputDirectory()));
 
     protected OpenSearchRestClientFactory factory = new OpenSearchRestClientFactory();
 
@@ -96,7 +90,7 @@ public class TestOpenSearchRestClient {
     @Test
     public void testCredentialProvider() throws Exception {
         var config = new OpenSearchClientConfig();
-        config.servers.add("localhost:9200");
+        config.embedServer = OpenSearchEmbedFeature.SERVER_NAME;
         config.username = "bob";
         config.password = "bob";
         try (var client = factory.create(config)) {
@@ -112,7 +106,7 @@ public class TestOpenSearchRestClient {
         String password = "difficultpass";
         File keystoreFile = getKeystoreFile(password, KeyStore.getDefaultType());
 
-        config.servers.add("localhost:9200");
+        config.embedServer = OpenSearchEmbedFeature.SERVER_NAME;
 
         var trustStore = new OpenSearchClientConfig.Store();
         trustStore.path = keystoreFile.getAbsolutePath();
@@ -141,7 +135,7 @@ public class TestOpenSearchRestClient {
         String keystoreType = "pkcs12";
         File keystoreFile = getKeystoreFile(password, keystoreType);
 
-        config.servers.add("localhost:9200");
+        config.embedServer = OpenSearchEmbedFeature.SERVER_NAME;
         var trustStore = new OpenSearchClientConfig.Store();
         trustStore.path = keystoreFile.getAbsolutePath();
         trustStore.password = password;
