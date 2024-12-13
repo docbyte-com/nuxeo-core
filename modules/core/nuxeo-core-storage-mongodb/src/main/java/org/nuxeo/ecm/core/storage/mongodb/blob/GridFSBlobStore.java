@@ -20,7 +20,6 @@ package org.nuxeo.ecm.core.storage.mongodb.blob;
 
 import static java.lang.Boolean.TRUE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.NAMESPACE;
 
 import java.io.File;
@@ -32,6 +31,7 @@ import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -299,7 +299,7 @@ public class GridFSBlobStore extends AbstractBlobStore {
                 if (blobFile != null) { // otherwise use blob file directly
                     if (blobWriteContext.writeObserver != null) { // but we must still run the writes through the write
                                                                   // observer
-                        transfer(blobWriteContext, NULL_OUTPUT_STREAM);
+                        transfer(blobWriteContext, NullOutputStream.INSTANCE);
                     }
                     file = blobFile.toPath();
                 } else {

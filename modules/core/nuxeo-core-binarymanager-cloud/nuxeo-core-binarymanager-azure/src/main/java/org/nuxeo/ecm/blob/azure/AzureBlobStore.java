@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.blob.azure;
 
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 
 import java.io.File;
@@ -31,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -267,7 +267,7 @@ public class AzureBlobStore extends AbstractBlobStore {
                 if (blobFile != null) { // otherwise use blob file directly
                     if (blobWriteContext.writeObserver != null) { // but we must still run the writes through the write
                                                                   // observer
-                        transfer(blobWriteContext, NULL_OUTPUT_STREAM);
+                        transfer(blobWriteContext, NullOutputStream.INSTANCE);
                     }
                     file = blobFile.toPath();
                 } else {

@@ -41,6 +41,7 @@ import org.nuxeo.ecm.core.blob.LocalBlobProvider;
  * <li><em>tmp/</em> temporary storage during creation,</li>
  * <li><em>config.xml</em> a file containing the configuration used.</li>
  * </ul>
+ *
  * @author Florent Guillaume
  * @deprecated since 2023.9, use {@link LocalBlobProvider} instead
  */
@@ -67,7 +68,7 @@ public class DefaultBinaryManager extends LocalBinaryManager {
         String digest;
         if (StringUtils.isEmpty(blob.getDigest())) {
             try (InputStream in = blob.getStream()) {
-                digest = storeAndDigest(in, NullOutputStream.NULL_OUTPUT_STREAM);
+                digest = storeAndDigest(in, NullOutputStream.INSTANCE);
             }
         } else {
             digest = blob.getDigest();
