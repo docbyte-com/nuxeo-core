@@ -1093,18 +1093,18 @@ public class DBSDocument extends BaseDocument<State> {
 
     protected String getSchema(String xpath) {
         switch (xpath) {
-        case KEY_MAJOR_VERSION:
-        case KEY_MINOR_VERSION:
-        case "major_version":
-        case "minor_version":
-            return "uid";
-        case KEY_FULLTEXT_JOBID:
-        case KEY_IS_TRASHED:
-        case KEY_LIFECYCLE_POLICY:
-        case KEY_LIFECYCLE_STATE:
-        case KEY_BLOB_KEYS:
-        case KEY_RETAINED_PROPS:
-            return "__ecm__";
+            case KEY_MAJOR_VERSION:
+            case KEY_MINOR_VERSION:
+            case "major_version":
+            case "minor_version":
+                return "uid";
+            case KEY_FULLTEXT_JOBID:
+            case KEY_IS_TRASHED:
+            case KEY_LIFECYCLE_POLICY:
+            case KEY_LIFECYCLE_STATE:
+            case KEY_BLOB_KEYS:
+            case KEY_RETAINED_PROPS:
+                return "__ecm__";
         }
         if (xpath.startsWith(KEY_FULLTEXT_SIMPLE) || xpath.startsWith(KEY_FULLTEXT_BINARY)) {
             return "__ecm__";
@@ -1147,10 +1147,10 @@ public class DBSDocument extends BaseDocument<State> {
     @Override
     protected String internalName(String name) {
         switch (name) {
-        case PROP_MAJOR_VERSION:
-            return KEY_MAJOR_VERSION;
-        case PROP_MINOR_VERSION:
-            return KEY_MINOR_VERSION;
+            case PROP_MAJOR_VERSION:
+                return KEY_MAJOR_VERSION;
+            case PROP_MINOR_VERSION:
+                return KEY_MINOR_VERSION;
         }
         return name;
     }
