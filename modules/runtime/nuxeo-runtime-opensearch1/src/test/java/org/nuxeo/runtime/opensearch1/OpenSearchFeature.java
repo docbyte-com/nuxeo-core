@@ -20,9 +20,15 @@ package org.nuxeo.runtime.opensearch1;
 
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1_SERVERS_PROPERTY;
 import static org.nuxeo.runtime.opensearch1.OpenSearchComponent.DEFAULT_CLIENT_ID;
+import static org.nuxeo.runtime.opensearch1.OpenSearchComponent.XP_CLIENT;
+import static org.nuxeo.runtime.opensearch1.OpenSearchComponent.XP_INDEX;
 
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.impl.ComponentManagerImpl;
 import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClientConfig;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchRestClientFactory;
 import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
@@ -46,6 +52,8 @@ import com.google.inject.Binder;
 @LoggerLevel(klass = RestClient.class, level = "ERROR")
 public class OpenSearchFeature implements RunnerFeature {
 
+    protected static final String OPENSEARCH_COMPONENT_NAME = "org.nuxeo.runtime.opensearch1.OpenSearchComponent";
+
     public OpenSearchFeature(DynamicFeaturesLoader loader) {
         if (!STORAGE_OPENSEARCH_1_SERVERS_PROPERTY.isConfigured()) {
             loader.loadFeature(OpenSearchEmbedFeature.class);
@@ -54,6 +62,7 @@ public class OpenSearchFeature implements RunnerFeature {
 
     @Override
     public void start(FeaturesRunner runner) throws Exception {
+        // configure the opensearch client
         var harness = runner.getFeature(RuntimeFeature.class).getHarness();
         if (STORAGE_OPENSEARCH_1_SERVERS_PROPERTY.isConfigured()) {
             harness.deployContrib("org.nuxeo.runtime.opensearch1.test", "OSGI-INF/opensearch-client-test-contrib.xml");
@@ -61,6 +70,34 @@ public class OpenSearchFeature implements RunnerFeature {
             harness.deployContrib("org.nuxeo.runtime.opensearch1.test",
                     "OSGI-INF/opensearch-client-embed-test-contrib.xml");
         }
+        Framework.getRuntime().getComponentManager().addListener(new ComponentManager.Listener() {
+
+            // do it after activation to be able to access descriptors
+            @Override
+            public void afterActivation(ComponentManager componentManager) {
+                // remove this listener to not drop indices for methods annotated with @Deploy
+                componentManager.removeListener(this);
+                var descriptorRegistry = ((ComponentManagerImpl) componentManager).getDescriptors();
+                // retrieve default client
+                OpenSearchClientConfig descriptor = descriptorRegistry.getDescriptor(OPENSEARCH_COMPONENT_NAME,
+                        XP_CLIENT, DEFAULT_CLIENT_ID);
+                // don't clean indices on embedded because it is not yet started and it is empty
+                if (descriptor.getEmbedServer().isEmpty()) {
+                    try (var client = new OpenSearchRestClientFactory().create(descriptor)) {
+                        // clear all indices
+                        for (var indexConfig : descriptorRegistry.<OpenSearchIndexConfig> getDescriptors(
+                                OPENSEARCH_COMPONENT_NAME, XP_INDEX)) {
+                            String indexName = indexConfig.getName();
+                            if (client.indexExists(indexName)) {
+                                client.dropIndex(indexName);
+                            }
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException("An error occurred during indices clean up", e);
+                    }
+                }
+            }
+        });
     }
 
     @Override

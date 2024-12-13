@@ -30,16 +30,12 @@ import java.util.concurrent.TimeUnit;
 
 import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
 import org.nuxeo.runtime.ConcurrentException;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
-import org.nuxeo.runtime.opensearch1.OpenSearchComponent;
 import org.nuxeo.runtime.opensearch1.OpenSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -54,11 +50,6 @@ public class TestSequenceGeneratorWithOpenSearch {
 
     @Inject
     protected UIDGeneratorService uidGeneratorService;
-
-    @Before
-    public void dropIndex() {
-        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex("uidgen");
-    }
 
     @Test
     public void testIncrement() {
