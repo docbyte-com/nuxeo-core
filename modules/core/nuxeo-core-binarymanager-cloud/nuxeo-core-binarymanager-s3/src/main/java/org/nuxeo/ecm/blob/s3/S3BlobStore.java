@@ -374,9 +374,11 @@ public class S3BlobStore extends AbstractBlobStore {
         logTrace("hnote right: " + bucketKey);
         try {
             amazonS3.headObject(b -> b.bucket(config.bucketName).key(bucketKey));
+            logTrace("<--", "exists");
             return true;
         } catch (SdkException e) {
             if (isMissingKey(e)) {
+                logTrace("<--", "missing"); // NOSONAR
                 return false;
             }
             throw e;
