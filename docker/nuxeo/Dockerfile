@@ -90,9 +90,9 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     ImageMagick6-nuxeo-6.9.12.15-418.el7 \
     less \
     libwpd-tools \
-    # required by exiftool to extract binary metadata from open office document
+    # Required by ExifTool to extract binary metadata from LibreOffice documents
     perl-Archive-Zip \
-    perl-Image-ExifTool \
+    perl-Image-ExifTool-12.70-1.el7 \
     poppler-utils \
     ufraw \
     unzip \
