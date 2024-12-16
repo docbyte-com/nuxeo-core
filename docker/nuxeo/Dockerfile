@@ -64,7 +64,7 @@ RUN rpm --import http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems \
   && rpm --install https://cdn.azul.com/zulu/bin/zulu-repo-1.0.0-1.noarch.rpm
 
 # Install required software
-# mount nuxeo-public as secret even if it is not secret in order to not leave the file in the image
+# Mount nuxeo-public as secret even if it is not secret in order to not leave the file in the image
 RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.repo \
   microdnf -y update \
   # Required by Remi's RPM repository, also, it provides dnf
@@ -76,7 +76,7 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     glibc-langpack-en \
     # Add CJK fonts
     google-noto-cjk-fonts-common \
-    # provided by yum-public from packages.nuxeo.com
+    # Provided by yum-public from packages.nuxeo.com
     libwpd-tools \
     # Required by ExifTool to extract binary metadata from LibreOffice documents
     perl-Archive-Zip \
@@ -89,6 +89,16 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     wget \
     # Install Java before LibreOffice that depends on it
     zulu21-jdk \
+  # Latest ImageMagick 7 libs for Oracle Linux 9 are provided by Remi's RPM repository
+  && dnf -y install https://rpms.remirepo.net/enterprise/remi-release-${EL_VERSION}.rpm \
+  # Install ImageMagick 7
+  && if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+       # For amd64, from our yum-public repository in packages.nuxeo.com
+       dnf -y --exclude=python3-setuptools install ImageMagick7-nuxeo-7.1.1.36-341.el9 ; \
+     else \
+       # For arm64, from Remi's RPM repository (not available in yum-public)
+       dnf -y --enablerepo=remi --exclude=python3-setuptools install ImageMagick7 ; \
+     fi \
   # Install LibreOffice, only for amd64 since not available for arm64
   && if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
        curl -f -L https://packages.nuxeo.com/repository/document-foundation-raw/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz | tar -C /tmp -xzv \
@@ -97,9 +107,6 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
        && ln -s /opt/libreoffice$(echo $LIBREOFFICE_VERSION | cut -f 1,2 -d ".")/program/soffice /usr/bin/libreoffice \
        && rm -rf /tmp/LibreOffice_${LIBREOFFICE_VERSION}* ; \
      fi \
-  # ImageMagick 7 for Oracle Linux 9 is only provided by Remi's RPM repository
-  && dnf -y install https://rpms.remirepo.net/enterprise/remi-release-${EL_VERSION}.rpm \
-  && dnf -y --enablerepo=remi --exclude=python3-setuptools install ImageMagick7 \
   && dnf clean all
 
 # Remove perl-Net-SSLeay example private key
