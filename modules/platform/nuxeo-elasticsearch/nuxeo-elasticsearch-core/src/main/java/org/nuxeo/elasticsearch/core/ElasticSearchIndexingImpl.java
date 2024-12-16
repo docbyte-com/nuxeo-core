@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -252,15 +253,16 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
     }
 
     void refreshIfNeeded(List<IndexingCommand> cmds) {
-        for (IndexingCommand cmd : cmds) {
-            if (refreshIfNeeded(cmd))
-                return;
-        }
+        var repositoryToRefresh = cmds.stream()
+                                      .filter(IndexingCommand::isSync)
+                                      .map(IndexingCommand::getRepositoryName)
+                                      .collect(Collectors.toSet());
+        repositoryToRefresh.forEach(esa::refreshRepositoryIndex);
     }
 
     boolean refreshIfNeeded(IndexingCommand cmd) {
         if (cmd.isSync()) {
-            esa.refresh();
+            esa.refreshRepositoryIndex(cmd.getRepositoryName());
             return true;
         }
         return false;
