@@ -18,13 +18,29 @@
  */
 package org.nuxeo.ecm.core.blob;
 
+import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.core.api:OSGI-INF/blobmanager-service.xml")
 public class BlobManagerFeature implements RunnerFeature {
+
+    protected static void clearBlobStores() {
+        Framework.getService(BlobManager.class).getBlobProviders().values().forEach(bp -> {
+            if (bp instanceof BlobStoreBlobProvider bsbp) {
+                bsbp.store.clear();
+            }
+        });
+    }
+
+    @Override
+    public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
+        clearBlobStores();
+    }
 
 }

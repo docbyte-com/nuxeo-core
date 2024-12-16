@@ -92,13 +92,11 @@ public abstract class TestAbstractBlobStore {
     public void setUp() throws IOException {
         bp = blobManager.getBlobProvider("test");
         bs = ((BlobStoreBlobProvider) bp).store;
-        bs.clear();
         tmpFile = Files.createTempFile("tmp_", ".tmp");
     }
 
     @After
     public void tearDown() throws IOException {
-        bs.clear();
         Files.deleteIfExists(tmpFile);
     }
 
