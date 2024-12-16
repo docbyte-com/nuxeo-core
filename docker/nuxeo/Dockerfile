@@ -64,23 +64,30 @@ RUN rpm --import http://repos.azulsystems.com/RPM-GPG-KEY-azulsystems \
 
 # Install required software
 RUN yum -y update \
-  && yum -y --setopt=skip_missing_names_on_install=False install \
-    https://dl.fedoraproject.org/pub/archive/epel/7/x86_64/Packages/e/epel-release-7-14.noarch.rpm \
+  && yum -y --enablerepo=ol7_leapp install dnf \
+  # Dirty workaround for "Failed to synchronize cache for repo 'ol7_latest', ignoring this repo."
+  && cp /etc/yum/vars/ocidomain /etc/yum/vars/ociregion /etc/dnf/vars/
+# Mount nuxeo-public as secret even if it is not secret in order to not leave the file in the image
+# Cannot be run in the previous RUN command since yum would complain (dnf doesn't) with:
+# https://packages.nuxeo.com/repository/yum-public/repodata/repomd.xml: [Errno 14] HTTPS Error 403 - Forbidden
+RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.repo \
+  dnf -y install \
+    https://dl.fedoraproject.org/pub/archive/epel/${EL_VERSION}/x86_64/Packages/e/epel-release-7-14.noarch.rpm \
     gzip \
     # Install java first to provide it for depend packages (such as libreoffice)
     zulu11-jdk \
   # Install LibreOffice
   && curl -f -L https://packages.nuxeo.com/repository/document-foundation-raw/LibreOffice_${LIBREOFFICE_VERSION}_Linux_x86-64_rpm.tar.gz | tar -C /tmp -xzv \
-  && yum -y localinstall /tmp/LibreOffice_${LIBREOFFICE_VERSION}*/RPMS/*.rpm \
+  && dnf -y install /tmp/LibreOffice_${LIBREOFFICE_VERSION}*/RPMS/*.rpm \
   && ln -s /opt/libreoffice$(echo $LIBREOFFICE_VERSION | cut -f 1,2 -d ".")/program/soffice /usr/bin/soffice \
   && ln -s /opt/libreoffice$(echo $LIBREOFFICE_VERSION | cut -f 1,2 -d ".")/program/soffice /usr/bin/libreoffice \
   && rm -rf /tmp/LibreOffice_${LIBREOFFICE_VERSION}* \
-  # latest ImageMagick6 update for Oracle Linux 7 is provided by Remi's RPM repository
-  && yum -y install https://rpms.remirepo.net/enterprise/remi-release-${EL_VERSION}.rpm \
-  && yum -y --enablerepo=remi install ImageMagick6 \
-  # install other tools, ol7_optional_latest repository is required for libwpd-tools
-  && yum -y --setopt=skip_missing_names_on_install=False --enablerepo=ol${EL_VERSION}_optional_latest install \
+  # Latest ImageMagick6 libs for Oracle Linux 7 are provided by Remi's RPM repository
+  && dnf -y install https://rpms.remirepo.net/enterprise/remi-release-${EL_VERSION}.rpm \
+  # Install other tools, ol7_optional_latest repository is required for libwpd-tools
+  && dnf -y --enablerepo=ol${EL_VERSION}_optional_latest install \
     ghostscript \
+    ImageMagick6-nuxeo-6.9.12.15-418.el7 \
     less \
     libwpd-tools \
     # required by exiftool to extract binary metadata from open office document
@@ -93,7 +100,7 @@ RUN yum -y update \
     wget \
     # Add CJK fonts
     google-noto-cjk-fonts \
-  && yum clean all
+  && dnf clean all
 
 # Remove setuid/setgid binaries from images for security
 RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true

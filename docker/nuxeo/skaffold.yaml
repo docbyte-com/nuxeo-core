@@ -27,4 +27,5 @@ build:
             --build-arg BUILD_TAG={{.BUILD_TAG}} \
             --build-arg SCM_REF={{.GIT_COMMIT}} \
             --build-arg VERSION={{.VERSION}} \
-            --oci-mediatypes false
+            --oci-mediatypes false \
+            --secret id=nuxeo-public,src=nuxeo-public.repo \
