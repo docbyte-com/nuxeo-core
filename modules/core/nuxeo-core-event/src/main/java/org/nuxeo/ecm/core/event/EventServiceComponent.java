@@ -67,8 +67,12 @@ public class EventServiceComponent extends DefaultComponent {
 
     @Override
     public void start(ComponentContext context) {
-        service.init(getDescriptors(DOMAIN_EVENT_PRODUCER_XP),
-                getDescriptor(EVENT_DISPATCHER_XP, Descriptor.UNIQUE_DESCRIPTOR_ID), getDescriptors(EVENT_PIPE_XP));
+        var domainEventProducers = this.<DomainEventProducerDescriptor> getDescriptors(DOMAIN_EVENT_PRODUCER_XP)
+                                       .stream()
+                                       .filter(DomainEventProducerDescriptor::isEnabled)
+                                       .toList();
+        service.init(domainEventProducers, getDescriptor(EVENT_DISPATCHER_XP, Descriptor.UNIQUE_DESCRIPTOR_ID),
+                getDescriptors(EVENT_PIPE_XP));
     }
 
     @Override
