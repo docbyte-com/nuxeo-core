@@ -37,11 +37,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.api.ElasticSearchService;
 import org.nuxeo.elasticsearch.io.DocumentModelReaders;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
@@ -151,13 +151,13 @@ public class TestDocumentModelReader {
         JsonFactory factory = new JsonFactory();
         OutputStream out = new ByteArrayOutputStream();
         try (JsonGenerator jsonGen = factory.createGenerator(out)) {
-            new JsonESDocumentWriter().writeESDocument(jsonGen, esDoc, null, null);
+            new DefaultIndexingJsonWriter().writeDocument(jsonGen, esDoc);
         }
         String esJson = out.toString();
 
         out = new ByteArrayOutputStream();
         try (JsonGenerator jsonGen = factory.createGenerator(out)) {
-            new JsonESDocumentWriter().writeESDocument(jsonGen, vcsDoc, null, null);
+            new DefaultIndexingJsonWriter().writeDocument(jsonGen, vcsDoc);
         }
         String vcsJson = out.toString();
 

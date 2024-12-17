@@ -21,27 +21,24 @@ package org.nuxeo.elasticsearch.test;
 import java.io.IOException;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
+import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
  * Custom writer to index the content of a note as a raw json
  */
-public class CustomJsonESDocumentWriter extends JsonESDocumentWriter {
+public class CustomJsonESDocumentWriter extends DefaultIndexingJsonWriter {
 
     @Override
-    protected void writeSchemas(JsonGenerator jg, DocumentModel doc, String[] schemas) throws IOException {
-        if (schemas == null || (schemas.length == 1 && "*".equals(schemas[0]))) {
-            schemas = doc.getSchemas();
-        }
-        for (String schema : schemas) {
+    protected void writeSchemas(JsonGenerator jg, DocumentModel doc) throws IOException {
+        for (String schema : doc.getSchemas()) {
             if ("note".equals(schema)) {
                 // just index the clob as raw
                 jg.writeFieldName("dynamic");
                 jg.writeRawValue((String) doc.getPropertyValue("note:note"));
             } else {
-                writeProperties(jg, doc, schema, null);
+                writeProperties(jg, doc, schema);
             }
         }
     }

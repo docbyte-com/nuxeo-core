@@ -29,6 +29,8 @@ import org.apache.commons.io.IOUtils;
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
+import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 import org.nuxeo.runtime.model.Descriptor;
 
 /**
@@ -51,6 +53,9 @@ public class SearchIndexDescriptor implements Descriptor {
 
     @XNode("@create")
     protected boolean create = true;
+
+    @XNode("@writerClass")
+    protected Class<? extends IndexingJsonWriter> writerClass = DefaultIndexingJsonWriter.class;
 
     @XNode("settings@file")
     protected String settingsFile;
@@ -76,6 +81,10 @@ public class SearchIndexDescriptor implements Descriptor {
 
     public String getRepositoryName() {
         return repository;
+    }
+
+    public Class<? extends IndexingJsonWriter> getWriterClass() {
+        return writerClass;
     }
 
     public boolean canCreateIndex() {

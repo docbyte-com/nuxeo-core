@@ -17,13 +17,14 @@
  *     Benoit Delbosc
  *     Florent Guillaume
  */
-package org.nuxeo.elasticsearch.io;
+package org.nuxeo.ecm.core.search.index;
 
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.BROWSE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYONE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSUPPORTED_ACL;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,9 +32,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.servlet.ServletRequest;
-
 import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.ecm.automation.core.util.JSONPropertyWriter;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -44,11 +44,8 @@ import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
-import org.nuxeo.ecm.core.io.download.DownloadService;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.security.SecurityService;
-import org.nuxeo.ecm.platform.tag.TagService;
-import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -61,7 +58,22 @@ import net.htmlparser.jericho.TextExtractor;
  *
  * @since 5.9.3
  */
-public class JsonESDocumentWriter {
+public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
+
+    public static final String TAG_FACET = "NXTag";
+
+    public static final String TAG_PROP = "nxtag:tags";
+
+    public static final String TAG_LABEL_PROP = "label";
+
+    @Override
+    public void writeDocument(JsonGenerator jg, DocumentModel doc) throws IOException {
+        jg.writeStartObject();
+        writeSystemProperties(jg, doc);
+        writeSchemas(jg, doc);
+        jg.writeEndObject();
+        jg.flush();
+    }
 
     /**
      * @since 7.2
@@ -90,6 +102,15 @@ public class JsonESDocumentWriter {
         DocumentRef parentRef = doc.getParentRef();
         if (parentRef != null) {
             jg.writeStringField("ecm:parentId", parentRef.toString());
+            // @since 2025 ancestors must be materialized
+            jg.writeArrayFieldStart("ecm:ancestorId");
+            jg.writeString(parentRef.toString());
+            // TODO getParentDocumentRefs may produce duplicates, to investigate
+            Arrays.stream(session.getParentDocumentRefs(parentRef))
+                  // reference is an id one by session implementation
+                  .map(ref -> ref.reference().toString())
+                  .forEach(ThrowableConsumer.asConsumer(jg::writeString));
+            jg.writeEndArray();
         }
         jg.writeStringField("ecm:currentLifeCycleState", doc.getCurrentLifeCycleState());
         if (doc.isVersion() || doc.isProxy()) {
@@ -118,22 +139,29 @@ public class JsonESDocumentWriter {
         }
         jg.writeBooleanField("ecm:hasLegalHold", doc.hasLegalHold());
         jg.writeArrayFieldStart("ecm:mixinType");
+        boolean hasFacetTag = false;
         for (String facet : doc.getFacets()) {
             jg.writeString(facet);
+            if (TAG_FACET.equals(facet)) {
+                hasFacetTag = true;
+            }
         }
         jg.writeEndArray();
-        TagService tagService = Framework.getService(TagService.class);
-        if (tagService != null && tagService.supportsTag(session, docId)) {
-            jg.writeArrayFieldStart("ecm:tag");
-            for (String tag : tagService.getTags(session, docId)) {
-                jg.writeString(tag);
+        if (hasFacetTag) {
+            @SuppressWarnings("unchecked")
+            var tags = (List<Map<String, Serializable>>) doc.getPropertyValue(TAG_PROP);
+            if (!tags.isEmpty()) {
+                jg.writeArrayFieldStart("ecm:tag");
+                for (Map<String, Serializable> tag : tags) {
+                    jg.writeString(tag.get(TAG_LABEL_PROP).toString());
+                }
+                jg.writeEndArray();
             }
-            jg.writeEndArray();
         }
         jg.writeStringField("ecm:changeToken", doc.getChangeToken());
         Long pos = doc.getPos();
         if (pos != null) {
-            jg.writeNumberField("ecm:pos", pos.longValue());
+            jg.writeNumberField("ecm:pos", pos);
         }
         // Add a positive ACL only
         SecurityService securityService = Framework.getService(SecurityService.class);
@@ -177,39 +205,13 @@ public class JsonESDocumentWriter {
     /**
      * @since 7.2
      */
-    protected void writeSchemas(JsonGenerator jg, DocumentModel doc, String[] schemas) throws IOException {
-        if (schemas == null || (schemas.length == 1 && "*".equals(schemas[0]))) {
-            schemas = doc.getSchemas();
-        }
-        for (String schema : schemas) {
-            writeProperties(jg, doc, schema, null);
+    protected void writeSchemas(JsonGenerator jg, DocumentModel doc) throws IOException {
+        for (String schema : doc.getSchemas()) {
+            writeProperties(jg, doc, schema);
         }
     }
 
-    /**
-     * @since 7.2
-     */
-    protected void writeContextParameters(JsonGenerator jg, DocumentModel doc, Map<String, String> contextParameters)
-            throws IOException {
-        if (contextParameters != null && !contextParameters.isEmpty()) {
-            for (Map.Entry<String, String> parameter : contextParameters.entrySet()) {
-                jg.writeStringField(parameter.getKey(), parameter.getValue());
-            }
-        }
-    }
-
-    public void writeESDocument(JsonGenerator jg, DocumentModel doc, String[] schemas,
-            Map<String, String> contextParameters) throws IOException {
-        jg.writeStartObject();
-        writeSystemProperties(jg, doc);
-        writeSchemas(jg, doc, schemas);
-        writeContextParameters(jg, doc, contextParameters);
-        jg.writeEndObject();
-        jg.flush();
-    }
-
-    protected static void writeProperties(JsonGenerator jg, DocumentModel doc, String schema, ServletRequest request)
-            throws IOException {
+    protected static void writeProperties(JsonGenerator jg, DocumentModel doc, String schema) throws IOException {
         Collection<Property> properties = doc.getPropertyObjects(schema);
         if (properties.isEmpty()) {
             return;
@@ -217,17 +219,11 @@ public class JsonESDocumentWriter {
 
         SchemaManager schemaManager = Framework.getService(SchemaManager.class);
         String prefix = schemaManager.getSchema(schema).getNamespace().prefix;
-        if (prefix == null || prefix.length() == 0) {
+        if (prefix == null || prefix.isEmpty()) {
             prefix = schema;
         }
         JSONPropertyWriter writer = JSONPropertyWriter.create().writeNull(false).writeEmpty(false).prefix(prefix);
 
-        if (request != null) {
-            DownloadService downloadService = Framework.getService(DownloadService.class);
-            String blobUrlPrefix = VirtualHostHelper.getBaseURL(request)
-                    + downloadService.getDownloadUrl(doc, null, null) + "/";
-            writer.filesBaseUrl(blobUrlPrefix);
-        }
         if ("note".equals(schema) && "text/html".equals(doc.getPropertyValue("note:mime_type"))) {
             Property mimeType = doc.getProperty("note:mime_type");
             writer.writeProperty(jg, mimeType);

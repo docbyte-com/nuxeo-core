@@ -28,6 +28,7 @@ import java.util.Set;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
+import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -48,6 +49,8 @@ public class SearchServiceImpl implements SearchService {
     protected final Map<String, SearchIndex> repoToDefaultSearchIndex = new HashMap<>();
 
     protected final Map<String, List<SearchIndex>> repoToSearchIndices = new HashMap<>();
+
+    protected final Map<SearchIndex, IndexingJsonWriter> indexToJsonWriter = new HashMap<>();
 
     protected final String defaultRepository;
 
@@ -104,6 +107,13 @@ public class SearchServiceImpl implements SearchService {
             if (descriptor.isDefault() || defaultIndex == null) {
                 defaultIndex = descriptor.getId();
                 repoToDefaultSearchIndex.put(repo, index);
+            }
+            try {
+                IndexingJsonWriter writer = descriptor.getWriterClass().getDeclaredConstructor().newInstance();
+                indexToJsonWriter.put(index, writer);
+            } catch (ReflectiveOperationException e) {
+                throw new IllegalArgumentException(
+                        "Invalid JsonWriter class: " + descriptor.getWriterClass() + " for: " + index, e);
             }
         }
     }

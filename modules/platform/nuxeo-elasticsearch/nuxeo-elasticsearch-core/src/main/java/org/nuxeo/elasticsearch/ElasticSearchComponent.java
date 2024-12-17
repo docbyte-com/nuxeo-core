@@ -43,6 +43,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
@@ -57,7 +58,6 @@ import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.elasticsearch.core.ElasticSearchAdminImpl;
 import org.nuxeo.elasticsearch.core.ElasticSearchIndexingImpl;
 import org.nuxeo.elasticsearch.core.ElasticSearchServiceImpl;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
 import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.elasticsearch.work.IndexingWorker;
 import org.nuxeo.elasticsearch.work.ScrollingIndexingWorker;
@@ -106,7 +106,7 @@ public class ElasticSearchComponent extends DefaultComponent
 
     protected ElasticSearchServiceImpl ess;
 
-    protected JsonESDocumentWriter jsonESDocumentWriter;
+    protected IndexingJsonWriter jsonESDocumentWriter;
 
     protected ListeningExecutorService waiterExecutorService;
 

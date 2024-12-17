@@ -37,10 +37,11 @@ import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.model.BlobNotFoundException;
 import org.nuxeo.ecm.core.api.model.PropertyConversionException;
+import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
+import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 import org.nuxeo.ecm.core.search.index.commands.IndexingCommand;
 import org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type;
 import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
 import org.nuxeo.runtime.ConcurrentException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.metrics.MetricsService;
@@ -99,7 +100,7 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
 
     private final boolean useExternalVersion;
 
-    private JsonESDocumentWriter jsonESDocumentWriter;
+    private IndexingJsonWriter jsonESDocumentWriter;
 
     protected static final JsonFactory JSON_FACTORY = new JsonFactory();
 
@@ -110,14 +111,14 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
         deleteTimer = registry.timer(MetricName.build("nuxeo.elasticsearch.service.timer").tagged("service", "delete"));
         bulkIndexTimer = registry.timer(
                 MetricName.build("nuxeo.elasticsearch.service.timer").tagged("service", "bulkIndex"));
-        this.jsonESDocumentWriter = new JsonESDocumentWriter();// default writer
+        this.jsonESDocumentWriter = new DefaultIndexingJsonWriter();// default writer
         this.useExternalVersion = esa.useExternalVersion();
     }
 
     /**
      * @since 7.2
      */
-    public ElasticSearchIndexingImpl(ElasticSearchAdminImpl esa, JsonESDocumentWriter jsonESDocumentWriter) {
+    public ElasticSearchIndexingImpl(ElasticSearchAdminImpl esa, IndexingJsonWriter jsonESDocumentWriter) {
         this(esa);
         this.jsonESDocumentWriter = jsonESDocumentWriter;
     }
@@ -480,7 +481,7 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
     public BytesReference source(DocumentModel doc) throws IOException {
         BytesStreamOutput out = new BytesStreamOutput();
         try (JsonGenerator jsonGen = JSON_FACTORY.createGenerator(out)) {
-            jsonESDocumentWriter.writeESDocument(jsonGen, doc, null, null);
+            jsonESDocumentWriter.writeDocument(jsonGen, doc);
             return out.bytes();
         }
     }
