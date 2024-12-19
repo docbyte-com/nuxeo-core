@@ -35,7 +35,6 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
-import org.nuxeo.ecm.platform.forms.layout.api.BuiltinModes;
 import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("type")
@@ -105,9 +104,6 @@ public class Type implements Descriptor {
 
     @XNodeList(value = "actions/action", type = String[].class, componentType = String.class)
     protected String[] actions;
-
-    @XNodeMap(value = "layouts", key = "@mode", type = HashMap.class, componentType = Layouts.class)
-    protected Map<String, Layouts> layouts;
 
     @XNodeMap(value = "contentViews", key = "@category", type = HashMap.class, componentType = DocumentContentViews.class)
     protected Map<String, DocumentContentViews> contentViews;
@@ -186,38 +182,6 @@ public class Type implements Descriptor {
 
     public void setCategory(String category) {
         this.category = category;
-    }
-
-    /**
-     * Returns layout names given a mode.
-     */
-    public String[] getLayouts(String mode) {
-        // default to mode ANY
-        return getLayouts(mode, BuiltinModes.ANY);
-    }
-
-    public String[] getLayouts(String mode, String defaultMode) {
-        if (layouts != null) {
-            Layouts layouts = this.layouts.get(mode);
-            if (layouts == null && defaultMode != null) {
-                layouts = this.layouts.get(defaultMode);
-            }
-            if (layouts != null) {
-                return layouts.getLayouts();
-            }
-        }
-        return null;
-    }
-
-    /**
-     * Returns the layouts map
-     */
-    public Map<String, Layouts> getLayouts() {
-        return Collections.unmodifiableMap(layouts);
-    }
-
-    public void setLayouts(Map<String, Layouts> layouts) {
-        this.layouts = layouts;
     }
 
     public String getDefaultView() {
@@ -344,19 +308,6 @@ public class Type implements Descriptor {
         merged.views.putAll(defaultIfNull(other.views, Map.of()));
 
         merged.actions = isNotEmpty(other.actions) ? other.actions : nullToEmpty(actions);
-        // merge layouts
-        merged.layouts = new HashMap<>(defaultIfNull(layouts, Map.of()));
-        for (var entry : defaultIfNull(other.layouts, Map.<String, Layouts> of()).entrySet()) {
-            if (merged.layouts.containsKey(entry.getKey()) && entry.getValue().getAppend()) {
-                merged.layouts.merge(entry.getKey(), entry.getValue(), (inLayouts, otherInLayouts) -> {
-                    var mergedLayouts = new Layouts();
-                    mergedLayouts.layouts = addAll(inLayouts.layouts, otherInLayouts.layouts);
-                    return mergedLayouts;
-                });
-            } else {
-                merged.layouts.put(entry.getKey(), entry.getValue());
-            }
-        }
         // merge contentViews
         merged.contentViews = new HashMap<>(defaultIfNull(contentViews, Map.of()));
         for (var entry : defaultIfNull(other.contentViews, Map.<String, DocumentContentViews> of()).entrySet()) {

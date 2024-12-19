@@ -38,7 +38,6 @@ import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
-import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -81,11 +80,8 @@ public class OperationTypeImpl extends AbstractOperationType {
      */
     protected List<Field> injectableFields;
 
-    protected List<WidgetDefinition> widgetDefinitionList;
-
     /** @since 2025.0 */
-    public OperationTypeImpl(String id, Class<?> type, String contributingComponent,
-            List<WidgetDefinition> widgetDefinitionList) {
+    public OperationTypeImpl(String id, Class<?> type, String contributingComponent) {
         Operation anno = type.getAnnotation(Operation.class);
         if (anno == null) {
             throw new IllegalArgumentException(
@@ -98,7 +94,6 @@ public class OperationTypeImpl extends AbstractOperationType {
         this.methods = initMethods(this, type);
         this.params = initParams(type);
         this.injectableFields = initFields(type);
-        this.widgetDefinitionList = widgetDefinitionList;
     }
 
     @Override
@@ -162,9 +157,6 @@ public class OperationTypeImpl extends AbstractOperationType {
         // load signature
         doc.signature = buildSignature(methods, InvokableMethod::getOutputType).toArray(String[]::new);
         // widgets descriptor
-        if (widgetDefinitionList != null) {
-            doc.widgetDefinitions = widgetDefinitionList.toArray(WidgetDefinition[]::new);
-        }
         return doc;
     }
 

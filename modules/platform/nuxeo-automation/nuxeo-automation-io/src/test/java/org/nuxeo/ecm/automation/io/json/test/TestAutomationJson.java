@@ -197,25 +197,6 @@ public class TestAutomationJson {
                     "order" : 0,
                     "values" : [ ]
                   } ],
-                  "widgets" : [ {
-                    "name" : "xpath",
-                    "type" : "codearea",
-                    "labels" : {
-                      "any" : "XPath"
-                    },
-                    "translated" : true,
-                    "fields" : [ {
-                      "fieldName" : "xpath",
-                      "propertyName" : "xpath"
-                    } ],
-                    "properties" : {
-                      "any" : {
-                        "height" : "100%",
-                        "language" : "xpath",
-                        "width" : "100%"
-                      }
-                    }
-                  } ]
                 }""";
         checkEquals(res, chain);
     }
@@ -254,25 +235,6 @@ public class TestAutomationJson {
                     "values" : [ "NXQL",
                  "CMISQL" ]
                   } ],
-                  "widgets" : [ {
-                    "name" : "query",
-                    "type" : "codearea",
-                    "labels" : {
-                      "any" : "Query"
-                    },
-                    "translated" : true,
-                    "fields" : [ {
-                      "fieldName" : "query",
-                      "propertyName" : "query"
-                    } ],
-                    "properties" : {
-                      "any" : {
-                        "height" : "100%",
-                        "language" : "nxql",
-                        "width" : "100%"
-                      }
-                    }
-                  } ]
                 }""";
         checkEquals(res, chain);
     }

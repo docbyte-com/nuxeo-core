@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.automation.io.rest;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -35,12 +33,6 @@ import org.nuxeo.ecm.automation.io.LoginInfo;
 import org.nuxeo.ecm.automation.io.rest.operations.AutomationInfo;
 import org.nuxeo.ecm.automation.io.services.codec.ObjectCodec;
 import org.nuxeo.ecm.automation.io.services.codec.ObjectCodecService;
-import org.nuxeo.ecm.core.io.marshallers.json.OutputStreamWithJsonWriter;
-import org.nuxeo.ecm.core.io.registry.MarshallerRegistry;
-import org.nuxeo.ecm.core.io.registry.Writer;
-import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
-import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
-import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
 import org.nuxeo.ecm.webengine.JsonFactoryManager;
 import org.nuxeo.runtime.api.Framework;
 
@@ -210,21 +202,6 @@ public class JsonWriter {
         }
         jg.writeEndArray();
         writeParams(jg, Arrays.asList(op.params));
-        if (op.widgetDefinitions != null && op.widgetDefinitions.length > 0) {
-            MarshallerRegistry marshallerRegistry = Framework.getService(MarshallerRegistry.class);
-            RenderingContext renderingCtx = CtxBuilder.get();
-            Class<WidgetDefinition> type = WidgetDefinition.class;
-            Writer<WidgetDefinition> widgetDefWriter = marshallerRegistry.getWriter(renderingCtx, type,
-                    APPLICATION_JSON_TYPE);
-            // instantiate a OutputStreamWithJsonWriter in order to make writer use the same JsonGenerator
-            OutputStreamWithJsonWriter out = new OutputStreamWithJsonWriter(jg);
-
-            jg.writeArrayFieldStart("widgets");
-            for (WidgetDefinition wdef : op.widgetDefinitions) {
-                widgetDefWriter.write(wdef, type, type, APPLICATION_JSON_TYPE, out);
-            }
-            jg.writeEndArray();
-        }
         jg.writeEndObject();
         jg.flush();
     }

@@ -51,9 +51,6 @@
     <module>nuxeo-platform-document-routing</module>
     <module>nuxeo-platform-dublincore</module>
     <module>nuxeo-platform-filemanager</module>
-    <module>nuxeo-platform-forms-layout-api</module>
-    <module>nuxeo-platform-forms-layout-core</module>
-    <module>nuxeo-platform-forms-layout-export</module>
     <module>nuxeo-platform-htmlsanitizer</module>
     <module>nuxeo-platform-imaging</module>
     <module>nuxeo-platform-importer</module>

@@ -18,21 +18,15 @@
  */
 package org.nuxeo.ecm.automation.core;
 
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
-import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.impl.OperationTypeImpl;
-import org.nuxeo.ecm.platform.forms.layout.descriptors.WidgetDescriptor;
 import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
@@ -54,14 +48,6 @@ public class OperationContribution implements OperationDescriptor {
      */
     @XNode("@replace")
     public boolean replace;
-
-    /**
-     * The widget descriptor for the operation parameters.
-     *
-     * @since 5.9.5
-     */
-    @XNodeList(componentType = WidgetDescriptor.class, type = ArrayList.class, value = "widgets/widget")
-    public List<WidgetDescriptor> widgets;
 
     @XContext(CONTRIBUTING_COMPONENT)
     protected ComponentInstance contributingComponent;
@@ -87,8 +73,7 @@ public class OperationContribution implements OperationDescriptor {
     /** @since 2025.0 */
     @Override
     public OperationType toType() {
-        return new OperationTypeImpl(getId(), getTypeClass(), contributingComponent.getName().getRawName(),
-                emptyIfNull(widgets).stream().map(WidgetDescriptor::getWidgetDefinition).toList());
+        return new OperationTypeImpl(getId(), getTypeClass(), contributingComponent.getName().getRawName());
     }
 
     protected Operation getOperationAnnotation() {

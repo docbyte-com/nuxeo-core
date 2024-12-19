@@ -29,7 +29,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.ecm.automation.io")
 @Deploy("org.nuxeo.ecm.core.api")
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
 @Features({ CoreIOFeature.class, WebEngineCoreFeature.class })
 public class AutomationIOFeature implements RunnerFeature {
 }

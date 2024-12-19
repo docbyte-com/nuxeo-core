@@ -9,11 +9,6 @@
       <bigIcon>/icons/search_100.png</bigIcon>
       <description>DefaultSearch.description</description>
       <default-view>home_view_documents</default-view>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <layout>default_search_layout</layout>
-        <layout>content_view_display</layout>
-      </layouts>
     </type>
 
   </extension>

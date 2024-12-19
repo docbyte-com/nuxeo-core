@@ -10,9 +10,6 @@
       <description>PictureBook.description</description>
       <category>Collaborative</category>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>
@@ -30,20 +27,6 @@
       <bigIcon>/icons/image_100.png</bigIcon>
       <category>SimpleDocument</category>
       <description>Picture.description</description>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <layout>picture</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>picture</layout>
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="drive">
-        <layout>heading</layout>
-        <layout>picture</layout>
-        <layout>dublincore</layout>
-      </layouts>
     </type>
 
   </extension>

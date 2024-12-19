@@ -146,22 +146,6 @@ public class TypeInfoAdapter implements TypeInfo {
     }
 
     @Override
-    public String[] getLayouts(String mode) {
-        if (type != null) {
-            return type.getLayouts(mode);
-        }
-        return null;
-    }
-
-    @Override
-    public String[] getLayouts(String mode, String defaultMode) {
-        if (type != null) {
-            return type.getLayouts(mode, defaultMode);
-        }
-        return null;
-    }
-
-    @Override
     public String getView(String viewId) {
         if (type != null) {
             TypeView view = type.getView(viewId);
