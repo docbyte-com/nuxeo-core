@@ -947,48 +947,6 @@ public class TestNxqlConversion {
                 }""", es);
     }
 
-    protected void doTestTrashedWithLifeCycle(String sqlNotTrashed, String sqlTrashed) {
-        String es = NxqlQueryConverter.toESQueryBuilder(sqlTrashed).toString();
-        assertEqualsEvenUnderWindows("""
-                {
-                  "constant_score" : {
-                    "filter" : {
-                      "term" : {
-                        "ecm:currentLifeCycleState" : {
-                          "value" : "deleted",
-                          "boost" : 1.0
-                        }
-                      }
-                    },
-                    "boost" : 1.0
-                  }
-                }""", es);
-
-        es = NxqlQueryConverter.toESQueryBuilder(sqlNotTrashed).toString();
-        assertEqualsEvenUnderWindows("""
-                {
-                  "constant_score" : {
-                    "filter" : {
-                      "bool" : {
-                        "must_not" : [
-                          {
-                            "term" : {
-                              "ecm:currentLifeCycleState" : {
-                                "value" : "deleted",
-                                "boost" : 1.0
-                              }
-                            }
-                          }
-                        ],
-                        "adjust_pure_negative" : true,
-                        "boost" : 1.0
-                      }
-                    },
-                    "boost" : 1.0
-                  }
-                }""", es);
-    }
-
     @Test
     public void testConverterWhereCombination() {
         String es = NxqlQueryConverter.toESQueryBuilder("select * from Document where f1=1 AND f2=2").toString();
