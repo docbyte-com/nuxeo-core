@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,12 +38,6 @@ import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.FuzzyQuery;
-import org.opensearch.index.query.BoolQueryBuilder;
-import org.opensearch.index.query.MatchPhrasePrefixQueryBuilder;
-import org.opensearch.index.query.MoreLikeThisQueryBuilder;
-import org.opensearch.index.query.QueryBuilder;
-import org.opensearch.index.query.QueryBuilders;
-import org.opensearch.index.query.SimpleQueryStringBuilder;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
@@ -83,6 +77,12 @@ import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.elasticsearch.hint.MoreLikeThisESHintQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MatchPhrasePrefixQueryBuilder;
+import org.opensearch.index.query.MoreLikeThisQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.SimpleQueryStringBuilder;
 
 /**
  * Helper class that holds the conversion logic. Conversion is based on the existing NXQL Parser, we are just using a
@@ -286,61 +286,61 @@ public final class NxqlQueryConverter {
 
         } else
             switch (op) {
-            case "=":
-                filter = QueryBuilders.termQuery(name, checkBoolValue(nxqlName, value));
-                break;
-            case "<>":
-            case "!=":
-                filter = QueryBuilders.boolQuery()
-                                      .mustNot(QueryBuilders.termQuery(name, checkBoolValue(nxqlName, value)));
-                break;
-            case ">":
-                filter = QueryBuilders.rangeQuery(name).gt(value);
-                break;
-            case "<":
-                filter = QueryBuilders.rangeQuery(name).lt(value);
-                break;
-            case ">=":
-                filter = QueryBuilders.rangeQuery(name).gte(value);
-                break;
-            case "<=":
-                filter = QueryBuilders.rangeQuery(name).lte(value);
-                break;
-            case "BETWEEN":
-            case "NOT BETWEEN":
-                filter = QueryBuilders.rangeQuery(name).from(values[0]).to(values[1]);
-                if (op.startsWith("NOT")) {
-                    filter = QueryBuilders.boolQuery().mustNot(filter);
-                }
-                break;
-            case "IN":
-            case "NOT IN":
-                filter = QueryBuilders.termsQuery(name, values);
-                if (op.startsWith("NOT")) {
-                    filter = QueryBuilders.boolQuery().mustNot(filter);
-                }
-                break;
-            case "IS NULL":
-                filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(name));
-                break;
-            case "IS NOT NULL":
-                filter = QueryBuilders.existsQuery(name);
-                break;
-            case "LIKE":
-            case "ILIKE":
-            case "NOT LIKE":
-            case "NOT ILIKE":
-                query = makeLikeQuery(op, name, (String) value, hint);
-                if (op.startsWith("NOT")) {
-                    filter = QueryBuilders.boolQuery().mustNot(query);
-                    query = null;
-                }
-                break;
-            case "STARTSWITH":
-                filter = makeStartsWithQuery(name, value);
-                break;
-            default:
-                throw new UnsupportedOperationException("Operator: '" + op + "' is unknown");
+                case "=":
+                    filter = QueryBuilders.termQuery(name, checkBoolValue(nxqlName, value));
+                    break;
+                case "<>":
+                case "!=":
+                    filter = QueryBuilders.boolQuery()
+                                          .mustNot(QueryBuilders.termQuery(name, checkBoolValue(nxqlName, value)));
+                    break;
+                case ">":
+                    filter = QueryBuilders.rangeQuery(name).gt(value);
+                    break;
+                case "<":
+                    filter = QueryBuilders.rangeQuery(name).lt(value);
+                    break;
+                case ">=":
+                    filter = QueryBuilders.rangeQuery(name).gte(value);
+                    break;
+                case "<=":
+                    filter = QueryBuilders.rangeQuery(name).lte(value);
+                    break;
+                case "BETWEEN":
+                case "NOT BETWEEN":
+                    filter = QueryBuilders.rangeQuery(name).from(values[0]).to(values[1]);
+                    if (op.startsWith("NOT")) {
+                        filter = QueryBuilders.boolQuery().mustNot(filter);
+                    }
+                    break;
+                case "IN":
+                case "NOT IN":
+                    filter = QueryBuilders.termsQuery(name, values);
+                    if (op.startsWith("NOT")) {
+                        filter = QueryBuilders.boolQuery().mustNot(filter);
+                    }
+                    break;
+                case "IS NULL":
+                    filter = QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(name));
+                    break;
+                case "IS NOT NULL":
+                    filter = QueryBuilders.existsQuery(name);
+                    break;
+                case "LIKE":
+                case "ILIKE":
+                case "NOT LIKE":
+                case "NOT ILIKE":
+                    query = makeLikeQuery(op, name, (String) value, hint);
+                    if (op.startsWith("NOT")) {
+                        filter = QueryBuilders.boolQuery().mustNot(query);
+                        query = null;
+                    }
+                    break;
+                case "STARTSWITH":
+                    filter = makeStartsWithQuery(name, value);
+                    break;
+                default:
+                    throw new UnsupportedOperationException("Operator: '" + op + "' is unknown");
             }
         return new QueryAndFilter(query, filter);
     }
@@ -350,23 +350,23 @@ public final class NxqlQueryConverter {
             return value;
         }
         switch (nxqlName) {
-        case NXQL.ECM_ISPROXY:
-        case NXQL.ECM_ISCHECKEDIN:
-        case NXQL.ECM_ISTRASHED:
-        case NXQL.ECM_ISVERSION:
-        case NXQL.ECM_ISVERSION_OLD:
-        case NXQL.ECM_ISRECORD:
-        case NXQL.ECM_ISFLEXIBLERECORD:
-        case NXQL.ECM_HASLEGALHOLD:
-        case NXQL.ECM_ISLATESTMAJORVERSION:
-        case NXQL.ECM_ISLATESTVERSION:
-            break;
-        default:
-            SchemaManager schemaManager = Framework.getService(SchemaManager.class);
-            Field field = schemaManager.getField(nxqlName);
-            if (field == null || !BooleanType.ID.equals(field.getType().getName())) {
-                return value;
-            }
+            case NXQL.ECM_ISPROXY:
+            case NXQL.ECM_ISCHECKEDIN:
+            case NXQL.ECM_ISTRASHED:
+            case NXQL.ECM_ISVERSION:
+            case NXQL.ECM_ISVERSION_OLD:
+            case NXQL.ECM_ISRECORD:
+            case NXQL.ECM_ISFLEXIBLERECORD:
+            case NXQL.ECM_HASLEGALHOLD:
+            case NXQL.ECM_ISLATESTMAJORVERSION:
+            case NXQL.ECM_ISLATESTVERSION:
+                break;
+            default:
+                SchemaManager schemaManager = Framework.getService(SchemaManager.class);
+                Field field = schemaManager.getField(nxqlName);
+                if (field == null || !BooleanType.ID.equals(field.getType().getName())) {
+                    return value;
+                }
         }
         return "0".equals(value) ? "false" : "true";
     }
@@ -374,15 +374,15 @@ public final class NxqlQueryConverter {
     protected static QueryBuilder makeTrashedFilter(String op, String name, String value) {
         boolean equalsDeleted;
         switch (op) {
-        case "=":
-            equalsDeleted = true;
-            break;
-        case "<>":
-        case "!=":
-            equalsDeleted = false;
-            break;
-        default:
-            throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
+            case "=":
+                equalsDeleted = true;
+                break;
+            case "<>":
+            case "!=":
+                equalsDeleted = false;
+                break;
+            default:
+                throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
         }
         if ("0".equals(value)) {
             equalsDeleted = !equalsDeleted;
@@ -509,34 +509,34 @@ public final class NxqlQueryConverter {
         for (char c : chars) {
             boolean escapeNext = false;
             switch (c) {
-            case '?':
-                wildcard.append("\\?");
-                break;
-            case '*': // compat, * = % in NXQL (for some backends)
-            case '%':
-                if (escape) {
+                case '?':
+                    wildcard.append("\\?");
+                    break;
+                case '*': // compat, * = % in NXQL (for some backends)
+                case '%':
+                    if (escape) {
+                        wildcard.append(c);
+                    } else {
+                        wildcard.append("*");
+                    }
+                    break;
+                case '_':
+                    if (escape) {
+                        wildcard.append(c);
+                    } else {
+                        wildcard.append("?");
+                    }
+                    break;
+                case '\\':
+                    if (escape) {
+                        wildcard.append("\\\\");
+                    } else {
+                        escapeNext = true;
+                    }
+                    break;
+                default:
                     wildcard.append(c);
-                } else {
-                    wildcard.append("*");
-                }
-                break;
-            case '_':
-                if (escape) {
-                    wildcard.append(c);
-                } else {
-                    wildcard.append("?");
-                }
-                break;
-            case '\\':
-                if (escape) {
-                    wildcard.append("\\\\");
-                } else {
-                    escapeNext = true;
-                }
-                break;
-            default:
-                wildcard.append(c);
-                break;
+                    break;
             }
             escape = escapeNext;
         }
