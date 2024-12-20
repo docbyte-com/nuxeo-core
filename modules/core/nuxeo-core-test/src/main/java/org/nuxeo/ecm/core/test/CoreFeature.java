@@ -31,6 +31,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -170,26 +171,21 @@ public class CoreFeature implements RunnerFeature {
         if (blobGCDisabled && docGCDisabled) {
             return true;
         }
-        StreamService service = Framework.getService(StreamService.class);
-        org.nuxeo.lib.stream.log.LogManager logManager = service.getLogManager();
-        long deadline = System.currentTimeMillis() + duration.toMillis();
-        long docGCLag = 0;
-        long blobGCLag = 0;
+        var streamService = Framework.getService(StreamService.class);
+        long start = System.currentTimeMillis();
+        long deadline = start + duration.toMillis();
+        Supplier<Duration> remainingDuration = () -> duration.minusMillis(System.currentTimeMillis() - start);
         do {
-            docGCLag = docGCDisabled ? 0
-                    : logManager.getLag(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
-                            Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME)).lag();
-            if (docGCLag == 0) {
-                blobGCLag = blobGCDisabled ? 0
-                        : logManager.getLag(Name.ofUrn(StreamOrphanBlobGC.STREAM_NAME),
-                                Name.ofUrn(StreamOrphanBlobGC.COMPUTATION_NAME)).lag();
-                if (blobGCLag == 0) {
+            if (docGCDisabled || streamService.await(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
+                    Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME), remainingDuration.get())) {
+                if (blobGCDisabled || streamService.await(Name.ofUrn(StreamOrphanBlobGC.STREAM_NAME),
+                        Name.ofUrn(StreamOrphanBlobGC.COMPUTATION_NAME), remainingDuration.get())) {
                     return true;
                 }
             }
             Thread.sleep(50);
         } while (System.currentTimeMillis() < deadline);
-        log.warn("await timeout on GCs, docGC lag: {}, blobGC lag: {}", docGCLag, blobGCLag);
+        log.warn("await timeout on GCs");
         return false;
     }
 
