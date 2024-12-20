@@ -337,18 +337,8 @@ public class AuditComponent extends DefaultComponent implements AuditService {
 
     @Override
     public boolean await(Duration duration) throws InterruptedException {
-        StreamService service = Framework.getService(StreamService.class);
-        org.nuxeo.lib.stream.log.LogManager logManager = service.getLogManager();
-        // when there is no lag between producer and consumer we are done
-        long deadline = System.currentTimeMillis() + duration.toMillis();
-        while (logManager.getLag(Name.ofUrn(STREAM_NAME), Name.ofUrn(COMPUTATION_NAME)).lag() > 0) {
-            if (System.currentTimeMillis() > deadline) {
-                log.warn("await timeout on audit/writer");
-                return false;
-            }
-            Thread.sleep(50);
-        }
-        return true;
+        return Framework.getService(StreamService.class)
+                        .await(Name.ofUrn(STREAM_NAME), Name.ofUrn(COMPUTATION_NAME), duration);
     }
 
     /**

@@ -350,6 +350,26 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
         return false;
     }
 
+    @Override
+    public boolean await(Name stream, Name computation, Duration duration) throws InterruptedException {
+        log.debug("Await computation: {} for {}ms ", () -> computation, duration::toMillis);
+        long start = System.currentTimeMillis();
+        long deadline = start + duration.toMillis();
+        long lag;
+        do {
+            lag = logManager.getLag(stream, computation).lag();
+            // when there is no lag between producer and consumer we are done
+            if (lag == 0) {
+                log.debug("Computation: {} completed in {}ms", () -> computation,
+                        () -> System.currentTimeMillis() - start);
+                return true;
+            }
+            Thread.sleep(50);
+        } while (System.currentTimeMillis() < deadline);
+        log.warn("Await timeout on computation: {}, remaining lag: {}", computation, lag);
+        return false;
+    }
+
     protected class ComponentsLifeCycleListener implements ComponentManager.Listener {
         @Override
         public void afterStart(ComponentManager mgr, boolean isResume) {
