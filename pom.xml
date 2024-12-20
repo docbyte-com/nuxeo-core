@@ -140,7 +140,7 @@
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
     <kafka.version>3.9.0</kafka.version>
-    <confluent.version>6.2.15</confluent.version>
+    <confluent.version>7.8.0</confluent.version>
     <metrics.version>5.0.0</metrics.version>
     <amqp.client.version>5.24.0</amqp.client.version>
     <opencensus.version>0.31.1</opencensus.version>
