@@ -123,6 +123,15 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
     }
 
     @Override
+    public List<String> getAutomaticVideoConversionsNames() {
+        return this.<AutomaticVideoConversion> getDescriptors(DEFAULT_VIDEO_CONVERSIONS_EP)
+            .stream()
+            .filter(AutomaticVideoConversion::isEnabled)
+            .map(AutomaticVideoConversion::getName)
+            .toList();
+    }
+
+    @Override
     public void launchConversion(DocumentModel doc, String conversionName) {
         WorkManager workManager = Framework.getService(WorkManager.class);
         VideoConversionWork work = new VideoConversionWork(doc.getRepositoryName(), doc.getId(), conversionName);

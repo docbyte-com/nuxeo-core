@@ -43,6 +43,13 @@ public interface VideoService {
     List<String> getAvailableVideoConversionsNames();
 
     /**
+     *
+     * @return the list of video conversion configured to run automatically
+     * @since 2025.0
+     */
+    List<String> getAutomaticVideoConversionsNames();
+
+    /**
      * Launch an asynchronously video conversion of the given {@code doc}.
      *
      * @param doc the video document to be converted

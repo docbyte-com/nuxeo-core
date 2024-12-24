@@ -89,6 +89,14 @@ public class TestVideoService {
         assertEquals("matroska,webm", transcodedVideo.getFormat());
     }
 
+    @Test
+    public void testGetAutoConversionNames() {
+        List<String> autoVideoConversionNames = videoService.getAutomaticVideoConversionsNames();
+        assertEquals(2, autoVideoConversionNames.size());
+        assertTrue(autoVideoConversionNames.contains("WebM 480p"));
+        assertTrue(autoVideoConversionNames.contains("MP4 480p"));
+    }
+
     protected static Video getTestVideo() throws IOException {
         try (InputStream is = TestVideoService.class.getResourceAsStream("/" + DELTA_MP4)) {
             assertNotNull(String.format("Failed to load resource: " + DELTA_MP4), is);
