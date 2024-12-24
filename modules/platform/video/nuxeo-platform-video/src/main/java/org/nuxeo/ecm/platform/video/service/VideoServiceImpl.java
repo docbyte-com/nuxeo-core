@@ -125,10 +125,10 @@ public class VideoServiceImpl extends DefaultComponent implements VideoService {
     @Override
     public List<String> getAutomaticVideoConversionsNames() {
         return this.<AutomaticVideoConversion> getDescriptors(DEFAULT_VIDEO_CONVERSIONS_EP)
-            .stream()
-            .filter(AutomaticVideoConversion::isEnabled)
-            .map(AutomaticVideoConversion::getName)
-            .toList();
+                   .stream()
+                   .filter(AutomaticVideoConversion::isEnabled)
+                   .map(AutomaticVideoConversion::getName)
+                   .toList();
     }
 
     @Override

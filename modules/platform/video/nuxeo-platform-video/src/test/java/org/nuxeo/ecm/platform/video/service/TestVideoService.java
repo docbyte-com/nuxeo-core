@@ -44,7 +44,6 @@ import org.nuxeo.ecm.platform.video.TranscodedVideo;
 import org.nuxeo.ecm.platform.video.Video;
 import org.nuxeo.ecm.platform.video.VideoFeature;
 import org.nuxeo.ecm.platform.video.VideoInfo;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
