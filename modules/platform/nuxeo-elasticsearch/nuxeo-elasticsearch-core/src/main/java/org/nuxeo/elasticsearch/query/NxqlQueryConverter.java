@@ -278,9 +278,6 @@ public final class NxqlQueryConverter {
             if ("!=".equals(op) || "<>".equals(op)) {
                 filter = QueryBuilders.boolQuery().mustNot(filter);
             }
-        } else if (nxqlName.equals(NXQL.ECM_ISTRASHED)) {
-            filter = makeTrashedFilter(op, name, (String) value);
-
         } else
             switch (op) {
                 case "=":
@@ -366,26 +363,6 @@ public final class NxqlQueryConverter {
                 }
         }
         return "0".equals(value) ? "false" : "true";
-    }
-
-    protected static QueryBuilder makeTrashedFilter(String op, String name, String value) {
-        boolean equalsDeleted = switch (op) {
-            case "=" -> true;
-            case "<>", "!=" -> false;
-            default -> throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
-        };
-        if ("0".equals(value)) {
-            equalsDeleted = !equalsDeleted;
-        } else if ("1".equals(value)) {
-            // equalsDeleted unchanged
-        } else {
-            throw new IllegalArgumentException(NXQL.ECM_ISTRASHED + " requires literal 0 or 1 as right argument");
-        }
-        QueryBuilder filter = QueryBuilders.termQuery(name, true);
-        if (!equalsDeleted) {
-            filter = QueryBuilders.boolQuery().mustNot(filter);
-        }
-        return filter;
     }
 
     protected static QueryBuilder makeHintQuery(String name, Object value, EsHint hint) {

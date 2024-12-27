@@ -903,7 +903,7 @@ public class TestNxqlConversion {
                     "filter" : {
                       "term" : {
                         "ecm:isTrashed" : {
-                          "value" : true,
+                          "value" : "true",
                           "boost" : 1.0
                         }
                       }
@@ -917,19 +917,11 @@ public class TestNxqlConversion {
                 {
                   "constant_score" : {
                     "filter" : {
-                      "bool" : {
-                        "must_not" : [
-                          {
-                            "term" : {
-                              "ecm:isTrashed" : {
-                                "value" : true,
-                                "boost" : 1.0
-                              }
-                            }
-                          }
-                        ],
-                        "adjust_pure_negative" : true,
-                        "boost" : 1.0
+                      "term" : {
+                        "ecm:isTrashed" : {
+                          "value" : "false",
+                          "boost" : 1.0
+                        }
                       }
                     },
                     "boost" : 1.0
