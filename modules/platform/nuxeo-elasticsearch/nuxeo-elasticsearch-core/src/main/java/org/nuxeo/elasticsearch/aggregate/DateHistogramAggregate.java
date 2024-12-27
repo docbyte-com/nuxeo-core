@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -86,20 +86,20 @@ public class DateHistogramAggregate extends MultiBucketAggregate<BucketRangeDate
         }
         if (props.containsKey(AGG_ORDER_PROP)) {
             switch (props.get(AGG_ORDER_PROP).toLowerCase()) {
-            case AGG_ORDER_COUNT_DESC:
-                ret.order(BucketOrder.count(false));
-                break;
-            case AGG_ORDER_COUNT_ASC:
-                ret.order(BucketOrder.count(true));
-                break;
-            case AGG_ORDER_KEY_DESC:
-                ret.order(BucketOrder.key(false));
-                break;
-            case AGG_ORDER_KEY_ASC:
-                ret.order(BucketOrder.key(true));
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid order: " + props.get(AGG_ORDER_PROP));
+                case AGG_ORDER_COUNT_DESC:
+                    ret.order(BucketOrder.count(false));
+                    break;
+                case AGG_ORDER_COUNT_ASC:
+                    ret.order(BucketOrder.count(true));
+                    break;
+                case AGG_ORDER_KEY_DESC:
+                    ret.order(BucketOrder.key(false));
+                    break;
+                case AGG_ORDER_KEY_ASC:
+                    ret.order(BucketOrder.key(true));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid order: " + props.get(AGG_ORDER_PROP));
             }
         }
         if (props.containsKey(AGG_EXTENDED_BOUND_MAX_PROP) && props.containsKey(AGG_EXTENDED_BOUND_MIN_PROP)) {

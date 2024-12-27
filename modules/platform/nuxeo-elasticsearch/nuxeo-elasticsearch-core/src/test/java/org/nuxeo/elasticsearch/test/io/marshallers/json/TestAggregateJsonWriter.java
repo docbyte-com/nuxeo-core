@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  *  Contributors:
  *      Kevin Leturc <kleturc@nuxeo.com>
  */
-
 package org.nuxeo.elasticsearch.test.io.marshallers.json;
 
 import static org.junit.Assert.assertTrue;
@@ -78,24 +77,25 @@ public class TestAggregateJsonWriter {
                 CtxBuilder.fetch(AggregateJsonWriter.ENTITY_TYPE, AggregateJsonWriter.FETCH_KEY).get());
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();
         assertTrue(caughtEvents.isEmpty());
-        String expected = "{\n" + //
-                "   \"entity-type\": \"aggregate\",\n" + //
-                "   \"field\": \"file:content.mime-type\",\n" + //
-                "   \"buckets\": [\n" + //
-                "      {\n" + //
-                "         \"key\": \"file:content.mime-type\",\n" + //
-                "         \"fetchedKey\": \"file:content.mime-type\",\n" + //
-                "         \"docCount\": 10\n" + //
-                "      }\n" + //
-                "   ],\n" + //
-                "   \"extendedBuckets\": [\n" + //
-                "      {\n" + //
-                "         \"key\": \"file:content.mime-type\",\n" + //
-                "         \"fetchedKey\": \"file:content.mime-type\",\n" + //
-                "         \"docCount\": 10\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String expected = """
+                {
+                   "entity-type": "aggregate",
+                   "field": "file:content.mime-type",
+                   "buckets": [
+                      {
+                         "key": "file:content.mime-type",
+                         "fetchedKey": "file:content.mime-type",
+                         "docCount": 10
+                      }
+                   ],
+                   "extendedBuckets": [
+                      {
+                         "key": "file:content.mime-type",
+                         "fetchedKey": "file:content.mime-type",
+                         "docCount": 10
+                      }
+                   ]
+                }""";
         JSONAssert.assertEquals(expected, json, JSONCompareMode.LENIENT);
     }
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
+import org.nuxeo.ecm.platform.query.core.BucketTerm;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.aggregations.AggregationBuilders;
@@ -40,9 +43,6 @@ import org.opensearch.search.aggregations.BucketOrder;
 import org.opensearch.search.aggregations.bucket.MultiBucketsAggregation;
 import org.opensearch.search.aggregations.bucket.terms.IncludeExclude;
 import org.opensearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
-import org.nuxeo.ecm.platform.query.core.BucketTerm;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -73,20 +73,20 @@ public class TermAggregate extends MultiBucketAggregate<BucketTerm> {
         }
         if (props.containsKey(AGG_ORDER_PROP)) {
             switch (props.get(AGG_ORDER_PROP).toLowerCase()) {
-            case AGG_ORDER_COUNT_DESC:
-                ret.order(BucketOrder.count(false));
-                break;
-            case AGG_ORDER_COUNT_ASC:
-                ret.order(BucketOrder.count(true));
-                break;
-            case AGG_ORDER_TERM_DESC:
-                ret.order(BucketOrder.key(false));
-                break;
-            case AGG_ORDER_TERM_ASC:
-                ret.order(BucketOrder.key(true));
-                break;
-            default:
-                throw new IllegalArgumentException("Invalid order: " + props.get(AGG_ORDER_PROP));
+                case AGG_ORDER_COUNT_DESC:
+                    ret.order(BucketOrder.count(false));
+                    break;
+                case AGG_ORDER_COUNT_ASC:
+                    ret.order(BucketOrder.count(true));
+                    break;
+                case AGG_ORDER_TERM_DESC:
+                    ret.order(BucketOrder.key(false));
+                    break;
+                case AGG_ORDER_TERM_ASC:
+                    ret.order(BucketOrder.key(true));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid order: " + props.get(AGG_ORDER_PROP));
             }
         }
         return ret;

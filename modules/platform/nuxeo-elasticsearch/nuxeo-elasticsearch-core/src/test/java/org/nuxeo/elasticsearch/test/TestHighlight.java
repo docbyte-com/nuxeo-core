@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.elasticsearch.test;
 
 import static org.junit.Assert.assertEquals;
@@ -65,6 +63,7 @@ public class TestHighlight {
     protected TransactionalFeature txFeature;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testHighlight() {
         DocumentModel doc = session.createDocumentModel("/", "highlight", "File");
         doc.setPropertyValue("dc:title", "Search me");
@@ -91,22 +90,19 @@ public class TestHighlight {
 
         assertEquals(2, ret.totalSize());
 
-        Map<String, List<String>> highlights = (Map<String, List<String>>) ret.get(0)
-                                                                              .getContextData(
-                                                                                      PageProvider.HIGHLIGHT_CTX_DATA);
+        var highlights = (Map<String, List<String>>) ret.get(0).getContextData(PageProvider.HIGHLIGHT_CTX_DATA);
         assertEquals(2, highlights.size());
         assertTrue(highlights.containsKey("dc:title.fulltext"));
         assertTrue(highlights.containsKey("ecm:binarytext"));
         assertEquals("<em>Search</em> me", highlights.get("dc:title.fulltext").get(0));
         assertEquals("you know for <em>search</em>", highlights.get("ecm:binarytext").get(0));
 
-        Map<String, List<String>> highlights2 = (Map<String, List<String>>) ret.get(1)
-                                                                               .getContextData(
-                                                                                       PageProvider.HIGHLIGHT_CTX_DATA);
+        var highlights2 = (Map<String, List<String>>) ret.get(1).getContextData(PageProvider.HIGHLIGHT_CTX_DATA);
         assertEquals("test my <em>search</em> with highlight", highlights2.get("ecm:binarytext").get(0));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testMultipleHighlights() {
         DocumentModel doc = session.createDocumentModel("/", "multipleHighlights", "File");
         BlobHolder holder = doc.getAdapter(BlobHolder.class);
@@ -158,9 +154,7 @@ public class TestHighlight {
 
         assertEquals(1, ret.totalSize());
 
-        Map<String, List<String>> highlights = (Map<String, List<String>>) ret.get(0)
-                                                                              .getContextData(
-                                                                                      PageProvider.HIGHLIGHT_CTX_DATA);
+        var highlights = (Map<String, List<String>>) ret.get(0).getContextData(PageProvider.HIGHLIGHT_CTX_DATA);
         assertEquals(1, highlights.size());
         assertEquals(4, highlights.get("ecm:binarytext").size());
         assertEquals("Nulla neque dui, egestas sit amet nibh eget, maximus <em>vehicula</em> nisi.",

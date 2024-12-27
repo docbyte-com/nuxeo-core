@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,16 +25,16 @@ import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_MAX;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_MIN;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.AGG_SUM;
 
-import java.util.Collections;
+import java.util.List;
 
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
+import org.nuxeo.ecm.platform.query.core.BucketTerm;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
 import org.opensearch.search.aggregations.AggregationBuilder;
 import org.opensearch.search.aggregations.AggregationBuilders;
 import org.opensearch.search.aggregations.metrics.NumericMetricsAggregation;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.query.api.AggregateDefinition;
-import org.nuxeo.ecm.platform.query.core.BucketTerm;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -58,22 +58,17 @@ public class SingleValueMetricAggregate extends AggregateEsBase<NumericMetricsAg
      * Creates an AggregationBuilder for the supplied type
      */
     public AggregationBuilder toBuilder(String type) {
-        switch (type) {
-        case AGG_CARDINALITY:
-            return AggregationBuilders.cardinality(getId()).field(getField());
-        case AGG_COUNT:
-            return AggregationBuilders.count(getId()).field(getField());
-        case AGG_SUM:
-            return AggregationBuilders.sum(getId()).field(getField());
-        case AGG_AVG:
-            return AggregationBuilders.avg(getId()).field(getField());
-        case AGG_MAX:
-            return AggregationBuilders.max(getId()).field(getField());
-        case AGG_MIN:
-            return AggregationBuilders.min(getId()).field(getField());
-        default:
-            throw new IllegalArgumentException("Unknown aggregate type: " + type);
-        }
+        String id = getId();
+        String field = getField();
+        return switch (type) {
+            case AGG_CARDINALITY -> AggregationBuilders.cardinality(id).field(field);
+            case AGG_COUNT -> AggregationBuilders.count(id).field(field);
+            case AGG_SUM -> AggregationBuilders.sum(id).field(field);
+            case AGG_AVG -> AggregationBuilders.avg(id).field(field);
+            case AGG_MAX -> AggregationBuilders.max(id).field(field);
+            case AGG_MIN -> AggregationBuilders.min(id).field(field);
+            default -> throw new IllegalArgumentException("Unknown aggregate type: " + type);
+        };
     }
 
     @JsonIgnore
@@ -94,7 +89,7 @@ public class SingleValueMetricAggregate extends AggregateEsBase<NumericMetricsAg
     @Override
     public void parseAggregation(NumericMetricsAggregation.SingleValue aggregation) {
         this.value = aggregation.value();
-        this.buckets = Collections.singletonList(new BucketTerm(definition.getType(), value.longValue()));
+        this.buckets = List.of(new BucketTerm(definition.getType(), value.longValue()));
     }
 
     public Double getValue() {
