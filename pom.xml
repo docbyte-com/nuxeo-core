@@ -3652,21 +3652,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.concordion</groupId>
-        <artifactId>concordion</artifactId>
-        <version>1.5.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jboss</groupId>
-            <artifactId>javassist</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xom</groupId>
-            <artifactId>xom</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>org.antlr</groupId>
         <artifactId>antlr-runtime</artifactId>
         <version>3.5.3</version>
