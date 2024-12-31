@@ -88,8 +88,8 @@ public class IndexingProcessor implements StreamProcessorTopology {
             String repository = events.getFirst().getRepository();
             SearchService searchService = Framework.getService(SearchService.class);
             SearchIndexingService indexingService = Framework.getService(SearchIndexingService.class);
-            List<SearchIndex> indices = searchService.getSearchIndexForRepository(repository);
-            if (indices.isEmpty()) {
+            List<SearchIndex> indexes = searchService.getSearchIndexForRepository(repository);
+            if (indexes.isEmpty()) {
                 log.warn("No SearchIndex found for repository: {}, skipping indexing of {} events", repository,
                         events.size());
                 return 0;
@@ -110,7 +110,7 @@ public class IndexingProcessor implements StreamProcessorTopology {
                 }
                 requestBuilder.add(request);
             }
-            for (SearchIndex index : indices) {
+            for (SearchIndex index : indexes) {
                 SearchClient client = indexingService.getClient(index.client());
                 if (!client.hasCapability(INDEXING)) {
                     continue;

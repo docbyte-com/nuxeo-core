@@ -77,7 +77,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     protected final Map<String, SearchIndex> repoToDefaultSearchIndex = new HashMap<>();
 
-    protected final Map<String, List<SearchIndex>> repoToSearchIndices = new HashMap<>();
+    protected final Map<String, List<SearchIndex>> repoToSearchIndexes = new HashMap<>();
 
     protected final Map<SearchIndex, IndexingJsonWriter> indexToJsonWriter = new HashMap<>();
 
@@ -132,7 +132,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
             indexToClient.put(descriptor.getId(), client.getName());
             SearchIndex index = SearchIndex.of(descriptor.getRepositoryName(), client.getName(), descriptor.getId());
             String repo = descriptor.getRepositoryName();
-            repoToSearchIndices.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
+            repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
             if (descriptor.isDefault() || defaultIndex == null) {
                 defaultIndex = descriptor.getId();
                 repoToDefaultSearchIndex.put(repo, index);
@@ -154,7 +154,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     @Override
     public Set<String> getRepositoryNames() {
-        return repoToSearchIndices.keySet();
+        return repoToSearchIndexes.keySet();
     }
 
     @Override
@@ -164,7 +164,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     @Override
     public List<SearchIndex> getSearchIndexForRepository(String repository) {
-        return repoToSearchIndices.getOrDefault(repository, Collections.emptyList());
+        return repoToSearchIndexes.getOrDefault(repository, Collections.emptyList());
     }
 
     @Override

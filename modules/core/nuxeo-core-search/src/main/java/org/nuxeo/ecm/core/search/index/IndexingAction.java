@@ -85,8 +85,8 @@ public class IndexingAction implements StreamProcessorTopology {
             }
             var indexingService = Framework.getService(SearchIndexingService.class);
             var searchService = Framework.getService(SearchService.class);
-            var indices = searchService.getSearchIndexForRepository(repository);
-            for (SearchIndex index : indices) {
+            var indexes = searchService.getSearchIndexForRepository(repository);
+            for (SearchIndex index : indexes) {
                 SearchClient client = indexingService.getClient(index.client());
                 if (!client.hasCapability(INDEXING)) {
                     continue;
