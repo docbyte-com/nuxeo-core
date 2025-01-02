@@ -72,7 +72,7 @@ public class RenditionObject extends DefaultObject {
         renditionName = (String) args[1];
         // check if the rendition exists
         if (Framework.getService(RenditionService.class)
-                     .getDeclaredRenditionDefinitions()
+                     .getAvailableRenditionDefinitions(doc)
                      .stream()
                      .map(RenditionDefinition::getName)
                      .noneMatch(Predicate.isEqual(renditionName))) {

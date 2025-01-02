@@ -16,6 +16,7 @@
  * Contributors:
  *     Thomas Roger
  */
+
 package org.nuxeo.ecm.restapi.test;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
@@ -44,6 +45,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.ecm.platform.thumbnail.ThumbnailConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
@@ -59,7 +61,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ AuditFeature.class, RestServerFeature.class })
+@Features({ AuditFeature.class, RestServerFeature.class, ImagingCoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.io.core")
@@ -92,6 +94,17 @@ public class RenditionTest {
 
         httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/dummyRendition")
                   .executeAndConsume(new StringHandler(), body -> assertEquals("adoc", body));
+    }
+
+    @Test
+    public void shouldRetrieveTheFullHDRendition() {
+        DocumentModel doc = session.createDocumentModel("/", "adoc", "Picture");
+        doc = session.createDocument(doc);
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+
+        httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/FullHD")
+                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
     }
 
     @Test
