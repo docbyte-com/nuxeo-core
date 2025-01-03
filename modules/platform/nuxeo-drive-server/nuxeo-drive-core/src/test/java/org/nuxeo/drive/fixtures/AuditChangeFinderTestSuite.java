@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -1535,7 +1535,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blobstore-contrib.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testReplaceBlobDigest() {
         DocumentModel doc;
         List<FileSystemItemChange> changes;

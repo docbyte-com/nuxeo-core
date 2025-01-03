@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,11 +48,11 @@ import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
-import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -81,7 +81,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDisableBlobDelete() {
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
@@ -99,7 +99,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testSharedBlobDelete() throws IOException {
         final String CONTENT = "hello world";
         // Create 2 docs referencing the same blob as main content
@@ -134,7 +134,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-multi-repo-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testBlobDeleteMultiRepo() {
         final String CONTENT = "multiRepo";
         // Create 2 docs in 2 different repos but referencing the same blob as main content
@@ -177,7 +177,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDryRun() throws IOException {
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("dry run"));
@@ -200,7 +200,7 @@ public class TestDocumentBlobGC {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "This test is to make sure repos without ecm:blobKeys capabilities will not delete blobs that MUST not be deleted.")
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "This test is to make sure repos without ecm:blobKeys capabilities will not delete blobs that MUST not be deleted.")
     public void testUnsupportedDeleteBlobOnVCS() {
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("UnsupportedDeleteBlobOnVCS"));
@@ -224,7 +224,7 @@ public class TestDocumentBlobGC {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testIllegalDeleteBlobNullRepositoryName() {
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("IllegalDeleteBlobNullRepositoryName"));
@@ -244,7 +244,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRemoveDocument() {
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
@@ -264,7 +264,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRemoveDocumentWithPrefixAndUnprefixedKey() throws IOException {
         // Create a doc referencing a blob
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
@@ -304,7 +304,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRecursiveRemoveDocument() {
         // Create a couple of docs under a common root
         DocumentModel folder = session.createDocumentModel("/", "folder", "Folder");
@@ -330,7 +330,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterEditBlobProperty() {
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("before"));
@@ -352,7 +352,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-shared-storage-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobOnSharedStorageAndMonoRepository() {
         // Create 3 docs
         // 2 referencing the same blob as main content but dispatched in 2 different providers
@@ -411,7 +411,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-dispatcher-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterDispatch() {
         // Create 2 docs referencing the same blob as main content
         Blob b = Blobs.createBlob("dispatch");
@@ -449,7 +449,7 @@ public class TestDocumentBlobGC {
     // NXP-31833
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testBlobDeleteCrossRepositoryProvider() {
         final String CONTENT = "multiRepo";
         // Create 2 docs in 2 different repos but referencing the same blob as main content
@@ -499,7 +499,7 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterDeployDipatcherRules() throws Exception {
         Blob b = Blobs.createBlob("toNotBeRemoved");
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");

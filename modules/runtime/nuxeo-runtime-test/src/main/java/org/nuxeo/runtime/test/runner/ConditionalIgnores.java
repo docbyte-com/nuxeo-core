@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,25 +16,21 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.runtime.datasource;
+package org.nuxeo.runtime.test.runner;
 
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_H2;
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_VALUE;
-
-import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @since 2025.0
  */
-public class IgnoreIfNotH2 implements ConditionalIgnore.Condition {
+@Inherited
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD })
+public @interface ConditionalIgnores {
 
-    @Override
-    public boolean shouldIgnore() {
-        return !STORAGE_SQL_DB_VALUE.equals(STORAGE_SQL_DB_H2);
-    }
-
-    @Override
-    public boolean needsRuntime() {
-        return false;
-    }
+    ConditionalIgnore[] value();
 }

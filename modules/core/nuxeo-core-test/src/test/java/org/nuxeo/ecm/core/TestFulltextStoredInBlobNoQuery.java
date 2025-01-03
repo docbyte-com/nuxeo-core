@@ -40,9 +40,9 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.model.Document;
-import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
@@ -70,7 +70,7 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
 
     @Override
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Modern GC is only available on MongoDB")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "Modern GC is only available on MongoDB")
     public void testBinaryText() throws IOException {
         super.testBinaryText();
 

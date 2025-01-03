@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -394,7 +394,7 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "pull optimization only available on DBS")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "pull optimization only available on DBS")
     public void testArrayConcurrentPull() throws InterruptedException {
         doc.setPropertyValue("tp:stringArray", (Serializable) List.of("foo", "bar", "baz"));
         session.saveDocument(doc);
@@ -570,7 +570,7 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListNullInStorage() {
         // we check for the fact that storage is null (actually unset) by using
         // a query (which would fail if we stored an empty list)
@@ -597,7 +597,7 @@ public class TestSQLRepositoryProperties {
 
     // DBS-only test for in-db data corruption(?) (NXP-21278)
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListElementNullInStorage() {
         doc.setPropertyValue("tp:complexList", (Serializable) List.of( //
                 Map.of("string", "foo"), //
@@ -954,7 +954,7 @@ public class TestSQLRepositoryProperties {
 
     // NOTE that this test cannot pass if DEBUG_UUIDS=true due to the reset of the uuid counter
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testComplexPropertySchemaUpdate() throws Exception {
         // create a doc
         doc.setPropertyValue("tp:complex/string", "test");
@@ -1080,7 +1080,7 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty() throws Exception {
         File file = createTempFile();
         HashMap<String, String> map = new HashMap<>();
@@ -1102,7 +1102,7 @@ public class TestSQLRepositoryProperties {
 
     // this time only set the uri
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty2() throws Exception {
         File file = createTempFile();
         String uri = String.format("fs:%s", file.getName());
@@ -1122,7 +1122,7 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobListValue() throws Exception {
         // not null on list
         String propName = "tp:externalFileList";
@@ -1157,7 +1157,7 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testSubExternalBlobValue() throws Exception {
         String propName = "tp:externalFileComplexList";
         // not null on list
@@ -1547,7 +1547,7 @@ public class TestSQLRepositoryProperties {
 
     // DBS-only test for in-db data migration
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class)
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testMigrationListVsString() {
         // create a doc
         DocumentModel doc = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);

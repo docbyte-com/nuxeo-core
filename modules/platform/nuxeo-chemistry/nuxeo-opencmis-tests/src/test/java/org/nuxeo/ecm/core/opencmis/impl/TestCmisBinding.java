@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -164,7 +164,7 @@ import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -2341,7 +2341,7 @@ public class TestCmisBinding extends TestCmisBindingBase {
      */
     @Test
     @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/test-relax-cmis-spec.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support multiple CONTAINS")
+    @ConditionalIgnore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support multiple CONTAINS")
     public void testQueryMultiContainsRelaxingSpec() {
         // when using JOINs, we use the CMISQLQueryMaker which hasn't been updated to allow multiple CONTAINs
         assumeFalse("JOINs are not supported", supportsJoins());

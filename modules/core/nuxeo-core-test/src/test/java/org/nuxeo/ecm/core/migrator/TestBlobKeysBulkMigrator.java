@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.model.Repository;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
-import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
@@ -51,7 +51,7 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.capabilities.CapabilitiesService;
 import org.nuxeo.runtime.migration.MigrationService;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -103,7 +103,7 @@ public class TestBlobKeysBulkMigrator {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testBulkMigrationDBS() {
         createDocuments();
         assertEquals(NB_DOCS_WITH_CONTENT + NB_DOCS_WITHOUT_CONTENT, getNbFilesWithoutBlobKeys());
@@ -126,7 +126,7 @@ public class TestBlobKeysBulkMigrator {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.dbs:OSGI-INF/dbs-blob-keys-migration.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS feature only")
     public void testBulkMigrationVCS() {
         Framework.getProperties().put("nuxeo.test.repository.disable.blobKeys", "false");
         assertBlobKeysCapability(false);

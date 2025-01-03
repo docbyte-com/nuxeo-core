@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,12 +42,12 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.commandline.executor.api.CommandLineExecutorService;
 import org.nuxeo.ecm.platform.convert.ConvertHelper;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.template.adapters.source.TemplateSourceDocumentAdapterImpl;
 import org.nuxeo.template.api.ContentInputType;
 import org.nuxeo.template.api.InputType;
@@ -67,7 +67,7 @@ import org.nuxeo.template.api.adapters.TemplateSourceDocument;
 @Deploy("org.nuxeo.template.manager.api")
 @Deploy("org.nuxeo.template.manager")
 @Deploy("org.nuxeo.template.manager.xdocreport")
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+@ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
 public class TestODTProcessingWithConverter {
 
     @Inject
@@ -75,9 +75,6 @@ public class TestODTProcessingWithConverter {
 
     @Inject
     protected TemplateProcessorService tps;
-
-    @Inject
-    protected CommandLineExecutorService commandLineExecutorService;
 
     private DocumentModel templateDoc;
 
@@ -142,8 +139,8 @@ public class TestODTProcessingWithConverter {
         // System.out.println(params);
         assertEquals(1, params.size());
 
-        params.get(0).setType(InputType.Content);
-        params.get(0).setSource(ContentInputType.HtmlPreview.getValue());
+        params.getFirst().setType(InputType.Content);
+        params.getFirst().setSource(ContentInputType.HtmlPreview.getValue());
 
         templateDoc = source.saveParams(params, true);
 

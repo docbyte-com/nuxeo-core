@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Contributors:
  */
 package org.nuxeo.ecm.user.center.profile;
 
@@ -38,7 +36,7 @@ import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.storage.mem.IgnoreIfDBSMemRepository;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -56,7 +54,7 @@ public class TestUserProfileImporterOk extends AbstractUserProfileImporterTest {
 
     @Test
     // we use hot redeploy, which restarts the repository, so DBS Mem (which has no persistence) cannot be used
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test on DBS Mem")
+    @ConditionalIgnore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test on DBS Mem")
     public void userProfileImportsShouldSucceed() throws Exception {
         assertNotNull(userProfileService);
 

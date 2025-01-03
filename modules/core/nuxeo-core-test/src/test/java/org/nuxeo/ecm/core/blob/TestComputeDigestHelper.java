@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -89,7 +89,7 @@ public class TestComputeDigestHelper {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testReplaceDigest() {
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));
@@ -111,7 +111,7 @@ public class TestComputeDigestHelper {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testCoreSessionReplaceBlobDigest() {
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
         doc1.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));

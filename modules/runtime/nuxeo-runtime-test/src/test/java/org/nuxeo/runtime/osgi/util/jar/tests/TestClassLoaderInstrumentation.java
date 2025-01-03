@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
-import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
@@ -41,7 +39,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.6
  */
 @RunWith(FeaturesRunner.class)
-@Features(ConditionalIgnoreRule.Feature.class)
 public class TestClassLoaderInstrumentation {
 
     protected JarBuilder jarBuilder;

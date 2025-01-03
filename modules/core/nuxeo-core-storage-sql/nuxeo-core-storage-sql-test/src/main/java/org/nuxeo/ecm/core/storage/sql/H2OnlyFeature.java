@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 package org.nuxeo.ecm.core.storage.sql;
 
 import org.nuxeo.runtime.datasource.IgnoreIfNotH2;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
@@ -29,6 +29,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * @deprecated since 2025.0, use {@link IgnoreIfNotH2} instead
  */
 @Deprecated(since = "2025.0", forRemoval = true)
-@ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotH2.class)
+@ConditionalIgnore(condition = IgnoreIfNotH2.class)
 public class H2OnlyFeature implements RunnerFeature {
 }

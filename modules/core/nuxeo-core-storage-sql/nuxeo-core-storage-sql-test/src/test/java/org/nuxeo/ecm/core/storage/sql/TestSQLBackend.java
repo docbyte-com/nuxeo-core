@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,9 @@ import org.nuxeo.ecm.core.storage.sql.jdbc.JDBCConnection;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.datasource.IgnoreIfNotH2;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-backend-core-types-contrib.xml")
@@ -774,7 +775,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "windows doesn't have enough time granularity for such a test")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "windows doesn't have enough time granularity for such a test")
     public void testBinaryGC() throws Exception {
         SQLRepositoryService sqlRepositoryService = Framework.getService(SQLRepositoryService.class);
 
@@ -3920,7 +3921,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-h2-reserved-keywords-contrib.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotH2.class, cause = "This only tests name collisions with reserved keywords against an H2 database.")
+    @ConditionalIgnore(condition = IgnoreIfNotH2.class, cause = "This only tests name collisions with reserved keywords against an H2 database.")
     public void testH2TableNameCollisionAvoidance() {
         // nothing to do, deployment is enough
     }

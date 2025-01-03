@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,10 +62,11 @@ import org.nuxeo.ecm.platform.commandline.executor.api.CommandAvailability;
 import org.nuxeo.ecm.platform.commandline.executor.api.CommandLineExecutorService;
 import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
 import org.nuxeo.ecm.platform.rendition.service.RenditionFeature;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * Test 3D converters
@@ -76,7 +77,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Features({ CoreFeature.class, FileManagerFeature.class, RenditionFeature.class })
 @Deploy("org.nuxeo.ecm.platform.threed")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class)
+@ConditionalIgnore(condition = IgnoreIfWindows.class)
 public class ThreeDConvertersTest {
 
     private static final Logger log = LogManager.getLogger(ThreeDConvertersTest.class);

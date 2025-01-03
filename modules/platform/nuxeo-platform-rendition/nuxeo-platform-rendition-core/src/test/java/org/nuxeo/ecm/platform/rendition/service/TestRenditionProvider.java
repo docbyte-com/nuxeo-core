@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * Contributors:
  * Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.rendition.service;
 
 import static org.junit.Assert.assertEquals;
@@ -41,10 +40,11 @@ import org.nuxeo.ecm.core.convert.api.ConverterCheckResult;
 import org.nuxeo.ecm.platform.rendition.Renderable;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
@@ -95,8 +95,8 @@ public class TestRenditionProvider {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
-    public void testPdfRendition() throws Exception {
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
+    public void testPdfRendition() {
         DocumentModel file = createBlobDoc("File", session);
         Renderable renderable = file.getAdapter(Renderable.class);
         assertNotNull(renderable);
@@ -140,8 +140,8 @@ public class TestRenditionProvider {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
-    public void testPdfRenditionStoredFromNote() throws Exception {
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
+    public void testPdfRenditionStoredFromNote() {
         DocumentModel note = createBlobDoc("Note", session);
         Renderable renderable = note.getAdapter(Renderable.class);
         assertNotNull(renderable);

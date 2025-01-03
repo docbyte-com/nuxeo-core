@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,13 @@
  * limitations under the License.
  *
  * Contributors:
- *     Stephane Lacoin, Julien Carsique
- *
+ *     Stephane Lacoin
+ *     Julien Carsique
  */
 package org.nuxeo.runtime.test.runner;
+
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -25,16 +28,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 
-import org.apache.commons.lang3.SystemUtils;
+import org.junit.AssumptionViolatedException;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.rules.MethodRule;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
+import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -63,8 +70,12 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
 
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link ConditionalIgnore} instead
+     */
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ ElementType.TYPE, ElementType.METHOD })
+    @Deprecated(since = "2025.0", forRemoval = true)
     public @interface Ignore {
         Class<? extends Condition> condition();
 
@@ -74,6 +85,10 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
         String cause() default "";
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link ConditionalIgnore.Condition} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public interface Condition {
         boolean shouldIgnore();
 
@@ -105,6 +120,10 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
         }
     }
 
+    /**
+     * @deprecated since 2025.0, not used
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final class IgnoreLongRunning implements Condition {
         @Override
         public boolean shouldIgnore() {
@@ -112,83 +131,122 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
         }
     }
 
-    public static final class IgnoreWindows implements Condition {
-        @Override
-        public boolean shouldIgnore() {
-            return SystemUtils.IS_OS_WINDOWS;
-        }
-
-        @Override
-        public boolean supportsClassRule() {
-            return true;
-        }
+    /**
+     * @deprecated since 2025.0, use {@link IgnoreIfWindows} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final class IgnoreWindows extends IgnoreIfWindows {
     }
 
     @Override
     public Statement apply(Statement base, Description description) {
+        var conditionalIgnores = runner.getAnnotations(ConditionalIgnore.class);
         Ignore ignore = runner.getConfig(Ignore.class);
-        Class<? extends Condition> conditionType = ignore.condition();
-        if (conditionType == null) {
+        if (conditionalIgnores.isEmpty() && ignore.condition() == null) {
             return base;
         }
-        return new Statement() {
-
-            @Override
-            public void evaluate() throws Throwable {
-                // as this is a @ClassRule / TestRule, built statement is evaluated just before @BeforeClass annotations
-                // and thus before Nuxeo Runtime initialization. Condition should explicitly support the ClassRule
-                // behavior to ignore tests there. If it doesn't, check will be done before test (former behavior)
-                Condition condition = instantiateCondition(conditionType);
-                if (condition.supportsClassRule() && condition.shouldIgnore()) {
-                    runNotifier.fireTestIgnored(description);
-                } else {
-                    base.evaluate();
-                }
-            }
-        };
+        return new ConditionalIgnoreStatement(base, description, conditionalIgnores, ignore,
+                this::returnShouldIgnoreForClassOrNull);
     }
 
     @Override
     public Statement apply(Statement base, FrameworkMethod frameworkMethod, Object target) {
+        var conditionalIgnores = runner.getMethodAnnotationsWithClassFallback(ConditionalIgnore.class, frameworkMethod);
         Ignore ignore = runner.getConfig(frameworkMethod, Ignore.class);
-        Class<? extends Condition> conditionType = ignore.condition();
-        if (conditionType == null) {
+        if (conditionalIgnores.isEmpty() && ignore.condition() == null) {
             return base;
         }
-        Class<?> type = target.getClass();
         Method method = frameworkMethod.getMethod();
-        Description description = Description.createTestDescription(type, method.getName(), method.getAnnotations());
-        return new Statement() {
-
-            @Override
-            public void evaluate() throws Throwable {
-                if (newCondition(type, method, target, conditionType).shouldIgnore()) {
-                    runNotifier.fireTestIgnored(description);
-                } else {
-                    base.evaluate();
-                }
-            }
-        };
+        Description description = Description.createTestDescription(target.getClass(), method.getName(),
+                method.getAnnotations());
+        return new ConditionalIgnoreStatement(base, description, conditionalIgnores, ignore,
+                (condition, cause) -> returnShouldIgnoreForMethodOrNull(condition, cause, target, method));
     }
 
-    protected Condition newCondition(Class<?> type, Method method, Object target,
-            Class<? extends Condition> conditionType) {
-        Condition condition = instantiateCondition(conditionType);
-        injectCondition(type, method, target, condition);
-        return condition;
+    protected class ConditionalIgnoreStatement extends Statement {
+
+        protected final Statement base;
+
+        protected final Description description;
+
+        protected final List<ConditionalIgnore> conditionalIgnores;
+
+        @Deprecated(since = "2025.0", forRemoval = true)
+        protected final ConditionalIgnoreRule.Ignore ignore;
+
+        protected final BiFunction<Class<? extends Condition>, String, String> returnShouldIgnoreOrNull;
+
+        protected ConditionalIgnoreStatement(Statement base, Description description,
+                List<ConditionalIgnore> conditionalIgnores, Ignore ignore,
+                BiFunction<Class<? extends Condition>, String, String> returnShouldIgnoreOrNull) {
+            this.base = base;
+            this.description = description;
+            this.conditionalIgnores = conditionalIgnores;
+            this.ignore = ignore;
+            this.returnShouldIgnoreOrNull = returnShouldIgnoreOrNull;
+        }
+
+        @Override
+        public void evaluate() throws Throwable {
+            var assumptions = new ArrayList<String>();
+            // handle @ConditionalIgnore
+            for (ConditionalIgnore conditionalIgnore : conditionalIgnores) {
+                addIgnoreNull(assumptions,
+                        returnShouldIgnoreOrNull.apply(conditionalIgnore.condition(), conditionalIgnore.cause()));
+            }
+            // handle deprecated @ConditionalIgnoreRule.Ignore annotation
+            addIgnoreNull(assumptions, returnShouldIgnoreOrNull.apply(ignore.condition(), ignore.cause()));
+            if (assumptions.isEmpty()) {
+                base.evaluate();
+            } else {
+                runNotifier.fireTestAssumptionFailed(new Failure(description,
+                        new AssumptionViolatedException(String.join(System.lineSeparator(), assumptions))));
+            }
+        }
+    }
+
+    protected String returnShouldIgnoreForClassOrNull(Class<? extends Condition> conditionType, String cause) {
+        if (conditionType != null) { // this null check is only needed for deprecated @ConditionalIgnoreRule.Ignore
+            // as this is a @ClassRule / TestRule, built statement is evaluated just before @BeforeClass annotations
+            // and thus before Nuxeo Runtime initialization. Condition should explicitly support the ClassRule
+            // behavior to ignore tests there. If it doesn't, check will be done before test (former behavior)
+            Condition condition = instantiateCondition(conditionType);
+            if (condition.supportsClassRule() && condition.shouldIgnore()) {
+                var assumption = conditionType.getSimpleName();
+                if (isNotBlank(cause)) {
+                    assumption += ": " + cause;
+                }
+                return assumption;
+            }
+        }
+        return null;
+    }
+
+    protected String returnShouldIgnoreForMethodOrNull(Class<? extends Condition> conditionType, String cause,
+            Object target, Method method) {
+        if (conditionType != null) { // this null check is only needed for deprecated @ConditionalIgnoreRule.Ignore
+            Condition condition = instantiateCondition(conditionType);
+            injectCondition(condition, target, method);
+            if (condition.shouldIgnore()) {
+                var assumption = conditionType.getSimpleName();
+                if (isNotBlank(cause)) {
+                    assumption += ": " + cause;
+                }
+                return assumption;
+            }
+        }
+        return null;
     }
 
     protected Condition instantiateCondition(Class<? extends Condition> conditionType) {
-        Condition condition;
         try {
-            condition = conditionType.getDeclaredConstructor().newInstance();
+            return conditionType.getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException cause) {
             throw new RuntimeServiceException("Cannot instantiate condition of type " + conditionType, cause);
         }
-        return condition;
     }
 
-    protected void injectCondition(Class<?> type, Method method, Object target, Condition condition) {
+    protected void injectCondition(Condition condition, Object target, Method method) {
         var errors = new RuntimeServiceException("Cannot inject condition parameters in " + condition.getClass());
         for (Field eachField : condition.getClass().getDeclaredFields()) {
             if (!eachField.isAnnotationPresent(Inject.class)) {
@@ -198,7 +256,7 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
             if (eachField.isAnnotationPresent(Named.class)) {
                 String name = eachField.getAnnotation(Named.class).value();
                 if ("type".equals(name)) {
-                    eachValue = type;
+                    eachValue = target.getClass();
                 } else if ("target".equals(name)) {
                     eachValue = target;
                 } else if ("method".equals(name)) {
@@ -207,7 +265,7 @@ public class ConditionalIgnoreRule implements TestRule, MethodRule {
             } else {
                 Class<?> eachType = eachField.getType();
                 if (eachType.equals(Class.class)) {
-                    eachValue = type;
+                    eachValue = target.getClass();
                 } else if (eachType.equals(Object.class)) {
                     eachValue = target;
                 } else if (eachType.equals(Method.class)) {

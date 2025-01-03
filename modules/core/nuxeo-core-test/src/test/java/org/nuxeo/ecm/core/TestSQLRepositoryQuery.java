@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -100,7 +100,7 @@ import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -914,7 +914,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB cannot query const = const")
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB cannot query const = const")
     public void testQueryConstantsLeft() {
         String sql;
         DocumentModelList dml;
@@ -1198,7 +1198,7 @@ public class TestSQLRepositoryQuery {
 
     // new-style date comparisons (casting to native DATE type)
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "MongoDB does not support NXQL DATE casts")
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "MongoDB does not support NXQL DATE casts")
     public void testDateNew() {
         String sql;
         DocumentModelList dml;
@@ -3979,7 +3979,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "Internal ecm:blobKeys only supported on DBS")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Internal ecm:blobKeys only supported on DBS")
     public void testBlobKeys() {
         DocumentModel doc = session.createDocumentModel("/", "testfile", "File");
         Blob blob1 = Blobs.createBlob("foo");

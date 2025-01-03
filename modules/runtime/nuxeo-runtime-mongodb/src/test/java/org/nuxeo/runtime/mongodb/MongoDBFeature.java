@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MO
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_VALUE;
 
 import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -39,7 +39,7 @@ import com.mongodb.client.MongoClient;
 @Deploy("org.nuxeo.runtime.mongodb")
 @Deploy("org.nuxeo.runtime.mongodb.test")
 @Features(RuntimeFeature.class)
-@ConditionalIgnoreRule.Ignore(condition = IgnoreNoMongoDB.class, cause = "Needs a MongoDB server!")
+@ConditionalIgnore(condition = IgnoreNoMongoDB.class, cause = "Needs a MongoDB server!")
 public class MongoDBFeature implements RunnerFeature {
 
     /**

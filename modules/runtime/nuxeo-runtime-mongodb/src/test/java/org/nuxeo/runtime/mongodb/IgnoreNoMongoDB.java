@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ package org.nuxeo.runtime.mongodb;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY;
 
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
 /**
  * @since 9.1
  */
-public final class IgnoreNoMongoDB implements ConditionalIgnoreRule.Condition {
+public final class IgnoreNoMongoDB implements ConditionalIgnore.Condition {
 
     // change this to force tests on a local MongoDB instance (cf MongoDBFeature for configuration)
     public static final boolean MONGODB_FORCE = false;
@@ -52,7 +52,7 @@ public final class IgnoreNoMongoDB implements ConditionalIgnoreRule.Condition {
     }
 
     @Override
-    public boolean supportsClassRule() {
-        return true;
+    public boolean needsRuntime() {
+        return false;
     }
 }

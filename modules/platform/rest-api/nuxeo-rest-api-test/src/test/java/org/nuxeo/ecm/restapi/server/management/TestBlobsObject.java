@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,14 +54,14 @@ import org.nuxeo.ecm.core.api.scroll.ScrollRequest;
 import org.nuxeo.ecm.core.api.scroll.ScrollService;
 import org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll;
 import org.nuxeo.ecm.core.scroll.GenericScrollRequest;
-import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.management.ManagementFeature;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -100,14 +100,14 @@ public class TestBlobsObject extends ManagementBaseTest {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "This test is to make sure Full GC cannot be done on repos without ecm:blobKeys capabilities.")
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "This test is to make sure Full GC cannot be done on repos without ecm:blobKeys capabilities.")
     public void testUnsupportedDeleteOrphanedBlobOnVCS() {
         assertdoGCNotImplemented();
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-binary-manager.xml")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "MongoDB feature only")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testUnsupportedDeleteBlobOnUnsupportedProvider() {
         assertdoGCNotImplemented();
     }

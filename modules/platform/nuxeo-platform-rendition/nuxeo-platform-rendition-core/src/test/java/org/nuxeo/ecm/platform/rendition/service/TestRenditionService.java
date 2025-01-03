@@ -89,11 +89,12 @@ import org.nuxeo.ecm.platform.rendition.lazy.AbstractRenditionBuilderWork;
 import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -198,7 +199,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doPDFRendition() {
         DocumentModel file = createBlobFile();
 
@@ -236,7 +237,7 @@ public class TestRenditionService {
 
     // NXP-27078
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doPDFRenditionOnChainedConverter() {
         // assert the markdown converter is a chained one
         ConverterDescriptor md2pdf = ConversionServiceImpl.getConverterDescriptor("md2pdf");
@@ -269,7 +270,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doRenditionVersioning() {
         DocumentModel file = createBlobFile();
 
@@ -659,7 +660,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void testRenderAProxyDocument() throws IOException {
         DocumentModel file = createBlobFile();
         DocumentRef fileRef = file.getRef();
@@ -708,7 +709,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldNotCreateANewVersionForACheckedInDocument() {
         DocumentModel file = createBlobFile();
 
@@ -778,7 +779,7 @@ public class TestRenditionService {
 
     @Test
     @SuppressWarnings("unchecked")
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldRemoveFilesBlobsOnARendition() {
         DocumentModel fileDocument = createBlobFile();
 
@@ -1196,7 +1197,7 @@ public class TestRenditionService {
      * @since 10.3
      */
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldNonAdminPublishRendition() {
         DocumentModel file = createBlobFile();
         DocumentModel section = session.createDocumentModel("/", "section", "Section");

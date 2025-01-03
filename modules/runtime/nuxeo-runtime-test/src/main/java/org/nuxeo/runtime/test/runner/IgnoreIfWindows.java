@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,23 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Contributors:
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.core.storage.sql;
+package org.nuxeo.runtime.test.runner;
 
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_POSTGRESQL;
-import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_VALUE;
-
-import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
- * @deprecated since 2025.0, use {@link org.nuxeo.runtime.datasource.IgnoreIfNotPostgreSQL} instead
+ * @since 2025.0
  */
-@Deprecated(since = "2025.0", forRemoval = true)
-public class IgnoreNonPostgreSQL implements ConditionalIgnore.Condition {
+public class IgnoreIfWindows implements ConditionalIgnore.Condition {
 
     @Override
     public boolean shouldIgnore() {
-        return !STORAGE_SQL_DB_VALUE.equals(STORAGE_SQL_DB_POSTGRESQL);
+        return SystemUtils.IS_OS_WINDOWS;
     }
 
     @Override

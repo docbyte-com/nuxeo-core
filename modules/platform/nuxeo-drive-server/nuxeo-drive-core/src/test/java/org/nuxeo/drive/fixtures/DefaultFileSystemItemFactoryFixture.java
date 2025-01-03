@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,7 +74,7 @@ import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.storage.mem.IgnoreIfDBSMemRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -1005,7 +1005,7 @@ public class DefaultFileSystemItemFactoryFixture {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test reload for in-memory repository")
+    @ConditionalIgnore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test reload for in-memory repository")
     public void testFolderItemChildrenPageProviderOverride() throws Exception {
         nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), syncRootFolder, session);
         FolderItem syncRootFolderItem = (FolderItem) defaultSyncRootFolderItemFactory.getFileSystemItem(syncRootFolder);

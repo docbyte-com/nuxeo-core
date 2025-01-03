@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@ package org.nuxeo.runtime.stream;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STREAM_KAFKA;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STREAM_SERVICE_VALUE;
 
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
-public class IgnoreKafka implements ConditionalIgnoreRule.Condition {
+public class IgnoreKafka implements ConditionalIgnore.Condition {
 
     @Override
     public boolean shouldIgnore() {
@@ -31,6 +31,11 @@ public class IgnoreKafka implements ConditionalIgnoreRule.Condition {
         if ("true".equals(System.getProperty("kafka"))) {
             return true;
         }
+        return false;
+    }
+
+    @Override
+    public boolean needsRuntime() {
         return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,22 @@ package org.nuxeo.ecm.core.storage.sql;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_POSTGRESQL;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_VALUE;
 
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
 /**
  * @since 11.1
  * @deprecated since 2025.0, use {@link org.nuxeo.runtime.datasource.IgnoreIfPostgreSQL} instead
  */
 @Deprecated(since = "2025.0", forRemoval = true)
-public class IgnorePostgreSQL implements ConditionalIgnoreRule.Condition {
+public class IgnorePostgreSQL implements ConditionalIgnore.Condition {
 
     @Override
     public boolean shouldIgnore() {
         return STORAGE_SQL_DB_VALUE.equals(STORAGE_SQL_DB_POSTGRESQL);
+    }
+
+    @Override
+    public boolean needsRuntime() {
+        return false;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
 import org.junit.Test;
-
 import org.nuxeo.common.Environment;
 import org.nuxeo.connect.update.LocalPackage;
 import org.nuxeo.connect.update.PackageState;
@@ -41,7 +40,8 @@ import org.nuxeo.connect.update.standalone.PackageTestCase;
 import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.connect.update.util.PackageBuilder;
 import org.nuxeo.connect.update.xml.XmlWriter;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * A base test case for testing command execution.
@@ -204,7 +204,7 @@ public abstract class AbstractCommandTest extends PackageTestCase {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-9086")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-9086")
     public void testInstallThenUninstall() throws Exception {
         File zip = createPackage();
         LocalPackage pkg = service.addPackage(zip);

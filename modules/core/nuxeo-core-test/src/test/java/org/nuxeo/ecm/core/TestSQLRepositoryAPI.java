@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -137,16 +137,16 @@ import org.nuxeo.ecm.core.schema.SchemaManagerImpl;
 import org.nuxeo.ecm.core.schema.types.Schema;
 import org.nuxeo.ecm.core.security.RetentionExpiredAction.RetentionExpiredComputation;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
-import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfDBSMongoDBRepository;
 import org.nuxeo.ecm.core.storage.sql.listeners.DummyBeforeModificationListener;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule.IgnoreWindows;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -4576,7 +4576,7 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfDBSRepository.class, cause = "DBS repository has incremental GC")
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB repository has incremental GC")
     public void testBinaryGC() throws InterruptedException {
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
@@ -4662,7 +4662,7 @@ public class TestSQLRepositoryAPI {
 
     /** Test that stores blobs in attachments (complex list). */
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreWindows.class, cause = "Not enough time granularity")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "Not enough time granularity")
     public void testBinaryGC2() throws InterruptedException {
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);

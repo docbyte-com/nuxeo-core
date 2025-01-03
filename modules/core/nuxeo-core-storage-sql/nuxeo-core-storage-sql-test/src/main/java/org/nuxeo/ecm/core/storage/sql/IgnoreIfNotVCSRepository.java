@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,12 @@ package org.nuxeo.ecm.core.storage.sql;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.CORE_SERVICE_VALUE;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
 /**
  * @since 2025.0
  */
-public class IgnoreIfNotVCSRepository implements ConditionalIgnoreRule.Condition {
+public class IgnoreIfNotVCSRepository implements ConditionalIgnore.Condition {
 
     @Override
     public boolean shouldIgnore() {
@@ -35,7 +35,7 @@ public class IgnoreIfNotVCSRepository implements ConditionalIgnoreRule.Condition
     }
 
     @Override
-    public boolean supportsClassRule() {
-        return true;
+    public boolean needsRuntime() {
+        return false;
     }
 }

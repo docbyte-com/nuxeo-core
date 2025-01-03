@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.nuxeo.ecm.restapi.io.capabilities.CapabilitiesJsonWriter;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -116,20 +116,20 @@ public class TestCapabilitiesObject {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
     public void testHasBlobKeysCapabilityDBS() {
         assertBlobKeysCapability(true);
     }
 
     @Test
     @WithFrameworkProperty(name = "nuxeo.test.repository.disable.blobKeys", value = "true")
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "DBS capability check")
     public void testDoNotHaveBlobKeysCapabilityDBS() {
         assertBlobKeysCapability(false);
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS capability check")
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS capability check")
     public void testDoNotHaveBlobKeysCapabilityVCS() {
         assertBlobKeysCapability(false);
     }
