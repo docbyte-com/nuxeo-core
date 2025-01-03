@@ -43,7 +43,7 @@ public interface VideoService {
     List<String> getAvailableVideoConversionsNames();
 
     /**
-     * @return the list of video conversion configured to run automatically
+     * @return the list of video conversions configured to run automatically
      * @since 2025.0
      */
     List<String> getAutomaticVideoConversionsNames();
