@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -81,12 +81,12 @@ import org.nuxeo.ecm.core.schema.FacetNames;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
-import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.extension.RenditionProvider;
 import org.nuxeo.ecm.platform.rendition.impl.LazyRendition;
 import org.nuxeo.ecm.platform.rendition.lazy.AbstractRenditionBuilderWork;
+import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
@@ -101,7 +101,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @author <a href="mailto:troger@nuxeo.com">Thomas Roger</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features(RenditionFeature.class)
+@Features({ RenditionFeature.class, NuxeoLoginFeature.class })
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-rendition-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-lazy-rendition-contrib.xml")
 public class TestRenditionService {

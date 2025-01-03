@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStoreFeature;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
+import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -39,7 +39,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 7.3
  */
-@Features({ AutomationCoreFeature.class, ConvertFeature.class, NuxeoLoginFeature.class,
+@Features({ AutomationCoreFeature.class, ConvertFeature.class, UserManagerFeature.class,
         KeyValueBlobTransientStoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
 @Deploy("org.nuxeo.ecm.platform.convert")
