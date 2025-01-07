@@ -49,6 +49,9 @@
     "ecm:acl": {
       "type": "keyword"
     },
+    "ecm:ancestorId": {
+      "type": "keyword"
+    },
     "ecm:binarytext": {
       "type": "text",
       "analyzer": "fulltext",
