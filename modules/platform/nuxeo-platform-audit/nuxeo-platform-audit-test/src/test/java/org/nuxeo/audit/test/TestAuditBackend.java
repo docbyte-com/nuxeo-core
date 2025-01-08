@@ -25,6 +25,7 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -34,11 +35,13 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.IgnoreIfAuditBackendDoesNotHaveExtendedInfoSearchCapability;
 import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -222,5 +225,40 @@ public class TestAuditBackend {
                                                     .and(Predicates.noteq(LOG_EVENT_ID, "no-such-event-id"));
         List<LogEntry> logs = backend.queryLogs(query);
         assertEquals(NUM_OF_EVENTS, logs.size());
+    }
+
+    @Test
+    @ConditionalIgnore(condition = IgnoreIfAuditBackendDoesNotHaveExtendedInfoSearchCapability.class)
+    public void testQueryExtendedInfo() {
+        auditFeature.generateLogEntries(1, i -> LogEntry.builder(ID_FOR_AUDIT_STORAGE_TESTS, new Date()).build());
+        auditFeature.generateLogEntries(5,
+                i -> LogEntry.builder(ID_FOR_AUDIT_STORAGE_TESTS, new Date()).extended("number", i).build());
+
+        String extendedNumberField = LOG_EXTENDED + "/number";
+
+        // retrieve log entries without extended info
+        List<LogEntry> logs = backend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, ID_FOR_AUDIT_STORAGE_TESTS))
+                                       .and(Predicates.isnull(extendedNumberField)));
+        assertEquals(1, logs.size());
+
+        // retrieve log entries with extended infos
+        logs = backend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, ID_FOR_AUDIT_STORAGE_TESTS))
+                                       .and(Predicates.isnotnull(extendedNumberField)));
+        assertEquals(5, logs.size());
+
+        // retrieve log entries with various conditions
+        logs = backend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, ID_FOR_AUDIT_STORAGE_TESTS))
+                                       .and(Predicates.isnotnull(extendedNumberField))
+                                       .and(Predicates.eq(extendedNumberField, 0)));
+        assertEquals(1, logs.size());
+
+        logs = backend.queryLogs(
+                new AuditQueryBuilder().predicate(Predicates.eq(LOG_EVENT_ID, ID_FOR_AUDIT_STORAGE_TESTS))
+                                       .and(Predicates.isnotnull(extendedNumberField))
+                                       .and(Predicates.gt(extendedNumberField, 2)));
+        assertEquals(2, logs.size());
     }
 }

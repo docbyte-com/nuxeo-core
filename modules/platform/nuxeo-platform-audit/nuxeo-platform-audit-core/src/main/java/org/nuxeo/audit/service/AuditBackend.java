@@ -90,4 +90,13 @@ public interface AuditBackend extends org.nuxeo.ecm.platform.audit.service.Audit
                                                       .limit(1);
         return queryLogs(builder).stream().mapToLong(LogEntry::getId).findFirst().orElse(0L);
     }
+
+    /**
+     * Checks whether the backend has the capability.
+     */
+    boolean hasCapability(Capability capability);
+
+    enum Capability {
+        EXTENDED_INFO_SEARCH;
+    }
 }

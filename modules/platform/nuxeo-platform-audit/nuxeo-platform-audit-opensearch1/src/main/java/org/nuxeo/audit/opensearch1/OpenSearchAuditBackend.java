@@ -39,7 +39,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -62,7 +61,6 @@ import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.query.sql.model.Literals;
 import org.nuxeo.ecm.core.query.sql.model.MultiExpression;
-import org.nuxeo.ecm.core.query.sql.model.Operand;
 import org.nuxeo.ecm.core.query.sql.model.Operator;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.OrderByList;
@@ -221,9 +219,14 @@ public class OpenSearchAuditBackend extends AbstractAuditBackend {
             return boolQuery;
         } else {
             // current implementation only uses Predicate/OrderByExpr with a simple Reference for left and right
-            Function<Operand, String> getFieldName = operand -> ((Reference) operand).name;
-
-            String leftName = getFieldName.apply(queryPredicate.lvalue);
+            String leftName = ((Reference) queryPredicate.lvalue).name;
+            // do a basic replace with no support for arrays nor correlated queries
+            leftName = leftName.replaceAll("/", ".");
+            if (operator == Operator.ISNULL) {
+                return QueryBuilders.boolQuery().mustNot(QueryBuilders.existsQuery(leftName));
+            } else if (operator == Operator.ISNOTNULL) {
+                return QueryBuilders.existsQuery(leftName);
+            }
             Object rightValue = Literals.valueOf(queryPredicate.rvalue);
             if (operator == Operator.EQ) {
                 return QueryBuilders.termQuery(leftName, rightValue);
@@ -737,5 +740,12 @@ public class OpenSearchAuditBackend extends AbstractAuditBackend {
             }
         }
         return filter;
+    }
+
+    @Override
+    public boolean hasCapability(Capability capability) {
+        return switch (capability) {
+            case EXTENDED_INFO_SEARCH -> true;
+        };
     }
 }

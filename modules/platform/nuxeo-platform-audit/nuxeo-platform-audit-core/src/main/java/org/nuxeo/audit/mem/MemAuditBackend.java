@@ -19,10 +19,14 @@
 package org.nuxeo.audit.mem;
 
 import static org.nuxeo.audit.io.LogEntryJsonWriter.isJsonContent;
+import static org.nuxeo.common.utils.DateUtils.toZonedDateTime;
 
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
+import java.time.temporal.Temporal;
+import java.util.Calendar;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -115,7 +119,7 @@ public class MemAuditBackend extends AbstractAuditBackend {
         return new LogEntryList(result, totalCount);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings("unchecked")
     protected Predicate<LogEntry> createPredicate(org.nuxeo.ecm.core.query.sql.model.Predicate queryPredicate) {
         Operator operator = queryPredicate.operator;
         if (queryPredicate instanceof MultiExpression multiExpression) {
@@ -129,6 +133,8 @@ public class MemAuditBackend extends AbstractAuditBackend {
         } else if (operator == Operator.OR) {
             return createPredicate((org.nuxeo.ecm.core.query.sql.model.Predicate) queryPredicate.lvalue).or(
                     createPredicate((org.nuxeo.ecm.core.query.sql.model.Predicate) queryPredicate.rvalue));
+        } else if (operator == Operator.NOT) {
+            return Predicate.not(createPredicate((org.nuxeo.ecm.core.query.sql.model.Predicate) queryPredicate.lvalue));
         } else {
             // current implementation only use Predicate with a simple Reference for left and right
             String leftName = ((Reference) queryPredicate.lvalue).name;
@@ -138,7 +144,6 @@ public class MemAuditBackend extends AbstractAuditBackend {
                 case LogEntryConstants.LOG_COMMENT -> LogEntry::getComment;
                 case LogEntryConstants.LOG_EVENT_ID -> LogEntry::getEventId;
                 case LogEntryConstants.LOG_EVENT_DATE -> entry -> DateUtils.toZonedDateTime(entry.getEventDate());
-                case LogEntryConstants.LOG_EXTENDED -> LogEntry::getExtended;
                 case LogEntryConstants.LOG_DOC_LIFE_CYCLE -> LogEntry::getDocLifeCycle;
                 case LogEntryConstants.LOG_DOC_PATH -> LogEntry::getDocPath;
                 case LogEntryConstants.LOG_DOC_TYPE -> LogEntry::getDocType;
@@ -146,8 +151,24 @@ public class MemAuditBackend extends AbstractAuditBackend {
                 case LogEntryConstants.LOG_LOG_DATE -> entry -> DateUtils.toZonedDateTime(entry.getLogDate());
                 case LogEntryConstants.LOG_PRINCIPAL_NAME -> LogEntry::getPrincipalName;
                 case LogEntryConstants.LOG_REPOSITORY_ID -> LogEntry::getRepositoryId;
+                case String k when k.startsWith(LogEntryConstants.LOG_EXTENDED) -> {
+                    Function<LogEntry, ?> mapper = LogEntry::getExtended;
+                    String[] parts = k.split("/");
+                    if (parts.length >= 2) {
+                        for (int i = 1; i < parts.length; i++) {
+                            String part = parts[i];
+                            mapper = mapper.andThen(parent -> ((Map<String, ?>) parent).get(part));
+                        }
+                    }
+                    yield mapper;
+                }
                 case String k -> throw new IllegalArgumentException("Unsupported reference: " + k);
             };
+            if (operator == Operator.ISNULL) {
+                return entry -> leftMapper.apply(entry) == null;
+            } else if (operator == Operator.ISNOTNULL) {
+                return entry -> leftMapper.apply(entry) != null;
+            }
             try {
                 Object rightValue = Literals.valueOf(queryPredicate.rvalue);
                 Predicate<Object> predicate;
@@ -156,13 +177,13 @@ public class MemAuditBackend extends AbstractAuditBackend {
                 } else if (operator == Operator.NOTEQ) {
                     predicate = value -> !Objects.equals(value, rightValue);
                 } else if (operator == Operator.LT) {
-                    predicate = value -> ((Comparable) value).compareTo(rightValue) < 0;
+                    predicate = value -> compare(value, rightValue) < 0;
                 } else if (operator == Operator.LTEQ) {
-                    predicate = value -> ((Comparable) value).compareTo(rightValue) <= 0;
+                    predicate = value -> compare(value, rightValue) <= 0;
                 } else if (operator == Operator.GTEQ) {
-                    predicate = value -> ((Comparable) value).compareTo(rightValue) >= 0;
+                    predicate = value -> compare(value, rightValue) >= 0;
                 } else if (operator == Operator.GT) {
-                    predicate = value -> ((Comparable) value).compareTo(rightValue) > 0;
+                    predicate = value -> compare(value, rightValue) > 0;
                 } else if (operator == Operator.IN) {
                     predicate = value -> ((List<?>) rightValue).contains(value);
                 } else if (operator == Operator.NOTIN) {
@@ -180,15 +201,35 @@ public class MemAuditBackend extends AbstractAuditBackend {
                     predicate = value -> lowerBound.compareTo((ZonedDateTime) value) > 0
                             || upperBound.compareTo((ZonedDateTime) value) < 0;
                 } else if (operator == Operator.STARTSWITH) {
-                    predicate = value -> ((String) value).startsWith(String.valueOf(rightValue));
+                    predicate = value -> value != null && ((String) value).startsWith(String.valueOf(rightValue));
                 } else {
                     throw new IllegalArgumentException("Unsupported operator: " + operator + " on field: " + leftName);
                 }
-                return entry -> predicate.test(leftMapper.apply(entry));
+                return entry -> predicate.test(leftMapper.andThen(this::convertToLiteralsJavaType).apply(entry));
             } catch (ClassCastException e) {
                 throw new IllegalArgumentException("Unsupported operator: " + operator + " on field: " + leftName, e);
             }
         }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    protected int compare(Object leftValue, Object rightValue) {
+        return Comparator.nullsLast((l, r) -> ((Comparable) l).compareTo(r)).compare(leftValue, rightValue);
+    }
+
+    protected Object convertToLiteralsJavaType(Object leftValue) {
+        if (leftValue instanceof Integer integerValue) {
+            leftValue = integerValue.longValue();
+        } else if (leftValue instanceof Float floatValue) {
+            leftValue = floatValue.doubleValue();
+        } else if (leftValue instanceof Calendar calendarValue) {
+            leftValue = toZonedDateTime(calendarValue);
+        } else if (leftValue instanceof Date dateValue) {
+            leftValue = toZonedDateTime(dateValue);
+        } else if (leftValue instanceof Temporal temporalValue) {
+            leftValue = ZonedDateTime.from(temporalValue);
+        }
+        return leftValue;
     }
 
     protected Comparator<LogEntry> createComparator(OrderByList queryOrders) {
@@ -218,6 +259,13 @@ public class MemAuditBackend extends AbstractAuditBackend {
             return comparator.reversed();
         }
         return comparator;
+    }
+
+    @Override
+    public boolean hasCapability(Capability capability) {
+        return switch (capability) {
+            case EXTENDED_INFO_SEARCH -> true;
+        };
     }
 
     @Override

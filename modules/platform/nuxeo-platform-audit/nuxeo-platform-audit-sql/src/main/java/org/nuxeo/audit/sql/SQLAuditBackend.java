@@ -116,6 +116,13 @@ public class SQLAuditBackend extends AbstractAuditBackend {
     }
 
     @Override
+    public boolean hasCapability(Capability capability) {
+        return switch (capability) {
+            case EXTENDED_INFO_SEARCH -> false;
+        };
+    }
+
+    @Override
     public List<LogEntry> nativeQueryLogs(String whereClause, int pageNb, int pageSize) {
         return backend.nativeQueryLogs(whereClause, pageNb, pageSize).stream().map(FROM_LOG_ENTRY_SQL_MAPPER).toList();
     }

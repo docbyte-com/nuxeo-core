@@ -66,6 +66,8 @@ public class MongoDBQuerySearchBuilder extends MongoDBAbstractSearchBuilder {
     @Override
     protected FieldInfo walkReference(String name) {
         var queryField = converter.keyToBson(name);
+        // do a basic replace with no support for arrays nor correlated queries
+        queryField = queryField.replaceAll("/", ".");
         return new FieldInfo(name, name, queryField, queryField, null);
     }
 }

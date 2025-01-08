@@ -286,4 +286,11 @@ public class MongoDBAuditBackend extends AbstractAuditBackend {
         ((KeyValueStoreProvider) Framework.getService(KeyValueService.class)
                                           .getKeyValueStore(DEFAULT_STORE_NAME)).clear();
     }
+
+    @Override
+    public boolean hasCapability(Capability capability) {
+        return switch (capability) {
+            case EXTENDED_INFO_SEARCH -> true;
+        };
+    }
 }

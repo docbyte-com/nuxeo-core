@@ -24,14 +24,18 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
+import static org.nuxeo.audit.service.AuditBackend.Capability.EXTENDED_INFO_SEARCH;
+import static org.nuxeo.drive.service.NuxeoDriveEvents.IMPACTED_USERNAME_PROPERTY;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.asc;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.desc;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.and;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.eq;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.gt;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.in;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.isnull;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.lte;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.noteq;
 import static org.nuxeo.ecm.core.query.sql.model.Predicates.or;
@@ -275,25 +279,30 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                                                   .and(or(isPlatformEvents, isDriveEvents))
                                                   // id range
                                                   .and(and(gt(LOG_ID, lowerBound), lte(LOG_ID, upperBound)))
-                                                  // is current user
-                                                  // TODO search in extended
-                                                  // .and(Predicates.or(Predicates.isnull("extended.impactedUserName"),
-                                                  // Predicates.eq("extended.impactedUserName",
-                                                  // session.getPrincipal().getName())))
                                                   .order(asc(LOG_REPOSITORY_ID))
                                                   .order(desc(LOG_EVENT_DATE))
                                                   .limit(limit);
-        log.debug("Querying audit log for changes: {}", queryBuilder);
+        String principalName = session.getPrincipal().getName();
         var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend.hasCapability(EXTENDED_INFO_SEARCH)) {
+            // is current user
+            queryBuilder.and(or(isnull(LOG_EXTENDED + '/' + IMPACTED_USERNAME_PROPERTY),
+                    eq(LOG_EXTENDED + '/' + IMPACTED_USERNAME_PROPERTY, principalName)));
+        }
+        log.debug("Querying audit log for changes: {}", queryBuilder);
         var entries = auditBackend.queryLogs(queryBuilder);
 
-        // Post filter the output to remove (un)registration that are unrelated to the current user.
-        String principalName = session.getPrincipal().getName();
-        return entries.stream()
-                      .filter(entry -> entry.getExtendedValue("impactedUserName") == null
-                              || principalName.equals(entry.getExtendedValue("impactedUserName")))
-                      .peek(entry -> log.debug("Change detected: {}", entry))
-                      .toList();
+        if (auditBackend.hasCapability(EXTENDED_INFO_SEARCH)) {
+            entries.forEach(entry -> log.debug("Change detected: {}", entry));
+            return entries;
+        } else {
+            // Post filter the output to remove (un)registration that are unrelated to the current user.
+            return entries.stream()
+                          .filter(entry -> entry.getExtendedValue(IMPACTED_USERNAME_PROPERTY) == null
+                                  || principalName.equals(entry.getExtendedValue(IMPACTED_USERNAME_PROPERTY)))
+                          .peek(entry -> log.debug("Change detected: {}", entry))
+                          .toList();
+        }
     }
 
     protected FileSystemItemChange getFileSystemItemChange(CoreSession session, DocumentRef docRef, LogEntry entry,
