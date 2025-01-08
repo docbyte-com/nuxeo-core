@@ -123,7 +123,6 @@ public abstract class IndexingCommandsStacker {
     }
 
     protected void stackCommand(DocumentModel doc, String eventId, boolean sync) {
-        IndexingCommands cmds = getOrCreateCommands(doc);
         IndexingCommand.Type type;
         boolean recurse = false;
         switch (eventId) {
@@ -189,6 +188,7 @@ public abstract class IndexingCommandsStacker {
             default:
                 return;
         }
+        IndexingCommands cmds = getOrCreateCommands(doc);
         if (sync && recurse) {
             // split into 2 commands one sync and an async recurse
             cmds.add(type, false, true);
