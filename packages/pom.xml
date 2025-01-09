@@ -13,7 +13,6 @@
   <name>Nuxeo Packages</name>
 
   <modules>
-    <module>nuxeo-3d-package</module>
     <module>nuxeo-adobe-connector-package</module>
     <module>nuxeo-amazon-s3-package</module>
     <module>nuxeo-audit-mongodb-package</module>

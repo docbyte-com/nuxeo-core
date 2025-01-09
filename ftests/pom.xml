@@ -64,7 +64,6 @@
         </property>
       </activation>
       <modules>
-        <module>nuxeo-3d-ftests</module>
         <module>nuxeo-adobe-connector-ftests</module>
         <module>nuxeo-amazon-s3-ftests</module>
         <module>nuxeo-audit-storage-directory-ftests</module>

@@ -1862,13 +1862,6 @@
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
-      <!-- 3D -->
-      <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-3d</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-
       <!-- Target platforms -->
       <dependency>
         <groupId>org.nuxeo.utils</groupId>
@@ -1958,12 +1951,6 @@
       </dependency>
 
       <!-- Packages -->
-      <dependency>
-        <groupId>org.nuxeo.packages</groupId>
-        <artifactId>nuxeo-3d-package</artifactId>
-        <version>${nuxeo.platform.version}</version>
-        <type>zip</type>
-      </dependency>
       <dependency>
         <groupId>org.nuxeo.packages</groupId>
         <artifactId>nuxeo-adobe-connector-package</artifactId>

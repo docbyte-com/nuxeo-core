@@ -15,11 +15,6 @@
   <dependencies>
     <dependency>
       <groupId>org.nuxeo.packages</groupId>
-      <artifactId>nuxeo-3d-package</artifactId>
-      <type>zip</type>
-    </dependency>
-    <dependency>
-      <groupId>org.nuxeo.packages</groupId>
       <artifactId>nuxeo-adobe-connector-package</artifactId>
       <type>zip</type>
     </dependency>
