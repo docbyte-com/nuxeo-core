@@ -635,7 +635,7 @@ public class TestNxqlConversion {
                 "          {\n" +
                 "            \"term\" : {\n" +
                 "              \"ecm:path\" : {\n" +
-                "                \"value\" : \"/the/path/\",\n" +
+                "                \"value\" : \"/the/path\",\n" +
                 "                \"boost\" : 1.0\n" +
                 "              }\n" +
                 "            }\n" +
