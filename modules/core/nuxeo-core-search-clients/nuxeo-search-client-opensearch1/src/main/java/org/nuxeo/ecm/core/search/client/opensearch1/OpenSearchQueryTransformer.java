@@ -380,7 +380,7 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
                 // we don't want to return the parent when searching on ecm:path, see NXP-18955
                 filter = QueryBuilders.boolQuery()
                                       .must(QueryBuilders.termQuery(indexName, v))
-                                      .mustNot(QueryBuilders.termQuery(name, value));
+                                      .mustNot(QueryBuilders.termQuery(name, v));
             } else {
                 filter = QueryBuilders.termQuery(indexName, v);
             }
