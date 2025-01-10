@@ -284,9 +284,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public final CloudFrontConfiguration cloudFront;
 
-    protected S3Client amazonS3;
+    public S3Client amazonS3;
 
-    protected S3AsyncClient amazonS3Async;
+    public S3AsyncClient amazonS3Async;
 
     public final S3TransferManager transferManager;
 

@@ -73,7 +73,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
      */
     public static final String STORE_SCROLL_NAME = "s3BlobScroll";
 
-    protected S3BlobStoreConfiguration config;
+    public S3BlobStoreConfiguration config;
 
     @Override
     protected BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException {
