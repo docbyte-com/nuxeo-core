@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.function.ThrowablePredicate;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -327,18 +328,15 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
                              Name.ofUrn(IndexingProcessor.ASYNC_COMPUTATION_NAME), duration)) {
             // now wait for BulkService as async indexing might submit bulk command
             var bulkService = Framework.getService(BulkService.class);
-            for (var bulkStatus : bulkService.getStatuses(SYSTEM_USERNAME)) {
-                if (IndexingAction.ACTION_NAME.equals(bulkStatus.getAction())) {
-                    if (!bulkService.await(bulkStatus.getId(),
-                            // compute remaining duration
-                            duration.minusMillis(System.currentTimeMillis() - start))) {
-                        // the timeout is exceeded
-                        break;
-                    }
-                }
+            if (bulkService.getStatuses(SYSTEM_USERNAME)
+                           .stream()
+                           .filter(bulkStatus -> IndexingAction.ACTION_NAME.equals(bulkStatus.getAction()))
+                           .allMatch(ThrowablePredicate.asPredicate(bulkStatus -> bulkService.await(bulkStatus.getId(),
+                                   // compute remaining duration
+                                   duration.minusMillis(System.currentTimeMillis() - start))))) {
+                log.debug("Async indexing completed in {}ms", () -> System.currentTimeMillis() - start);
+                return true;
             }
-            log.debug("Async indexing completed in {}ms", () -> System.currentTimeMillis() - start);
-            return true;
         }
         log.warn("Await timeout on async indexing");
         return false;
