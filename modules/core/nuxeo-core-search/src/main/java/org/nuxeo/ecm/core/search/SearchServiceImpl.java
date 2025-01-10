@@ -166,9 +166,11 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     @Override
     public SearchResponse search(SearchQuery query) {
-        // TODO: handle search on multiple indexes/repository
         log.debug("Searching: {}", query);
-        var client = searchClients.get(query.getSearchIndex().client());
+        var client = searchClients.get(query.getSearchIndexes().getFirst().client());
+        if (query.isMultiRepositories() && !client.hasCapability(SearchClient.Capability.MULTI_REPOSITORIES)) {
+            throw new SearchClientException("Client: " + client + " has no multi repository search capability");
+        }
         SearchResponse response = client.search(query);
         log.debug("Response: {}", response);
         return response;
@@ -177,7 +179,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     @Override
     public SearchResponse searchScroll(SearchScrollContext scrollContext) {
         log.debug("Searching next scroll: {}", scrollContext);
-        var client = searchClients.get(scrollContext.searchQuery().getSearchIndex().client());
+        var client = searchClients.get(scrollContext.searchQuery().getSearchIndexes().getFirst().client());
         SearchResponse response = client.searchScroll(scrollContext);
         log.debug("Response: {}", response);
         return response;
@@ -186,7 +188,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     @Override
     public boolean clearSearchScroll(SearchScrollContext scrollContext) {
         log.debug("Clear search scroll: {}", scrollContext);
-        var client = searchClients.get(scrollContext.searchQuery().getSearchIndex().client());
+        var client = searchClients.get(scrollContext.searchQuery().getSearchIndexes().getFirst().client());
         boolean response = client.clearScroll(scrollContext);
         log.debug("Response: {}", response);
         return response;

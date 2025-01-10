@@ -69,6 +69,7 @@ import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.primitives.BooleanType;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
+import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchQueryTransformer;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateDateHistogramParser;
@@ -142,8 +143,8 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         var osQueryBuilder = makeQueryBuilder(searchQuery);
         osSearchBuilder.query(osQueryBuilder);
         // final OpenSearch request
-        // TODO NXP-32863 fix once multi-repo search is supported
-        var osSearchRequest = new SearchRequest(searchQuery.getSearchIndex().index());
+        var indexes = searchQuery.getSearchIndexes().stream().map(SearchIndex::index).toList();
+        var osSearchRequest = new SearchRequest(indexes.toArray(String[]::new));
         osSearchRequest.searchType(SearchType.DFS_QUERY_THEN_FETCH);
         osSearchRequest.source(osSearchBuilder);
         // scroll

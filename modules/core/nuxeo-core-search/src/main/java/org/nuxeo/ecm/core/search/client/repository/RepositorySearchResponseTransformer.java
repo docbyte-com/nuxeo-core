@@ -56,7 +56,7 @@ public class RepositorySearchResponseTransformer
 
     protected List<SearchHit> makeSearchHits(SearchQuery searchQuery,
             PartialList<Map<String, Serializable>> projections) {
-        var searchIndex = searchQuery.getSearchIndex();
+        var searchIndex = searchQuery.getSearchIndexes().getFirst();
         return projections.stream().map(projection -> {
             String repository = searchIndex.repository();
             String docId = projection.get(ECM_UUID).toString();

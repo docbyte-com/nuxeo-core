@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  *  Contributors:
  *     Antoine Taillefer
  */
-package org.nuxeo.elasticsearch.test.rest;
+package org.nuxeo.ecm.automation.server.test;
 
 import java.util.Collections;
 import java.util.Comparator;

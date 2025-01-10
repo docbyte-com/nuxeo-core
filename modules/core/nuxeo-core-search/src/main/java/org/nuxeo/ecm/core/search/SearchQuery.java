@@ -36,9 +36,14 @@ import org.nuxeo.runtime.api.Framework;
 public interface SearchQuery {
 
     /**
-     * Gets the searchIndex.
+     * Gets the list of searchIndex to perform the query. If there are more than one item it's a multi repository
+     * search, note that all search indexes share the same search client.
      */
-    SearchIndex getSearchIndex();
+    List<SearchIndex> getSearchIndexes();
+
+    default boolean isMultiRepositories() {
+        return getSearchIndexes().size() > 1;
+    }
 
     SQLQuery getQuery();
 
@@ -74,6 +79,10 @@ public interface SearchQuery {
     }
 
     static SearchQueryImpl.Builder builder(SearchIndex searchIndex, String nxql, NuxeoPrincipal principal) {
-        return new SearchQueryImpl.Builder(searchIndex, nxql, principal);
+        return new SearchQueryImpl.Builder(List.of(searchIndex), nxql, principal);
+    }
+
+    static SearchQueryImpl.Builder builder(List<SearchIndex> searchIndexes, String nxql, NuxeoPrincipal principal) {
+        return new SearchQueryImpl.Builder(searchIndexes, nxql, principal);
     }
 }

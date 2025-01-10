@@ -1,18 +1,21 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.core.test.multi-repository.search">
 
+
   <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
     <index name="other">
-      <client id="search/other" />
+      <client id="search/default" />
     </index>
   </extension>
 
   <extension target="org.nuxeo.ecm.core.search" point="searchClient">
-    <searchClient name="opensearch-other" class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
+    <searchClient name="opensearch" default="true"
+      class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
       <connection>
-        <option name="clientId">search/other</option>
+        <option name="clientId">search/default</option>
       </connection>
-      <index name="other" repository="other" create="false" />
+      <index name="nxutest" repository="test" create="false" default="true" />
+      <index name="other" repository="other" create="false" default="true" />
     </searchClient>
   </extension>
 

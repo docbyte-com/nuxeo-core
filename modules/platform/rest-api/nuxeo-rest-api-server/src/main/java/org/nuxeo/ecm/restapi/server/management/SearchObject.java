@@ -167,7 +167,7 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         params.put(CORE_SESSION_PROPERTY, (Serializable) ctx.getCoreSession());
         var pp = (SearchServicePageProvider) pageProviderService.getPageProvider(CHECK_SEARCH_NXQL_PP, ppdef, null,
                 null, pageSize, 0L, params);
-        pp.setSearchIndex(searchIndex);
+        pp.setSearchIndexes(List.of(searchIndex));
         pp.setParameters(new String[] { nxql });
         long start = System.currentTimeMillis();
         List<DocumentModel> res = pp.getCurrentPage();

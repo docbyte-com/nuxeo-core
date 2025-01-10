@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
 import static org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter.REPOSITORY_PROP;
 
@@ -53,7 +54,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class SearchQueryImpl implements SearchQuery {
 
-    protected final SearchIndex searchIndex;
+    protected final List<SearchIndex> searchIndexes;
 
     protected final SQLQuery query;
 
@@ -76,7 +77,7 @@ public class SearchQueryImpl implements SearchQuery {
     protected final Map<String, Type> selectFields;
 
     protected SearchQueryImpl(Builder builder) {
-        this.searchIndex = builder.searchIndex;
+        this.searchIndexes = Collections.unmodifiableList(builder.searchIndexes);
         this.query = buildSQLQuery(builder);
         this.principal = builder.principal;
         this.offset = builder.offset;
@@ -105,8 +106,9 @@ public class SearchQueryImpl implements SearchQuery {
             // 2. parse the sql query
             SQLQuery sqlQuery = SQLQueryParser.parse(nxql);
             // 3. add security policies
+            // TODO: Should we disable multi repo search if repositories have different security policy
             var transformers = Framework.getService(SecurityService.class)
-                                        .getPoliciesQueryTransformers(builder.searchIndex.repository());
+                                        .getPoliciesQueryTransformers(builder.searchIndexes.getFirst().repository());
             for (SQLQuery.Transformer trans : transformers) {
                 sqlQuery = trans.transform(builder.principal, sqlQuery);
             }
@@ -143,8 +145,8 @@ public class SearchQueryImpl implements SearchQuery {
     }
 
     @Override
-    public SearchIndex getSearchIndex() {
-        return searchIndex;
+    public List<SearchIndex> getSearchIndexes() {
+        return searchIndexes;
     }
 
     @Override
@@ -224,7 +226,7 @@ public class SearchQueryImpl implements SearchQuery {
 
         // constructor fields
 
-        protected final SearchIndex searchIndex;
+        protected final List<SearchIndex> searchIndexes;
 
         protected final String nxql;
 
@@ -243,8 +245,15 @@ public class SearchQueryImpl implements SearchQuery {
         /**
          * Creates a SearchQuery builder.
          */
-        protected Builder(SearchIndex searchIndex, String nxql, NuxeoPrincipal principal) {
-            this.searchIndex = searchIndex;
+        protected Builder(List<SearchIndex> searchIndexes, String nxql, NuxeoPrincipal principal) {
+            if (isEmpty(searchIndexes)) {
+                throw new NullPointerException("searchIndexes cannot be null or empty");
+            }
+            if (searchIndexes.stream().map(SearchIndex::client).distinct().count() != 1) {
+                throw new IllegalArgumentException(
+                        "All searchIndexes must share the same SearchClient: " + searchIndexes);
+            }
+            this.searchIndexes = searchIndexes;
             this.nxql = completeQueryWithSelect(nxql);
             this.principal = principal;
         }

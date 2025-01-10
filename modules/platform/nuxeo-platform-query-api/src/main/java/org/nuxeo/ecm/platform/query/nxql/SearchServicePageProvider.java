@@ -18,8 +18,9 @@
  */
 package org.nuxeo.ecm.platform.query.nxql;
 
+import static java.util.Objects.requireNonNullElse;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
-import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_AVG;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_CARDINALITY;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_COUNT;
@@ -36,6 +37,7 @@ import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_TERMS
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -91,7 +93,7 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
 
     public static final int DEFAULT_MAX_RESULT_WINDOW = 10_000;
 
-    protected SearchIndex searchIndex;
+    protected List<SearchIndex> searchIndexes;
 
     protected Map<String, Aggregate<? extends Bucket>> currentAggregates;
 
@@ -124,9 +126,8 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
         // Build and execute the query using the Search Service
         SearchService service = Framework.getService(SearchService.class);
         try {
-            // TODO search on all repositories
-            SearchIndex searchIndex = getSearchIndex(service, coreSession.getRepositoryName());
-            var queryBuilder = SearchQuery.builder(searchIndex, query, principal)
+            var searchIndexes = getSearchIndexes(service, coreSession.getRepositoryName());
+            var queryBuilder = SearchQuery.builder(searchIndexes, query, principal)
                                           .offset((int) getCurrentPageOffset())
                                           .limit(getLimit())
                                           .addAggregates(buildAggregates())
@@ -151,45 +152,69 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
         return currentPageDocuments;
     }
 
-    protected SearchIndex getSearchIndex(SearchService service, String repository) {
-        if (searchIndex == null) {
-            String client;
-            String index;
-            if (getDefinition() instanceof SearchServicePageProviderDescriptor searchServiceDescriptor) {
-                client = searchServiceDescriptor.getSearchClient();
-                index = searchServiceDescriptor.getSearchIndex();
+    protected List<SearchIndex> getSearchIndexes(SearchService service, String repository) {
+        if (searchIndexes == null) {
+            final String client = requireNonNullElse(getClientName(),
+                    service.getDefaultSearchIndexForRepository(repository).client());
+            if (searchOnAllRepositories()) {
+                searchIndexes = service.getRepositoryNames()
+                                       .stream()
+                                       .map(service::getSearchIndexForRepository)
+                                       .flatMap(Collection::stream)
+                                       .filter(item -> client.equals(item.client()))
+                                       .toList();
+                if (searchIndexes.size() > service.getRepositoryNames().size()) {
+                    log.warn(
+                            "SearchClient: {} has multiple indexes per repository, explicit searchIndex must be used in PP: {}",
+                            client, getDefinition().getName());
+                }
             } else {
-                index = null;
-                client = null;
-            }
-            if (isBlank(client)) {
-                searchIndex = service.getDefaultSearchIndexForRepository(repository);
-            } else {
-                var searchIndexes = service.getSearchIndexForRepository(repository)
-                                           .stream()
-                                           .filter(item -> client.equals(item.client()))
-                                           .toList();
-                if (isBlank(index)) {
-                    searchIndex = searchIndexes.stream()
-                                               .findFirst()
-                                               .orElseThrow(
-                                                       () -> new IllegalArgumentException("No index found for client: "
-                                                               + client + " and repository: " + repository));
+                List<String> indexes = getIndexes();
+                if (isEmpty(indexes)) {
+                    searchIndexes = List.of(
+                            service.getSearchIndexForRepository(repository)
+                                   .stream()
+                                   .filter(item -> client.equals(item.client()))
+                                   .findFirst()
+                                   .orElseThrow(() -> new IllegalArgumentException("Invalid PP: "
+                                           + getDefinition().getName() + " no searchIndex found for client: " + client
+                                           + " and repository: " + repository)));
+                    log.debug("No searchIndex indexes defined in PP: {}, using default: {}", getDefinition().getName(),
+                            searchIndexes);
                 } else {
-                    searchIndex = searchIndexes.stream()
-                                               .filter(item -> index.equals(item.index()))
-                                               .findFirst()
-                                               .orElseThrow(() -> new IllegalArgumentException(
-                                                       "No index found for client: " + client + ", repository: "
-                                                               + repository + " and index: " + index));
+                    searchIndexes = service.getRepositoryNames()
+                                           .stream()
+                                           .map(service::getSearchIndexForRepository)
+                                           .flatMap(Collection::stream)
+                                           .filter(item -> client.equals(item.client())
+                                                   && indexes.contains(item.index()))
+                                           .toList();
+                    if (searchIndexes.isEmpty()) {
+                        throw new IllegalArgumentException("Invalid PP: " + getDefinition().getName() + ", " + indexes
+                                + " not found  found for searchClient" + client + " and repository: " + repository);
+                    }
                 }
             }
         }
-        return searchIndex;
+        return searchIndexes;
     }
 
-    public void setSearchIndex(SearchIndex searchIndex) {
-        this.searchIndex = searchIndex;
+    protected String getClientName() {
+        if (getDefinition() instanceof SearchServicePageProviderDescriptor searchServiceDescriptor) {
+            return searchServiceDescriptor.getSearchClient();
+        }
+        return null;
+    }
+
+    protected List<String> getIndexes() {
+        if (getDefinition() instanceof SearchServicePageProviderDescriptor searchServiceDescriptor) {
+            return searchServiceDescriptor.getSearchIndexes();
+        }
+        return null;
+    }
+
+    public void setSearchIndexes(List<SearchIndex> searchIndexes) {
+        this.searchIndexes = searchIndexes;
     }
 
     protected int getLimit() {

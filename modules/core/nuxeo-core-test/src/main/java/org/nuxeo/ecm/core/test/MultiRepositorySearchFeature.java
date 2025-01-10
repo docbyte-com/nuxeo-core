@@ -18,7 +18,9 @@
  */
 package org.nuxeo.ecm.core.test;
 
+import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
 import org.nuxeo.runtime.opensearch1.OpenSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -28,5 +30,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-other-repository-search-contrib.xml")
 @Features({ CoreSearchFeature.class, MultiRepositoryFeature.class, OpenSearchFeature.class })
+@ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
 public class MultiRepositorySearchFeature implements RunnerFeature {
 }

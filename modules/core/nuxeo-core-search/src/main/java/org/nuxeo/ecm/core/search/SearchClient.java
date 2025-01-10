@@ -105,6 +105,6 @@ public interface SearchClient extends AutoCloseable {
     void close();
 
     enum Capability {
-        INDEXING, HIGHLIGHT, AGGREGATE
+        INDEXING, HIGHLIGHT, AGGREGATE, MULTI_REPOSITORIES
     }
 }

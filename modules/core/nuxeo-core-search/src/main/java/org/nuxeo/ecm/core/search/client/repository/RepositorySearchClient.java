@@ -80,6 +80,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
             // not supported
             case HIGHLIGHT -> false;
             case AGGREGATE -> false;
+            case MULTI_REPOSITORIES -> false;
         };
     }
 
@@ -144,15 +145,15 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     @Override
     public SearchResponse search(SearchQuery query) {
-        CoreSession session = CoreInstance.getCoreSession(query.getSearchIndex().repository(), query.getPrincipal());
+        CoreSession session = CoreInstance.getCoreSession(query.getSearchIndexes().getFirst().repository(),
+                query.getPrincipal());
         String nxql = query.getQuery().toString();
         if (query.isScrollSearch()) {
             ScrollResult<String> repositoryScrollResponse = session.scroll(nxql, query.getScrollSize(),
                     Math.toIntExact(query.getScrollKeepAlive().toSeconds()));
             SearchScrollContext scrollContext = new SearchScrollContext(query, repositoryScrollResponse.getScrollId());
-            return SearchResponse.builder(makeSearchHits(query.getSearchIndex(), repositoryScrollResponse), -1)
-                                 .scroll(scrollContext)
-                                 .build();
+            return SearchResponse.builder(makeSearchHits(query.getSearchIndexes().getFirst(), repositoryScrollResponse),
+                    -1).scroll(scrollContext).build();
         }
         var repositorySearchResponse = session.queryProjection(nxql, query.getLimit(), query.getOffset(), true);
         return RESPONSE_TRANSFORMER.apply(query, repositorySearchResponse);
@@ -160,7 +161,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     @Override
     public SearchResponse searchScroll(SearchScrollContext scrollContext) {
-        var searchIndex = scrollContext.searchQuery().getSearchIndex();
+        var searchIndex = scrollContext.searchQuery().getSearchIndexes().getFirst();
         CoreSession session = CoreInstance.getCoreSession(searchIndex.repository());
         ScrollResult<String> repositoryScrollResponse = session.scroll(scrollContext.scrollId());
         SearchScrollContext newScrollId = new SearchScrollContext(scrollContext.searchQuery(),

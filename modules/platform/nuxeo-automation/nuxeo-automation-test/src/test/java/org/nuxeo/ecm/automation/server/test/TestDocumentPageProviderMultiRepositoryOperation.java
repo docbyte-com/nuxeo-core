@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.nuxeo.elasticsearch.test.rest;
+package org.nuxeo.ecm.automation.server.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -30,26 +28,19 @@ import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.automation.core.operations.services.DocumentPageProviderOperation;
-import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.io.rest.operations.DocumentInputResolver;
 import org.nuxeo.ecm.automation.test.EmbeddedAutomationServerFeature;
 import org.nuxeo.ecm.automation.test.HttpAutomationSession;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.core.test.MultiRepositorySearchFeature;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
-import org.nuxeo.ecm.restapi.test.RestServerInit;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -62,13 +53,10 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ EmbeddedAutomationServerFeature.class, RepositoryElasticSearchFeature.class, MultiRepositoryFeature.class })
-@Deploy("org.nuxeo.elasticsearch.core.test:pageprovider-automation-test-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core.test:test-other-repository-contrib.xml")
-@Deploy("org.nuxeo.elasticsearch.core.test:test-operations-multi-repositories.xml")
-@RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
-@Ignore("TODO fix when multi repo indexing/search is supported")
-public class AutomationESDocumentsTest {
+@Features({ EmbeddedAutomationServerFeature.class, MultiRepositorySearchFeature.class })
+@Deploy("org.nuxeo.ecm.automation.test.test:test-page-provider.xml")
+@Deploy("org.nuxeo.ecm.automation.test.test:test-operations-multi-repositories.xml")
+public class TestDocumentPageProviderMultiRepositoryOperation {
 
     protected static final String SEARCH_ALL_REPOSITORIES_PP = "SEARCH_ALL_REPOSITORIES_PP";
 
@@ -92,6 +80,10 @@ public class AutomationESDocumentsTest {
 
     @Before
     public void initRepo() {
+        var doc = session.createDocumentModel("/", "folder_0", "Folder");
+        doc.setPropertyValue("dc:title", "Main repository folder");
+        doc = session.createDocument(doc);
+        txFeature.nextTransaction();
         docOther = sessionOther.createDocumentModel("/", "folder_0", "Folder");
         docOther.setPropertyValue("dc:title", "Other repository folder");
         docOther = sessionOther.createDocument(docOther);
@@ -103,33 +95,7 @@ public class AutomationESDocumentsTest {
         sessionOther.removeDocument(docOther.getRef());
     }
 
-    @Test
-    public void iCanPerformESQLPageProviderOperationOnRepository() throws Exception {
-        Properties namedParameters = new Properties(Map.of("defaults:dc_nature_agg", "[\"article\"]"));
-        JsonNode node = clientSession.newRequest(DocumentPageProviderOperation.ID)
-                                     .set("namedParameters", namedParameters)
-                                     .set("providerName", "default_search")
-                                     .execute();
-        assertEquals(node.get("pageSize").asInt(), 20);
-        assertEquals(node.get("resultsCount").asInt(), 11);
-    }
-
-    @Test
-    public void iCanSkipAggregatesOnESQLPageProviderOperationOnRepository() throws Exception {
-        JsonNode node = clientSession.newRequest(DocumentPageProviderOperation.ID)
-                                     .set("providerName", "aggregates_1")
-                                     .execute();
-        assertTrue(node.has("aggregations"));
-
-        node = clientSession.newRequest(DocumentPageProviderOperation.ID)
-                            .setHeader(PageProvider.SKIP_AGGREGATES_PROP, "true")
-                            .set("providerName", "aggregates_1")
-                            .execute();
-        assertFalse(node.has("aggregations"));
-    }
-
     // NXP-31487
-    @Ignore("TODO: multi repository not configured for indexing")
     @Test
     @WithFrameworkProperty(name = DocumentInputResolver.BULK_DOWNLOAD_MULTI_REPOSITORIES, value = "true")
     public void iCanCallAutomationOnMultiRepositoryPageProviderResults() throws IOException {
@@ -151,7 +117,7 @@ public class AutomationESDocumentsTest {
         // document from "test" repository
         DocumentModel docTestRepo = page.get(0);
         DocumentModel expected = session.getDocument(new PathRef("/folder_0"));
-        checkDocumentModel(docTestRepo, "/folder_0", expected.getId(), "test", "Folder 0");
+        checkDocumentModel(docTestRepo, "/folder_0", expected.getId(), "test", "Main repository folder");
         // document from "other" repository
         DocumentModel docOtherRepo = page.get(1);
         checkDocumentModel(docOtherRepo, "/folder_0", docOther.getId(), "other", "Other repository folder");
@@ -165,7 +131,7 @@ public class AutomationESDocumentsTest {
         assertEquals("documents", node.get("entity-type").asText());
         JsonNode entries = node.get("entries");
         assertEquals(2, entries.size());
-        checkDocumentJsonNode(entries.get(0), "/folder_0", docTestRepo.getId(), "test", "Folder 0");
+        checkDocumentJsonNode(entries.get(0), "/folder_0", docTestRepo.getId(), "test", "Main repository folder");
         checkDocumentJsonNode(entries.get(1), "/folder_0", docOtherRepo.getId(), "other", "Other repository folder");
     }
 

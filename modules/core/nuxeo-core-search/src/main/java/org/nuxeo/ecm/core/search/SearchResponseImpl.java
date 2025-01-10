@@ -25,14 +25,17 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import jakarta.annotation.Nullable;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
@@ -149,20 +152,56 @@ public class SearchResponseImpl implements SearchResponse {
     }
 
     @Override
-    public DocumentModelList loadDocuments(CoreSession session) {
+    public DocumentModelList loadDocuments(CoreSession defaultSession) {
         if (getHitsCount() == 0) {
             DocumentModelListImpl ret = new DocumentModelListImpl(0);
             ret.setTotalSize(getTotal());
             return ret;
         }
+        var repositories = hits.stream().map(SearchHit::getRepository).collect(Collectors.toSet());
+        Map<String, DocumentModelListImpl> repoDocs = new HashMap<>(repositories.size());
+        for (String repository : repositories) {
+            CoreSession session = defaultSession.getRepositoryName().equals(repository) ? defaultSession
+                    : CoreInstance.getCoreSession(repository, defaultSession.getPrincipal());
+            var docs = (DocumentModelListImpl) loadDocumentsUsingSession(session);
+            if (!docs.isEmpty()) {
+                repoDocs.put(repository, docs);
+            }
+        }
+        DocumentModelListImpl ret;
+        if (repoDocs.isEmpty()) {
+            ret = new DocumentModelListImpl(0);
+        } else if (repoDocs.size() == 1) {
+            ret = repoDocs.values().stream().findFirst().get();
+        } else {
+            int size = repoDocs.values().stream().mapToInt(DocumentModelList::size).sum();
+            ret = new DocumentModelListImpl(size);
+            repoDocs.values().forEach(ret::addAll);
+        }
+        ret.setTotalSize(getTotal());
+        List<String> documentIds = hits.stream().map(SearchHit::getDocId).toList();
+        ret.sort(Comparator.comparingInt(doc -> documentIds.indexOf(doc.getId())));
+        // Attach highlights
+        for (var hit : hits) {
+            if (hit.getDocId() == null || hit.getHighlights().isEmpty()) {
+                continue;
+            }
+            ret.stream()
+               .filter(d -> hit.getDocId().equals(d.getId()))
+               .findFirst()
+               .ifPresent(doc -> doc.putContextData(HIGHLIGHT_CTX_DATA, (Serializable) hit.getHighlights()));
+        }
+        return ret;
+    }
+
+    protected DocumentModelList loadDocumentsUsingSession(CoreSession session) {
         String repository = session.getRepositoryName();
         List<String> documentIds = hits.stream()
                                        .filter(hit -> repository.equals(hit.getRepository()))
                                        .map(SearchHit::getDocId)
                                        .toList();
-        if (documentIds.size() != getHitsCount()) {
-            log.warn("Provided session of repository: {} can only load: {} out of {} results", repository,
-                    documentIds.size(), getHitsCount());
+        if (documentIds.isEmpty()) {
+            return new DocumentModelListImpl(0);
         }
         DocumentModelList docs;
         try {
@@ -178,18 +217,6 @@ public class SearchResponseImpl implements SearchResponse {
             docs.forEach(doc -> notFound.remove(doc.getId()));
             // some documents might have been deleted or search index is desynchronized or documents are corrupted
             log.warn("Fail to load {} documents out of {}: {}", notFound.size(), documentIds.size(), notFound);
-        }
-        // Keep the ordering
-        docs.sort(Comparator.comparingInt(doc -> documentIds.indexOf(doc.getId())));
-        // Attach highlights
-        for (var hit : hits) {
-            if (hit.getDocId() == null || hit.getHighlights().isEmpty()) {
-                continue;
-            }
-            docs.stream()
-                .filter(d -> hit.getDocId().equals(d.getId()))
-                .findFirst()
-                .ifPresent(doc -> doc.putContextData(HIGHLIGHT_CTX_DATA, (Serializable) hit.getHighlights()));
         }
         return docs;
     }

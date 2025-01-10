@@ -62,7 +62,7 @@ public class TestSearchQueryBuilder {
     @Test
     public void testSimpleNxql() {
         var searchQuery = buildSearchQuery("SELECT * FROM Document");
-        assertEquals(SEARCH_INDEX, searchQuery.getSearchIndex());
+        assertEquals(SEARCH_INDEX, searchQuery.getSearchIndexes().getFirst());
         assertNotNull(searchQuery.getQuery()); // not asserting the SQLQuery it is already covered in lower modules
         assertEquals(0, searchQuery.getOffset());
         assertEquals(10, searchQuery.getLimit());

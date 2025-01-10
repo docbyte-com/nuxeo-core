@@ -18,7 +18,11 @@
  */
 package org.nuxeo.ecm.platform.query.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 
@@ -36,8 +40,8 @@ public class SearchServicePageProviderDescriptor extends BasePageProviderDescrip
     @XNode("searchClient")
     protected String searchClient;
 
-    @XNode("searchIndex")
-    protected String searchIndex;
+    @XNodeList(value = "searchIndex", type = ArrayList.class, componentType = String.class)
+    protected List<String> searchIndexes;
 
     public String getScroller() {
         return scroller;
@@ -47,8 +51,8 @@ public class SearchServicePageProviderDescriptor extends BasePageProviderDescrip
         return searchClient;
     }
 
-    public String getSearchIndex() {
-        return searchIndex;
+    public List<String> getSearchIndexes() {
+        return searchIndexes;
     }
 
     @Override

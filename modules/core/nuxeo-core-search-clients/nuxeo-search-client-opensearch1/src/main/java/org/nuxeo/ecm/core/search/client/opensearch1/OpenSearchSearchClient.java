@@ -51,6 +51,7 @@ import org.opensearch.common.xcontent.XContentType;
 import org.opensearch.index.VersionType;
 import org.opensearch.index.query.QueryBuilder;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.SearchHit;
 import org.opensearch.search.builder.SearchSourceBuilder;
 
 /**
@@ -85,6 +86,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             case INDEXING -> true;
             case HIGHLIGHT -> true;
             case AGGREGATE -> true;
+            case MULTI_REPOSITORIES -> true;
         };
     }
 
@@ -161,7 +163,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                     response = client.scroll(new SearchScrollRequest(response.getScrollId()).scroll(keepAlive))) {
                 // Build bulk delete request
                 BulkRequest bulkRequest = new BulkRequest();
-                for (org.opensearch.search.SearchHit hit : response.getHits().getHits()) {
+                for (SearchHit hit : response.getHits().getHits()) {
                     bulkRequest.add(new DeleteRequest(hit.getIndex(), hit.getId()));
                 }
                 log.debug("Bulk delete request on {} elements", bulkRequest.numberOfActions());

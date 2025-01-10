@@ -66,6 +66,7 @@ public class MockSearchClient extends AbstractSearchClient {
             case INDEXING -> true;
             case HIGHLIGHT -> false;
             case AGGREGATE -> false;
+            case MULTI_REPOSITORIES -> false;
         };
     }
 

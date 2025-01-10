@@ -108,9 +108,11 @@ public interface SearchResponse {
     List<Aggregate<? extends Bucket>> getAggregates();
 
     /**
-     * Loads search hits from repository as a DocumentModelList. Can be an expensive operation.
+     * Loads search hits from repository as a DocumentModelList using the provided session. Can be an expensive
+     * operation. In the case of a multi repository search, additional sessions are created using the defaultSession
+     * principal.
      */
-    DocumentModelList loadDocuments(CoreSession session);
+    DocumentModelList loadDocuments(CoreSession defaultSession);
 
     /**
      * @return a {@link SearchResponse} builder for an error response

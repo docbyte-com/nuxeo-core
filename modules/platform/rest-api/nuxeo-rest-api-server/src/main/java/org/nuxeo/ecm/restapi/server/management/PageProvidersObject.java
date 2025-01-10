@@ -20,13 +20,18 @@
 package org.nuxeo.ecm.restapi.server.management;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider.SEARCH_ON_ALL_REPOSITORIES_PROPERTY;
 
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Produces;
 
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.ecm.platform.query.core.SearchServicePageProviderDescriptor;
+import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
@@ -53,6 +58,8 @@ public class PageProvidersObject extends AbstractResource<ResourceTypeImpl> {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode res = mapper.createArrayNode();
         PageProviderService pps = Framework.getService(PageProviderService.class);
+        SearchService searchService = Framework.getService(SearchService.class);
+        String defaultSearchClient = searchService.getDefaultSearchIndex().client();
         for (String ppName : pps.getPageProviderDefinitionNames()) {
             ObjectNode node = mapper.createObjectNode();
             PageProviderDefinition def = pps.getPageProviderDefinition(ppName);
@@ -62,6 +69,23 @@ public class PageProvidersObject extends AbstractResource<ResourceTypeImpl> {
             node.put("name", pp.getName());
             node.put("class", klass);
             node.put("maxPageSize", pp.getMaxPageSize());
+            if (pp instanceof SearchServicePageProvider) {
+                if (def instanceof SearchServicePageProviderDescriptor ssdef) {
+                    if (isBlank(ssdef.getSearchClient())) {
+                        node.put("defaultSearchClient", defaultSearchClient);
+                    } else {
+                        node.put("searchClient", ssdef.getSearchClient());
+                    }
+                    if (ssdef.getSearchIndexes() != null) {
+                        node.put("searchIndexes", ssdef.getSearchIndexes().toString());
+                    }
+                } else {
+                    node.put("defaultSearchClient", defaultSearchClient);
+                }
+                if (Boolean.parseBoolean((String) pp.getProperties().get(SEARCH_ON_ALL_REPOSITORIES_PROPERTY))) {
+                    node.put("searchAllRepositories", "true");
+                }
+            }
             res.add(node);
         }
         return res.toString();

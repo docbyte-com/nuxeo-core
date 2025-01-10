@@ -27,7 +27,7 @@ public record SearchScrollContext(SearchQuery searchQuery, String scrollId) {
 
     public SearchScrollContext {
         if (isEmpty(scrollId)) {
-            throw new IllegalArgumentException("No scrollId provided, index: " + searchQuery.getSearchIndex());
+            throw new IllegalArgumentException("No scrollId provided, index: " + searchQuery.getSearchIndexes());
         }
     }
 }
