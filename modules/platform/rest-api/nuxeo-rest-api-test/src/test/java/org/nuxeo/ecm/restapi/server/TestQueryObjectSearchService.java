@@ -32,7 +32,6 @@ import java.util.stream.StreamSupport;
 
 import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,13 +101,11 @@ public class TestQueryObjectSearchService {
 
     @Test
     public void iCanPerformESQLPageProviderOnRepository() {
-        // wait for async jobs
-        txFeature.nextTransaction();
         // Given a repository, when I perform a ESQL pageprovider on it
         JsonNode node = httpClient.buildGetRequest(QueryObject.PATH + "/aggregates_2").execute(new JsonNodeHandler());
         // Then I get document listing as result
         // Verify results
-        Assert.assertEquals(20, JsonNodeHelper.getEntries(node).size());
+        assertEquals(20, JsonNodeHelper.getEntries(node).size());
         // And verify contributed aggregates
         assertEquals("terms", node.get("aggregations").get("coverage").get("type").textValue());
     }

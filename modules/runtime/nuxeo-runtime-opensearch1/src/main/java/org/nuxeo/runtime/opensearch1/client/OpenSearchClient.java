@@ -20,11 +20,8 @@ package org.nuxeo.runtime.opensearch1.client;
 
 import java.time.Duration;
 
-import org.opensearch.action.bulk.BulkProcessor;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
-import org.opensearch.action.delete.DeleteRequest;
-import org.opensearch.action.delete.DeleteResponse;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
@@ -108,21 +105,9 @@ public interface OpenSearchClient extends AutoCloseable {
 
     GetResponse get(GetRequest request);
 
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
-    @Deprecated(forRemoval = true)
-    DeleteResponse delete(DeleteRequest request);
-
     SearchResponse search(SearchRequest request);
 
     SearchResponse scroll(SearchScrollRequest request);
 
     ClearScrollResponse clearScroll(ClearScrollRequest request);
-
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
-    @Deprecated(forRemoval = true)
-    BulkProcessor.Builder bulkProcessorBuilder(BulkProcessor.Listener bulkListener);
 }

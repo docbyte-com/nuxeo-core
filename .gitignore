@@ -18,6 +18,7 @@ bin
 .checkstyle
 .mylar
 .idea
+.run
 *.iml
 *.ipr
 *.iws

@@ -40,11 +40,8 @@ import org.nuxeo.runtime.RuntimeServiceException;
 import org.opensearch.OpenSearchStatusException;
 import org.opensearch.action.ActionRequest;
 import org.opensearch.action.ActionResponse;
-import org.opensearch.action.bulk.BulkProcessor;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
-import org.opensearch.action.delete.DeleteRequest;
-import org.opensearch.action.delete.DeleteResponse;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
@@ -54,7 +51,6 @@ import org.opensearch.action.search.ClearScrollResponse;
 import org.opensearch.action.search.SearchRequest;
 import org.opensearch.action.search.SearchResponse;
 import org.opensearch.action.search.SearchScrollRequest;
-import org.opensearch.action.support.replication.ReplicationRequest;
 import org.opensearch.client.Request;
 import org.opensearch.client.RequestOptions;
 import org.opensearch.client.Response;
@@ -450,54 +446,6 @@ public class OpenSearchRestClient implements OpenSearchClient {
         return performRequestWithTracing(client::get, request, "opensearch/_get");
     }
 
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public DeleteResponse delete(DeleteRequest request) {
-        if (ReplicationRequest.DEFAULT_TIMEOUT == request.timeout()) {
-            // use a longer timeout than the default one
-            request.timeout(LONG_TIMEOUT);
-        }
-        // 3 retries with backoff of 20s jitter 0.5:
-        // retry 1: 20s +/-10 [t+10, t+30]
-        // retry 2: 40s +/-20 [t+30 t+90]
-        // retry 3: 80S +/-40 [t+70, t+210]
-        var maxRetries = 3;
-        RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(maxRetries)
-                                                        .withBackoff(20, 200, ChronoUnit.SECONDS)
-                                                        .withJitter(0.5)
-                                                        .onRetry(failure -> log.warn("Retrying delete ... {}",
-                                                                request::getDescription))
-                                                        .onRetriesExceeded(failure -> log.warn(
-                                                                "Give up delete after {} retries: {}", () -> maxRetries,
-                                                                request::getDescription))
-                                                        .handle(RetryableException.class);
-
-        AtomicReference<DeleteResponse> response = new AtomicReference<>();
-        Failsafe.with(policy)
-
-                .run(() -> response.set(doDelete(request)));
-        return response.get();
-    }
-
-    protected DeleteResponse doDelete(DeleteRequest request) throws RetryableException {
-        try {
-            return client.delete(request, COMPAT_ES_OPTIONS);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                throw new RetryableException(
-                        "Detecting overloaded OpenSearch, response message: %s".formatted(e.getMessage()), e);
-            }
-            throw new RuntimeServiceException(e);
-        } catch (SocketTimeoutException e) {
-            throw new RetryableException("OpenSearch timeout, might be overloaded", e);
-        } catch (IOException e) {
-            throw new RuntimeServiceException(e);
-        }
-    }
-
     @Override
     public SearchResponse search(SearchRequest request) {
         return performRequestWithTracing(client::search, request, "opensearch/_search");
@@ -566,15 +514,5 @@ public class OpenSearchRestClient implements OpenSearchClient {
         } catch (IOException e) {
             log.warn("Failed to close the OpenSearch client: {}", id, e);
         }
-    }
-
-    /**
-     * @deprecated because only used in nuxeo-core-elasticsearch for now
-     */
-    @Override
-    @Deprecated(forRemoval = true)
-    public BulkProcessor.Builder bulkProcessorBuilder(BulkProcessor.Listener bulkListener) {
-        return BulkProcessor.builder((request, listener) -> client.bulkAsync(request, COMPAT_ES_OPTIONS, listener),
-                bulkListener);
     }
 }

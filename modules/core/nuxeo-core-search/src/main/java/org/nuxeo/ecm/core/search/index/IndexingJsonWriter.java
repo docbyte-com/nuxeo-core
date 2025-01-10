@@ -26,6 +26,8 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
+ * A DocumentModel writer used to build a JSON representation of a document for indexing purpose.
+ * 
  * @since 2025.0
  */
 public interface IndexingJsonWriter extends ThrowableBiConsumer<JsonGenerator, DocumentModel, IOException> {
