@@ -3,8 +3,7 @@
 
   <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
 
-    <genericPageProvider name="BULK_ACTION_WITH_AGGREGATES"
-                         class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="BULK_ACTION_WITH_AGGREGATES">
       <searchDocumentType>AdvancedSearch</searchDocumentType>
       <pattern>
         SELECT * FROM Document where ecm:isVersion = 0
@@ -44,7 +43,7 @@
         </aggregate>
       </aggregates>
       <pageSize>20</pageSize>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

@@ -3,7 +3,7 @@
 
   <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
 
-    <genericPageProvider name="aggregates_2" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates_2">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -28,9 +28,9 @@
           </properties>
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
-    <genericPageProvider name="aggregates_3" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates_3">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -61,10 +61,9 @@
           <field name="system_level1_agg" schema="advanced_search" />
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
-    <genericPageProvider name="invalid_system_prop_aggregate"
-      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="invalid_system_prop_aggregate">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -74,9 +73,9 @@
           <field name="system_path_agg" schema="advanced_search" />
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
-    <genericPageProvider name="aggregates_4" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates_4">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -116,7 +115,7 @@
           <field name="max_agg" schema="advanced_search" />
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

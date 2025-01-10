@@ -6,7 +6,7 @@
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
              point="providers">
 
-    <genericPageProvider name="assets_search" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="assets_search">
       <searchDocumentType>AssetsSearch</searchDocumentType>
       <whereClause>
         <predicate parameter="ecm:fulltext" operator="FULLTEXT ALL">
@@ -59,7 +59,7 @@
         </aggregate>
       </aggregates>
       <pageSize>20</pageSize>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

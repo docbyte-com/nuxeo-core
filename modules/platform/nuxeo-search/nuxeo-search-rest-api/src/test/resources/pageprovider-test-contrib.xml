@@ -139,8 +139,7 @@
       <pageSize>2</pageSize>
     </coreQueryPageProvider>
 
-    <genericPageProvider name="aggregates"
-      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates">
       <searchDocumentType>NamedParamDoc</searchDocumentType>
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
@@ -168,7 +167,7 @@
           </ranges>
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
     <coreQueryPageProvider name="test_primitive_type_predicates">
       <whereClause>

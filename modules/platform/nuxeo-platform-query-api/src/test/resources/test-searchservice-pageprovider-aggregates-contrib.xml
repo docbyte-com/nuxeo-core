@@ -3,7 +3,7 @@
 
   <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
 
-    <genericPageProvider name="aggregates_1" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates_1">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -76,7 +76,7 @@
           </properties>
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

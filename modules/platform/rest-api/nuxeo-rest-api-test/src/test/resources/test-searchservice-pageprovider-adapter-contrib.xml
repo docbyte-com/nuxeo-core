@@ -5,11 +5,10 @@
 
   <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
 
-    <genericPageProvider name="REST_API_SEARCH_ADAPTER"
-      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="REST_API_SEARCH_ADAPTER">
       <pageSize>0</pageSize>
       <maxPageSize>0</maxPageSize>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

@@ -3,7 +3,7 @@
 
   <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
 
-    <genericPageProvider name="NXQL_WITH_HINT" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="NXQL_WITH_HINT">
       <property name="coreSession">#{documentManager}</property>
       <searchDocumentType>AdvancedSearch</searchDocumentType>
       <whereClause>
@@ -18,10 +18,9 @@
           /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
         </fixedPart>
       </whereClause>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
-    <genericPageProvider name="NXQL_WITH_HINT_IN_PARAMETER"
-      class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="NXQL_WITH_HINT_IN_PARAMETER">
       <property name="coreSession">#{documentManager}</property>
       <searchDocumentType>AdvancedSearch</searchDocumentType>
       <whereClause>
@@ -36,7 +35,7 @@
           /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
         </fixedPart>
       </whereClause>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

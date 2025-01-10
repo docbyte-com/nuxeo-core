@@ -123,7 +123,7 @@
       <pageSize>20</pageSize>
     </coreQueryPageProvider>
 
-    <genericPageProvider name="aggregates_1" class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="aggregates_1">
       <property name="coreSession">#{documentManager}</property>
       <property name="maxResults">10000</property>
       <pageSize>20</pageSize>
@@ -196,10 +196,9 @@
           </properties>
         </aggregate>
       </aggregates>
-    </genericPageProvider>
+    </searchServicePageProvider>
 
-    <genericPageProvider name="SEARCH_ALL_REPOSITORIES_PP"
-                         class="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+    <searchServicePageProvider name="SEARCH_ALL_REPOSITORIES_PP">
       <property name="searchAllRepositories">true</property>
       <pattern>SELECT * FROM Document
         WHERE ecm:path = ?
@@ -208,7 +207,7 @@
         AND ecm:isTrashed = 0
       </pattern>
       <sort ascending="true" column="dc:title" />
-    </genericPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 
