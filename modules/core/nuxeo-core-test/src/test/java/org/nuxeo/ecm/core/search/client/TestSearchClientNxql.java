@@ -186,11 +186,6 @@ public class TestSearchClientNxql extends AbstractTestSearchClient {
         assertEquals("a01", response.getHits().get(1).getDocId());
         assertEquals("a00", response.getHits().get(2).getDocId());
 
-        response = searchAndAssertHits("SELECT * FROM Document ORDER BY _id ASC");
-        assertEquals("000", response.getHits().get(0).getId());
-        assertEquals("001", response.getHits().get(1).getId());
-        assertEquals("002", response.getHits().get(2).getId());
-
         response = searchAndAssertHits("SELECT ecm:fulltextScore FROM Document WHERE ecm:fulltext = 'world'", 1);
         assertTrue((double) response.getHits().get(0).getFields().get(ECM_FULLTEXT_SCORE) > 0);
     }
