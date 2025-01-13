@@ -2,11 +2,11 @@
 <!-- Nuxeo Enterprise Platform -->
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page language="java"%>
+<%@ page import="java.time.Year"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.Locale"%>
 <%@ page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils"%>
-<%@ page import="org.joda.time.DateTime"%>
 <%@ page import="org.nuxeo.ecm.core.api.repository.RepositoryManager"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants"%>
@@ -59,7 +59,7 @@ String logoWidth = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoWid
 String logoHeight = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoHeight(), "22");
 String logoAlt = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoAlt(), "Nuxeo");
 String logoUrl = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoUrl(), context + "/img/login_logo.png");
-String currentYear = new DateTime().toString("Y");
+String currentYear = Integer.toString(Year.now().getValue());
 
 boolean hasVideos = screenConfig.hasVideos();
 String muted = screenConfig.getVideoMuted() ? "muted " : "";

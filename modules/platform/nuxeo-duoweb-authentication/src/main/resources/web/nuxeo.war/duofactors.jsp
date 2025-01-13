@@ -2,6 +2,10 @@
 <!-- Nuxeo Enterprise Platform -->
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page language="java"%>
+<%@ page import="java.lang.Boolean"%>
+<%@ page import="java.time.Year"%>
+<%@ page import="java.util.List"%>
+<%@ page import="java.util.Locale"%>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils"%>
 <%@ page import="org.nuxeo.common.Environment"%>
 <%@ page import="org.nuxeo.runtime.api.Framework"%>
@@ -9,10 +13,6 @@
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.service.LoginScreenConfig"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.service.LoginProviderLink"%>
-<%@ page import="java.lang.Boolean"%>
-<%@ page import="java.util.List"%>
-<%@ page import="java.util.Locale"%>
-<%@ page import="org.joda.time.DateTime"%>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -60,7 +60,7 @@
     String logoHeight = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoHeight(), "26");
     String logoAlt = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoAlt(), "Nuxeo");
     String logoUrl = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoUrl(), context + "/img/nuxeo_logo.png");
-    String currentYear = new DateTime().toString("Y");
+    String currentYear = Integer.toString(Year.now().getValue());
 
 %>
 
