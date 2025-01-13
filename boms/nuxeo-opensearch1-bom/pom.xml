@@ -1,0 +1,53 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.nuxeo</groupId>
+    <artifactId>boms</artifactId>
+    <version>2025.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>nuxeo-opensearch1-bom</artifactId>
+  <packaging>pom</packaging>
+  <name>OpenSearch 1.x dependencies</name>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch-core</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch-x-content</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.client</groupId>
+        <artifactId>opensearch-rest-client</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.client</groupId>
+        <artifactId>opensearch-rest-high-level-client</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.plugin</groupId>
+        <artifactId>analysis-common</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.plugin</groupId>
+        <artifactId>transport-netty4-client</artifactId>
+        <version>${opensearch1.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>

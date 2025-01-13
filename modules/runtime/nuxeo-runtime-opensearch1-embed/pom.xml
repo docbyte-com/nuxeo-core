@@ -21,6 +21,10 @@
       <artifactId>opensearch</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-core</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.opensearch.plugin</groupId>
       <artifactId>analysis-common</artifactId>
     </dependency>
@@ -49,6 +53,18 @@
       <artifactId>nuxeo-runtime-test</artifactId>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.nuxeo</groupId>
+        <artifactId>nuxeo-opensearch1-bom</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>

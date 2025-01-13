@@ -35,12 +35,8 @@
       <artifactId>opensearch</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.opensearch.client</groupId>
-      <artifactId>opensearch-rest-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.opensearch.client</groupId>
-      <artifactId>opensearch-rest-high-level-client</artifactId>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-core</artifactId>
     </dependency>
     <dependency>
       <groupId>org.opensearch</groupId>
@@ -146,6 +142,18 @@
       <type>test-jar</type>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.nuxeo</groupId>
+        <artifactId>nuxeo-opensearch1-bom</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>

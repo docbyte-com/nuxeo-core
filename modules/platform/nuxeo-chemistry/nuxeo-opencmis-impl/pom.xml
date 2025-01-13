@@ -100,10 +100,5 @@
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>provided</scope>
     </dependency>
-    <dependency>
-      <groupId>org.opensearch</groupId>
-      <artifactId>opensearch</artifactId>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 </project>

@@ -39,6 +39,7 @@
   </ciManagement>
 
   <modules>
+    <module>boms</module>
     <module>modules</module>
   </modules>
 
@@ -67,7 +68,7 @@
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
     <tomcat.version>10.1.34</tomcat.version>
-    <opensearch.version>1.3.19</opensearch.version>
+    <opensearch1.version>1.3.19</opensearch1.version>
     <netty.version>4.1.116.Final</netty.version>
     <netty.boringssl.version>2.0.69.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
@@ -2513,44 +2514,7 @@
         <artifactId>joda-time</artifactId>
         <version>2.13.0</version>
       </dependency>
-
-      <!-- OpenSearch -->
-      <dependency>
-        <groupId>org.opensearch</groupId>
-        <artifactId>opensearch</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch</groupId>
-        <artifactId>opensearch-core</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch</groupId>
-        <artifactId>opensearch-x-content</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>opensearch-rest-high-level-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>opensearch-rest-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>transport</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.plugin</groupId>
-        <artifactId>transport-netty4-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <!-- specify a jna version compatible with ARM architecture -->
+      <!-- specify a jna version compatible with ARM architecture, required by MariaDB, OpenSearch -->
       <dependency>
         <groupId>net.java.dev.jna</groupId>
         <artifactId>jna</artifactId>
@@ -2558,6 +2522,7 @@
       </dependency>
 
       <!-- need a version more recent than the one pulled by transport-netty4-client -->
+      <!-- also used by mockserver-netty -->
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-handler</artifactId>
@@ -2629,13 +2594,6 @@
         <groupId>io.netty</groupId>
         <artifactId>netty-tcnative-boringssl-static</artifactId>
         <version>${netty.boringssl.version}</version>
-      </dependency>
-
-      <!-- needed for embedded mode -->
-      <dependency>
-        <groupId>org.opensearch.plugin</groupId>
-        <artifactId>analysis-common</artifactId>
-        <version>${opensearch.version}</version>
       </dependency>
 
       <!-- apache -->

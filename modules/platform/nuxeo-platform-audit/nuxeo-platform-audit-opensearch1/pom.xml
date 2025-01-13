@@ -19,6 +19,10 @@
       <groupId>org.opensearch</groupId>
       <artifactId>opensearch-core</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-x-content</artifactId>
+    </dependency>
 
     <!-- Nuxeo dependencies -->
     <dependency>
@@ -79,6 +83,18 @@
       <artifactId>nuxeo-platform-directory-test</artifactId>
     </dependency>
   </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.nuxeo</groupId>
+        <artifactId>nuxeo-opensearch1-bom</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <build>
     <plugins>
