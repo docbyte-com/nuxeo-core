@@ -431,7 +431,9 @@ public class CSVImporterWork extends TransientStoreWork {
         Map<String, Serializable> values = new HashMap<>();
         for (String headerValue : header.keySet()) {
             String lineValue = record.get(headerValue);
-            lineValue = lineValue.trim();
+            if (options.trim()) {
+                lineValue = lineValue.trim();
+            }
             String fieldName = headerValue;
             if (!CSV_NAME_COL.equals(headerValue) && !CSV_TYPE_COL.equals(headerValue)) {
                 if (AUTHORIZED_HEADERS.contains(headerValue) && !StringUtils.isBlank(lineValue)) {

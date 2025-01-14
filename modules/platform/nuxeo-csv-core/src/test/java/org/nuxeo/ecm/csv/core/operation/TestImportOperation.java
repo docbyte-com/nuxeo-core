@@ -22,10 +22,10 @@ package org.nuxeo.ecm.csv.core.operation;
 import static junit.framework.TestCase.assertNotNull;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.DOCS_VALUES_WITH_SPACES;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.doAssertDescription;
 
-import java.io.File;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -88,17 +88,53 @@ public class TestImportOperation {
     }
 
     @Test
-    public void testImportOperation() throws OperationException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("path", testFolder.getPathAsString());
+    public void testImportOperationTrimByDefault() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
 
+    @Test
+    public void testImportOperationDoNotTrimByParam() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", false);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationDoNotTrimByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationTrimByParamButNotByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", true);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
+
+    @Test
+    public void testImportOperation() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_OK_CSV));
+        doTestImportOperation(params, blob, 0, 0, 336, 336);
+    }
+
+    public void doTestImportOperation(Map<String, Object> params, Blob input, int expectedErrorCount,
+            int expectedSkippedCount, int expectedSuccessCount, int expectedTotalCount) throws OperationException {
         var chain = new OperationChain("test-chain");
         chain.add(CSVImportOperation.ID).from(params);
 
         OperationContext ctx = new OperationContext(session);
-        File csv = FileUtils.getResourceFileFromContext(DOCS_OK_CSV);
-        Blob blob = new FileBlob(csv);
-        ctx.setInput(blob);
+        ctx.setInput(input);
 
         String importId = (String) service.run(ctx, chain);
 
@@ -125,9 +161,9 @@ public class TestImportOperation {
         CSVImportResult result = (CSVImportResult) service.run(ctx, chain);
 
         assertNotNull(result);
-        assertEquals(0, result.getErrorLineCount());
-        assertEquals(0, result.getSkippedLineCount());
-        assertEquals(336, result.getSuccessLineCount());
-        assertEquals(336, result.getTotalLineCount());
+        assertEquals(expectedErrorCount, result.getErrorLineCount());
+        assertEquals(expectedSkippedCount, result.getSkippedLineCount());
+        assertEquals(expectedSuccessCount, result.getSuccessLineCount());
+        assertEquals(expectedTotalCount, result.getTotalLineCount());
     }
 }

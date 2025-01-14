@@ -585,7 +585,7 @@ public class TestCSVImporterCreateMode extends AbstractCSVImporterTest {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-properties-contrib.xml")
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-legacy-date-format-contrib.xml")
     public void shouldCreateDocumentWithLegacyDateFormat() throws IOException, InterruptedException {
         CSVImporterOptions options = new CSVImporterOptions.Builder().build();
 
