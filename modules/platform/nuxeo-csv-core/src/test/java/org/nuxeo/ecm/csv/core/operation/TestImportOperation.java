@@ -20,13 +20,17 @@
 package org.nuxeo.ecm.csv.core.operation;
 
 import static junit.framework.TestCase.assertNotNull;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.DOCS_VALUES_WITH_SPACES;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.doAssertDescription;
 
-import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
+
+import org.awaitility.Duration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,8 +53,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.nuxeo.transientstore.test.TransientStoreFeature;
 
-import com.google.inject.Inject;
-
 /**
  * @since 8.10
  */
@@ -68,15 +70,15 @@ public class TestImportOperation {
 
     private static final String DOCS_OK_CSV = "docs_ok_big.csv";
 
-    @Inject
-    private CoreSession session;
+    protected DocumentModel testFolder;
 
     @Inject
     AutomationService service;
 
     OperationChain chain;
 
-    protected DocumentModel testFolder;
+    @Inject
+    private CoreSession session;
 
     @Before
     public void setUp() {
@@ -90,43 +92,66 @@ public class TestImportOperation {
     }
 
     @Test
-    public void testImportOperation() throws OperationException, InterruptedException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("path", testFolder.getPathAsString());
+    public void testImportOperationTrimByDefault() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
 
-        chain = new OperationChain("test-chain");
+    @Test
+    public void testImportOperationDoNotTrimByParam() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", false);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationDoNotTrimByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationTrimByParamButNotByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", true);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
+
+    @Test
+    public void testImportOperation() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_OK_CSV));
+        doTestImportOperation(params, blob, 0, 0, 336, 336);
+    }
+
+    public void doTestImportOperation(Map<String, Object> params, Blob input, int expectedErrorCount,
+            int expectedSkippedCount, int expectedSuccessCount, int expectedTotalCount) throws OperationException {
+        var chain = new OperationChain("test-chain");
         chain.add(CSVImportOperation.ID).from(params);
 
         OperationContext ctx = new OperationContext(session);
-        File csv = FileUtils.getResourceFileFromContext(DOCS_OK_CSV);
-        Blob blob = new FileBlob(csv);
-        ctx.setInput(blob);
+        ctx.setInput(input);
 
         String importId = (String) service.run(ctx, chain);
 
         assertNotNull(importId);
-
-        boolean completed = false;
-        long start = System.currentTimeMillis();
-        long end = start + TIMEOUT_SECONDS * 1000;
-        do {
-            if (System.currentTimeMillis() > end) {
-                fail(String.format("CSV could not complete after %d seconds", TIMEOUT_SECONDS));
-            }
-            chain = new OperationChain("test-chain");
-            chain.add(CSVImportStatusOperation.ID);
-
-            ctx = new OperationContext(session);
-            ctx.setInput(importId);
-
-            CSVImportStatus status = (CSVImportStatus) service.run(ctx, chain);
-
+        await().pollInterval(Duration.ONE_HUNDRED_MILLISECONDS).atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS).until(() -> {
+            var statusChain = new OperationChain("test-chain");
+            statusChain.add(CSVImportStatusOperation.ID);
+            var context = new OperationContext(session);
+            context.setInput(importId);
+            var status = (CSVImportStatus) service.run(context, statusChain);
             assertNotNull(status);
-            completed = status.isComplete();
-            if (!completed) {
-                Thread.sleep(100);
-            }
-        } while (!completed);
+            return status.isComplete();
+        });
 
         chain = new OperationChain("test-chain");
         chain.add(CSVImportResultOperation.ID);
@@ -137,9 +162,9 @@ public class TestImportOperation {
         CSVImportResult result = (CSVImportResult) service.run(ctx, chain);
 
         assertNotNull(result);
-        assertEquals(0, result.getErrorLineCount());
-        assertEquals(0, result.getSkippedLineCount());
-        assertEquals(336, result.getSuccessLineCount());
-        assertEquals(336, result.getTotalLineCount());
+        assertEquals(expectedErrorCount, result.getErrorLineCount());
+        assertEquals(expectedSkippedCount, result.getSkippedLineCount());
+        assertEquals(expectedSuccessCount, result.getSuccessLineCount());
+        assertEquals(expectedTotalCount, result.getTotalLineCount());
     }
 }

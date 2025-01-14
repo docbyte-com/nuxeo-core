@@ -30,11 +30,7 @@ import org.nuxeo.ecm.csv.core.CSVImporterOptions;
 import org.nuxeo.ecm.csv.core.CSVImporterOptions.ImportMode;
 import org.nuxeo.runtime.api.Framework;
 
-@Operation(
-        id = CSVImportOperation.ID,
-        category = Constants.CAT_DOCUMENT,
-        label = "CSVImport"
-)
+@Operation(id = CSVImportOperation.ID, category = Constants.CAT_DOCUMENT, label = "CSVImport")
 public class CSVImportOperation {
 
     public static final String ID = "CSV.Import";
@@ -48,17 +44,22 @@ public class CSVImportOperation {
     @Param(name = "sendReport", required = false)
     protected boolean mSendReport;
 
+    @Param(name = "trim", required = false)
+    protected Boolean trim;
+
     @Param(name = "documentMode", required = false)
     protected boolean mDocumentMode;
 
     @OperationMethod
     public String importCSV(Blob blob) {
         ImportMode importMode = mDocumentMode ? ImportMode.IMPORT : ImportMode.CREATE;
-        CSVImporterOptions options = new CSVImporterOptions.Builder().sendEmail(mSendReport)
-                                                                     .importMode(importMode)
-                                                                     .build();
+        CSVImporterOptions.Builder optionsBuilder = new CSVImporterOptions.Builder().sendEmail(mSendReport)
+                                                                                    .importMode(importMode);
+        if (trim != null) {
+            optionsBuilder.trim(trim);
+        }
         CSVImporter csvImporter = Framework.getService(CSVImporter.class);
-        return csvImporter.launchImport(mSession, mPath, blob, options);
+        return csvImporter.launchImport(mSession, mPath, blob, optionsBuilder.build());
     }
 
 }
