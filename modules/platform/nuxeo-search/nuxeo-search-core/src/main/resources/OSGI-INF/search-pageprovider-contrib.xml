@@ -75,7 +75,7 @@
             <property name="size">10</property>
           </properties>
         </aggregate>
-        <aggregate id="common_size_agg" type="range" parameter="file:content.length">
+        <aggregate id="common_size_agg" type="range" parameter="file:content/length">
           <field schema="default_search" name="common_size_agg" />
           <ranges>
             <range key="tiny" to="102400"/>
@@ -141,7 +141,7 @@
             <property name="size">10</property>
           </properties>
         </aggregate>
-        <aggregate id="common_size_agg" type="range" parameter="file:content.length">
+        <aggregate id="common_size_agg" type="range" parameter="file:content/length">
           <field schema="default_search" name="common_size_agg" />
           <ranges>
             <range key="tiny" to="102400"/>
