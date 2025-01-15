@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,61 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
+
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.ui.web.auth.interfaces.NuxeoAuthenticationSessionManager;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("sessionManager")
-public class SessionManagerDescriptor {
+public class SessionManagerDescriptor implements Descriptor {
 
     @XNode("@name")
-    private String name;
+    protected String name;
 
     @XNode("@enabled")
-    boolean enabled = true;
+    protected Boolean enabled;
 
     @XNode("@class")
-    Class<NuxeoAuthenticationSessionManager> className;
+    protected Class<NuxeoAuthenticationSessionManager> className;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link #isEnabled()} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public boolean getEnabled() {
-        return enabled;
+        return isEnabled();
+    }
+
+    public boolean isEnabled() {
+        return toBooleanDefaultIfNull(enabled, true);
     }
 
     public Class<NuxeoAuthenticationSessionManager> getClassName() {
         return className;
     }
 
+    @Override
+    public SessionManagerDescriptor merge(Descriptor o) {
+        var other = (SessionManagerDescriptor) o;
+        var merged = new SessionManagerDescriptor();
+        merged.name = name; // we merge based on name, so no need for merging it
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.className = defaultIfNull(other.className, className);
+        return merged;
+    }
 }
