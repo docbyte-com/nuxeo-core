@@ -24,8 +24,10 @@ import static org.nuxeo.lib.stream.computation.AbstractComputation.INPUT_1;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
@@ -86,13 +88,20 @@ public class IndexingAction implements StreamProcessorTopology {
             var indexingService = Framework.getService(SearchIndexingService.class);
             var searchService = Framework.getService(SearchService.class);
             var indexes = searchService.getSearchIndexForRepository(repository);
+            Set<String> failures = new HashSet<>();
             for (SearchIndex index : indexes) {
                 SearchClient client = indexingService.getClient(index.client());
                 if (!client.hasCapability(INDEXING)) {
                     continue;
                 }
-                indexingService.indexDocuments(requestBuilder.build(index));
+                var response = indexingService.indexDocuments(requestBuilder.build(index));
+                for (var failure : response.getFailures()) {
+                    delta.inError(0, String.format("Cannot index doc: %s, failure: %s, index: %s", failure.documentId(),
+                            failure.failureMessage(), index), 0);
+                    failures.add(failure.documentId());
+                }
             }
+            delta.setErrorCount(failures.size());
         }
     }
 }

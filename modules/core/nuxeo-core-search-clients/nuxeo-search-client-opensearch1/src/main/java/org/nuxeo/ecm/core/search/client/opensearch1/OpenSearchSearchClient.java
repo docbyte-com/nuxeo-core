@@ -24,14 +24,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.BulkIndexingResponse;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
-import org.nuxeo.ecm.core.search.SearchClientRetryableException;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchScrollContext;
-import org.nuxeo.runtime.RetryableException;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
@@ -106,7 +105,8 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     }
 
     @Override
-    public void indexDocuments(BulkIndexingRequest request) throws SearchClientRetryableException {
+    public BulkIndexingResponse indexDocuments(BulkIndexingRequest request) {
+        log.debug("indexDocuments: {}", request);
         String indexName = request.getSearchIndex().index();
         BulkRequest bulkRequest = new BulkRequest();
         int count = 0;
@@ -120,36 +120,44 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                             QueryBuilders.termQuery(ECM_ANCESTOR_FIELDS, item.getDocumentId()));
                     doRecurseDelete(indexName, query);
                 }
-                count++;
             } else {
                 bulkRequest.add(new IndexRequest(indexName).id(item.getDocumentId())
                                                            .versionType(VersionType.EXTERNAL)
                                                            .version(request.getVersion())
                                                            .source(item.getSource(), XContentType.JSON));
-                count++;
             }
+            count++;
         }
         if (request.isRefresh()) {
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
         }
         // TODO check bulk request size and split if necessary
+        var responseBuilder = BulkIndexingResponse.buildResponse(request.getSearchIndex());
         if (count > 0) {
-            // TODO add a BulkResponse with error, missing, indexed docs
-            // the goal is to be able to retry only the failed documents one by one.
             try {
-                client.bulk(bulkRequest);
-            } catch (RetryableException e) {
-                throw new SearchClientRetryableException(e.getMessage());
+                var bulkResponse = client.bulk(bulkRequest);
+                bulkResponse.forEach(item -> {
+                    if (item.isFailed()) {
+                        responseBuilder.addFailure(item.getId(), item.getFailureMessage());
+                    }
+                });
+            } catch (RuntimeServiceException e) {
+                throw new SearchClientException(e);
             }
         }
+        return responseBuilder.build();
     }
 
     @Override
     public void refresh(String indexName) {
-        client.refresh(indexName);
+        try {
+            client.refresh(indexName);
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
     }
 
-    protected void doRecurseDelete(String indexName, QueryBuilder queryBuilder) throws SearchClientRetryableException {
+    protected void doRecurseDelete(String indexName, QueryBuilder queryBuilder) {
         log.debug("delete recurse: {}", queryBuilder);
         try {
             TimeValue keepAlive = TimeValue.timeValueMinutes(1);
@@ -174,8 +182,6 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             ClearScrollRequest closeScrollRequest = new ClearScrollRequest();
             closeScrollRequest.addScrollId(response.getScrollId());
             client.clearScroll(closeScrollRequest);
-        } catch (RetryableException e) {
-            throw new SearchClientRetryableException(e.getMessage());
         } catch (RuntimeServiceException e) {
             throw new SearchClientException(e);
         }
@@ -223,16 +229,24 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     public SearchResponse searchScroll(SearchScrollContext scrollContext) {
         var osRequest = new SearchScrollRequest(scrollContext.scrollId()).scroll(
                 getKeepAlive(scrollContext.searchQuery()));
-        var osSearchResponse = client.scroll(osRequest);
-        return new OpenSearchResponseTransformer().apply(scrollContext.searchQuery(), osSearchResponse);
+        try {
+            var osSearchResponse = client.scroll(osRequest);
+            return new OpenSearchResponseTransformer().apply(scrollContext.searchQuery(), osSearchResponse);
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
     }
 
     @Override
     public boolean clearScroll(SearchScrollContext scrollContext) {
         ClearScrollRequest request = new ClearScrollRequest();
         request.addScrollId(scrollContext.scrollId());
-        var response = client.clearScroll(request);
-        return response.isSucceeded();
+        try {
+            var response = client.clearScroll(request);
+            return response.isSucceeded();
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
     }
 
     @Override

@@ -32,6 +32,7 @@ import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.ScrollResult;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.BulkIndexingResponse;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchHit;
@@ -101,8 +102,8 @@ public class RepositorySearchClient extends AbstractSearchClient {
     }
 
     @Override
-    public void indexDocuments(BulkIndexingRequest request) {
-        // not needed
+    public BulkIndexingResponse indexDocuments(BulkIndexingRequest request) {
+        return BulkIndexingResponse.buildResponse(request.getSearchIndex()).build();
     }
 
     @Override

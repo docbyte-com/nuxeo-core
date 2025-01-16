@@ -19,7 +19,9 @@
 package org.nuxeo.ecm.core.search;
 
 /**
- * Interface used by the SearchService to access an external Search Cluster.
+ * Interface used by the SearchService to access an external Search Cluster. The client must take care of the retry
+ * mechanism, in case of failure to process a request or accessing the search backend a SearchClientException must be
+ * raised.
  *
  * @since 2025.0
  */
@@ -60,11 +62,11 @@ public interface SearchClient extends AutoCloseable {
     void dropAndInitIndex(String indexName);
 
     /**
-     * Index documents.
+     * Index documents. Check the response for possible indexing failure.
      *
-     * @throws SearchClientRetryableException when search cluster is not ready
+     * @throws SearchClientException when the search backend is not able to process the request after retries.
      */
-    void indexDocuments(BulkIndexingRequest request) throws SearchClientRetryableException;
+    BulkIndexingResponse indexDocuments(BulkIndexingRequest request);
 
     /**
      * Refreshes an index so newly indexed documents are searchable.

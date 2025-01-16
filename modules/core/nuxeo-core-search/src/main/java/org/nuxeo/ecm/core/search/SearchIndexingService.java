@@ -30,7 +30,7 @@ public interface SearchIndexingService {
     /**
      * Internal: index documents.
      */
-    void indexDocuments(BulkIndexingRequest request);
+    BulkIndexingResponse indexDocuments(BulkIndexingRequest request);
 
     /**
      * Internal: reindex the repository
@@ -40,7 +40,7 @@ public interface SearchIndexingService {
     String reindexRepository(String repository);
 
     /**
-     * Internal: reindex documents of the given  repository according to the given NXQL query.
+     * Internal: reindex documents of the given repository according to the given NXQL query.
      *
      * @return the bulk command id in charge of reindexing
      */

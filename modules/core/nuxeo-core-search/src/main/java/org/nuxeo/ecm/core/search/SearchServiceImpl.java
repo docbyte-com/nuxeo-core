@@ -195,15 +195,12 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     @Override
-    public void indexDocuments(BulkIndexingRequest request) {
+    public BulkIndexingResponse indexDocuments(BulkIndexingRequest request) {
         loadSources(request);
-        try {
-            log.debug("Indexing {} documents ({} delete): {}", request::size, request::sizeDelete, () -> request);
-            getClient(request.getSearchIndex().client()).indexDocuments(request);
-            log.debug("{} Documents indexed", request.size());
-        } catch (SearchClientRetryableException e) {
-            throw new RuntimeException(e);
-        }
+        log.debug("Indexing {} documents ({} delete): {}", request::size, request::sizeDelete, () -> request);
+        var response = getClient(request.getSearchIndex().client()).indexDocuments(request);
+        log.debug("Response: {}", response);
+        return response;
     }
 
     protected void loadSources(BulkIndexingRequest bulk) {

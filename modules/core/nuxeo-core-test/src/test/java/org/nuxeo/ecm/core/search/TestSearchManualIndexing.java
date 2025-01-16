@@ -84,9 +84,9 @@ public class TestSearchManualIndexing {
         session.save();
 
         // sync non recursive
-        searchIndexingService.indexDocuments(
+        var response = searchIndexingService.indexDocuments(
                 BulkIndexingRequest.buildRequest(true).add(IndexingRequest.upsert(doc.getId())).build(searchIndex));
-
+        assertFalse(response.toString(), response.hasFailure());
         assertIndexedContains(doc.getId(), "Testme");
     }
 

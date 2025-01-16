@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -73,7 +74,8 @@ public class TestOpenSearchSearchClient {
         var requestBuilder = BulkIndexingRequest.buildRequest(true);
         requestBuilder.add(createRequest("foo", "A foo doc"));
         requestBuilder.add(createRequest("bar", "A bar doc"));
-        client.indexDocuments(requestBuilder.build(searchIndex));
+        var response = client.indexDocuments(requestBuilder.build(searchIndex));
+        assertFalse(response.toString(), response.hasFailure());
 
         assertNotNull(client.getDocument(searchIndex.index(), "foo"));
         assertTrue(client.getDocument(searchIndex.index(), "foo").contains("A foo doc"));

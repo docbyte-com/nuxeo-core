@@ -19,24 +19,13 @@
 package org.nuxeo.ecm.core.search.index;
 
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_STREAM;
-import static org.nuxeo.ecm.core.search.SearchClient.Capability.INDEXING;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.INPUT_1;
 import static org.nuxeo.lib.stream.computation.AbstractComputation.OUTPUT_1;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
-import org.nuxeo.ecm.core.search.BulkIndexingRequest;
-import org.nuxeo.ecm.core.search.IndexingRequest;
-import org.nuxeo.ecm.core.search.SearchClient;
-import org.nuxeo.ecm.core.search.SearchIndex;
-import org.nuxeo.ecm.core.search.SearchIndexingService;
-import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.lib.stream.computation.Topology;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamProcessorTopology;
 
 /**
@@ -58,29 +47,15 @@ public class IndexingBackgroundAction implements StreamProcessorTopology {
 
     }
 
-    public static class IndexingBackgroundComputation extends AbstractBulkComputation {
+    public static class IndexingBackgroundComputation extends IndexingAction.IndexingComputation {
 
         public IndexingBackgroundComputation(String name) {
             super(name);
         }
 
         @Override
-        protected void compute(CoreSession session, List<String> ids, Map<String, Serializable> properties) {
-            String repository = session.getRepositoryName();
-            var requestBuilder = BulkIndexingRequest.buildRequest(false);
-            for (String id : ids) {
-                requestBuilder.add(IndexingRequest.upsert(id));
-            }
-            var indexingService = Framework.getService(SearchIndexingService.class);
-            var searchService = Framework.getService(SearchService.class);
-            var indexes = searchService.getSearchIndexForRepository(repository);
-            for (SearchIndex index : indexes) {
-                SearchClient client = indexingService.getClient(index.client());
-                if (!client.hasCapability(INDEXING)) {
-                    continue;
-                }
-                indexingService.indexDocuments(requestBuilder.build(index));
-            }
+        public void startBucket(String bucketKey) {
+            delete = false;
         }
     }
 }

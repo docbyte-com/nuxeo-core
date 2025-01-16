@@ -28,6 +28,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
+import org.nuxeo.ecm.core.search.BulkIndexingResponse;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchQuery;
@@ -86,7 +87,7 @@ public class MockSearchClient extends AbstractSearchClient {
     }
 
     @Override
-    public void indexDocuments(BulkIndexingRequest bulk) {
+    public BulkIndexingResponse indexDocuments(BulkIndexingRequest bulk) {
         long now = System.currentTimeMillis();
         for (IndexingRequest request : bulk.getRequests()) {
             String key = keyOf(bulk.getSearchIndex().index(), request.getDocumentId());
@@ -114,6 +115,7 @@ public class MockSearchClient extends AbstractSearchClient {
                 indexTime.put(key, now);
             }
         }
+        return BulkIndexingResponse.buildResponse(bulk.getSearchIndex()).build();
     }
 
     @Override

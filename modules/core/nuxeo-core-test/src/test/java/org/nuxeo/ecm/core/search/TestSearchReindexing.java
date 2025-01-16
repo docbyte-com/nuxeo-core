@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
+import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
 
 import java.util.List;
 
@@ -39,6 +40,9 @@ import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.api.trash.TrashService;
+import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
@@ -68,6 +72,9 @@ public class TestSearchReindexing {
 
     @Inject
     protected TrashService trashService;
+
+    @Inject
+    protected BulkService bulkService;
 
     @Inject
     protected CoreSearchFeature coreSearchFeature;
@@ -102,7 +109,7 @@ public class TestSearchReindexing {
         assertEquals(getDigest(coreDocs), getDigest(docs2));
     }
 
-    private void buildDocs() {
+    protected void buildDocs() {
         DocumentModel folder = session.createDocumentModel("/", "section", "Folder");
         folder = session.createDocument(folder);
         session.saveDocument(folder);
@@ -111,7 +118,7 @@ public class TestSearchReindexing {
             doc.setPropertyValue("dc:title", "TestMe" + i);
             BlobHolder holder = doc.getAdapter(BlobHolder.class);
             holder.setBlob(new StringBlob("You know for search" + i));
-            doc = session.createDocument(doc);
+            session.createDocument(doc);
         }
         session.save();
 
@@ -144,6 +151,44 @@ public class TestSearchReindexing {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
+    public void shouldReindexAndCountErrors() {
+        DocumentModel folder = session.createDocumentModel("/", "section", "Folder");
+        // dynamic mapping will autodetect a date format for dc:coverage field
+        folder.setPropertyValue("dc:coverage", "2025/01/17");
+        session.createDocument(folder);
+        DocumentModel doc = session.createDocumentModel("/", "brokenDoc", "File");
+        // malformed date will create an indexing failure
+        doc.setPropertyValue("dc:coverage", "99999/01/18");
+        // disable indexing to avoid the failure
+        doc.putContextData(DISABLE_AUTO_INDEXING, Boolean.TRUE);
+        doc = session.createDocument(doc);
+        txFeature.nextTransaction();
+
+        String nxql = "SELECT * FROM Document";
+        DocumentModelList coreDocs = session.query(nxql);
+        assertEquals(2, coreDocs.totalSize());
+        DocumentModelList docs = searchService.search(newSearchQuery(session, nxql)).loadDocuments(session);
+        // the broken doc has not been indexed
+        assertEquals(1, docs.totalSize());
+
+        // reindex with a query so we keep the mapping where dc:coverage is a date
+        String commandId = searchIndexingService.reindexDocuments(session.getRepositoryName(),
+                "SELECT * FROM Document");
+        txFeature.nextTransaction();
+        forceRefresh();
+
+        BulkStatus status = bulkService.getStatus(commandId);
+        // 2 docs indexed, one in error
+        assertEquals(2, status.getTotal());
+        assertEquals(1, status.getErrorCount());
+        assertTrue(status.toString(), status.getErrorMessage().startsWith("Cannot index doc: " + doc.getId()));
+
+        docs = searchService.search(newSearchQuery(session, nxql)).loadDocuments(session);
+        assertEquals(1, docs.totalSize());
+    }
+
+    @Test
     // @LogCaptureFeature.FilterOn(logLevel = "WARN", loggerClass = ElasticSearchIndexingImpl.class)
     @ConsoleLogLevelThreshold("ERROR")
     // @WithFrameworkProperty(name = "elasticsearch.index.bulkMaxSize", value = "4096")
@@ -152,7 +197,7 @@ public class TestSearchReindexing {
         shouldReindexDocument();
         List<String> events = logCaptureResult.getCaughtEventMessages();
         assertFalse("Expecting warn message", events.isEmpty());
-        assertTrue(events.get(events.size() - 1).contains("Max bulk size reached"));
+        assertTrue(events.getLast().contains("Max bulk size reached"));
     }
 
 }
