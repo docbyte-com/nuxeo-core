@@ -28,3 +28,4 @@ nuxeo.audit.backend.default.opensearch1.client.keyStore.type=${nuxeo.opensearch1
 nuxeo.audit.backend.default.opensearch1.settings.indexTranslogDurability=${elasticsearch.index.translog.durability:=request}
 nuxeo.audit.backend.default.opensearch1.settings.numberOfShards=${elasticsearch.indexNumberOfShards:=5}
 nuxeo.audit.backend.default.opensearch1.settings.numberOfReplicas=${elasticsearch.indexNumberOfReplicas:=1}
+nuxeo.audit.backend.default.opensearch1.settings.ignoreMalformed=true

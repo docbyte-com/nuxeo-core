@@ -449,31 +449,36 @@ public class OpenSearchRestClient implements OpenSearchClient {
     protected BulkResponse doBulk(BulkRequest request) throws RetryableException {
         try (Scope ignored = getScopedSpan("opensearch/_bulk", "actions: " + request.numberOfActions())) {
             log.trace("Bulk indexing actions: {}", request.numberOfActions());
-            BulkResponse response = client.bulk(request, COMPAT_ES_OPTIONS);
-            if (response.hasFailures()) {
-                for (var item : response.getItems()) {
-                    if (item.isFailed() && RestStatus.TOO_MANY_REQUESTS == item.getFailure().getStatus()) {
-                        throw new RetryableException("Detecting overloaded OpenSearch, response message: %s".formatted(
-                                item.getFailureMessage()));
-                    }
+            BulkResponse responses = client.bulk(request, COMPAT_ES_OPTIONS);
+            for (var response : responses.getItems()) {
+                if (!response.isFailed()) {
+                    continue;
+                }
+                switch (response.getFailure().getStatus()) {
+                    case CONFLICT -> log.trace("Ignore indexing of: {} because a more recent versions is present: {}",
+                            response.getId(), response.getFailureMessage());
+                    case TOO_MANY_REQUESTS, BAD_GATEWAY, SERVICE_UNAVAILABLE, GATEWAY_TIMEOUT ->
+                        throw new RetryableException("Detecting overloaded OpenSearch (%s): %s".formatted(
+                                response.getFailure().getStatus(), response.getFailureMessage()));
+                    default -> log.error("Indexing failure of: {}, {}", response.getId(), response.getFailureMessage());
                 }
             }
             log.trace("Bulk indexed");
-            return response;
+            return responses;
         } catch (ResponseException e) {
             if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
-                throw new RetryableException("Detecting overloaded OpenSearch, response status: %s".formatted(
+                throw new RetryableException("Detecting overloaded OpenSearch (429), response status: %s".formatted(
                         e.getResponse().getStatusLine()), e);
             }
             throw new RuntimeServiceException(e);
         } catch (OpenSearchStatusException e) {
             if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
                 throw new RetryableException(
-                        "Detecting overloaded OpenSearch, response message: %s".formatted(e.getMessage()), e);
+                        "Detecting overloaded OpenSearch (429), response message: %s".formatted(e.getMessage()), e);
             }
             throw new RuntimeServiceException(e);
         } catch (SocketTimeoutException e) {
-            throw new RetryableException("OpenSearch timeout, might be overloaded", e);
+            throw new RetryableException("Detecting overloaded OpenSearch, timeout", e);
         } catch (IOException e) {
             throw new RuntimeServiceException(e);
         }

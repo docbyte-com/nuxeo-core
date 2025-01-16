@@ -7,6 +7,7 @@
   "number_of_shards": "${nuxeo.audit.backend.default.opensearch1.settings.numberOfShards}",
   "number_of_replicas": "${nuxeo.audit.backend.default.opensearch1.settings.numberOfReplicas}",
 </#if>
+  "index.mapping.ignore_malformed": ${nuxeo.audit.backend.default.opensearch1.settings.ignoreMalformed},
   "analysis": {
     "filter": {
       "truncate_filter": {
