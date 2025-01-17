@@ -1,3 +1,4 @@
+<#escape x as x?html>
 <header>
 
   <h2>${docShare.title}</h2>
@@ -11,3 +12,4 @@
   </detail>
 
 </header>
+</#escape>
