@@ -1,3 +1,4 @@
+<#escape x as x?html>
 <div class="pageNavigationControls">
 
 <@pageLink condition="${previousPageAvailable}" page="0" image="first" />
@@ -22,3 +23,4 @@
   <input type="image" src="${skinPath}/img/navigation_${image}.png">
 </a>
 </#macro>
+</#escape>
