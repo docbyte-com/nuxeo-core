@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,16 +39,18 @@ import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreSearchFeature.class)
+@Features({ CoreSearchFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
 public class TestSearchCompareWithRepository {
@@ -65,6 +67,12 @@ public class TestSearchCompareWithRepository {
     @Inject
     protected TransactionalFeature txFeature;
 
+    @Inject
+    protected CoreFeature coreFeature;
+
+    @Inject
+    protected LogCaptureFeature.Result logResult;
+
     private String proxyPath;
 
     @Before
@@ -79,7 +87,7 @@ public class TestSearchCompareWithRepository {
                     (i % 2 == 0) ? new String[] { "Subjects1" } : new String[] { "Subjects1", "Subjects2" });
             doc.setPropertyValue("relatedtext:relatedtextresources",
                     (Serializable) List.of(Map.of("relatedtextid", "123")));
-            doc = session.createDocument(doc);
+            session.createDocument(doc);
         }
         for (int i = 5; i < 10; i++) {
             String name = "note" + i;
@@ -88,12 +96,12 @@ public class TestSearchCompareWithRepository {
             doc.setPropertyValue("note:note", "Content" + i);
             doc.setPropertyValue("dc:nature", "Nature" + i);
             doc.setPropertyValue("dc:rights", "Rights" + i % 2);
-            doc = session.createDocument(doc);
+            session.createDocument(doc);
         }
 
         DocumentModel doc = session.createDocumentModel("/", "hidden", "HiddenFolder");
         doc.setPropertyValue("dc:title", "HiddenFolder");
-        doc = session.createDocument(doc);
+        session.createDocument(doc);
 
         DocumentModel folder = session.createDocumentModel("/", "folder", "Folder");
         folder.setPropertyValue("dc:title", "Folder");
@@ -171,7 +179,6 @@ public class TestSearchCompareWithRepository {
     }
 
     protected void compareSearchAndCore(String nxql) {
-
         DocumentModelList coreResult = session.query(nxql);
         var searchQuery = newSearchQuery(session, nxql);
         DocumentModelList esResult = searchService.search(searchQuery).loadDocuments(session);
@@ -245,6 +252,19 @@ public class TestSearchCompareWithRepository {
                 "SELECT * from Document WHERE dc:title LIKE '%ile%' ORDER BY ecm:uuid",
                 "SELECT * from Document WHERE dc:title NOT LIKE '%ile%' ORDER BY ecm:uuid",
                 "SELECT * from Document WHERE dc:title NOT LIKE '%i%e%' ORDER BY ecm:uuid", });
+    }
+
+    @Test
+    @LogCaptureFeature.FilterOn(logLevel = "WARN")
+    public void testSearchWithEsHints() {
+        // TODO NXP-32984 operator not yet supported but fallback on nxql
+        testQueries(new String[] { "SELECT * from Document WHERE dc:title LIKE 'File%' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE /*+ES: INDEX(dc:title.fulltext) OPERATOR(match_phrase_prefix) */ dc:title LIKE 'File%' ORDER BY ecm:uuid" });
+        List<String> caughtEvents = logResult.getCaughtEventMessages();
+        assertEquals(1, caughtEvents.size());
+        assertEquals(
+                "NXP-32984: ES Hint operator 'match_phrase_prefix' not yet implemented, fallback to NXQL 'LIKE' operator",
+                caughtEvents.getFirst());
     }
 
     @Test

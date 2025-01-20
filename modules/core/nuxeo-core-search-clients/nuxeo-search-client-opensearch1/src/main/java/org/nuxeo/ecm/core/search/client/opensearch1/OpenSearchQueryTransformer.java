@@ -47,6 +47,8 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.FuzzyQuery;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -107,6 +109,8 @@ import org.opensearch.search.sort.SortOrder;
  * visitor to build the OpenSearch request.
  */
 public class OpenSearchQueryTransformer implements SearchQueryTransformer<SearchRequest> {
+
+    private static final Logger log = LogManager.getLogger(OpenSearchQueryTransformer.class);
 
     public static final String FULLTEXT_FIELD = "all_field";
 
@@ -268,13 +272,13 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         QueryBuilder filter = null;
         String name = getFieldName(nxqlName, hint);
         if (hint != null && hint.operator != null) {
-            // TODO NXP-32984 impl hints
-            // if (ArrayUtils.isNotEmpty(values)) {
-            // filter = makeHintQuery(name, values, hint);
-            // } else {
-            // query = makeHintQuery(name, value, hint);
-            // }
-        } else if (nxqlName.startsWith(NXQL.ECM_FULLTEXT) && ("=".equals(op) || "!=".equals(op) || "<>".equals(op)
+            // TODO NXP-32984 impl hints operators
+            log.atWarn()
+               .withThrowable(log.isDebugEnabled() ? new Throwable("NXP-32984") : null)
+               .log("NXP-32984: ES Hint operator '{}' not yet implemented, fallback to NXQL '{}' operator",
+                       hint.operator, op);
+        }
+        if (nxqlName.startsWith(NXQL.ECM_FULLTEXT) && ("=".equals(op) || "!=".equals(op) || "<>".equals(op)
                 || "LIKE".equals(op) || "NOT LIKE".equals(op))) {
             query = makeFulltextQuery(nxqlName, (String) value, hint);
             if ("!=".equals(op) || "<>".equals(op) || "NOT LIKE".equals(op)) {
@@ -367,15 +371,6 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         }
         return "0".equals(value) ? "false" : "true";
     }
-
-    // TODO NXP-32984 impl hints
-    // protected static QueryBuilder makeHintQuery(String name, Object value, EsHint hint) {
-    // return Framework.getService(ElasticSearchAdmin.class)
-    // .getHintByOperator(hint.operator)
-    // .orElseThrow(() -> new UnsupportedOperationException(
-    // String.format("Operator: %s is unknown", hint.operator)))
-    // .make(hint, name, value);
-    // }
 
     protected QueryBuilder makeStartsWithQuery(String name, Object value) {
         QueryBuilder filter;
