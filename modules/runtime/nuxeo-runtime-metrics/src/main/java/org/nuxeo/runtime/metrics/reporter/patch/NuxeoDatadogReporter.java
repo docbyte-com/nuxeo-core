@@ -236,9 +236,9 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
                 request.addGauge(new DatadogGauge(metricNameFormatter.format(name), value, timestamp, host, tags));
             }
         } catch (Exception e) {
-            String errorMessage = String.format("Error reporting gauge metric (name: %s, tags: %s) to Datadog, "
+            String message = String.format("Error reporting gauge metric (name: %s, tags: %s) to Datadog, "
                     + "continuing reporting other metrics.", name, tags);
-            log.error(errorMessage, e);
+            log.warn(message, e);
         }
     }
 
@@ -409,8 +409,8 @@ public class NuxeoDatadogReporter extends ScheduledReporter {
                         "Transport for datadog reporter is null. " + "Please set a valid transport");
             }
             return new NuxeoDatadogReporter(this.registry, this.transport, this.filter, this.clock, this.host,
-                    this.expansions, this.rateUnit, this.durationUnit, this.metricNameFormatter, this.tags,
-                    this.prefix, this.emptyTimerAsCounter);
+                    this.expansions, this.rateUnit, this.durationUnit, this.metricNameFormatter, this.tags, this.prefix,
+                    this.emptyTimerAsCounter);
         }
     }
 }
