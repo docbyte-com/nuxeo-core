@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,7 @@ package org.nuxeo.ecm.core.search.client.repository;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -33,13 +31,13 @@ import org.nuxeo.ecm.core.api.ScrollResult;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.BulkIndexingResponse;
-import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchHit;
 import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchScrollContext;
+import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
 import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -52,20 +50,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class RepositorySearchClient extends AbstractSearchClient {
 
+    protected static final IndexingJsonWriter INDEXING_WRITER = new DefaultIndexingJsonWriter();
+
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
     protected static final RepositorySearchResponseTransformer RESPONSE_TRANSFORMER = new RepositorySearchResponseTransformer();
 
-    protected final Map<String, String> indexToRepo = new HashMap<>();
+    protected final String repository;
 
-    protected final Map<String, IndexingJsonWriter> indexToWriter = new HashMap<>();
-
-    public RepositorySearchClient(SearchClientDescriptor descriptor) {
+    public RepositorySearchClient(RepositorySearchClientDescriptor descriptor) {
         super(descriptor);
-        for (var indexDescriptor : descriptor.getIndexes()) {
-            indexToRepo.put(indexDescriptor.getId(), indexDescriptor.getRepositoryName());
-            indexToWriter.put(indexDescriptor.getId(), indexDescriptor.newWriterInstance());
-        }
+        repository = descriptor.repository;
     }
 
     @Override
@@ -83,12 +78,6 @@ public class RepositorySearchClient extends AbstractSearchClient {
             case AGGREGATE -> false;
             case MULTI_REPOSITORIES -> false;
         };
-    }
-
-    @Override
-    public boolean createIndexIfNotExists(String name, String repository, String settings, String mapping) {
-        // not supported
-        return false;
     }
 
     @Override
@@ -113,12 +102,12 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     @Override
     public String getDocument(String indexName, String documentId) {
-        CoreSession session = getSessionForIndex(indexName);
+        CoreSession session = CoreInstance.getCoreSession(repository);
         try {
             DocumentModel doc = session.getDocument(new IdRef(documentId));
             try (StringWriter stringWriter = new StringWriter();
                     JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter);) {
-                indexToWriter.get(indexName).writeDocument(generator, doc);
+                INDEXING_WRITER.writeDocument(generator, doc);
                 return stringWriter.toString();
             } catch (IOException e) {
                 throw new SearchClientException(e);
@@ -130,7 +119,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     @Override
     public Long getDocumentVersion(String indexName, String documentId) {
-        CoreSession session = getSessionForIndex(indexName);
+        CoreSession session = CoreInstance.getCoreSession(repository);
         try {
             DocumentModel doc = session.getDocument(new IdRef(documentId));
             return (Long) doc.getPropertyValue("dc:modified");
@@ -139,15 +128,9 @@ public class RepositorySearchClient extends AbstractSearchClient {
         }
     }
 
-    protected CoreSession getSessionForIndex(String indexName) {
-        String repo = indexToRepo.get(indexName);
-        return CoreInstance.getCoreSession(repo);
-    }
-
     @Override
     public SearchResponse search(SearchQuery query) {
-        CoreSession session = CoreInstance.getCoreSession(query.getSearchIndexes().getFirst().repository(),
-                query.getPrincipal());
+        CoreSession session = CoreInstance.getCoreSession(repository, query.getPrincipal());
         String nxql = query.getQuery().toString();
         if (query.isScrollSearch()) {
             ScrollResult<String> repositoryScrollResponse = session.scroll(nxql, query.getScrollSize(),
@@ -163,7 +146,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
     @Override
     public SearchResponse searchScroll(SearchScrollContext scrollContext) {
         var searchIndex = scrollContext.searchQuery().getSearchIndexes().getFirst();
-        CoreSession session = CoreInstance.getCoreSession(searchIndex.repository());
+        CoreSession session = CoreInstance.getCoreSession(repository);
         ScrollResult<String> repositoryScrollResponse = session.scroll(scrollContext.scrollId());
         SearchScrollContext newScrollId = new SearchScrollContext(scrollContext.searchQuery(),
                 repositoryScrollResponse.getScrollId());
@@ -174,7 +157,6 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     protected List<SearchHit> makeSearchHits(SearchIndex searchIndex, ScrollResult<String> repositoryScrollResponse) {
         String index = searchIndex.index();
-        String repository = searchIndex.repository();
         return repositoryScrollResponse.getResults()
                                        .stream()
                                        .map(docId -> SearchHit.builder(index, docId)

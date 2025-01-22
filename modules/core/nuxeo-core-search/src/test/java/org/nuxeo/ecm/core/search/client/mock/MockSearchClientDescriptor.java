@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,12 @@
  * limitations under the License.
  *
  * Contributors:
- *     bdelbosc
+ *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.core.search;
+package org.nuxeo.ecm.core.search.client.mock;
 
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.model.Descriptor;
@@ -26,13 +28,13 @@ import org.nuxeo.runtime.model.Descriptor;
  * @since 2025.0
  */
 @XObject("searchClient")
-public class SearchClientDescriptor implements Descriptor {
+public class MockSearchClientDescriptor implements Descriptor {
 
     @XNode("@name")
-    public String name;
+    protected String name;
 
-    @XNode("@factory")
-    protected Class<? extends SearchClientFactory<?>> factoryClass;
+    @XNode("@enabled")
+    protected Boolean enabled;
 
     @Override
     public String getId() {
@@ -43,7 +45,16 @@ public class SearchClientDescriptor implements Descriptor {
         return name;
     }
 
-    public Class<? extends SearchClientFactory<?>> getFactoryClass() {
-        return factoryClass;
+    public boolean isEnabled() {
+        return BooleanUtils.toBooleanDefaultIfNull(enabled, true);
+    }
+
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (MockSearchClientDescriptor) o;
+        var merged = new MockSearchClientDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = ObjectUtils.defaultIfNull(other.enabled, enabled);
+        return merged;
     }
 }

@@ -7,15 +7,8 @@
     </index>
   </extension>
   <!-- custom writer to be used with the dynamic mapper -->
-  <!-- TODO no merge on searchClient descriptor for now, redefine everything -->
-  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
-    <searchClient name="opensearch" default="true"
-                  class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
-      <connection>
-        <option name="clientId">search/default</option>
-      </connection>
-      <index name="nxutest" repository="test" create="false" default="true"
-        writerClass="org.nuxeo.ecm.core.search.client.opensearch1.CustomOpensearch1IndexingJsonWriter" />
-    </searchClient>
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced"
+                 writerClass="org.nuxeo.ecm.core.search.client.opensearch1.CustomOpensearch1IndexingJsonWriter" />
   </extension>
 </component>

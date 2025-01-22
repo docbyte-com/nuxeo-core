@@ -7,6 +7,7 @@ opensearch1-search-client.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{
 opensearch1-search-client.check.class=org.nuxeo.runtime.opensearch1.OpenSearchChecker
 
 nuxeo.search.client.default.name=opensearch
+nuxeo.search.client.default.scroller.index.name=enhanced
 
 nuxeo.search.client.default.opensearch1.index.name=${elasticsearch.indexName:=nuxeo}
 

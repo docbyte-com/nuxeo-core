@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ import java.util.GregorianCalendar;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -123,6 +124,12 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
     // opensearch keep alive must be less than 1d
     protected static final long MAX_KEEP_ALIVE_SECONDS = Duration.ofDays(1).minusMinutes(10).toSeconds();
 
+    protected final Map<String, String> indexes;
+
+    public OpenSearchQueryTransformer(Map<String, String> indexes) {
+        this.indexes = indexes;
+    }
+
     @Override
     public SearchRequest apply(SearchQuery searchQuery) {
         var osSearchBuilder = new SearchSourceBuilder();
@@ -147,8 +154,8 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         var osQueryBuilder = makeQueryBuilder(searchQuery);
         osSearchBuilder.query(osQueryBuilder);
         // final OpenSearch request
-        var indexes = searchQuery.getSearchIndexes().stream().map(SearchIndex::index).toList();
-        var osSearchRequest = new SearchRequest(indexes.toArray(String[]::new));
+        var osIndexes = searchQuery.getSearchIndexes().stream().map(SearchIndex::index).map(indexes::get).toList();
+        var osSearchRequest = new SearchRequest(osIndexes.toArray(String[]::new));
         osSearchRequest.searchType(SearchType.DFS_QUERY_THEN_FETCH);
         osSearchRequest.source(osSearchBuilder);
         // scroll

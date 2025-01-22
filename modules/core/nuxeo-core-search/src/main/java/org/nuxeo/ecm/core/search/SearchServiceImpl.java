@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,12 +74,6 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     protected final Map<String, SearchClient> searchClients = new HashMap<>();
 
-    protected final List<String> searchClientNames;
-
-    protected final String defaultClientName;
-
-    protected final Map<String, String> indexToClient = new HashMap<>();
-
     protected final Map<String, SearchIndex> repoToDefaultSearchIndex = new HashMap<>();
 
     protected final Map<String, List<SearchIndex>> repoToSearchIndexes = new HashMap<>();
@@ -88,7 +82,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     protected final String defaultRepository;
 
-    public SearchServiceImpl(List<SearchClientDescriptor> clients) {
+    public SearchServiceImpl(List<SearchClientDescriptor> clients, List<SearchIndexDescriptor> indexes) {
         RepositoryManager repoManager = Framework.getService(RepositoryManager.class);
         if (repoManager != null) {
             defaultRepository = repoManager.getDefaultRepositoryName();
@@ -97,29 +91,31 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         } else {
             throw new IllegalStateException("No repository manager available to get the default repository");
         }
-        String defaultName = null;
+        // collect clients
         for (SearchClientDescriptor descriptor : clients) {
-            log.debug("Creating SearchClient: '{}', class: {}", descriptor::getId, descriptor::getClientClass);
-            try {
-                SearchClient searchClient = descriptor.getClientClass()
-                                                      .getDeclaredConstructor(SearchClientDescriptor.class)
-                                                      .newInstance(descriptor);
-                searchClients.put(descriptor.getId(), searchClient);
-                if (descriptor.isDefault() || defaultName == null) {
-                    defaultName = descriptor.getName();
-                }
-                if (!searchClient.isReady()) {
-                    throw new IllegalStateException("SearchClient: " + searchClient + " is not ready.");
-                }
-                initIndexes(searchClient, descriptor.getIndexes());
-            } catch (ReflectiveOperationException e) {
-                throw new IllegalArgumentException(
-                        "Invalid SearchClient class: " + descriptor.getClientClass() + " for: " + descriptor.getId(),
-                        e);
+            log.debug("Retrieving SearchClient: '{}' with factory: '{}", descriptor::getId,
+                    descriptor::getFactoryClass);
+            var searchClient = Framework.getService(descriptor.getFactoryClass()).getSearchClient(descriptor.getName());
+            searchClients.put(descriptor.getId(), searchClient);
+            if (!searchClient.isReady()) {
+                throw new IllegalStateException("SearchClient: " + searchClient + " is not ready.");
             }
         }
-        searchClientNames = List.copyOf(searchClients.keySet());
-        defaultClientName = defaultName;
+        // collect indexes
+        for (SearchIndexDescriptor descriptor : indexes) {
+            String repo = descriptor.getRepositoryName();
+            SearchIndex index = SearchIndex.of(repo, searchClients.get(descriptor.getClient()).getName(),
+                    descriptor.getName());
+            repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
+            if (descriptor.isDefault() || !repoToDefaultSearchIndex.containsKey(repo)) {
+                var previousIndex = repoToDefaultSearchIndex.put(repo, index);
+                if (previousIndex != null) {
+                    log.warn("The {} is overriding {} to be the default index for repository: {}", previousIndex, index,
+                            repo);
+                }
+            }
+            indexToJsonWriter.put(index, descriptor.newWriterInstance());
+        }
     }
 
     protected void initIndexes(SearchClient client, List<SearchIndexDescriptor> indexes) {
@@ -127,15 +123,8 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
             if (!descriptor.isEnabled()) {
                 continue;
             }
-            if (descriptor.canCreateIndex()) {
-                log.debug("Creating index: {} on repository: {} if not exists for client: {}", descriptor.getId(),
-                        descriptor.getRepositoryName(), client.getName());
-                client.createIndexIfNotExists(descriptor.getId(), descriptor.getRepositoryName(),
-                        descriptor.getSettings(), descriptor.getMapping());
-            }
-            indexToClient.put(descriptor.getId(), client.getName());
-            SearchIndex index = SearchIndex.of(descriptor.getRepositoryName(), client.getName(), descriptor.getId());
             String repo = descriptor.getRepositoryName();
+            SearchIndex index = SearchIndex.of(repo, client.getName(), descriptor.getId());
             repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
             if (descriptor.isDefault() || !repoToDefaultSearchIndex.containsKey(repo)) {
                 repoToDefaultSearchIndex.put(repo, index);

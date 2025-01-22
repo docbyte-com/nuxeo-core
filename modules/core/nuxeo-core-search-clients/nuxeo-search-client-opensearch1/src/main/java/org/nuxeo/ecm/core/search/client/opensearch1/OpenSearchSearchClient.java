@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ package org.nuxeo.ecm.core.search.client.opensearch1;
 
 import static org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchQueryTransformer.getKeepAlive;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.BulkIndexingResponse;
 import org.nuxeo.ecm.core.search.IndexingRequest;
-import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
@@ -62,16 +64,22 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
 
     public static final String ECM_ANCESTOR_FIELDS = "ecm:ancestorId";
 
-    protected static final OpenSearchQueryTransformer QUERY_TRANSFORMER = new OpenSearchQueryTransformer();
-
     protected static final OpenSearchResponseTransformer RESPONSE_TRANSFORMER = new OpenSearchResponseTransformer();
 
     protected final OpenSearchClient client;
 
-    public OpenSearchSearchClient(SearchClientDescriptor descriptor) {
+    protected final Map<String, String> indexes;
+
+    protected final OpenSearchQueryTransformer queryTransformer;
+
+    public OpenSearchSearchClient(OpenSearchSearchClientDescriptor descriptor) {
         super(descriptor);
-        client = Framework.getService(OpenSearchClientService.class)
-                          .getClient(descriptor.getConnectionOptions().getOrDefault("clientId", "search/" + name));
+        client = Framework.getService(OpenSearchClientService.class).getClient(descriptor.getClientId());
+        indexes = descriptor.getSearchIndexes()
+                            .entrySet()
+                            .stream()
+                            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTechnicalName()));
+        queryTransformer = new OpenSearchQueryTransformer(indexes);
     }
 
     @Override
@@ -90,24 +98,20 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     }
 
     @Override
-    public boolean createIndexIfNotExists(String name, String repository, String settings, String mapping) {
-        throw new IllegalStateException("Index creation is handled by OpenSearchComponent");
-    }
-
-    @Override
     public void dropIndex(String name) {
         client.dropIndex(name);
     }
 
     @Override
     public void dropAndInitIndex(String indexName) {
-        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex(indexName);
+        ((OpenSearchComponent) Framework.getService(OpenSearchClientService.class)).dropAndInitIndex(
+                indexes.get(indexName));
     }
 
     @Override
     public BulkIndexingResponse indexDocuments(BulkIndexingRequest request) {
         log.debug("indexDocuments: {}", request);
-        String indexName = request.getSearchIndex().index();
+        String indexName = indexes.get(request.getSearchIndex().index());
         BulkRequest bulkRequest = new BulkRequest();
         int count = 0;
         for (IndexingRequest item : request.getRequests()) {
@@ -151,7 +155,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public void refresh(String indexName) {
         try {
-            client.refresh(indexName);
+            client.refresh(indexes.get(indexName));
         } catch (RuntimeServiceException e) {
             throw new SearchClientException(e);
         }
@@ -190,7 +194,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public String getDocument(String indexName, String documentId) {
         try {
-            GetResponse response = client.get(new GetRequest(indexName).id(documentId));
+            GetResponse response = client.get(new GetRequest(indexes.get(indexName)).id(documentId));
             if (response.isExists()) {
                 return response.getSourceAsString();
             }
@@ -203,7 +207,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public Long getDocumentVersion(String indexName, String documentId) {
         try {
-            GetResponse response = client.get(new GetRequest(indexName).id(documentId));
+            GetResponse response = client.get(new GetRequest(indexes.get(indexName)).id(documentId));
             if (response.isExists()) {
                 return response.getVersion();
             }
@@ -216,7 +220,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public SearchResponse search(SearchQuery query) {
         try {
-            var osSearchRequest = QUERY_TRANSFORMER.apply(query);
+            var osSearchRequest = queryTransformer.apply(query);
             var osSearchResponse = client.search(osSearchRequest);
             return RESPONSE_TRANSFORMER.apply(query, osSearchResponse);
         } catch (RuntimeServiceException e) {
@@ -252,6 +256,10 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public void close() {
         // nothing, the client is handled by its Nuxeo component
+    }
+
+    public Map<String, String> getTechnicalIndexes() {
+        return indexes;
     }
 
     @Override

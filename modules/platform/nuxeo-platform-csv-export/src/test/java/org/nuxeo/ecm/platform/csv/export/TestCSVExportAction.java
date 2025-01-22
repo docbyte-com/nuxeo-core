@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,7 +67,7 @@ import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.io.DummyServletOutputStream;
 import org.nuxeo.ecm.core.io.download.DownloadService;
-import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.DocumentSetRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -312,14 +312,14 @@ public class TestCSVExportAction {
     }
 
     @Test
-    public void testDownloadCSV() throws Exception {
-        testDownloadCSV("default");
+    public void testDownloadCSVWithRepository() throws Exception {
+        testDownloadCSV("repository");
     }
 
     @Test
-    @ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
     public void testDownloadCSVWithOpensearchScroller() throws Exception {
-        testDownloadCSV("opensearch");
+        testDownloadCSV("search");
     }
 
     @Test

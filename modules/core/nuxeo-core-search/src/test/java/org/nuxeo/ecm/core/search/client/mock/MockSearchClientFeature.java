@@ -26,7 +26,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 2025.0
  */
-@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-factory-test-service.xml")
+@Deploy("org.nuxeo.ecm.core.search.test:OSGI-INF/mock-search-client-factory-test-contrib.xml")
 @Features(BaseCoreSearchFeature.class)
 public class MockSearchClientFeature implements RunnerFeature {
 }

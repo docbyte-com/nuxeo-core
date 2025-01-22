@@ -20,8 +20,6 @@ package org.nuxeo.ecm.core.search;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 /**
  * A SearchIndex is a tuple that designates a SearchClient, an index and a repository.
  * 
@@ -43,10 +41,5 @@ public record SearchIndex(String repository, String client, String index) {
 
     public static SearchIndex of(String repository, String client, String index) {
         return new SearchIndex(repository, client, index);
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
     }
 }

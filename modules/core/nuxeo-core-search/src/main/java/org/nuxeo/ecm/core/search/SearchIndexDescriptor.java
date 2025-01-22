@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,10 @@
  */
 package org.nuxeo.ecm.core.search;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
-import org.apache.commons.io.IOUtils;
-import org.nuxeo.common.Environment;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter;
@@ -36,47 +31,46 @@ import org.nuxeo.runtime.model.Descriptor;
 /**
  * @since 2025.0
  */
-@XObject("index")
+@XObject("searchIndex")
 public class SearchIndexDescriptor implements Descriptor {
-
-    @XNode("@enabled")
-    protected boolean isEnabled = true;
 
     @XNode("@name")
     protected String name;
 
+    @XNode("@enabled")
+    protected Boolean enabled;
+
     @XNode("@default")
-    protected boolean isDefault = false;
+    protected Boolean isDefault;
+
+    @XNode("@searchClient")
+    protected String client;
 
     @XNode("@repository")
     protected String repository;
 
-    @XNode("@create")
-    protected boolean create = true;
-
     @XNode("@writerClass")
     protected Class<? extends IndexingJsonWriter> writerClass = DefaultIndexingJsonWriter.class;
-
-    @XNode("settings@file")
-    protected String settingsFile;
-
-    @XNode("mapping@file")
-    protected String mappingFile;
-
-    @XNode("mapping@append")
-    protected Boolean mappingAppend;
 
     @Override
     public String getId() {
         return name;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public boolean isEnabled() {
-        return isEnabled;
+        return toBooleanDefaultIfNull(enabled, true);
     }
 
     public boolean isDefault() {
-        return isDefault;
+        return toBooleanDefaultIfNull(isDefault, false);
+    }
+
+    public String getClient() {
+        return client;
     }
 
     public String getRepositoryName() {
@@ -95,54 +89,16 @@ public class SearchIndexDescriptor implements Descriptor {
         }
     }
 
-    public boolean canCreateIndex() {
-        return create;
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (SearchIndexDescriptor) o;
+        var merged = new SearchIndexDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.isDefault = defaultIfNull(other.isDefault, isDefault);
+        merged.client = defaultIfBlank(other.client, client);
+        merged.repository = defaultIfBlank(other.repository, repository);
+        merged.writerClass = defaultIfNull(other.writerClass, writerClass);
+        return merged;
     }
-
-    public String getMapping() {
-        if (mappingFile != null) {
-            return contentOfFile(mappingFile);
-        }
-        return null;
-    }
-
-    public String getSettings() {
-        if (settingsFile != null) {
-            return contentOfFile(settingsFile);
-        }
-        return null;
-    }
-
-    protected String contentOfFile(String filename) {
-        try (InputStream stream = getResourceStream(filename)) {
-            return IOUtils.toString(stream, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Cannot load resource file: " + filename, e);
-        }
-    }
-
-    protected InputStream getResourceStream(String filename) {
-        // First check if the resource is available on the config directory
-        File file = new File(Environment.getDefault().getConfig(), filename);
-        if (file.exists()) {
-            try {
-                return new FileInputStream(file);
-            } catch (FileNotFoundException e) {
-                // try another way
-            }
-        }
-
-        // getResourceAsStream is needed, getResource will not work when called from another module
-        InputStream ret = this.getClass().getClassLoader().getResourceAsStream(filename);
-        if (ret == null) {
-            // Then try to get it from jar
-            ret = this.getClass().getClassLoader().getResourceAsStream(filename);
-        }
-        if (ret == null) {
-            throw new IllegalArgumentException(
-                    String.format("Resource file cannot be found: %s or %s", file.getAbsolutePath(), filename));
-        }
-        return ret;
-    }
-
 }

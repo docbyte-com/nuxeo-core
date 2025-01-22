@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.BulkIndexingResponse;
 import org.nuxeo.ecm.core.search.IndexingRequest;
-import org.nuxeo.ecm.core.search.SearchClientDescriptor;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchScrollContext;
@@ -52,7 +51,7 @@ public class MockSearchClient extends AbstractSearchClient {
 
     protected final Map<String, Long> indexTime = new ConcurrentHashMap<>();
 
-    public MockSearchClient(SearchClientDescriptor descriptor) {
+    public MockSearchClient(MockSearchClientDescriptor descriptor) {
         super(descriptor);
     }
 
@@ -69,11 +68,6 @@ public class MockSearchClient extends AbstractSearchClient {
             case AGGREGATE -> false;
             case MULTI_REPOSITORIES -> false;
         };
-    }
-
-    @Override
-    public boolean createIndexIfNotExists(String name, String repository, String settings, String mapping) {
-        return false;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,24 @@
  */
 package org.nuxeo.ecm.core.search;
 
-import org.nuxeo.runtime.model.Descriptor;
+import org.nuxeo.runtime.model.Component;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 
 /**
+ * Factory allowing to retrieve a {@link SearchClient}.
+ *
  * @since 2025.0
  */
-public abstract class AbstractSearchClient implements SearchClient {
-
-    protected final String name;
-
-    public AbstractSearchClient(Descriptor descriptor) {
-        this.name = descriptor.getId();
-    }
+public interface SearchClientFactory<C extends SearchClient> extends Component {
 
     @Override
-    public String getName() {
-        return name;
+    default int getApplicationStartedOrder() {
+        // start just before the SearchService
+        return ComponentStartOrders.SEARCH - 1;
     }
+
+    /**
+     * @return the {@link SearchClient} with the given {@code name}
+     */
+    C getSearchClient(String name);
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.core.search;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -33,7 +31,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class SearchServiceScroll extends RepositoryScroll {
 
-    private static final String CLIENT_OPTION = "searchClient";
+    public static final String SEARCH_INDEX_PARAMETER_KEY = "nuxeo.search.client.default.scroller.index.name";
 
     private static final String INDEX_OPTION = "searchIndex";
 
@@ -44,21 +42,18 @@ public class SearchServiceScroll extends RepositoryScroll {
     @Override
     public void init(ScrollRequest request, Map<String, String> options) {
         super.init(request, options);
-        if (options == null || !options.containsKey(CLIENT_OPTION)) {
-            throw new IllegalArgumentException("Invalid SearchServiceScroll: 'client' option is required");
+        if (options == null || !options.containsKey(INDEX_OPTION)) {
+            throw new IllegalArgumentException("Invalid SearchServiceScroll: 'index' option is required");
         }
-        String client = options.get(CLIENT_OPTION);
         String index = options.get(INDEX_OPTION);
         SearchService service = Framework.getService(SearchService.class);
         searchIndex = service.getSearchIndexForRepository(this.request.getRepository())
                              .stream()
-                             .filter(si -> si.client().equals(client))
-                             .filter(si -> isBlank(index) || si.index().equals(index))
+                             .filter(si -> si.index().equals(index))
                              .findFirst()
                              .orElseThrow(() -> new IllegalArgumentException(
                                      "SearchServiceScroll no searchIndex found for repository: "
-                                             + this.request.getRepository() + ", client: " + client + ", index: "
-                                             + index));
+                                             + this.request.getRepository() + ", index: " + index));
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,8 @@ public class SearchComponent extends DefaultComponent {
 
     public static final String XP_SEARCH_CLIENT = "searchClient";
 
+    public static final String XP_SEARCH_INDEX = "searchIndex";
+
     protected SearchService searchService;
 
     @Override
@@ -50,12 +52,12 @@ public class SearchComponent extends DefaultComponent {
 
     @Override
     public void start(ComponentContext context) {
-        searchService = new SearchServiceImpl(getEnabledSearchClientDescriptor());
+        searchService = new SearchServiceImpl(getDescriptors(XP_SEARCH_CLIENT), getEnabledSearchIndexDescriptor());
     }
 
-    protected List<SearchClientDescriptor> getEnabledSearchClientDescriptor() {
-        List<SearchClientDescriptor> descriptors = getDescriptors(XP_SEARCH_CLIENT);
-        return descriptors.stream().filter(SearchClientDescriptor::isEnabled).collect(Collectors.toList());
+    protected List<SearchIndexDescriptor> getEnabledSearchIndexDescriptor() {
+        List<SearchIndexDescriptor> descriptors = getDescriptors(XP_SEARCH_INDEX);
+        return descriptors.stream().filter(SearchIndexDescriptor::isEnabled).collect(Collectors.toList());
     }
 
 }

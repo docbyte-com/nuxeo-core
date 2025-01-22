@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -51,12 +52,13 @@ import org.opensearch.search.builder.SearchSourceBuilder;
 @Deploy("org.nuxeo.ecm.core.search.client.opensearch1.test:OSGI-INF/opensearch-search-client-schema-test-contrib.xml")
 public class TestOpenSearchQueryTransformer {
 
-    protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "nxutest");
+    protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "enhanced");
 
     protected static final Function<String, SearchQuery> SEARCH_QUERY_BUILDER = nxql -> SearchQuery.builder(
             SEARCH_INDEX, nxql).build();
 
-    protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer();
+    protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer(
+            Map.of("enhanced", "nxutest"));
 
     protected static final Function<String, String> BUILDER = SEARCH_QUERY_BUILDER.andThen(TRANSFORMER)
                                                                                   .andThen(SearchRequest::source)

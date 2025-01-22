@@ -9,14 +9,14 @@
     </index>
   </extension>
 
-  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
-    <searchClient name="opensearch" default="true"
-                  class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
-      <connection>
-        <option name="clientId">search/default</option>
-      </connection>
-      <index name="nxutest" repository="test" create="false" default="true"  />
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="searchClient">
+    <searchClient name="opensearch" clientId="search/default">
+      <searchIndex name="enhanced" technicalName="nxutest" />
     </searchClient>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced" searchClient="opensearch" repository="test" default="true" />
   </extension>
 
 </component>

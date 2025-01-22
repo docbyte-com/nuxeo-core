@@ -38,15 +38,15 @@
     </index>
   </extension>
 
-  <extension target="org.nuxeo.ecm.core.search" point="searchClient">
-    <searchClient name="opensearch" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
-      class="org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient">
-      <connection>
-        <option name="clientId">search/default</option>
-      </connection>
-      <index name="nuxeo" repository="default" create="false" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
-        writerClass="org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter" />
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="searchClient">
+    <searchClient name="opensearch" clientId="search/default">
+      <searchIndex name="enhanced" technicalName="${nuxeo.search.client.default.opensearch1.index.name}" />
     </searchClient>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced" searchClient="opensearch" repository="default" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
+                 writerClass="org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter" />
   </extension>
 
 </component>

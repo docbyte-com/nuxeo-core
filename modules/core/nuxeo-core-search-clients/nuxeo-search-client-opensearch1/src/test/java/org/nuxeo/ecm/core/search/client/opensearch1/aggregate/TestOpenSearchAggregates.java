@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TYPE_TERMS
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.TimeZone;
 import java.util.function.Function;
 
@@ -69,9 +70,10 @@ import org.opensearch.common.Strings;
 @Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 public class TestOpenSearchAggregates {
 
-    protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "nxutest");
+    protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "enhanced");
 
-    protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer();
+    protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer(
+            Map.of("enhanced", "nxutest"));
 
     protected static final Function<SearchQuery, String> BUILDER = TRANSFORMER.andThen(
             SearchRequest::source).andThen(source -> Strings.toString(source, true, true));

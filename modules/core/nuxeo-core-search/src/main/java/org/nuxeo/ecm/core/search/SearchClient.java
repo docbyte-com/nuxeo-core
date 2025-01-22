@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,13 +43,6 @@ public interface SearchClient extends AutoCloseable {
      * Checks whether the client has the capability.
      */
     boolean hasCapability(Capability capability);
-
-    /**
-     * Creates a new index if it not exists and the client has indexing capability.
-     *
-     * @return true if index is created.
-     */
-    boolean createIndexIfNotExists(String name, String repository, String settings, String mapping);
 
     /**
      * Drops an index.

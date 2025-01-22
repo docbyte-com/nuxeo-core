@@ -18,10 +18,10 @@
  */
 package org.nuxeo.ecm.restapi.opensearch1.filter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
@@ -32,7 +32,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
+import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient;
 import org.nuxeo.ecm.core.security.SecurityService;
 import org.nuxeo.runtime.api.Framework;
 
@@ -55,16 +57,17 @@ public class RequestValidator {
     final private Map<String, List<String>> indexTypes;
 
     public RequestValidator() {
-        SearchService service = Framework.getService(SearchService.class);
-        indexTypes = new HashMap<>();
-        for (String name : service.getRepositoryNames()) {
-            List<String> types = new ArrayList<>();
-            types.add("doc");
-            service.getSearchIndexForRepository(name)
-                   .stream()
-                   .filter(idx -> "opensearch".equals(idx.client()))
-                   .forEach(idx -> indexTypes.put(idx.index(), types));
-        }
+        var types = List.of("doc");
+        var service = Framework.getService(SearchService.class);
+        var indexingService = Framework.getService(SearchIndexingService.class);
+        indexTypes = service.getRepositoryNames()
+                            .stream()
+                            .map(service::getSearchIndexForRepository)
+                            .flatMap(List::stream)
+                            .filter(idx -> "opensearch".equals(idx.client()))
+                            .map(idx -> ((OpenSearchSearchClient) indexingService.getClient(
+                                    idx.client())).getTechnicalIndexes().get(idx.index()))
+                            .collect(Collectors.toMap(Function.identity(), index -> types));
     }
 
     public void checkValidDocumentId(String documentId) {

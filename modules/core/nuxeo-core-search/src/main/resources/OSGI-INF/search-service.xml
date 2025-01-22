@@ -16,4 +16,8 @@
     <object class="org.nuxeo.ecm.core.search.SearchClientDescriptor" />
   </extension-point>
 
+  <extension-point name="searchIndex">
+    <object class="org.nuxeo.ecm.core.search.SearchIndexDescriptor" />
+  </extension-point>
+
 </component>

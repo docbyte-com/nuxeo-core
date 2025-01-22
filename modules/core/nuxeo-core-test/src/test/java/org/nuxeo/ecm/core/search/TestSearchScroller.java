@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import jakarta.inject.Inject;
+
 import org.nuxeo.ecm.core.scroll.TestRepositoryScroll;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Features;
@@ -28,8 +30,14 @@ import org.nuxeo.runtime.test.runner.Features;
 @Features(CoreSearchFeature.class)
 public class TestSearchScroller extends TestRepositoryScroll {
 
+    @Inject
+    protected CoreSearchFeature searchFeature;
+
     @Override
     public String getScrollName() {
+        if (searchFeature.hasRepositoryClient()) {
+            return "repository_search";
+        }
         return "search";
     }
 }
