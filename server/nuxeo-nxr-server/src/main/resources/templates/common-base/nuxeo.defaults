@@ -27,6 +27,9 @@ nuxeo.server.hsts.maxage=2592000
 nuxeo.server.hsts.includesubdomains=false
 nuxeo.server.hsts.preload=false
 
+# whether the deprecated paths removed from Nuxeo should be forwarded to new paths
+nuxeo.forward.deprecated.path.enabled=true
+
 # GlobalNamingResources datasource (not visible from webapp)
 nuxeo.db.xaMode=false
 nuxeo.db.commonds=jdbc/nuxeo

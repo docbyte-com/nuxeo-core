@@ -211,9 +211,7 @@
       <filter-name>NuxeoStandby</filter-name>
       <url-pattern>/*</url-pattern>
     </filter-mapping>
-  </extension>
 
-  <extension target="web#FIRST-FILTER">
     <filter>
       <display-name>Nuxeo Thread Tracker Filter</display-name>
       <filter-name>NuxeoThreadTracker</filter-name>
@@ -223,6 +221,18 @@
     </filter>
     <filter-mapping>
       <filter-name>NuxeoThreadTracker</filter-name>
+      <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+    <filter>
+      <display-name>Nuxeo Forward Deprecated Path Filter</display-name>
+      <filter-name>NuxeoForwardDeprecatedPath</filter-name>
+      <filter-class>
+        org.nuxeo.ecm.platform.web.common.requestcontroller.filter.NuxeoForwardDeprecatedPathFilter
+      </filter-class>
+    </filter>
+    <filter-mapping>
+      <filter-name>NuxeoForwardDeprecatedPath</filter-name>
       <url-pattern>/*</url-pattern>
     </filter-mapping>
   </extension>
