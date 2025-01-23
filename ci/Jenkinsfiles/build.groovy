@@ -128,8 +128,6 @@ def buildUnitTestStage(env) {
 
             executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
           } else {
-            mvnCommand += " -Dkafka.version=3.4.1"
-
             echo "${env} unit tests: install external services"
             nxWithHelmfileDeployment(namespace: testNamespace, environment: environment) {
               // always read AWS credentials from secret in the platform namespace, even when running in platform-staging:
@@ -551,7 +549,6 @@ pipeline {
                       sh """
                         mvn ${MAVEN_CLI_ARGS} \
                           -Dcustom.environment=runtime \
-                          -Dkafka.version=3.4.1 \
                           install
                       """
                     }
