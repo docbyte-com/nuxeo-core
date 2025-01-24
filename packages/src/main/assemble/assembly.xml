@@ -120,7 +120,7 @@
     </copy>
 
     <if>
-      <available file="src/main/resources/bundles" />
+      <available file="${outdir}/package/install/bundles" />
       <then>
         <nx:studioExtraction todir="${outdir}/package">
           <fileset dir="${outdir}/package/install/bundles"/>
