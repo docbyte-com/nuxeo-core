@@ -37,29 +37,16 @@ import org.nuxeo.ecm.platform.query.api.Bucket;
 public interface SearchResponse {
 
     /**
-     * Gets the search duration in millisecond.
+     * Get the total number of match for the query. Limit is not taken in account.
+     *
+     * @return {@code -1} if unknown.
      */
-    int getElapsedMillis();
+    long getTotal();
 
     /**
-     * Returns true if the search failed.
+     * Returns {@code true} if the total is accurate, i.e. not an estimation.
      */
-    boolean isFailed();
-
-    /**
-     * Returns the error code.
-     */
-    int getErrorCode();
-
-    /**
-     * Returns the error message if any.
-     */
-    String getErrorMessage();
-
-    /**
-     * Returns true if the search has failed because of a timed out.
-     */
-    boolean isTimedOut();
+    boolean isTotalAccurate();
 
     /**
      * Returns the number of returned search hits, taking in account limits.
@@ -84,16 +71,16 @@ public interface SearchResponse {
     IterableQueryResult getHitsAsIterator();
 
     /**
-     * Get the total number of match for the query. Limit is not taken in account.
-     *
-     * @return -1 if unknown.
+     * Returns {@code true} if the response is provided but search client lacks some search capabilities.
      */
-    long getTotal();
+    default boolean isMissingCapabilities() {
+        return !getMissingCapabilities().isEmpty();
+    }
 
     /**
-     * Returns true if the total is accurate, i.e. not an estimation.
+     * Returns the list of {@link SearchClient.Capability} that are missing to fully perform the SearchQuery.
      */
-    boolean isTotalAccurate();
+    List<SearchClient.Capability> getMissingCapabilities();
 
     /**
      * Returns a scroll context to use in {@link SearchService#searchScroll(SearchScrollContext)} to fetch the next
@@ -115,16 +102,9 @@ public interface SearchResponse {
     DocumentModelList loadDocuments(CoreSession defaultSession);
 
     /**
-     * @return a {@link SearchResponse} builder for an error response
+     * @return a {@link SearchResponse} builder.
      */
-    static SearchResponseImpl.Builder builder(int errorCode, String errorMessage, int elapsedMillis) {
-        return new SearchResponseImpl.Builder(errorCode, errorMessage, elapsedMillis);
-    }
-
-    /**
-     * @return a {@link SearchResponse} builder for a successful response
-     */
-    static SearchResponseImpl.Builder builder(List<SearchHit> hits, int elapsedMillis) {
-        return new SearchResponseImpl.Builder(hits, elapsedMillis);
+    static SearchResponseImpl.Builder builder(List<SearchHit> hits) {
+        return new SearchResponseImpl.Builder(hits);
     }
 }

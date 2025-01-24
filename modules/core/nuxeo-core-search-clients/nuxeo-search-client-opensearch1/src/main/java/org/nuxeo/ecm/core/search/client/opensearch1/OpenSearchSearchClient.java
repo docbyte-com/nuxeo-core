@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.search.AbstractSearchClient;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.BulkIndexingResponse;
@@ -33,6 +34,7 @@ import org.nuxeo.ecm.core.search.SearchClientException;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
 import org.nuxeo.ecm.core.search.SearchScrollContext;
+import org.nuxeo.runtime.RetryableException;
 import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
@@ -64,7 +66,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
 
     public static final String ECM_ANCESTOR_FIELDS = "ecm:ancestorId";
 
-    protected static final OpenSearchResponseTransformer RESPONSE_TRANSFORMER = new OpenSearchResponseTransformer();
+    protected final OpenSearchResponseTransformer responseTransformer;
 
     protected final OpenSearchClient client;
 
@@ -81,6 +83,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                             .stream()
                             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTechnicalName()));
         queryTransformer = new OpenSearchQueryTransformer(indexes, hints);
+        responseTransformer = new OpenSearchResponseTransformer(getCapabilities());
     }
 
     @Override
@@ -223,7 +226,11 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
         try {
             var osSearchRequest = queryTransformer.apply(query);
             var osSearchResponse = client.search(osSearchRequest);
-            return RESPONSE_TRANSFORMER.apply(query, osSearchResponse);
+            return responseTransformer.apply(query, osSearchResponse);
+        } catch (IllegalArgumentException e) {
+            throw new QueryParseException(e);
+        } catch (RetryableException e) {
+            throw e;
         } catch (RuntimeServiceException e) {
             // OpenSearchStatusException is raised when using phrase prefix on keyword type
             throw new SearchClientException(e);
@@ -236,7 +243,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                 getKeepAlive(scrollContext.searchQuery()));
         try {
             var osSearchResponse = client.scroll(osRequest);
-            return new OpenSearchResponseTransformer().apply(scrollContext.searchQuery(), osSearchResponse);
+            return responseTransformer.apply(scrollContext.searchQuery(), osSearchResponse);
         } catch (RuntimeServiceException e) {
             throw new SearchClientException(e);
         }

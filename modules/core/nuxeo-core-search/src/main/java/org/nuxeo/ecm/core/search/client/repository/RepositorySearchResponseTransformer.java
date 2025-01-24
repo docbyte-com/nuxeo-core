@@ -26,31 +26,35 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.nuxeo.ecm.core.api.PartialList;
+import org.nuxeo.ecm.core.search.AbstractSearchResponseTransformer;
+import org.nuxeo.ecm.core.search.SearchClient;
 import org.nuxeo.ecm.core.search.SearchHit;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
-import org.nuxeo.ecm.core.search.SearchResponseTransformer;
 import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 2025.0
  */
 public class RepositorySearchResponseTransformer
-        implements SearchResponseTransformer<PartialList<Map<String, Serializable>>> {
+        extends AbstractSearchResponseTransformer<PartialList<Map<String, Serializable>>> {
 
     protected final boolean limitedResults;
 
-    public RepositorySearchResponseTransformer() {
+    protected RepositorySearchResponseTransformer(Set<SearchClient.Capability> supportedCapabilities) {
+        super(supportedCapabilities);
         this.limitedResults = Boolean.parseBoolean(Framework.getProperty(LIMIT_RESULTS_PROPERTY));
     }
 
     @Override
     public SearchResponse apply(SearchQuery searchQuery, PartialList<Map<String, Serializable>> projections) {
-        return SearchResponse.builder(makeSearchHits(searchQuery, projections), -1)
+        return SearchResponse.builder(makeSearchHits(searchQuery, projections))
                              .total(projections.totalSize())
                              .totalAccurate(!limitedResults || projections.totalSize() < 0)
+                             .missingCapabilities(getMissingCapabilities(searchQuery))
                              .build();
     }
 

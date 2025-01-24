@@ -60,6 +60,10 @@ public interface SearchService {
      * {@snippet :
      * var response = searchService.search(SearchQuery.builder(session, "SELECT * FROM Document").build());
      * }
+     *
+     * @throws org.nuxeo.ecm.core.query.QueryParseException if the NXQL query is invalid
+     * @throws org.nuxeo.runtime.RetryableException if search client cannot access the search backend
+     * @throws SearchClientException if search client is not able to process the query
      */
     SearchResponse search(SearchQuery query);
 

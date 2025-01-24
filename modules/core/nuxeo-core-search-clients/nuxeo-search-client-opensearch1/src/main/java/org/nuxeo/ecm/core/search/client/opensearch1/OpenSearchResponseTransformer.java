@@ -27,16 +27,18 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.TotalHits;
 import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.ecm.core.schema.types.primitives.DateType;
+import org.nuxeo.ecm.core.search.AbstractSearchResponseTransformer;
+import org.nuxeo.ecm.core.search.SearchClient;
 import org.nuxeo.ecm.core.search.SearchHit;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchResponse;
-import org.nuxeo.ecm.core.search.SearchResponseTransformer;
 import org.nuxeo.ecm.core.search.SearchScrollContext;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateDateHistogramParser;
 import org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateDateRangeParser;
@@ -75,16 +77,20 @@ import org.opensearch.search.aggregations.metrics.NumericMetricsAggregation;
  * @since 2025.0
  */
 public class OpenSearchResponseTransformer
-        implements SearchResponseTransformer<org.opensearch.action.search.SearchResponse> {
+        extends AbstractSearchResponseTransformer<org.opensearch.action.search.SearchResponse> {
 
     private static final Logger log = LogManager.getLogger(OpenSearchResponseTransformer.class);
+
+    protected OpenSearchResponseTransformer(Set<SearchClient.Capability> supportedCapabilities) {
+        super(supportedCapabilities);
+    }
 
     @Override
     public SearchResponse apply(SearchQuery searchQuery, org.opensearch.action.search.SearchResponse osSearchResponse) {
         // TODO check error
         var osHits = osSearchResponse.getHits();
         var searchHits = makeSearchHits(searchQuery, osHits);
-        var responseBuilder = SearchResponse.builder(searchHits, (int) osSearchResponse.getTook().getMillis());
+        var responseBuilder = SearchResponse.builder(searchHits);
         // total hits
         var osTotalHits = osHits.getTotalHits();
         if (osTotalHits != null) {
@@ -97,6 +103,7 @@ public class OpenSearchResponseTransformer
         }
         // aggregations
         responseBuilder.aggregates(makeAggregates(searchQuery, osSearchResponse.getAggregations()));
+        responseBuilder.missingCapabilities(getMissingCapabilities(searchQuery));
         return responseBuilder.build();
     }
 

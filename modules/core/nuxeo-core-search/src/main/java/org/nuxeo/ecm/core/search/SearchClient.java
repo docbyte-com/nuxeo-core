@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import java.util.Set;
+
 /**
  * Interface used by the SearchService to access an external Search Cluster. The client must take care of the retry
  * mechanism, in case of failure to process a request or accessing the search backend a SearchClientException must be
@@ -43,6 +45,11 @@ public interface SearchClient extends AutoCloseable {
      * Checks whether the client has the capability.
      */
     boolean hasCapability(Capability capability);
+
+    /**
+     * Returns the supported capabilities.
+     */
+    Set<Capability> getCapabilities();
 
     /**
      * Drops an index.

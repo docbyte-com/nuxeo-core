@@ -18,6 +18,10 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.nuxeo.runtime.model.Descriptor;
 
 /**
@@ -34,5 +38,10 @@ public abstract class AbstractSearchClient implements SearchClient {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public Set<Capability> getCapabilities() {
+        return Arrays.stream(Capability.values()).filter(this::hasCapability).collect(Collectors.toSet());
     }
 }

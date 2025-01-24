@@ -54,13 +54,14 @@ public class RepositorySearchClient extends AbstractSearchClient {
 
     protected static final ObjectMapper MAPPER = new ObjectMapper();
 
-    protected static final RepositorySearchResponseTransformer RESPONSE_TRANSFORMER = new RepositorySearchResponseTransformer();
+    protected final RepositorySearchResponseTransformer responseTransformer;
 
     protected final String repository;
 
     public RepositorySearchClient(RepositorySearchClientDescriptor descriptor) {
         super(descriptor);
         repository = descriptor.repository;
+        responseTransformer = new RepositorySearchResponseTransformer(getCapabilities());
     }
 
     @Override
@@ -106,7 +107,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
         try {
             DocumentModel doc = session.getDocument(new IdRef(documentId));
             try (StringWriter stringWriter = new StringWriter();
-                    JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter);) {
+                    JsonGenerator generator = MAPPER.getFactory().createGenerator(stringWriter)) {
                 INDEXING_WRITER.writeDocument(generator, doc);
                 return stringWriter.toString();
             } catch (IOException e) {
@@ -136,11 +137,12 @@ public class RepositorySearchClient extends AbstractSearchClient {
             ScrollResult<String> repositoryScrollResponse = session.scroll(nxql, query.getScrollSize(),
                     Math.toIntExact(query.getScrollKeepAlive().toSeconds()));
             SearchScrollContext scrollContext = new SearchScrollContext(query, repositoryScrollResponse.getScrollId());
-            return SearchResponse.builder(makeSearchHits(query.getSearchIndexes().getFirst(), repositoryScrollResponse),
-                    -1).scroll(scrollContext).build();
+            return SearchResponse.builder(makeSearchHits(query.getSearchIndexes().getFirst(), repositoryScrollResponse))
+                                 .scroll(scrollContext)
+                                 .build();
         }
         var repositorySearchResponse = session.queryProjection(nxql, query.getLimit(), query.getOffset(), true);
-        return RESPONSE_TRANSFORMER.apply(query, repositorySearchResponse);
+        return responseTransformer.apply(query, repositorySearchResponse);
     }
 
     @Override
@@ -150,7 +152,7 @@ public class RepositorySearchClient extends AbstractSearchClient {
         ScrollResult<String> repositoryScrollResponse = session.scroll(scrollContext.scrollId());
         SearchScrollContext newScrollId = new SearchScrollContext(scrollContext.searchQuery(),
                 repositoryScrollResponse.getScrollId());
-        return SearchResponse.builder(makeSearchHits(searchIndex, repositoryScrollResponse), -1)
+        return SearchResponse.builder(makeSearchHits(searchIndex, repositoryScrollResponse))
                              .scroll(newScrollId)
                              .build();
     }

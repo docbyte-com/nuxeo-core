@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.core.search;
 
-import static java.util.Objects.requireNonNull;
 import static org.nuxeo.ecm.platform.query.api.PageProvider.HIGHLIGHT_CTX_DATA;
 
 import java.io.Serializable;
@@ -56,14 +55,9 @@ public class SearchResponseImpl implements SearchResponse {
 
     protected static final String SELECT_DOCUMENTS_IN = "SELECT * FROM Document WHERE ecm:uuid IN ('%s')";
 
-    protected final int elapsedMillis;
-
-    @Nullable
-    protected final Error error;
-
-    protected final boolean timedOut;
-
     protected final List<SearchHit> hits;
+
+    protected final List<SearchClient.Capability> missingCapabilities;
 
     protected final long total;
 
@@ -75,10 +69,8 @@ public class SearchResponseImpl implements SearchResponse {
     protected final List<Aggregate<? extends Bucket>> aggregates;
 
     protected SearchResponseImpl(Builder builder) {
-        this.elapsedMillis = builder.elapsedMillis;
-        this.error = builder.error;
-        this.timedOut = builder.timedOut;
         this.hits = builder.hits;
+        this.missingCapabilities = builder.missingCapabilities;
         this.total = builder.total;
         this.totalAccurate = builder.totalAccurate;
         this.scrollContext = builder.scrollContext;
@@ -86,28 +78,8 @@ public class SearchResponseImpl implements SearchResponse {
     }
 
     @Override
-    public int getElapsedMillis() {
-        return elapsedMillis;
-    }
-
-    @Override
-    public boolean isFailed() {
-        return error != null;
-    }
-
-    @Override
-    public int getErrorCode() {
-        return requireNonNull(error, "The response is not in error, please check isFailed before").code();
-    }
-
-    @Override
-    public String getErrorMessage() {
-        return requireNonNull(error, "The response is not in error, please check isFailed before").message();
-    }
-
-    @Override
-    public boolean isTimedOut() {
-        return timedOut;
+    public List<SearchClient.Capability> getMissingCapabilities() {
+        return missingCapabilities;
     }
 
     @Override
@@ -242,13 +214,9 @@ public class SearchResponseImpl implements SearchResponse {
 
     public static class Builder {
 
-        protected final int elapsedMillis;
-
-        protected final Error error;
-
         protected final List<SearchHit> hits;
 
-        protected boolean timedOut;
+        protected List<SearchClient.Capability> missingCapabilities = List.of();
 
         protected long total = -1;
 
@@ -258,23 +226,8 @@ public class SearchResponseImpl implements SearchResponse {
 
         protected SearchScrollContext scrollContext;
 
-        protected Builder(List<SearchHit> hits, int elapsedMillis) {
-            this.error = null;
-            // success case
-            this.elapsedMillis = elapsedMillis;
+        public Builder(List<SearchHit> hits) {
             this.hits = Collections.unmodifiableList(hits);
-        }
-
-        protected Builder(int errorCode, String errorMessage, int elapsedMillis) {
-            this.hits = List.of();
-            // error case
-            this.elapsedMillis = elapsedMillis;
-            this.error = new Error(errorCode, errorMessage);
-        }
-
-        public Builder timedOut(boolean timedOut) {
-            this.timedOut = timedOut;
-            return this;
         }
 
         public Builder total(long total) {
@@ -294,6 +247,11 @@ public class SearchResponseImpl implements SearchResponse {
 
         public Builder aggregates(List<Aggregate<? extends Bucket>> aggregates) {
             this.aggregates = Collections.unmodifiableList(aggregates);
+            return this;
+        }
+
+        public Builder missingCapabilities(List<SearchClient.Capability> missingCapabilities) {
+            this.missingCapabilities = Collections.unmodifiableList(missingCapabilities);
             return this;
         }
 
