@@ -4878,11 +4878,16 @@
         <artifactId>simpleclient</artifactId>
         <version>${prometheus.client.version}</version>
       </dependency>
-      <dependency>
-        <!-- unused dependency, declared to fix version conflict between opencensus-exporter-stats-stackdriver
+        <!-- unused dependencies, declared to fix version conflict between opencensus-exporter-stats-stackdriver
         and mysql-connector -->
+      <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
+        <version>${protobuf.java.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.google.protobuf</groupId>
+        <artifactId>protobuf-java-util</artifactId>
         <version>${protobuf.java.version}</version>
       </dependency>
       <!-- unused dependencies, transitive dependencies from opencensus-exporter-stats-stackdriver to upgrade -->
