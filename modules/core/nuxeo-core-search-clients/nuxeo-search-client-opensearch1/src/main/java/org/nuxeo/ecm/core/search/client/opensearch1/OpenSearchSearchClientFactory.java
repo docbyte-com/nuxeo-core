@@ -32,21 +32,30 @@ import org.nuxeo.runtime.model.DefaultComponent;
 public class OpenSearchSearchClientFactory extends DefaultComponent
         implements SearchClientFactory<OpenSearchSearchClient> {
 
+    protected static final String XP_HINT = "hint";
+
     protected static final String XP_SEARCH_CLIENT = "searchClient";
+
+    protected Map<String, OpenSearchHintQueryBuilder> hints;
 
     protected Map<String, OpenSearchSearchClient> searchClients;
 
     @Override
     public void start(ComponentContext context) {
+        hints = this.<OpenSearchHintDescriptor> getDescriptors(XP_HINT)
+                    .stream()
+                    .collect(
+                            Collectors.toMap(OpenSearchHintDescriptor::getName, OpenSearchHintDescriptor::newInstance));
         searchClients = this.<OpenSearchSearchClientDescriptor> getDescriptors(XP_SEARCH_CLIENT)
                             .stream()
                             .filter(OpenSearchSearchClientDescriptor::isEnabled)
-                            .map(OpenSearchSearchClient::new)
+                            .map(descriptor -> new OpenSearchSearchClient(descriptor, hints))
                             .collect(Collectors.toMap(OpenSearchSearchClient::getName, Function.identity()));
     }
 
     @Override
     public void stop(ComponentContext context) {
+        hints = null;
         searchClients = null;
     }
 
@@ -57,5 +66,9 @@ public class OpenSearchSearchClientFactory extends DefaultComponent
             throw new IllegalStateException("The search client with name: " + name + " does not exist");
         }
         return client;
+    }
+
+    protected Map<String, OpenSearchHintQueryBuilder> getHints() {
+        return hints;
     }
 }

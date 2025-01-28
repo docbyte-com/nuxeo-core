@@ -19,6 +19,7 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSUPPORTED_ACL;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_ACL;
 import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_AVG;
@@ -48,8 +49,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.lucene.search.FuzzyQuery;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -111,8 +110,6 @@ import org.opensearch.search.sort.SortOrder;
  */
 public class OpenSearchQueryTransformer implements SearchQueryTransformer<SearchRequest> {
 
-    private static final Logger log = LogManager.getLogger(OpenSearchQueryTransformer.class);
-
     public static final String FULLTEXT_FIELD = "all_field";
 
     protected static final String SIMPLE_QUERY_PREFIX = "es: ";
@@ -126,8 +123,12 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
 
     protected final Map<String, String> indexes;
 
-    public OpenSearchQueryTransformer(Map<String, String> indexes) {
+    protected final Map<String, OpenSearchHintQueryBuilder> hintBuilders;
+
+    public OpenSearchQueryTransformer(Map<String, String> indexes,
+            Map<String, OpenSearchHintQueryBuilder> hintBuilders) {
         this.indexes = indexes;
+        this.hintBuilders = hintBuilders;
     }
 
     @Override
@@ -279,13 +280,12 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
         QueryBuilder filter = null;
         String name = getFieldName(nxqlName, hint);
         if (hint != null && hint.operator != null) {
-            // TODO NXP-32984 impl hints operators
-            log.atWarn()
-               .withThrowable(log.isDebugEnabled() ? new Throwable("NXP-32984") : null)
-               .log("NXP-32984: ES Hint operator '{}' not yet implemented, fallback to NXQL '{}' operator",
-                       hint.operator, op);
-        }
-        if (nxqlName.startsWith(NXQL.ECM_FULLTEXT) && ("=".equals(op) || "!=".equals(op) || "<>".equals(op)
+            if (isNotEmpty(values)) {
+                filter = makeHintQuery(name, values, hint);
+            } else {
+                query = makeHintQuery(name, value, hint);
+            }
+        } else if (nxqlName.startsWith(NXQL.ECM_FULLTEXT) && ("=".equals(op) || "!=".equals(op) || "<>".equals(op)
                 || "LIKE".equals(op) || "NOT LIKE".equals(op))) {
             query = makeFulltextQuery(nxqlName, (String) value, hint);
             if ("!=".equals(op) || "<>".equals(op) || "NOT LIKE".equals(op)) {
@@ -377,6 +377,14 @@ public class OpenSearchQueryTransformer implements SearchQueryTransformer<Search
                 }
         }
         return "0".equals(value) ? "false" : "true";
+    }
+
+    protected QueryBuilder makeHintQuery(String name, Object value, EsHint hint) {
+        var hintBuilder = hintBuilders.get(hint.operator);
+        if (hintBuilder == null) {
+            throw new QueryParseException(String.format("Operator: %s is unknown", hint.operator));
+        }
+        return hintBuilder.make(hint, name, value);
     }
 
     protected QueryBuilder makeStartsWithQuery(String name, Object value) {

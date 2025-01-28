@@ -46,11 +46,10 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreSearchFeature.class, LogCaptureFeature.class })
+@Features(CoreSearchFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
 public class TestSearchCompareWithRepository {
@@ -69,9 +68,6 @@ public class TestSearchCompareWithRepository {
 
     @Inject
     protected CoreFeature coreFeature;
-
-    @Inject
-    protected LogCaptureFeature.Result logResult;
 
     private String proxyPath;
 
@@ -255,16 +251,9 @@ public class TestSearchCompareWithRepository {
     }
 
     @Test
-    @LogCaptureFeature.FilterOn(logLevel = "WARN")
     public void testSearchWithEsHints() {
-        // TODO NXP-32984 operator not yet supported but fallback on nxql
         testQueries(new String[] { "SELECT * from Document WHERE dc:title LIKE 'File%' ORDER BY ecm:uuid",
                 "SELECT * from Document WHERE /*+ES: INDEX(dc:title.fulltext) OPERATOR(match_phrase_prefix) */ dc:title LIKE 'File%' ORDER BY ecm:uuid" });
-        List<String> caughtEvents = logResult.getCaughtEventMessages();
-        assertEquals(1, caughtEvents.size());
-        assertEquals(
-                "NXP-32984: ES Hint operator 'match_phrase_prefix' not yet implemented, fallback to NXQL 'LIKE' operator",
-                caughtEvents.getFirst());
     }
 
     @Test

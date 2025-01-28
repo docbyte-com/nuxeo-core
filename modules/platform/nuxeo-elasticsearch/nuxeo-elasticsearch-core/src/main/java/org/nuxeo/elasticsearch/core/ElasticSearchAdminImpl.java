@@ -33,17 +33,13 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
@@ -85,8 +81,6 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
 
     protected final Map<String, ElasticSearchIndexConfig> indexConfig;
 
-    protected Map<String, ESHintQueryBuilder> hints;
-
     protected OpenSearchClient client;
 
     protected boolean indexInitDone;
@@ -103,12 +97,8 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
      *
      * @since 9.1
      */
-    public ElasticSearchAdminImpl(Map<String, ElasticSearchIndexConfig> indexConfig,
-            Collection<ESHintQueryBuilderDescriptor> hintDescriptors) {
+    public ElasticSearchAdminImpl(Map<String, ElasticSearchIndexConfig> indexConfig) {
         this.indexConfig = indexConfig;
-        this.hints = hintDescriptors.stream()
-                                    .collect(Collectors.toMap(ESHintQueryBuilderDescriptor::getName,
-                                            ESHintQueryBuilderDescriptor::newInstance));
         connect();
         initializeIndexes();
         reindexingPubSub = new ReindexingPubSub();
@@ -559,11 +549,6 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
      */
     public List<String> getInitializedRepositories() {
         return repositoryInitialized;
-    }
-
-    @Override
-    public Optional<ESHintQueryBuilder> getHintByOperator(String name) {
-        return Optional.ofNullable(hints.get(name));
     }
 
     public class ReindexingPubSub extends AbstractPubSubBroker<ReindexingMessage> {

@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider.opensearch1.hint.test">
+
+  <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
+
+    <searchServicePageProvider name="NXQL_WITH_HINT">
+      <property name="coreSession">#{documentManager}</property>
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
+      <whereClause>
+        <predicate hint="ES: INDEX(dc:title.fulltext)" operator="=" parameter="dc:title">
+          <field name="fulltext_all" schema="advanced_search" />
+        </predicate>
+        <predicate hint="ES: INDEX(my_field) ANALYZER(my_analyzer) OPERATOR(fuzzy)" operator="="
+          parameter="dc:description">
+          <field name="description" schema="advanced_search" />
+        </predicate>
+        <fixedPart>
+          /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
+        </fixedPart>
+      </whereClause>
+    </searchServicePageProvider>
+
+    <searchServicePageProvider name="NXQL_WITH_HINT_IN_PARAMETER">
+      <property name="coreSession">#{documentManager}</property>
+      <searchDocumentType>AdvancedSearch</searchDocumentType>
+      <whereClause>
+        <predicate operator="=" parameter="/*+ES: INDEX(dc:title.fulltext) */ dc:title">
+          <field name="fulltext_all" schema="advanced_search" />
+        </predicate>
+        <predicate operator="="
+          parameter="/*+ES: INDEX(my_field) ANALYZER(my_analyzer) OPERATOR(fuzzy) */ dc:description">
+          <field name="description" schema="advanced_search" />
+        </predicate>
+        <fixedPart>
+          /*+ES: INDEX(my_subject) */ dc:subject IN ('foo', 'bar')
+        </fixedPart>
+      </whereClause>
+    </searchServicePageProvider>
+
+    <searchServicePageProvider name="default_match_phrase_prefix">
+      <property name="maxResults">PAGE_SIZE</property>
+      <pattern quoteParameters="false" escapeParameters="true">
+        SELECT * FROM Document WHERE /*+ES: INDEX(dc:title.fulltext) OPERATOR(match_phrase_prefix) */
+        dc:title ILIKE '?%' AND ecm:primaryType = 'File'
+      </pattern>
+      <sort column="dc:title" ascending="true" />
+      <pageSize>50</pageSize>
+    </searchServicePageProvider>
+
+  </extension>
+
+</component>

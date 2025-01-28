@@ -72,14 +72,15 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
 
     protected final OpenSearchQueryTransformer queryTransformer;
 
-    public OpenSearchSearchClient(OpenSearchSearchClientDescriptor descriptor) {
+    public OpenSearchSearchClient(OpenSearchSearchClientDescriptor descriptor,
+            Map<String, OpenSearchHintQueryBuilder> hints) {
         super(descriptor);
         client = Framework.getService(OpenSearchClientService.class).getClient(descriptor.getClientId());
         indexes = descriptor.getSearchIndexes()
                             .entrySet()
                             .stream()
                             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getTechnicalName()));
-        queryTransformer = new OpenSearchQueryTransformer(indexes);
+        queryTransformer = new OpenSearchQueryTransformer(indexes, hints);
     }
 
     @Override

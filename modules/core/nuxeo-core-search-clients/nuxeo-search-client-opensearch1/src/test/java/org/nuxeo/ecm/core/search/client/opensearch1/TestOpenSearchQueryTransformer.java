@@ -27,13 +27,30 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
 import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.CommonOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.FuzzyOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoBoundingBoxOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoDistanceOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoShapeOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchPhraseOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchPhrasePrefixOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.MoreLikeThisOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.MultiMatchOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.NestedFilesOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.QueryStringOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.RegexOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.SimpleQueryStringOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.TestBoolQueryOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.TestTermOpenSearchHintQueryBuilder;
+import org.nuxeo.ecm.core.search.client.opensearch1.hint.WildcardOpenSearchHintQueryBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -58,7 +75,7 @@ public class TestOpenSearchQueryTransformer {
             SEARCH_INDEX, nxql).build();
 
     protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer(
-            Map.of("enhanced", "nxutest"));
+            Map.of("enhanced", "nxutest"), Map.of());
 
     protected static final Function<String, String> BUILDER = SEARCH_QUERY_BUILDER.andThen(TRANSFORMER)
                                                                                   .andThen(SearchRequest::source)
@@ -1367,9 +1384,8 @@ public class TestOpenSearchQueryTransformer {
     }
 
     @Test
-    @Ignore("NXP-32984 impl hints")
     public void testConvertHintOperator() {
-        String es = BUILDER.apply(
+        String es = newQueryBuilder(Map.of("match", new MatchOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: INDEX(some:field) ANALYZER(my_analyzer) OPERATOR(match) */ dc:subjects = 'foo'");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1388,7 +1404,8 @@ public class TestOpenSearchQueryTransformer {
                     }
                   }
                 }""", es);
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(match_phrase) */ dc:title = 'foo'");
+        es = newQueryBuilder(Map.of("match_phrase", new MatchPhraseOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(match_phrase) */ dc:title = 'foo'");
         assertEqualsEvenUnderWindows("""
                 {
                   "match_phrase" : {
@@ -1400,7 +1417,7 @@ public class TestOpenSearchQueryTransformer {
                     }
                   }
                 }""", es);
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("match_phrase_prefix", new MatchPhrasePrefixOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: OPERATOR(match_phrase_prefix) */ dc:title = 'this is a test'");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1414,7 +1431,7 @@ public class TestOpenSearchQueryTransformer {
                     }
                   }
                 }""", es);
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("multi_match", new MultiMatchOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: INDEX(dc:title^3,dc:description) OPERATOR(multi_match) */ dc:title = 'this is a test'");
         // fields are not ordered
         assertIn(es, """
@@ -1443,7 +1460,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""");
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(regex) */ dc:title = 's.*y'");
+        es = newQueryBuilder(Map.of("regex", new RegexOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(regex) */ dc:title = 's.*y'");
         assertEqualsEvenUnderWindows("""
                 {
                   "regexp" : {
@@ -1456,7 +1474,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(fuzzy) */ dc:title = 'ki'");
+        es = newQueryBuilder(Map.of("fuzzy", new FuzzyOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(fuzzy) */ dc:title = 'ki'");
         assertEqualsEvenUnderWindows("""
                 {
                   "fuzzy" : {
@@ -1471,7 +1490,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(wildcard) */ dc:title = 'ki*y'");
+        es = newQueryBuilder(Map.of("wildcard", new WildcardOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(wildcard) */ dc:title = 'ki*y'");
         assertEqualsEvenUnderWindows("""
                 {
                   "wildcard" : {
@@ -1482,7 +1502,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("simple_query_string", new SimpleQueryStringOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: OPERATOR(simple_query_string) */ dc:title = '\"fried eggs\" +(eggplant | potato) -frittata'");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1502,7 +1522,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("query_string", new QueryStringOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: INDEX(dc:title,dc:description) ANALYZER(fulltext) OPERATOR(query_string) */ dc:title = 'this AND that OR thus'");
         // fields are not ordered
         assertEqualsEvenUnderWindows("""
@@ -1529,7 +1549,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(common) */ dc:title = 'this is bonsai cool'");
+        es = newQueryBuilder(Map.of("common", new CommonOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(common) */ dc:title = 'this is bonsai cool'");
         assertEqualsEvenUnderWindows("""
                 {
                   "common" : {
@@ -1543,7 +1564,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("more_like_this", new MoreLikeThisOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: INDEX(dc:title.fulltext^2,dc:description.fulltext) OPERATOR(more_like_this) */ ecm:uuid = '1234'");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1554,7 +1575,6 @@ public class TestOpenSearchQueryTransformer {
                     ],
                     "like" : [
                       {
-                        "_index" : "nxutest",
                         "_id" : "1234"
                       }
                     ],
@@ -1572,7 +1592,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("more_like_this", new MoreLikeThisOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: INDEX(all_field) OPERATOR(more_like_this) */ ecm:uuid IN ('1234', '4567')");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1584,11 +1604,9 @@ public class TestOpenSearchQueryTransformer {
                         ],
                         "like" : [
                           {
-                            "_index" : "nxutest",
                             "_id" : "1234"
                           },
                           {
-                            "_index" : "nxutest",
                             "_id" : "4567"
                           }
                         ],
@@ -1609,7 +1627,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("more_like_this", new MoreLikeThisOpenSearchHintQueryBuilder())).apply(
                 "select * from Document where /*+ES: OPERATOR(more_like_this) */ ecm:uuid IN ('1234', '4567')");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1621,11 +1639,9 @@ public class TestOpenSearchQueryTransformer {
                         ],
                         "like" : [
                           {
-                            "_index" : "nxutest",
                             "_id" : "1234"
                           },
                           {
-                            "_index" : "nxutest",
                             "_id" : "4567"
                           }
                         ],
@@ -1646,7 +1662,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(testTermQuery) */ ecm:uuid = '1234'");
+        es = newQueryBuilder(Map.of("testTermQuery", new TestTermOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(testTermQuery) */ ecm:uuid = '1234'");
         assertEqualsEvenUnderWindows("""
                 {
                   "term" : {
@@ -1657,7 +1674,8 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(testBoolQuery) */ ecm:uuid = '1234'");
+        es = newQueryBuilder(Map.of("testBoolQuery", new TestBoolQueryOpenSearchHintQueryBuilder())).apply(
+                "select * from Document where /*+ES: OPERATOR(testBoolQuery) */ ecm:uuid = '1234'");
         assertEqualsEvenUnderWindows("""
                 {
                   "bool" : {
@@ -1688,7 +1706,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply(
+        es = newQueryBuilder(Map.of("nestedFilesQuery", new NestedFilesOpenSearchHintQueryBuilder())).apply(
                 "SELECT * FROM Document WHERE /*+ES: INDEX(files:files.file.encoding, files:files.file.digest) OPERATOR(nestedFilesQuery) */ nested:value IN ('myEncoding', 'anyDigest')");
         assertEquals("""
                 {
@@ -1824,9 +1842,12 @@ public class TestOpenSearchQueryTransformer {
     }
 
     @Test
-    @Ignore("TODO NXP-32984 impl hints")
     public void testConvertHintGeo() {
-        String es = BUILDER.apply(
+        var geoBuilder = newQueryBuilder(Map.of("geo_bounding_box", new GeoBoundingBoxOpenSearchHintQueryBuilder(), //
+                "geo_distance", new GeoDistanceOpenSearchHintQueryBuilder(), //
+                "geo_shape", new GeoShapeOpenSearchHintQueryBuilder() //
+        ));
+        String es = geoBuilder.apply(
                 "select * from Document where /*+ES: OPERATOR(geo_bounding_box) */ osm:location IN ('40.73, -74.1', '40.81, -71.12')");
         String response = """
                 {
@@ -1853,14 +1874,14 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""";
         assertEqualsEvenUnderWindows(response, es);
-        es = BUILDER.apply(
+        es = geoBuilder.apply(
                 "select * from Document where /*+ES: OPERATOR(geo_bounding_box) */ osm:location IN ('drj7tee', 'dr5r9y')");
         // we cannot do this because lat and lon are not rounded to match the input
         // assertTruEqualsEvenUnderWindows(response, es);
         assertTrue(es.contains("geo_bounding_box"));
         assertTrue(es, es.contains("bottom_right"));
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(geo_distance) */ "
+        es = geoBuilder.apply("select * from Document where /*+ES: OPERATOR(geo_distance) */ "
                 + "osm:location IN ('40.73, -74.1', '20km')");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1882,7 +1903,7 @@ public class TestOpenSearchQueryTransformer {
                   }
                 }""", es);
 
-        es = BUILDER.apply("select * from Document where /*+ES: OPERATOR(geo_shape) */"
+        es = geoBuilder.apply("select * from Document where /*+ES: OPERATOR(geo_shape) */"
                 + "osm:location IN ('FRA', 'type-unused', 'shapes', 'location')");
         assertEqualsEvenUnderWindows("""
                 {
@@ -1926,10 +1947,16 @@ public class TestOpenSearchQueryTransformer {
     }
 
     @Test
-    @Ignore("TODO NXP-32984 impl hints")
     public void shouldFailWhenESHintOperatorIsUnknown() {
-        var uso = assertThrows(UnsupportedOperationException.class, () -> BUILDER.apply(
+        var uso = assertThrows(QueryParseException.class, () -> BUILDER.apply(
                 "select * from Document where /*+ES: OPERATOR(unExitingHint) */ ecm:uuid = '1234'"));
         assertEquals("Operator: unExitingHint is unknown", uso.getMessage());
+    }
+
+    protected static Function<String, String> newQueryBuilder(Map<String, OpenSearchHintQueryBuilder> hintBuilders) {
+        return SEARCH_QUERY_BUILDER.andThen(new OpenSearchQueryTransformer(Map.of("enhanced", "nxutest"), hintBuilders))
+                                   .andThen(SearchRequest::source)
+                                   .andThen(SearchSourceBuilder::query)
+                                   .andThen(Objects::toString);
     }
 }

@@ -25,7 +25,6 @@ import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 
 import jakarta.inject.Inject;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -166,7 +165,6 @@ public class TestSearchOpenSearchNgramMapping {
     }
 
     @Test
-    @Ignore("NXP-32984 impl hints")
     public void testNgramSearch() {
         DocumentModel doc = session.createDocumentModel("/", "testDoc1", "File");
         doc.setPropertyValue("dc:title", "FooBar12 test");

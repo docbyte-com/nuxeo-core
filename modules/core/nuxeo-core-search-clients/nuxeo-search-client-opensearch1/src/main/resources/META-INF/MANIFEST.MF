@@ -5,4 +5,5 @@ Bundle-SymbolicName: org.nuxeo.ecm.core.search.client.opensearch1;singleton:=tru
 Bundle-Version: 1.0.0
 Nuxeo-Component: OSGI-INF/opensearch-search-client-factory-contrib.xml,
   OSGI-INF/opensearch-search-client-factory-service.xml,
+  OSGI-INF/opensearch-search-client-hint-contrib.xml,
   OSGI-INF/opensearch-search-client-scroll-contrib.xml

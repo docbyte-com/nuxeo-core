@@ -4,5 +4,4 @@ Bundle-Name: ElasticSearch core service integration
 Bundle-SymbolicName: org.nuxeo.elasticsearch.core;singleton:=true
 Bundle-Version: 1.0.0
 Nuxeo-Component: OSGI-INF/elasticsearch-service.xml,
- OSGI-INF/elasticsearch-managment-contrib.xml,
- OSGI-INF/elasticsearch-hints-contrib.xml
+ OSGI-INF/elasticsearch-managment-contrib.xml

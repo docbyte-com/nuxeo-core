@@ -22,7 +22,6 @@ package org.nuxeo.elasticsearch.api;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.client.Client;
@@ -215,11 +214,4 @@ public interface ElasticSearchAdmin {
      * @since 8.3
      */
     boolean useExternalVersion();
-
-    /**
-     * Returns the hint by the Elasticsearch operator name.
-     *
-     * @since 11.1
-     */
-    Optional<ESHintQueryBuilder> getHintByOperator(String name);
 }

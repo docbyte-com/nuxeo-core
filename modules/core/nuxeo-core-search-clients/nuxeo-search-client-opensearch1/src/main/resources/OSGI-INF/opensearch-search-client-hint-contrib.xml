@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.opensearch1.hint.contrib" version="1.0">
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="hint">
+    <hint name="match" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchOpenSearchHintQueryBuilder" />
+    <hint name="match_phrase" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchPhraseOpenSearchHintQueryBuilder" />
+    <hint name="match_phrase_prefix" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.MatchPhrasePrefixOpenSearchHintQueryBuilder" />
+    <hint name="multi_match" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.MultiMatchOpenSearchHintQueryBuilder" />
+    <hint name="regex" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.RegexOpenSearchHintQueryBuilder" />
+    <hint name="fuzzy" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.FuzzyOpenSearchHintQueryBuilder" />
+    <hint name="wildcard" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.WildcardOpenSearchHintQueryBuilder" />
+    <hint name="common" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.CommonOpenSearchHintQueryBuilder" />
+    <hint name="query_string" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.QueryStringOpenSearchHintQueryBuilder" />
+    <hint name="simple_query_string" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.SimpleQueryStringOpenSearchHintQueryBuilder" />
+    <hint name="more_like_this" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.MoreLikeThisOpenSearchHintQueryBuilder" />
+    <hint name="geo_bounding_box" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoBoundingBoxOpenSearchHintQueryBuilder" />
+    <hint name="geo_distance" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoDistanceOpenSearchHintQueryBuilder" />
+    <hint name="geo_shape" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoShapeOpenSearchHintQueryBuilder" />
+    <hint name="nestedFilesQuery" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.NestedFilesOpenSearchHintQueryBuilder" />
+  </extension>
+</component>

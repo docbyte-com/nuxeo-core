@@ -26,15 +26,12 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Executors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
-import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.elasticsearch.core.ElasticSearchAdminImpl;
 import org.nuxeo.runtime.api.Framework;
@@ -56,11 +53,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
     private static final Logger log = LogManager.getLogger(ElasticSearchComponent.class);
 
     protected static final String EP_INDEX = "elasticSearchIndex";
-
-    /**
-     * @since 11.1
-     */
-    protected static final String EP_HINTS = "elasticSearchHints";
 
     protected final Map<String, ElasticSearchIndexConfig> indexConfig = new HashMap<>();
 
@@ -88,10 +80,6 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
                     indexConfig.remove(idx.getName());
                 }
                 break;
-            case EP_HINTS:
-                ESHintQueryBuilderDescriptor esHintDescriptor = (ESHintQueryBuilderDescriptor) contribution;
-                register(EP_HINTS, esHintDescriptor);
-                break;
             default:
                 throw new IllegalStateException("Invalid EP: " + extensionPoint);
         }
@@ -103,7 +91,7 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
             log.info("Elasticsearch service is disabled");
             return;
         }
-        esa = new ElasticSearchAdminImpl(indexConfig, getDescriptors(EP_HINTS));
+        esa = new ElasticSearchAdminImpl(indexConfig);
         initListenerThreadPool();
     }
 
@@ -268,10 +256,5 @@ public class ElasticSearchComponent extends DefaultComponent implements ElasticS
     // misc ====================================================================
     public boolean isReady() {
         return (esa != null) && esa.isReady();
-    }
-
-    @Override
-    public Optional<ESHintQueryBuilder> getHintByOperator(String name) {
-        return esa.getHintByOperator(name);
     }
 }

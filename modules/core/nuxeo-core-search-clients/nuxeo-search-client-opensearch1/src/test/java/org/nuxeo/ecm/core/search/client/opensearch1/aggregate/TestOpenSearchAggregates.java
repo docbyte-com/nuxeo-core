@@ -73,7 +73,7 @@ public class TestOpenSearchAggregates {
     protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "enhanced");
 
     protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer(
-            Map.of("enhanced", "nxutest"));
+            Map.of("enhanced", "nxutest"), Map.of());
 
     protected static final Function<SearchQuery, String> BUILDER = TRANSFORMER.andThen(
             SearchRequest::source).andThen(source -> Strings.toString(source, true, true));
