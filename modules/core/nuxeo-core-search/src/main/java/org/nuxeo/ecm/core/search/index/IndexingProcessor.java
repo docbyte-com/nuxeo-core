@@ -28,6 +28,7 @@ import static org.nuxeo.runtime.api.login.LoginComponent.SYSTEM_USERNAME;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,8 +85,16 @@ public class IndexingProcessor implements StreamProcessorTopology {
                 log.debug("No indexing events");
                 return 0;
             }
-            // TODO: handle multi repositories
-            String repository = events.getFirst().getRepository();
+            var repositories = events.stream().map(IndexingDomainEvent::getRepository).collect(Collectors.toSet());
+            return repositories.stream().mapToInt(repo -> indexSimpleEvents(repo, events, refresh)).sum();
+        }
+
+        protected int indexSimpleEvents(String repository, List<IndexingDomainEvent> allEvents, boolean refresh) {
+            var events = allEvents.stream().filter(event -> repository.equals(event.getRepository())).toList();
+            if (events.isEmpty()) {
+                log.debug("No indexing events");
+                return 0;
+            }
             SearchService searchService = Framework.getService(SearchService.class);
             SearchIndexingService indexingService = Framework.getService(SearchIndexingService.class);
             List<SearchIndex> indexes = searchService.getSearchIndexForRepository(repository);

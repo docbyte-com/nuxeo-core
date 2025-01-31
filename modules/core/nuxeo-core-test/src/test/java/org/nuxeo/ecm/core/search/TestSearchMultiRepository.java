@@ -57,6 +57,7 @@ public class TestSearchMultiRepository {
     public void init() {
         createDocs(defaultSession);
         createDocs(otherSession);
+        txFeature.nextTransaction();
     }
 
     protected void createDocs(CoreSession session) {
@@ -67,7 +68,6 @@ public class TestSearchMultiRepository {
         doc = session.createDocumentModel("/my-folder/", "my-file", "File");
         doc.setPropertyValue("dc:title", "A file");
         session.createDocument(doc);
-        txFeature.nextTransaction();
     }
 
     @Test
