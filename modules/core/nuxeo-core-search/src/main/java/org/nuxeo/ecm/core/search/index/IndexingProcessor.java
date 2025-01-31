@@ -28,7 +28,6 @@ import static org.nuxeo.runtime.api.login.LoginComponent.SYSTEM_USERNAME;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -85,8 +84,11 @@ public class IndexingProcessor implements StreamProcessorTopology {
                 log.debug("No indexing events");
                 return 0;
             }
-            var repositories = events.stream().map(IndexingDomainEvent::getRepository).collect(Collectors.toSet());
-            return repositories.stream().mapToInt(repo -> indexSimpleEvents(repo, events, refresh)).sum();
+            return events.stream()
+                         .map(IndexingDomainEvent::getRepository)
+                         .distinct()
+                         .mapToInt(repo -> indexSimpleEvents(repo, events, refresh))
+                         .sum();
         }
 
         protected int indexSimpleEvents(String repository, List<IndexingDomainEvent> allEvents, boolean refresh) {

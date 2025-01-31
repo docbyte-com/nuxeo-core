@@ -105,8 +105,8 @@ public class SearchQueryImpl implements SearchQuery {
             }
             // 2. parse the sql query
             SQLQuery sqlQuery = SQLQueryParser.parse(nxql);
-            // 3. add security policies
-            // TODO: Should we disable multi repo search if repositories have different security policy
+            // 3. add security policy transformers of the first repository, multi repository search with different
+            // policies cannot be handled
             var transformers = Framework.getService(SecurityService.class)
                                         .getPoliciesQueryTransformers(builder.searchIndexes.getFirst().repository());
             for (SQLQuery.Transformer trans : transformers) {

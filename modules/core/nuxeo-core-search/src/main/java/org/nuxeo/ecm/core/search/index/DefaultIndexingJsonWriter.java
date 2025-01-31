@@ -107,9 +107,7 @@ public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
             // @since 2025 ancestors must be materialized
             jg.writeArrayFieldStart("ecm:ancestorId");
             jg.writeString(parentRef.toString());
-            // TODO getParentDocumentRefs may produce duplicates, to investigate
             Arrays.stream(session.getParentDocumentRefs(parentRef))
-                  // reference is an id one by session implementation
                   .map(ref -> ref.reference().toString())
                   .forEach(ThrowableConsumer.asConsumer(jg::writeString));
             jg.writeEndArray();

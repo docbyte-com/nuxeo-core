@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.search.client.opensearch1;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchQueryTransformer.getKeepAlive;
 
 import java.util.Map;
@@ -128,13 +129,21 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                             QueryBuilders.termQuery(ECM_ANCESTOR_FIELDS, item.getDocumentId()));
                     doRecurseDelete(indexName, query);
                 }
+                count++;
             } else {
-                bulkRequest.add(new IndexRequest(indexName).id(item.getDocumentId())
-                                                           .versionType(VersionType.EXTERNAL)
-                                                           .version(request.getVersion())
-                                                           .source(item.getSource(), XContentType.JSON));
+                String source = item.getSource();
+                if (isEmpty(source)) {
+                    // the doc might have been deleted, skip it
+                    // TODO: Could be filter in SearchService#indexDocuments or reported as such in the response
+                    log.debug("No json source, skipping indexing command: {}", item);
+                } else {
+                    bulkRequest.add(new IndexRequest(indexName).id(item.getDocumentId())
+                                                               .versionType(VersionType.EXTERNAL)
+                                                               .version(request.getVersion())
+                                                               .source(source, XContentType.JSON));
+                    count++;
+                }
             }
-            count++;
         }
         if (request.isRefresh()) {
             bulkRequest.setRefreshPolicy(WriteRequest.RefreshPolicy.IMMEDIATE);
@@ -226,6 +235,10 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
         try {
             var osSearchRequest = queryTransformer.apply(query);
             var osSearchResponse = client.search(osSearchRequest);
+            if (osSearchResponse.isTimedOut()) {
+                log.debug("Search operation timed out: {}", osSearchResponse);
+                throw new RetryableException("Search operation timed out");
+            }
             return responseTransformer.apply(query, osSearchResponse);
         } catch (IllegalArgumentException e) {
             throw new QueryParseException(e);
@@ -243,7 +256,13 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
                 getKeepAlive(scrollContext.searchQuery()));
         try {
             var osSearchResponse = client.scroll(osRequest);
+            if (osSearchResponse.isTimedOut()) {
+                log.debug("SearchScroll operation timed out: {}", osSearchResponse);
+                throw new RetryableException("SearchScroll operation timed out" + scrollContext);
+            }
             return responseTransformer.apply(scrollContext.searchQuery(), osSearchResponse);
+        } catch (RetryableException e) {
+            throw e;
         } catch (RuntimeServiceException e) {
             throw new SearchClientException(e);
         }

@@ -22,7 +22,8 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Objects;
+
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -109,12 +110,9 @@ public class IndexingRequest implements Serializable {
         return this.source != null;
     }
 
+    @Nullable
     public String getSource() {
-        // TODO: Raise or add a missing source message in the doc with a searchable marker
-        return Objects.requireNonNullElseGet(source, () -> {
-            log.warn("The document: {} doesn't have a source", documentId);
-            return "{\"ecm:uuid\":\"" + documentId + "\"}";
-        });
+        return source;
     }
 
     @Override
