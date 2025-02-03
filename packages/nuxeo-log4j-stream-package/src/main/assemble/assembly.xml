@@ -58,13 +58,13 @@
     </copy>
     <nx:rmdups dir="${outdir}/nxr/lib" />
     <!-- Nuxeo Stream log4j Appender requires these libs to be in container classpath -->
-    <move todir="${outdir}/nxr/tomcatlib" overwrite="true">
+    <move todir="${outdir}/nxr/containerlib" overwrite="true">
       <fileset dir="${outdir}/nxr/lib">
         <include name="nuxeo-stream-*" />
         <include name="kafka-clients-*" />
         <include name="opencensus-api-*" />
         <include name="opencensus-impl-core-*" />
-        <include name="grpc-context-*" />
+        <include name="grpc-api-*" />
         <include name="avro-*" />
       </fileset>
     </move>

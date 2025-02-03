@@ -21,6 +21,7 @@
     <dependency>
       <groupId>org.nuxeo.lib.stream</groupId>
       <artifactId>nuxeo-stream</artifactId>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
