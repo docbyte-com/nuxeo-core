@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.core.search.client.opensearch1.hint.test.contrib">
   <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="hint">
+    <hint name="nestedFilesQuery" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.NestedFilesOpenSearchHintQueryBuilder" />
     <hint name="testTermQuery" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.TestTermOpenSearchHintQueryBuilder" />
     <hint name="testBoolQuery" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.TestBoolQueryOpenSearchHintQueryBuilder" />
     <hint name="anyESHintToRemove" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.AnyOpenSearchHintQueryBuilder" />

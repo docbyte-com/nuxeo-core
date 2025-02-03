@@ -15,6 +15,5 @@
     <hint name="geo_bounding_box" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoBoundingBoxOpenSearchHintQueryBuilder" />
     <hint name="geo_distance" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoDistanceOpenSearchHintQueryBuilder" />
     <hint name="geo_shape" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.GeoShapeOpenSearchHintQueryBuilder" />
-    <hint name="nestedFilesQuery" class="org.nuxeo.ecm.core.search.client.opensearch1.hint.NestedFilesOpenSearchHintQueryBuilder" />
   </extension>
 </component>
