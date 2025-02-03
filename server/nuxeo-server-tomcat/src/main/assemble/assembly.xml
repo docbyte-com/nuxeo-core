@@ -90,6 +90,11 @@
     <unzip dest="${distribution.dir}/nxserver">
       <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-server:${maven.project.version}:zip" />
     </unzip>
+    <!-- Move container libraries to their correct location -->
+    <mkdir dir="${distribution.dir}/lib" />
+    <move todir="${distribution.dir}/lib">
+      <fileset dir="${distribution.dir}/nxserver/containerlib" />
+    </move>
     <!-- Move templates to their correct location -->
     <mkdir dir="${distribution.dir}/templates" />
     <move todir="${distribution.dir}/templates">
@@ -113,6 +118,8 @@
   </target>
 
   <target name="reorganize-libs">
+    <property name="container-libs" value="${outdir}/container-libs" />
+    <property name="nxr-libs" value="${outdir}/nxr-libs" />
     <!-- Add Tomcat specific requirements -->
     <copy todir="${distribution.dir}/nxserver/bundles" overwrite="true">
       <artifact:set excludeRoots="true">
@@ -128,39 +135,60 @@
       <artifact:set>
         <includes>
           <artifact groupId="!org.nuxeo*" scope="" />
+        </includes>
+      </artifact:set>
+    </copy>
+    <copy todir="${distribution.dir}/lib" overwrite="true">
+      <artifact:set>
+        <includes>
           <artifact groupId="org.nuxeo.lib*" scope="" />
         </includes>
       </artifact:set>
     </copy>
-    <!-- remove libraries already provided by Tomcat or unneeded -->
-    <delete>
-      <fileset dir="${distribution.dir}/nxserver/lib">
-        <!-- jetty is needed by vcs remote -->
-        <!-- jetty-util is needed by jsp impl jar - which is referring jetty log classes -->
-        <!-- jetty-naming has jndi properties conflicting with Tomcat -->
-        <include name="jetty-naming*" />
-        <include name="el-api*" />
-        <include name="jsp-*" />
-        <include name="juel-api-*" />
-        <include name="tomcat-catalina-*" /> <!-- provided by Tomcat as catalina.jar -->
-        <include name="tomcat-coyote-*" /> <!-- provided by Tomcat -->
-        <include name="tomcat-dbcp-*" /> <!-- provided by Tomcat -->
-        <include name="tomcat-el-api-*" /> <!-- provided by Tomcat as el-api.jar -->
-        <include name="tomcat-jasper-*" /> <!-- provided by Tomcat as jasper.jar & jasper-el.jar -->
-        <include name="tomcat-jdbc-*" /> <!-- provided by Tomcat -->
-        <include name="tomcat-jni-*" /> <!-- provided by Tomcat -->
-        <include name="tomcat-juli-*" /> <!-- provided by Tomcat as bin/tomcat-juli.jar -->
-        <include name="tomcat-util-*" /> <!-- provided by Tomcat -->
+    <!-- Add Tomcat version to Tomcat libraries -->
+    <move todir="${distribution.dir}/lib">
+      <fileset dir="${distribution.dir}/lib" />
+      <mapper type="glob" from="tomcat-*.jar" to="tomcat-*-${tomcat.version}.jar" />
+    </move>
+    <!-- Perform a comparison between libs present in the container classpath and templates VS in nxserver -->
+    <!-- Prepare container libs for diff -->
+    <copy todir="${container-libs}" overwrite="true">
+      <fileset dir="${distribution.dir}/lib" />
+      <fileset dir="${distribution.dir}/templates">
+        <include name="**/lib/**/*"/>
       </fileset>
-      <!-- provided through templates -->
-      <fileset dir="${distribution.dir}/nxserver/lib">
-        <include name="bson-*" />
-        <include name="h2-*" />
-        <include name="mongodb-driver-*" />
-        <include name="postgresql-*" />
-        <include name="quartz-mongodb-*" />
+      <flattenmapper />
+    </copy>
+    <!-- Retrieve Tomcat libs -->
+    <copy todir="${container-libs}" overwrite="true">
+      <fileset dir="${distribution.dir}/lib">
+        <include name="catalina*.jar" />
+        <include name="jasper*.jar" />
       </fileset>
-    </delete>
+      <mapper type="glob" from="*.jar" to="tomcat-*-${tomcat.version}.jar" />
+    </copy>
+    <copy todir="${container-libs}" overwrite="true">
+      <fileset file="${distribution.dir}/bin/tomcat-juli.jar" />
+      <mapper type="glob" from="tomcat-juli.jar" to="tomcat-juli-${tomcat.version}.jar" />
+    </copy>
+    <zip destfile="${outdir}/container-libs-${maven.project.version}.zip" basedir="${container-libs}" />
+    <!-- Prepare nxr libs for diff -->
+    <copy todir="${nxr-libs}" overwrite="true">
+      <fileset dir="${distribution.dir}/nxserver/lib" />
+    </copy>
+    <zip destfile="${outdir}/nxr-libs-${maven.project.version}.zip" basedir="${nxr-libs}" />
+    <nx:zipdiff file1="${outdir}/nxr-libs-${maven.project.version}.zip"
+                file2="${outdir}/container-libs-${maven.project.version}.zip"
+                ignoreContent="true"
+                includesfile="${outdir}/includes"
+                excludesfile="${outdir}/excludesfile"
+                patternsetid="${maven.project.artifactId}.container.libs.filtering">
+    </nx:zipdiff>
+    <!-- Delete & update nxserver libs to remove container libs -->
+    <delete dir="${distribution.dir}/nxserver/lib" />
+    <unzip src="${outdir}/nxr-libs-${maven.project.version}.zip" dest="${distribution.dir}/nxserver/lib">
+      <patternset refid="${maven.project.artifactId}.container.libs.filtering" />
+    </unzip>
     <!-- Required for Nuxeo Stream log4j Appender -->
     <copy todir="${distribution.dir}/lib" overwrite="true">
       <fileset dir="${distribution.dir}/nxserver/lib">
@@ -172,31 +200,14 @@
         <include name="avro-*" />
       </fileset>
     </copy>
-    <!-- Move some libraries from nxserver to Tomcat default lib directory -->
-    <move todir="${distribution.dir}/lib">
-      <fileset dir="${distribution.dir}/nxserver/lib">
-        <include name="nuxeo-runtime-*" />
-        <include name="commons-lang-*" />
-        <include name="commons-lang3-*" />
-        <include name="commons-logging-*" />
-        <include name="freemarker-*" />
-        <include name="jakarta.activation-*" />
-        <include name="jakarta.mail-*" />
-        <include name="xercesImpl-*" />
-        <!-- install sl4j bridge in container classpath -->
-        <include name="slf4j*" />
-        <include name="log4j-*" /> <!-- log4j2 / bridges: jcl, slf4j, log4j -->
-        <!-- install log4j2 JSON logging dependencies in container classpath -->
-        <include name="jackson-*" />
-      </fileset>
-    </move>
-    <!-- Add Tomcat version to Tomcat libraries -->
-    <move todir="${distribution.dir}/lib">
-      <fileset dir="${distribution.dir}/lib" />
-      <mapper type="glob" from="tomcat-*.jar" to="tomcat-*-${tomcat.version}.jar" />
-    </move>
     <nx:rmdups dir="${distribution.dir}/nxserver/lib" />
     <nx:rmdups dir="${distribution.dir}/lib" />
+
+    <!-- cleanups -->
+    <delete dir="${container-libs}" failonerror="false" />
+    <delete dir="${nxr-libs}" failonerror="false" />
+    <delete file="${outdir}/container-libs-${maven.project.version}.zip" failonerror="false" />
+    <delete file="${outdir}/nxr-libs-${maven.project.version}.zip" failonerror="false" />
   </target>
 
   <target name="set-distribution-properties">
