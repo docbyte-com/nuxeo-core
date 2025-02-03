@@ -44,27 +44,27 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.mariadb.jdbc</groupId>
       <artifactId>mariadb-java-client</artifactId>
-      <scope>runtime</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
-      <scope>runtime</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>com.mysql</groupId>
       <artifactId>mysql-connector-j</artifactId>
-      <scope>runtime</scope>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
-      <scope>test</scope>
+      <scope>provided</scope>
     </dependency>
 
     <!-- Nuxeo test libraries -->

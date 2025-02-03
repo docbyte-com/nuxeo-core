@@ -11,15 +11,67 @@
   <name>Nuxeo Server NXR</name>
 
   <dependencies>
+    <!-- Java specifications -->
     <dependency>
       <groupId>jakarta.servlet.jsp.jstl</groupId>
       <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
     </dependency>
+
+    <!-- Java specification implementations -->
     <dependency>
       <groupId>org.glassfish.web</groupId>
       <artifactId>jakarta.servlet.jsp.jstl</artifactId>
     </dependency>
 
+    <!-- Libraries -->
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-1.2-api</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-slf4j-impl</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.logging.log4j</groupId>
+      <artifactId>log4j-appserver</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <!-- Database Drivers used in assembly -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.lib.novemberain</groupId>
+      <artifactId>quartz-mongodb</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Nuxeo dependencies -->
     <dependency>
       <groupId>org.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
@@ -528,28 +580,6 @@
       <groupId>org.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-connect-client-wrapper</artifactId>
     </dependency>
-
-    <!-- Database Drivers used in assembly -->
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
-    </dependency>
-
-    <dependency>
-      <groupId>org.nuxeo.lib.novemberain</groupId>
-      <artifactId>quartz-mongodb</artifactId>
-    </dependency>
-
   </dependencies>
 
   <build>

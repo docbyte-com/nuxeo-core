@@ -31,9 +31,14 @@
     <copy todir="${nxr}/lib" overwrite="true">
       <artifact:set>
         <includes>
-          <artifact groupId="!org.nuxeo*" scope="" />
-          <artifact groupId="org.nuxeo.lib*" scope="" />
+          <artifact groupId="!org.nuxeo*" />
+          <artifact groupId="org.nuxeo.lib*" />
         </includes>
+        <excludes>
+          <artifact scope="test" />
+          <artifact scope="provided" />
+          <artifact type="pom" />
+        </excludes>
       </artifact:set>
     </copy>
     <nx:rmdups dir="${nxr}/lib" />
@@ -49,6 +54,7 @@
     </copy>
     <copy todir="${nxr}/templates/mongodb/nxserver/lib">
       <artifact:file artifactId="bson" />
+      <artifact:file artifactId="bson-record-codec" />
       <artifact:file artifactId="mongodb-driver-core" />
       <artifact:file artifactId="mongodb-driver-sync" />
       <artifact:file artifactId="quartz-mongodb" />
