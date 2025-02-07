@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.storage.sql;
 
+import static org.nuxeo.ecm.core.api.AbstractSession.isFulltextValueABlobKey;
 import static org.nuxeo.ecm.core.api.CoreSession.BINARY_FULLTEXT_MAIN_KEY;
 
 import java.io.IOException;
@@ -1314,7 +1315,7 @@ public class SessionImpl implements Session {
         RowId rowId = new RowId(Model.FULLTEXT_TABLE_NAME, id);
         Map<String, String> map = mapper.getBinaryFulltext(rowId);
         String fulltext = map.get(BINARY_FULLTEXT_MAIN_KEY);
-        if (fulltextDescriptor.getFulltextStoredInBlob() && fulltext != null) {
+        if (isFulltextStoredInBlob() && isFulltextValueABlobKey(fulltext)) {
             if (doc == null) {
                 // could not find doc (shouldn't happen)
                 fulltext = null;
