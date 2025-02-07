@@ -721,7 +721,7 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
 
     /**
      * Gets the Read ACL (flat list of users having browse permission, including inheritance) on a document.
-     * 
+     *
      * @deprecated since 2021.39 use {@link #materializedKeys(State)} instead
      */
     @Deprecated
@@ -731,8 +731,11 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
     }
 
     /**
-     * Returns materialized keys for a state: - Read ACL (flat list of users having browse permission, including
-     * inheritance) on a document - Ancestor ids
+     * Returns materialized keys for a state:
+     * <ul>
+     * <li>Read ACL (flat list of users having browse permission, including inheritance) on a document
+     * <li>Ancestor ids
+     * </ul>
      */
     protected State materializedKeys(State state) {
         State ret = new State(2);
