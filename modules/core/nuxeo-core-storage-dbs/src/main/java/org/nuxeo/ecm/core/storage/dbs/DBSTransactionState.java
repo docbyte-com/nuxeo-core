@@ -20,12 +20,14 @@ package org.nuxeo.ecm.core.storage.dbs;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static org.nuxeo.ecm.core.api.AbstractSession.isFulltextValueABlobKey;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.BROWSE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYONE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ_VERSION;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSUPPORTED_ACL;
+import static org.nuxeo.ecm.core.storage.BaseDocument.FULLTEXT_BINARYTEXT_PROP;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.INITIAL_CHANGE_TOKEN;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.INITIAL_SYS_CHANGE_TOKEN;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.KEY_ACE_GRANT;
@@ -1278,6 +1280,10 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                 if (i == size - 1) {
                     // end of path
                     if (value instanceof String) {
+                        if (FULLTEXT_BINARYTEXT_PROP.equals(path.get(i)) && !isFulltextValueABlobKey((String) value)) {
+                            // ecm:fulltextBinary value is not an expected blob key, probably residual fulltext skip it
+                            continue;
+                        }
                         blobKeys.add((String) value);
                     } else if (value instanceof Object[]) {
                         // array of naked blob keys (no current use case)

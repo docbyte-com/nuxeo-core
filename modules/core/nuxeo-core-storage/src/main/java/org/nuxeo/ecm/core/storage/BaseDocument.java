@@ -44,6 +44,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -93,6 +95,7 @@ import org.nuxeo.runtime.api.Framework;
  * @since 7.3
  */
 public abstract class BaseDocument<T extends StateAccessor> implements Document {
+    private static final Logger log = LogManager.getLogger(BaseDocument.class);
 
     protected static final Pattern LIST_INDEX_PATTERN = Pattern.compile("/\\d+$");
 
@@ -722,6 +725,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
         String key;
         try {
             key = blobManager.writeBlob(blob, this, xpath);
+            log.debug("setPropertyBlobData({}) for doc: {} with blob key: {}", xpath, getUUID(), key);
         } catch (IOException e) {
             throw new PropertyException("Cannot write binary for doc: " + getUUID(), e);
         }

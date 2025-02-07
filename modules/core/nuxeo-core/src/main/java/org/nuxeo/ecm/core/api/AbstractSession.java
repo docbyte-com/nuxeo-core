@@ -21,6 +21,7 @@
 package org.nuxeo.ecm.core.api;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.CHANGED_ACL_NAME;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.NEW_ACE;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.OLD_ACE;
@@ -2892,6 +2893,14 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             doc = doc.getParent();
         }
         return doc;
+    }
+
+    public static boolean isFulltextValueABlobKey(String fulltext) {
+        // Since there are different blob provider implementation, we cannot rely on a BlobStoreBlobProvider.isValidKey
+        // The fulltext key is a md5 digest like:
+        // "644fc11ecc4891631f9c8244d8010f0b" length 32
+        // "fulltext:644fc11ecc4891631f9c8244d8010f0b" length 42
+        return !isEmpty(fulltext) && (fulltext.length() <= 52) && !fulltext.contains(" ");
     }
 
     @Override

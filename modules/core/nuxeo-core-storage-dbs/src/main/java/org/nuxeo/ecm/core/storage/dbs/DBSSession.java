@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.storage.dbs;
 import static java.lang.Boolean.TRUE;
 import static org.nuxeo.ecm.core.action.DeletionAction.ACTION_NAME;
 import static org.nuxeo.ecm.core.api.AbstractSession.DISABLED_ISLATESTVERSION_PROPERTY;
+import static org.nuxeo.ecm.core.api.AbstractSession.isFulltextValueABlobKey;
 import static org.nuxeo.ecm.core.api.CoreSession.BINARY_FULLTEXT_MAIN_KEY;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.FACETED_TAG;
@@ -1461,7 +1462,7 @@ public class DBSSession extends BaseSession {
     public Map<String, String> getBinaryFulltext(String id) {
         State state = transaction.getStateForRead(id);
         String fulltext = (String) state.get(KEY_FULLTEXT_BINARY);
-        if (fulltextStoredInBlob && fulltext != null) {
+        if (isFulltextStoredInBlob() && isFulltextValueABlobKey(fulltext)) {
             DBSDocument doc = getDocument(id);
             if (doc == null) {
                 // could not find doc (shouldn't happen)
