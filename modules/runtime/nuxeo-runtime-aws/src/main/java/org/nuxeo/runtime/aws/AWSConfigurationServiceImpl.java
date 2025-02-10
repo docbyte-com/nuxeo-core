@@ -103,13 +103,13 @@ public class AWSConfigurationServiceImpl extends DefaultComponent implements AWS
 
     @Override
     public void configureProxy(ApacheHttpClient.Builder builder) {
-        String proxyHost = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_HOST).toLowerCase();
+        String proxyHost = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_HOST);
         String proxyPort = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PORT);
         String proxyLogin = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_LOGIN);
         String proxyPassword = Framework.getProperty(Environment.NUXEO_HTTP_PROXY_PASSWORD);
         var config = software.amazon.awssdk.http.apache.ProxyConfiguration.builder();
         if (isNotBlank(proxyHost) && isNotBlank(proxyPort)) {
-            config.endpoint(URI.create("http://" + proxyHost + ":" + proxyPort));
+            config.endpoint(URI.create("http://" + proxyHost.toLowerCase() + ":" + proxyPort));
         }
         if (isNotBlank(proxyLogin)) {
             config.username(proxyLogin);

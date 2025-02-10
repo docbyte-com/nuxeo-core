@@ -21,6 +21,7 @@ import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.mail.MailConstants.CONFIGURATION_MAIL_FROM;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_ACCESS_KEY_ID;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_REGION;
+import static software.amazon.awssdk.core.SdkSystemSetting.AWS_SECRET_ACCESS_KEY;
 
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -46,7 +47,8 @@ public class SESFeature implements RunnerFeature {
         String verifiedSender = System.getenv(AWS_SES_MAIL_SENDER_ENV_VAR);
         assumeTrue("AWS credentials, region and a verified mail are missing in test configuration",
                 isNoneBlank(verifiedSender, System.getenv(AWS_ACCESS_KEY_ID.environmentVariable()),
-                        System.getenv("AWS_SECRET_KEY"), System.getenv(AWS_REGION.environmentVariable())));
+                        System.getenv(AWS_SECRET_ACCESS_KEY.environmentVariable()),
+                        System.getenv(AWS_REGION.environmentVariable())));
         Framework.getProperties().setProperty(CONFIGURATION_MAIL_FROM, verifiedSender);
         RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
         harness.deployContrib("org.nuxeo.mail.amazon.ses.test", "OSGI-INF/test-ses-override-default-sender.xml");
