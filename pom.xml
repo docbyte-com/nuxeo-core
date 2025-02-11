@@ -2424,7 +2424,7 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.3.4</version>
+        <version>1.3.5</version>
         <exclusions>
           <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
