@@ -25,7 +25,10 @@ import org.nuxeo.runtime.test.runner.WithFrameworkPropertyFeature;
 
 @Features(WithFrameworkPropertyFeature.class)
 @WithFrameworkProperty(name = FulltextStoredInBlobFeature.KEY, value = "true")
+@WithFrameworkProperty(name = FulltextStoredInBlobFeature.MIGRATION_KEY, value = "true")
 public class FulltextStoredInBlobFeature implements RunnerFeature {
 
     protected static final String KEY = "nuxeo.test.fulltext.storedInBlob";
+
+    protected static final String MIGRATION_KEY = "nuxeo.bulk.action.fixBinaryFulltextStorage.enabled";
 }
