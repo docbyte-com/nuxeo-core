@@ -4,14 +4,24 @@
   <require>org.nuxeo.ecm.core.bulk.config</require>
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="extractBinaryFulltext" inputStream="bulk/extractBinaryFulltext" bucketSize="50" batchSize="10" httpEnabled="false" />
+    <action name="extractBinaryFulltext" inputStream="bulk/extractBinaryFulltext" bucketSize="50" batchSize="10"
+      httpEnabled="false" />
+    <action name="fixBinaryFulltextStorage" inputStream="bulk/fixBinaryFulltextStorage" bucketSize="50" batchSize="10"
+      httpEnabled="false" enabled="${nuxeo.bulk.action.fixBinaryFulltextStorage.enabled:=false}" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
-    <streamProcessor name="extractBinaryFulltext"
-      class="org.nuxeo.ecm.core.storage.action.ExtractBinaryFulltextAction"
+    <streamProcessor name="extractBinaryFulltext" class="org.nuxeo.ecm.core.storage.action.ExtractBinaryFulltextAction"
       defaultConcurrency="${nuxeo.bulk.action.extractBinaryFulltext.defaultConcurrency:=2}"
       defaultPartitions="${nuxeo.bulk.action.extractBinaryFulltext.defaultPartitions:=4}">
+      <policy name="default" maxRetries="3" delay="1s" continueOnFailure="true" />
+    </streamProcessor>
+    <streamProcessor name="fixBinaryFulltextStorage"
+      class="org.nuxeo.ecm.core.storage.action.FixBinaryFulltextStorageAction"
+      enabled="${nuxeo.bulk.action.fixBinaryFulltextStorage.enabled:=false}"
+      defaultConcurrency="${nuxeo.bulk.action.fixBinaryFulltextStorage.defaultConcurrency:=2}"
+      defaultPartitions="${nuxeo.bulk.action.fixBinaryFulltextStorage.defaultPartitions:=4}"
+      validationClass="org.nuxeo.ecm.core.storage.action.FixBinaryFulltextStorageValidation">
       <policy name="default" maxRetries="3" delay="1s" continueOnFailure="true" />
     </streamProcessor>
   </extension>

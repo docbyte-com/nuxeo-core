@@ -34,6 +34,7 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.storage.action.ExtractBinaryFulltextAction;
+import org.nuxeo.ecm.core.storage.action.FixBinaryFulltextStorageAction;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
@@ -53,6 +54,8 @@ public class ExtractBinaryFulltextObject extends AbstractResource<ResourceTypeIm
     // Proxies don't hold fulltext, avoid to run extraction on document without downloadable binaries
     public static final String ALL_DOCS = "SELECT * FROM Document WHERE ecm:isProxy = 0 AND ecm:mixinType = 'Downloadable'";
 
+    public static final String ALL_BUT_PROXIES = "SELECT * FROM Document WHERE ecm:isProxy = 0";
+
     /**
      * Run fulltext extraction of binaries, force can be used when changing the configuration to nullify binary fulltext
      * on documents that are excluded with the new configuration.
@@ -67,6 +70,23 @@ public class ExtractBinaryFulltextObject extends AbstractResource<ResourceTypeIm
                                             .param("force", force)
                                             .build());
         log.warn("Extracting Binary Fulltext: command: {}, query: {}, force: {}", commandId, finalQuery, force);
+        return bulkService.getStatus(commandId);
+    }
+
+    /**
+     * Migrate existing binary fulltext stored in backend to s3 storage. It requires to activate
+     * nuxeo.bulk.action.fixBinaryFulltextStorage.enabled=true.
+     */
+    @POST
+    @Path("fixBinaryStorage")
+    public BulkStatus fixBinaryStorage(@FormParam("query") String query) {
+        final String finalQuery = StringUtils.defaultIfBlank(query, ALL_BUT_PROXIES);
+        BulkService bulkService = Framework.getService(BulkService.class);
+        // validation will raise an illegal argument exception if repository is not configured with fulltextStoredInBlob
+        String commandId = bulkService.submit(new BulkCommand.Builder(FixBinaryFulltextStorageAction.ACTION_NAME,
+                finalQuery, SYSTEM_USERNAME).repository(ctx.getCoreSession().getRepositoryName()).build());
+        log.warn("Migrating existing binary fulltext from repository to s3 storage, command: {}, query: {}", commandId,
+                finalQuery);
         return bulkService.getStatus(commandId);
     }
 }
