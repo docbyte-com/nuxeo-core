@@ -36,6 +36,7 @@ import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
+import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
@@ -43,11 +44,11 @@ import org.nuxeo.ecm.core.model.Document;
 import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @Features(FulltextStoredInBlobFeature.class)
-@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-blob-dispatcher-fulltext.xml")
+@WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
 public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery {
 
     // from XML config
@@ -101,9 +102,13 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
         session.save();
         coreFeature.waitForAsyncCompletion();
 
-        // Incremental GC deleted the fulltext blob
+        // incremental GC is deactivated blob is still there
+        assertEquals(BINARY_TEXT, ftbp.readBlob(bi).getString());
+
+        // run the Full GC
         gcStatus = triggerAndWaitGC();
-        assertEquals(1, gcStatus.getProcessed()); // fulltext blob
+        assertEquals(2, gcStatus.getTotal());
+        assertEquals(2, gcStatus.getProcessed()); // main blob + fulltext blob
         assertEquals(0, gcStatus.getSkipCount());
         try {
             blob = documentBlobManager.readBlob(blobInfo, doc, "ecm:fulltextBinary");

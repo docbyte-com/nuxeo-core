@@ -1540,6 +1540,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
         DocumentModel doc;
         List<FileSystemItemChange> changes;
         String key;
+        String digest;
         try {
             log.trace("Register a sync root and create a document inside it");
             nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), folder1, session);
@@ -1547,6 +1548,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             doc.setPropertyValue("file:content", new StringBlob("The file content"));
             doc = session.createDocument(doc);
             key = ((ManagedBlob) doc.getPropertyValue("file:content")).getKey();
+            digest = key.split(":")[1];
         } finally {
             commitAndWaitForAsyncCompletion();
         }
@@ -1555,7 +1557,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
             getChanges(); // ignored, not the point of this test
 
             log.trace("Replace blob digest");
-            assertEquals(key, session.replaceBlobDigest(doc.getRef(), key, "newkey", "newkey"));
+            assertEquals(digest, session.replaceBlobDigest(doc.getRef(), key, "newkey", "newkey"));
         } finally {
             commitAndWaitForAsyncCompletion();
         }
@@ -1571,7 +1573,7 @@ public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
                             "defaultFileSystemItemFactory#test#" + doc.getId(), "doc"),
                     toSimpleFileSystemItemChange(change));
             assertEquals("newkey", ((FileItem) change.getFileSystemItem()).getDigest());
-            assertEquals(key, ((FileItem) change.getFileSystemItem()).getOldDigest());
+            assertEquals(digest, ((FileItem) change.getFileSystemItem()).getOldDigest());
         } finally {
             commitAndWaitForAsyncCompletion();
         }

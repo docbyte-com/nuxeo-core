@@ -18,17 +18,18 @@
  */
 package org.nuxeo.ecm.core.test;
 
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-import org.nuxeo.runtime.test.runner.WithFrameworkPropertyFeature;
 
-@Features(WithFrameworkPropertyFeature.class)
+@Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blobstore-contrib.xml")
 @WithFrameworkProperty(name = FulltextStoredInBlobFeature.KEY, value = "true")
-@WithFrameworkProperty(name = FulltextStoredInBlobFeature.MIGRATION_KEY, value = "true")
 public class FulltextStoredInBlobFeature implements RunnerFeature {
 
-    protected static final String KEY = "nuxeo.test.fulltext.storedInBlob";
+    public static final String MIGRATION_KEY = "nuxeo.bulk.action.fixBinaryFulltextStorage.enabled";
 
-    protected static final String MIGRATION_KEY = "nuxeo.bulk.action.fixBinaryFulltextStorage.enabled";
+    protected static final String KEY = "nuxeo.test.fulltext.storedInBlob";
 }

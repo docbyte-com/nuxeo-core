@@ -5,5 +5,15 @@
     <blobprovider name="test">
       <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
     </blobprovider>
+    <blobprovider name="fulltext">
+      <class>org.nuxeo.ecm.core.blob.LocalBlobProvider</class>
+      <property name="path">fulltext</property>
+    </blobprovider>
+  </extension>
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher>
+      <property name="blob:xpath=ecm:fulltextBinary">fulltext</property>
+      <property name="default">test</property>
+    </blobdispatcher>
   </extension>
 </component>
