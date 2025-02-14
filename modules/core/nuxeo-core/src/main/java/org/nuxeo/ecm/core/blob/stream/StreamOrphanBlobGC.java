@@ -104,7 +104,7 @@ public class StreamOrphanBlobGC implements StreamProcessorTopology {
         @Override
         public void processRecord(ComputationContext context, String inputStreamName, Record record) {
             BlobDomainEvent bde = codec.decode(record.getData());
-            log.trace("Processsing blob domain event: {} for repository: {}, docId: {}, blobKey: {}", bde.event,
+            log.trace("Processing blob domain event: {} for repository: {}, docId: {}, blobKey: {}", bde.event,
                     bde.repository, bde.docId, bde.blobKey);
             if (canPerformDelete() && BLOBS_CANDIDATE_FOR_DELETION_EVENT.equals(bde.event)) {
                 try {
