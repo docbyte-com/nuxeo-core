@@ -18,9 +18,11 @@
  */
 package org.nuxeo.ecm.core.test;
 
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blobstore-contrib.xml")
 public class FulltextStoredInBlobFeature implements RunnerFeature {
 
     private static final String KEY = "nuxeo.test.fulltext.storedInBlob";

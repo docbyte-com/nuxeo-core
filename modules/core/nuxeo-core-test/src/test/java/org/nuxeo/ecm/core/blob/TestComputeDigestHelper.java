@@ -62,7 +62,11 @@ public class TestComputeDigestHelper {
 
     protected static final String FOO_MD5 = "acbd18db4cc2f85cedef654fccc4a4d8";
 
+    protected static final String FOO_KEY = "test:" + FOO_MD5;
+
     protected static final String BAR_MD5 = "37b51d194a7513e45b56f6524f2d51f2";
+
+    protected static final String BAR_KEY = "test:" + BAR_MD5;
 
     protected static final String FOO_SHA256 = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae";
 
@@ -106,7 +110,7 @@ public class TestComputeDigestHelper {
 
         // check the blob is new
         ManagedBlob blob = (ManagedBlob) doc.getPropertyValue("file:content");
-        assertEquals(BAR_MD5, blob.getKey());
+        assertEquals(BAR_KEY, blob.getKey());
         assertEquals(BAR_MD5, blob.getDigest());
     }
 
@@ -125,16 +129,16 @@ public class TestComputeDigestHelper {
         try (CapturingEventListener listener = new CapturingEventListener(BLOB_DIGEST_UPDATED)) {
 
             // make doc1 point to doc2's blob
-            String oldDigest = session.replaceBlobDigest(doc1.getRef(), FOO_MD5, BAR_MD5, BAR_MD5);
+            String oldDigest = session.replaceBlobDigest(doc1.getRef(), FOO_KEY, BAR_KEY, BAR_MD5);
             assertEquals(FOO_MD5, oldDigest);
 
             // check event
             List<Event> events = listener.getCapturedEvents();
             assertEquals(1, events.size());
             Map<String, Serializable> properties = events.get(0).getContext().getProperties();
-            assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_KEY));
+            assertEquals(FOO_KEY, properties.get(BLOB_DIGEST_UPDATED_OLD_KEY));
             assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_DIGEST));
-            assertEquals(BAR_MD5, properties.get(BLOB_DIGEST_UPDATED_NEW_KEY));
+            assertEquals(BAR_KEY, properties.get(BLOB_DIGEST_UPDATED_NEW_KEY));
             assertEquals(BAR_MD5, properties.get(BLOB_DIGEST_UPDATED_NEW_DIGEST));
         }
         session.save();
@@ -142,7 +146,7 @@ public class TestComputeDigestHelper {
 
         // check the blob is new
         ManagedBlob blob = (ManagedBlob) doc1.getPropertyValue("file:content");
-        assertEquals(BAR_MD5, blob.getKey());
+        assertEquals(BAR_KEY, blob.getKey());
         assertEquals(BAR_MD5, blob.getDigest());
     }
 

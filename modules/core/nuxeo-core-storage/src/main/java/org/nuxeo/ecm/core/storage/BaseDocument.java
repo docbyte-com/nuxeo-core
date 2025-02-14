@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.AbstractSession;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -64,6 +65,7 @@ import org.nuxeo.ecm.core.api.model.impl.primitives.BlobProperty;
 import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.BlobEventContext;
 import org.nuxeo.ecm.core.model.BaseSession;
@@ -728,6 +730,23 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
     protected void setPropertyBlobData(String xpath, String string) {
         Blob blob = string == null ? null : Blobs.createBlob(string);
         DocumentBlobManager blobManager = Framework.getService(DocumentBlobManager.class);
+        if (getSession().isFulltextStoredInBlob()) {
+            String oldKey = (String) getPropertyValue(xpath);
+            if (AbstractSession.isFulltextValueABlobKey(oldKey)) {
+                if (oldKey.contains(":")) {
+                    // A prefix is needed to create a ManagedBlob
+                    BlobInfo oldBlobInfo = new BlobInfo();
+                    oldBlobInfo.key = oldKey;
+                    ManagedBlob oldBlob = new SimpleManagedBlob(oldBlobInfo);
+                    EventService es = Framework.getService(EventService.class);
+                    es.fireEvent(new BlobEventContext(NuxeoPrincipal.getCurrent(), getRepositoryName(), getUUID(),
+                            xpath, oldBlob).newEvent(BLOBS_CANDIDATE_FOR_DELETION_EVENT));
+                } else {
+                    log.trace("Missing key prefix to fire event on doc: {}, prop: {}, oldKey: {}", getUUID(), xpath,
+                            oldKey);
+                }
+            }
+        }
         String key;
         try {
             key = blobManager.writeBlob(blob, this, xpath);
@@ -1057,6 +1076,12 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 visit.visitBlobsComplex(state, schema);
             }
         }
+        // system props
+        if (!isProxy() && getSession().isFulltextStoredInBlob()) {
+            Deque<String> path = new ArrayDeque<>();
+            path.addLast(BaseDocument.FULLTEXT_BINARYTEXT_PROP);
+            blobVisitor.accept(new StatePropertyBlobAccessor(path, state, markDirty));
+        }
     }
 
     protected class StateBlobAccessor implements BlobAccessor {
@@ -1088,6 +1113,29 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
             // markDirty has to be called *before* we change the state
             markDirty.run();
             setValueBlob(state, blob, getXPath(), gcOldBlob);
+        }
+    }
+
+    protected class StatePropertyBlobAccessor extends StateBlobAccessor {
+
+        public StatePropertyBlobAccessor(Collection<String> path, T state, Runnable markDirty) {
+            super(path, state, markDirty);
+        }
+
+        @Override
+        public Blob getBlob() throws PropertyException {
+            BlobInfo blobInfo = new BlobInfo();
+            blobInfo.key = (String) getPropertyValue(getXPath());
+            try {
+                return getDocumentBlobManager().readBlob(blobInfo, BaseDocument.this, getXPath());
+            } catch (IOException e) {
+                throw new BlobNotFoundException("Unable to find blob with key: " + blobInfo.key, e);
+            }
+        }
+
+        @Override
+        public void setBlob(Blob blob, boolean gcOldBlob) throws PropertyException {
+            throw new IllegalStateException("This accessor is read only: " + getXPath());
         }
     }
 

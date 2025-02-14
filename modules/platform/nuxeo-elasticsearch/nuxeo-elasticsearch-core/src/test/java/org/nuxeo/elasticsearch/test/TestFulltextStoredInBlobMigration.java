@@ -84,10 +84,10 @@ public class TestFulltextStoredInBlobMigration {
     @Test
     public void testMigration() throws InterruptedException {
         String ft1 = "You know for search foo";
-        String ft1md5 = "7d502e2063185c0f18b120bea887e0af";
+        String ft1md5 = "fulltext:7d502e2063185c0f18b120bea887e0af";
         String doc1 = createDocWithBlob("doc1", ft1);
         String ft2 = "You know for search bar";
-        String ft2md5 = "4d56ce3b24f06e8449b6489e907ddb78";
+        String ft2md5 = "fulltext:4d56ce3b24f06e8449b6489e907ddb78";
         String doc2 = createDocWithBlob("doc2", ft2);
         txFeature.nextTransaction();
 
