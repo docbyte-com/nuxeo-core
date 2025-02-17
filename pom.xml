@@ -2900,7 +2900,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>2.3</version>
+        <version>2.4</version>
       </dependency>
       <!-- jsp library for login and error pages -->
       <dependency>
