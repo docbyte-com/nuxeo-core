@@ -625,6 +625,50 @@ public class TestNuxeoAuthenticationFilter {
     }
 
     /**
+     * Forced authentication for anonymous user, followed by simulated Web UI Service worker call. Then, logging in as a
+     * non anonymous user is working fine.
+     */
+    @Test
+    @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-anonymous.xml")
+    public void testAuthForceAnonymousLoginServiceWorker() throws Exception {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpSession session = mock(HttpSession.class);
+        Map<String, Object> sessionAttributes = mockSessionAttributes(session);
+        when(request.getSession(anyBoolean())).thenReturn(session);
+
+        // force anonymous login
+        mockRequestURI(request, "/my/page");
+        when(request.getParameter(eq(FORCE_ANONYMOUS_LOGIN))).thenReturn("true");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        PrintWriter writer = new PrintWriter(new OutputStreamWriter(out, UTF_8), true);
+        when(response.getWriter()).thenReturn(writer);
+        filter.doFilter(request, response, chain);
+
+        checkNoCachedUser(sessionAttributes);
+        checkNoEvents();
+
+        // simulate UI Service worker call
+        mockRequestURI(request, "/sw");
+        when(request.getParameter(eq(FORCE_ANONYMOUS_LOGIN))).thenReturn("false");
+        filter.doFilter(request, response, chain);
+
+        // anonymous user should not be cached
+        checkNoCachedUser(sessionAttributes);
+        checkNoEvents();
+
+        // log in as a non anonymous user
+        mockRequestURI(request, "/my/page");
+        when(request.getParameter(eq(DUMMY_AUTH_FORM_USERNAME_KEY))).thenReturn("bob");
+        when(request.getParameter(eq(DUMMY_AUTH_FORM_PASSWORD_KEY))).thenReturn("bob");
+        filter.doFilter(request, response, chain);
+
+        checkCachedUser(sessionAttributes, "bob");
+        verify(session).invalidate();
+        checkEvents(EVENT_LOGIN_SUCCESS);
+    }
+
+    /**
      * No auth but redirect to plugin login page.
      */
     @Test

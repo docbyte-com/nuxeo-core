@@ -51,6 +51,7 @@ import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.SWITCH_USER_KEY
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.SWITCH_USER_PAGE;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.USERIDENT_KEY;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.USERNAME_KEY;
+import static org.nuxeo.ecm.platform.ui.web.auth.plugins.AnonymousAuthenticator.BLOCK_ANONYMOUS_LOGIN_KEY;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -462,6 +463,7 @@ public class NuxeoAuthenticationFilter implements Filter {
                         }
                         if (forceAnonymousLogin && userName.equals(anonymousId)) {
                             userIdent = null;
+                            httpRequest.getSession(true).setAttribute(BLOCK_ANONYMOUS_LOGIN_KEY, true);
                         }
                     }
                     if (userIdent == null && !bypassAuth(httpRequest)) {
