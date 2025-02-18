@@ -20,7 +20,6 @@ package org.nuxeo.ecm.platform.ui.web.auth;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -143,7 +142,7 @@ public class TestNuxeoAuthenticationFilter {
     }
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // filter
         filter = new NuxeoAuthenticationFilter();
         // filter chain
@@ -259,13 +258,13 @@ public class TestNuxeoAuthenticationFilter {
         } else {
             verify(eventProducer).fireEvent(eventCaptor.capture());
             List<Event> events = eventCaptor.getAllValues();
-            List<String> eventNames = events.stream().map(Event::getName).collect(toList());
+            List<String> eventNames = events.stream().distinct().map(Event::getName).toList();
             assertEquals(Arrays.asList(expectedEventNames), eventNames);
         }
     }
 
     protected void checkNoEvents() {
-        checkEvents(new String[] {});
+        checkEvents();
     }
 
     protected void checkCachedUser(Map<String, Object> sessionAttributes, String username) {
@@ -285,7 +284,7 @@ public class TestNuxeoAuthenticationFilter {
      * Computation of the requested page based on request info.
      */
     @Test
-    public void testGetRequestedPage() throws Exception {
+    public void testGetRequestedPage() {
         // case of a servlet mapped with <url-pattern>*.xhtml</url-pattern>
         doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/foo/bar.xhtml", "/foo/bar.xhtml", null, null);
         doTestGetRequestedPage("foo/bar.xhtml", "/nuxeo/login.jsp/../foo/bar.xhtml;jsessionid=123?gee=moo",
@@ -361,7 +360,7 @@ public class TestNuxeoAuthenticationFilter {
      * Auth in session.
      */
     @Test
-    public void testAuthCached() throws Exception {
+    public void testAuthCached() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -392,7 +391,7 @@ public class TestNuxeoAuthenticationFilter {
      * No auth chain configured: no auth.
      */
     @Test
-    public void testNoAuthPlugins() throws Exception {
+    public void testNoAuthPlugins() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(request.getSession(eq(false))).thenReturn(null);
@@ -434,7 +433,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
-    public void testAuthPluginToken() throws Exception {
+    public void testAuthPluginToken() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -462,7 +461,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
-    public void testAuthPluginTokenThenRedirectToPage() throws Exception {
+    public void testAuthPluginTokenThenRedirectToPage() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -493,7 +492,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
-    public void testAuthPluginTokenFailedSoRedirectToLoginPage() throws Exception {
+    public void testAuthPluginTokenFailedSoRedirectToLoginPage() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -526,7 +525,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-token.xml")
-    public void testAuthAsSystemIsForbidden() throws Exception {
+    public void testAuthAsSystemIsForbidden() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -562,7 +561,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-anonymous.xml")
-    public void testAuthPluginAnonymous() throws Exception {
+    public void testAuthPluginAnonymous() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -588,7 +587,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-anonymous.xml")
-    public void testAuthForceAnonymousLogin() throws Exception {
+    public void testAuthForceAnonymousLogin() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -631,7 +630,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-anonymous.xml")
-    public void testAuthForceAnonymousLoginServiceWorker() throws Exception {
+    public void testAuthForceAnonymousLoginServiceWorker() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -674,7 +673,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormRedirectToLoginPage() throws Exception {
+    public void testAuthPluginFormRedirectToLoginPage() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -718,7 +717,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-no-start-url.xml")
-    public void testNoStartURLSaving() throws Exception {
+    public void testNoStartURLSaving() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -750,7 +749,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormReLogin() throws Exception {
+    public void testAuthPluginFormReLogin() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -791,7 +790,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormGet() throws Exception {
+    public void testAuthPluginFormGet() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         mockRequestURI(request, "/dummy_form_login.jsp", "", "");
@@ -809,7 +808,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormSubmit() throws Exception {
+    public void testAuthPluginFormSubmit() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -844,7 +843,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormFailedSoRedirectToLoginPage() throws Exception {
+    public void testAuthPluginFormFailedSoRedirectToLoginPage() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         Map<String, Object> requestAttributes = mockRequestAttributes(request);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -877,7 +876,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormLogout() throws Exception {
+    public void testAuthPluginFormLogout() throws LoginException, IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -919,7 +918,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormLogoutCallbackURL() throws Exception {
+    public void testAuthPluginFormLogoutCallbackURL() throws LoginException, IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -949,7 +948,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-form.xml")
-    public void testAuthPluginFormLogoutInvalidCallbackURL() throws Exception {
+    public void testAuthPluginFormLogoutInvalidCallbackURL() throws LoginException, IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -979,7 +978,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-sso.xml")
-    public void testAuthPluginSSORedirectToSSOLoginPage() throws Exception {
+    public void testAuthPluginSSORedirectToSSOLoginPage() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -1019,7 +1018,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-sso.xml")
-    public void testAuthPluginSSOWithTicket() throws Exception {
+    public void testAuthPluginSSOWithTicket() throws IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
@@ -1053,7 +1052,7 @@ public class TestNuxeoAuthenticationFilter {
      */
     @Test
     @Deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-authchain-dummy-sso.xml")
-    public void testAuthPluginSSOLogout() throws Exception {
+    public void testAuthPluginSSOLogout() throws LoginException, IOException, ServletException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
         HttpSession session = mock(HttpSession.class);
