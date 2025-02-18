@@ -70,23 +70,24 @@ public class IndexingCommands {
             if (existing.merge(command)) {
                 return;
             }
-        } else if (commandTypes.contains(IndexingCommand.Type.INSERT)
-                || commandTypes.contains(IndexingCommand.Type.UPDATE)) {
-            if (command.type == IndexingCommand.Type.DELETE) {
-                // index and delete in the same tx
+        } else if (command.type == IndexingCommand.Type.DELETE) {
+            if (commandTypes.contains(IndexingCommand.Type.INSERT)) {
+                // insert + delete in the same tx, nothing to do
                 clear();
-            } else if (command.isSync()) {
+                return;
+            }
+            // no need to keep event before delete
+            clear();
+        } else if (!commandTypes.isEmpty()
+                && (command.type == IndexingCommand.Type.UPDATE || command.type == IndexingCommand.Type.INSERT)) {
+            if (command.isSync()) {
+                // switch to sync if possible
                 IndexingCommand existing = requireNonNullElse(find(IndexingCommand.Type.INSERT),
                         find(IndexingCommand.Type.UPDATE));
-                // switch to sync if possible
                 existing.makeSync();
             }
             // we already have an index command, don't care about the new command
             return;
-        }
-        if (command.type == IndexingCommand.Type.DELETE) {
-            // no need to keep event before delete.
-            clear();
         }
         commands.add(command);
         commandTypes.add(command.type);

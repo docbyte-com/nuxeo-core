@@ -254,6 +254,33 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
     }
 
     @Test
+    public void updateAndDeleteIsDelete() {
+        DocumentModel doc1 = new MockDocumentModel("1", false);
+        stackCommand(doc1, DocumentEventTypes.BEFORE_DOC_UPDATE, true);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_REMOVED, true);
+        IndexingCommands ic1 = getCommands(doc1);
+        flushCommands();
+
+        assertEquals(1, flushedSyncCommands.size());
+        assertEquals(0, flushedAsyncCommands.size());
+        assertEquals(1, ic1.getCommands().size());
+        assertTrue(ic1.contains(Type.DELETE));
+    }
+
+    @Test
+    public void createAndDeleteIsNothing() {
+        DocumentModel doc1 = new MockDocumentModel("1", false);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_CREATED, true);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_REMOVED, true);
+        IndexingCommands ic1 = getCommands(doc1);
+        flushCommands();
+
+        assertEquals(0, flushedSyncCommands.size());
+        assertEquals(0, flushedAsyncCommands.size());
+        assertEquals(0, ic1.getCommands().size());
+    }
+
+    @Test
     public void testStackingProxyDocument() {
         var root = session.getRootDocument();
         var testDoc = session.createDocumentModel(root.getPathAsString(), "testFile", "File");
