@@ -50,7 +50,7 @@ public class SearchIndexDescriptor implements Descriptor {
     protected String repository;
 
     @XNode("@writerClass")
-    protected Class<? extends IndexingJsonWriter> writerClass = DefaultIndexingJsonWriter.class;
+    protected Class<? extends IndexingJsonWriter> writerClass;
 
     @Override
     public String getId() {
@@ -78,12 +78,12 @@ public class SearchIndexDescriptor implements Descriptor {
     }
 
     public Class<? extends IndexingJsonWriter> getWriterClass() {
-        return writerClass;
+        return defaultIfNull(writerClass, DefaultIndexingJsonWriter.class);
     }
 
     public IndexingJsonWriter newWriterInstance() {
         try {
-            return writerClass.getDeclaredConstructor().newInstance();
+            return getWriterClass().getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new IllegalArgumentException("Invalid JsonWriter class: " + writerClass + " for: " + name, e);
         }
