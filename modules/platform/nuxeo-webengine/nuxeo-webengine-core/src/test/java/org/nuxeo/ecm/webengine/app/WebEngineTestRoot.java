@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,16 @@ package org.nuxeo.ecm.webengine.app;
 
 import java.util.Map;
 
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.webengine.model.AdapterResource;
 import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
@@ -66,6 +69,13 @@ public class WebEngineTestRoot extends ModuleRoot {
     @Path("/simple-exception")
     public String getSimpleException() {
         throw new RuntimeException("Just throwing an exception");
+    }
+
+    @GET
+    @Path("/nuxeo-exception")
+    @Produces("*/*")
+    public String getNuxeoException(@QueryParam("statusCode") @DefaultValue("500") Integer statusCode) {
+        throw new NuxeoException("Throwing an exception with given status code", statusCode);
     }
 
     @POST

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,9 +37,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.test.ServletContainerTransactionalFeature;
 import org.nuxeo.runtime.cluster.ClusterFeature;
+import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.ServletContainerFeature;
@@ -52,11 +54,13 @@ import com.fasterxml.jackson.dataformat.xml.XmlFactory;
  * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
-@Features({ ServletContainerTransactionalFeature.class, CoreIOFeature.class, ClusterFeature.class, LogFeature.class })
+@Features({ ServletContainerTransactionalFeature.class, CoreIOFeature.class, ClusterFeature.class, LogFeature.class,
+        LogCaptureFeature.class })
 @Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.webengine.core.test")
+@LoggerLevel(klass = TransactionHelper.class, level = "OFF") // mute No transaction associated with current thread
 @SuppressWarnings("unchecked")
 public class TestWebEngineApplication {
 
@@ -64,6 +68,9 @@ public class TestWebEngineApplication {
 
     @Inject
     protected ServletContainerFeature servletContainerFeature;
+
+    @Inject
+    protected LogCaptureFeature.Result logCaptureResult;
 
     @Test
     public void testGetSimpleString() throws IOException {
@@ -96,8 +103,8 @@ public class TestWebEngineApplication {
     }
 
     @Test
-    @LoggerLevel(klass = TransactionHelper.class, level = "FATAL") // mute No transaction associated with current thread
-    @LoggerLevel(klass = WebEngineExceptionMapper.class, level = "FATAL") // mute default server logging error
+    @ConsoleLogLevelThreshold("FATAL") // mute No transaction associated with current thread
+    @LogCaptureFeature.FilterOn(loggerClass = WebEngineExceptionMapper.class)
     public void testGetSimpleException() throws IOException {
         HttpResponse<String> response = executeGETRequest("/webengine-test/simple-exception");
 
@@ -106,6 +113,60 @@ public class TestWebEngineApplication {
         assertEquals("exception", json.get("entity-type"));
         assertEquals(500, json.get("status"));
         assertEquals("Internal Server Error", json.get("message"));
+
+        var caughtEventMessages = logCaptureResult.getCaughtEventMessages();
+        assertEquals(1, caughtEventMessages.size());
+        assertEquals("java.lang.RuntimeException: Just throwing an exception", caughtEventMessages.getFirst());
+    }
+
+    @Test
+    @LogCaptureFeature.FilterOn(loggerClass = WebEngineExceptionMapper.class)
+    public void testGetNuxeoExceptionWithoutAccept() throws IOException {
+        HttpResponse<String> response = executeGETRequest("/webengine-test/nuxeo-exception?statusCode=400");
+
+        assertEquals(400, response.statusCode());
+        Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
+        assertEquals("exception", json.get("entity-type"));
+        assertEquals(400, json.get("status"));
+        assertEquals("Throwing an exception with given status code", json.get("message"));
+
+        var caughtEventMessages = logCaptureResult.getCaughtEventMessages();
+        assertEquals(0, caughtEventMessages.size());
+    }
+
+    @Test
+    @LogCaptureFeature.FilterOn(loggerClass = WebEngineExceptionMapper.class)
+    public void testGetNuxeoExceptionWithJsonAccept() throws IOException {
+        HttpResponse<String> response = executeRequest("/webengine-test/nuxeo-exception?statusCode=400",
+                builder -> builder.GET().setHeader("Accept", "application/json"));
+
+        assertEquals(400, response.statusCode());
+        Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
+        assertEquals("exception", json.get("entity-type"));
+        assertEquals(400, json.get("status"));
+        assertEquals("Throwing an exception with given status code", json.get("message"));
+
+        var caughtEventMessages = logCaptureResult.getCaughtEventMessages();
+        assertEquals(0, caughtEventMessages.size());
+    }
+
+    // NXP-33086
+    @Test
+    @LogCaptureFeature.FilterOn(loggerClass = WebEngineExceptionMapper.class)
+    public void testGetNuxeoExceptionWithUnsupportedAccept() throws IOException {
+        // this test is to check that we're reaching JsonNuxeoExceptionWriter when Accept is not application/json
+        // as it we're avoiding the MessageBodyProviderNotFoundException, and we're not flooding the logs
+        HttpResponse<String> response = executeRequest("/webengine-test/nuxeo-exception?statusCode=400",
+                builder -> builder.GET().setHeader("Accept", "application/something"));
+
+        assertEquals(400, response.statusCode());
+        Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
+        assertEquals("exception", json.get("entity-type"));
+        assertEquals(400, json.get("status"));
+        assertEquals("Throwing an exception with given status code", json.get("message"));
+
+        var caughtEventMessages = logCaptureResult.getCaughtEventMessages();
+        assertEquals(0, caughtEventMessages.size());
     }
 
     @Test
@@ -235,7 +296,6 @@ public class TestWebEngineApplication {
         assertEquals("WebEngineTestRoot/WebEngineTestAdapter/WebEngineTestObject", json.get("origin"));
     }
 
-    // TODO review, should we keep it?
     protected HttpResponse<String> executeGETRequest(String endpoint) {
         return executeRequest(endpoint, HttpRequest.Builder::GET);
     }
