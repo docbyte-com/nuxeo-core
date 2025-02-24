@@ -55,6 +55,7 @@ public class WebEngineApplication extends Application {
         result.add(new URLWriter());
         result.add(new TemplateViewWriter());
         result.add(new JsonNuxeoExceptionWriter());
+        result.add(new HtmlNuxeoExceptionWriter());
         return result;
     }
 
