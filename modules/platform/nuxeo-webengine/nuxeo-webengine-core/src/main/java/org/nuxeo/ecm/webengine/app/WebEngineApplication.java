@@ -55,6 +55,7 @@ public class WebEngineApplication extends Application {
         result.add(URLWriter.class);
         result.add(TemplateViewWriter.class);
         result.add(JsonNuxeoExceptionWriter.class);
+        result.add(HtmlNuxeoExceptionWriter.class);
         result.add(MultivaluedMapProvider.class);
         return result;
     }

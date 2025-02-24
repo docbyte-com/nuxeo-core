@@ -88,6 +88,13 @@ public class JsonWebengineWriter {
     }
 
     /**
+     * @since 2025.0
+     */
+    protected static String getExceptionMessage(NuxeoException e) {
+        return JsonWebengineWriter.getExceptionMessage(e.getMessage(), e.getStatusCode());
+    }
+
+    /**
      * @since 11.5
      */
     protected static String getExceptionMessage(String exceptionMessage, int statusCode) {
