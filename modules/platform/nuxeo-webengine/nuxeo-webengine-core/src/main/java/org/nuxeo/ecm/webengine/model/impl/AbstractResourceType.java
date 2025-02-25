@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.webengine.model.impl;
 
 import java.io.File;
@@ -40,6 +37,7 @@ import org.nuxeo.ecm.webengine.model.TypeVisibility;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
+import org.nuxeo.ecm.webengine.scripting.ScriptJarFile;
 import org.nuxeo.ecm.webengine.security.Guard;
 import org.nuxeo.ecm.webengine.security.PermissionService;
 import org.nuxeo.runtime.annotations.AnnotationManager;
@@ -229,12 +227,13 @@ public abstract class AbstractResourceType implements ResourceType {
         String path = resolveResourcePath(clazz.getClassName(), name);
         URL url = clazz.get().getResource(path);
         if (url != null) {
-            if (!"file".equals(url.getProtocol())) {
-                // TODO ScriptFile is not supporting URLs .. must refactor ScriptFile
-                return null;
-            }
             try {
-                return new ScriptFile(new File(url.toURI()));
+                if ("file".equals(url.getProtocol())) {
+                    return new ScriptFile(new File(url.toURI()));
+                } else if ("jar".equals(url.getProtocol())) {
+                    return new ScriptJarFile(url);
+                }
+                return null;
             } catch (IOException | URISyntaxException e) {
                 throw new NuxeoException("Failed to convert URL to URI: " + url, e);
             }
