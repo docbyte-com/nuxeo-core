@@ -281,6 +281,20 @@ public class TestIndexingCommandsStacker extends IndexingCommandsStacker {
     }
 
     @Test
+    public void securityBeforeInsert() {
+        DocumentModel doc1 = new MockDocumentModel("1", true);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_SECURITY_UPDATED, false);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_CREATED, false);
+        stackCommand(doc1, DocumentEventTypes.DOCUMENT_TAG_UPDATED, true);
+        IndexingCommands ic1 = getCommands(doc1);
+        flushCommands();
+
+        assertEquals(1, flushedSyncCommands.size());
+        assertEquals(1, flushedAsyncCommands.size());
+        assertEquals(2, ic1.getCommands().size());
+    }
+
+    @Test
     public void testStackingProxyDocument() {
         var root = session.getRootDocument();
         var testDoc = session.createDocumentModel(root.getPathAsString(), "testFile", "File");

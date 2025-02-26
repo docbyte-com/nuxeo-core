@@ -20,6 +20,9 @@
 package org.nuxeo.ecm.core.search.index.commands;
 
 import static java.util.Objects.requireNonNullElse;
+import static org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type.DELETE;
+import static org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type.INSERT;
+import static org.nuxeo.ecm.core.search.index.commands.IndexingCommand.Type.UPDATE;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -70,20 +73,19 @@ public class IndexingCommands {
             if (existing.merge(command)) {
                 return;
             }
-        } else if (command.type == IndexingCommand.Type.DELETE) {
-            if (commandTypes.contains(IndexingCommand.Type.INSERT)) {
+        } else if (command.type == DELETE) {
+            if (commandTypes.contains(INSERT)) {
                 // insert + delete in the same tx, nothing to do
                 clear();
                 return;
             }
             // no need to keep event before delete
             clear();
-        } else if (!commandTypes.isEmpty()
-                && (command.type == IndexingCommand.Type.UPDATE || command.type == IndexingCommand.Type.INSERT)) {
+        } else if ((commandTypes.contains(UPDATE) || commandTypes.contains(INSERT))
+                && (command.type == UPDATE || command.type == INSERT)) {
             if (command.isSync()) {
                 // switch to sync if possible
-                IndexingCommand existing = requireNonNullElse(find(IndexingCommand.Type.INSERT),
-                        find(IndexingCommand.Type.UPDATE));
+                IndexingCommand existing = requireNonNullElse(find(INSERT), find(UPDATE));
                 existing.makeSync();
             }
             // we already have an index command, don't care about the new command
