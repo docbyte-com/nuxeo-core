@@ -3084,7 +3084,7 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-jsr223</artifactId>
-        <version>3.0.23</version>
+        <version>3.0.24</version>
       </dependency>
       <dependency>
         <groupId>org.mvel</groupId>
