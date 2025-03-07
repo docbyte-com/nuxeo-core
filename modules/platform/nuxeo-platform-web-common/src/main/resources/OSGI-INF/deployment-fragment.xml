@@ -64,19 +64,6 @@
     </listener>
 
     <filter>
-      <display-name>OpenCensus Web Filter</display-name>
-      <filter-name>OcServletFilter</filter-name>
-      <filter-class>io.opencensus.contrib.http.servlet.OcHttpServletFilter</filter-class>
-    </filter>
-
-    <filter-mapping>
-      <filter-name>OcServletFilter</filter-name>
-      <url-pattern>/*</url-pattern>
-      <dispatcher>REQUEST</dispatcher>
-      <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-
-    <filter>
       <display-name>Nuxeo Request Controller Filter</display-name>
       <filter-name>NuxeoRequestController</filter-name>
       <filter-class>
@@ -224,6 +211,21 @@
     <filter-mapping>
       <filter-name>NuxeoThreadTracker</filter-name>
       <url-pattern>/*</url-pattern>
+    </filter-mapping>
+  </extension>
+
+  <extension target="web#FILTER">
+    <filter>
+      <display-name>OpenCensus Web Filter</display-name>
+      <filter-name>OcServletFilter</filter-name>
+      <filter-class>io.opencensus.contrib.http.servlet.OcHttpServletFilter</filter-class>
+    </filter>
+
+    <filter-mapping>
+      <filter-name>OcServletFilter</filter-name>
+      <url-pattern>/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
   </extension>
 
