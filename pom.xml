@@ -4564,30 +4564,14 @@
                   <message>No Snapshots Allowed!</message>
                   <onlyWhenRelease>false</onlyWhenRelease>
                   <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
-                  <excludes>
-                    <exclude>com.nuxeo*</exclude>
-                    <exclude>org.nuxeo*</exclude>
-                  </excludes>
-                </requireReleaseDeps>
-              </rules>
-            </configuration>
-          </execution>
-          <execution>
-            <id>enforce-nuxeo-dependencies</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <skip>${nuxeo.skip.enforcer}</skip>
-              <rules>
-                <requireReleaseDeps>
-                  <message>No Snapshots Allowed!</message>
-                  <onlyWhenRelease>false</onlyWhenRelease>
-                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
                   <includes>
                     <include>org.nuxeo:nuxeo-ftest</include>
                     <include>org.nuxeo.connect:nuxeo-connect-client</include>
                   </includes>
+                  <excludes>
+                    <exclude>com.nuxeo*</exclude>
+                    <exclude>org.nuxeo*</exclude>
+                  </excludes>
                 </requireReleaseDeps>
               </rules>
             </configuration>
@@ -5000,7 +4984,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
+          <version>3.5.0</version>
           <configuration>
             <rules>
               <requirePluginVersions>
