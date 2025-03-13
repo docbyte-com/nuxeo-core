@@ -18,10 +18,12 @@ package org.nuxeo.drive.test;
 
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStoreFeature;
+import org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @Features({ KeyValueBlobTransientStoreFeature.class, PlatformFeature.class, CollectionFeature.class,
         SQLAuditFeature.class })
@@ -36,6 +38,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-sync-root-cache-contrib.xml")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-types-contrib.xml")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-descendants-scrolling-cache-contrib.xml")
+@WithFrameworkProperty(name = StreamAuditEventListener.STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP, value = "true")
 public class NuxeoDriveFeature implements RunnerFeature {
 
 }

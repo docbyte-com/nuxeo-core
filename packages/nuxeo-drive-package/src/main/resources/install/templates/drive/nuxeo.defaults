@@ -10,3 +10,7 @@ org.nuxeo.drive.beta.update.site.url=https://community.nuxeo.com/static/drive-up
 # Use new Drive Edit URL form:
 # nxdrive://edit/scheme/server[:port]/webappName/user/userName/repo/repoName/nxdocid/docId/filename/fileName/downloadUrl/downloadUrl
 org.nuxeo.drive.new.edit.url=true
+
+# Since 2023.28, virtual events are written in audit using the StreamAuditEventListener
+org.nuxeo.drive.virtual.events.listener.enabled=false
+nuxeo.stream.audit.virtual.events.enabled=true
