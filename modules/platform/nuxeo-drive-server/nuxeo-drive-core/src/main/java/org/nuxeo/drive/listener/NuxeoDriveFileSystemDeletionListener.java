@@ -67,9 +67,7 @@ import org.nuxeo.runtime.api.Framework;
  * <p>
  * The listener injects virtual entries in the audit logs with the {@link NuxeoDriveEvents#EVENT_CATEGORY} category to
  * be handled by the {@link FileSystemChangeFinder}. These entries are set in the context of a
- * {@link NuxeoDriveEvents#VIRTUAL_EVENT_CREATED} event handled by the post-commit asynchronous
- * {@link NuxeoDriveVirtualEventLogger} to ensure that the transaction is committed before the log entries are actually
- * added.
+ * {@link NuxeoDriveEvents#VIRTUAL_EVENT_CREATED}.
  */
 public class NuxeoDriveFileSystemDeletionListener implements EventListener {
 

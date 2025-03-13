@@ -38,7 +38,9 @@ import org.nuxeo.runtime.api.Framework;
  * {@link NuxeoDriveFileSystemDeletionListener} to the Audit log.
  *
  * @since 7.4
+ * @deprecated since 2023.28, virtual events are written in audit using the StreamAuditEventListener
  */
+@Deprecated(since = "2023.28")
 public class NuxeoDriveVirtualEventLogger implements PostCommitFilteringEventListener {
 
     private static final Logger log = LogManager.getLogger(NuxeoDriveVirtualEventLogger.class);

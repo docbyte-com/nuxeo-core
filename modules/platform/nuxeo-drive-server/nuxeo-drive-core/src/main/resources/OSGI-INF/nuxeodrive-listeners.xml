@@ -46,8 +46,10 @@
 
       @author Antoine Taillefer
     </documentation>
+    <!-- deprecated since 2023.28, virtual events are written in audit using the StreamAuditEventListener -->
     <listener name="nuxeoDriveVirtualEventLoggerListener" async="true" postCommit="true"
-      class="org.nuxeo.drive.listener.NuxeoDriveVirtualEventLogger" />
+      class="org.nuxeo.drive.listener.NuxeoDriveVirtualEventLogger"
+      enabled="${org.nuxeo.drive.virtual.events.listener.enabled:=false}" />
 
     <documentation>
       Handle group change events fired by the UserManager.

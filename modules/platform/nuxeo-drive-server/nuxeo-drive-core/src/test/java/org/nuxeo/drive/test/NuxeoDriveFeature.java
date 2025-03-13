@@ -16,6 +16,7 @@
  */
 package org.nuxeo.drive.test;
 
+import org.nuxeo.audit.listener.StreamAuditEventListener;
 import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
@@ -29,6 +30,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @Deploy("org.nuxeo.drive.core")
 @Deploy("org.nuxeo.ecm.platform.search.core")
@@ -45,6 +47,7 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
         FileManagerFeature.class, //
         KeyValueBlobTransientStoreFeature.class, //
         PlatformFeature.class })
+@WithFrameworkProperty(name = StreamAuditEventListener.STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP, value = "true")
 public class NuxeoDriveFeature implements RunnerFeature {
 
     @Override

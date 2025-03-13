@@ -22,6 +22,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -33,6 +35,7 @@ import jakarta.transaction.Synchronization;
 import jakarta.transaction.SystemException;
 import jakarta.transaction.TransactionManager;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.LogEntry;
@@ -63,13 +66,26 @@ public class StreamAuditEventListener implements EventListener, Synchronization 
 
     public static final String STREAM_AUDIT_ENABLED_PROP = "nuxeo.stream.audit.enabled";
 
+    public static final String STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP = "nuxeo.stream.audit.virtual.events.enabled";
+
+    public static final String VIRTUAL_EVENT = "virtualEventCreated";
+
     public static final String STREAM_NAME = "audit/audit";
 
     protected static final AtomicInteger writeCounter = new AtomicInteger(0);
 
+    protected Boolean handleVirtualEvents;
+
     @Deprecated
     // @deprecated since 11.1 log config is not needed anymore
     public static final String DEFAULT_LOG_CONFIG = "audit";
+
+    protected boolean handleVirtualEvents() {
+        if (handleVirtualEvents == null) {
+            handleVirtualEvents = Framework.isBooleanPropertyTrue(STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP);
+        }
+        return handleVirtualEvents;
+    }
 
     @Override
     public void handleEvent(Event event) {
@@ -81,12 +97,21 @@ public class StreamAuditEventListener implements EventListener, Synchronization 
         }
         if (auditService.getAuditableEventNames().contains(event.getName())) {
             entries.get().add(auditService.buildEntryFromEvent(event));
+        } else if (handleVirtualEvents() && VIRTUAL_EVENT.equals(event.getName())) {
+            entries.get().addAll(extractVirtualEvents(event.getContext().getArguments()));
         }
         if (!isEnlisted.get()) {
             // there is no transaction so don't wait for a commit
             afterCompletion(Status.STATUS_COMMITTED);
         }
 
+    }
+
+    protected Collection<? extends LogEntry> extractVirtualEvents(Object[] args) {
+        if (ArrayUtils.isEmpty(args)) {
+            return List.of();
+        }
+        return Arrays.stream(args).filter(arg -> arg instanceof LogEntry).map(LogEntry.class::cast).toList();
     }
 
     @Override
