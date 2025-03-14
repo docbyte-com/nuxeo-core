@@ -46,6 +46,7 @@ import com.amazonaws.regions.AwsEnvVarOverrideRegionProvider;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.runtime.aws")
 public class TestAWSConfigurationService {
 

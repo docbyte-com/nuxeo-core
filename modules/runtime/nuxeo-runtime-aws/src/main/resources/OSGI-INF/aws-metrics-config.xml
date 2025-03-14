@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.aws.metrics.contrib">
+  <extension target="org.nuxeo.runtime.metrics.MetricsService" point="reporter">
+    <reporter enabled="${metrics.cloudwatch.scale.enabled:=false}" name="cloudWatchScale"
+      pollInterval="${metrics.stream.pollInterval:=60}" class="org.nuxeo.runtime.aws.cloudwatch.ScaleMetricReporter" />
+  </extension>
+</component>
