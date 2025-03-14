@@ -6,4 +6,5 @@ Bundle-Version: 1.0.0
 Bundle-Name: Nuxeo Runtime AWS
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.nuxeo.runtime.aws;singleton=true
-Nuxeo-Component: OSGI-INF/aws-configuration-service.xml
+Nuxeo-Component: OSGI-INF/aws-configuration-service.xml,
+ OSGI-INF/aws-metrics-config.xml

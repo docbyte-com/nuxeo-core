@@ -10,3 +10,16 @@ nuxeo.aws.trustStoreType=
 nuxeo.aws.keyStorePath=
 nuxeo.aws.keyStorePassword=
 nuxeo.aws.keyStoreType=
+
+# Enable autoscale cloudwatch metric, namespace: Nuxeo/Stream name: Scale
+metrics.cloudwatch.scale.enabled=false
+# A mandatory tag used as metric dimension to identify this Nuxeo cluster, nuxeo.url can be a good choice
+metrics.cloudwatch.scale.tag=
+# The AWS configuration identifier if different from default
+metrics.cloudwatch.aws.configuration.id=
+# Publish metric interval
+metrics.cloudwatch.scale.pollInterval=${metrics.stream.pollInterval}
+# Publish TargetScale metric for a target tracking scaling policy
+metrics.cloudwatch.scale.target.enabled=true
+# Publish a metric for a step scaling policy
+metrics.cloudwatch.scale.step.enabled=true

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.aws.metrics.contrib">
+  <extension target="org.nuxeo.runtime.metrics.MetricsService" point="reporter">
+    <reporter enabled="${metrics.cloudwatch.scale.enabled:=false}" name="cloudWatchScale"
+      pollInterval="${metrics.cloudwatch.scale.pollInterval:=60}"
+      class="org.nuxeo.runtime.aws.cloudwatch.ScaleMetricReporter">
+      <option name="awsConfigurationId">${metrics.cloudwatch.aws.configuration.id:=}</option>
+      <option name="awsTag">${metrics.cloudwatch.scale.tag:=}</option>
+      <option name="stepMetric">${metrics.cloudwatch.scale.step.enabled:=true}</option>
+      <option name="targetMetric">${metrics.cloudwatch.scale.target.enabled:=true}</option>
+    </reporter>
+  </extension>
+</component>

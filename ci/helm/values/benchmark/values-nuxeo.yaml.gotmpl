@@ -47,6 +47,8 @@ customProperties:
     JAVA_OPTS=$JAVA_OPTS -XX:-OmitStackTraceInFastThrow
   metrics: |
     metrics.enabled=true
+    metrics.cloudwatch.scale.enabled=false
+    metrics.cloudwatch.scale.tag=ci-benchmark
     metrics.datadog.enabled=true
     metrics.datadog.pollInterval=60
     metrics.datadog.tags=branch:{{ env "BRANCH_NAME" | default "local" }},pod_name:${env:POD_NAME},project:jenkins-{{ env "CURRENT_NAMESPACE" | default "local" }},repository=nuxeo-lts,source:nuxeo,service:benchmark-{{ env "BUILD_NUMBER" | default "local" }},team:platform,usage:benchmark

@@ -34,6 +34,7 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
 /**
  * @since 2023.4
  */
+@Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.runtime.aws")
 @Deploy("org.nuxeo.mail")
 @Deploy("org.nuxeo.mail.amazon.ses")
