@@ -20,6 +20,7 @@ package org.nuxeo.ecm.directory;
 
 import org.nuxeo.ecm.core.api.CoreApiFeature;
 import org.nuxeo.ecm.core.api.local.DummyLoginFeature;
+import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.cache.CacheFeature;
 import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
@@ -40,6 +41,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
         ClusterFeature.class, //
         // core features
         CoreApiFeature.class, //
+        CoreBulkFeature.class, //
         CacheFeature.class, //
         CoreIOFeature.class, //
         CoreSchemaFeature.class, //
