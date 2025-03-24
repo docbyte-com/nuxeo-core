@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.oauth.events.contrib">
+
+  <extension target="org.nuxeo.ecm.core.scheduler.SchedulerService" point="schedule">
+    <schedule id="garbageCollectExpiredOAuth2Tokens">
+      <!-- Schedule GC every sunday at 2am by default, customizable via nuxeo.conf property -->
+      <cronExpression>${nuxeo.oauth2.garbageCollectExpiredTokens.cronExpression:=0 0 2 ? * SUN}</cronExpression>
+      <event>garbageCollectExpiredOAuth2Tokens</event>
+    </schedule>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
+    <listener name="garbageCollectExpiredOAuth2Tokens" async="true"
+              enabled="${nuxeo.oauth2.garbageCollectExpiredTokens.enabled:=true}"
+              class="org.nuxeo.ecm.platform.oauth2.events.GarbageCollectExpiredOAuth2TokensListener">
+      <event>garbageCollectExpiredOAuth2Tokens</event>
+    </listener>
+  </extension>
+
+</component>

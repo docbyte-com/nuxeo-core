@@ -84,4 +84,11 @@ public interface OAuth2TokenService {
      */
     List<NuxeoOAuth2Token> search(String query, NuxeoPrincipal principal);
 
+    /**
+     * Garbage collects expired tokens.
+     *
+     * @since 2025.1
+     * @return the commandId
+     */
+    String garbageCollectExpiredTokens();
 }

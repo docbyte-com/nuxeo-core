@@ -8,6 +8,8 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Nuxeo-Component: OSGI-INF/authentication-contrib.xml,
  OSGI-INF/oauth2serviceprovider-framework.xml,
+ OSGI-INF/bulk-contrib.xml,
+ OSGI-INF/events-contrib.xml,
  OSGI-INF/schema-contrib.xml,
  OSGI-INF/directory-contrib.xml,
  OSGI-INF/oauth2clientservice-framework.xml,

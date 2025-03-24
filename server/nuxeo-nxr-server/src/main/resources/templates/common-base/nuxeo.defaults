@@ -403,6 +403,8 @@ nuxeo.bulk.action.reindex.bulkIndex.concurrency=${elasticsearch.bulk.index.submi
 nuxeo.bulk.action.reindex.bulkIndex.partitions=${elasticsearch.bulk.index.submit.partitions}
 nuxeo.bulk.action.reindex.index.concurrency=${elasticsearch.bulk.index.fetch.concurrency}
 nuxeo.bulk.action.reindex.index.partitions=${elasticsearch.bulk.index.fetch.partitions}
+nuxeo.bulk.action.garbageCollectExpiredOAuth2Tokens.defaultConcurrency=2
+nuxeo.bulk.action.garbageCollectExpiredOAuth2Tokens.defaultPartitions=4
 nuxeo.bulk.action.garbageCollectWokflows.defaultConcurrency=2
 nuxeo.bulk.action.garbageCollectWokflows.defaultPartitions=4
 nuxeo.bulk.action.garbageCollectOrphanBlobs.defaultConcurrency=2
@@ -423,6 +425,11 @@ nuxeo.bulk.action.unholdDocumentsAction.defaultConcurrency=2
 nuxeo.bulk.action.unholdDocumentsAction.defaultPartitions=4
 nuxeo.bulk.action.updateReadAcls.defaultConcurrency=1
 nuxeo.bulk.action.updateReadAcls.defaultPartitions=1
+
+# OAuth2 GC
+nuxeo.oauth2.garbageCollectExpiredTokens.enabled=true
+## Every Sunday at 2am
+nuxeo.oauth2.garbageCollectExpiredTokens.cronExpression=0 0 2 ? * SUN
 
 # Primitive type strict validation
 nuxeo.primitive.type.strict.validation=false
