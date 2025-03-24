@@ -21,7 +21,7 @@ package org.nuxeo.runtime.test.runner;
 
 import java.util.Properties;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.runtime.RuntimeServiceEvent;

@@ -18,8 +18,7 @@ package org.nuxeo.ecm.platform.web.common.tracing;
 
 import java.io.IOException;
 
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nullable;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;

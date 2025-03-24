@@ -16,8 +16,7 @@
 
 package org.nuxeo.ecm.platform.web.common.tracing;
 
-import javax.annotation.Nullable;
-
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
