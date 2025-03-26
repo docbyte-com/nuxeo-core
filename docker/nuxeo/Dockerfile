@@ -107,7 +107,9 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
        && ln -s /opt/libreoffice$(echo $LIBREOFFICE_VERSION | cut -f 1,2 -d ".")/program/soffice /usr/bin/libreoffice \
        && rm -rf /tmp/LibreOffice_${LIBREOFFICE_VERSION}* ; \
      fi \
-  && dnf clean all
+  && dnf clean all \
+  && rm -rf /var/cache \
+  && find /var/log -type f -delete
 
 # Remove perl-Net-SSLeay example private key
 RUN rm /usr/share/doc/perl-Net-SSLeay/examples/server_key.pem
