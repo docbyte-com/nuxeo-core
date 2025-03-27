@@ -3192,7 +3192,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>33.4.5-jre</version>
+        <version>33.4.6-jre</version>
       </dependency>
       <!-- fix transitive dependencies of com.google.guava:guava to avoid multiple versions in dependency graph -->
       <dependency>
