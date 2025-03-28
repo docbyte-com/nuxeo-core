@@ -32,7 +32,6 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
-import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.ecm.core.scroll.GenericScrollRequest;
 import org.nuxeo.runtime.api.Framework;
 
@@ -53,14 +52,8 @@ public class RepositoryBlobScroll implements Scroll {
 
     @Override
     public void init(ScrollRequest request, Map<String, String> options) {
-        RepositoryService rs = Framework.getService(RepositoryService.class);
         DocumentBlobManager documentBlobManager = Framework.getService(DocumentBlobManager.class);
-        if (rs.getRepositoryNames().size() > 1 && !documentBlobManager.isUseRepositoryName()) {
-            // Case where we have many repos with a custom Blob Dispatcher configuration
-            // We cannot ascertain that each repository has its own different binary store path
-            throw new UnsupportedOperationException(
-                    "Cannot scroll blobs with a multi-repositories and blob dispatcher config.");
-        }
+
         if (!(request instanceof GenericScrollRequest scrollRequest)) {
             throw new IllegalArgumentException(
                     "Requires a GenericScrollRequest got a " + request.getClass().getCanonicalName());
