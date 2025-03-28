@@ -35,9 +35,11 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.nuxeo.ecm.core.io.download.DownloadHelper.INLINE;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EVENT_NAME;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_CLIENT_REASON;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_RENDITION;
@@ -111,30 +113,36 @@ public class TestDownloadService {
 
     @Test
     public void testBasicDownloadGet() throws Exception {
-        doTestBasicDownload(false);
+        doTestBasicDownload(false, false);
+    }
+
+    @Test
+    public void testBasicInlineDownloadGet() throws Exception {
+        doTestBasicDownload(false, true);
     }
 
     @Test
     public void testBasicDownloadHead() throws Exception {
-        doTestBasicDownload(true);
+        doTestBasicDownload(true, false);
     }
 
-    protected void doTestBasicDownload(boolean head) throws Exception {
+    protected void doTestBasicDownload(boolean head, boolean inline) throws Exception {
         // ascii filename is used directly
-        doTestBasicDownload(head, "cafe.txt", "filename=cafe.txt");
+        doTestBasicDownload(head, inline, "cafe.txt", "filename=cafe.txt");
         // non-ascii filename gets RFC2231 encoding
-        doTestBasicDownload(head, "caf\u00e9.txt", "filename*=UTF-8''caf%C3%A9.txt");
+        doTestBasicDownload(head, inline, "caf\u00e9.txt", "filename*=UTF-8''caf%C3%A9.txt");
     }
 
-    protected void doTestBasicDownload(boolean head, String filename, String filenameInHeader) throws Exception {
-        // regular download
-        doTestBasicDownload(head, filename, filenameInHeader, false);
-        // download with empty=true in Content-Type
-        doTestBasicDownload(head, filename, filenameInHeader, true);
-    }
-
-    protected void doTestBasicDownload(boolean head, String filename, String filenameInHeader, boolean empty)
+    protected void doTestBasicDownload(boolean head, boolean inline, String filename, String filenameInHeader)
             throws Exception {
+        // regular download
+        doTestBasicDownload(head, inline, filename, filenameInHeader, false);
+        // download with empty=true in Content-Type
+        doTestBasicDownload(head, inline, filename, filenameInHeader, true);
+    }
+
+    protected void doTestBasicDownload(boolean head, boolean inline, String filename, String filenameInHeader,
+            boolean empty) throws Exception {
         // blob to download
         String blobValue = "Hello World Caf\u00e9";
         String mimeType = "text/plain";
@@ -163,9 +171,12 @@ public class TestDownloadService {
         // send download request
         DownloadContext context = DownloadContext.builder(request, response)
                                                  .blob(blob)
+                                                 .inline(inline)
                                                  .lastModified(lastModified)
                                                  .build();
         downloadService.downloadBlob(context);
+
+        verify(request, inline ? times(1) : never()).setAttribute(INLINE, "true");
 
         // assert headers (mockito wants us to assert all header in same order they were set)
         if (empty) {
@@ -173,7 +184,8 @@ public class TestDownloadService {
         } else {
             verify(response).setHeader(eq("ETag"), eq('"' + digest + '"'));
         }
-        verify(response).setHeader(eq("Content-Disposition"), eq("attachment; " + filenameInHeader));
+        verify(response).setHeader(eq("Content-Disposition"),
+                eq((inline ? "inline" : "attachment") + "; " + filenameInHeader));
         verify(response).setHeader(eq("Accept-Ranges"), eq("bytes"));
         // assert others interactions
         verify(response).setContentType(eq(mimeType));

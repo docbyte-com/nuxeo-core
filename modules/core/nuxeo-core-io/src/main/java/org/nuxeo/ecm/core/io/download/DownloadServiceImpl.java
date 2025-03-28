@@ -19,8 +19,10 @@
  */
 package org.nuxeo.ecm.core.io.download;
 
+import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.ecm.core.io.download.DownloadHelper.INLINE;
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
 import java.io.File;
@@ -540,6 +542,9 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
         }
 
         // check Blob Manager external download link
+        if (TRUE.equals(inline)) {
+            request.setAttribute(INLINE, "true");
+        }
         URI uri = redirectResolver.getURI(blob, UsageHint.DOWNLOAD, request);
         if (uri != null) {
             try {
