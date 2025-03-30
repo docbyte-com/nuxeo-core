@@ -2512,7 +2512,7 @@
       <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.13.1</version>
+        <version>2.14.0</version>
       </dependency>
       <!-- specify a jna version compatible with ARM architecture, required by MariaDB, OpenSearch -->
       <dependency>
