@@ -40,7 +40,7 @@ phases:
         fi
       - VERSION=$(printf '%(%Y.%m.%d)T\n' -1)$CHANGELIST
       - IMAGE_TAG=${VERSION:=latest}
-      - MAVEN_ARGS=" -Prelease,distrib,docker,kafka -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Dnuxeo.test.redis.host=localhost -Pkafka -Dkafka.bootstrap.servers=localhost:9092 -Ddocker.verbose=true -DskipTests=true"
+      - MAVEN_ARGS=" -Prelease,distrib,docker,kafka -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Dnuxeo.test.redis.host=localhost -Pkafka -Dkafka.bootstrap.servers=localhost:9092 -Ddocker.verbose=true"
       - mvn versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false $MAVEN_ARGS
       - sed -i -E "s/<nuxeo.platform.version>.*?<\/nuxeo.platform.version>/<nuxeo.platform.version>$VERSION<\/nuxeo.platform.version>/" pom.xml
       - sed -i -E "s/<version>\\$\{nuxeo.platform.version\}<\/version>/<version>$VERSION<\/version>/" pom.xml
