@@ -10,6 +10,7 @@
       <destinationMimeType>text/html</destinationMimeType>
 
       <sourceMimeType>application/pdf</sourceMimeType>
+      <sourceMimeType>application/json</sourceMimeType>
       <sourceMimeType>text/xml</sourceMimeType>
       <sourceMimeType>text/html</sourceMimeType>
       <sourceMimeType>text/plain</sourceMimeType>
