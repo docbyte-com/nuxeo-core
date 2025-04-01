@@ -32,7 +32,7 @@ mv /usr/local/bin/docker /usr/bin/docker
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
-curl -f -L https://exiftool.org/Image-ExifTool-12.76.tar.gz | tar -C /opt -xzv
+curl -f -L https://exiftool.org/Image-ExifTool-13.26.tar.gz | tar -C /opt -xzv
 cd /opt/Image-ExifTool-12.76/
 
 perl Makefile.PL
