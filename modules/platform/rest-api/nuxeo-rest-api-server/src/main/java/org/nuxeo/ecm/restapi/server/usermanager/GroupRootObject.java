@@ -66,13 +66,13 @@ public class GroupRootObject extends AbstractUMRootObject<NuxeoGroup> {
         return um.getGroup(group.getName());
     }
 
-    private void checkGroupDoesNotAlreadyExists(NuxeoGroup group, UserManager um) {
+    protected void checkGroupDoesNotAlreadyExists(NuxeoGroup group, UserManager um) {
         if (um.getGroup(group.getName()) != null) {
             throw new NuxeoException("Group already exists", SC_CONFLICT);
         }
     }
 
-    private void checkGroupHasAName(NuxeoGroup group) {
+    protected void checkGroupHasAName(NuxeoGroup group) {
         if (group.getName() == null) {
             throw new NuxeoException("Group MUST have a name", SC_BAD_REQUEST);
         }

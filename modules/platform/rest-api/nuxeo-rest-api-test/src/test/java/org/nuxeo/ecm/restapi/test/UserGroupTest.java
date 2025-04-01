@@ -111,7 +111,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanUpdateAUser() throws Exception {
+    public void itCanUpdateAUser() throws IOException {
         // Given a modified user
         NuxeoPrincipal user = um.getPrincipal("user1");
         user.setFirstName("Paul");
@@ -147,7 +147,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanCreateAUser() throws Exception {
+    public void itCanCreateAUser() {
         // Given a new user
         NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
         principal.setFirstName("test");
@@ -173,7 +173,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itReturnsA409OnAlreadyExistentUser() throws Exception {
+    public void itReturnsA409OnAlreadyExistentUser() throws IOException {
         // Given an existent user
         NuxeoPrincipal user1 = new NuxeoPrincipalImpl("existentuser");
         um.createUser(user1.getModel());
@@ -298,12 +298,12 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanChangeAGroup() throws Exception {
+    public void itCanChangeAGroup() throws IOException {
         // Given a modified group
         NuxeoGroup group = um.getGroup("group1");
         group.setLabel("modifiedGroup");
-        group.setMemberUsers(List.of(new String[] { "user1", "user2" }));
-        group.setMemberGroups(List.of(new String[] { "group2" }));
+        group.setMemberUsers(List.of("user1", "user2"));
+        group.setMemberGroups(List.of("group2"));
         GroupConfig groupConfig = um.getGroupConfig();
         group.getModel().setProperty(groupConfig.schemaName, "description", "updated description");
 
@@ -330,9 +330,9 @@ public class UserGroupTest extends BaseUserTest {
         DocumentModel groupModel = um.getGroupModel("group1");
         GroupConfig groupConfig = um.getGroupConfig();
         groupModel.setProperty(groupConfig.schemaName, "description", "Initial description");
-        groupModel.setProperty(groupConfig.schemaName, "members", List.of(new String[] { "user1", "user2" }));
-        groupModel.setProperty(groupConfig.schemaName, "subGroups", List.of(new String[] { "group2" }));
-        groupModel.setProperty(groupConfig.schemaName, "parentGroups", List.of(new String[] { "group3" }));
+        groupModel.setProperty(groupConfig.schemaName, "members", List.of("user1", "user2"));
+        groupModel.setProperty(groupConfig.schemaName, "subGroups", List.of("group2"));
+        groupModel.setProperty(groupConfig.schemaName, "parentGroups", List.of("group3"));
         um.updateGroup(groupModel);
         nextTransaction();
 
@@ -456,12 +456,12 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanCreateAGroup() throws Exception {
+    public void itCanCreateAGroup() throws IOException {
         // Given a modified group
         NuxeoGroup group = new NuxeoGroupImpl("newGroup");
         group.setLabel("a new group");
-        group.setMemberUsers(List.of(new String[] { "user1", "user2" }));
-        group.setMemberGroups(List.of(new String[] { "group2" }));
+        group.setMemberUsers(List.of("user1", "user2"));
+        group.setMemberGroups(List.of("group2"));
         GroupConfig groupConfig = um.getGroupConfig();
         group.getModel().setProperty(groupConfig.schemaName, "description", "new description");
 
@@ -714,7 +714,7 @@ public class UserGroupTest extends BaseUserTest {
      * @since 10.10
      */
     @Test
-    public void itCantCreateUserWithUnknownGroup() throws Exception {
+    public void itCantCreateUserWithUnknownGroup() {
 
         NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
         principal.setFirstName("test");
@@ -733,7 +733,7 @@ public class UserGroupTest extends BaseUserTest {
      * @since 10.10
      */
     @Test
-    public void itCantUpdateAUserWithUnknownGroup() throws Exception {
+    public void itCantUpdateAUserWithUnknownGroup() throws IOException {
 
         NuxeoPrincipal user = um.getPrincipal("user1");
         user.setFirstName("Paul");
