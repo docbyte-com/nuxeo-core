@@ -24,6 +24,7 @@ import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -43,9 +44,19 @@ public class GroupRootObject extends AbstractUMRootObject<NuxeoGroup> {
 
     public static final String PAGE_PROVIDER_NAME = "nuxeo_groups_listing";
 
+    /**
+     * @since 2025.1
+     */
+    public static final String RESTRICT_ADMINISTRATORS_MEMBERS_PROP = "nuxeo.group.administrators.members.resticted";
+
     @Override
     protected NuxeoGroup getArtifact(String id) {
-        return um.getGroup(id);
+        var group = um.getGroup(id);
+        if (Framework.isBooleanPropertyTrue(RESTRICT_ADMINISTRATORS_MEMBERS_PROP)
+                && !canCurrentUserReadGroupMembers(group)) {
+            group = emptyGroupReferences(group);
+        }
+        return group;
     }
 
     @Override
@@ -78,12 +89,28 @@ public class GroupRootObject extends AbstractUMRootObject<NuxeoGroup> {
         }
     }
 
+    protected boolean canCurrentUserReadGroupMembers(NuxeoGroup group) {
+        var currentUser = getContext().getCoreSession().getPrincipal();
+        return currentUser.isAdministrator() || isAPowerUserEditableGroup(group);
+    }
+
+    protected NuxeoGroup emptyGroupReferences(NuxeoGroup group) {
+        group.setMemberUsers(List.of());
+        group.setMemberGroups(List.of());
+        group.setParentGroups(List.of());
+        return group;
+    }
+
     @Override
     boolean isAPowerUserEditableArtifact(NuxeoGroup artifact) {
         return isAPowerUserEditableGroup(artifact);
 
     }
 
+    /**
+     * Returns {@code true} if none of the groups in the given {@code group}'s parent hierarchy, including itself, is an
+     * administrator group.
+     */
     static boolean isAPowerUserEditableGroup(NuxeoGroup group) {
         UserManager um = Framework.getService(UserManager.class);
         Set<String> allGroups = computeAllGroups(um, group);
@@ -103,6 +130,7 @@ public class GroupRootObject extends AbstractUMRootObject<NuxeoGroup> {
                       .stream()
                       .filter(pg -> !allGroups.contains(pg))
                       .map(um::getGroup)
+                      .filter(Objects::nonNull)
                       .forEach(queue::add);
         }
 

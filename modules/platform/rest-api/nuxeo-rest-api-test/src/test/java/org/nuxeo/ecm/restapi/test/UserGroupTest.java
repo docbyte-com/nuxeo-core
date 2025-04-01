@@ -27,6 +27,7 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
@@ -38,6 +39,8 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +54,7 @@ import org.nuxeo.ecm.platform.usermanager.NuxeoGroupImpl;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.usermanager.io.NuxeoGroupJsonWriter;
+import org.nuxeo.ecm.restapi.server.jaxrs.usermanager.GroupRootObject;
 import org.nuxeo.ecm.restapi.server.jaxrs.usermanager.UserRootObject;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
@@ -83,9 +87,24 @@ public class UserGroupTest extends BaseUserTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
 
+    public final HttpClientTestRule nonAdminHttpClient = HttpClientTestRule.builder()
+                                                                           .url(() -> restServerFeature.getRestApiUrl())
+                                                                           .credentials("user1", "user1")
+                                                                           .build();
+
     protected void nextTransaction() {
         TransactionHelper.commitOrRollbackTransaction();
         TransactionHelper.startTransaction();
+    }
+
+    @Before
+    public void init() {
+        nonAdminHttpClient.starting();
+    }
+
+    @After
+    public void tearDown() {
+        nonAdminHttpClient.finished();
     }
 
     @Test
@@ -745,6 +764,99 @@ public class UserGroupTest extends BaseUserTest {
                   .entity(getPrincipalAsJson(user))
                   .executeAndConsume(new JsonNodeHandler(SC_FORBIDDEN),
                           node -> assertEquals("group does not exist: unknownGroup", node.get("message").textValue()));
+    }
+
+    // NXP-33128
+    @Test
+    @WithFrameworkProperty(name = GroupRootObject.RESTRICT_ADMINISTRATORS_MEMBERS_PROP, value = "true")
+    public void itOnlyAdminCanReadAdminGroupMembers() {
+        var parentGroup = new NuxeoGroupImpl("parentGroup");
+        um.createGroup(parentGroup.getModel());
+
+        // Given a non administrator group: group1
+        var group = um.getGroup("group1");
+        group.setMemberGroups(List.of("group2"));
+        group.setParentGroups(List.of("parentGroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it returns the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, false));
+
+        // Given an administrator group: administrators
+        group = um.getGroup("administrators");
+        group.setMemberGroups(List.of("group3"));
+        group.setParentGroups(List.of("parentGroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it doesn't return the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, true));
+
+        // When I GET this group as an administrator user
+        httpClient.buildGetRequest("/group/" + group.getName())
+                  .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                          "memberUsers,memberGroups,parentGroups")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          // Then it returns the group's member users, member groups and parent groups
+                          node -> assertGroupMembers(node, false));
+
+        // Given a subgroup of an administrator group: group3
+        group = um.getGroup("group3");
+        group.setMemberUsers(List.of("user3", "user4"));
+        group.setMemberGroups(List.of("subgroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it doesn't return the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, true));
+
+        // When I GET this group as an administrator user
+        httpClient.buildGetRequest("/group/" + group.getName())
+                  .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                          "memberUsers,memberGroups,parentGroups")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          // Then it returns the group's member users, member groups and parent groups
+                          node -> assertGroupMembers(node, false));
+    }
+
+    protected void assertGroupMembers(JsonNode groupNode, boolean empty) {
+        JsonNode memberUsers = groupNode.get("memberUsers");
+        assertNotNull(memberUsers);
+        assertTrue(memberUsers.isArray());
+
+        JsonNode memberGroups = groupNode.get("memberGroups");
+        assertNotNull(memberGroups);
+        assertTrue(memberGroups.isArray());
+
+        JsonNode parentGroups = groupNode.get("parentGroups");
+        assertNotNull(parentGroups);
+        assertTrue(parentGroups.isArray());
+
+        if (empty) {
+            assertTrue(memberUsers.isEmpty());
+            assertTrue(memberGroups.isEmpty());
+            assertTrue(parentGroups.isEmpty());
+        } else {
+            assertFalse(memberUsers.isEmpty());
+            assertFalse(memberGroups.isEmpty());
+            assertFalse(parentGroups.isEmpty());
+        }
     }
 
     /**
