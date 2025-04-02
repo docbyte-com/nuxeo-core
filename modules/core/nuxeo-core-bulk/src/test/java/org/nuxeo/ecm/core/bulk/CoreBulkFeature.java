@@ -18,8 +18,17 @@
  */
 package org.nuxeo.ecm.core.bulk;
 
+import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.BULK_KV_STORE_NAME;
+import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_PREFIX;
+
+import java.time.Duration;
+import java.util.stream.Collectors;
+
+import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterFeature;
+import org.nuxeo.runtime.kv.KeyValueService;
+import org.nuxeo.runtime.kv.KeyValueStoreProvider;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -45,6 +54,32 @@ public class CoreBulkFeature implements RunnerFeature {
     public void initialize(FeaturesRunner runner) {
         runner.getFeature(TransactionalFeature.class)
               .addWaiter(duration -> Framework.getService(BulkService.class).await(duration));
+    }
+
+    public boolean wait(String action, Duration duration) throws InterruptedException {
+        var leftDuration = duration;
+        long begin = System.currentTimeMillis();
+        var kv = (KeyValueStoreProvider) Framework.getService(KeyValueService.class)
+                                                  .getKeyValueStore(BULK_KV_STORE_NAME);
+        var commandIds = kv.keyStream(STATUS_PREFIX)
+                           .map(kv::get)
+                           .map(BulkCodecs.getStatusCodec()::decode)
+                           .filter(status -> action.equals(status.getAction()))
+                           .map(BulkStatus::getId)
+                           .collect(Collectors.toSet());
+        var bulkService = Framework.getService(BulkService.class);
+        for (String commandId : commandIds) {
+            if (!bulkService.await(commandId, leftDuration)) {
+                return false;
+            }
+            leftDuration = duration.minusMillis(System.currentTimeMillis() - begin);
+            begin = System.currentTimeMillis();
+            if (leftDuration.isNegative()) {
+                // bulk service consumed all the permitted duration
+                return false;
+            }
+        }
+        return true;
     }
 
 }
