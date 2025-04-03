@@ -16,7 +16,10 @@
  * Contributors:
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.39"
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+library identifier: "platform-ci-shared-library@v0.0.52"
 
 void getCurrentVersion() {
   return readMavenPom().getVersion()
@@ -172,6 +175,49 @@ pipeline {
               perl -i -pe 's|<version>.*?</version>|<version>${nextVersion}</version>|' ci/release/pom.xml
             """
             nxGit.commitPush(message: "Release ${RELEASE_VERSION}, update ${CURRENT_VERSION} to ${nextVersion}", branch: env.NUXEO_BRANCH)
+          }
+        }
+      }
+    }
+
+    stage('Release Project') {
+      environment {
+        JIRA_PROJECT = 'NXP'
+        JIRA_MOVING_VERSION = nxUtils.getMajorMovingVersion(version: env.RELEASE_VERSION)
+        JIRA_RELEASE_VERSION = "${RELEASE_VERSION}"
+        JIRA_NEXT_VERSION = nxUtils.getNextMajorDotMinorVersion(version: env.RELEASE_VERSION)
+        RELEASE_VERSION_DASHED = env.RELEASE_VERSION.replaceAll('\\.', '-')
+        RELEASE_MAJOR_VERSION = nxUtils.getMajorVersion(version: env.RELEASE_VERSION)
+        RELEASE_MINOR_VERSION = nxUtils.getMinorVersion(version: env.RELEASE_VERSION)
+      }
+      steps {
+        container('maven') {
+          script {
+            def jiraReleaseVersion = nxJira.getProjectVersion(idOrKey: 'NXP', name: env.JIRA_RELEASE_VERSION)
+            def nextReleaseWeekCount = 3
+            def nextReleaseDate = LocalDate.parse(jiraReleaseVersion.releaseDate).plusWeeks(nextReleaseWeekCount).format(DateTimeFormatter.ISO_LOCAL_DATE)
+            def publishers = [
+                [
+                    type: 'github_release',
+                ],
+                [
+                    type: 'jira_update_fixVersion',
+                    toRemove: env.JIRA_MOVING_VERSION,
+                    toAdd: env.JIRA_RELEASE_VERSION,
+                ],
+                [
+                    type: 'jira_new_version',
+                    jiraVersion: [
+                        project    : env.JIRA_PROJECT,
+                        name       : env.JIRA_NEXT_VERSION,
+                        description: "Nuxeo LTS ${JIRA_NEXT_VERSION}",
+                        releaseDate: nextReleaseDate,
+                        released   : false,
+                    ]
+                ]
+            ]
+            nxProject.release(jql: "project = NXP and (fixVersion = ${JIRA_MOVING_VERSION} or fixVersion = ${JIRA_RELEASE_VERSION})",
+                publishers: publishers, version: env.RELEASE_VERSION)
           }
         }
       }

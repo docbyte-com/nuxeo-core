@@ -1,0 +1,28 @@
+{{- define "print-issue-block" -}}
+{{- if .issues -}}
+### {{ .type }}
+{{ range .issues }}
+- {{ .key }} - {{ .title | title }}
+{{- end }}
+
+{{ end -}}
+{{- end -}}
+
+Nuxeo Docker Image: `docker-private.packages.nuxeo.com/nuxeo/nuxeo:{{ env "RELEASE_VERSION" }}`
+
+Nuxeo Server Zip: https://packages.nuxeo.com/repository/maven-private/org/nuxeo/ecm/distribution/nuxeo-server-tomcat/{{ env "NUXEO_BUILD_VERSION" }}/nuxeo-server-tomcat-{{ env "NUXEO_BUILD_VERSION" }}.zip
+
+Release notes: https://doc.nuxeo.com/nxdoc/{{ env "RELEASE_MAJOR_VERSION" }}/nuxeo-server-release-notes-{{ env "RELEASE_VERSION_DASHED" }}/
+
+Upgrade notes: https://doc.nuxeo.com/nxdoc/{{ env "RELEASE_MAJOR_VERSION" }}/hotfixes-installation-notes-for-nuxeo-platform-lts-{{ env "RELEASE_MAJOR_VERSION" }}/#hotfix-{{ env "RELEASE_MINOR_VERSION" }}
+
+---
+
+## Complete Changelog
+
+{{ $groupByType := groupBy "type" .Issues -}}
+{{- template "print-issue-block" (dict "type" "New Features" "issues" (concat (index $groupByType "Epic") (index $groupByType "New Feature"))) }}
+{{- template "print-issue-block" (dict "type" "Improvements" "issues" (index $groupByType "Improvement")) }}
+{{- template "print-issue-block" (dict "type" "Bugs" "issues" (index $groupByType "Bug")) }}
+{{- template "print-issue-block" (dict "type" "Tasks" "issues" (index $groupByType "Task")) }}
+{{- template "print-issue-block" (dict "type" "Clean Up" "issues" (index $groupByType "Clean up")) }}
