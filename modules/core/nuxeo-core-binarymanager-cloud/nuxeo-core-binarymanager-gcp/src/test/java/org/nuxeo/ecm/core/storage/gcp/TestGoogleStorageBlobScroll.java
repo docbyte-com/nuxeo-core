@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,15 @@ package org.nuxeo.ecm.core.storage.gcp;
 
 import static org.nuxeo.ecm.core.storage.gcp.GoogleStorageBlobProvider.STORE_SCROLL_NAME;
 
-import org.junit.runner.RunWith;
+import org.junit.Test;
 import org.nuxeo.ecm.core.blob.AbstractTestBlobScroll;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.RandomBug;
 
 /**
  * @since 2023.5
  */
-@RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, GoogleStorageBlobProviderFeature.class })
 public class TestGoogleStorageBlobScroll extends AbstractTestBlobScroll {
 
@@ -38,4 +37,10 @@ public class TestGoogleStorageBlobScroll extends AbstractTestBlobScroll {
         return STORE_SCROLL_NAME;
     }
 
+    @Test
+    @Override
+    @RandomBug.Repeat(issue = "NXP-32368")
+    public void testBlobScroll() {
+        super.testBlobScroll();
+    }
 }
