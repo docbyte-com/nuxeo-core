@@ -17,6 +17,14 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-base</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-codec-compression</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.opensearch</groupId>
       <artifactId>opensearch</artifactId>
     </dependency>
