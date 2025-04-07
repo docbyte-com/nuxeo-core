@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.webengine.model.impl;
 
 import java.net.URI;
@@ -28,6 +25,7 @@ import java.text.ParseException;
 import java.util.List;
 import java.util.Set;
 
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.common.utils.URIUtils;
@@ -48,8 +46,7 @@ import org.nuxeo.ecm.webengine.security.PermissionService;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-// DO NOT MODIFY class declaration! Cannot use WebResourceType<?> since groovy
-// doesn't supports wildcards for now
+// DO NOT MODIFY class declaration! Cannot use WebResourceType<?> since groovy doesn't supports wildcards for now
 @SuppressWarnings("unchecked")
 public abstract class AbstractResource<T extends ResourceType> implements Resource {
 
@@ -67,9 +64,14 @@ public abstract class AbstractResource<T extends ResourceType> implements Resour
     public Resource initialize(WebContext ctx, ResourceType type, Object... args) {
         this.ctx = ctx;
         this.type = (T) type;
-        path = ctx.getUriInfo().getMatchedURIs().get(0);
-        // quote path component to replace special characters (except slash and
-        // @ chars)
+        // since upgrade to Jakarta RS 3 the matched URIs contains the URI for the matched method on ModuleRoot
+        // as we're interested in the Resource path, skip the matched method URI in such case
+        int index = 0;
+        if (type.getResourceClass().getAnnotation(Path.class) != null && ctx.getUriInfo().getMatchedURIs().size() > 1) {
+            index = 1;
+        }
+        path = ctx.getUriInfo().getMatchedURIs().get(index);
+        // quote path component to replace special characters (except slash and @ chars)
         path = URIUtils.quoteURIPathComponent(path, false, false);
         // avoid paths ending in / -> this will mess-up URLs in FTL files.
         if (path.endsWith("/")) {

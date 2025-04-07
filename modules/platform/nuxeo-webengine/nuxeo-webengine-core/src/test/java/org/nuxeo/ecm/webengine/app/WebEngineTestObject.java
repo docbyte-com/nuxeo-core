@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,6 +55,12 @@ public class WebEngineTestObject extends DefaultObject {
     @Path("/my-header")
     public Map<String, String> getMyHeader(@Context HttpHeaders headers) {
         return Map.of("header", headers.getRequestHeaders().getFirst("X-My-Header"));
+    }
+
+    @GET
+    @Path("/my-resource-path")
+    public Map<String, String> getMyResourcePath() {
+        return Map.of("resourcePath", getPath());
     }
 
     @GET

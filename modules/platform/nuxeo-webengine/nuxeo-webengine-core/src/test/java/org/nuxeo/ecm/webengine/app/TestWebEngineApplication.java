@@ -320,6 +320,17 @@ public class TestWebEngineApplication {
     }
 
     @Test
+    public void testGetBindingsView() throws IOException {
+        HttpResponse<String> response = executeGETRequest("/webengine-test/bindings-view");
+
+        assertEquals(200, response.statusCode());
+        Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
+        assertEquals("view/WebEngineTestRoot/bindings-view.ftl", json.get("location"));
+        // NXP-33137 - test Resource#getPath returns the Resource path and not the matched path
+        assertEquals("/webengine-test", json.get("Root.path"));
+    }
+
+    @Test
     public void testGetWebObject() throws IOException {
         HttpResponse<String> response = executeGETRequest("/webengine-test/web-object");
 
@@ -338,6 +349,16 @@ public class TestWebEngineApplication {
         assertEquals(200, response.statusCode());
         Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
         assertEquals("What a value", json.get("header"));
+    }
+
+    // NXP-33137 - test Resource#getPath returns the Resource path and not the matched path
+    @Test
+    public void testGetWebObjectMyResourcePath() throws IOException {
+        HttpResponse<String> response = executeGETRequest("/webengine-test/web-object/my-resource-path");
+
+        assertEquals(200, response.statusCode());
+        Map<String, Object> json = MAPPER.readValue(response.body(), Map.class);
+        assertEquals("/webengine-test/web-object", json.get("resourcePath"));
     }
 
     @Test

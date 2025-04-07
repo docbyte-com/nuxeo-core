@@ -108,6 +108,12 @@ public class WebEngineTestRoot extends ModuleRoot {
         return getView("simple-view");
     }
 
+    @GET
+    @Path("/bindings-view")
+    public Template getBindingsView() {
+        return getView("bindings-view");
+    }
+
     @Path("/web-object")
     public Object getWebObject() {
         return newObject("WebEngineTestObject", getClass().getSimpleName());
