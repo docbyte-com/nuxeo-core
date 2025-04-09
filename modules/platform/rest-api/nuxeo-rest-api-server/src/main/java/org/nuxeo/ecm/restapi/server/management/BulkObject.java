@@ -19,6 +19,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -26,6 +27,7 @@ import static org.nuxeo.ecm.core.bulk.action.IdleAction.CONCURRENCY_OPTION;
 import static org.nuxeo.ecm.core.bulk.action.IdleAction.ENABLED_OPTION;
 import static org.nuxeo.ecm.core.bulk.action.IdleAction.PARTITIONS_OPTION;
 
+import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
@@ -66,6 +68,23 @@ public class BulkObject extends AbstractResource<ResourceTypeImpl> {
             throw new NuxeoException("commandId doesn't exist: " + commandId, SC_NOT_FOUND);
         }
         return status;
+    }
+
+    // @since 2025.1
+    @DELETE
+    @Path("{commandId}")
+    public BulkStatus abortCommand(@PathParam("commandId") String commandId) {
+        var bulkService = Framework.getService(BulkService.class);
+        BulkStatus status = bulkService.getStatus(commandId);
+        switch (status.getState()) {
+            case UNKNOWN -> throw new NuxeoException("commandId doesn't exist: " + commandId, SC_NOT_FOUND);
+            case COMPLETED -> throw new NuxeoException("commandId already completed: " + commandId, SC_BAD_REQUEST);
+            case ABORTED -> {
+                return status;
+            }
+        }
+        // the service already trace this at warn level
+        return bulkService.abort(commandId);
     }
 
     // @since 2025.1
