@@ -199,4 +199,18 @@ public class TestScrollService {
         }
     }
 
+    @Test
+    public void testGenerateUidScroll() {
+        ScrollRequest request = GenericScrollRequest.builder("generateUid", "20").size(10).build();
+        try (Scroll scroll = scrollService.scroll(request)) {
+            assertTrue(scroll.hasNext());
+            assertEquals(10, scroll.next().size());
+            assertTrue(scroll.hasNext());
+            var ids = scroll.next();
+            assertEquals(10, ids.size());
+            assertEquals(36, ids.get(0).length());
+            assertFalse(scroll.hasNext());
+        }
+    }
+
 }
