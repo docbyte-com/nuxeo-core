@@ -53,7 +53,7 @@ public class DeploymentResult {
         this.httpServletResponse = httpServletResponse;
     }
 
-    boolean isOk() {
+    public boolean isOk() {
         return isOk;
     }
 
