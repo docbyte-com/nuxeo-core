@@ -33,7 +33,6 @@ import org.keycloak.adapters.tomcat.CatalinaHttpFacade;
 import org.keycloak.adapters.tomcat.OIDCCatalinaHttpFacade;
 
 /**
- *
  * @since 7.4
  */
 
@@ -43,8 +42,11 @@ public class DeploymentResult {
     private static KeycloakDeployment keycloakDeployment;
 
     private HttpServletRequest httpServletRequest;
+
     private HttpServletResponse httpServletResponse;
+
     private Request request;
+
     private CatalinaHttpFacade facade;
 
     public DeploymentResult(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) {
@@ -52,7 +54,7 @@ public class DeploymentResult {
         this.httpServletResponse = httpServletResponse;
     }
 
-    boolean isOk() {
+    public boolean isOk() {
         return isOk;
     }
 
