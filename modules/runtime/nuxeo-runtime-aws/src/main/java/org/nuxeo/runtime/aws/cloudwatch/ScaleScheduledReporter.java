@@ -99,6 +99,14 @@ public class ScaleScheduledReporter extends ScheduledReporter {
         log.debug("CloudWatchClient created");
     }
 
+    @Override
+    public void close() {
+        super.close();
+        if (cloudWatchClient != null) {
+            cloudWatchClient.close();
+        }
+    }
+
     protected List<Dimension> getDimensions(String tag) {
         List<Dimension> ret = new ArrayList<>();
         ret.add(Dimension.builder().name("Tag").value(tag).build());

@@ -37,9 +37,10 @@ import io.dropwizard.metrics5.ScheduledReporter;
  * A Metric reporter that exposes nuxeo.streams.scale.metric as a CloudWatch metric in order to be used by AWS
  * autoscaler.
  * 
- * @since 2023.28
+ * @since 2025.2
  */
 public class ScaleMetricReporter extends AbstractMetricsReporter {
+
     private static final Logger log = LogManager.getLogger(ScaleMetricReporter.class);
 
     public static final String AWS_CONFIGURATION_ID_KEY = "awsConfigurationId";
