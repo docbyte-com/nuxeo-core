@@ -2,7 +2,8 @@
   "scale": {
     "currentNodes": 1,
     "bestNodes": 6,
-    "metric": 5
+    "optimalNodes": 2,
+    "metric": 1
   },
   "nodes": [
     {
@@ -33,7 +34,7 @@
         "bulk-makeBlob": {
           "stream": "bulk-makeBlob",
           "partitions": 3,
-          "lag": 55,
+          "lag": 10000,
           "end": 2032,
           "latency": 85340305
         }
@@ -59,13 +60,14 @@
         "nodes": 1,
         "threads": 2,
         "rate1m": 1.0692374,
-        "eta": 51
+        "eta": 9352
       },
       "best": {
         "nodes": 2,
         "threads": 3,
         "rate1m": 1.6038561,
-        "eta": 34
+        "eta": 6234,
+        "relevant": true
       }
     },
     {
@@ -106,7 +108,8 @@
         "nodes": 6,
         "threads": 12,
         "rate1m": 6.4154243,
-        "eta": 7
+        "eta": 7,
+        "relevant": false
       }
     }
   ]

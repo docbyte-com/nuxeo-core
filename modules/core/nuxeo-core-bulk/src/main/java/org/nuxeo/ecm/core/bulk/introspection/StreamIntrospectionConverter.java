@@ -41,7 +41,14 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class StreamIntrospectionConverter {
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    protected static final long ACTIVE_THRESHOLD_SECONDS = 300L;
+    // if node's metrics are older than this threshold, don't take into account this node
+    protected static final long ACTIVE_THRESHOLD_SECONDS = 5 * 60L;
+
+    // if there is less than this threshold of estimated processing with the current nodes, don't scale up
+    protected static final int ETA_THRESHOLD_SECONDS = 10 * 60;
+
+    // if there is less than this threshold of estimated processing with more nodes, don't scale up
+    protected static final int BEST_ETA_THRESHOLD_SECONDS = 5 * 60;
 
     protected static final String EMPTY_JSON_ARRAY = "[]";
 
@@ -374,6 +381,7 @@ public class StreamIntrospectionConverter {
     protected JsonNode getScaleMetrics(int workerCount, ArrayNode computations) {
         int current = workerCount > 0 ? workerCount : -1;
         int bestNodes = workerCount > 0 ? 1 : -1;
+        int optimalNodes = bestNodes;
         for (JsonNode computation : computations) {
             int nodes = computation.at("/current/nodes").asInt();
             if (nodes > current) {
@@ -382,12 +390,17 @@ public class StreamIntrospectionConverter {
             int bNodes = computation.at("/best/nodes").asInt();
             if (bNodes > bestNodes) {
                 bestNodes = bNodes;
+                boolean relevant = computation.at("/best/relevant").asBoolean();
+                if (relevant) {
+                    optimalNodes = bestNodes;
+                }
             }
         }
         ObjectNode ret = new ObjectMapper().getNodeFactory().objectNode();
         ret.put("currentNodes", current);
         ret.put("bestNodes", bestNodes);
-        ret.put("metric", bestNodes - current);
+        ret.put("optimalNodes", optimalNodes);
+        ret.put("metric", optimalNodes - current);
         return ret;
     }
 
@@ -419,29 +432,49 @@ public class StreamIntrospectionConverter {
                 threads.put(name, comp.get("threads").asInt());
             }
         }
-        // find computation with lag
+        // find active computations with significant rate
         for (JsonNode node : metrics) {
             long ts = node.get("timestamp").asLong();
             if (atTimestamp - ts > ACTIVE_THRESHOLD_SECONDS) {
                 continue;
             }
             for (JsonNode metric : node.at("/metrics")) {
-                if ("nuxeo.streams.global.stream.group.lag".equals(metric.get("k").asText())
-                        && (metric.get("v").asInt() > 0)) {
-                    ObjectNode comp = computations.get(metric.get("group"));
+                if ("nuxeo.streams.computation.processRecord".equals(metric.get("k").asText())
+                        && (metric.get("count").asInt() > 0)) {
+                    ObjectNode comp = computations.get(metric.get("computation"));
                     if (comp == null) {
-                        comp = mapper.getNodeFactory().objectNode();
-                        comp.set("computation", metric.get("group"));
-                        comp.set("streams", mapper.getNodeFactory().objectNode());
+                        double rate1m = metric.get("rate1m").asDouble();
+                        double mean = metric.get("mean").asDouble();
+                        double maxRateByThread = 1 / mean;
+                        // rate is significant when there is more than one thread busy at 50%
+                        if (rate1m > 0 && mean > 0 && rate1m > (maxRateByThread / 2)) {
+                            comp = mapper.getNodeFactory().objectNode();
+                            comp.set("computation", metric.get("computation"));
+                            comp.set("streams", mapper.getNodeFactory().objectNode());
+                            computations.put(metric.get("computation"), comp);
+                        }
                     }
-                    ObjectNode streams = (ObjectNode) comp.get("streams");
-                    ObjectNode stream = mapper.getNodeFactory().objectNode();
-                    stream.set("stream", metric.get("stream"));
-                    stream.put("partitions", partitions.get(metric.get("stream").asText()));
-                    stream.set("lag", metric.get("v"));
-                    streams.set(metric.get("stream").asText(), stream);
-                    comp.set("nodes", mapper.getNodeFactory().arrayNode());
-                    computations.put(metric.get("group"), comp);
+                }
+            }
+            // add lag information and any computation with lag
+            for (JsonNode metric : node.at("/metrics")) {
+                if ("nuxeo.streams.global.stream.group.lag".equals(metric.get("k").asText())) {
+                    ObjectNode comp = computations.get(metric.get("group"));
+                    if (comp != null || metric.get("v").asInt() > 0) {
+                        if (comp == null) {
+                            comp = mapper.getNodeFactory().objectNode();
+                            comp.set("computation", metric.get("group"));
+                            comp.set("streams", mapper.getNodeFactory().objectNode());
+                        }
+                        ObjectNode streams = (ObjectNode) comp.get("streams");
+                        ObjectNode stream = mapper.getNodeFactory().objectNode();
+                        stream.set("stream", metric.get("stream"));
+                        stream.put("partitions", partitions.get(metric.get("stream").asText()));
+                        stream.set("lag", metric.get("v"));
+                        streams.set(metric.get("stream").asText(), stream);
+                        comp.set("nodes", mapper.getNodeFactory().arrayNode());
+                        computations.put(metric.get("group"), comp);
+                    }
                 }
             }
         }
@@ -524,7 +557,7 @@ public class StreamIntrospectionConverter {
                     part = partitions.get(stream.get("stream").asText());
                 }
             }
-            if (count == 0 || lag == 0) {
+            if (count == 0) {
                 continue;
             }
             int eta = (int) (lag / rate1m);
@@ -534,13 +567,26 @@ public class StreamIntrospectionConverter {
             current.put("rate1m", rate1m);
             current.put("eta", eta);
             ObjectNode best = mapper.getNodeFactory().objectNode();
-            int bestNodes = (int) Math.ceil((double) part / (double) threadsPerNode);
-            int bestThreads = part;
-            int bestEta = (int) (lag / (rate1m * bestThreads / threadsCount));
-            best.put("nodes", bestNodes);
-            best.put("threads", bestThreads);
-            best.put("rate1m", rate1m * bestThreads / threadsCount);
-            best.put("eta", bestEta);
+            if (lag == 0) {
+                // active computation that copes with the load, stay conservative best = current
+                best.set("nodes", current.get("nodes"));
+                best.set("threads", current.get("threadsCount"));
+                best.set("rate1m", current.get("rate1m"));
+                best.set("eta", current.get("eta"));
+                best.put("relevant", true);
+            } else {
+                // active computation with lag, best nb of nodes depends on stream partitions
+                int bestNodes = (int) Math.ceil((double) part / (double) threadsPerNode);
+                float bestRate = rate1m * part / threadsCount;
+                int bestEta = (int) (lag / bestRate);
+                best.put("nodes", bestNodes);
+                best.put("threads", part);
+                best.put("rate1m", bestRate);
+                best.put("eta", bestEta);
+                // best is not relevant to scale out when there is not enough estimated processing
+                best.put("relevant",
+                        bestNodes <= count || (eta >= ETA_THRESHOLD_SECONDS && bestEta >= BEST_ETA_THRESHOLD_SECONDS));
+            }
             comp.set("current", current);
             comp.set("best", best);
         }
