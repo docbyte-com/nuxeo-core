@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,6 @@ import static org.nuxeo.ftest.server.OAuth2GrantPage.getOAuth2GrantPageBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.After;
@@ -89,22 +88,23 @@ public class ITOAuth2Test {
 
     protected String oauth2ClientDirectoryEntryId;
 
+    @Rule
     public final HttpClientTestRule unauthenticatedClient = HttpClientTestRule.builder().build();
 
+    @Rule
     public final HttpClientTestRule testUserClient = HttpClientTestRule.builder()
                                                                        .credentials(TEST_USERNAME, TEST_PASSWORD)
                                                                        .build();
 
+    @Rule
     public final HttpClientTestRule testUserLocationClient = HttpClientTestRule.builder()
                                                                                .credentials(TEST_USERNAME,
                                                                                        TEST_PASSWORD)
                                                                                .redirectsEnabled(false)
                                                                                .build();
 
+    @Rule
     public final HttpClientTestRule adminClient = HttpClientTestRule.builder().adminCredentials().build();
-
-    public final List<HttpClientTestRule> clients = List.of(unauthenticatedClient, testUserClient,
-            testUserLocationClient, adminClient);
 
     @Rule
     public MethodRule watchman = new LogTestWatchman();
@@ -114,7 +114,6 @@ public class ITOAuth2Test {
 
     @Before
     public void before() {
-        clients.forEach(HttpClientTestRule::starting);
         restHelper.createUser(TEST_USERNAME, TEST_PASSWORD);
         // Create a test OAuth2 client redirecting to localhost
         Map<String, String> properties = new HashMap<>();
@@ -127,7 +126,6 @@ public class ITOAuth2Test {
     @After
     public void after() {
         restHelper.deleteDirectoryEntries(DIRECTORY_NAME);
-        clients.forEach(HttpClientTestRule::finished);
     }
 
     @Test

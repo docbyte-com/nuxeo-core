@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,8 +73,8 @@ import jakarta.inject.Inject;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.RandomUtils;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
@@ -134,20 +134,21 @@ public class OAuth2ChallengeFixture {
     @Inject
     protected HotDeployer hotDeployer;
 
-    // don't use @Rule because Test Framework doesn't handle having more than one rule of same type (Guice injection)
     // Clients to make the requests like a "Client" as the OAuth2 RFC describes it
     // Authenticated client for the /oauth2/authorize and /oauth2/authorize_submit endpoints
-    protected HttpClientTestRule authenticatedClient = HttpClientTestRule.builder()
-                                                                         .url(() -> oAuth2ServletContainerFeature.getOAuth2Url())
-                                                                         .adminCredentials()
-                                                                         .redirectsEnabled(false)
-                                                                         .build();
+    @Rule
+    public final HttpClientTestRule authenticatedClient = HttpClientTestRule.builder()
+                                                                            .url(() -> oAuth2ServletContainerFeature.getOAuth2Url())
+                                                                            .adminCredentials()
+                                                                            .redirectsEnabled(false)
+                                                                            .build();
 
     // Unauthenticated client for the /oauth2/token endpoint
-    protected HttpClientTestRule client = HttpClientTestRule.builder()
-                                                            .url(() -> oAuth2ServletContainerFeature.getOAuth2Url())
-                                                            .redirectsEnabled(false)
-                                                            .build();
+    @Rule
+    public final HttpClientTestRule client = HttpClientTestRule.builder()
+                                                               .url(() -> oAuth2ServletContainerFeature.getOAuth2Url())
+                                                               .redirectsEnabled(false)
+                                                               .build();
 
     protected TransientStoreProvider transientStore;
 
@@ -155,18 +156,9 @@ public class OAuth2ChallengeFixture {
 
     @Before
     public void initOAuthClient() {
-        authenticatedClient.starting();
-        client.starting();
-
         transientStore = (TransientStoreProvider) transientStoreService.getStore(AuthorizationRequest.STORE_NAME);
 
         tokenStore = new OAuth2TokenStore(TOKEN_SERVICE);
-    }
-
-    @After
-    public void tearDown() {
-        authenticatedClient.finished();
-        client.finished();
     }
 
     @Test

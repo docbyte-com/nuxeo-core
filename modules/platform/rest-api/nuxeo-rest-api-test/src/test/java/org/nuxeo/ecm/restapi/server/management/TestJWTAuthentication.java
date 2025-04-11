@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import jakarta.ws.rs.core.HttpHeaders;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.nuxeo.ecm.jwt.JWTService;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
@@ -39,14 +38,11 @@ import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 11.3
  */
-@RunWith(FeaturesRunner.class)
 @Features(RestServerFeature.class)
 @Deploy("org.nuxeo.ecm.jwt")
 @Deploy("org.nuxeo.ecm.platform.restapi.test:test-jwt-contrib.xml")
@@ -54,9 +50,6 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 public class TestJWTAuthentication extends ManagementBaseTest {
 
     protected static final String BEARER_SP = "Bearer ";
-
-    @Inject
-    protected ServletContainerFeature servletContainerFeature;
 
     @Inject
     protected JWTService jwtService;
@@ -70,15 +63,14 @@ public class TestJWTAuthentication extends ManagementBaseTest {
         String authorizedUserToken = jwtService.newBuilder().withClaim(CLAIM_SUBJECT, "transient/foo").build();
         String unauthorizedUserToken = jwtService.newBuilder().withClaim(CLAIM_SUBJECT, "transient/bar").build();
 
-        String url = String.format("http://localhost:%d/api/v1", servletContainerFeature.getPort());
         authorizedHttpClient = HttpClientTestRule.builder()
-                                                 .url(url)
+                                                 .url(restServerFeature.getRestApiUrl())
                                                  .accept(APPLICATION_JSON)
                                                  .header(HttpHeaders.AUTHORIZATION, BEARER_SP + authorizedUserToken)
                                                  .build();
         authorizedHttpClient.starting();
         unauthorizedHttpClient = HttpClientTestRule.builder()
-                                                   .url(url)
+                                                   .url(restServerFeature.getRestApiUrl())
                                                    .accept(APPLICATION_JSON)
                                                    .header(HttpHeaders.AUTHORIZATION, BEARER_SP + unauthorizedUserToken)
                                                    .build();
