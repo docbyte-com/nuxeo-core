@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -87,6 +85,7 @@ public class UserGroupTest extends BaseUserTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
 
+    @Rule
     public final HttpClientTestRule nonAdminHttpClient = HttpClientTestRule.builder()
                                                                            .url(() -> restServerFeature.getRestApiUrl())
                                                                            .credentials("user1", "user1")
@@ -95,16 +94,6 @@ public class UserGroupTest extends BaseUserTest {
     protected void nextTransaction() {
         TransactionHelper.commitOrRollbackTransaction();
         TransactionHelper.startTransaction();
-    }
-
-    @Before
-    public void init() {
-        nonAdminHttpClient.starting();
-    }
-
-    @After
-    public void tearDown() {
-        nonAdminHttpClient.finished();
     }
 
     @Test
