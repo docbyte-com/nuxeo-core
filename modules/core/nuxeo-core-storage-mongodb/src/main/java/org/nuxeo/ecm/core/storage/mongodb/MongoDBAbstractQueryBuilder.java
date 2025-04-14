@@ -273,7 +273,7 @@ public abstract class MongoDBAbstractQueryBuilder {
         return walkAndOr(expr, Arrays.asList(expr.lvalue, expr.rvalue));
     }
 
-    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/\\*\\d+(/)?");
+    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/(\\*(\\d+(/)?)?)?");
 
     protected Document walkAndOr(Expression expr, List<? extends Operand> values) {
         if (values.size() == 1) {
