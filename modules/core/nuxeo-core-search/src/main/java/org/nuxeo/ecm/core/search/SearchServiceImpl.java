@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.search;
 
+import static java.util.Objects.requireNonNull;
 import static org.nuxeo.runtime.api.login.LoginComponent.SYSTEM_USERNAME;
 
 import java.io.IOException;
@@ -74,11 +75,13 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     protected final Map<String, SearchClient> searchClients = new HashMap<>();
 
-    protected final Map<String, SearchIndex> repoToDefaultSearchIndex = new HashMap<>();
+    protected final Map<String, SearchIndex> searchIndexes = new HashMap<>();
 
-    protected final Map<String, List<SearchIndex>> repoToSearchIndexes = new HashMap<>();
+    protected final Map<String, String> repoToDefaultIndex = new HashMap<>();
 
-    protected final Map<SearchIndex, IndexingJsonWriter> indexToJsonWriter = new HashMap<>();
+    protected final Map<String, List<String>> repoToIndexes = new HashMap<>();
+
+    protected final Map<String, IndexingJsonWriter> indexToJsonWriter = new HashMap<>();
 
     protected final String defaultRepository;
 
@@ -105,16 +108,17 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         for (SearchIndexDescriptor descriptor : indexes) {
             String repo = descriptor.getRepositoryName();
             SearchIndex index = SearchIndex.of(repo, searchClients.get(descriptor.getClient()).getName(),
-                    descriptor.getName());
-            repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
-            if (descriptor.isDefault() || !repoToDefaultSearchIndex.containsKey(repo)) {
-                var previousIndex = repoToDefaultSearchIndex.put(repo, index);
+                    descriptor.getId());
+            searchIndexes.put(index.index(), index);
+            repoToIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index.index());
+            if (descriptor.isDefault() || !repoToDefaultIndex.containsKey(repo)) {
+                var previousIndex = repoToDefaultIndex.put(repo, index.index());
                 if (previousIndex != null) {
                     log.warn("The {} is overriding {} to be the default index for repository: {}", previousIndex, index,
                             repo);
                 }
             }
-            indexToJsonWriter.put(index, descriptor.newWriterInstance());
+            indexToJsonWriter.put(index.index(), descriptor.newWriterInstance());
         }
     }
 
@@ -124,10 +128,10 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
                 continue;
             }
             String repo = descriptor.getRepositoryName();
-            SearchIndex index = SearchIndex.of(repo, client.getName(), descriptor.getId());
-            repoToSearchIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
-            if (descriptor.isDefault() || !repoToDefaultSearchIndex.containsKey(repo)) {
-                repoToDefaultSearchIndex.put(repo, index);
+            String index = descriptor.getId();
+            repoToIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
+            if (descriptor.isDefault() || !repoToDefaultIndex.containsKey(repo)) {
+                repoToDefaultIndex.put(repo, index);
             }
             indexToJsonWriter.put(index, descriptor.newWriterInstance());
         }
@@ -140,17 +144,32 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
 
     @Override
     public Set<String> getRepositoryNames() {
-        return repoToSearchIndexes.keySet();
+        return repoToIndexes.keySet();
+    }
+
+    @Override
+    public String getDefaultIndexName(String repository) {
+        return repoToDefaultIndex.get(repository);
+    }
+
+    @Override
+    public List<String> getIndexNames(String repository) {
+        return Collections.unmodifiableList(repoToIndexes.getOrDefault(repository, Collections.emptyList()));
+    }
+
+    @Override
+    public SearchIndex getSearchIndex(String indexName) {
+        return requireNonNull(searchIndexes.get(indexName), () -> "Unknown index: '" + indexName + "'");
     }
 
     @Override
     public SearchIndex getDefaultSearchIndexForRepository(String repository) {
-        return repoToDefaultSearchIndex.get(repository);
+        return getSearchIndex(repoToDefaultIndex.get(repository));
     }
 
     @Override
     public List<SearchIndex> getSearchIndexForRepository(String repository) {
-        return repoToSearchIndexes.getOrDefault(repository, Collections.emptyList());
+        return getIndexNames(repository).stream().map(this::getSearchIndex).toList();
     }
 
     @Override
@@ -213,7 +232,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
                 CoreSession session = CoreInstance.getCoreSession(bulk.getSearchIndex().repository());
                 documents = loadDocuments(session, documentIds);
             }
-            IndexingJsonWriter writer = indexToJsonWriter.get(bulk.getSearchIndex());
+            IndexingJsonWriter writer = indexToJsonWriter.get(bulk.getSearchIndex().index());
             for (DocumentModel doc : documents) {
                 String json = json(writer, doc);
                 bulk.getRequests()

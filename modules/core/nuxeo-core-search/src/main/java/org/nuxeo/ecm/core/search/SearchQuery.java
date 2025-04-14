@@ -68,21 +68,65 @@ public interface SearchQuery {
      */
     Map<String, Type> getSelectFields();
 
+    /**
+     * Returns a query builder initialized with an NXQL query, the current principal and the default search index of the
+     * default repository.
+     *
+     * @since 2025.1
+     */
+    static SearchQueryImpl.Builder builder(String nxql) {
+        return builder(nxql, NuxeoPrincipal.getCurrent());
+    }
+
+    /**
+     * Returns a query builder initialized with an NXQL query, principal and repository taken from the session, the
+     * search index is the default one for the session's repository.
+     *
+     * @since 2025.1
+     */
+    static SearchQueryImpl.Builder builder(String nxql, CoreSession session) {
+        var index = Framework.getService(SearchService.class).getDefaultIndexName(session.getRepositoryName());
+        return new SearchQueryImpl.Builder(nxql, session.getPrincipal()).index(index);
+    }
+
+    /**
+     * Returns a query builder initialized with an NXQL query on a given principal.
+     *
+     * @since 2025.1
+     */
+    static SearchQueryImpl.Builder builder(String nxql, NuxeoPrincipal principal) {
+        return new SearchQueryImpl.Builder(nxql, principal);
+    }
+
+    /**
+     * @deprecated since 2025.1, use {@link #builder(String, CoreSession)} instead.
+     */
+    @Deprecated(since = "2025.1", forRemoval = true)
     static SearchQueryImpl.Builder builder(CoreSession session, String nxql) {
-        var searchIndex = Framework.getService(SearchService.class)
-                                   .getDefaultSearchIndexForRepository(session.getRepositoryName());
-        return builder(searchIndex, nxql, session.getPrincipal());
+        return builder(nxql, session);
     }
 
+    /**
+     * @deprecated since 2025.1, use {@link #builder(String)} instead.
+     */
+    @Deprecated(since = "2025.1", forRemoval = true)
     static SearchQueryImpl.Builder builder(SearchIndex searchIndex, String nxql) {
-        return builder(searchIndex, nxql, NuxeoPrincipal.getCurrent());
+        return builder(nxql).searchIndex(searchIndex);
     }
 
+    /**
+     * @deprecated since 2025.1, use {@link #builder(String, NuxeoPrincipal)} instead.
+     */
+    @Deprecated(since = "2025.1", forRemoval = true)
     static SearchQueryImpl.Builder builder(SearchIndex searchIndex, String nxql, NuxeoPrincipal principal) {
-        return new SearchQueryImpl.Builder(List.of(searchIndex), nxql, principal);
+        return builder(nxql, principal).searchIndex(searchIndex);
     }
 
+    /**
+     * @deprecated since 2025.1, use {@link #builder(String, NuxeoPrincipal)} instead.
+     */
+    @Deprecated(since = "2025.1", forRemoval = true)
     static SearchQueryImpl.Builder builder(List<SearchIndex> searchIndexes, String nxql, NuxeoPrincipal principal) {
-        return new SearchQueryImpl.Builder(searchIndexes, nxql, principal);
+        return builder(nxql, principal).searchIndex(searchIndexes);
     }
 }

@@ -39,26 +39,66 @@ public interface SearchService {
     Set<String> getRepositoryNames();
 
     /**
-     * Gets the default {@link SearchIndex} for the default repository.
+     * Gets the default index for the default repository.
+     *
+     * @since 2025.1
      */
+    default String getDefaultIndexName() {
+        return getDefaultIndexName(getDefaultRepositoryName());
+    }
+
+    /**
+     * Gets the default index for the given repository.
+     *
+     * @since 2025.1
+     */
+    String getDefaultIndexName(String repository);
+
+    /**
+     * Gets all available indexes for a repository.
+     *
+     * @since 2025.1
+     */
+    List<String> getIndexNames(String repository);
+
+    /**
+     * Gets the SearchIndex for the given index name.
+     *
+     * @since 2025.1
+     * @throws NullPointerException if indexName is unknown.
+     */
+    SearchIndex getSearchIndex(String indexName);
+
+    /**
+     * Gets the default {@link SearchIndex} for the default repository.
+     *
+     * @deprecated since 2025.1, use {@link #getDefaultIndexName()} instead.
+     */
+    @Deprecated(since = "2025.1", forRemoval = true)
     default SearchIndex getDefaultSearchIndex() {
         return getDefaultSearchIndexForRepository(getDefaultRepositoryName());
     }
 
     /**
      * Gets the default {@link SearchIndex} for a given repository.
+     *
+     * @deprecated since 2025.1, use {@link #getDefaultIndexName(String)} instead.
      */
+    @Deprecated(since = "2025.1", forRemoval = true)
     SearchIndex getDefaultSearchIndexForRepository(String repository);
 
     /**
      * Gets the list of {@link SearchIndex} for a given repository.
+     *
+     * @deprecated since 2025.1, use {@link #getIndexNames(String)} instead.
      */
+    @Deprecated(since = "2025.1", forRemoval = true)
     List<SearchIndex> getSearchIndexForRepository(String repository);
 
     /**
      * Executes a search query.
      * {@snippet :
-     * var response = searchService.search(SearchQuery.builder(session, "SELECT * FROM Document").build());
+     * var response = searchService.search(SearchQuery.builder("SELECT * FROM Document", session).build());
      * }
      *
      * @throws org.nuxeo.ecm.core.query.QueryParseException if the NXQL query is invalid

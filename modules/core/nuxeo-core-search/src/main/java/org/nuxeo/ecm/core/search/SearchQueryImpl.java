@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core.search;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
+import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
 import static org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter.REPOSITORY_PROP;
 
@@ -224,13 +225,11 @@ public class SearchQueryImpl implements SearchQuery {
 
         protected final List<Aggregate<? extends Bucket>> aggregates = new ArrayList<>();
 
-        // constructor fields
-
-        protected final List<SearchIndex> searchIndexes;
-
         protected final String nxql;
 
         protected final NuxeoPrincipal principal;
+
+        protected List<SearchIndex> searchIndexes;
 
         protected int offset = 0;
 
@@ -244,18 +243,89 @@ public class SearchQueryImpl implements SearchQuery {
 
         /**
          * Creates a SearchQuery builder.
+         *
+         * @since 2025.1
          */
+        protected Builder(String nxql, NuxeoPrincipal principal) {
+            this.nxql = completeQueryWithSelect(nxql);
+            this.principal = principal;
+        }
+
+        /**
+         * @deprecated since 2025.1, use {@link #Builder(String, NuxeoPrincipal)} instead.
+         */
+        @Deprecated(since = "2025.1", forRemoval = true)
         protected Builder(List<SearchIndex> searchIndexes, String nxql, NuxeoPrincipal principal) {
             if (isEmpty(searchIndexes)) {
                 throw new NullPointerException("searchIndexes cannot be null or empty");
             }
-            if (searchIndexes.stream().map(SearchIndex::client).distinct().count() != 1) {
-                throw new IllegalArgumentException(
-                        "All searchIndexes must share the same SearchClient: " + searchIndexes);
-            }
-            this.searchIndexes = searchIndexes;
+            index(searchIndexes.stream().map(SearchIndex::index).toList());
             this.nxql = completeQueryWithSelect(nxql);
             this.principal = principal;
+        }
+
+        /**
+         * Search will be performed on this search index. Use the {@link SearchService} to find available index names
+         * for a repository.
+         *
+         * @since 2025.1
+         */
+        public Builder index(String indexName) {
+            if (isBlank(indexName)) {
+                searchIndexes = List.of();
+                return this;
+            }
+            return index(List.of(indexName));
+        }
+
+        /**
+         * Search on multiple indexes to achieve multi repositories search. All indexes should belong to the same search
+         * client.
+         *
+         * @since 2025.1
+         * @throws IllegalArgumentException If indexes belong to different search clients
+         */
+        public Builder index(List<String> indexNames) {
+            if (indexNames == null || indexNames.isEmpty()) {
+                searchIndexes = List.of();
+                return this;
+            }
+            var searchService = Framework.getService(SearchService.class);
+            if (searchService == null) {
+                throw new IllegalStateException("No SearchService available");
+            }
+            return searchIndex(indexNames.stream().map(searchService::getSearchIndex).toList());
+        }
+
+        /**
+         * Search will be performed on this search index.
+         *
+         * @since 2025.1
+         */
+        public Builder searchIndex(SearchIndex index) {
+            if (index == null) {
+                searchIndexes = List.of();
+                return this;
+            }
+            return searchIndex(List.of(index));
+        }
+
+        /**
+         * Search on one or multiple SearchIndexes.
+         *
+         * @since 2025.1
+         * @throws IllegalArgumentException If indexes belong to different search clients
+         */
+        public Builder searchIndex(List<SearchIndex> indexes) {
+            if (indexes == null || indexes.isEmpty()) {
+                searchIndexes = List.of();
+                return this;
+            }
+            if (indexes.stream().map(SearchIndex::client).distinct().count() != 1) {
+                throw new IllegalArgumentException("All searchIndexes must share the same SearchClient: " + indexes);
+            }
+            searchIndexes = indexes;
+            return this;
         }
 
         protected static String completeQueryWithSelect(String nxql) {
