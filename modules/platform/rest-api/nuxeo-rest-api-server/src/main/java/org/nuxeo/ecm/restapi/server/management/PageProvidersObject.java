@@ -59,7 +59,7 @@ public class PageProvidersObject extends AbstractResource<ResourceTypeImpl> {
         ArrayNode res = mapper.createArrayNode();
         PageProviderService pps = Framework.getService(PageProviderService.class);
         SearchService searchService = Framework.getService(SearchService.class);
-        String defaultSearchClient = searchService.getDefaultSearchIndex().client();
+        String defaultSearchClient = searchService.getSearchIndex(searchService.getDefaultIndexName()).client();
         for (String ppName : pps.getPageProviderDefinitionNames()) {
             ObjectNode node = mapper.createObjectNode();
             PageProviderDefinition def = pps.getPageProviderDefinition(ppName);

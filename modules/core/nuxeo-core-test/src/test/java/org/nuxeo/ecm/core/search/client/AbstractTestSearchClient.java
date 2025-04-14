@@ -87,7 +87,7 @@ public abstract class AbstractTestSearchClient {
     protected abstract String getSourceToIndex();
 
     public SearchIndex getIndex() {
-        return service.getDefaultSearchIndex();
+        return service.getSearchIndex(service.getDefaultIndexName());
     }
 
     public SearchClient getClient() {
@@ -95,11 +95,11 @@ public abstract class AbstractTestSearchClient {
     }
 
     public SearchResponse search(String nxql) {
-        return getClient().search(SearchQuery.builder(getIndex(), nxql).limit(1_000).build());
+        return getClient().search(SearchQuery.builder(nxql).searchIndex(getIndex()).limit(1_000).build());
     }
 
     public SearchResponse searchAndAssert(String nxql, BiConsumer<String, SearchResponse> assertion) {
-        var query = SearchQuery.builder(getIndex(), nxql).limit(1_000).build();
+        var query = SearchQuery.builder(nxql).searchIndex(getIndex()).limit(1_000).build();
         SearchResponse response = search(nxql);
         assertion.accept(dump(nxql, query, response), response);
         return response;

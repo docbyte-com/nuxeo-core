@@ -74,7 +74,7 @@ public class ESSyncRootFolderItem extends DefaultSyncRootFolderItem {
         sb.append(" ORDER BY ecm:path");
         String query = sb.toString();
         SearchService searchService = Framework.getService(SearchService.class);
-        SearchQuery searchQuery = SearchQuery.builder(session, query)
+        SearchQuery searchQuery = SearchQuery.builder(query, session)
                                              .scrollSize(batchSize)
                                              .scrollKeepAlive(Duration.ofSeconds(keepAlive))
                                              .build();

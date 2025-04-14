@@ -93,7 +93,7 @@ public class TestSearchInvalidQueries {
     @Test
     public void testQueryOnMissingCapability() {
         var response = searchService.search(
-                SearchQuery.builder(session, "SELECT * FROM Document").addHighlight("dc:title").build());
+                SearchQuery.builder("SELECT * FROM Document", session).addHighlight("dc:title").build());
         boolean highlightPresent = !response.getMissingCapabilities().contains(HIGHLIGHT);
         assertEquals(response.toString(), hasCapability(HIGHLIGHT), highlightPresent);
         if (!highlightPresent) {
@@ -106,11 +106,11 @@ public class TestSearchInvalidQueries {
         aggDef.setProperty("size", "1");
         AggregateTerm agg = new AggregateTerm(aggDef, null);
         response = searchService.search(
-                SearchQuery.builder(session, "SELECT * FROM Document").addAggregate(agg).build());
+                SearchQuery.builder("SELECT * FROM Document", session).addAggregate(agg).build());
         boolean aggregatePresent = !response.getMissingCapabilities().contains(AGGREGATE);
         assertEquals(response.toString(), hasCapability(AGGREGATE), aggregatePresent);
 
-        response = searchService.search(SearchQuery.builder(session, "SELECT * FROM Document")
+        response = searchService.search(SearchQuery.builder("SELECT * FROM Document", session)
                                                    .addHighlight("dc:title")
                                                    .addAggregate(agg)
                                                    .build());
@@ -121,11 +121,11 @@ public class TestSearchInvalidQueries {
     }
 
     protected boolean hasCapability(SearchClient.Capability capability) {
-        return searchIndexingService.getClient(searchService.getDefaultSearchIndex().client())
-                                    .hasCapability(capability);
+        var searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName());
+        return searchIndexingService.getClient(searchIndex.client()).hasCapability(capability);
     }
 
     protected SearchResponse search(String nxql) {
-        return searchService.search(SearchQuery.builder(session, nxql).build());
+        return searchService.search(SearchQuery.builder(nxql, session).build());
     }
 }

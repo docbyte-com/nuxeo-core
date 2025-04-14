@@ -162,11 +162,13 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         return requireNonNull(searchIndexes.get(indexName), () -> "Unknown index: '" + indexName + "'");
     }
 
+    @SuppressWarnings("removal")
     @Override
     public SearchIndex getDefaultSearchIndexForRepository(String repository) {
         return getSearchIndex(repoToDefaultIndex.get(repository));
     }
 
+    @SuppressWarnings("removal")
     @Override
     public List<SearchIndex> getSearchIndexForRepository(String repository) {
         return getIndexNames(repository).stream().map(this::getSearchIndex).toList();
@@ -294,7 +296,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     public String reindexRepository(String repository) {
         log.debug("Reindexing repository: {}", repository);
         BulkService bulkService = Framework.getService(BulkService.class);
-        var searchIndexes = getSearchIndexForRepository(repository);
+        var searchIndexes = getIndexNames(repository).stream().map(this::getSearchIndex).toList();
         searchIndexes.forEach(searchIndex -> getClient(searchIndex.client()).dropAndInitIndex(searchIndex.index()));
         String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME,
                 NXQL_ALL_DOCUMENTS, SYSTEM_USERNAME).repository(repository).build());
@@ -309,7 +311,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         BulkService bulkService = Framework.getService(BulkService.class);
         String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
                 nxql, SYSTEM_USERNAME).repository(repository).build());
-        var searchIndexes = getSearchIndexForRepository(repository);
+        var searchIndexes = getIndexNames(repository);
         log.warn("Reindexing documents on repository: {} using {}, with bulk command: {} on indexes: {}", repository,
                 nxql, commandId, searchIndexes);
         return commandId;

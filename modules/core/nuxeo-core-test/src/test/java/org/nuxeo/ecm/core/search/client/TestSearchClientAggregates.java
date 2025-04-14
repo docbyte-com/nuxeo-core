@@ -291,7 +291,8 @@ public class TestSearchClientAggregates extends AbstractTestSearchClient {
     @SafeVarargs
     protected final SearchResponse search(String nxql, Aggregate<? extends Bucket> aggregate,
             Aggregate<? extends Bucket>... aggregates) {
-        return getClient().search(SearchQuery.builder(getIndex(), nxql)
+        return getClient().search(SearchQuery.builder(nxql)
+                                             .searchIndex(getIndex())
                                              .limit(1_000)
                                              .addAggregate(aggregate)
                                              .addAggregates(List.of(aggregates))

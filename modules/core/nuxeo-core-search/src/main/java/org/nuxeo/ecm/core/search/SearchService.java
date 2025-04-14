@@ -76,7 +76,7 @@ public interface SearchService {
      */
     @Deprecated(since = "2025.1", forRemoval = true)
     default SearchIndex getDefaultSearchIndex() {
-        return getDefaultSearchIndexForRepository(getDefaultRepositoryName());
+        return getSearchIndex(getDefaultIndexName());
     }
 
     /**

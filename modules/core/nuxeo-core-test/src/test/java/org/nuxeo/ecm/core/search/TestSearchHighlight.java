@@ -75,7 +75,7 @@ public class TestSearchHighlight {
 
         txFeature.nextTransaction();
 
-        var searchQuery = SearchQuery.builder(session, "SELECT * FROM Document WHERE ecm:fulltext='search'")
+        var searchQuery = SearchQuery.builder("SELECT * FROM Document WHERE ecm:fulltext='search'", session)
                                      .addHighlight("dc:title.fulltext")
                                      .addHighlight("ecm:binarytext")
                                      .build();
@@ -136,7 +136,7 @@ public class TestSearchHighlight {
 
         txFeature.nextTransaction();
 
-        var searchQuery = SearchQuery.builder(session, "SELECT * FROM Document WHERE ecm:fulltext='vehicula'")
+        var searchQuery = SearchQuery.builder("SELECT * FROM Document WHERE ecm:fulltext='vehicula'", session)
                                      .addHighlight("dc:title")
                                      .addHighlight("ecm:binarytext")
                                      .build();

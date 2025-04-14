@@ -157,7 +157,7 @@ public class TestSearchCompareWithRepositoryQueryAndFetch {
     protected void compareSearchAndCore(String nxql) {
         try (IterableQueryResult coreResult = session.queryAndFetch(nxql, NXQL.NXQL);
                 IterableQueryResult searchResult = searchService.search(
-                        SearchQuery.builder(session, nxql).scrollSize(20).build()).getHitsAsIterator()) {
+                        SearchQuery.builder(nxql, session).scrollSize(20).build()).getHitsAsIterator()) {
             assertSameDocumentLists(coreResult, searchResult);
         }
     }

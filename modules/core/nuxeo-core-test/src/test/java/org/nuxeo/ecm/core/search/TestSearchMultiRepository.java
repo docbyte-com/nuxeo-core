@@ -72,17 +72,17 @@ public class TestSearchMultiRepository {
 
     @Test
     public void testMultiSearch() {
-        assertEquals(2, searchService.search(SearchQuery.builder(defaultSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", defaultSession).build())
                                      .getHitsCount());
-        assertEquals(2, searchService.search(SearchQuery.builder(otherSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", otherSession).build())
                                      .getHitsCount());
         var indexes = searchService.getRepositoryNames()
                                    .stream()
-                                   .map(repository -> searchService.getDefaultSearchIndexForRepository(repository))
+                                   .map(repository -> searchService.getDefaultIndexName(repository))
                                    .toList();
         assertEquals(2, indexes.size());
         var response = searchService.search(
-                SearchQuery.builder(indexes, "SELECT * from Document", defaultSession.getPrincipal()).build());
+                SearchQuery.builder("SELECT * from Document", defaultSession.getPrincipal()).index(indexes).build());
         assertEquals(4, response.getHitsCount());
         var defaultDocs = response.loadDocuments(defaultSession);
         assertEquals(4, defaultDocs.totalSize());

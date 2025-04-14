@@ -969,7 +969,8 @@ public class TestOpenSearchAggregates {
     @SafeVarargs
     protected final SearchQuery newSearchQuery(Aggregate<? extends Bucket> aggregate,
             Aggregate<? extends Bucket>... aggregates) {
-        return SearchQuery.builder(SEARCH_INDEX, "SELECT * FROM Document")
+        return SearchQuery.builder("SELECT * FROM Document")
+                          .searchIndex(SEARCH_INDEX)
                           .addAggregate(aggregate)
                           .addAggregates(List.of(aggregates))
                           .build();

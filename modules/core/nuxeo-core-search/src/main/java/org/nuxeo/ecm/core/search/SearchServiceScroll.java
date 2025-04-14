@@ -47,13 +47,11 @@ public class SearchServiceScroll extends RepositoryScroll {
         }
         String index = options.get(INDEX_OPTION);
         SearchService service = Framework.getService(SearchService.class);
-        searchIndex = service.getSearchIndexForRepository(this.request.getRepository())
-                             .stream()
-                             .filter(si -> si.index().equals(index))
-                             .findFirst()
-                             .orElseThrow(() -> new IllegalArgumentException(
-                                     "SearchServiceScroll no searchIndex found for repository: "
-                                             + this.request.getRepository() + ", index: " + index));
+        searchIndex = service.getSearchIndex(index);
+        if (!this.request.getRepository().equals(searchIndex.repository())) {
+            throw new IllegalArgumentException("SearchServiceScroll invalid index " + searchIndex + " for repository: "
+                    + this.request.getRepository());
+        }
     }
 
     @Override
@@ -68,7 +66,8 @@ public class SearchServiceScroll extends RepositoryScroll {
     protected boolean fetch() {
         SearchService service = Framework.getService(SearchService.class);
         if (response == null) {
-            response = service.search(SearchQuery.builder(searchIndex, request.getQuery(), session.getPrincipal())
+            response = service.search(SearchQuery.builder(request.getQuery(), session.getPrincipal())
+                                                 .searchIndex(searchIndex)
                                                  .scrollSize(request.getSize())
                                                  .scrollKeepAlive(request.getTimeout())
                                                  .build());

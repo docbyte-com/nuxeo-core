@@ -37,10 +37,10 @@ public class ESSyncRootFolderItemFactory extends DefaultSyncRootFolderItemFactor
     @Override
     protected FileSystemItem adaptDocument(DocumentModel doc, boolean forceParentItem, FolderItem parentItem,
             boolean relaxSyncRootConstraint, boolean getLockInfo) {
+        var searchService = Framework.getService(SearchService.class);
         var defaultSearchClient = Framework.getService(SearchIndexingService.class)
-                                           .getClient(Framework.getService(SearchService.class)
-                                                               .getDefaultSearchIndex()
-                                                               .client());
+                                           .getClient(searchService.getSearchIndex(searchService.getDefaultIndexName())
+                                                                   .client());
         if (defaultSearchClient instanceof OpenSearchSearchClient) {
             return new ESSyncRootFolderItem(name, parentItem, doc, relaxSyncRootConstraint, getLockInfo);
         } else {

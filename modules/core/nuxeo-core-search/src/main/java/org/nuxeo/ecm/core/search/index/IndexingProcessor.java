@@ -36,7 +36,6 @@ import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClient;
-import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.lib.stream.codec.Codec;
@@ -99,7 +98,7 @@ public class IndexingProcessor implements StreamProcessorTopology {
             }
             SearchService searchService = Framework.getService(SearchService.class);
             SearchIndexingService indexingService = Framework.getService(SearchIndexingService.class);
-            List<SearchIndex> indexes = searchService.getSearchIndexForRepository(repository);
+            var indexes = searchService.getIndexNames(repository);
             if (indexes.isEmpty()) {
                 log.warn("No SearchIndex found for repository: {}, skipping indexing of {} events", repository,
                         events.size());
@@ -121,12 +120,13 @@ public class IndexingProcessor implements StreamProcessorTopology {
                 }
                 requestBuilder.add(request);
             }
-            for (SearchIndex index : indexes) {
-                SearchClient client = indexingService.getClient(index.client());
+            for (String index : indexes) {
+                var searchIndex = searchService.getSearchIndex(index);
+                SearchClient client = indexingService.getClient(searchIndex.client());
                 if (!client.hasCapability(INDEXING)) {
                     continue;
                 }
-                indexingService.indexDocuments(requestBuilder.build(index));
+                indexingService.indexDocuments(requestBuilder.build(searchIndex));
             }
             return requestBuilder.size();
         }

@@ -37,6 +37,7 @@ public class IgnoreIfSearchClientDoesNotHaveIndexingCapability implements Condit
 
     @Override
     public boolean shouldIgnore() {
-        return !searchIndexingService.getClient(searchService.getDefaultSearchIndex().client()).hasCapability(INDEXING);
+        var searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName());
+        return !searchIndexingService.getClient(searchIndex.client()).hasCapability(INDEXING);
     }
 }

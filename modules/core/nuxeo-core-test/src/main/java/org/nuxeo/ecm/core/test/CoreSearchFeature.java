@@ -81,7 +81,8 @@ public class CoreSearchFeature implements RunnerFeature {
      */
     public boolean dropAndInitIndex() {
         if (hasMemoryClient() || hasOpenSearchClient()) {
-            var searchIndex = Framework.getService(SearchService.class).getDefaultSearchIndex();
+            var searchService = Framework.getService(SearchService.class);
+            var searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName());
             Framework.getService(SearchIndexingService.class)
                      .getClient(searchIndex.client())
                      .dropAndInitIndex(searchIndex.index());

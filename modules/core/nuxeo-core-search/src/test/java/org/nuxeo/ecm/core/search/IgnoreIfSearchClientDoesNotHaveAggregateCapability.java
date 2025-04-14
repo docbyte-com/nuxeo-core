@@ -37,7 +37,7 @@ public class IgnoreIfSearchClientDoesNotHaveAggregateCapability implements Condi
 
     @Override
     public boolean shouldIgnore() {
-        return !searchIndexingService.getClient(searchService.getDefaultSearchIndex().client())
-                                     .hasCapability(AGGREGATE);
+        return !searchIndexingService.getClient(
+                searchService.getSearchIndex(searchService.getDefaultIndexName()).client()).hasCapability(AGGREGATE);
     }
 }

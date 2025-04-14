@@ -78,15 +78,17 @@ public class BaseCoreSearchFeature implements RunnerFeature {
         var searchService = Framework.getService(SearchService.class);
         searchService.getRepositoryNames()
                      .stream()
-                     .map(searchService::getDefaultSearchIndexForRepository)
+                     .map(searchService::getDefaultIndexName)
+                     .map(searchService::getSearchIndex)
                      .forEach(Framework.getService(SearchIndexingService.class)::refresh);
     }
 
     public static void assertNotIndexed(String documentId) {
-        assertNotIndexed(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId);
+        assertNotIndexed(Framework.getService(SearchService.class).getDefaultIndexName(), documentId);
     }
 
-    public static void assertNotIndexed(SearchIndex searchIndex, String documentId) {
+    public static void assertNotIndexed(String index, String documentId) {
+        var searchIndex = Framework.getService(SearchService.class).getSearchIndex(index);
         SearchClient client = Framework.getService(SearchIndexingService.class).getClient(searchIndex.client());
         String doc = client.getDocument(searchIndex.index(), documentId);
         if (doc != null) {
@@ -100,10 +102,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     public static void assertIndexedBefore(String documentId, long timestamp) {
-        assertIndexedBefore(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId, timestamp);
+        assertIndexedBefore(Framework.getService(SearchService.class).getDefaultIndexName(), documentId, timestamp);
     }
 
-    public static void assertIndexedBefore(SearchIndex searchIndex, String documentId, long timestamp) {
+    public static void assertIndexedBefore(String index, String documentId, long timestamp) {
+        var searchIndex = Framework.getService(SearchService.class).getSearchIndex(index);
         SearchClient client = Framework.getService(SearchIndexingService.class).getClient(searchIndex.client());
         Long version = client.getDocumentVersion(searchIndex.index(), documentId);
         assertNotNull("Doc: " + documentId + " not found in index: " + searchIndex, version);
@@ -114,10 +117,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     public static void assertIndexedSince(String documentId, long timestamp) {
-        assertIndexedSince(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId, timestamp);
+        assertIndexedSince(Framework.getService(SearchService.class).getDefaultIndexName(), documentId, timestamp);
     }
 
-    public static void assertIndexedSince(SearchIndex searchIndex, String documentId, long timestamp) {
+    public static void assertIndexedSince(String index, String documentId, long timestamp) {
+        var searchIndex = Framework.getService(SearchService.class).getSearchIndex(index);
         SearchClient client = Framework.getService(SearchIndexingService.class).getClient(searchIndex.client());
         Long version = client.getDocumentVersion(searchIndex.index(), documentId);
         assertNotNull("Doc: " + documentId + " not found in index: " + searchIndex, version);
@@ -128,10 +132,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     public static void assertIndexedContains(String documentId, String match) {
-        assertIndexedContains(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId, match);
+        assertIndexedContains(Framework.getService(SearchService.class).getDefaultIndexName(), documentId, match);
     }
 
-    public static void assertIndexedContains(SearchIndex searchIndex, String documentId, String match) {
+    public static void assertIndexedContains(String index, String documentId, String match) {
+        var searchIndex = Framework.getService(SearchService.class).getSearchIndex(index);
         SearchClient client = Framework.getService(SearchIndexingService.class).getClient(searchIndex.client());
         String doc = client.getDocument(searchIndex.index(), documentId);
         assertNotNull("Doc: " + documentId + " not found in index: " + searchIndex, doc);
@@ -139,10 +144,11 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     public static void assertIndexedNotContains(String documentId, String match) {
-        assertIndexedNotContains(Framework.getService(SearchService.class).getDefaultSearchIndex(), documentId, match);
+        assertIndexedNotContains(Framework.getService(SearchService.class).getDefaultIndexName(), documentId, match);
     }
 
-    public static void assertIndexedNotContains(SearchIndex searchIndex, String documentId, String match) {
+    public static void assertIndexedNotContains(String index, String documentId, String match) {
+        var searchIndex = Framework.getService(SearchService.class).getSearchIndex(index);
         SearchClient client = Framework.getService(SearchIndexingService.class).getClient(searchIndex.client());
         String doc = client.getDocument(searchIndex.index(), documentId);
         assertNotNull("Doc: " + documentId + " not found in index: " + searchIndex, doc);
@@ -158,6 +164,6 @@ public class BaseCoreSearchFeature implements RunnerFeature {
     }
 
     public static SearchQuery newSearchQuery(CoreSession session, String nxql) {
-        return SearchQuery.builder(session, nxql).limit(1_000).build();
+        return SearchQuery.builder(nxql, session).limit(1_000).build();
     }
 }

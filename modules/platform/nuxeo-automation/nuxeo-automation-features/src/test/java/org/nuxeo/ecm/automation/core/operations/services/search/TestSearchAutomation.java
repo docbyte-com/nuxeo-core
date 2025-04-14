@@ -107,14 +107,14 @@ public class TestSearchAutomation {
         coreSession.save();
         txFeature.nextTransaction();
         // nothing indexed because of disable indexing flag
-        assertEquals(0, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(0, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 
     @Test
     public void testIndexingAll() throws Exception {
         automationService.run(ctx, INDEX_CHAIN);
-        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 
@@ -122,7 +122,7 @@ public class TestSearchAutomation {
     public void testIndexingFromRoot() throws Exception {
         ctx.setInput(rootRef);
         automationService.run(ctx, INDEX_CHAIN);
-        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 
@@ -133,7 +133,7 @@ public class TestSearchAutomation {
         // then reindex from path, so we have 2 commands: delete + insert
         ctx.setInput(rootRef);
         automationService.run(ctx, INDEX_CHAIN);
-        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 
@@ -141,7 +141,7 @@ public class TestSearchAutomation {
     public void testIndexingFromNxql() throws Exception {
         ctx.setInput("SELECT ecm:uuid FROM Document WHERE ecm:primaryType = 'File'");
         automationService.run(ctx, INDEX_CHAIN);
-        assertEquals(1, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(1, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 
@@ -154,7 +154,7 @@ public class TestSearchAutomation {
         assertTrue("Bulk action didn't finish", waitResult);
         // indexing is done but refresh is processed just after, do it sync
         forceRefresh();
-        assertEquals(2, searchService.search(SearchQuery.builder(coreSession, "SELECT * from Document").build())
+        assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
     }
 

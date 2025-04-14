@@ -37,7 +37,7 @@ public class IgnoreIfSearchClientDoesNotHaveHighlightCapability implements Condi
 
     @Override
     public boolean shouldIgnore() {
-        return !searchIndexingService.getClient(searchService.getDefaultSearchIndex().client())
-                                     .hasCapability(HIGHLIGHT);
+        return !searchIndexingService.getClient(
+                searchService.getSearchIndex(searchService.getDefaultIndexName()).client()).hasCapability(HIGHLIGHT);
     }
 }

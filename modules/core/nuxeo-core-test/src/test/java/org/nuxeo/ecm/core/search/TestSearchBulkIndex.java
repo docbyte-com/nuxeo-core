@@ -103,7 +103,7 @@ public class TestSearchBulkIndex {
     }
 
     protected void checkSearchOrder() {
-        SearchQuery query = SearchQuery.builder(session, "SELECT * FROM File")
+        SearchQuery query = SearchQuery.builder("SELECT * FROM File", session)
                                        .addSort(new SortInfo("dc:title", false))
                                        .build();
         var response = searchService.search(query);

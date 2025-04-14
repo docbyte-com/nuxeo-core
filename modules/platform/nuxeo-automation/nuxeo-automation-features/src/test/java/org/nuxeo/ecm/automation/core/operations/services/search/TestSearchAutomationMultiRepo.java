@@ -85,7 +85,7 @@ public class TestSearchAutomationMultiRepo {
 
         // nothing indexed because of disabled indexing flag
         assertEquals(0,
-                searchService.search(SearchQuery.builder(session, "SELECT * from Document").build()).getHitsCount());
+                searchService.search(SearchQuery.builder("SELECT * from Document", session).build()).getHitsCount());
     }
 
     @Test
@@ -98,9 +98,9 @@ public class TestSearchAutomationMultiRepo {
             // will wait for bulk, wait for search indexing
             txFeature.nextTransaction();
 
-            assertEquals(2, searchService.search(SearchQuery.builder(defaultSession, "SELECT * from Document").build())
+            assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", defaultSession).build())
                                          .getHitsCount());
-            assertEquals(2, searchService.search(SearchQuery.builder(otherSession, "SELECT * from Document").build())
+            assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", otherSession).build())
                                          .getHitsCount());
         }
     }

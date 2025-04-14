@@ -1599,7 +1599,7 @@ public class NuxeoCmisService extends AbstractCmisService
             try {
                 if (useElasticsearch) {
                     SearchService searchService = Framework.getService(SearchService.class);
-                    SearchQuery searchQuery = SearchQuery.builder(coreSession, nxql)
+                    SearchQuery searchQuery = SearchQuery.builder(nxql, coreSession)
                                                          .scrollSize(1000)
                                                          .scrollKeepAlive(Duration.ofSeconds(1000))
                                                          .build();
@@ -1674,7 +1674,7 @@ public class NuxeoCmisService extends AbstractCmisService
             try {
                 if (useElasticsearch) {
                     SearchService searchService = Framework.getService(SearchService.class);
-                    SearchQuery searchQuery = SearchQuery.builder(coreSession, nxql)
+                    SearchQuery searchQuery = SearchQuery.builder(nxql, coreSession)
                                                          .limit((int) limit)
                                                          .offset((int) offset)
                                                          .build();

@@ -111,7 +111,10 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         var searchService = Framework.getService(SearchService.class);
         var searchIndexingService = Framework.getService(SearchIndexingService.class);
         String repository = ctx.getCoreSession().getRepositoryName();
-        searchService.getSearchIndexForRepository(repository).forEach(searchIndexingService::refresh);
+        searchService.getIndexNames(repository)
+                     .stream()
+                     .map(searchService::getSearchIndex)
+                     .forEach(searchIndexingService::refresh);
     }
 
     /**
@@ -144,10 +147,11 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         }
         SearchService service = Framework.getService(SearchService.class);
         String repository = ctx.getCoreSession().getRepositoryName();
-        var searchIndexes = service.getSearchIndexForRepository(repository);
+        var indexes = service.getIndexNames(repository);
         Map<String, Serializable> ret = new HashMap<>();
         ret.put("query", nxql);
-        for (var searchIndex : searchIndexes) {
+        for (String index : indexes) {
+            var searchIndex = service.getSearchIndex(index);
             Map<String, Serializable> map = extractResultInfo(searchIndex, nxql, pageSize);
             ret.put("order", map.get("order"));
             map.remove("order");
@@ -225,7 +229,8 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
             var searchService = Framework.getService(SearchService.class);
             var searchIndexingService = Framework.getService(SearchIndexingService.class);
             String repository = ctx.getCoreSession().getRepositoryName();
-            searchIndexingService.refresh(searchService.getDefaultSearchIndexForRepository(repository));
+            var searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName(repository));
+            searchIndexingService.refresh(searchIndex);
         }
     }
 

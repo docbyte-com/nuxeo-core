@@ -85,7 +85,7 @@ public class TestSearchServicePageProviderOpenSearchESHint {
         var nxql = pp.getCurrentQuery();
         var queryTransformer = new OpenSearchQueryTransformer(Map.of("enhanced", "nxutest"),
                 Map.of("fuzzy", new FuzzyOpenSearchHintQueryBuilder()));
-        String esquery = queryTransformer.apply(SearchQuery.builder(session, nxql).build()).source().query().toString();
+        String esquery = queryTransformer.apply(SearchQuery.builder(nxql, session).build()).source().query().toString();
         assertEqualsEvenUnderWindows("""
                 {
                   "bool" : {
@@ -153,7 +153,7 @@ public class TestSearchServicePageProviderOpenSearchESHint {
         var nxql = pp.getCurrentQuery();
         var queryTransformer = new OpenSearchQueryTransformer(Map.of("enhanced", "nxutest"),
                 Map.of("fuzzy", new FuzzyOpenSearchHintQueryBuilder()));
-        String esquery = queryTransformer.apply(SearchQuery.builder(session, nxql).build()).source().query().toString();
+        String esquery = queryTransformer.apply(SearchQuery.builder(nxql, session).build()).source().query().toString();
         assertEqualsEvenUnderWindows("""
                 {
                   "bool" : {

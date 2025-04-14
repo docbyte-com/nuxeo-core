@@ -35,7 +35,6 @@ import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
 import org.nuxeo.ecm.core.search.IndexingRequest;
 import org.nuxeo.ecm.core.search.SearchClient;
-import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.lib.stream.computation.Topology;
@@ -87,14 +86,15 @@ public class IndexingAction implements StreamProcessorTopology {
             }
             var indexingService = Framework.getService(SearchIndexingService.class);
             var searchService = Framework.getService(SearchService.class);
-            var indexes = searchService.getSearchIndexForRepository(repository);
+            var indexes = searchService.getIndexNames(repository);
             Set<String> failures = new HashSet<>();
-            for (SearchIndex index : indexes) {
-                SearchClient client = indexingService.getClient(index.client());
+            for (String index : indexes) {
+                var searchIndex = searchService.getSearchIndex(index);
+                SearchClient client = indexingService.getClient(searchIndex.client());
                 if (!client.hasCapability(INDEXING)) {
                     continue;
                 }
-                var response = indexingService.indexDocuments(requestBuilder.build(index));
+                var response = indexingService.indexDocuments(requestBuilder.build(searchIndex));
                 for (var failure : response.getFailures()) {
                     delta.inError(0, String.format("Cannot index doc: %s, failure: %s, index: %s", failure.documentId(),
                             failure.failureMessage(), index), 0);

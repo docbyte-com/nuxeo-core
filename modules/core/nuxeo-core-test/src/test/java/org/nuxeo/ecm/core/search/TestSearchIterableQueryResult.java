@@ -64,7 +64,7 @@ public class TestSearchIterableQueryResult {
         String nxql = "select ecm:uuid, ecm:path from Document";
         // Request the first batch
         var res = searchService.search(
-                SearchQuery.builder(session, nxql).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
+                SearchQuery.builder(nxql, session).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
         assertEquals(nbDocs, res.getTotal());
         assertEquals(20, res.getHitsCount());
 
@@ -90,7 +90,7 @@ public class TestSearchIterableQueryResult {
         String nxql = "select ecm:uuid, ecm:path from Document";
         // Request the first batch
         var res = searchService.search(
-                SearchQuery.builder(session, nxql).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
+                SearchQuery.builder(nxql, session).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
         var iterable = (IterableQueryResultImpl) res.getHitsAsIterator();
 
         iterable.skipTo(70);

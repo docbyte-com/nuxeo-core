@@ -57,7 +57,7 @@ public class TestOpenSearchSearchClient {
 
     @Test
     public void testOpenSearchClient() {
-        var searchIndex = service.getDefaultSearchIndex();
+        var searchIndex = service.getSearchIndex(service.getDefaultIndexName());
         SearchClient client = indexingService.getClient(searchIndex.client());
         assertNotNull(client);
         assertEquals("opensearch", client.getName());
@@ -67,7 +67,7 @@ public class TestOpenSearchSearchClient {
 
     @Test
     public void testIndexing() {
-        var searchIndex = service.getDefaultSearchIndex();
+        var searchIndex = service.getSearchIndex(service.getDefaultIndexName());
         SearchClient client = indexingService.getClient(searchIndex.client());
         assertEquals(client.getName(), searchIndex.client());
 

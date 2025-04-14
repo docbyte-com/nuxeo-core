@@ -62,8 +62,9 @@ public class RequestValidator {
         var indexingService = Framework.getService(SearchIndexingService.class);
         indexTypes = service.getRepositoryNames()
                             .stream()
-                            .map(service::getSearchIndexForRepository)
+                            .map(service::getIndexNames)
                             .flatMap(List::stream)
+                            .map(service::getSearchIndex)
                             .filter(idx -> "opensearch".equals(idx.client()))
                             .map(idx -> ((OpenSearchSearchClient) indexingService.getClient(
                                     idx.client())).getTechnicalIndexes().get(idx.index()))

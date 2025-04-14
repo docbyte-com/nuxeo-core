@@ -48,11 +48,10 @@ public class TestSearchService {
         assertEquals("Set of repository names: " + service.getRepositoryNames(), 1,
                 service.getRepositoryNames().size());
 
-        assertEquals(SearchIndex.of(defaultRepo, defaultClient, "idx"), service.getDefaultSearchIndex());
-
-        assertEquals(
-                List.of(SearchIndex.of(defaultRepo, "repository", "repository"),
-                        SearchIndex.of(defaultRepo, defaultClient, "idx")),
-                service.getSearchIndexForRepository(defaultRepo));
+        assertEquals("idx", service.getDefaultIndexName());
+        assertEquals(SearchIndex.of(defaultRepo, defaultClient, "idx"),
+                service.getSearchIndex(service.getDefaultIndexName()));
+        assertEquals(SearchIndex.of(defaultRepo, "repository", "repository"), service.getSearchIndex("repository"));
+        assertEquals(List.of("repository", "idx"), service.getIndexNames(defaultRepo));
     }
 }

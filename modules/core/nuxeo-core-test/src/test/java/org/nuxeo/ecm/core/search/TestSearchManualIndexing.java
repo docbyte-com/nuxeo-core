@@ -37,7 +37,6 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.LocalBlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -62,6 +61,9 @@ public class TestSearchManualIndexing {
     protected CoreSession session;
 
     @Inject
+    protected SearchService searchService;
+
+    @Inject
     protected SearchIndexingService searchIndexingService;
 
     @Inject
@@ -71,7 +73,7 @@ public class TestSearchManualIndexing {
 
     @Before
     public void retrieveSearchIndex() {
-        searchIndex = Framework.getService(SearchService.class).getDefaultSearchIndex();
+        searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName());
     }
 
     @Test

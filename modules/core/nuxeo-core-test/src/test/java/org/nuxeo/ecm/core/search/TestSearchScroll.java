@@ -64,7 +64,7 @@ public class TestSearchScroll {
         // Initial search request, includes the first batch of results
         String query = "select * from Document order by dc:title";
         var res = searchService.search(
-                SearchQuery.builder(session, query).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
+                SearchQuery.builder(query, session).scrollSize(20).scrollKeepAlive(Duration.ofSeconds(10_000)).build());
         assertNotNull(res);
         assertNotNull(res.getScrollContext());
         assertEquals(10_000, res.getScrollContext().searchQuery().getScrollKeepAlive().toSeconds());

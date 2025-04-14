@@ -110,7 +110,8 @@ public class SearchWaitForIndexingOperation {
         if (refresh) {
             var searchService = Framework.getService(SearchService.class);
             String repository = repo.getRepositoryName();
-            searchIndexingService.refresh(searchService.getDefaultSearchIndexForRepository(repository));
+            var searchIndex = searchService.getSearchIndex(searchService.getDefaultIndexName(repository));
+            searchIndexingService.refresh(searchIndex);
         }
         return Boolean.TRUE;
     }

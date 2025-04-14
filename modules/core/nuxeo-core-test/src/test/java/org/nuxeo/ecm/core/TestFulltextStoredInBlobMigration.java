@@ -87,7 +87,7 @@ public class TestFulltextStoredInBlobMigration {
         assertEquals(ft2md5, getBinaryFulltextFieldValue(doc2));
 
         var ret = searchService.search(
-                SearchQuery.builder(coreSession, "SELECT * FROM Document WHERE ecm:fulltext = 'search'").build());
+                SearchQuery.builder("SELECT * FROM Document WHERE ecm:fulltext = 'search'", coreSession).build());
         assertEquals(2, ret.getTotal());
 
         // override the fulltext for doc2 to simulate a fulltext stored in repository
@@ -117,7 +117,7 @@ public class TestFulltextStoredInBlobMigration {
         assertEquals(ft1, getBinaryFulltextValue(doc1).trim());
         assertEquals(ft2, getBinaryFulltextValue(doc2).trim());
         ret = searchService.search(
-                SearchQuery.builder(coreSession, "SELECT * FROM Document WHERE ecm:fulltext = 'search'").build());
+                SearchQuery.builder("SELECT * FROM Document WHERE ecm:fulltext = 'search'", coreSession).build());
         assertEquals(2, ret.getTotal());
     }
 

@@ -127,7 +127,8 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
         SearchService service = Framework.getService(SearchService.class);
         try {
             var searchIndexes = getSearchIndexes(service, coreSession.getRepositoryName());
-            var queryBuilder = SearchQuery.builder(searchIndexes, query, principal)
+            var queryBuilder = SearchQuery.builder(query, principal)
+                                          .searchIndex(searchIndexes)
                                           .offset((int) getCurrentPageOffset())
                                           .limit(getLimit())
                                           .addAggregates(buildAggregates())
@@ -154,13 +155,14 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
 
     protected List<SearchIndex> getSearchIndexes(SearchService service, String repository) {
         if (searchIndexes == null) {
-            final String client = requireNonNullElse(getClientName(),
-                    service.getDefaultSearchIndexForRepository(repository).client());
+            var defaultClient = service.getSearchIndex(service.getDefaultIndexName(repository)).client();
+            final String client = requireNonNullElse(getClientName(), defaultClient);
             if (searchOnAllRepositories()) {
                 searchIndexes = service.getRepositoryNames()
                                        .stream()
-                                       .map(service::getSearchIndexForRepository)
+                                       .map(service::getIndexNames)
                                        .flatMap(Collection::stream)
+                                       .map(service::getSearchIndex)
                                        .filter(item -> client.equals(item.client()))
                                        .toList();
                 if (searchIndexes.size() > service.getRepositoryNames().size()) {
@@ -172,8 +174,9 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
                 List<String> indexes = getIndexes();
                 if (isEmpty(indexes)) {
                     searchIndexes = List.of(
-                            service.getSearchIndexForRepository(repository)
+                            service.getIndexNames(repository)
                                    .stream()
+                                   .map(service::getSearchIndex)
                                    .filter(item -> client.equals(item.client()))
                                    .findFirst()
                                    .orElseThrow(() -> new IllegalArgumentException("Invalid PP: "
@@ -184,8 +187,9 @@ public class SearchServicePageProvider extends CoreQueryDocumentPageProvider {
                 } else {
                     searchIndexes = service.getRepositoryNames()
                                            .stream()
-                                           .map(service::getSearchIndexForRepository)
+                                           .map(service::getIndexNames)
                                            .flatMap(Collection::stream)
+                                           .map(service::getSearchIndex)
                                            .filter(item -> client.equals(item.client())
                                                    && indexes.contains(item.index()))
                                            .toList();

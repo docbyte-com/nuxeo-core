@@ -85,12 +85,13 @@ public class TestSearchQueryBuilder {
     @Test
     public void testBadSortInfos() {
         assertThrows(QueryParseException.class,
-                () -> SearchQuery.builder(SEARCH_INDEX, "SELECT * FROM Document ORDER BY ecm:name ASC")
+                () -> SearchQuery.builder("SELECT * FROM Document ORDER BY ecm:name ASC")
+                                 .searchIndex(SEARCH_INDEX)
                                  .addSort(new SortInfo(ECM_UUID, true))
                                  .build());
     }
 
     protected static SearchQuery buildSearchQuery(String query) {
-        return SearchQuery.builder(SEARCH_INDEX, query).build();
+        return SearchQuery.builder(query).searchIndex(SEARCH_INDEX).build();
     }
 }

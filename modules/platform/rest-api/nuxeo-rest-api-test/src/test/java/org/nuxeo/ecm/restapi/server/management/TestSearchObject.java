@@ -78,14 +78,14 @@ public class TestSearchObject extends ManagementBaseTest {
 
         // Nothing indexed because the index was dropped
         assertEquals(0,
-                searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
+                searchService.search(SearchQuery.builder(GET_ALL_DOCUMENTS_QUERY, coreSession).build()).getHitsCount());
 
         // Create new documents without indexing them
         createDocuments();
 
         // Nothing indexed because of disable indexing flag
         assertEquals(0,
-                searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build()).getHitsCount());
+                searchService.search(SearchQuery.builder(GET_ALL_DOCUMENTS_QUERY, coreSession).build()).getHitsCount());
 
         // Start the ES indexing of all document of the coreSession repository
         httpClient.buildPostRequest("/management/search/reindex")
@@ -150,7 +150,9 @@ public class TestSearchObject extends ManagementBaseTest {
                   .executeAndConsume(new JsonNodeHandler(), jsonNode -> {
                       assertTrue(jsonNode.isObject());
                       Framework.getService(SearchService.class)
-                               .getSearchIndexForRepository(coreSession.getRepositoryName())
+                               .getIndexNames(coreSession.getRepositoryName())
+                               .stream()
+                               .map(searchService::getSearchIndex)
                                .forEach(searchIndex -> checkAssert(jsonNode,
                                        searchIndex.client() + '/' + searchIndex.index()));
                   });
@@ -188,7 +190,7 @@ public class TestSearchObject extends ManagementBaseTest {
         // Wait until the end of the ES indexing and then assert our expected indexed documents
         txFeature.nextTransaction();
         forceRefresh();
-        var response = searchService.search(SearchQuery.builder(coreSession, GET_ALL_DOCUMENTS_QUERY).build());
+        var response = searchService.search(SearchQuery.builder(GET_ALL_DOCUMENTS_QUERY, coreSession).build());
         assertEquals(expectedHits, response.getHitsCount());
     }
 

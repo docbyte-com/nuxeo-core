@@ -71,8 +71,10 @@ public class TestOpenSearchQueryTransformer {
 
     protected static final SearchIndex SEARCH_INDEX = SearchIndex.of("test", "opensearch", "enhanced");
 
-    protected static final Function<String, SearchQuery> SEARCH_QUERY_BUILDER = nxql -> SearchQuery.builder(
-            SEARCH_INDEX, nxql).build();
+    protected static final Function<String, SearchQuery> SEARCH_QUERY_BUILDER = nxql -> SearchQuery.builder(nxql)
+                                                                                                   .searchIndex(
+                                                                                                           SEARCH_INDEX)
+                                                                                                   .build();
 
     protected static final OpenSearchQueryTransformer TRANSFORMER = new OpenSearchQueryTransformer(
             Map.of("enhanced", "nxutest"), Map.of());
