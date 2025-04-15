@@ -463,7 +463,7 @@ public class ElasticSearchIndexingImpl implements ElasticSearchIndexing {
             return request;
         } catch (IOException e) {
             throw new NuxeoException("Unable to create index request for Document " + cmd.getTargetDocumentId(), e);
-        } catch (PropertyConversionException e) {
+        } catch (PropertyConversionException | IllegalArgumentException e) {
             log.error("Skipping indexing of a corrupted doc: {}", cmd.getTargetDocumentId(), e);
             return null;
         }

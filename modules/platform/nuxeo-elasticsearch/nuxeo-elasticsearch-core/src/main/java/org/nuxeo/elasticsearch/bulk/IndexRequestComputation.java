@@ -95,7 +95,7 @@ public class IndexRequestComputation extends AbstractBulkComputation {
                                                   .version(now));
             } catch (IOException e) {
                 throw new NuxeoException("Cannot build source for document: " + doc.getId(), e);
-            } catch (PropertyConversionException e) {
+            } catch (PropertyConversionException | IllegalArgumentException e) {
                 log.error("Skipping indexing of corrupted doc: {}", doc.getId(), e);
             }
         }
