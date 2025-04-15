@@ -93,7 +93,11 @@ public class NuxeoForwardDeprecatedPathFilter extends HttpFilter {
 
         @Deprecated(since = "10.2")
         OAUTH2_TOKEN(Set.of("GET", "PUT", "DELETE"), "/api/v1/oauth2/token/((?:(?!\\/).)+)/((?:(?!\\/).)+)",
-                "/api/v1/oauth2/token/provider/$1/user/$2");
+                "/api/v1/oauth2/token/provider/$1/user/$2"),
+
+        @Deprecated(since = "2025.0")
+        MANAGEMENT_ELASTICSEARCH(Set.of("GET", "POST"), "/api/v1/management/elasticsearch/((?:.+))",
+                "/api/v1/management/search/$1");
 
         private final Set<String> methods;
 

@@ -99,4 +99,15 @@ public class TestDeprecatedPath {
         assertEquals("/api/v1/oauth2/token/provider/myProvider/user/myUser",
                 DeprecatedPath.OAUTH2_TOKEN.getReplacement("/api/v1/oauth2/token/myProvider/myUser"));
     }
+
+    @Test
+    public void testElasticsearch() {
+        assertTrue(DeprecatedPath.MANAGEMENT_ELASTICSEARCH.matches("POST",
+                "/api/v1/management/elasticsearch/DOC_ID/reindex"));
+        assertTrue(
+                DeprecatedPath.MANAGEMENT_ELASTICSEARCH.matches("GET", "/api/v1/management/elasticsearch/checkSearch"));
+        assertTrue(DeprecatedPath.MANAGEMENT_ELASTICSEARCH.matches("POST", "/api/v1/management/elasticsearch/reindex"));
+        assertEquals("/api/v1/management/search/reindex",
+                DeprecatedPath.MANAGEMENT_ELASTICSEARCH.getReplacement("/api/v1/management/elasticsearch/reindex"));
+    }
 }
