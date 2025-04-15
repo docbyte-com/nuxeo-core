@@ -25,8 +25,10 @@ import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.index.IndexingBackgroundAction.ACTION_NAME;
 
 import java.time.Duration;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 import jakarta.inject.Inject;
@@ -38,6 +40,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.SortInfo;
+import org.nuxeo.ecm.core.api.security.ACE;
+import org.nuxeo.ecm.core.api.security.ACL;
+import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
@@ -80,7 +87,23 @@ public class TestSearchBulkIndex {
                 // create a huge field to make the doc bigger than a record
                 doc.setPropertyValue("dc:source", new String(new char[BIG_FIELD_SIZE]).replace('\0', 'X'));
             }
-            session.createDocument(doc);
+            doc = session.createDocument(doc);
+            if (i == 1) {
+                // create a document with a broken ACE with end date before the beginning date
+                ACP acp = new ACPImpl();
+                ACL acl = ACPImpl.newACL(ACL.LOCAL_ACL);
+                ACE brokenAce = new ACE("toto", SecurityConstants.READ, true);
+                var now = ZonedDateTime.now();
+                brokenAce.setEnd(GregorianCalendar.from(now.minusWeeks(1)));
+                brokenAce.setBegin(GregorianCalendar.from(now));
+                acl.add(brokenAce);
+                acp.addACL(acl);
+                try {
+                    session.setACP(doc.getRef(), acp, true);
+                } catch (IllegalArgumentException e) {
+                    // expected during notification but the ACP is set
+                }
+            }
         }
         txFeature.nextTransaction();
     }

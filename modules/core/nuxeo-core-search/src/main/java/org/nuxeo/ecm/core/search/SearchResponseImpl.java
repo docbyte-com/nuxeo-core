@@ -178,7 +178,7 @@ public class SearchResponseImpl implements SearchResponse {
         DocumentModelList docs;
         try {
             docs = session.query(String.format(SELECT_DOCUMENTS_IN, String.join("', '", documentIds)));
-        } catch (DocumentNotFoundException | PropertyConversionException e) {
+        } catch (DocumentNotFoundException | PropertyConversionException | IllegalArgumentException e) {
             // A corrupted document prevents to load the batch of docs
             log.warn("Fail to load documents because of: {}, retrying one by one", e.getMessage());
             docs = loadDocumentsOneByOne(session, documentIds);
@@ -198,7 +198,7 @@ public class SearchResponseImpl implements SearchResponse {
         for (String documentId : documentIds) {
             try {
                 ret.add(session.getDocument(new IdRef(documentId)));
-            } catch (DocumentNotFoundException | PropertyConversionException e) {
+            } catch (DocumentNotFoundException | PropertyConversionException | IllegalArgumentException e) {
                 log.atError()
                    .withThrowable(log.isDebugEnabled() ? e : null)
                    .log("Skipping corrupted doc: {}, because of: {}", documentId, e.getMessage());

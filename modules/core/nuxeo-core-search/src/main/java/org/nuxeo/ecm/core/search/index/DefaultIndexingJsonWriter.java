@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.ecm.automation.core.util.JSONPropertyWriter;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -59,6 +61,7 @@ import net.htmlparser.jericho.TextExtractor;
  * @since 5.9.3
  */
 public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
+    private static final Logger log = LogManager.getLogger(DefaultIndexingJsonWriter.class);
 
     public static final String REPOSITORY_PROP = "ecm:repository";
 
@@ -166,7 +169,14 @@ public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
         // Add a positive ACL only
         SecurityService securityService = Framework.getService(SecurityService.class);
         List<String> browsePermissions = new ArrayList<>(Arrays.asList(securityService.getPermissionsToCheck(BROWSE)));
-        ACP acp = doc.getACP();
+        ACP acp = null;
+        try {
+            acp = doc.getACP();
+        } catch (IllegalArgumentException e) {
+            log.atError()
+               .withThrowable(log.isDebugEnabled() ? e : null)
+               .log("Skipping corrupted ACP for doc: {}, because of: {}", doc.getRef(), e.getMessage());
+        }
         if (acp == null) {
             acp = new ACPImpl();
         }

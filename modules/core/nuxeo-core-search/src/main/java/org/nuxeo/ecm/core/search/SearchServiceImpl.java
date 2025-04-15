@@ -259,7 +259,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
                 log.debug("Some documents are not accessible: {}", notFound);
             }
             return ret;
-        } catch (DocumentNotFoundException | PropertyConversionException e) {
+        } catch (DocumentNotFoundException | PropertyConversionException | IllegalArgumentException e) {
             // A corrupted document prevents to load the batch of docs
             log.warn("Fail to loadDocuments because of: {}, retrying without batching", e.getMessage());
             return loadDocumentsOneByOne(session, documentIds);
@@ -273,7 +273,7 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
                 ret.add(session.getDocument(new IdRef(documentId)));
             } catch (DocumentNotFoundException e) {
                 log.debug("Document: {} does not exists: {}", documentId, e.getMessage());
-            } catch (PropertyConversionException e) {
+            } catch (PropertyConversionException | IllegalArgumentException e) {
                 log.atError()
                    .withThrowable(log.isDebugEnabled() ? e : null)
                    .log("Skipping corrupted doc: {}, because of: {}", documentId, e.getMessage());
