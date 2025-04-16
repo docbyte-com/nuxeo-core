@@ -208,7 +208,7 @@ public class TestScrollService {
             assertTrue(scroll.hasNext());
             var ids = scroll.next();
             assertEquals(10, ids.size());
-            assertEquals(36, ids.get(0).length());
+            assertEquals("Invalid length for a UUID String", 36, ids.get(0).length());
             assertFalse(scroll.hasNext());
         }
     }

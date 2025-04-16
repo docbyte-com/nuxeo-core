@@ -75,9 +75,6 @@ public class GenerateUidScroll implements Scroll {
             ret.add(UUID.randomUUID().toString());
             count++;
         }
-        if (ret.isEmpty()) {
-            throw new NoSuchElementException();
-        }
         return ret;
     }
 }

@@ -51,8 +51,8 @@ public class IdleAction implements StreamProcessorTopology {
 
     public static final String CONCURRENCY_OPTION = "nuxeo.bulk.action.idle.defaultConcurrency";
 
-    // default to ~200 docs/s per thread
-    public static final int DEFAULT_SLEEP_DURATION = 5;
+    // Default to 5ms which is 200 docs/s for a thread, a rate comparable to production for a simple document update.
+    public static final int DEFAULT_SLEEP_DURATION_MS = 5;
 
     @Override
     public Topology getTopology(Map<String, String> options) {
@@ -75,7 +75,7 @@ public class IdleAction implements StreamProcessorTopology {
             BulkCommand command = getCurrentCommand();
             Serializable versioningParam = command.getParam(PARAM_SLEEP_DURATION_MS_OPTION);
             if (versioningParam == null) {
-                sleepMsPerDoc = DEFAULT_SLEEP_DURATION;
+                sleepMsPerDoc = DEFAULT_SLEEP_DURATION_MS;
             } else {
                 sleepMsPerDoc = Integer.parseInt(versioningParam.toString());
             }

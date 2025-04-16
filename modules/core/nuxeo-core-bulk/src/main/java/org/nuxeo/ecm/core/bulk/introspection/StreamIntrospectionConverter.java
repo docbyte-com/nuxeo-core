@@ -390,8 +390,7 @@ public class StreamIntrospectionConverter {
             int bNodes = computation.at("/best/nodes").asInt();
             if (bNodes > bestNodes) {
                 bestNodes = bNodes;
-                boolean relevant = computation.at("/best/relevant").asBoolean();
-                if (relevant) {
+                if (computation.at("/best/relevant").asBoolean()) {
                     optimalNodes = bestNodes;
                 }
             }

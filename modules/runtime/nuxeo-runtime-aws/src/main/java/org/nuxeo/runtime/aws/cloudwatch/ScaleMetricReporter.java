@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.metrics.AbstractMetricsReporter;
 
 import io.dropwizard.metrics5.MetricAttribute;
@@ -38,37 +37,39 @@ import io.dropwizard.metrics5.ScheduledReporter;
  * A Metric reporter that exposes nuxeo.streams.scale.metric as a CloudWatch metric in order to be used by AWS
  * autoscaler.
  * 
- * @since 2023.28
+ * @since 2025.2
  */
 public class ScaleMetricReporter extends AbstractMetricsReporter {
+
     private static final Logger log = LogManager.getLogger(ScaleMetricReporter.class);
 
-    public static final String AWS_CONFIGURATION_ID_KEY = "metrics.cloudwatch.aws.configuration.id";
+    public static final String AWS_CONFIGURATION_ID_KEY = "awsConfigurationId";
 
-    public static final String METRIC_TAG_KEY = "metrics.cloudwatch.scale.tag";
+    public static final String AWS_TAG_KEY = "awsTag";
 
-    public static final String METRIC_TARGET_KEY = "metrics.cloudwatch.scale.target.enabled";
+    public static final String METRIC_TARGET_KEY = "targetMetric";
 
-    public static final String METRIC_STEP_KEY = "metrics.cloudwatch.scale.step.enabled";
+    public static final String METRIC_STEP_KEY = "stepMetric";
 
     protected ScheduledReporter reporter;
 
     @Override
     public void start(MetricRegistry registry, MetricFilter filter, Set<MetricAttribute> deniedExpansions) {
-        String awsConfigurationId = Framework.getProperty(AWS_CONFIGURATION_ID_KEY);
-        String tag = Framework.getProperty(METRIC_TAG_KEY);
-        boolean stepMetric = Framework.isBooleanPropertyTrue(METRIC_STEP_KEY);
-        boolean targetMetric = Framework.isBooleanPropertyTrue(METRIC_TARGET_KEY);
+        String awsConfigurationId = defaultIfBlank(getOption(AWS_CONFIGURATION_ID_KEY, null), null);
+        log.debug("Reporting CloudWatch metric using '{}' aws configuration", awsConfigurationId);
+        String tag = getOption(AWS_TAG_KEY, null);
         if (isEmpty(tag)) {
-            log.error("Missing required option: {}, CloudWatch scale metric will not be reported", METRIC_TAG_KEY);
+            log.error("Missing required cloudwatch scale tag: {} option, CloudWatch scale metric will not be reported.",
+                    AWS_TAG_KEY);
             return;
         }
+        boolean stepMetric = getOptionAsBoolean(METRIC_STEP_KEY, true);
+        boolean targetMetric = getOptionAsBoolean(METRIC_TARGET_KEY, true);
         if (!stepMetric && !targetMetric) {
-            log.error("At least one metric must be enabled: {} or {}", METRIC_STEP_KEY, METRIC_TARGET_KEY);
+            log.error("At least one metric must be enabled: {} or {}, CloudWatch scale metric will not be reported.",
+                    METRIC_STEP_KEY, METRIC_TARGET_KEY);
             return;
         }
-        log.debug("Reporting CloudWatch metric using {} aws configuration",
-                defaultIfBlank(awsConfigurationId, "default"));
         reporter = new ScaleScheduledReporter(awsConfigurationId, tag, stepMetric, targetMetric, registry);
         reporter.start(getPollInterval(), TimeUnit.SECONDS);
     }
