@@ -4,6 +4,7 @@
 <%@ page language="java"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.Locale"%>
+<%@ page import="java.util.stream.Stream"%>
 <%@ page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils"%>
 <%@ page import="org.joda.time.DateTime"%>
@@ -36,6 +37,7 @@ if (httpSession!=null && httpSession.getAttribute(NXAuthConstants.USERIDENT_KEY)
 Locale locale = request.getLocale();
 String selectedLanguage = locale.getLanguage();
 selectedLanguage = Framework.getService(LocaleProvider.class).getLocaleWithDefault(selectedLanguage).getLanguage();
+String dir = Stream.of("ar", "he", "fa", "ur").anyMatch(selectedLanguage::startsWith) ? "rtl" : "ltr";
 
 boolean maintenanceMode = AdminStatusHelper.isInstanceInMaintenanceMode();
 String maintenanceMessage = AdminStatusHelper.getMaintenanceMessage();
@@ -69,7 +71,7 @@ String loop = screenConfig.getVideoLoop() ? "loop " : "";
 
 %>
 
-<html class="no-js" lang="<%= selectedLanguage %>">
+<html class="no-js" lang="<%= selectedLanguage %>" dir="<%= dir %>">
 <%
 if (selectedLanguage != null) { %>
 <fmt:setLocale value="<%= selectedLanguage %>"/>
