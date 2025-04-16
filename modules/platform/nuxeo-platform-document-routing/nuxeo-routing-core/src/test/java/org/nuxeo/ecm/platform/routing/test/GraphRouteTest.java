@@ -23,6 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
@@ -77,6 +78,7 @@ import org.nuxeo.ecm.platform.task.TaskService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -89,6 +91,9 @@ public class GraphRouteTest extends AbstractGraphRouteTest {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected LogCaptureFeature.Result logResult;
@@ -920,6 +925,70 @@ public class GraphRouteTest extends AbstractGraphRouteTest {
         session.save();
         route = session.getDocument(route.getDocument().getRef()).getAdapter(DocumentRoute.class);
         assertTrue(route.isDone());
+    }
+
+    @Test
+    public void testRouteWithTasksAndInvalidTransition() {
+        NuxeoPrincipal user1 = userManager.getPrincipal("myuser1");
+        assertNotNull(user1);
+
+        routeDoc.setPropertyValue(GraphRoute.PROP_VARIABLES_FACET, "FacetRoute1");
+        routeDoc.addFacet("FacetRoute1");
+        routeDoc = session.saveDocument(routeDoc);
+        DocumentModel node1 = createNode(routeDoc, "node1", session);
+        node1.setPropertyValue(GraphNode.PROP_VARIABLES_FACET, "FacetNode1");
+        node1.setPropertyValue(GraphNode.PROP_START, Boolean.TRUE);
+        setTransitions(node1,
+                transition("trans1", "node2",
+                        "NodeVariables[\"button\"] == \"trans1\" && WorkflowFn.timeSinceWorkflowWasStarted()>=0",
+                        "testchain_title1"));
+
+        // task properties
+
+        node1.setPropertyValue(GraphNode.PROP_OUTPUT_CHAIN, "testchain_rights1");
+        node1.setPropertyValue(GraphNode.PROP_TASK_ASSIGNEES_PERMISSION, "Write");
+        node1.setPropertyValue(GraphNode.PROP_INPUT_CHAIN, "test_setGlobalvariable");
+        node1.setPropertyValue(GraphNode.PROP_HAS_TASK, Boolean.TRUE);
+        node1.setPropertyValue(GraphNode.PROP_TASK_DOC_TYPE, "MyTaskDoc");
+        String[] users = { user1.getName() };
+        node1.setPropertyValue(GraphNode.PROP_TASK_ASSIGNEES, users);
+        setButtons(node1, button("btn1", "label-btn1", "filterrr", null));
+        node1 = session.saveDocument(node1);
+
+        DocumentModel node2 = createNode(routeDoc, "node2", session);
+        node2.setPropertyValue(GraphNode.PROP_MERGE, "all");
+
+        node2.setPropertyValue(GraphNode.PROP_STOP, Boolean.TRUE);
+        node2 = session.saveDocument(node2);
+
+        DocumentModelList doneTasks = session.query("Select * from TaskDoc where ecm:currentLifeCycleState = 'ended'");
+        assertEquals(0, doneTasks.size());
+
+        DocumentRoute route = instantiateAndRun(session);
+        txFeature.nextTransaction();
+
+        List<Task> tasks = taskService.getTaskInstances(doc, user1, session);
+        assertNotNull(tasks);
+        assertEquals(1, tasks.size());
+
+        Map<String, Object> data = new HashMap<>();
+        CoreSession sessionUser1 = openSession(user1);
+        // task assignees have READ on the route instance
+        assertNotNull(sessionUser1.getDocument(route.getDocument().getRef()));
+        final Task task1 = tasks.get(0);
+        assertEquals("MyTaskDoc", task1.getDocument().getType());
+        List<DocumentModel> docs = routing.getWorkflowInputDocuments(sessionUser1, task1);
+        assertEquals(doc.getId(), docs.get(0).getId());
+
+        // let's try to complete the task but with a invalid action (transition)
+        assertThrows(DocumentRouteException.class, () -> routing.endTask(sessionUser1, task1, data, "badAction"));
+        txFeature.nextTransaction();
+
+        // and check the task is still to be completed
+        tasks = taskService.getTaskInstances(doc, user1, session);
+        assertNotNull(tasks);
+        assertEquals(1, tasks.size());
+        assertFalse(tasks.get(0).hasEnded());
     }
 
     @SuppressWarnings("unchecked")

@@ -53,6 +53,7 @@ import org.nuxeo.ecm.platform.task.TaskComment;
 import org.nuxeo.ecm.platform.task.TaskEventNames;
 import org.nuxeo.ecm.platform.task.TaskService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * Runs the proper nodes depending on the graph state.
@@ -313,22 +314,27 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
             throws DocumentRouteException {
         GraphRoute graph = (GraphRoute) element;
         List<GraphNode> pendingSubRoutes = new LinkedList<>();
-        boolean done = runNode(session, initialNode, graph, pendingSubRoutes);
-        if (done) {
-            element.setDone(session);
-            /*
-             * Resume the parent route if this is a sub-route.
-             */
-            if (graph.hasParentRoute()) {
-                graph.resumeParentRoute(session);
+        try {
+            boolean done = runNode(session, initialNode, graph, pendingSubRoutes);
+            if (done) {
+                element.setDone(session);
+                /*
+                 * Resume the parent route if this is a sub-route.
+                 */
+                if (graph.hasParentRoute()) {
+                    graph.resumeParentRoute(session);
+                }
             }
-        }
-        /*
-         * Now run the sub-routes. If they are done, they'll call back into the routing service to resume the parent
-         * node (above code).
-         */
-        for (GraphNode node : pendingSubRoutes) {
-            node.startSubRoute();
+            /*
+             * Now run the sub-routes. If they are done, they'll call back into the routing service to resume the parent
+             * node (above code).
+             */
+            for (GraphNode node : pendingSubRoutes) {
+                node.startSubRoute();
+            }
+        } catch (DocumentRouteException e) {
+            TransactionHelper.setTransactionRollbackOnly();
+            throw e;
         }
         session.save();
     }
