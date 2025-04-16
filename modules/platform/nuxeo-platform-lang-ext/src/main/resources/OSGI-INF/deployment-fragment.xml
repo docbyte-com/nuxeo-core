@@ -7,6 +7,8 @@
   -->
   <extension target="faces-config#APPLICATION_LOCALE">
     <locale-config>
+      <supported-locale>ar</supported-locale><!-- Arabic -->
+      <supported-locale>ar_SA</supported-locale><!-- Arabic - Saudi Arabia -->
       <supported-locale>de</supported-locale><!-- German - Germany -->
       <supported-locale>de_DE</supported-locale><!-- German - Germany -->
       <supported-locale>es</supported-locale><!-- Spanish - Spain -->
@@ -14,6 +16,8 @@
       <supported-locale>eu_ES</supported-locale><!-- Basque -->
       <supported-locale>fr</supported-locale><!-- French - France -->
       <supported-locale>fr_FR</supported-locale><!-- French - France -->
+      <supported-locale>he</supported-locale><!-- Hebrew -->
+      <supported-locale>he_IL</supported-locale><!-- Hebrew - Israel -->
       <supported-locale>id_ID</supported-locale><!-- Indonesian - Indonesia -->
       <supported-locale>it_IT</supported-locale><!-- Italian - Italy -->
       <supported-locale>ja</supported-locale><!-- Japanese (Gregorian calendar) - Japan -->
@@ -33,8 +37,12 @@
     </unzip>
 
     <!-- Add fallback to two letters locale for browser compat -->
+    <copy from="nuxeo.war/WEB-INF/classes/messages_ar_SA.properties"
+          to="nuxeo.war/WEB-INF/classes/messages_ar.properties" />
     <copy from="nuxeo.war/WEB-INF/classes/messages_fr_FR.properties"
       to="nuxeo.war/WEB-INF/classes/messages_fr.properties" />
+    <copy from="nuxeo.war/WEB-INF/classes/messages_he_IL.properties"
+          to="nuxeo.war/WEB-INF/classes/messages_he.properties" />
     <copy from="nuxeo.war/WEB-INF/classes/messages_de_DE.properties"
         to="nuxeo.war/WEB-INF/classes/messages_de.properties"/>
     <copy from="nuxeo.war/WEB-INF/classes/messages_es_ES.properties"
