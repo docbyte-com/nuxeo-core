@@ -19,6 +19,8 @@ nuxeo.mongodb.keystore.type=
 nuxeo.db.indexes.create=true
 
 nuxeo.quartz.enable=true
+org.quartz.jobStore.mongoOptionWriteConcernTimeoutMillis=5000
+org.quartz.jobStore.mongoOptionWriteConcernW=Majority
 
 ## MongoDB directories activation
 nuxeo.mongodb.directories.enabled=true
