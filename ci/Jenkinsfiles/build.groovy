@@ -805,31 +805,9 @@ pipeline {
   post {
     always {
       script {
+        nxUtils.setBuildDescription()
         nxJira.updateIssues()
-      }
-    }
-    success {
-      script {
-        currentBuild.description = "Build ${VERSION}"
-        if (!nxUtils.isPullRequest()
-          && !hudson.model.Result.SUCCESS.toString().equals(currentBuild.getPreviousBuild()?.getResult())) {
-          nxTeams.success(
-            message: "Successfully built nuxeo-lts on branch ${BRANCH_NAME}",
-            changes: true
-          )
-        }
-      }
-    }
-    unsuccessful {
-      script {
-        if (!nxUtils.isPullRequest()
-          && ![hudson.model.Result.ABORTED.toString(), hudson.model.Result.NOT_BUILT.toString()].contains(currentBuild.result)) {
-          nxTeams.error(
-            message: "Failed to build nuxeo-lts on branch ${BRANCH_NAME}",
-            changes: true,
-            culprits: true
-          )
-        }
+        nxUtils.notifyBuildStatusIfNecessary()
       }
     }
   }
