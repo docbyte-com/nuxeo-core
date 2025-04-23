@@ -287,7 +287,9 @@ public class RestTestRule implements TestRule {
         if (!subGroups.isEmpty()) {
             group.put("memberGroups", subGroups);
         }
-        httpClient.buildPostRequest("/group").entity(safeWriteValue(group)).execute(new JsonNodeHandler(SC_CREATED));
+        httpClient.buildPostRequest("/api/v1/group")
+                  .entity(safeWriteValue(group))
+                  .execute(new JsonNodeHandler(SC_CREATED));
 
         groupsToDelete.add(name);
     }
