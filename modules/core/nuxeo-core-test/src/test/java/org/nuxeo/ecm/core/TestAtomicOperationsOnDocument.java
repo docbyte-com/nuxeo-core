@@ -20,6 +20,19 @@
 
 package org.nuxeo.ecm.core;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.api.TestUnrestrictedSessionRunner.DC_TITLE;
+import static org.nuxeo.ecm.core.api.TestUnrestrictedSessionRunner.NEW_TITLE;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+
+import jakarta.inject.Inject;
+
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,8 +41,8 @@ import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.LockHelper;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -37,16 +50,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-
-import jakarta.inject.Inject;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CountDownLatch;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @since 9.3
@@ -188,6 +191,25 @@ public class TestAtomicOperationsOnDocument {
 
         assertEquals("Failed to acquire the lock on key " + computeKey(session, doc), me.getValue());
 
+    }
+
+    @Test
+    public void testAtomicRollbackOnException() {
+        DocumentModel doc = session.createDocumentModel("/", "doc", "File");
+        doc.setPropertyValue(DC_TITLE, NEW_TITLE);
+        doc = session.createDocument(doc);
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        var docRef = doc.getRef();
+        assertThrows(NuxeoException.class, () -> LockHelper.doAtomically(docRef.toString(), () -> {
+            var d = session.getDocument(docRef);
+            d.setPropertyValue(DC_TITLE, "foo");
+            session.saveDocument(d);
+            throw new NuxeoException("On purpose");
+        }));
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        assertEquals(NEW_TITLE, session.getDocument(docRef).getPropertyValue(DC_TITLE));
     }
 
 }
