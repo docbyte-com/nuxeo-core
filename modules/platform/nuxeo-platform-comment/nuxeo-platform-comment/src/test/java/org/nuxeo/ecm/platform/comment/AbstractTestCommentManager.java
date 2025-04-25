@@ -61,6 +61,7 @@ import org.nuxeo.ecm.platform.comment.api.exceptions.CommentSecurityException;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 10.3
@@ -665,6 +666,7 @@ public abstract class AbstractTestCommentManager {
                 newComment(commentedDocModel.getId(), "I am a comment!"));
         Comment c2 = commentManager.createComment(jamesSession, newComment(c1.getId(), "I am a reply!"));
         Comment c3 = commentManager.createComment(jamesSession, newComment(c2.getId(), "Me too!"));
+        transactionalFeature.nextTransaction();
 
         assertTrue(session.exists(new IdRef(c1.getId())));
         assertTrue(session.exists(new IdRef(c2.getId())));
@@ -677,6 +679,9 @@ public abstract class AbstractTestCommentManager {
             // TODO CommentNotFoundException came from bridge, it should be that
         } catch (CommentSecurityException | CommentNotFoundException cse) {
             // ok
+            assertTrue(TransactionHelper.isTransactionMarkedRollback());
+            TransactionHelper.commitOrRollbackTransaction();
+            TransactionHelper.startTransaction();
         }
         try {
             commentManager.deleteComment(janeSession, c3.getId());
@@ -684,6 +689,9 @@ public abstract class AbstractTestCommentManager {
             // TODO CommentNotFoundException came from bridge, it should be that
         } catch (CommentSecurityException | CommentNotFoundException cse) {
             // ok
+            assertTrue(TransactionHelper.isTransactionMarkedRollback());
+            TransactionHelper.commitOrRollbackTransaction();
+            TransactionHelper.startTransaction();
         }
 
         // check james can delete its first reply

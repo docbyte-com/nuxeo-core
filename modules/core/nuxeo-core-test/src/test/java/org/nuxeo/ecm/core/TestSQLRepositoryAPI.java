@@ -5153,6 +5153,7 @@ public class TestSQLRepositoryAPI {
         twoSeconds.add(Calendar.SECOND, 2);
         session.setRetainUntil(doc.getRef(), twoSeconds, null);
         session.save();
+        nextTransaction();
 
         checkUndeletable(folder, doc);
 
