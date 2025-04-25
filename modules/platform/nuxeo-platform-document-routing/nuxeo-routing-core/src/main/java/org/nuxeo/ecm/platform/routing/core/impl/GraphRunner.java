@@ -53,7 +53,6 @@ import org.nuxeo.ecm.platform.task.TaskComment;
 import org.nuxeo.ecm.platform.task.TaskEventNames;
 import org.nuxeo.ecm.platform.task.TaskService;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * Runs the proper nodes depending on the graph state.
@@ -314,27 +313,22 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
             throws DocumentRouteException {
         GraphRoute graph = (GraphRoute) element;
         List<GraphNode> pendingSubRoutes = new LinkedList<>();
-        try {
-            boolean done = runNode(session, initialNode, graph, pendingSubRoutes);
-            if (done) {
-                element.setDone(session);
-                /*
-                 * Resume the parent route if this is a sub-route.
-                 */
-                if (graph.hasParentRoute()) {
-                    graph.resumeParentRoute(session);
-                }
-            }
+        boolean done = runNode(session, initialNode, graph, pendingSubRoutes);
+        if (done) {
+            element.setDone(session);
             /*
-             * Now run the sub-routes. If they are done, they'll call back into the routing service to resume the parent
-             * node (above code).
+             * Resume the parent route if this is a sub-route.
              */
-            for (GraphNode node : pendingSubRoutes) {
-                node.startSubRoute();
+            if (graph.hasParentRoute()) {
+                graph.resumeParentRoute(session);
             }
-        } catch (DocumentRouteException e) {
-            TransactionHelper.setTransactionRollbackOnly();
-            throw e;
+        }
+        /*
+         * Now run the sub-routes. If they are done, they'll call back into the routing service to resume the parent
+         * node (above code).
+         */
+        for (GraphNode node : pendingSubRoutes) {
+            node.startSubRoute();
         }
         session.save();
     }
