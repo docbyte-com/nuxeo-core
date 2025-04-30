@@ -91,7 +91,7 @@
     <pdfbox.version>3.0.4</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
     <aws.version>2.31.31</aws.version>
-    <gcp.version>2.51.0</gcp.version>
+    <gcp.version>2.52.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.19.0</jackson.bom.version>
     <bouncycastle.version>1.80</bouncycastle.version>
