@@ -286,7 +286,7 @@ metrics.enabled=false
 metrics.filter.name=default
 
 ## Instrumentation
-metrics.streams.enabled=true
+metrics.streams.enabled=${metrics.enabled}
 metrics.streams.interval=60s
 metrics.jvm.enabled=true
 metrics.log4j.enabled=true
