@@ -194,6 +194,7 @@ pipeline {
         container('maven') {
           script {
             def jiraReleaseVersion = nxJira.getProjectVersion(idOrKey: 'NXP', name: env.JIRA_RELEASE_VERSION)
+            def releaseDate = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE) // e.g. 2023-12-13 (Monday)
             def nextReleaseWeekCount = 3
             def nextReleaseDate = LocalDate.parse(jiraReleaseVersion.releaseDate).plusWeeks(nextReleaseWeekCount).format(DateTimeFormatter.ISO_LOCAL_DATE)
             def publishers = [
@@ -204,6 +205,14 @@ pipeline {
                     type: 'jira_update_fixVersion',
                     toRemove: env.JIRA_MOVING_VERSION,
                     toAdd: env.JIRA_RELEASE_VERSION,
+                ],
+                [
+                    type: 'jira_update_version',
+                    id: jiraReleaseVersion.id,
+                    jiraVersion: [
+                        released: true,
+                        releaseDate: releaseDate,
+                    ]
                 ],
                 [
                     type: 'jira_new_version',
