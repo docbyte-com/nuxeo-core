@@ -2,7 +2,11 @@
 {{- if .issues -}}
 ### {{ .type }}
 {{ range .issues }}
+{{- if eq .origin "git" }}
+- {{ .title | title }} ({{ .key }})
+{{- else }}
 - {{ .key }} - {{ .title | title }}
+{{- end }}
 {{- end }}
 
 {{ end -}}
@@ -26,3 +30,4 @@ Upgrade notes: https://doc.nuxeo.com/nxdoc/{{ env "RELEASE_MAJOR_VERSION" }}/hot
 {{- template "print-issue-block" (dict "type" "Bugs" "issues" (index $groupByType "Bug")) }}
 {{- template "print-issue-block" (dict "type" "Tasks" "issues" (index $groupByType "Task")) }}
 {{- template "print-issue-block" (dict "type" "Clean Up" "issues" (index $groupByType "Clean up")) }}
+{{- template "print-issue-block" (dict "type" "Dependencies" "issues" (index $groupByType "Dependency")) }}
