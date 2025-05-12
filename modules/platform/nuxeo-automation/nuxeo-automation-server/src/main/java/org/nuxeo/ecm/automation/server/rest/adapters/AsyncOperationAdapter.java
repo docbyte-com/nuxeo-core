@@ -148,6 +148,8 @@ public class AsyncOperationAdapter extends DefaultAdapter {
             return ResponseHelper.notFound();
         }
         String executionId = UUID.randomUUID().toString();
+        getTransientStore().remove(executionId);
+        getTransientStore().setCompleted(executionId, false);
 
         // session will be set in the task thread
         // ExecutionRequest's OperationContext not owned by us, don't close it
@@ -226,6 +228,9 @@ public class AsyncOperationAdapter extends DefaultAdapter {
     @GET
     @Path("{executionId}/status")
     public Response status(@PathParam("executionId") String executionId) throws IOException, MessagingException {
+        if (!getTransientStore().exists(executionId)) {
+            return ResponseHelper.notFound();
+        }
         if (isCompleted(executionId)) {
             String resURL = String.format("%s/%s", getPath(), executionId);
             return redirect(resURL);
@@ -302,9 +307,6 @@ public class AsyncOperationAdapter extends DefaultAdapter {
     }
 
     protected void enterMethod(String executionId, InvokableMethod method) {
-        // reset parameters
-        getTransientStore().remove(executionId);
-
         // AsyncService.class is default => not async
         if (!AsyncService.class.equals(method.getAsyncService())) {
             getTransientStore().putParameter(executionId, TRANSIENT_STORE_SERVICE, method.getAsyncService().getName());
