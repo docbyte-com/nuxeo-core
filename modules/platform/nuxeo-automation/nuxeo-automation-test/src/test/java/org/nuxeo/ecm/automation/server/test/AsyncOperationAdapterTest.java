@@ -20,6 +20,7 @@ package org.nuxeo.ecm.automation.server.test;
 
 import static junit.framework.TestCase.assertEquals;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.ADMINISTRATOR;
@@ -34,6 +35,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.core.operations.blob.AttachBlob;
@@ -52,9 +54,12 @@ import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.http.test.HttpClientTestRule;
+import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -86,6 +91,13 @@ public class AsyncOperationAdapterTest {
     protected HttpAutomationSession async;
 
     @Inject
+    protected ServletContainerFeature servletContainerFeature;
+
+    @Rule
+    public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
+            () -> servletContainerFeature.getHttpUrl() + "/automation");
+
+    @Inject
     public TransactionalFeature txFeature;
 
     public String getDocRef(JsonNode node) {
@@ -104,6 +116,13 @@ public class AsyncOperationAdapterTest {
     public void setUp() throws IOException {
         async = automationClient.getSession(ADMINISTRATOR, ADMINISTRATOR);
         async.setAsync(true);
+    }
+
+    @Test
+    public void testStatusNotFound() throws IOException {
+        httpClient.buildGetRequest("/" + ReturnOperation.ID + "/@async/invalid/status")
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_NOT_FOUND, status.intValue()));
     }
 
     @Test
