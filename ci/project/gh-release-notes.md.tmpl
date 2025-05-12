@@ -1,17 +1,3 @@
-{{- define "print-issue-block" -}}
-{{- if .issues -}}
-### {{ .type }}
-{{ range .issues }}
-{{- if eq .origin "git" }}
-- {{ .title | title }} ({{ .key }})
-{{- else }}
-- {{ .key }} - {{ .title | title }}
-{{- end }}
-{{- end }}
-
-{{ end -}}
-{{- end -}}
-
 Nuxeo Docker Image: `docker-private.packages.nuxeo.com/nuxeo/nuxeo:{{ env "RELEASE_VERSION" }}`
 
 Nuxeo Server Zip: https://packages.nuxeo.com/repository/maven-private/org/nuxeo/ecm/distribution/nuxeo-server-tomcat/{{ env "NUXEO_BUILD_VERSION" }}/nuxeo-server-tomcat-{{ env "NUXEO_BUILD_VERSION" }}.zip
