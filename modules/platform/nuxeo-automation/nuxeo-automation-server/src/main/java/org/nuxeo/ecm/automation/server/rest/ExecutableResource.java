@@ -18,9 +18,10 @@
  */
 package org.nuxeo.ecm.automation.server.rest;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+
 import java.io.IOException;
 
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.POST;
@@ -28,6 +29,7 @@ import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.InvalidChainException;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationNotFoundException;
@@ -75,6 +77,8 @@ public abstract class ExecutableResource extends DefaultObject {
             String exceptionMessage = "Failed to invoke operation: " + getId();
             if (cause instanceof OperationNotFoundException) {
                 throw new WebResourceNotFoundException(exceptionMessage, cause);
+            } else if (cause instanceof InvalidChainException) {
+                throw new NuxeoException(exceptionMessage, cause, SC_BAD_REQUEST);
             } else if (cause instanceof NuxeoException nuxeoException) {
                 nuxeoException.addInfo(exceptionMessage);
                 throw nuxeoException;
