@@ -57,8 +57,8 @@ public class FacetDescriptor {
 
     @Override
     public String toString() {
-        return "Facet(" + name + (FALSE.equals(enabled) ? ",disabled," : ",")
-                + SchemaDescriptor.getSchemaNames(schemas) + ')';
+        return "Facet(" + name + (FALSE.equals(enabled) ? ",disabled," : ",") + SchemaDescriptor.getSchemaNames(schemas)
+                + ')';
     }
 
 }

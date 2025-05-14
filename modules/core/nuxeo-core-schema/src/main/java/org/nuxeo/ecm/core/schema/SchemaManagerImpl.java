@@ -644,7 +644,8 @@ public class SchemaManagerImpl implements SchemaManager {
         }
         DocumentTypeDescriptor dtd = dtds.get(name);
         if (dtd == null) {
-            log.error("Document type: {} does not exist, used as parent by type: {}", () -> name, () -> stack.toString());
+            log.error("Document type: {} does not exist, used as parent by type: {}", () -> name,
+                    () -> stack.toString());
             return null;
         }
 
@@ -720,14 +721,9 @@ public class SchemaManagerImpl implements SchemaManager {
         // create doctype
         PrefetchInfo prefetch = dtd.prefetch == null ? prefetchInfo : new PrefetchInfo(dtd.prefetch);
         DocumentTypeImpl docType = new DocumentTypeImpl(name, parent, docTypeSchemas, facetNames, prefetch);
-        docType.setSubtypes(subtypes
-                .stream()
-                .filter(st -> !disabledTypes.contains(st))
-                .collect(Collectors.toList()));
-        docType.setForbiddenSubtypes(forbidden
-                .stream()
-                .filter(st -> !disabledTypes.contains(st))
-                .collect(Collectors.toList()));
+        docType.setSubtypes(subtypes.stream().filter(st -> !disabledTypes.contains(st)).collect(Collectors.toList()));
+        docType.setForbiddenSubtypes(
+                forbidden.stream().filter(st -> !disabledTypes.contains(st)).collect(Collectors.toList()));
         registerDocumentType(docType);
 
         return docType;
@@ -1146,7 +1142,8 @@ public class SchemaManagerImpl implements SchemaManager {
             return properties.containsKey(cleanPath) && predicate.test(properties.get(cleanPath));
         }
         // iterate on path to check if a parent matches the given predicate
-        return Stream.iterate(cleanPath, StringUtils::isNotBlank, key -> key.substring(0, Math.max(key.lastIndexOf('/'), 0)))
+        return Stream.iterate(cleanPath, StringUtils::isNotBlank,
+                key -> key.substring(0, Math.max(key.lastIndexOf('/'), 0)))
                      .anyMatch(p -> properties.containsKey(p) && predicate.test(properties.get(p)));
     }
 
@@ -1154,7 +1151,7 @@ public class SchemaManagerImpl implements SchemaManager {
      * @deprecated since 2021.32 use {@link SchemaManager#normalizePath(String)} instead.
      */
     protected String cleanPath(String path) {
-       return SchemaManager.normalizePath(path);
+        return SchemaManager.normalizePath(path);
     }
 
     @Override
