@@ -22,6 +22,8 @@ package org.nuxeo.ecm.core.schema;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.nuxeo.runtime.RuntimeMessage.Level.ERROR;
+import static org.nuxeo.runtime.RuntimeMessage.Source.COMPONENT;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,7 +63,9 @@ import org.nuxeo.ecm.core.schema.types.QName;
 import org.nuxeo.ecm.core.schema.types.Schema;
 import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.ecm.core.schema.types.TypeException;
+import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.RuntimeServiceException;
+import org.nuxeo.runtime.api.Framework;
 import org.xml.sax.SAXException;
 
 /**
@@ -75,6 +79,8 @@ public class SchemaManagerImpl implements SchemaManager {
 
     // In low-level APIs we deal with unprefixed xpaths, so not file:content
     private static final String MAIN_BLOB_XPATH = "content";
+
+    protected static final String STARTUP_FAIL_ON_MISSING_SCHEMA_PROP = "nuxeo.startup.fail.on.missing.schema";
 
     /**
      * Whether there have been changes to the registered schemas, facets or document types that require recomputation of
@@ -371,6 +377,12 @@ public class SchemaManagerImpl implements SchemaManager {
         fields.clear(); // re-filled lazily
     }
 
+    protected void addRuntimeMessage(RuntimeMessage.Level level, String message) {
+        Framework.getRuntime()
+                 .getMessageHandler()
+                 .addMessage(new RuntimeMessage(level, message, COMPONENT, getClass().getSimpleName()));
+    }
+
     /*
      * ===== Configuration =====
      */
@@ -552,6 +564,9 @@ public class SchemaManagerImpl implements SchemaManager {
                     continue;
                 }
                 log.error("Facet: {} uses unknown schema: {}", name, schemaName);
+                if (Framework.isBooleanPropertyTrue(STARTUP_FAIL_ON_MISSING_SCHEMA_PROP)) {
+                    addRuntimeMessage(ERROR, "Facet: " + name + " uses unknown schema: " + schemaName);
+                }
                 continue;
             }
             facetSchemas.add(schema);
@@ -713,6 +728,9 @@ public class SchemaManagerImpl implements SchemaManager {
                     continue;
                 }
                 log.error("Document type: {} uses unknown schema: {}", name, schemaName);
+                if (Framework.isBooleanPropertyTrue(STARTUP_FAIL_ON_MISSING_SCHEMA_PROP)) {
+                    addRuntimeMessage(ERROR, "Document type: " + name + " uses unknown schema: " + schemaName);
+                }
                 continue;
             }
             docTypeSchemas.add(schema);
