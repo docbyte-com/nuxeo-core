@@ -312,6 +312,14 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         assertEquals(now.toInstant(), i);
     }
 
+    // NXP-33051
+    @Test
+    public void testNullInputWithoutMethod() throws Exception {
+        session.newRequest(ReturnOperation.ID) //
+               .setInput(null)
+               .execute(SC_BAD_REQUEST);
+    }
+
     @Test
     public void testNumberParamAdapters() throws Exception {
         // Long parameter

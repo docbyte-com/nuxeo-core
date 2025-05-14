@@ -22,6 +22,7 @@ package org.nuxeo.ecm.automation.core.operations.services;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.InvalidChainException;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.core.api.Blob;
@@ -69,6 +71,17 @@ public class TestFileManagerImport {
     @Before
     public void before() {
         textBlob = Blobs.createBlob("foo", "application/octet-stream", null, "foo.txt");
+    }
+
+    @Test
+    public void testFileImportWithoutInput() {
+        assertThrows(InvalidChainException.class, () -> {
+            try (OperationContext ctx = new OperationContext(session)) {
+                ctx.setInput(null);
+
+                service.run(ctx, FileManagerImport.ID);
+            }
+        });
     }
 
     @Test
