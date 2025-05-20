@@ -11,16 +11,22 @@
       <connectionTimeout>${nuxeo.uidsequencer.default.opensearch1.client.connectionTimeout}</connectionTimeout>
       <socketTimeout>${nuxeo.uidsequencer.default.opensearch1.client.socketTimeout}</socketTimeout>
       <sslCertificateVerification>${nuxeo.uidsequencer.default.opensearch1.client.sslCertificateVerification}</sslCertificateVerification>
+<#if (nuxeo.uidsequencer.default.opensearch1.client.username)?has_content>
       <username>${nuxeo.uidsequencer.default.opensearch1.client.username}</username>
       <password>${nuxeo.uidsequencer.default.opensearch1.client.password}</password>
+</#if>
+<#if (nuxeo.uidsequencer.default.opensearch1.client.trustStore.type)?has_content>
       <trustStore type="${nuxeo.uidsequencer.default.opensearch1.client.trustStore.type}">
         <path>${nuxeo.uidsequencer.default.opensearch1.client.trustStore.path}</path>
         <password>${nuxeo.uidsequencer.default.opensearch1.client.trustStore.password}</password>
       </trustStore>
+</#if>
+<#if (nuxeo.uidsequencer.default.opensearch1.client.keyStore.type)?has_content>
       <keyStore type="${nuxeo.uidsequencer.default.opensearch1.client.keyStore.type}">
         <path>${nuxeo.uidsequencer.default.opensearch1.client.keyStore.path}</path>
         <password>${nuxeo.uidsequencer.default.opensearch1.client.keyStore.password}</password>
       </keyStore>
+</#if>
     </client>
   </extension>
 
