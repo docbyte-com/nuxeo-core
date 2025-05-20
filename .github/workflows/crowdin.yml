@@ -52,7 +52,6 @@ jobs:
           localization_branch_name: crowdin-translations-update-lts-2025
           pull_request_base_branch_name: 2025
           create_pull_request: true
-          pull_request_reviewers: 'manonlumeau'
           pull_request_title: New Crowdin translations by GitHub Action (lts-2025)
 
           # Automatically download all the new translations
@@ -61,8 +60,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Enable auto-merge for the PR
+      - name: Auto-merge PR
         if: steps.crowdin-sync.outputs.pull_request_url
-        run: gh pr --repo $GITHUB_REPOSITORY merge ${{ steps.crowdin-sync.outputs.pull_request_url }} --auto --rebase
+        run: |
+          gh pr --repo $GITHUB_REPOSITORY merge "$PR_URL" --auto --rebase
+          gh pr --repo $GITHUB_REPOSITORY review --approve "$PR_URL"
         env:
+          PR_URL: ${{ steps.crowdin-sync.outputs.pull_request_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
