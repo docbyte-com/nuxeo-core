@@ -90,7 +90,7 @@ pipeline {
           nxTeams.error(
             message: "Failed to deploy Nuxeo ECM ${JAVADOC_VERSION} Javadoc",
             changes: true,
-            culprits: true
+            culprits: true,
           )
         }
       }

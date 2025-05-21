@@ -242,9 +242,10 @@ pipeline {
     unsuccessful {
       script {
         nxTeams.error(
+          subtitle: null,
           message: "Failed to release nuxeo/nuxeo-lts ${RELEASE_VERSION} from build ${NUXEO_BUILD_VERSION}",
           changes: true,
-          culprits: true
+          culprits: true,
         )
       }
     }
