@@ -1,0 +1,16 @@
+# Workflow that triggers the synchronization of Crowdin translations on latest LTS branch
+name: Crowdin
+
+on:
+  # Check for updates every day
+  schedule:
+    # Everyday at 01:32
+    - cron: '32 1 * * *'
+
+jobs:
+  # in uses, cannot use environment variable for {owner}/{repo} nor matrix strategy variable for {ref}
+  # thus hardcoding them
+  call-workflow-in-lts-2025:
+    if: github.event_name == 'schedule'
+    uses: nuxeo/nuxeo-lts/.github/workflows/crowdin.yml@2025
+    secrets: inherit
