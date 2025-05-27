@@ -168,6 +168,13 @@ public class OAuth2TokenStore implements DataStore<StoredCredential> {
         }
     }
 
+    /** @since 2025.4 */
+    public NuxeoOAuth2Token refresh(NuxeoOAuth2Token token) {
+        delete(token.getAccessToken(), token.getClientId());
+        token.refresh(token.getRefreshToken() != null);
+        return storeTokenAsDirectoryEntry(token);
+    }
+
     public NuxeoOAuth2Token refresh(String refreshToken, String clientId) {
         Map<String, Serializable> filter = new HashMap<>();
         filter.put("clientId", clientId);
