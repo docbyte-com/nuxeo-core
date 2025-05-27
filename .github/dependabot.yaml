@@ -7,7 +7,6 @@ updates:
       interval: "daily"
     # Disable version updates on 2023, we only want security updates on this maintenance branch
     open-pull-requests-limit: 0
-    ignore:
 
   # Ignore pip dependencies
   - package-ecosystem: "pip"
