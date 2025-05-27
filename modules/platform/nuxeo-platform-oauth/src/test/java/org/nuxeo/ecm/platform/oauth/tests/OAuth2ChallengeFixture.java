@@ -370,7 +370,7 @@ public class OAuth2ChallengeFixture {
         initialToken.setExpirationTimeMilliseconds(100L);
         tokenStore.update(initialToken);
         txFeature.nextTransaction();
-        Thread.sleep(SC_OK);
+        Thread.sleep(200);
 
         // get authorization, should redirect to the redirect_uri with a new code parameter
         String newCode;
