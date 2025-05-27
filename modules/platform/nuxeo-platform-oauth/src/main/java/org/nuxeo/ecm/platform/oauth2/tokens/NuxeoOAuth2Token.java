@@ -74,7 +74,7 @@ public class NuxeoOAuth2Token {
     }
 
     public NuxeoOAuth2Token(long expirationTimeMilliseconds, String clientId, boolean refreshToken) {
-        this("", refreshToken ? "" : null, expirationTimeMilliseconds);
+        this("", null, expirationTimeMilliseconds);
         this.clientId = clientId;
         refresh(refreshToken);
     }
