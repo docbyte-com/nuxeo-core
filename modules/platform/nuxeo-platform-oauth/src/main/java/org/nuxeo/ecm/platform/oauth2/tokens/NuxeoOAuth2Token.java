@@ -70,9 +70,13 @@ public class NuxeoOAuth2Token {
     protected String serviceLogin;
 
     public NuxeoOAuth2Token(long expirationTimeMilliseconds, String clientId) {
-        this("", "", expirationTimeMilliseconds);
+        this(expirationTimeMilliseconds, clientId, true);
+    }
+
+    public NuxeoOAuth2Token(long expirationTimeMilliseconds, String clientId, boolean refreshToken) {
+        this("", refreshToken ? "" : null, expirationTimeMilliseconds);
         this.clientId = clientId;
-        refresh();
+        refresh(refreshToken);
     }
 
     public NuxeoOAuth2Token(String accessToken, String refreshToken, Long expirationTimeMilliseconds) {
@@ -131,7 +135,9 @@ public class NuxeoOAuth2Token {
     public Map<String, Object> toJsonObject() {
         Map<String, Object> m = new HashMap<>();
         m.put("access_token", accessToken);
-        m.put("refresh_token", refreshToken);
+        if (refreshToken != null) {
+            m.put("refresh_token", refreshToken);
+        }
         m.put("token_type", "bearer");
         // Lifetime in seconds of the access token, see https://tools.ietf.org/html/rfc6749#section-5.1.
         // Must be a whole number otherwise some clients might fail reading the token response.
@@ -154,8 +160,14 @@ public class NuxeoOAuth2Token {
     }
 
     public void refresh() {
+        refresh(true);
+    }
+
+    public void refresh(boolean refreshToken) {
         accessToken = GENERATOR.generate(32);
-        refreshToken = GENERATOR.generate(64);
+        if (refreshToken) {
+            this.refreshToken = GENERATOR.generate(64);
+        }
         creationDate = Calendar.getInstance();
     }
 

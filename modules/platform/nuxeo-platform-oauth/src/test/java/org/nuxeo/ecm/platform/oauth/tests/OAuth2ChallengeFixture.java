@@ -28,10 +28,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.platform.oauth2.Constants.ASSERTION_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.AUTHORIZATION_CODE_GRANT_TYPE;
 import static org.nuxeo.ecm.platform.oauth2.Constants.AUTHORIZATION_CODE_PARAM;
+import static org.nuxeo.ecm.platform.oauth2.Constants.CLIENT_CREDENTIALS_GRANT_TYPE;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CLIENT_ID_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CLIENT_SECRET_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CODE_CHALLENGE_METHOD_PARAM;
@@ -77,6 +79,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.ecm.directory.api.DirectoryService;
@@ -87,6 +90,7 @@ import org.nuxeo.ecm.platform.oauth2.request.AuthorizationRequest;
 import org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token;
 import org.nuxeo.ecm.platform.oauth2.tokens.OAuth2TokenStore;
 import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.http.test.CloseableHttpResponse;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
@@ -96,6 +100,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -118,6 +123,9 @@ public class OAuth2ChallengeFixture {
 
     @Inject
     protected DirectoryService directoryService;
+
+    @Inject
+    protected UserManager userManager;
 
     @Inject
     protected TransientStoreService transientStoreService;
@@ -437,10 +445,9 @@ public class OAuth2ChallengeFixture {
             String json = cr.getEntityString();
             Map<?, ?> error = MAPPER.readValue(json, Map.class);
             assertEquals(UNSUPPORTED_GRANT_TYPE, error.get(ERROR_PARAM));
-            assertEquals(
-                    String.format("Unknown %s: got \"unknown\", expecting \"%s\" or \"%s\".", GRANT_TYPE_PARAM,
-                            AUTHORIZATION_CODE_GRANT_TYPE, REFRESH_TOKEN_GRANT_TYPE),
-                    error.get(ERROR_DESCRIPTION_PARAM));
+            assertEquals(String.format("Unknown %s: got \"unknown\", expecting \"%s\", \"%s\", \"%s\" or \"%s\".",
+                    GRANT_TYPE_PARAM, AUTHORIZATION_CODE_GRANT_TYPE, REFRESH_TOKEN_GRANT_TYPE, JWT_BEARER_GRANT_TYPE,
+                    CLIENT_CREDENTIALS_GRANT_TYPE), error.get(ERROR_DESCRIPTION_PARAM));
             assertStoreIsEmpty();
         }
 
@@ -707,6 +714,125 @@ public class OAuth2ChallengeFixture {
             assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
             assertEquals("Secret not configured or invalid token", error.get(ERROR_DESCRIPTION_PARAM));
         }
+    }
+
+    // NXP-33169
+    @Test
+    @SuppressWarnings("unchecked")
+    public void shouldRetrieveAccessTokenWithClientCredentials() throws JsonProcessingException, InterruptedException {
+
+        Map<String, String> params = new HashMap<>();
+        params.put(GRANT_TYPE_PARAM, CLIENT_CREDENTIALS_GRANT_TYPE);
+
+        // Test empty client id
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_BAD_REQUEST, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
+            assertEquals(INVALID_REQUEST, error.get(ERROR_PARAM));
+            assertEquals("Empty client id", error.get(ERROR_DESCRIPTION_PARAM));
+        }
+
+        // Test unknown client id
+        params.put(CLIENT_ID_PARAM, "toto");
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_BAD_REQUEST, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
+            assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
+            assertEquals("Unknown client: toto", error.get(ERROR_DESCRIPTION_PARAM));
+        }
+
+        // Test invalid client id
+        params.put(CLIENT_ID_PARAM, "noSecret");
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_BAD_REQUEST, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
+            assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
+            assertEquals("Invalid client: noSecret", error.get(ERROR_DESCRIPTION_PARAM));
+        }
+
+        // Test invalid client secret
+        params.put(CLIENT_ID_PARAM, CLIENT_ID);
+        params.put(CLIENT_SECRET_PARAM, "invalid");
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_BAD_REQUEST, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
+            assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
+            assertEquals(String.format("Disabled client: %s or invalid client secret", CLIENT_ID),
+                    error.get(ERROR_DESCRIPTION_PARAM));
+        }
+
+        // Test no user matching client id
+        params.put(CLIENT_ID_PARAM, CLIENT_ID);
+        params.put(CLIENT_SECRET_PARAM, CLIENT_SECRET);
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_BAD_REQUEST, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
+            assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
+            assertEquals(String.format("Found no user matching client: %s", CLIENT_ID),
+                    error.get(ERROR_DESCRIPTION_PARAM));
+        }
+
+        // Test ok
+        DocumentModel model = userManager.getBareUserModel();
+        model.setPropertyValue("user:username", CLIENT_ID);
+        userManager.createUser(model);
+        txFeature.nextTransaction();
+        String accessToken;
+        NuxeoOAuth2Token token;
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_OK, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> data = MAPPER.readValue(json, Map.class);
+            accessToken = (String) data.get("access_token");
+            assertNotNull(accessToken);
+            token = tokenStore.getToken(accessToken);
+            assertNotNull(token);
+            assertEquals(CLIENT_ID, token.getClientId());
+            assertEquals(CLIENT_ID, token.getNuxeoLogin());
+            // no refresh token
+            assertNull(data.get("refresh_token"));
+            assertNull(token.getRefreshToken());
+        }
+
+        // Test token cached if not expired
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_OK, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> data = MAPPER.readValue(json, Map.class);
+            assertEquals(accessToken, data.get("access_token"));
+            assertNull(data.get("refresh_token"));
+        }
+
+        // Test new token if expired
+        token.setExpirationTimeMilliseconds(10L);
+        tokenStore.update(token);
+        txFeature.nextTransaction();
+        Thread.sleep(20);
+        String newAccessToken;
+        try (CloseableHttpResponse cr = responseFromTokenWith(params)) {
+            assertEquals(SC_OK, cr.getStatus());
+            String json = cr.getEntityString();
+            Map<String, Serializable> data = MAPPER.readValue(json, Map.class);
+            newAccessToken = (String) data.get("access_token");
+            assertNotNull(newAccessToken);
+            // new access token
+            assertNotEquals(accessToken, newAccessToken);
+            NuxeoOAuth2Token newToken = tokenStore.getToken(newAccessToken);
+            assertNotNull(newToken);
+            assertEquals(CLIENT_ID, newToken.getClientId());
+            assertEquals(CLIENT_ID, newToken.getNuxeoLogin());
+            // no refresh token
+            assertNull(data.get("refresh_token"));
+            assertNull(newToken.getRefreshToken());
+            // expired token was deleted
+            assertNull(tokenStore.getToken(accessToken));
+        }
+        clearToken(newAccessToken, CLIENT_ID);
     }
 
     // NXP-31104
