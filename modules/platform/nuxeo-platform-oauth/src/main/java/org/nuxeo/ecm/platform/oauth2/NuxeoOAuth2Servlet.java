@@ -333,12 +333,7 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
             String username = authRequest.getUsername(); // NOSONAR
             getAndSendToken(response, clientId, username);
         } else if (REFRESH_TOKEN_GRANT_TYPE.equals(grantType)) {
-            OAuth2Error error = null;
-            if (StringUtils.isBlank(tokenRequest.getClientId())) {
-                error = OAuth2Error.invalidRequest("Empty client id");
-            } else if (!clientService.isValidClient(tokenRequest.getClientId(), tokenRequest.getClientSecret())) {
-                error = OAuth2Error.invalidClient("Disabled client or invalid client secret");
-            }
+            OAuth2Error error = checkValidClient(tokenRequest.getClientId(), tokenRequest.getClientSecret(), false);
 
             if (error != null) {
                 handleJsonError(error, response);
@@ -358,18 +353,8 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
             String clientId = tokenRequest.getClientId();
             String clientSecret = tokenRequest.getClientSecret();
 
-            OAuth2Error error = null;
-            if (StringUtils.isBlank(jwtToken)) {
-                error = OAuth2Error.invalidRequest("Empty assertion");
-            } else if (StringUtils.isBlank(clientId)) {
-                error = OAuth2Error.invalidRequest("Empty client id");
-            } else if (!clientService.hasClient(clientId)) {
-                error = OAuth2Error.invalidClient(String.format("Invalid client: %s", clientId));
-            } else if (!clientService.isValidClient(clientId, clientSecret)) {
-                error = OAuth2Error.invalidClient(
-                        String.format("Disabled client: %s or invalid client secret", clientId));
-            }
-
+            OAuth2Error error = StringUtils.isBlank(jwtToken) ? OAuth2Error.invalidRequest("Empty assertion")
+                    : checkValidClient(clientId, clientSecret, false);
             if (error != null) {
                 handleJsonError(error, response);
                 return;
@@ -391,6 +376,23 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
                             AUTHORIZATION_CODE_GRANT_TYPE, REFRESH_TOKEN_GRANT_TYPE)),
                     response);
         }
+    }
+
+    protected OAuth2Error checkValidClient(String clientId, String clientSecret, boolean requireSecret) {
+        OAuth2ClientService clientService = Framework.getService(OAuth2ClientService.class);
+        if (StringUtils.isBlank(clientId)) {
+            return OAuth2Error.invalidRequest("Empty client id");
+        }
+        if (!clientService.hasClient(clientId)) {
+            return OAuth2Error.invalidClient(String.format("Unknown client: %s", clientId));
+        }
+        if (requireSecret && StringUtils.isBlank(clientService.getClient(clientId).getSecret())) {
+            return OAuth2Error.invalidClient(String.format("Invalid client: %s", clientId));
+        }
+        if (!clientService.isValidClient(clientId, clientSecret)) {
+            return OAuth2Error.invalidClient(String.format("Disabled client: %s or invalid client secret", clientId));
+        }
+        return null;
     }
 
     protected void getAndSendToken(HttpServletResponse response, String clientId, String username) throws IOException {

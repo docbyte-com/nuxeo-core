@@ -673,7 +673,7 @@ public class OAuth2ChallengeFixture {
             String json = cr.getEntityString();
             Map<String, Serializable> error = MAPPER.readValue(json, Map.class);
             assertEquals(INVALID_CLIENT, error.get(ERROR_PARAM));
-            assertEquals("Invalid client: toto", error.get(ERROR_DESCRIPTION_PARAM));
+            assertEquals("Unknown client: toto", error.get(ERROR_DESCRIPTION_PARAM));
         }
 
         // Test invalid client secret
