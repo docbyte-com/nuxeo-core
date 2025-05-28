@@ -28,6 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,8 +41,10 @@ import org.nuxeo.runtime.RuntimeServiceException;
 import org.opensearch.OpenSearchStatusException;
 import org.opensearch.action.ActionRequest;
 import org.opensearch.action.ActionResponse;
+import org.opensearch.action.bulk.BulkItemResponse;
 import org.opensearch.action.bulk.BulkRequest;
 import org.opensearch.action.bulk.BulkResponse;
+import org.opensearch.action.bulk.BulkShardRequest;
 import org.opensearch.action.get.GetRequest;
 import org.opensearch.action.get.GetResponse;
 import org.opensearch.action.index.IndexRequest;
@@ -391,32 +394,17 @@ public class OpenSearchRestClient implements OpenSearchClient {
                                                                 "Give up index after {} retries: {}", () -> maxRetries,
                                                                 request::getDescription))
                                                         .handle(RetryableException.class);
+        if (IndexRequest.DEFAULT_TIMEOUT == request.timeout()) {
+            // use a longer timeout than the default one
+            request.timeout(LONG_TIMEOUT);
+        }
         AtomicReference<IndexResponse> response = new AtomicReference<>();
         Failsafe.with(policy).run(() -> response.set(doIndex(request)));
         return response.get();
     }
 
     protected IndexResponse doIndex(IndexRequest request) throws RetryableException {
-        try (Scope ignored = getScopedSpan("opensearch/_index", request.toString())) {
-            if (IndexRequest.DEFAULT_TIMEOUT == request.timeout()) {
-                // use a longer timeout than the default one
-                request.timeout(LONG_TIMEOUT);
-            }
-            log.trace("Indexing request: {}", request);
-            return client.index(request, COMPAT_ES_OPTIONS);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.CONFLICT.equals(e.status())) {
-                throw new ConcurrentException(e);
-            } else if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                throw new RetryableException(
-                        "Detecting overloaded OpenSearch, response message: %s".formatted(e.getMessage()), e);
-            }
-            throw new RuntimeServiceException(e);
-        } catch (SocketTimeoutException e) {
-            throw new RetryableException("OpenSearch timeout, might be overloaded", e);
-        } catch (IOException e) {
-            throw new RuntimeServiceException(e);
-        }
+        return performRequestWithTracing(client::index, request, "opensearch/_index");
     }
 
     @Override
@@ -441,16 +429,19 @@ public class OpenSearchRestClient implements OpenSearchClient {
                                                 "Give up bulk index request after {} retries, request:: {}",
                                                 () -> maxRetries, request::getDescription))
                                         .handle(RetryableException.class);
+        if (BulkShardRequest.DEFAULT_TIMEOUT == request.timeout()) {
+            // use a longer timeout than the default one
+            request.timeout(LONG_TIMEOUT);
+        }
         AtomicReference<BulkResponse> response = new AtomicReference<>();
         Failsafe.with(policy).run(() -> response.set(doBulk(request)));
         return response.get();
     }
 
     protected BulkResponse doBulk(BulkRequest request) throws RetryableException {
-        try (Scope ignored = getScopedSpan("opensearch/_bulk", "actions: " + request.numberOfActions())) {
-            log.trace("Bulk indexing actions: {}", request.numberOfActions());
-            BulkResponse responses = client.bulk(request, COMPAT_ES_OPTIONS);
-            for (var response : responses.getItems()) {
+        var responses = performRequestWithTracing(client::bulk, request, "opensearch/_bulk");
+        if (responses.hasFailures()) {
+            for (BulkItemResponse response : responses.getItems()) {
                 if (!response.isFailed()) {
                     continue;
                 }
@@ -463,25 +454,8 @@ public class OpenSearchRestClient implements OpenSearchClient {
                     default -> log.error("Indexing failure of: {}, {}", response.getId(), response.getFailureMessage());
                 }
             }
-            log.trace("Bulk indexed");
-            return responses;
-        } catch (ResponseException e) {
-            if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
-                throw new RetryableException("Detecting overloaded OpenSearch (429), response status: %s".formatted(
-                        e.getResponse().getStatusLine()), e);
-            }
-            throw new RuntimeServiceException(e);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                throw new RetryableException(
-                        "Detecting overloaded OpenSearch (429), response message: %s".formatted(e.getMessage()), e);
-            }
-            throw new RuntimeServiceException(e);
-        } catch (SocketTimeoutException e) {
-            throw new RetryableException("Detecting overloaded OpenSearch, timeout", e);
-        } catch (IOException e) {
-            throw new RuntimeServiceException(e);
         }
+        return responses;
     }
 
     @Override
@@ -517,30 +491,49 @@ public class OpenSearchRestClient implements OpenSearchClient {
 
     protected <I extends ActionRequest, O extends ActionResponse> O performRequestWithTracing(
             ThrowableBiFunction<I, RequestOptions, O, IOException> runner, I request, String spanName) {
+        String requestStr;
+        if (request instanceof BulkRequest bulkRequest) {
+            requestStr = "actions: " + bulkRequest.numberOfActions();
+        } else if (request instanceof ClearScrollRequest scrollRequest) {
+            requestStr = "clearScroll: " + scrollRequest.getScrollIds();
+        } else {
+            requestStr = request.toString();
+        }
         try (var ignored = getScopedSpan(spanName, request.toString())) {
-            if (request instanceof ClearScrollRequest scrollRequest) {
-                log.trace("Running request: ClearScrollRequest({})", scrollRequest::getScrollIds);
-            } else {
-                log.trace("Running request: {}", request);
-            }
+            log.trace("Running request: {}", requestStr);
             O response = runner.apply(request, COMPAT_ES_OPTIONS);
             log.trace("Received response: {}", response);
             return response;
         } catch (ResponseException e) {
             if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
+                log.warn("Detecting overloaded OpenSearch: {}", e.getResponse().getStatusLine());
                 throw new RetryableException("Detecting overloaded OpenSearch, response status: %s".formatted(
                         e.getResponse().getStatusLine()), e);
             }
             throw new RuntimeServiceException(e);
         } catch (OpenSearchStatusException e) {
-            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                throw new RetryableException(
-                        "Detecting overloaded OpenSearch, response message: %s".formatted(e.getMessage()), e);
+            if (RestStatus.CONFLICT.equals(e.status())) {
+                log.info("Conflict: {}", e.getMessage());
+                throw new ConcurrentException(e);
+            } else if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
+                log.warn("Detecting overloaded OpenSearch: {}", e.getMessage());
+                throw new RetryableException("OpenSearch timeout, might be overloaded", e);
+            } else if (e.getMessage() != null && e.getMessage().contains("Unable to parse response body")) {
+                log.warn("OpenSearch not available, bad gateway", e);
+                throw new RetryableException("OpenSearch timeout, might be overloaded", e);
             }
             throw new RuntimeServiceException(e);
         } catch (SocketTimeoutException e) {
-            throw new RetryableException("OpenSearch timeout, might be overloaded", e);
+            log.warn("OpenSearch socket timeout, might be overloaded", e);
+            throw new RetryableException("OpenSearch socket timeout, might be overloaded", e);
+        } catch (ConnectionClosedException e) {
+            log.warn("OpenSearch connection has been closed unexpectedly", e);
+            throw new RetryableException("OpenSearch connection closed", e);
         } catch (IOException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Connection reset")) {
+                log.warn("OpenSearch connection has been reset", e);
+                throw new RetryableException("OpenSearch connection reset", e);
+            }
             throw new RuntimeServiceException(e);
         }
     }
