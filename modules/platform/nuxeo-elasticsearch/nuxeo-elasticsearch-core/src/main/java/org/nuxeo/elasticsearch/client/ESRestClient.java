@@ -27,15 +27,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.function.ThrowableBiFunction;
 import org.nuxeo.common.utils.ExceptionUtils;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.elasticsearch.api.ESClient;
 import org.opensearch.OpenSearchStatusException;
+import org.opensearch.action.ActionRequest;
+import org.opensearch.action.ActionResponse;
 import org.opensearch.action.bulk.BulkItemResponse;
 import org.opensearch.action.bulk.BulkProcessor;
 import org.opensearch.action.bulk.BulkRequest;
@@ -271,6 +275,52 @@ public class ESRestClient implements ESClient {
         }
     }
 
+    protected <I extends ActionRequest, O extends ActionResponse> O performRequestWithTracing(
+            ThrowableBiFunction<I, RequestOptions, O, IOException> runner, I request, String spanName)
+            throws TooManyRequestsRetryableException {
+        String requestStr;
+        if (request instanceof BulkRequest bulkRequest) {
+            requestStr = "actions: " + bulkRequest.numberOfActions();
+        } else {
+            requestStr = request.toString();
+        }
+        try (var ignored = getScopedSpan(spanName, requestStr)) {
+            log.trace("Running request: {}", requestStr);
+            O response = runner.apply(request, COMPAT_ES_OPTIONS);
+            log.trace("Received response: {}", response);
+            return response;
+        } catch (ResponseException e) {
+            if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
+                log.warn("Detecting overloaded Elastic response: {}", e.getResponse().getStatusLine());
+                throw new TooManyRequestsRetryableException(e.getResponse().getStatusLine().toString());
+            }
+            throw new NuxeoException(e);
+        } catch (OpenSearchStatusException e) {
+            if (RestStatus.CONFLICT.equals(e.status())) {
+                throw new ConcurrentUpdateException(e);
+            } else if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
+                log.warn("Detecting overloaded Elastic response: {}", e.getMessage());
+                throw new TooManyRequestsRetryableException(e.getMessage());
+            } else if (e.getMessage() != null && e.getMessage().contains("Unable to parse response body")) {
+                log.warn("Elastic not available, bad gateway", e);
+                throw new TooManyRequestsRetryableException(e.getMessage());
+            }
+            throw new NuxeoException(e);
+        } catch (SocketTimeoutException e) {
+            log.warn("Elastic timeout, might be overloaded", e);
+            throw new TooManyRequestsRetryableException(e.getMessage());
+        } catch (ConnectionClosedException e) {
+            log.warn("Elastic connection has been closed unexpectedly", e);
+            throw new TooManyRequestsRetryableException(e.getMessage());
+        } catch (IOException e) {
+            if (e.getMessage() != null && e.getMessage().contains("Connection reset")) {
+                log.warn("Elastic connection has been reset", e);
+                throw new TooManyRequestsRetryableException(e.getMessage());
+            }
+            throw new NuxeoException(e);
+        }
+    }
+
     @Override
     public String getNodesInfo() {
         Response response = performRequestWithTracing(new Request("GET", "/_nodes/_all"));
@@ -374,45 +424,26 @@ public class ESRestClient implements ESClient {
                                                                 () -> maxRetries, request::getDescription))
                                                         .handle(TooManyRequestsRetryableException.class);
         AtomicReference<BulkResponse> response = new AtomicReference<>();
+        if (BulkShardRequest.DEFAULT_TIMEOUT == request.timeout()) {
+            // use a longer timeout than the default one
+            request.timeout(LONG_TIMEOUT);
+        }
         Failsafe.with(policy).run(() -> response.set(doBulk(request)));
         return response.get();
     }
 
     protected BulkResponse doBulk(BulkRequest request) throws TooManyRequestsRetryableException {
-        try (Scope ignored = getScopedSpan("elastic/_bulk", "actions: " + request.numberOfActions())) {
-            if (BulkShardRequest.DEFAULT_TIMEOUT == request.timeout()) {
-                // use a longer timeout than the default one
-                request.timeout(LONG_TIMEOUT);
-            }
-            BulkResponse response = client.bulk(request, COMPAT_ES_OPTIONS);
-            if (response.hasFailures()) {
-                for (BulkItemResponse item : response.getItems()) {
-                    if (item.isFailed() && RestStatus.TOO_MANY_REQUESTS == item.getFailure().getStatus()) {
-                        // Since Elastic 7.0 transient circuit breaker exceptions return 429
-                        log.warn("Detecting overloaded Elastic bulk response: {}", item::getFailureMessage);
-                        throw new TooManyRequestsRetryableException(item.getFailureMessage());
-                    }
+        var response = performRequestWithTracing(client::bulk, request, "elastic/_bulk");
+        if (response.hasFailures()) {
+            for (BulkItemResponse item : response.getItems()) {
+                if (item.isFailed() && RestStatus.TOO_MANY_REQUESTS == item.getFailure().getStatus()) {
+                    // Since Elastic 7.0 transient circuit breaker exceptions return 429
+                    log.warn("Detecting overloaded Elastic bulk response: {}", item::getFailureMessage);
+                    throw new TooManyRequestsRetryableException(item.getFailureMessage());
                 }
             }
-            return response;
-        } catch (ResponseException e) {
-            if (e.getResponse().getStatusLine().getStatusCode() == RestStatus.TOO_MANY_REQUESTS.getStatus()) {
-                log.warn("Detecting overloaded Elastic response: {}", e.getResponse().getStatusLine());
-                throw new TooManyRequestsRetryableException(e.getResponse().getStatusLine().toString());
-            }
-            throw new NuxeoException(e);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                log.warn("Detecting overloaded Elastic bulk response: {}", e.getMessage());
-                throw new TooManyRequestsRetryableException(e.getMessage());
-            }
-            throw new NuxeoException(e);
-        } catch (SocketTimeoutException e) {
-            log.warn("Elastic timeout, might be overloaded", e);
-            throw new TooManyRequestsRetryableException(e.getMessage());
-        } catch (IOException e) {
-            throw new NuxeoException(e);
         }
+        return response;
     }
 
     @Override
@@ -444,18 +475,7 @@ public class ESRestClient implements ESClient {
     }
 
     protected DeleteResponse doDelete(DeleteRequest request) throws TooManyRequestsRetryableException {
-        try {
-            return client.delete(request, COMPAT_ES_OPTIONS);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                log.warn("Detecting overloaded Elastic delete response: " + e.getMessage());
-                throw new TooManyRequestsRetryableException(e.getMessage());
-            }
-            throw new NuxeoException(e);
-        } catch (IOException e) {
-            log.warn("Elastic delete timeout, might be overloaded", e);
-            throw new TooManyRequestsRetryableException(e.getMessage());
-        }
+        return performRequestWithTracing(client::delete, request, "elastic/_delete");
     }
 
     @Override
@@ -503,31 +523,16 @@ public class ESRestClient implements ESClient {
                                                                 request::getDescription))
                                                         .handle(TooManyRequestsRetryableException.class);
         AtomicReference<IndexResponse> response = new AtomicReference<>();
+        if (IndexRequest.DEFAULT_TIMEOUT == request.timeout()) {
+            // use a longer timeout than the default one
+            request.timeout(LONG_TIMEOUT);
+        }
         Failsafe.with(policy).run(() -> response.set(doIndex(request)));
         return response.get();
     }
 
     protected IndexResponse doIndex(IndexRequest request) throws TooManyRequestsRetryableException {
-        try (Scope ignored = getScopedSpan("elastic/_index", request.toString())) {
-            if (IndexRequest.DEFAULT_TIMEOUT == request.timeout()) {
-                // use a longer timeout than the default one
-                request.timeout(LONG_TIMEOUT);
-            }
-            return client.index(request, COMPAT_ES_OPTIONS);
-        } catch (OpenSearchStatusException e) {
-            if (RestStatus.CONFLICT.equals(e.status())) {
-                throw new ConcurrentUpdateException(e);
-            } else if (RestStatus.TOO_MANY_REQUESTS.equals(e.status())) {
-                log.warn("Detecting overloaded Elastic index response: {}", e.getMessage());
-                throw new TooManyRequestsRetryableException(e.getMessage());
-            }
-            throw new NuxeoException(e);
-        } catch (SocketTimeoutException e) {
-            log.warn("Elastic timeout, might be overloaded", e);
-            throw new TooManyRequestsRetryableException(e.getMessage());
-        } catch (IOException e) {
-            throw new NuxeoException(e);
-        }
+        return performRequestWithTracing(client::index, request, "elastic/_index");
     }
 
     protected Scope getScopedSpan(String name, String request) {
