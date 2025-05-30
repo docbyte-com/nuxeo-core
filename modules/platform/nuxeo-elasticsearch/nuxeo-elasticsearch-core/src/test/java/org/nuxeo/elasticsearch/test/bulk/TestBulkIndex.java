@@ -55,6 +55,7 @@ import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
@@ -84,6 +85,9 @@ public class TestBulkIndex {
 
     @Inject
     protected CoreSession session;
+
+    @Inject
+    protected CoreFeature coreFeature;
 
     @Inject
     protected ElasticSearchService ess;
@@ -180,8 +184,13 @@ public class TestBulkIndex {
         assertNull(secondaryWriteIndex);
         // docs are searchable
         long totalDocs = countDocs(searchAlias);
-        // 20 but one corrupted
-        assertEquals(19, totalDocs);
+        if (coreFeature.getStorageConfiguration().isDBS()) {
+            // mongo is able to load the document with the corrupted ACE, so it's indexed
+            assertEquals(20, totalDocs);
+        } else {
+            // other backends, see the document as corrupted, not indexed
+            assertEquals(19, totalDocs);
+        }
 
         // simulate a bulk reindex by creating a new write index
         esa.initRepositoryIndexWithAliases(session.getRepositoryName());

@@ -1439,6 +1439,14 @@ public class DBSSession extends BaseSession {
                 String creator = (String) aceMap.get(KEY_ACE_CREATOR);
                 Calendar begin = (Calendar) aceMap.get(KEY_ACE_BEGIN);
                 Calendar end = (Calendar) aceMap.get(KEY_ACE_END);
+                if (begin != null && end != null) {
+                    if (begin.after(end)) {
+                        log.warn(
+                                "An ACE with invalid dates has been detected on document: {}, ace: {}, end date discarded.",
+                                docId, aceMap);
+                        end = null;
+                    }
+                }
                 // status not read, ACE always computes it on read
                 ACE ace = ACE.builder(username, permission)
                              .isGranted(granted)
