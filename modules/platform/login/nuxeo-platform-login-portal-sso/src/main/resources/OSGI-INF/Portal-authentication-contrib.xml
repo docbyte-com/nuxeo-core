@@ -4,6 +4,10 @@
    <documentation>
 
    </documentation>
+
+   <!--
+    Deprecated since 2025.4, see OAuth 2.0 Client Credentials flow replacement in the nuxeo-platform-oauth module
+   -->
    <extension
       target="org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService"
       point="authenticators">
