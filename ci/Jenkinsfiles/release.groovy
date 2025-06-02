@@ -19,7 +19,7 @@
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-library identifier: "platform-ci-shared-library@v0.0.61"
+library identifier: "platform-ci-shared-library@v0.0.67"
 
 void getCurrentVersion() {
   return readMavenPom().getVersion()
@@ -241,11 +241,18 @@ pipeline {
     }
     unsuccessful {
       script {
-        nxTeams.error(
-          subtitle: null,
-          message: "Failed to release nuxeo/nuxeo-lts ${RELEASE_VERSION} from build ${NUXEO_BUILD_VERSION}",
-          changes: true,
-          culprits: true,
+        nxUtils.callIfBuildRecoverOrFail({
+          nxTeams.success(
+            subtitle: null,
+            message: "Successfully released nuxeo/nuxeo-lts ${RELEASE_VERSION} from build ${NUXEO_BUILD_VERSION}",
+            changes: true,
+          )}, {
+          nxTeams.error(
+            subtitle: null,
+            message: "Failed to release nuxeo/nuxeo-lts ${RELEASE_VERSION} from build ${NUXEO_BUILD_VERSION}",
+            changes: true,
+            culprits: true,
+          )}
         )
       }
     }

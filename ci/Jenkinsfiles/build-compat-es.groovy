@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-library identifier: "platform-ci-shared-library@v0.0.65"
+library identifier: "platform-ci-shared-library@v0.0.67"
 
 boolean isNuxeoTag() {
   return NUXEO_BRANCH =~ /^v.*$/
@@ -161,11 +161,16 @@ pipeline {
     unsuccessful {
       script {
         if (isNuxeoTag()) {
-          nxTeams.error(
-            subtitle: null,
-            message: "Failed to test nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG}",
-            changes: true,
-            culprits: true,
+          nxUtils.callIfBuildRecoverOrFail({
+            nxTeams.success(
+              message: "Successfully tested nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG}",
+              changes: true,
+            )}, {
+            nxTeams.error(
+              message: "Failed to test nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG}",
+              changes: true,
+              culprits: true,
+            )}
           )
         }
       }

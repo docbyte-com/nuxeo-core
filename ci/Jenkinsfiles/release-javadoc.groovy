@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.55"
+library identifier: "platform-ci-shared-library@v0.0.67"
 
 boolean isNuxeoReleaseTag() {
   return NUXEO_BRANCH =~ /^v\d+\.\d+$/
@@ -87,10 +87,16 @@ pipeline {
     unsuccessful {
       script {
         if (isNuxeoReleaseTag()) {
-          nxTeams.error(
-            message: "Failed to deploy Nuxeo ECM ${JAVADOC_VERSION} Javadoc",
-            changes: true,
-            culprits: true,
+          nxUtils.callIfBuildRecoverOrFail({
+            nxTeams.success(
+              message: "Successfully deployed Nuxeo ECM ${JAVADOC_VERSION} Javadoc",
+              changes: true,
+            )}, {
+            nxTeams.error(
+              message: "Failed to deploy Nuxeo ECM ${JAVADOC_VERSION} Javadoc",
+              changes: true,
+              culprits: true,
+            )}
           )
         }
       }
