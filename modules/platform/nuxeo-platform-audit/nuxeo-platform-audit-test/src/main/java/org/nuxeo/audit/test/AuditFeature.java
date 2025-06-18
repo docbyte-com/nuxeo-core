@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_ME
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.computeSystemProperty;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import java.util.function.IntFunction;
@@ -38,6 +39,7 @@ import org.nuxeo.audit.mem.MemAuditFeature;
 import org.nuxeo.audit.mongodb.MongoDBAuditFeature;
 import org.nuxeo.audit.opensearch1.OpenSearchAuditFeature;
 import org.nuxeo.audit.sql.SQLAuditFeature;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
@@ -54,25 +56,32 @@ public class AuditFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(AuditFeature.class);
 
+    /** @since 2025.4 */
+    public static final SystemProperty AUDIT_EXTERNAL_FEATURE_PROPERTY = new SystemProperty("nuxeo.test.audit.feature");
+
     @Inject
     protected AuditCoreFeature auditCoreFeature;
 
     public AuditFeature(DynamicFeaturesLoader loader) {
-        var feature = switch (AUDIT_SERVICE_VALUE) {
-            case STORAGE_MEM -> MemAuditFeature.class;
-            case STORAGE_MONGODB -> MongoDBAuditFeature.class;
-            case STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
-            case STORAGE_SQL -> SQLAuditFeature.class;
-            default ->
-                throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
-        };
-        loader.loadFeature(feature);
+        if (AUDIT_EXTERNAL_FEATURE_PROPERTY.isConfigured()) {
+            loader.loadFeature(computeSystemProperty(AUDIT_EXTERNAL_FEATURE_PROPERTY));
+        } else {
+            var feature = switch (AUDIT_SERVICE_VALUE) {
+                case STORAGE_MEM -> MemAuditFeature.class;
+                case STORAGE_MONGODB -> MongoDBAuditFeature.class;
+                case STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
+                case STORAGE_SQL -> SQLAuditFeature.class;
+                default ->
+                        throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
+            };
+            loader.loadFeature(feature);
+        }
     }
 
     @Override
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Audit using {}",
-                () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
+                 () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
     }
 
     public boolean isBackendOpenSearch() {
