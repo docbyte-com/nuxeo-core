@@ -72,7 +72,7 @@ public class AuditFeature implements RunnerFeature {
                 case STORAGE_OPENSEARCH_1 -> OpenSearchAuditFeature.class;
                 case STORAGE_SQL -> SQLAuditFeature.class;
                 default ->
-                        throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
+                    throw new UnsupportedOperationException("Audit type: " + AUDIT_SERVICE_VALUE + " is not supported");
             };
             loader.loadFeature(feature);
         }
@@ -81,9 +81,13 @@ public class AuditFeature implements RunnerFeature {
     @Override
     public void start(FeaturesRunner runner) {
         log.info(MARKER_CONSOLE_OVERRIDE, "Deploying Audit using {}",
-                 () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
+                () -> StringUtils.capitalize(AUDIT_SERVICE_VALUE.toLowerCase()));
     }
 
+    /**
+     * @deprecated since 2025.4, unused
+     */
+    @Deprecated(since = "2025.4", forRemoval = true)
     public boolean isBackendOpenSearch() {
         return STORAGE_OPENSEARCH_1.equals(AUDIT_SERVICE_VALUE);
     }

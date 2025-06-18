@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
+import static org.nuxeo.audit.service.AuditBackend.Capability.STARTS_WITH_PARTIAL_MATCH;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -168,12 +169,12 @@ public class TestAuditBackend {
         assertStartsWithCount(NUM_OF_EVENTS / 2, "/is/odd");
 
         // A partial match is supported by the sql and mongodb implementations, but not ES
-        if (auditFeature.isBackendOpenSearch()) {
-            assertStartsWithCount(0, "/is/eve");
-            assertStartsWithCount(0, "/is/od");
-        } else {
+        if (backend.hasCapability(STARTS_WITH_PARTIAL_MATCH)) {
             assertStartsWithCount(NUM_OF_EVENTS / 2, "/is/eve");
             assertStartsWithCount(NUM_OF_EVENTS / 2, "/is/od");
+        } else {
+            assertStartsWithCount(0, "/is/eve");
+            assertStartsWithCount(0, "/is/od");
         }
     }
 

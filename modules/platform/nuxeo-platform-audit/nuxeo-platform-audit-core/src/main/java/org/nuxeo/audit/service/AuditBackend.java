@@ -97,6 +97,9 @@ public interface AuditBackend extends org.nuxeo.ecm.platform.audit.service.Audit
     boolean hasCapability(Capability capability);
 
     enum Capability {
-        EXTENDED_INFO_SEARCH;
+        EXTENDED_INFO_SEARCH,
+
+        /** @since 2025.4 */
+        STARTS_WITH_PARTIAL_MATCH;
     }
 }
