@@ -22,11 +22,13 @@ import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SEARCH_SER
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_OPENSEARCH_1;
 import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_REPOSITORY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.computeSystemProperty;
 import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
 import org.nuxeo.ecm.core.search.BaseCoreSearchFeature;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.ecm.core.search.SearchService;
@@ -47,15 +49,23 @@ public class CoreSearchFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(CoreSearchFeature.class);
 
+    /** @since 2025.4 */
+    public static final SystemProperty SEARCH_EXTERNAL_FEATURE_PROPERTY = new SystemProperty(
+            "nuxeo.test.search.feature");
+
     public CoreSearchFeature(DynamicFeaturesLoader loader) {
-        var feature = switch (SEARCH_SERVICE_VALUE) {
-            case STORAGE_MEM -> MockSearchClientFeature.class;
-            case STORAGE_OPENSEARCH_1 -> OpenSearchCoreSearchFeature.class;
-            case STORAGE_REPOSITORY -> RepositorySearchClientFeature.class;
-            default ->
-                throw new UnsupportedOperationException("Search type: " + SEARCH_SERVICE_VALUE + " is not supported");
-        };
-        loader.loadFeature(feature);
+        if (SEARCH_EXTERNAL_FEATURE_PROPERTY.isConfigured()) {
+            loader.loadFeature(computeSystemProperty(SEARCH_EXTERNAL_FEATURE_PROPERTY));
+        } else {
+            var feature = switch (SEARCH_SERVICE_VALUE) {
+                case STORAGE_MEM -> MockSearchClientFeature.class;
+                case STORAGE_OPENSEARCH_1 -> OpenSearchCoreSearchFeature.class;
+                case STORAGE_REPOSITORY -> RepositorySearchClientFeature.class;
+                default -> throw new UnsupportedOperationException(
+                        "Search type: " + SEARCH_SERVICE_VALUE + " is not supported");
+            };
+            loader.loadFeature(feature);
+        }
     }
 
     @Override
