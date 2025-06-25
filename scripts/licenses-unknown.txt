@@ -1,7 +1,6 @@
 # this contains licenses manually researched because not available in the artifact's POM
      (AL 2.0) Java Mime Magic Library (jmimemagic:jmimemagic:0.1.2 - no url defined)
      (EPL 1.0) WikiEventModel (org.wikimodel:wem:2.0.2 - http://code.google.com/p/wikimodel/)
-     (BSD 3) com-duosecurity-java-client (com.duosecurity:com-duosecurity-java-client:1.0.0 - no url defined)
      (CDDL 1.0 + GPL 2) core (com.sun.jdmk:core:1.0-b02 - http://maven.apache.org)
      (HPND) java-cup (cup:java-cup:0.11a - no url defined)
      (BSD) jdbm (jdbm:jdbm:1.0 - no url defined)
