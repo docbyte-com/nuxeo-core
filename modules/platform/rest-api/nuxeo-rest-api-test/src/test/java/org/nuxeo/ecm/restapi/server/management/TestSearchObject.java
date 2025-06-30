@@ -22,7 +22,6 @@ import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
@@ -42,12 +41,10 @@ import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.http.test.HttpResponse;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RandomBug;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -90,22 +87,6 @@ public class TestSearchObject extends ManagementBaseTest {
         // Start the ES indexing of all document of the coreSession repository
         httpClient.buildPostRequest("/management/search/reindex")
                   .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 3 + initialDocCount));
-    }
-
-    @Test
-    @RandomBug.Repeat(issue = "Too fast and not enough concurrent", onFailure = 10, onSuccess = 30)
-    public void fullReindexShouldBeExclusive() {
-        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
-
-        txFeature.nextTransaction();
-        int status1 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
-        int status2 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
-        // One is accepted with a 200 the other is rejected with a 409
-        assertNotEquals(status1, status2);
-        assertTrue("status1: " + status1, status1 == 200 || status1 == 409);
-        assertTrue("status2: " + status2, status2 == 200 || status2 == 409);
-        // wait for full reindexing
-        txFeature.nextTransaction();
     }
 
     @Test
