@@ -240,8 +240,14 @@ public class OpenSearchRestClient implements OpenSearchClient {
             }
         } catch (IOException e) {
             if (e.getMessage() != null && e.getMessage().contains("illegal_argument_exception")) {
-                // when trying to delete an alias, throws the same exception than the transport client
+                // when trying to delete an alias, throws the same exception as the transport client
                 throw new IllegalArgumentException(e);
+            }
+            if (e instanceof ResponseException re) {
+                if (re.getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
+                    log.info("Index: {} not found, nothing to drop", indexName);
+                    return;
+                }
             }
             throw new RuntimeServiceException(e);
         }
