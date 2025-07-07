@@ -45,7 +45,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
-import org.nuxeo.ecm.core.cache.CacheFeature;
 import org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.web.common.MockHttpServletRequest;
@@ -67,7 +66,8 @@ import com.duosecurity.model.Token;
  * @since 2025.5
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeFeature.class, CacheFeature.class, MockitoFeature.class })
+@Features({ RuntimeFeature.class, MockitoFeature.class })
+@Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.ecm.platform.login")
 @Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.duoweb.authentication")
@@ -136,8 +136,10 @@ public class TestDuoFactorsAuthentication {
             }
             return true;
         }));
-        assertEquals(1, duoAuthPlugin.getStateCache().keySet().size());
-        var state = duoAuthPlugin.getStateCache().keySet().iterator().next();
+        var state = duoAuthPlugin.getKeyValueStore()
+                                 .keyStream()
+                                 .findFirst()
+                                 .orElseThrow(() -> new AssertionError("State not found"));
 
         // callback to validate duo auth
         doReturn(getToken(true)).when(duoClient)
@@ -159,8 +161,10 @@ public class TestDuoFactorsAuthentication {
         var handleLoginPrompt = duoAuthPlugin.handleLoginPrompt(request, MockHttpServletResponse.init().mock(),
                 BASE_URL);
         assertTrue(handleLoginPrompt);
-        assertEquals(1, duoAuthPlugin.getStateCache().keySet().size());
-        var state = duoAuthPlugin.getStateCache().keySet().iterator().next();
+        var state = duoAuthPlugin.getKeyValueStore()
+                                 .keyStream()
+                                 .findFirst()
+                                 .orElseThrow(() -> new AssertionError("State not found"));
 
         doReturn(getToken(false)).when(duoClient)
                                  .exchangeAuthorizationCodeFor2FAResult(eq("forged_duo_code"), eq(DUO_USER));
