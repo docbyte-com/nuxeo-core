@@ -387,5 +387,11 @@ nuxeo.primitive.type.strict.validation=false
 # Document subtype restriction
 nuxeo.subtype.restriction.enabled=false
 
+# TransientDataStore default implementation
+nuxeo.transientdatastore.default.provider.class=org.nuxeo.runtime.ts.MemTransientDataStore
+# allowed policy are ACCESSED / CREATED
+nuxeo.transientdatastore.default.ttl.policy=CREATED
+nuxeo.transientdatastore.default.ttl.value=1d
+
 # UIDSequencer default implementation
 nuxeo.uidsequencer.default.class=org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer
