@@ -388,7 +388,7 @@ nuxeo.primitive.type.strict.validation=false
 nuxeo.subtype.restriction.enabled=false
 
 # TransientDataStore default implementation
-nuxeo.transientdatastore.default.provider.class=org.nuxeo.runtime.ts.MemTransientDataStore
+nuxeo.transientdatastore.default.provider.class=org.nuxeo.runtime.ts.KeyValueTransientDataStore
 # allowed policy are ACCESSED / CREATED
 nuxeo.transientdatastore.default.ttl.policy=CREATED
 nuxeo.transientdatastore.default.ttl.value=1d
