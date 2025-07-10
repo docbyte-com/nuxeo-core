@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,13 @@
  */
 package org.nuxeo.ecm.platform.usermanager;
 
-import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -37,7 +36,6 @@ import java.io.OutputStream;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -45,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -64,7 +61,6 @@ import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.platform.usermanager.exceptions.GroupAlreadyExistsException;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.LoginComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 
@@ -77,26 +73,26 @@ import org.nuxeo.runtime.test.runner.Deploy;
 public class TestUserManager extends UserManagerTestCase {
 
     @Test
-    public void testExistingSetup() throws Exception {
+    public void testExistingSetup() {
         NuxeoPrincipal principal = userManager.getPrincipal("Administrator");
         List<String> groups = principal.getGroups();
         assertTrue(groups.contains("administrators"));
     }
 
-    private DocumentModel getUser(String userId) throws Exception {
+    private DocumentModel getUser(String userId) {
         DocumentModel newUser = userManager.getBareUserModel();
         newUser.setProperty("user", "username", userId);
         return newUser;
     }
 
-    private DocumentModel getGroup(String groupId) throws Exception {
+    private DocumentModel getGroup(String groupId) {
         DocumentModel newGroup = userManager.getBareGroupModel();
         newGroup.setProperty("group", "groupname", groupId);
         return newGroup;
     }
 
     @Test
-    public void testGetAnonymous() throws Exception {
+    public void testGetAnonymous() {
         NuxeoPrincipal principal = userManager.getPrincipal("Guest");
         assertNotNull(principal);
         assertEquals("Guest", principal.getName());
@@ -106,7 +102,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testGetAdministrator() throws Exception {
+    public void testGetAdministrator() {
         NuxeoPrincipal principal = userManager.getPrincipal("tehroot");
         assertNotNull(principal);
         assertTrue(principal.isAdministrator());
@@ -121,13 +117,7 @@ public class TestUserManager extends UserManagerTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/userservice-override-config.xml")
-    public void testGetAdministratorOverride() throws Exception {
-        // user manager is recomputed after deployment => refetch it
-        userManager = Framework.getService(UserManager.class);
-        doTestGetAdministratorOverride();
-    }
-
-    public void doTestGetAdministratorOverride() throws Exception {
+    public void testGetAdministratorOverride() {
         NuxeoPrincipal principal = userManager.getPrincipal("tehroot");
         assertNotNull(principal);
         assertTrue(principal.isAdministrator());
@@ -143,7 +133,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testGetVirtualUsers() throws Exception {
+    public void testGetVirtualUsers() {
         NuxeoPrincipal principal = userManager.getPrincipal("ClassicAdministrator");
         assertNotNull(principal);
         assertEquals("ClassicAdministrator", principal.getName());
@@ -185,11 +175,11 @@ public class TestUserManager extends UserManagerTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/userservice-override-config.xml")
-    public void testGetVirtualUsersOverride() throws Exception {
+    public void testGetVirtualUsersOverride() {
         doTestGetVirtualUsersOverride();
     }
 
-    public void doTestGetVirtualUsersOverride() throws Exception {
+    public void doTestGetVirtualUsersOverride() {
         NuxeoPrincipal principal = userManager.getPrincipal("ClassicAdministrator");
         assertNotNull(principal);
         assertEquals("ClassicAdministrator", principal.getName());
@@ -230,29 +220,29 @@ public class TestUserManager extends UserManagerTestCase {
     @Test
     public void testGetAdministratorGroups() {
         List<String> adminGroups = userManager.getAdministratorsGroups();
-        assertEquals(Collections.singletonList("administrators"), adminGroups);
+        assertEquals(List.of("administrators"), adminGroups);
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/userservice-override-config.xml")
-    public void testGetAdministratorGroupsOverride() throws Exception {
+    public void testGetAdministratorGroupsOverride() {
         doTestGetAdministratorGroupsOverride();
     }
 
-    public void doTestGetAdministratorGroupsOverride() throws Exception {
+    public void doTestGetAdministratorGroupsOverride() {
         List<String> adminGroups = userManager.getAdministratorsGroups();
-        assertEquals(Collections.singletonList("myAdministrators"), adminGroups);
+        assertEquals(List.of("myAdministrators"), adminGroups);
     }
 
     @Test
-    public void testSearchAnonymous() throws Exception {
+    public void testSearchAnonymous() {
         DocumentModelList users;
         DocumentModel principal;
 
         users = userManager.searchUsers("Gu");
         assertEquals(1, users.size());
 
-        principal = users.get(0);
+        principal = users.getFirst();
         assertEquals("Guest", principal.getId());
         assertEquals("Anonymous", principal.getProperty("user", "firstName"));
         assertEquals("Coward", principal.getProperty("user", "lastName"));
@@ -263,7 +253,7 @@ public class TestUserManager extends UserManagerTestCase {
         users = userManager.searchUsers(filter, filter.keySet());
         assertEquals(1, users.size());
 
-        principal = users.get(0);
+        principal = users.getFirst();
         assertEquals("Guest", principal.getId());
 
         // with a non-matching criterion
@@ -277,7 +267,7 @@ public class TestUserManager extends UserManagerTestCase {
         users = userManager.searchUsers(filter, filter.keySet());
         assertEquals(1, users.size());
 
-        principal = users.get(0);
+        principal = users.getFirst();
         assertEquals("Guest", principal.getId());
 
         // now add another non-Anonymous user that matches the same query
@@ -298,7 +288,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testSearchAnonymousWithQueryBuilder() throws Exception {
+    public void testSearchAnonymousWithQueryBuilder() {
         QueryBuilder queryBuilder;
         DocumentModelList users;
 
@@ -366,7 +356,7 @@ public class TestUserManager extends UserManagerTestCase {
         assertEquals(-2, users.totalSize());
     }
 
-    public void deleteTestObjects() throws Exception {
+    public void deleteTestObjects() {
         List<String> users = userManager.getUserIds();
         List<String> groups = userManager.getGroupIds();
         for (String user : users) {
@@ -384,7 +374,7 @@ public class TestUserManager extends UserManagerTestCase {
     // resource-intensive test, disabled by default
     @Test
     @Ignore
-    public void testMemoryLeak() throws Exception {
+    public void testMemoryLeak() {
         deleteTestObjects();
         DocumentModel userModel = getUser("test_usr0");
         userManager.createUser(userModel);
@@ -395,7 +385,7 @@ public class TestUserManager extends UserManagerTestCase {
             String userName = "test_u" + i;
             userModel = getUser(userName);
             userModel.setProperty("user", "username", userName);
-            userModel.setProperty("user", "groups", Collections.singletonList("test_grp0"));
+            userModel.setProperty("user", "groups", List.of("test_grp0"));
             userManager.createUser(userModel);
         }
 
@@ -416,7 +406,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testCreatePrincipal() throws Exception {
+    public void testCreatePrincipal() {
         deleteTestObjects();
         // force User Directory initialization first - so that the sql script
         // executes
@@ -429,13 +419,10 @@ public class TestUserManager extends UserManagerTestCase {
 
         assertNotNull(g1);
 
-        List<String> groupNames = Collections.singletonList("test_g1");
-        List<String> groupNamesWithDefault = Arrays.asList("defgr", "test_g1");
-        List<String> roleNames = Collections.singletonList("regular");
         user.setProperty("user", "firstName", "fname1");
         user.setProperty("user", "lastName", "lname1");
         user.setProperty("user", "company", "company1");
-        user.setProperty("user", "groups", groupNames);
+        user.setProperty("user", "groups", List.of("test_g1"));
 
         userManager.createUser(user);
 
@@ -448,20 +435,15 @@ public class TestUserManager extends UserManagerTestCase {
 
         List<String> groups = newPrincipal.getGroups();
         Collections.sort(groups);
-        assertEquals(groupNamesWithDefault, groups);
-        assertEquals(roleNames, newPrincipal.getRoles());
+        assertEquals(List.of("defgr", "test_g1"), groups); // default group is added by userManager
+        assertEquals(List.of("regular"), newPrincipal.getRoles());
         assertEquals("test_u1", newPrincipal.getName());
 
-        try {
-            userManager.createUser(user);
-            fail("Should have raised UserAlreadyExistsException");
-        } catch (UserAlreadyExistsException e) {
-            // ok
-        }
+        assertThrows(UserAlreadyExistsException.class, () -> userManager.createUser(user));
     }
 
     @Test
-    public void testCreateGroup() throws Exception {
+    public void testCreateGroup() {
         deleteTestObjects();
         DocumentModel u1 = getUser("test_u1");
         DocumentModel u2 = getUser("test_u2");
@@ -473,9 +455,9 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g3 = getGroup("test_g3");
         g3.setPropertyValue("group:grouplabel", "test_g3_label");
 
-        List<String> g1Users = Collections.singletonList("test_u1");
-        List<String> g2Users = Arrays.asList("test_u1", "test_u2");
-        List<String> g2Groups = Collections.singletonList("test_g1");
+        List<String> g1Users = List.of("test_u1");
+        List<String> g2Users = List.of("test_u1", "test_u2");
+        List<String> g2Groups = List.of("test_g1");
 
         g1.setProperty("group", "members", g1Users);
         userManager.createGroup(g1);
@@ -506,49 +488,40 @@ public class TestUserManager extends UserManagerTestCase {
         assertEquals(g2Groups, newG2.getMemberGroups());
 
         // try to create the group again and test if an exception is thrown
-        try {
-            userManager.createGroup(g1);
-            fail("Should have raised GroupAlreadyExistsException");
-        } catch (GroupAlreadyExistsException e) {
-            // ok
-        }
+        assertThrows(GroupAlreadyExistsException.class, () -> userManager.createGroup(g1));
     }
 
     @Test
-    public void testGetTopLevelGroups() throws Exception {
+    public void testGetTopLevelGroups() {
         deleteTestObjects();
 
         DocumentModel g1 = getGroup("test_g1");
         DocumentModel g2 = getGroup("test_g2");
 
-        List<String> g2Groups = Collections.singletonList("test_g1");
+        List<String> g2Groups = List.of("test_g1");
 
         userManager.createGroup(g1);
         g2.setProperty("group", "subGroups", g2Groups);
         userManager.createGroup(g2);
 
-        List<String> expectedTopLevelGroups = Arrays.asList("administrators", "members", "powerusers", "test_g2");
         List<String> topLevelGroups = userManager.getTopLevelGroups();
         Collections.sort(topLevelGroups);
-
-        assertEquals(expectedTopLevelGroups, topLevelGroups);
+        assertEquals(List.of("administrators", "members", "powerusers", "test_g2"), topLevelGroups);
 
         // delete test_g2 and test if test_g1 is toplevel
         userManager.deleteGroup(g2);
-        expectedTopLevelGroups = Arrays.asList("administrators", "members", "powerusers", "test_g1");
         topLevelGroups = userManager.getTopLevelGroups();
         Collections.sort(topLevelGroups);
-        assertEquals(expectedTopLevelGroups, topLevelGroups);
+        assertEquals(List.of("administrators", "members", "powerusers", "test_g1"), topLevelGroups);
 
         // re-create g2 as a parent of g1
         // test if g1 is not top-level and g2 is
-        g2Groups = Collections.singletonList("test_g1");
+        g2Groups = List.of("test_g1");
         g2.setProperty("group", "subGroups", g2Groups);
         userManager.createGroup(g2);
-        expectedTopLevelGroups = Arrays.asList("administrators", "members", "powerusers", "test_g2");
         topLevelGroups = userManager.getTopLevelGroups();
         Collections.sort(topLevelGroups);
-        assertEquals(expectedTopLevelGroups, topLevelGroups);
+        assertEquals(List.of("administrators", "members", "powerusers", "test_g2"), topLevelGroups);
     }
 
     /**
@@ -556,7 +529,7 @@ public class TestUserManager extends UserManagerTestCase {
      * ones).
      */
     @Test
-    public void testGetUsersInGroup() throws Exception {
+    public void testGetUsersInGroup() {
         deleteTestObjects();
 
         DocumentModel u1 = getUser("test_u1");
@@ -569,10 +542,10 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g1 = getGroup("test_g1");
         DocumentModel g2 = getGroup("test_g2");
 
-        List<String> g1Users = Collections.singletonList("test_u1");
-        List<String> g2Users = Arrays.asList("test_u2", "test_u2bis");
+        List<String> g1Users = List.of("test_u1");
+        List<String> g2Users = List.of("test_u2", "test_u2bis");
 
-        List<String> g2Groups = Collections.singletonList("test_g1");
+        List<String> g2Groups = List.of("test_g1");
 
         g1.setProperty("group", "members", g1Users);
         userManager.createGroup(g1);
@@ -580,12 +553,8 @@ public class TestUserManager extends UserManagerTestCase {
         g2.setProperty("group", "subGroups", g2Groups);
         userManager.createGroup(g2);
 
-        List<String> expectedUsersInGroup1 = Collections.singletonList("test_u1");
-        List<String> expectedUsersInGroup2 = Arrays.asList("test_u2bis", "test_u2");
-        Collections.sort(expectedUsersInGroup1);
-        Collections.sort(expectedUsersInGroup2);
-        assertEquals(expectedUsersInGroup1, userManager.getUsersInGroup("test_g1"));
-        assertEquals(expectedUsersInGroup2, userManager.getUsersInGroup("test_g2"));
+        assertEquals(List.of("test_u1"), userManager.getUsersInGroup("test_g1"));
+        assertEquals(List.of("test_u2", "test_u2bis"), userManager.getUsersInGroup("test_g2"));
     }
 
     /**
@@ -593,12 +562,12 @@ public class TestUserManager extends UserManagerTestCase {
      * subgroups.
      */
     @Test
-    public void testGetUsersInGroupAndSubgroups() throws Exception {
+    public void testGetUsersInGroupAndSubgroups() {
         deleteTestObjects();
 
         // G2 = (u2,u2bis)
         // |->G1 = (u1)
-        //    |->G3 = (u3)
+        // |->G3 = (u3)
 
         DocumentModel u1 = getUser("test_u1");
         DocumentModel u2 = getUser("test_u2");
@@ -613,11 +582,11 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g2 = getGroup("test_g2");
         DocumentModel g3 = getGroup("test_g3");
 
-        List<String> g1Users = Collections.singletonList("test_u1");
-        List<String> g1Groups = Collections.singletonList("test_g3");
-        List<String> g2Users = Arrays.asList("test_u2", "test_u2bis");
-        List<String> g2Groups = Collections.singletonList("test_g1");
-        List<String> g3Users = Collections.singletonList("test_u3");
+        List<String> g1Users = List.of("test_u1");
+        List<String> g1Groups = List.of("test_g3");
+        List<String> g2Users = List.of("test_u2", "test_u2bis");
+        List<String> g2Groups = List.of("test_g1");
+        List<String> g3Users = List.of("test_u3");
 
         g1.setProperty("group", "members", g1Users);
         g1.setProperty("group", "subGroups", g1Groups);
@@ -628,18 +597,14 @@ public class TestUserManager extends UserManagerTestCase {
         g3.setProperty("group", "members", g3Users);
         userManager.createGroup(g3);
 
-        List<String> expectedUsersInGroup1 = Arrays.asList("test_u1", "test_u3");
         List<String> usersInGroupAndSubGroups1 = userManager.getUsersInGroupAndSubGroups("test_g1");
-        Collections.sort(expectedUsersInGroup1);
         Collections.sort(usersInGroupAndSubGroups1);
-        assertEquals(expectedUsersInGroup1, usersInGroupAndSubGroups1);
+        assertEquals(List.of("test_u1", "test_u3"), usersInGroupAndSubGroups1);
 
         // should have all the groups from group1 and group2
-        List<String> expectedUsersInGroup2 = Arrays.asList("test_u2bis", "test_u2", "test_u1", "test_u3");
         List<String> usersInGroupAndSubGroups2 = userManager.getUsersInGroupAndSubGroups("test_g2");
-        Collections.sort(expectedUsersInGroup2);
         Collections.sort(usersInGroupAndSubGroups2);
-        assertEquals(expectedUsersInGroup2, usersInGroupAndSubGroups2);
+        assertEquals(List.of("test_u1", "test_u2", "test_u2bis", "test_u3"), usersInGroupAndSubGroups2);
     }
 
     /**
@@ -647,7 +612,7 @@ public class TestUserManager extends UserManagerTestCase {
      * also parent of a group.
      */
     @Test
-    public void testGetUsersInGroupAndSubgroupsWithoutInfiniteLoop() throws Exception {
+    public void testGetUsersInGroupAndSubgroupsWithoutInfiniteLoop() {
         deleteTestObjects();
 
         DocumentModel u1 = getUser("test_u1");
@@ -660,11 +625,11 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g1 = getGroup("test_g1");
         DocumentModel g2 = getGroup("test_g2");
 
-        List<String> g1Users = Collections.singletonList("test_u1");
-        List<String> g2Users = Arrays.asList("test_u2", "test_u2bis");
-        List<String> g2Groups = Collections.singletonList("test_g1");
+        List<String> g1Users = List.of("test_u1");
+        List<String> g2Users = List.of("test_u2", "test_u2bis");
+        List<String> g2Groups = List.of("test_g1");
         // group1 is also a subgroup of group2
-        List<String> g1Groups = Collections.singletonList("test_g2");
+        List<String> g1Groups = List.of("test_g2");
 
         g1.setProperty("group", "members", g1Users);
         g1.setProperty("group", "subGroups", g1Groups);
@@ -673,20 +638,19 @@ public class TestUserManager extends UserManagerTestCase {
         g2.setProperty("group", "subGroups", g2Groups);
         userManager.createGroup(g2);
 
-        List<String> expectedUsersInGroup2 = Arrays.asList("test_u2bis", "test_u2", "test_u1");
         // infinite loop can occur here:
         List<String> usersInGroupAndSubGroups2 = userManager.getUsersInGroupAndSubGroups("test_g2");
-        Collections.sort(expectedUsersInGroup2);
         Collections.sort(usersInGroupAndSubGroups2);
-        assertEquals(expectedUsersInGroup2, usersInGroupAndSubGroups2);
+        assertEquals(List.of("test_u1", "test_u2", "test_u2bis"), usersInGroupAndSubGroups2);
 
         // and here
         List<String> g1AncestorGroups = userManager.getAncestorGroups("test_g1");
-        assertTrue(CollectionUtils.isEqualCollection(Arrays.asList("test_g2", "test_g1"), g1AncestorGroups));
+        Collections.sort(g1AncestorGroups);
+        assertEquals(List.of("test_g1", "test_g2"), g1AncestorGroups);
     }
 
     @Test
-    public void testDeletePrincipal() throws Exception {
+    public void testDeletePrincipal() {
         deleteTestObjects();
         DocumentModel user = getUser("test_u1");
         userManager.createUser(user);
@@ -695,16 +659,12 @@ public class TestUserManager extends UserManagerTestCase {
         assertNull(userManager.getPrincipal("test_u1"));
 
         // try to delete the principal twice
-        try {
-            userManager.deleteUser(user);
-            fail();
-        } catch (DirectoryException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("User does not exist: test_u1"));
-        }
+        var e = assertThrows(DirectoryException.class, () -> userManager.deleteUser(user));
+        assertTrue(e.getMessage(), e.getMessage().contains("User does not exist: test_u1"));
     }
 
     @Test
-    public void testDeleteGroup() throws Exception {
+    public void testDeleteGroup() {
         deleteTestObjects();
         DocumentModel group = getGroup("test_g1");
         userManager.createGroup(group);
@@ -713,16 +673,12 @@ public class TestUserManager extends UserManagerTestCase {
         assertNull(userManager.getGroup("test_g1"));
 
         // try to delete the group twice
-        try {
-            userManager.deleteGroup(group);
-            fail();
-        } catch (DirectoryException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("Group does not exist: test_g1"));
-        }
+        var e = assertThrows(DirectoryException.class, () -> userManager.deleteGroup(group));
+        assertTrue(e.getMessage(), e.getMessage().contains("Group does not exist: test_g1"));
     }
 
     @Test
-    public void testSearchUser() throws Exception {
+    public void testSearchUser() {
         assertEquals(0, userManager.searchUsers("test").size());
 
         DocumentModel doc = getUser("test");
@@ -750,7 +706,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testSearchUsersWithQueryBuilder() throws Exception {
+    public void testSearchUsersWithQueryBuilder() {
         QueryBuilder queryBuilder;
         DocumentModelList users;
 
@@ -771,8 +727,7 @@ public class TestUserManager extends UserManagerTestCase {
                                          .countTotal(true);
         // search all
         users = userManager.searchUsers(queryBuilder);
-        assertEquals(Arrays.asList("Administrator", "Alfred", "Arthur"),
-                users.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("Administrator", "Alfred", "Arthur"), users.stream().map(DocumentModel::getId).toList());
         assertEquals(3, users.totalSize());
         // same without counting total
         queryBuilder.countTotal(false);
@@ -783,17 +738,17 @@ public class TestUserManager extends UserManagerTestCase {
         // with limit/offset
         queryBuilder.limit(1).offset(1).countTotal(true);
         users = userManager.searchUsers(queryBuilder);
-        assertEquals(Arrays.asList("Alfred"), users.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("Alfred"), users.stream().map(DocumentModel::getId).toList());
         assertEquals(3, users.totalSize());
         // same without counting total
         queryBuilder.countTotal(false);
         users = userManager.searchUsers(queryBuilder);
-        assertEquals(Arrays.asList("Alfred"), users.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("Alfred"), users.stream().map(DocumentModel::getId).toList());
         assertEquals(-2, users.totalSize());
     }
 
     @Test
-    public void testSearchGroupsWithQueryBuilder() throws Exception {
+    public void testSearchGroupsWithQueryBuilder() {
         QueryBuilder queryBuilder;
         DocumentModelList groups;
 
@@ -811,8 +766,8 @@ public class TestUserManager extends UserManagerTestCase {
         groups = userManager.searchGroups(queryBuilder);
         assertEquals(4, groups.size());
         assertEquals(4, groups.totalSize());
-        assertEquals(Arrays.asList("administrators", "g1", "members", "powerusers"),
-                groups.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("administrators", "g1", "members", "powerusers"),
+                groups.stream().map(DocumentModel::getId).toList());
 
         // match 3 groups (not g1)
         queryBuilder = new QueryBuilder().predicate(Predicates.like("groupname", "%r%"))
@@ -822,8 +777,8 @@ public class TestUserManager extends UserManagerTestCase {
         groups = userManager.searchGroups(queryBuilder);
         assertEquals(3, groups.size());
         assertEquals(3, groups.totalSize());
-        assertEquals(Arrays.asList("administrators", "members", "powerusers"),
-                groups.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("administrators", "members", "powerusers"),
+                groups.stream().map(DocumentModel::getId).toList());
         // same without counting total
         queryBuilder.countTotal(false);
         groups = userManager.searchGroups(queryBuilder);
@@ -835,7 +790,7 @@ public class TestUserManager extends UserManagerTestCase {
         groups = userManager.searchGroups(queryBuilder);
         assertEquals(1, groups.size());
         assertEquals(3, groups.totalSize());
-        assertEquals(Arrays.asList("members"), groups.stream().map(DocumentModel::getId).collect(toList()));
+        assertEquals(List.of("members"), groups.stream().map(DocumentModel::getId).toList());
         // same without counting total
         queryBuilder.countTotal(false);
         groups = userManager.searchGroups(queryBuilder);
@@ -844,7 +799,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testUpdatePrincipal() throws Exception {
+    public void testUpdatePrincipal() {
         deleteTestObjects();
         NuxeoPrincipal u1 = new NuxeoPrincipalImpl("test_u1");
         u1.setFirstName("fname1");
@@ -861,15 +816,14 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g3 = getGroup("test_g3");
         g3 = userManager.createGroup(g3);
 
-        u1Model.setProperty("user", "groups", Arrays.asList("test_g1", "test_g2"));
+        u1Model.setProperty("user", "groups", List.of("test_g1", "test_g2"));
         userManager.updateUser(u1Model);
 
         // refresh u1
         u1 = userManager.getPrincipal("test_u1");
-        List<String> expectedGroups = Arrays.asList("defgr", "test_g1", "test_g2");
         List<String> groups = u1.getGroups();
         Collections.sort(groups);
-        assertEquals(expectedGroups, groups);
+        assertEquals(List.of("defgr", "test_g1", "test_g2"), groups);
 
         u1.setFirstName("fname2");
         u1.setLastName("lname2");
@@ -890,7 +844,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testUpdateGroupLabel() throws Exception {
+    public void testUpdateGroupLabel() {
         deleteTestObjects();
 
         DocumentModel groupModel = getGroup("test_g");
@@ -909,7 +863,7 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
-    public void testUpdateGroup() throws Exception {
+    public void testUpdateGroup() {
         deleteTestObjects();
         // setup group g
         DocumentModel u1 = getUser("test_u1");
@@ -928,35 +882,28 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel g3 = getGroup("test_g3");
         userManager.createGroup(g3);
 
-        List<String> gUsers = Arrays.asList("test_u1", "test_u2");
-        List<String> gGroups = Arrays.asList("test_g1", "test_g2");
-
         DocumentModel g = getGroup("test_g");
-        g.setProperty("group", "members", gUsers);
-        g.setProperty("group", "subGroups", gGroups);
+        g.setProperty("group", "members", List.of("test_u1", "test_u2"));
+        g.setProperty("group", "subGroups", List.of("test_g1", "test_g2"));
         g = userManager.createGroup(g);
 
         // update group g
-        gUsers = new ArrayList<>(Arrays.asList("test_u1", "test_u3"));
-        gGroups = new ArrayList<>(Arrays.asList("test_g1", "test_g3"));
-        g.setProperty("group", "members", gUsers);
-        g.setProperty("group", "subGroups", gGroups);
+        g.setProperty("group", "members", List.of("test_u1", "test_u3"));
+        g.setProperty("group", "subGroups", List.of("test_g1", "test_g3"));
         userManager.updateGroup(g);
 
         // check new group
         NuxeoGroup newG = userManager.getGroup("test_g");
-        List<String> newGUsers = Arrays.asList("test_u1", "test_u3");
-        List<String> newGGroups = Arrays.asList("test_g1", "test_g3");
         List<String> actualUsers = newG.getMemberUsers();
         Collections.sort(actualUsers);
-        assertEquals(newGUsers, actualUsers);
+        assertEquals(List.of("test_u1", "test_u3"), actualUsers);
         List<String> actualGroups = newG.getMemberGroups();
         Collections.sort(actualGroups);
-        assertEquals(newGGroups, actualGroups);
+        assertEquals(List.of("test_g1", "test_g3"), actualGroups);
     }
 
     @Test
-    public void testGetPrincipalWithoutReferences() throws Exception {
+    public void testGetPrincipalWithoutReferences() {
         DocumentModel u1 = getUser("user1");
         userManager.createUser(u1);
         DocumentModel g1 = getGroup("group1");
@@ -1008,7 +955,7 @@ public class TestUserManager extends UserManagerTestCase {
         // searchUsers
         List<DocumentModel> docs = userManager.searchUsers("Administrator");
         assertEquals(1, docs.size());
-        doc = docs.get(0);
+        doc = docs.getFirst();
         password = (String) doc.getProperty("user", "password");
         assertNull(password);
     }
@@ -1016,7 +963,7 @@ public class TestUserManager extends UserManagerTestCase {
     /**
      * common init method for initialising tests for the method getUsernamesForPermission.
      */
-    private void initTestGetUsernamesForPermission() throws Exception {
+    private void initTestGetUsernamesForPermission() {
         userManager.getPrincipal("Administrator"); // creates tables
         deleteTestObjects();
         userManager.createUser(getUser("alex"));
@@ -1024,22 +971,20 @@ public class TestUserManager extends UserManagerTestCase {
         userManager.createUser(getUser("jdoe"));
         userManager.createUser(getUser("stef"));
 
-        List<String> g1Users = Arrays.asList("alex", "stef");
+        // group1 has alex and stef as members
         DocumentModel g1 = getGroup("group1");
-        g1.setProperty("group", "members", g1Users);
+        g1.setProperty("group", "members", List.of("alex", "stef"));
         userManager.createGroup(g1);
 
-        List<String> g2Users = Arrays.asList("alex", "bree");
+        // group2 has alex and bree as members
         DocumentModel g2 = getGroup("group2");
-        g2.setProperty("group", "members", g2Users);
+        g2.setProperty("group", "members", List.of("alex", "bree"));
         userManager.createGroup(g2);
 
-        // group3 has jdoe and a subgroup: g2
-        List<String> g3Users = Collections.singletonList("jdoe");
-        List<String> g3SubGroups = Collections.singletonList("group2");
+        // group3 has jdoe as members and a subgroup: g2
         DocumentModel g3 = getGroup("group3");
-        g3.setProperty("group", "members", g3Users);
-        g3.setProperty("group", "subGroups", g3SubGroups);
+        g3.setProperty("group", "members", List.of("jdoe"));
+        g3.setProperty("group", "subGroups", List.of("group2"));
         userManager.createGroup(g3);
     }
 
@@ -1047,7 +992,7 @@ public class TestUserManager extends UserManagerTestCase {
      * Testing the method getUsernamesForPermission for a simple case.
      */
     @Test
-    public void testGetUsernamesForPermission() throws Exception {
+    public void testGetUsernamesForPermission() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1057,20 +1002,16 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("alex", SecurityConstants.READ, true));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
-
-        List<String> expectedUsers = Arrays.asList("Administrator", "alex", "jdoe", "bree");
+        List<String> users = new ArrayList<>(List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp)));
         Collections.sort(users);
-        Collections.sort(expectedUsers);
-
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        assertEquals("Expected users having read access are ", List.of("Administrator", "alex", "bree", "jdoe"), users);
     }
 
     /**
      * Testing the method getUsernamesForPermission for a simple case.
      */
     @Test
-    public void testGetUsernamesForPermission2() throws Exception {
+    public void testGetUsernamesForPermission2() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1080,20 +1021,16 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("alex", SecurityConstants.READ, true));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
+        List<String> users = List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp));
 
-        List<String> expectedUsers = Collections.singletonList("alex");
-        Collections.sort(users);
-        Collections.sort(expectedUsers);
-
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        assertEquals("Expected users having read access are ", List.of("alex"), users);
     }
 
     /**
      * Same test as before but without the first ace (default value: everyone, everything false).
      */
     @Test
-    public void testGetUsernamesForPermissionWithoutEveryoneEverythingACE() throws Exception {
+    public void testGetUsernamesForPermissionWithoutEveryoneEverythingACE() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1103,20 +1040,16 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("alex", SecurityConstants.READ, true));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
+        List<String> users = List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp));
 
-        List<String> expectedUsers = Collections.singletonList("alex");
-        Collections.sort(users);
-        Collections.sort(expectedUsers);
-
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        assertEquals("Expected users having read access are ", List.of("alex"), users);
     }
 
     /**
      * Testing getUsernamesForPermission with a user in 2 groups.
      */
     @Test
-    public void testGetUsernamesForPermissionIn2Groups() throws Exception {
+    public void testGetUsernamesForPermissionIn2Groups() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1126,23 +1059,17 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("group1", SecurityConstants.READ, true));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
-
-        // Should contain alex and stef (in group1) and jdoe (in none of these
-        // groups) but not bree (in group2)
-
-        List<String> expectedUsers = Arrays.asList("Administrator", "alex", "stef", "jdoe");
+        List<String> users = new ArrayList<>(List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp)));
         Collections.sort(users);
-        Collections.sort(expectedUsers);
-
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        // Should contain alex and stef (in group1) and jdoe (in none of these groups) but not bree (in group2)
+        assertEquals("Expected users having read access are ", List.of("Administrator", "alex", "jdoe", "stef"), users);
     }
 
     /**
      * Testing getUsernamesForPermission with compound permission. For example, READ_WRITE contains READ.
      */
     @Test
-    public void testGetUsernamesForPermissionWithCompoundPermission() throws Exception {
+    public void testGetUsernamesForPermissionWithCompoundPermission() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1152,21 +1079,17 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("group1", SecurityConstants.READ, true));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
-        // Should contain alex and stef (in group1) and jdoe (in none of these
-        // groups) but not bree (in group2)
-        List<String> expectedUsers = Arrays.asList("Administrator", "alex", "stef", "jdoe");
+        List<String> users = new ArrayList<>(List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp)));
         Collections.sort(users);
-        Collections.sort(expectedUsers);
-
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        // Should contain alex and stef (in group1) and jdoe (in none of these groups) but not bree (in group2)
+        assertEquals("Expected users having read access are ", List.of("Administrator", "alex", "jdoe", "stef"), users);
     }
 
     /**
      * Testing getUsernamesForPermission with a ACP having more than one ACL
      */
     @Test
-    public void testGetUsernamesForPermissionWithMultipleACL() throws Exception {
+    public void testGetUsernamesForPermissionWithMultipleACL() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1179,20 +1102,18 @@ public class TestUserManager extends UserManagerTestCase {
         acl2.add(new ACE("group1", SecurityConstants.READ, true));
         acp.addACL(acl2);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
+        List<String> users = new ArrayList<>(List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp)));
+        Collections.sort(users);
         // Should contain stef (in group1) and jdoe (in none of these
         // groups) but not bree (in group2) neither alex (in group1 and group2)
-        List<String> expectedUsers = Arrays.asList("Administrator", "stef", "jdoe");
-        Collections.sort(users);
-        Collections.sort(expectedUsers);
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        assertEquals("Expected users having read access are ", List.of("Administrator", "jdoe", "stef"), users);
     }
 
     /**
      * Testing getUsernamesForPermission with subgroups.
      */
     @Test
-    public void testGetUsernamesForPermissionWithSubGroups() throws Exception {
+    public void testGetUsernamesForPermissionWithSubGroups() {
         initTestGetUsernamesForPermission();
 
         ACPImpl acp = new ACPImpl();
@@ -1201,16 +1122,14 @@ public class TestUserManager extends UserManagerTestCase {
         acl.add(new ACE("group1", SecurityConstants.READ, false));
         acp.addACL(acl);
 
-        List<String> users = Arrays.asList(userManager.getUsersForPermission(SecurityConstants.READ, acp));
-        // group3 and group2 but alex should have read access
-        List<String> expectedUsers = Arrays.asList("bree", "jdoe");
+        List<String> users = new ArrayList<>(List.of(userManager.getUsersForPermission(SecurityConstants.READ, acp)));
         Collections.sort(users);
-        Collections.sort(expectedUsers);
-        assertEquals("Expected users having read access are ", expectedUsers, users);
+        // group3 and group2 but alex should have read access
+        assertEquals("Expected users having read access are ", List.of("bree", "jdoe"), users);
     }
 
     @Test
-    public void testUsersAndGroupsWithSpaces() throws Exception {
+    public void testUsersAndGroupsWithSpaces() {
 
         String userNameWithSpaces = " test_u1 ";
         String groupNameWithSpaces = " test_g1 ";
@@ -1219,22 +1138,21 @@ public class TestUserManager extends UserManagerTestCase {
         DocumentModel u1 = getUser(userNameWithSpaces);
         u1 = userManager.createUser(u1);
 
-        assertTrue(userManager.searchUsers(userNameWithSpaces).size() == 1);
+        assertEquals(1, userManager.searchUsers(userNameWithSpaces).size());
         assertNotNull(userManager.getUserModel(userNameWithSpaces));
 
-        assertTrue(userManager.searchUsers(userNameWithSpaces.trim()).size() == 1);
+        assertEquals(1, userManager.searchUsers(userNameWithSpaces.trim()).size());
         assertNotNull(userManager.getUserModel(userNameWithSpaces.trim()));
 
         DocumentModel g1 = getGroup(groupNameWithSpaces);
 
-        List<String> g1Users = Collections.singletonList(u1.getId());
-        g1.setProperty("group", "members", g1Users);
+        g1.setProperty("group", "members", List.of(u1.getId()));
         g1 = userManager.createGroup(g1);
 
-        assertTrue(userManager.searchGroups(groupNameWithSpaces).size() == 1);
+        assertEquals(1, userManager.searchGroups(groupNameWithSpaces).size());
         assertNotNull(userManager.getGroup(groupNameWithSpaces));
 
-        assertTrue(userManager.searchGroups(groupNameWithSpaces.trim()).size() == 1);
+        assertEquals(1, userManager.searchGroups(groupNameWithSpaces.trim()).size());
         assertNotNull(userManager.getGroup(groupNameWithSpaces.trim()));
 
         NuxeoPrincipal up1 = userManager.getPrincipal(userNameWithSpaces);
@@ -1372,40 +1290,41 @@ public class TestUserManager extends UserManagerTestCase {
      * </pre>
      */
     @Test
-    public void testAncestorGroups() throws Exception {
+    public void testAncestorGroups() {
         DocumentModel groupABCD = getGroup("ABCD");
         userManager.createGroup(groupABCD);
 
         DocumentModel groupAB = getGroup("AB");
-        groupAB.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("ABCD"));
+        groupAB.setPropertyValue("group:subGroups", (Serializable) List.of("ABCD"));
         userManager.createGroup(groupAB);
 
         DocumentModel groupCD = getGroup("CD");
-        groupCD.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("ABCD"));
+        groupCD.setPropertyValue("group:subGroups", (Serializable) List.of("ABCD"));
         userManager.createGroup(groupCD);
 
         DocumentModel groupA = getGroup("A");
-        groupA.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("AB"));
+        groupA.setPropertyValue("group:subGroups", (Serializable) List.of("AB"));
         userManager.createGroup(groupA);
 
         DocumentModel groupB = getGroup("B");
-        groupB.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("AB"));
+        groupB.setPropertyValue("group:subGroups", (Serializable) List.of("AB"));
         userManager.createGroup(groupB);
 
         DocumentModel groupC = getGroup("C");
-        groupC.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("CD"));
+        groupC.setPropertyValue("group:subGroups", (Serializable) List.of("CD"));
         userManager.createGroup(groupC);
 
         DocumentModel groupD = getGroup("D");
-        groupD.setPropertyValue("group:subGroups", (Serializable) Collections.singletonList("CD"));
+        groupD.setPropertyValue("group:subGroups", (Serializable) List.of("CD"));
         userManager.createGroup(groupD);
 
-        assertTrue(CollectionUtils.isEqualCollection(Arrays.asList("AB", "A", "B", "CD", "C", "D"),
-                userManager.getAncestorGroups("ABCD")));
+        List<String> ancestorGroups = userManager.getAncestorGroups("ABCD");
+        Collections.sort(ancestorGroups);
+        assertEquals(List.of("A", "AB", "B", "C", "CD", "D"), ancestorGroups);
     }
 
     @Test
-    public void testNuxeoPrincipalSerialization() throws Exception {
+    public void testNuxeoPrincipalSerialization() {
         String userId = "test";
         DocumentModel doc = getUser(userId);
         userManager.createUser(doc);
@@ -1426,28 +1345,28 @@ public class TestUserManager extends UserManagerTestCase {
             assertEquals(userId, principal.getName());
         } finally {
             // restore login stack
-            savedStack.forEach(p -> LoginComponent.pushPrincipal(p));
+            savedStack.forEach(LoginComponent::pushPrincipal);
         }
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-search-escape-compat-true.xml")
-    public void testGetQueryForPatternCompatTrue() throws Exception {
+    public void testGetQueryForPatternCompatTrue() {
         doTestGetQueryForPattern(true);
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-search-escape-compat-false.xml")
-    public void testGetQueryForPatternCompatFalse() throws Exception {
+    public void testGetQueryForPatternCompatFalse() {
         doTestGetQueryForPattern(false);
     }
 
     @Test
-    public void testGetQueryForPatternDefault() throws Exception {
+    public void testGetQueryForPatternDefault() {
         doTestGetQueryForPattern(false);
     }
 
-    protected void doTestGetQueryForPattern(boolean compat) throws Exception {
+    protected void doTestGetQueryForPattern(boolean compat) {
         String query;
 
         // basic query, directory configured for "subinitial" substring match type

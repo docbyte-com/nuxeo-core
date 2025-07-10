@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import static org.nuxeo.ecm.platform.usermanager.UserConfig.GROUPS_COLUMN;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,6 +39,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -616,7 +616,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         if (ret == null) {
             ret = getPrincipal(username, null);
             if (ret == null) {
-                return ret;
+                return null;
             }
             ((CacheManagement) principalCache).putLocal(username, ret);
         }
@@ -761,7 +761,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected OrderByExpr getUserOrderBy() {
-        String sortField = StringUtils.defaultString(userSortField, userIdField);
+        String sortField = StringUtils.defaultIfBlank(userSortField, userIdField);
         return OrderByExprs.asc(sortField);
     }
 
@@ -770,7 +770,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected OrderByExpr getGroupOrderBy() {
-        String sortField = StringUtils.defaultString(groupSortField, groupIdField);
+        String sortField = StringUtils.defaultIfBlank(groupSortField, groupIdField);
         return OrderByExprs.asc(sortField);
     }
 
@@ -973,20 +973,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                 if (fieldEntry.getValue() == MatchType.SUBSTRING) {
                     Directory dir = dirService.getDirectory(dirName);
                     SubstringMatchType substringMatchType = dir.getDescriptor().getSubstringMatchType();
-                    String value;
-                    switch (substringMatchType) {
-                        case subany:
-                            value = '%' + likePattern + '%';
-                            break;
-                        case subinitial:
-                            value = likePattern + '%';
-                            break;
-                        case subfinal:
-                            value = '%' + likePattern;
-                            break;
-                        default:
-                            throw new IllegalStateException(substringMatchType.toString());
-                    }
+                    String value = switch (substringMatchType) {
+                        case subany -> '%' + likePattern + '%';
+                        case subinitial -> likePattern + '%';
+                        case subfinal -> '%' + likePattern;
+                    };
                     predicate = Predicates.ilike(key, value);
                 } else { // MatchType.EXACT
                     predicate = Predicates.eq(key, pattern);
@@ -1049,7 +1040,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         List<String> permissions = new ArrayList<>();
         PermissionProvider permissionProvider = Framework.getService(PermissionProvider.class);
         String[] subpermissions = permissionProvider.getSubPermissions(perm);
-        if (subpermissions == null || subpermissions.length <= 0) {
+        if (ArrayUtils.isEmpty(subpermissions)) {
             // it's a leaf
             permissions.add(perm);
             return permissions;
@@ -1243,11 +1234,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected DocumentModel getUserModel(String userName, DocumentModel context, boolean fetchReferences) {
+        userName = StringUtils.trimToNull(userName);
         if (userName == null) {
             return null;
         }
 
-        userName = userName.trim();
         // return anonymous model
         if (anonymousUser != null && userName.equals(anonymousUser.getId())) {
             return makeVirtualUserEntry(getAnonymousUserId(), anonymousUser);
@@ -1520,11 +1511,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
             // Checking if the permission contains the permission we want to
             // check (we use the security service method for coumpound
             // permissions)
-            List<String> acePermissions = getLeafPermissions(ace.getPermission());
+            Set<String> acePermissions = new HashSet<>(getLeafPermissions(ace.getPermission()));
 
             // Everything is a special permission (not compound)
             if (SecurityConstants.EVERYTHING.equals(ace.getPermission())) {
-                acePermissions = Arrays.asList(permissionProvider.getPermissions());
+                acePermissions = Set.of(permissionProvider.getPermissions());
             }
 
             if (acePermissions.containsAll(currentPermissions)) {
