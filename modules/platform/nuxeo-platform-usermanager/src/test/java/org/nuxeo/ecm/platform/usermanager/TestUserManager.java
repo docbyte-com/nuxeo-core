@@ -1209,6 +1209,112 @@ public class TestUserManager extends UserManagerTestCase {
     }
 
     @Test
+    public void testTransientUsersCreation() {
+        String username = NuxeoPrincipal.computeTransientUsername("user1@hyland.com");
+        DocumentModel transientUser = getUser(username);
+        transientUser.setProperty("user", "firstName", "User");
+        transientUser.setProperty("user", "lastName", "One");
+        transientUser.setProperty("user", "company", "Hyland");
+        //
+        transientUser.setProperty("user", "groups", List.of("members", "ops"));
+        userManager.createUser(transientUser);
+
+        NuxeoPrincipal transientPrincipal = userManager.getPrincipal(username);
+        assertNotNull(transientPrincipal);
+        assertTrue(transientPrincipal.isTransient());
+        assertFalse(transientPrincipal.isAdministrator());
+        assertFalse(transientPrincipal.isAnonymous());
+        assertEquals(username, transientPrincipal.getName());
+        assertEquals("User", transientPrincipal.getFirstName());
+        assertEquals("One", transientPrincipal.getLastName());
+        assertEquals("Hyland", transientPrincipal.getCompany());
+        assertEquals(List.of("members", "ops"), transientPrincipal.getGroups()); // no default group on transient user
+        // check that ops is set as a virtual group
+        DocumentModel transientModel = transientPrincipal.getModel();
+        assertEquals(List.of("members"), transientModel.getProperty("user", "groups"));
+
+        assertThrows(UserAlreadyExistsException.class, () -> userManager.createUser(transientUser));
+
+        // check underlying storage
+        var transientUserMap = UserManagerImpl.getTransientDataStore().getAll(username);
+        assertNotNull(transientUserMap);
+        assertEquals(username, transientUserMap.get("username"));
+        assertEquals("User", transientUserMap.get("firstName"));
+        assertEquals("One", transientUserMap.get("lastName"));
+        assertEquals("Hyland", transientUserMap.get("company"));
+        assertEquals(List.of("members", "ops"), transientUserMap.get("groups"));
+    }
+
+    @Test
+    public void testTransientUsersUpdate() {
+        String username = NuxeoPrincipal.computeTransientUsername("user1@hyland.com");
+        NuxeoPrincipal transientPrincipal = new NuxeoPrincipalImpl(username);
+        assertTrue(transientPrincipal.isTransient());
+        assertFalse(transientPrincipal.isAdministrator());
+        assertFalse(transientPrincipal.isAnonymous());
+        DocumentModel transientUser = userManager.createUser(transientPrincipal.getModel());
+
+        transientUser.setProperty("user", "firstName", "User");
+        transientUser.setProperty("user", "lastName", "One");
+        transientUser.setProperty("user", "company", "Hyland");
+        userManager.updateUser(transientUser);
+
+        // refresh transientPrincipal
+        transientPrincipal = userManager.getPrincipal(username);
+        assertNotNull(transientPrincipal);
+        assertTrue(transientPrincipal.isTransient());
+        assertFalse(transientPrincipal.isAdministrator());
+        assertFalse(transientPrincipal.isAnonymous());
+        assertEquals(username, transientPrincipal.getName());
+        assertEquals("User", transientPrincipal.getFirstName());
+        assertEquals("One", transientPrincipal.getLastName());
+        assertEquals("Hyland", transientPrincipal.getCompany());
+
+        // check underlying storage
+        var transientUserMap = UserManagerImpl.getTransientDataStore().getAll(username);
+        assertNotNull(transientUserMap);
+        assertEquals(username, transientUserMap.get("username"));
+        assertEquals("User", transientUserMap.get("firstName"));
+        assertEquals("One", transientUserMap.get("lastName"));
+        assertEquals("Hyland", transientUserMap.get("company"));
+    }
+
+    @Test
+    public void testTransientUsersDeletion() {
+        String username = NuxeoPrincipal.computeTransientUsername("user1@hyland.com");
+        DocumentModel transientUser = getUser(username);
+        transientUser.setProperty("user", "firstName", "User");
+        userManager.createUser(transientUser);
+
+        NuxeoPrincipal transientPrincipal = userManager.getPrincipal(username);
+        assertNotNull(transientPrincipal);
+        assertEquals("User", transientPrincipal.getFirstName());
+
+        userManager.deleteUser(transientUser);
+        // deleting a transient user is deleting its data from storage, but we still get a principal
+        transientPrincipal = userManager.getPrincipal(username);
+        assertNotNull(transientPrincipal);
+        assertEquals("user1@hyland.com", transientPrincipal.getFirstName()); // see testTransientUsers
+
+        // check underlying storage
+        var transientUserMap = UserManagerImpl.getTransientDataStore().getAll(username);
+        assertNull(transientUserMap);
+
+        // try to delete the principal twice
+        var e = assertThrows(DirectoryException.class, () -> userManager.deleteUser(transientUser));
+        assertTrue(e.getMessage(), e.getMessage().contains("User does not exist: " + username));
+    }
+
+    @Test
+    public void testTransientUsersNotSearchable() {
+        String username = NuxeoPrincipal.computeTransientUsername("user1@hyland.com");
+        DocumentModel transientUser = getUser(username);
+        userManager.createUser(transientUser);
+
+        assertTrue("Transient users should not be searchable", userManager.searchUsers(username).isEmpty());
+    }
+
+    @Test
     public void testCacheAlter() {
         // Given we use a cache
         assertNotNull(((UserManagerImpl) userManager).principalCache);

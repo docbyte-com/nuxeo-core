@@ -31,9 +31,10 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.ts.RuntimeTransientDataStoreFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ RuntimeTransientDataStoreFeature.class, CoreFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/usermanager-inmemory-cache-config.xml")
