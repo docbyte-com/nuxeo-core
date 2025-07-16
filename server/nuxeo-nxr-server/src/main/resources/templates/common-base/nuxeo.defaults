@@ -119,6 +119,9 @@ nuxeo.picture.views.transaction.timeout.seconds=300
 # Explicit timeout for video generation
 nuxeo.video.transaction.timeout.seconds=600
 
+###
+# Collections
+nuxeo.collection.max.size=10000
 
 ###
 # Search Service
