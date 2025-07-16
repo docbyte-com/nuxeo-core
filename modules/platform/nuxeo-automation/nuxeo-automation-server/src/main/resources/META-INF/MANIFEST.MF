@@ -13,8 +13,7 @@ Nuxeo-Component: OSGI-INF/AutomationServer.xml,
  OSGI-INF/binding-contrib.xml,
  OSGI-INF/pageprovider-contrib.xml
 Nuxeo-AllowOverride: true
-Import-Package: net.sf.json,
- org.apache.commons.logging,
+Import-Package: org.apache.commons.logging,
  org.joda.time,
  org.joda.time.format,
  org.nuxeo.common.utils,
