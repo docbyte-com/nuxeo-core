@@ -119,8 +119,8 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
             if (descriptor.isDefault() || !repoToDefaultIndex.containsKey(repo)) {
                 var previousIndex = repoToDefaultIndex.put(repo, index.index());
                 if (previousIndex != null) {
-                    log.warn("The {} is overriding {} to be the default index for repository: {}", previousIndex, index,
-                            repo);
+                    log.warn("The index: {} is overriding the index: {} to be the default for the repository: {}",
+                            index.index(), previousIndex, repo);
                 }
             }
             indexToJsonWriter.put(index.index(), descriptor.newWriterInstance());
