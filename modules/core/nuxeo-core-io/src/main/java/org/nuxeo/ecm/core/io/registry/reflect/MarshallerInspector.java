@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -466,7 +466,7 @@ public class MarshallerInspector implements Comparable<MarshallerInspector> {
                     }
                 }
             }
-            // force sub classes to manage their priorities: StandardWriter > CustomWriter extends StandardWriter
+            // force subclasses to manage their priorities: StandardWriter > CustomWriter extends StandardWriter
             // let the reference implementations priority
             if (!clazz.equals(inspector.clazz)) {
                 if (clazz.isAssignableFrom(inspector.clazz)) {
@@ -476,7 +476,7 @@ public class MarshallerInspector implements Comparable<MarshallerInspector> {
                 }
             }
             // This is just optimization :
-            // priorise DocumentModel, Property
+            // prioritise DocumentModel, Property
             // then NuxeoPrincipal, NuxeoGroup and List<DocumentModel>
             if ((isWriter() && inspector.isWriter()) || (isReader() && inspector.isReader())) {
                 boolean mineIsTop = isTopPriority(genericType);

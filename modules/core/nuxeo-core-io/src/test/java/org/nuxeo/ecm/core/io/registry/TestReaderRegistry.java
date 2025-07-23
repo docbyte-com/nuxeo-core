@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.registry;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -48,7 +47,6 @@ import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 import org.nuxeo.ecm.core.io.registry.reflect.Supports;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -56,14 +54,13 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Features(CoreIOFeature.class)
 public class TestReaderRegistry {
 
-    private RenderingContext ctx;
+    private final RenderingContext ctx = RenderingContext.CtxBuilder.get();
 
+    @Inject
     private MarshallerRegistry registry;
 
     @Before
     public void setup() {
-        ctx = RenderingContext.CtxBuilder.get();
-        registry = Framework.getService(MarshallerRegistry.class);
         registry.clear();
     }
 
@@ -105,7 +102,7 @@ public class TestReaderRegistry {
     }
 
     @Test
-    public void prioriseSingletonToPerThreadToEachTime() {
+    public void prioritizeSingletonToPerThreadToEachTime() {
         registry.register(EachTimeReader.class);
         registry.register(PerThreadReader.class);
         Reader<?> Reader = registry.getReader(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -123,9 +120,9 @@ public class TestReaderRegistry {
         assertEquals(DefaultNumberReader.class, Reader.getClass());
     }
 
-    // to force sub classes managing their priorities
+    // to force subclasses managing their priorities
     @Test
-    public void prioriseParentClasses() {
+    public void prioritizeParentClasses() {
         registry.register(DefaultNumberReader.class);
         registry.register(SubClassReader.class);
         Reader<?> Reader = registry.getReader(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -168,13 +165,13 @@ public class TestReaderRegistry {
     }
 
     // keep those, we want to test reflection on private fields
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<String, List<Integer>> listIntegerMapProperty = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<String, List<?>> listMapProperty = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<?, ?> mapProperty = null;
 
     @Test
@@ -186,7 +183,7 @@ public class TestReaderRegistry {
         registry.register(ListIntegerMapReader.class);
         Reader = registry.getReader(ctx, Map.class, listIntegerMap, APPLICATION_JSON_TYPE);
         assertNotNull(Reader);
-        assertEquals(Reader.getClass(), ListIntegerMapReader.class);
+        assertEquals(ListIntegerMapReader.class, Reader.getClass());
         Reader = registry.getReader(ctx, Map.class, listMap, APPLICATION_JSON_TYPE);
         assertNull(Reader);
         Reader = registry.getReader(ctx, Map.class, map, APPLICATION_JSON_TYPE);
@@ -196,7 +193,7 @@ public class TestReaderRegistry {
         assertNotNull(Reader);
         Reader = registry.getReader(ctx, Map.class, listMap, APPLICATION_JSON_TYPE);
         assertNotNull(Reader);
-        assertEquals(Reader.getClass(), ListMapReader.class);
+        assertEquals(ListMapReader.class, Reader.getClass());
         Reader = registry.getReader(ctx, Map.class, map, APPLICATION_JSON_TYPE);
         assertNull(Reader);
         registry.register(MapReader.class);
@@ -206,7 +203,7 @@ public class TestReaderRegistry {
         assertNotNull(Reader);
         Reader = registry.getReader(ctx, Map.class, map, APPLICATION_JSON_TYPE);
         assertNotNull(Reader);
-        assertEquals(Reader.getClass(), MapReader.class);
+        assertEquals(MapReader.class, Reader.getClass());
     }
 
     // no @Setup annotation

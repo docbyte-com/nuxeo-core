@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.registry;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
@@ -68,17 +67,17 @@ public class TestWriterRegistry {
     }
 
     @Test(expected = MarshallingException.class)
-    public void registerInvalidWriter() throws Exception {
+    public void registerInvalidWriter() {
         registry.register(InvalidWriter.class);
     }
 
     @Test(expected = MarshallingException.class)
-    public void registerClassNotSupported() throws Exception {
+    public void registerClassNotSupported() {
         registry.register(NotSupportedClass.class);
     }
 
     @Test
-    public void simpleRegistering() throws Exception {
+    public void simpleRegistering() {
         registry.register(DefaultNumberWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
         assertNotNull(writer);
@@ -86,7 +85,7 @@ public class TestWriterRegistry {
     }
 
     @Test
-    public void registerTwice() throws Exception {
+    public void registerTwice() {
         registry.register(DefaultNumberWriter.class);
         registry.register(DefaultNumberWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -105,7 +104,7 @@ public class TestWriterRegistry {
     }
 
     @Test
-    public void prioriseSingletonToPerThreadToEachTime() throws Exception {
+    public void prioritizeSingletonToPerThreadToEachTime() {
         registry.register(EachTimeWriter.class);
         registry.register(PerThreadWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -123,9 +122,9 @@ public class TestWriterRegistry {
         assertEquals(DefaultNumberWriter.class, writer.getClass());
     }
 
-    // to force sub classes managing their priorities
+    // to force subclasses managing their priorities
     @Test
-    public void prioriseParentClasses() throws Exception {
+    public void prioritizeParentClasses() {
         registry.register(DefaultNumberWriter.class);
         registry.register(SubClassWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -138,7 +137,7 @@ public class TestWriterRegistry {
     }
 
     @Test
-    public void byMediaType() throws Exception {
+    public void byMediaType() {
         registry.register(AnyTypeWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
         assertEquals(AnyTypeWriter.class, writer.getClass());
@@ -157,7 +156,7 @@ public class TestWriterRegistry {
     }
 
     @Test
-    public void ensureAcceptMethodIsCalled() throws Exception {
+    public void ensureAcceptMethodIsCalled() {
         registry.register(SingletonStateWriter.class);
         registry.register(DefaultNumberWriter.class);
         Writer<?> writer = registry.getWriter(ctx, Integer.class, null, APPLICATION_JSON_TYPE);
@@ -168,13 +167,13 @@ public class TestWriterRegistry {
     }
 
     // keep those, we want to test reflection on private fields
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<String, List<Integer>> listIntegerMapProperty = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<String, List<?>> listMapProperty = null;
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "FieldMayBeFinal" })
     private Map<?, ?> mapProperty = null;
 
     @Test
@@ -186,7 +185,7 @@ public class TestWriterRegistry {
         registry.register(ListIntegerMapWriter.class);
         writer = registry.getWriter(ctx, Map.class, listIntegerMap, APPLICATION_JSON_TYPE);
         assertNotNull(writer);
-        assertEquals(writer.getClass(), ListIntegerMapWriter.class);
+        assertEquals(ListIntegerMapWriter.class, writer.getClass());
         writer = registry.getWriter(ctx, Map.class, listMap, APPLICATION_JSON_TYPE);
         assertNull(writer);
         writer = registry.getWriter(ctx, Map.class, map, APPLICATION_JSON_TYPE);
@@ -196,7 +195,7 @@ public class TestWriterRegistry {
         assertNotNull(writer);
         writer = registry.getWriter(ctx, Map.class, listMap, APPLICATION_JSON_TYPE);
         assertNotNull(writer);
-        assertEquals(writer.getClass(), ListMapWriter.class);
+        assertEquals(ListMapWriter.class, writer.getClass());
         writer = registry.getWriter(ctx, Map.class, map, APPLICATION_JSON_TYPE);
         assertNull(writer);
         registry.register(MapWriter.class);
@@ -206,7 +205,7 @@ public class TestWriterRegistry {
         assertNotNull(writer);
         writer = registry.getWriter(ctx, Map.class, map, APPLICATION_JSON_TYPE);
         assertNotNull(writer);
-        assertEquals(writer.getClass(), MapWriter.class);
+        assertEquals(MapWriter.class, writer.getClass());
     }
 
     // no @Setup annotation
