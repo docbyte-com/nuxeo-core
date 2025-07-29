@@ -28,10 +28,10 @@ import java.util.Objects;
  */
 public abstract class AbstractTransientDataStoreProvider implements TransientDataStoreProvider {
 
-    protected final String name;
+    protected final TransientDataStoreDescriptor descriptor;
 
     protected AbstractTransientDataStoreProvider(TransientDataStoreDescriptor descriptor) {
-        this.name = descriptor.getName();
+        this.descriptor = descriptor;
     }
 
     @Override

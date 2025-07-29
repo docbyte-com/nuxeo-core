@@ -24,7 +24,9 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
@@ -63,6 +65,10 @@ public class TransientDataStoreDescriptor implements Descriptor {
 
     public TTLPolicy getTtlPolicy() {
         return getIfNull(ttlPolicy, TTLPolicy.CREATED);
+    }
+
+    public Optional<String> getProviderProperty(String key) {
+        return Optional.ofNullable(provider.properties.get(key)).filter(StringUtils::isNotBlank);
     }
 
     public Map<String, String> getProviderProperties() {

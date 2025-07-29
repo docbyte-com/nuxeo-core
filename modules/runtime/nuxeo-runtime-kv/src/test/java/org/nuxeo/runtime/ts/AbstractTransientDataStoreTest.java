@@ -25,6 +25,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeFalse;
 import static org.nuxeo.runtime.ts.TransientDataServiceImpl.DEFAULT_STORE_ID;
 
 import java.time.Duration;
@@ -77,6 +78,10 @@ public abstract class AbstractTransientDataStoreTest<T extends TransientDataStor
                                  .get(AbstractTransientDataStoreTest.class.getTypeParameters()[0]);
         assertEquals("Implementation is not the expected one", storeType.getTypeName(), store.getClass().getTypeName());
         this.store = (T) store;
+    }
+
+    protected boolean hasSlowTTLExpiration() {
+        return false;
     }
 
     @Test
@@ -241,6 +246,7 @@ public abstract class AbstractTransientDataStoreTest<T extends TransientDataStor
 
     @Test
     public void testShortAccessedTtlGet() throws InterruptedException {
+        assumeFalse("Ignored because of slow TTL expiration", hasSlowTTLExpiration());
         var shortAccessedStore = transientDataService.getStore("short-accessed");
         assertFalse(shortAccessedStore.exists(KEY));
         assertNull(shortAccessedStore.get(KEY, PARAMETER1));
@@ -261,6 +267,7 @@ public abstract class AbstractTransientDataStoreTest<T extends TransientDataStor
 
     @Test
     public void testShortAccessedTtlGetAll() throws InterruptedException {
+        assumeFalse("Ignored because of slow TTL expiration", hasSlowTTLExpiration());
         var shortAccessedStore = transientDataService.getStore("short-accessed");
         assertFalse(shortAccessedStore.exists(KEY));
         assertNull(shortAccessedStore.getAll(KEY));
@@ -281,6 +288,7 @@ public abstract class AbstractTransientDataStoreTest<T extends TransientDataStor
 
     @Test
     public void testShortCreatedTtlPut() {
+        assumeFalse("Ignored because of slow TTL expiration", hasSlowTTLExpiration());
         var shortCreatedStore = transientDataService.getStore("short-created");
         assertFalse(shortCreatedStore.exists(KEY));
         assertNull(shortCreatedStore.get(KEY, PARAMETER1));
@@ -294,6 +302,7 @@ public abstract class AbstractTransientDataStoreTest<T extends TransientDataStor
 
     @Test
     public void testShortCreatedTtlPutAll() {
+        assumeFalse("Ignored because of slow TTL expiration", hasSlowTTLExpiration());
         var shortCreatedStore = transientDataService.getStore("short-created");
         assertFalse(shortCreatedStore.exists(KEY));
         assertNull(shortCreatedStore.getAll(KEY));

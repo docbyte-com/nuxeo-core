@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.mongodb.MongoDBConstants;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.kv.AbstractKeyValueStoreProvider;
 import org.nuxeo.runtime.kv.KeyValueStoreDescriptor;
@@ -82,7 +83,12 @@ public class MongoDBKeyValueStore extends AbstractKeyValueStoreProvider {
 
     public static final String COLLECTION_DEFAULT = "kv";
 
-    public static final String ID_KEY = "_id";
+    /**
+     * @deprecated since 2025.8, use {@link org.nuxeo.ecm.core.mongodb.MongoDBConstants#ID_KEY} instead
+     */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("DeprecatedIsStillUsed") // because MongoDBConstants.ID_KEY will be statically imported
+    public static final String ID_KEY = MongoDBConstants.ID_KEY;
 
     public static final String VALUE_KEY = "v";
 
