@@ -2255,7 +2255,7 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>cloud.docbyte.nuxeo.connect</groupId>
+        <groupId>org.nuxeo.connect</groupId>
         <artifactId>nuxeo-connect-client</artifactId>
         <version>${nuxeo.connect.client.version}</version>
         <classifier>standalone</classifier>
@@ -4637,7 +4637,7 @@
                 <version>[3.6.3,)</version>
               </requireMavenVersion>
               <requireJavaVersion>
-                <version>[21,)</version>
+                <version>[17,)</version>
               </requireJavaVersion>
               <bannedDependencies>
                 <excludes>

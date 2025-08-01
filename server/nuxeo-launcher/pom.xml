@@ -57,7 +57,7 @@
       <artifactId>commons-cli</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.connect</groupId>
+      <groupId>org.nuxeo.connect</groupId>
       <artifactId>nuxeo-connect-client</artifactId>
     </dependency>
     <dependency>
