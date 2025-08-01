@@ -16,17 +16,21 @@
  * Contributors:
  *     Stephane Lacoin (Nuxeo EP Software Engineer)
  */
-
 package org.nuxeo.ecm.platform.audit.service;
 
 import java.io.Serializable;
 import java.util.Map;
 
+import org.nuxeo.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
-import org.nuxeo.ecm.platform.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
 
+/**
+ * @deprecated since 2025.0, unused
+ */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoInjector {
 
     protected final ExpressionEvaluator evaluator;

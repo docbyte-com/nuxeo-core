@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter.ENTITY_TYPE;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.HEADER_PREFIX;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
 import java.io.Serializable;
@@ -42,8 +43,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
@@ -74,7 +75,7 @@ import org.nuxeo.ecm.platform.preview.io.PreviewJsonEnricher;
 import org.nuxeo.ecm.platform.tag.TagService;
 import org.nuxeo.ecm.platform.tag.io.TagsJsonEnricher;
 import org.nuxeo.ecm.platform.thumbnail.io.ThumbnailJsonEnricher;
-import org.nuxeo.ecm.restapi.jaxrs.io.RestConstants;
+import org.nuxeo.ecm.restapi.io.RestConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -558,7 +559,17 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"dc:description\":\" \"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "dc:description": " "
+                  }
+                }
+                """;
 
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
                               .entity(data)
@@ -587,7 +598,17 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"note:note\":\"File does not have note\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "note:note": "File does not have note"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -597,11 +618,60 @@ public class DocumentBrowsingTest {
 
     // NXP-30680
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void iCantCreateADocumentWithAWrongPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"MyDocType\",\"name\":\"newName\",\"properties\": {\"my:integer\":\"Some string\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:integer": "Some string"
+                  }
+                }
+                """.formatted(COMMON_DOC_TYPE);
+
+        httpClient.buildPostRequest("/path" + folder.getPathAsString())
+                  .entity(data)
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+    }
+
+    @Test
+    public void iCanCreateADocumentWithABooleanPropertyType() {
+        DocumentModel folder = RestServerInit.getFolder(0, session);
+
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:boolean": "Some string"
+                  }
+                }""".formatted(COMMON_DOC_TYPE);
+
+        httpClient.buildPostRequest("/path" + folder.getPathAsString())
+                  .entity(data)
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_CREATED, status.intValue()));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void iCantCreateADocumentWithAWrongBooleanPropertyTypeStrictValidation() {
+        DocumentModel folder = RestServerInit.getFolder(0, session);
+
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:boolean": "Some string"
+                  }
+                }""".formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)
@@ -641,7 +711,16 @@ public class DocumentBrowsingTest {
     public void iCantCreateADocumentWithNonExistingType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"Foo\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"Foo\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "Foo",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "Foo"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
                   .entity(data)

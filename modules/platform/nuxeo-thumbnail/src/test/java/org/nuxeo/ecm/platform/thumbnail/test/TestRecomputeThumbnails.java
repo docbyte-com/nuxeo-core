@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@ import static org.junit.Assert.assertNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,15 +34,14 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
 import org.nuxeo.ecm.platform.thumbnail.ThumbnailConstants;
+import org.nuxeo.ecm.platform.thumbnail.ThumbnailFeature;
 import org.nuxeo.ecm.platform.thumbnail.operation.RecomputeThumbnails;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -54,10 +52,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 10.10
  */
 @RunWith(FeaturesRunner.class)
-@Features(AutomationCoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.convert")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.thumbnail")
+@Features(ThumbnailFeature.class)
 public class TestRecomputeThumbnails {
 
     @Inject
@@ -95,7 +90,7 @@ public class TestRecomputeThumbnails {
         assertNull(thumbnail);
 
         // call operation to recompute the thumbnails with the default query
-        Map<String, String> parameters = Collections.singletonMap("query", RecomputeThumbnails.DEFAULT_QUERY);
+        Map<String, String> parameters = Map.of("query", RecomputeThumbnails.DEFAULT_QUERY);
         try (OperationContext ctx = new OperationContext(session)) {
             automationService.run(ctx, RecomputeThumbnails.ID, parameters);
         }
@@ -107,7 +102,7 @@ public class TestRecomputeThumbnails {
         assertNotNull(thumbnail);
 
         // call operation to recompute the thumbnails with a custom query
-        parameters = Collections.singletonMap("query", "SELECT * FROM Document WHERE ecm:mixinType = 'Thumbnail'");
+        parameters = Map.of("query", "SELECT * FROM Document WHERE ecm:mixinType = 'Thumbnail'");
         try (OperationContext ctx = new OperationContext(session)) {
             automationService.run(ctx, RecomputeThumbnails.ID, parameters);
         }
@@ -136,7 +131,7 @@ public class TestRecomputeThumbnails {
     }
 
     @Test
-    public void testNoThumbnailWhenDisabled() throws IOException, OperationException {
+    public void testNoThumbnailWhenDisabled() throws IOException {
         Blob blob = Blobs.createBlob(FileUtils.getResourceFileFromContext("test-data/big_nuxeo_logo.jpg"), "image/jpeg",
                 StandardCharsets.UTF_8.name(), "big_nuxeo_logo.jpg");
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,8 @@
  */
 package org.nuxeo.ecm.core.repository;
 
-import static javax.transaction.Status.STATUS_COMMITTED;
-import static javax.transaction.Status.STATUS_ROLLEDBACK;
+import static jakarta.transaction.Status.STATUS_COMMITTED;
+import static jakarta.transaction.Status.STATUS_ROLLEDBACK;
 import static org.nuxeo.ecm.core.model.Repository.CAPABILITY_QUERY_BLOB_KEYS;
 
 import java.time.Duration;
@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.transaction.Synchronization;
+import jakarta.transaction.Synchronization;
 
 import org.apache.commons.pool2.BaseKeyedPooledObjectFactory;
 import org.apache.commons.pool2.KeyedObjectPool;
@@ -123,9 +123,13 @@ public class RepositoryService extends DefaultComponent {
         PoolConfiguration poolConfig = null; // NOSONAR
         RepositoryManager repositoryManager = Framework.getService(RepositoryManager.class);
         if (repositoryManager != null) {
-            org.nuxeo.ecm.core.api.repository.Repository repo = repositoryManager.getDefaultRepository();
-            if (repo != null) {
+            try {
+                org.nuxeo.ecm.core.api.repository.Repository repo = repositoryManager.getDefaultRepository();
                 poolConfig = repo.getPoolConfig();
+            } catch (RuntimeException e) {
+                if (!"No repository defined".equals(e.getMessage())) {
+                    throw e;
+                }
             }
         }
         if (poolConfig == null) {
@@ -141,7 +145,7 @@ public class RepositoryService extends DefaultComponent {
         config.setMaxTotalPerKey(poolConfig.getMaxPoolSize());
         config.setMaxIdlePerKey(poolConfig.getMaxPoolSize());
         config.setMinIdlePerKey(poolConfig.getMinPoolSize());
-        config.setMaxWaitMillis(poolConfig.getBlockingTimeoutMillis());
+        config.setMaxWait(Duration.ofMillis(poolConfig.getBlockingTimeoutMillis()));
         basePool = new GenericKeyedObjectPool<>(new SessionFactory(), config);
         // use an eroding pool to avoid keeping idle sessions too long
         pool = PoolUtils.erodingPool(basePool);

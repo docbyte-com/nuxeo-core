@@ -75,43 +75,6 @@ public class SleepWork extends AbstractWork {
         this(durationMillis, CATEGORY, UUID.randomUUID().toString());
     }
 
-    /**
-     * If debug is true, then the various debug* methods must be called in the proper order for the work to start and
-     * stop.
-     *
-     * @param durationMillis the sleep duration
-     * @param debug {@code true} for debug
-     * @deprecated since 10.2 debug flag is unused
-     */
-    @Deprecated
-    public SleepWork(long durationMillis, boolean debug) {
-        this(durationMillis, null, CATEGORY);
-    }
-
-    /**
-     * @deprecated since 10.2 debug flag is unused
-     */
-    @Deprecated
-    public SleepWork(long durationMillis, boolean debug, String id) {
-        this(durationMillis, null, id);
-    }
-
-    /**
-     * @deprecated since 10.2 debug flag is unused
-     */
-    @Deprecated
-    public SleepWork(long durationMillis, String category, boolean debug) {
-        this(durationMillis, category, CATEGORY);
-    }
-
-    /**
-     * @deprecated since 10.2 debug flag is unused
-     */
-    @Deprecated
-    public SleepWork(long durationMillis, String category, boolean debug, String id) {
-        this(durationMillis, category, id);
-    }
-
     @Override
     public String getCategory() {
         return category;

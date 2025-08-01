@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.test.multi-repository.search">
+
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="other">
+      <client id="search/default" />
+    </index>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="searchClient">
+    <searchClient name="opensearch">
+      <searchIndex name="enhanced-other" technicalName="other" />
+    </searchClient>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced-other" searchClient="opensearch" repository="other" default="true" />
+  </extension>
+
+</component>

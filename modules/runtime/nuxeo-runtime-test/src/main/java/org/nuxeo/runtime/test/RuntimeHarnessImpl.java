@@ -20,12 +20,12 @@ package org.nuxeo.runtime.test;
 
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
+import static org.nuxeo.runtime.api.Framework.NUXEO_TESTING_SYSTEM_PROP;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -34,7 +34,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Properties;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
@@ -154,17 +153,11 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                 throw new AssertionError("Cannot locate " + contrib + " in " + name);
             }
             context.deploy(location);
-        } else {
+        } else if (!context.isDeployed(contrib)) {
             context.deploy(contrib);
+        } else {
+            log.info("The component: {}:{} is already deployed, ignoring.", name, contrib);
         }
-    }
-
-    @Override
-    @Deprecated
-    public void deployFolder(File folder, ClassLoader loader) throws Exception {
-        DirectoryBundleFile bf = new DirectoryBundleFile(folder);
-        BundleImpl bundle = new BundleImpl(osgi, bf, loader);
-        osgi.install(bundle);
     }
 
     @Override
@@ -179,25 +172,6 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
                 log.error("PartialBundle: {} failed to load: {}", name, component, e);
             }
         });
-        return ctx;
-    }
-
-    @Override
-    @Deprecated
-    public RuntimeContext deployTestContrib(String bundle, String contrib) throws Exception {
-        URL url = targetResourceLocator.getTargetTestResource(contrib);
-        return deployTestContrib(bundle, url);
-    }
-
-    @Override
-    @Deprecated
-    public RuntimeContext deployTestContrib(String bundle, URL contrib) throws Exception {
-        Bundle b = bundleLoader.getOSGi().getRegistry().getBundle(bundle);
-        if (b == null) {
-            b = osgi.getSystemBundle();
-        }
-        OSGiRuntimeContext ctx = new OSGiRuntimeContext(runtime, b);
-        ctx.deploy(contrib);
         return ctx;
     }
 
@@ -224,16 +198,6 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    @Deprecated
-    public List<String> getClassLoaderFiles() throws URISyntaxException {
-        List<String> files = new ArrayList<>(urls.length);
-        for (URL url : urls) {
-            files.add(url.toURI().getPath());
-        }
-        return files;
-    }
-
-    @Override
     public RuntimeContext getContext() {
         return runtime.getContext();
     }
@@ -244,19 +208,8 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    @Deprecated
-    public Properties getProperties() {
-        return runtime.getProperties();
-    }
-
-    @Override
     public File getWorkingDir() {
         return workingDir;
-    }
-
-    @Override
-    public boolean isRestart() {
-        return false;
     }
 
     @Override
@@ -265,13 +218,8 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
     }
 
     @Override
-    public void restart() throws Exception {
-        // do nothing
-    }
-
-    @Override
     public void start() throws Exception {
-        System.setProperty("org.nuxeo.runtime.testing", "true");
+        System.setProperty(NUXEO_TESTING_SYSTEM_PROP, "true");
         wipeEmptyTestSystemProperties();
         wipeRuntime();
         initUrls();
@@ -489,16 +437,13 @@ public class RuntimeHarnessImpl implements RuntimeHarness {
      * properties.
      */
     protected void wipeEmptyTestSystemProperties() {
-        List<String> emptyProps = System.getProperties()
-                                        .entrySet()
-                                        .stream()
-                                        .filter(this::isAnEmptyTestProperty)
-                                        .map(entry -> entry.getKey().toString())
-                                        .toList();
-        emptyProps.forEach(System::clearProperty);
-        if (log.isDebugEnabled()) {
-            emptyProps.forEach(property -> log.debug("Removed empty test system property: {}", property));
-        }
+        System.getProperties()
+              .entrySet()
+              .stream()
+              .filter(this::isAnEmptyTestProperty)
+              .map(entry -> entry.getKey().toString())
+              .peek(property -> log.debug("Removed empty test system property: {}", property))
+              .forEach(System::clearProperty);
     }
 
     protected boolean isAnEmptyTestProperty(Map.Entry<Object, Object> entry) {

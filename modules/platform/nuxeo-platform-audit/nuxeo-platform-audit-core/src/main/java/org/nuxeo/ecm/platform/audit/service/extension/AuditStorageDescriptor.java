@@ -17,7 +17,6 @@
  *     Funsho David
  *
  */
-
 package org.nuxeo.ecm.platform.audit.service.extension;
 
 import org.nuxeo.common.xmap.annotation.XNode;
@@ -26,8 +25,10 @@ import org.nuxeo.ecm.platform.audit.api.AuditStorage;
 
 /**
  * @since 9.3
+ * @deprecated since 2025.0, doesn't work in all situation and doesn't scale, no replacement
  */
 @XObject("storage")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditStorageDescriptor {
 
     @XNode("@id")

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuno Cunha (ncunha@nuxeo.com)
  */
-
 package org.nuxeo.ecm.platform.routing.core.io;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -30,7 +29,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +45,7 @@ import org.nuxeo.ecm.platform.routing.test.WorkflowFeature;
 import org.nuxeo.ecm.platform.task.Task;
 import org.nuxeo.ecm.platform.task.TaskService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -56,7 +56,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 @RunWith(FeaturesRunner.class)
 @Features({ WorkflowFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.ecm.platform.routing.default")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class TaskWriterTest extends AbstractJsonWriterTest.External<TaskWriter, Task> {
 
     @Inject

@@ -1,5 +1,5 @@
 /*
-t * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+t * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,19 +18,19 @@ t * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
  */
 package org.nuxeo.ecm.jwt;
 
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,15 +39,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.runtime.api.login.LoginComponent;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.jwt")
-@Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
+@Features(JWTFeature.class)
 public class TestJWTAuthenticator {
 
     protected static final String USERNAME = "bob";
@@ -60,17 +56,17 @@ public class TestJWTAuthenticator {
     protected JWTService service;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         LoginComponent.pushPrincipal(new UserPrincipal(USERNAME, Collections.emptyList(), false, false));
     }
 
     @After
-    public void teardown() throws Exception {
+    public void teardown() {
         LoginComponent.popPrincipal();
     }
 
     @Test
-    public void testValidateTicket() throws Exception {
+    public void testValidateTicket() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -87,7 +83,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketFromURI() throws Exception {
+    public void testValidateTicketFromURI() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -104,7 +100,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketWithAudience() throws Exception {
+    public void testValidateTicketWithAudience() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -123,7 +119,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testValidateTicketWithBadAudience() throws Exception {
+    public void testValidateTicketWithBadAudience() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -141,7 +137,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testNoAuthorizationHeader() throws Exception {
+    public void testNoAuthorizationHeader() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -156,7 +152,7 @@ public class TestJWTAuthenticator {
     }
 
     @Test
-    public void testCorruptedTicket() throws Exception {
+    public void testCorruptedTicket() {
         JWTAuthenticator auth = new JWTAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = mock(HttpServletResponse.class);

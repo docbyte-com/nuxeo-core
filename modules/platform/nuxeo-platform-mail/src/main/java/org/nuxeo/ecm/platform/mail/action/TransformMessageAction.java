@@ -29,13 +29,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Part;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.internet.MimeUtility;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Part;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.internet.MimeUtility;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -197,7 +197,7 @@ public class TransformMessageAction implements MessageAction {
     }
 
     /**
-     * "javax.mail.internet.MimeBodyPart" is decoding the file name (with special characters) if it has the
+     * "jakarta.mail.internet.MimeBodyPart" is decoding the file name (with special characters) if it has the
      * "mail.mime.decodefilename" sysstem property set but the "com.sun.mail.imap.IMAPBodyPart" subclass of MimeBodyPart
      * is overriding getFileName() and never deal with encoded file names. the filename is decoded with the utility
      * function: MimeUtility.decodeText(filename); so we force here a filename decode. MimeUtility.decodeText is doing

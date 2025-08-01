@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,10 +30,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -417,7 +418,8 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
     protected List<TestRule> classRules() {
         final RulesFactory<ClassRule, TestRule> factory = new RulesFactory<>(ClassRule.class, TestRule.class);
 
-        factory.withRule((base, description) -> new BeforeClassStatement(base)).withRules(super.classRules());
+        factory.withRule("beforeClassStatement", (base, description) -> new BeforeClassStatement(base))
+               .withRules("classRules", super.classRules());
         apply("classRules", FORWARD, holder -> factory.withRules(holder.testClass, null));
 
         return factory.build();
@@ -559,9 +561,18 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
                 @SuppressWarnings({ "unchecked", "rawtypes" })
                 public void evaluate() throws Throwable {
                     injector = injector.createChildInjector(binder -> {
-                        for (Object each : rules) {
-                            binder.bind((Class) each.getClass()).annotatedWith(Names.named(name)).toInstance(each);
-                            binder.requestInjection(each);
+                        Map<Class<?>, Boolean> severalSameTypeRules = //
+                                rules.stream()
+                                     .map(RuleWithName::rule)
+                                     .collect(Collectors.groupingBy(Object::getClass,
+                                             Collectors.collectingAndThen(Collectors.counting(), count -> count > 1)));
+                        for (RuleWithName<R> each : rules) {
+                            R rule = each.rule();
+                            Class ruleClass = rule.getClass();
+                            // use the name parameter when there's only one rule of same class (backward compatibility)
+                            var named = Names.named(severalSameTypeRules.get(ruleClass) ? each.name() : name);
+                            binder.bind(ruleClass).annotatedWith(named).toInstance(rule);
+                            binder.requestInjection(rule);
                         }
                     });
 
@@ -582,8 +593,8 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
             @Override
             public Statement apply(Statement base, FrameworkMethod method, Object target) {
                 Statement statement = build(base, "method");
-                for (Object each : rules) {
-                    statement = ((MethodRule) each).apply(statement, method, target);
+                for (RuleWithName<R> each : rules) {
+                    statement = ((MethodRule) each.rule()).apply(statement, method, target);
                 }
                 return statement;
             }
@@ -594,8 +605,8 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
                     return base;
                 }
                 Statement statement = build(base, "test");
-                for (Object each : rules) {
-                    statement = ((TestRule) each).apply(statement, description);
+                for (RuleWithName<R> each : rules) {
+                    statement = ((TestRule) each.rule()).apply(statement, description);
                 }
                 return statement;
             }
@@ -606,32 +617,33 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
 
         protected final Class<R> ruleType;
 
-        protected ArrayList<R> rules = new ArrayList<>();
+        protected List<RuleWithName<R>> rules = new ArrayList<>();
 
         protected RulesFactory(Class<A> anAnnotationType, Class<R> aRuleType) {
             annotationType = anAnnotationType;
             ruleType = aRuleType;
         }
 
-        public RulesFactory<A, R> withRules(List<R> someRules) {
-            this.rules.addAll(someRules);
+        public RulesFactory<A, R> withRules(String groupName, List<R> someRules) {
+            for (int i = 0; i < someRules.size(); i++) {
+                rules.add(new RuleWithName<>(groupName + i, someRules.get(i)));
+            }
             return this;
         }
 
-        public RulesFactory<A, R> withRule(R aRule) {
+        public RulesFactory<A, R> withRule(String name, R aRule) {
             injector.injectMembers(aRule);
-            rules.add(aRule);
+            rules.add(new RuleWithName<>(name, aRule));
             return this;
         }
 
         public RulesFactory<A, R> withRules(TestClass aType, Object aTest) {
-            for (R each : aType.getAnnotatedFieldValues(aTest, annotationType, ruleType)) {
-                withRule(each);
-            }
+            aType.collectAnnotatedFieldValues(aTest, annotationType, ruleType,
+                    (member, value) -> withRule(member.getName(), value));
 
             for (FrameworkMethod each : aType.getAnnotatedMethods(annotationType)) {
                 if (ruleType.isAssignableFrom(each.getMethod().getReturnType())) {
-                    withRule(onMethod(ruleType, each, aTest));
+                    withRule(each.getName(), onMethod(ruleType, each, aTest));
                 }
             }
             return this;
@@ -649,6 +661,9 @@ public class FeaturesRunner extends BlockJUnit4ClassRunner {
             }
         }
 
+        protected record RuleWithName<R>(String name, R rule) {
+
+        }
     }
 
     public <T extends RunnerFeature> T getFeature(Class<T> aType) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@ package org.nuxeo.ecm.core.bulk;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.DRY_RUN_PARAM;
+import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RECORDS_PARAM;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RESULT_DELETED_SIZE_KEY;
 import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RESULT_TOTAL_SIZE_KEY;
 import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
@@ -30,8 +30,9 @@ import static org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC.ENABLED_PROPERTY
 import static org.nuxeo.ecm.core.bulk.message.BulkStatus.State.COMPLETED;
 
 import java.io.Serializable;
+import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
@@ -47,7 +48,9 @@ import org.nuxeo.ecm.core.api.scroll.ScrollService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.scroll.GenericScrollRequest;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -61,6 +64,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @Features({ CoreFeature.class, CoreBulkFeature.class })
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/disable-schedulers.xml")
 @WithFrameworkProperty(name = ENABLED_PROPERTY_NAME, value = "false")
+@ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
 public abstract class AbstractTestFullGCOrphanBlobs {
 
     protected static final String CONTENT = "hello world";
@@ -92,7 +96,6 @@ public abstract class AbstractTestFullGCOrphanBlobs {
 
     @Before
     public void setup() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         sizeOfBinaries = 0L;
         for (int i = 0; i < getNbFiles(); i++) {
             DocumentModel doc = session.createDocumentModel("/", "doc" + i, "File");
@@ -127,12 +130,16 @@ public abstract class AbstractTestFullGCOrphanBlobs {
         testGCBlobsAction(dryRun, getNbFiles(), sizeOfBinaries);
     }
 
-    protected BulkStatus triggerAndWaitGC(boolean dryRun) {
+    protected BulkStatus triggerAndWaitGC(String... parameters) {
+        var params = Set.of(parameters);
         BulkCommand command = new BulkCommand.Builder(GarbageCollectOrphanBlobsAction.ACTION_NAME,
                 session.getRepositoryName(), session.getPrincipal().getName()).repository(session.getRepositoryName())
                                                                               .useGenericScroller()
                                                                               .bucket(BUCKET_SIZE)
-                                                                              .param(DRY_RUN_PARAM, dryRun)
+                                                                              .param(DRY_RUN_PARAM,
+                                                                                      params.contains(DRY_RUN_PARAM))
+                                                                              .param(RECORDS_PARAM,
+                                                                                      params.contains(RECORDS_PARAM))
                                                                               .scroller(SCROLL_NAME)
                                                                               .build();
         String commandId = service.submit(command);
@@ -142,8 +149,7 @@ public abstract class AbstractTestFullGCOrphanBlobs {
 
     protected void doGC(boolean dryRun, boolean success, int skipped, long deletedSize, int processed, long totalSize,
             int errorCount, int total) {
-
-        BulkStatus status = triggerAndWaitGC(dryRun);
+        BulkStatus status = dryRun ? triggerAndWaitGC(DRY_RUN_PARAM) : triggerAndWaitGC();
         assertNotNull(status);
         assertEquals(COMPLETED, status.getState());
         assertEquals(processed, status.getProcessed());

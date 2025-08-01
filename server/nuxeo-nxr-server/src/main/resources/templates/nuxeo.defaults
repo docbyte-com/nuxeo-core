@@ -23,7 +23,7 @@ nuxeo.allowed.hosts=
 org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Docbyte
-org.nuxeo.ecm.product.version=2023.17-SNAPSHOT
+org.nuxeo.ecm.product.version=2025.2-SNAPSHOT
 
 # Various other default values
 #nuxeo.db.host=
@@ -32,10 +32,7 @@ org.nuxeo.ecm.product.version=2023.17-SNAPSHOT
 #nuxeo.db.user=
 #nuxeo.db.password=
 
-nuxeo.pubsub.provider=stream
-nuxeo.keyvalue.provider=
 nuxeo.work.queuing=
-nuxeo.lock.manager=
 nuxeo.transientstore.provider=
 
 # MongoDB

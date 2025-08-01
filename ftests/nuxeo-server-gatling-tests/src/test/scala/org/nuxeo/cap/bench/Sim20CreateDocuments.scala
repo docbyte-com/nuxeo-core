@@ -31,9 +31,8 @@ object ScnCreateDocuments {
         feed(documents)
           .feed(Feeders.users)
           .exec(NuxeoRest.createDocument())
-          .doIf(session => Redis.markDocumentCreated(session)) {
-            exec()
-          }.pause(pause)
+          .exec(session => Redis.markDocumentCreated(session))
+          .pause(pause)
       }
     ).feed(Feeders.admins)
   }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -172,8 +172,7 @@ public class DefaultDocumentModelFactory extends AbstractDocumentModelFactory {
             Map<String, Serializable> props = inBH.getProperties();
             if (props != null) {
                 Serializable ob = props.get(FACETS_KEY_NAME);
-                if (ob instanceof String) {
-                    String facet = (String) ob;
+                if (ob instanceof String facet) {
                     if (StringUtils.isNotBlank(facet)) {
                         return Collections.singletonList(facet);
                     }
@@ -183,79 +182,6 @@ public class DefaultDocumentModelFactory extends AbstractDocumentModelFactory {
             }
         }
         return Collections.emptyList();
-    }
-
-    /**
-     * Modify this to get right mime types depending on the file input
-     *
-     * @deprecated since 10.1 seems unused
-     */
-    @Deprecated
-    protected String getMimeType(String name) {
-        // Dummy MimeType detection : plug nuxeo Real MimeType service to
-        // have better results
-
-        if (name == null) {
-            return "application/octet-stream";
-            /* OpenOffice.org 2.x document types */
-        } else if (name.endsWith(".odp")) {
-            return "application/vnd.oasis.opendocument.presentation";
-        } else if (name.endsWith(".otp")) {
-            return "application/vnd.oasis.opendocument.presentation-template";
-        } else if (name.endsWith(".otg")) {
-            return "application/vnd.oasis.opendocument.graphics-template";
-        } else if (name.endsWith(".odg")) {
-            return "application/vnd.oasis.opendocument.graphics";
-        } else if (name.endsWith(".odt")) {
-            return "application/vnd.oasis.opendocument.text";
-        } else if (name.endsWith(".ott")) {
-            return "application/vnd.oasis.opendocument.text-template";
-        } else if (name.endsWith(".ods")) {
-            return "application/vnd.oasis.opendocument.spreadsheet";
-        } else if (name.endsWith(".ots")) {
-            return "application/vnd.oasis.opendocument.spreadsheet-template";
-            /* Microsoft Office document */
-        } else if (name.endsWith(".doc")) {
-            return "application/msword";
-        } else if (name.endsWith(".xls")) {
-            return "application/vnd.ms-excel";
-        } else if (name.endsWith(".ppt")) {
-            return "application/vnd.ms-powerpoint";
-            /* Ms Office 2007 */
-        } else if (name.endsWith(".xlsx")) {
-            return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        } else if (name.endsWith(".pptx")) {
-            return "application/vnd.openxmlformats-officedocument.presentationml.presentation";
-        } else if (name.endsWith(".docx")) {
-            return "application/vnd.openxmlformats-officedocument.wordprocessingml.template";
-            /* Other */
-        } else if (name.endsWith(".tar")) {
-            return "application/x-gtar";
-        } else if (name.endsWith(".gz")) {
-            return "application/x-gtar";
-        } else if (name.endsWith(".csv")) {
-            return "text/csv";
-        } else if (name.endsWith(".pdf")) {
-            return "application/pdf";
-        } else if (name.endsWith(".txt")) {
-            return "text/plain";
-        } else if (name.endsWith(".html")) {
-            return "text/html";
-        } else if (name.endsWith(".xml")) {
-            return "text/xml";
-        } else if (name.endsWith(".png")) {
-            return "image/png";
-        } else if (name.endsWith(".jpg")) {
-            return "image/jpg";
-        } else if (name.endsWith(".jpeg")) {
-            return "image/jpeg";
-        } else if (name.endsWith(".gif")) {
-            return "image/gif";
-        } else if (name.endsWith(".zip")) {
-            return "application/zip";
-        } else {
-            return "application/octet-stream";
-        }
     }
 
     public void setFolderishType(String folderishType) {

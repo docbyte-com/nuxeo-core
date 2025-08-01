@@ -1,0 +1,282 @@
+/*
+ * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Antoine Taillefer
+ */
+package org.nuxeo.ecm.restapi.server.search.test;
+
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOUBLE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_FLOAT_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
+
+import java.util.List;
+
+import jakarta.inject.Inject;
+
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.schema.XSDTypes;
+import org.nuxeo.ecm.core.schema.types.primitives.DoubleType;
+import org.nuxeo.ecm.core.schema.types.primitives.LongType;
+import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
+import org.nuxeo.ecm.restapi.test.RestServerFeature;
+import org.nuxeo.http.test.HttpClientTestRule;
+import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+/**
+ * @since 2023.7
+ */
+@RunWith(FeaturesRunner.class)
+@Features(SearchRestFeature.class)
+public class SearchPrimitiveTypePredicatesTest {
+
+    protected static final String PP_TEST_PRIMITIVE_TYPE_PREDICATES = "test_primitive_type_predicates";
+
+    protected static final String PP_EXECUTE_PATH = String.format("search/pp/%s/execute",
+            PP_TEST_PRIMITIVE_TYPE_PREDICATES);
+
+    @Inject
+    protected CoreSession session;
+
+    @Inject
+    protected RestServerFeature restServerFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
+
+    @Rule
+    public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
+            () -> restServerFeature.getRestApiUrl());
+
+    // doc with primitive type fields set to 0 or 0.0
+    protected DocumentModel doc0;
+
+    // doc with primitive type fields set to 1 or 1.0
+    protected DocumentModel doc1;
+
+    @Before
+    public void before() {
+        doc0 = session.createDocumentModel("/", "doc0", COMMON_DOC_TYPE);
+        doc0.setPropertyValue(COMMON_BOOLEAN_PROP, false);
+        doc0.setPropertyValue(COMMON_INTEGER_PROP, 0);
+        doc0.setPropertyValue(COMMON_LONG_PROP, 0L);
+        doc0.setPropertyValue(COMMON_FLOAT_PROP, 0F);
+        doc0.setPropertyValue(COMMON_DOUBLE_PROP, 0D);
+        doc0 = session.createDocument(doc0);
+
+        doc1 = session.createDocumentModel("/", "doc1", COMMON_DOC_TYPE);
+        doc1.setPropertyValue(COMMON_BOOLEAN_PROP, true);
+        doc1.setPropertyValue(COMMON_INTEGER_PROP, 1);
+        doc1.setPropertyValue(COMMON_LONG_PROP, 1L);
+        doc1.setPropertyValue(COMMON_FLOAT_PROP, 1F);
+        doc1.setPropertyValue(COMMON_DOUBLE_PROP, 1D);
+        doc1 = session.createDocument(doc1);
+
+        txFeature.nextTransaction();
+    }
+
+    @Test
+    public void testBooleanType() {
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "false") // NOSONAR
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "true")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc1.getId(), entry.get("uid").asText());
+                  });
+
+        // bad query parameter, match document with boolean type field value = false
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "foo")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testBooleanTypeStrictValidation() {
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "false")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "true")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc1.getId(), entry.get("uid").asText());
+                  });
+
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter("boolean", "foo")
+                  .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
+                      assertEquals("exception", node.get("entity-type").asText());
+                      assertEquals("400", node.get("status").asText());
+                      var errorMessage = node.get("message").asText();
+                      assertTrue("Exception is not an <java.lang.IllegalArgumentException> but was<%s>".formatted(
+                              errorMessage), errorMessage.startsWith("java.lang.IllegalArgumentException"));
+                  });
+    }
+
+    /**
+     * A field of type "xs:integer" is implemented as a {@link LongType}, see {@link XSDTypes}, yet let's test it anyway
+     * as it is a primitive type commonly used.
+     */
+    @Test
+    public void testIntegerType() {
+        testPrimitiveType("integer", false);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testIntegerTypeStrictValidation() {
+        testPrimitiveTypeStrictValidation("integer");
+    }
+
+    @Test
+    public void testLongType() {
+        testPrimitiveType("long", false);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testLongTypeStrictValidation() {
+        testPrimitiveTypeStrictValidation("long");
+    }
+
+    /**
+     * A field of type "xs:float" is implemented as a {@link DoubleType}, see {@link XSDTypes}, yet let's test it anyway
+     * as it is a primitive type commonly used.
+     */
+    @Test
+    public void testFloatType() {
+        testPrimitiveType("float", true);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testFloatTypeStrictValidation() {
+        testPrimitiveTypeStrictValidation("float");
+    }
+
+    @Test
+    public void testDoubleType() {
+        testPrimitiveType("double", true);
+    }
+
+    @Test
+    @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
+    public void testDoubleTypeStrictValidation() {
+        testPrimitiveTypeStrictValidation("double");
+    }
+
+    protected void testPrimitiveType(String predicateFieldName, boolean testFloatNotation) {
+        // match document with primitive type field value = 1
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter(predicateFieldName, "1")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc1.getId(), entry.get("uid").asText());
+                  });
+
+        // match no documents with primitive type field value = 2
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter(predicateFieldName, "2")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          node -> assertTrue(JsonNodeHelper.getEntries(node).isEmpty()));
+
+        if (testFloatNotation) {
+            // match document with primitive type field value = 1.0
+            httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                      .addQueryParameter(predicateFieldName, "1.0")
+                      .executeAndConsume(new JsonNodeHandler(), node -> {
+                          List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                          assertEquals(1, entries.size());
+                          JsonNode entry = entries.getFirst();
+                          assertEquals(doc1.getId(), entry.get("uid").asText());
+                      });
+
+            // match no documents with primitive type field value = 2.0
+            httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                      .addQueryParameter(predicateFieldName, "2.0")
+                      .executeAndConsume(new JsonNodeHandler(),
+                              node -> assertTrue(JsonNodeHelper.getEntries(node).isEmpty()));
+        }
+
+        // bad query parameter, match document with primitive type field value = 0 or 0.0
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter(predicateFieldName, "foo")
+                  .executeAndConsume(new JsonNodeHandler(), node -> {
+                      List<JsonNode> entries = JsonNodeHelper.getEntries(node);
+                      assertEquals(1, entries.size());
+                      JsonNode entry = entries.getFirst();
+                      assertEquals(doc0.getId(), entry.get("uid").asText());
+                  });
+    }
+
+    protected void testPrimitiveTypeStrictValidation(String predicateFieldName) {
+        // bad query parameter, mustn't match any document with primitive type field value = 0 or 0.0
+        httpClient.buildGetRequest(PP_EXECUTE_PATH)
+                  .addQueryParameter(predicateFieldName, "foo")
+                  .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
+                      assertEquals("exception", node.get("entity-type").asText());
+                      assertEquals("400", node.get("status").asText());
+                      var errorMessage = node.get("message").asText();
+                      assertTrue("Exception is not an <java.lang.NumberFormatException> but was<%s>".formatted(
+                              errorMessage), errorMessage.startsWith("java.lang.NumberFormatException"));
+                  });
+    }
+
+}

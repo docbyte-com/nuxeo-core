@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,12 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -30,11 +35,11 @@ import org.apache.pdfbox.text.PDFTextStripper;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.NuxeoException;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
+public class TestUtils {
 
-class TestUtils {
+    private TestUtils() {
+        // utility class
+    }
 
     static final String PDF_PATH = "files/document.pdf";
 
@@ -84,7 +89,7 @@ class TestUtils {
     }
 
     static boolean hasTextOnAllPages(Blob blob, String watermark) {
-        try (PDDocument doc = PDDocument.load(blob.getStream())) {
+        try (PDDocument doc = Loader.loadPDF(blob.getFile())) {
             for (int i = 1; i <= doc.getNumberOfPages(); i++) {
                 if (!TestUtils.extractText(doc, i, i).replace("\n", "").contains(watermark)) {
                     return false;
@@ -92,12 +97,12 @@ class TestUtils {
             }
             return true;
         } catch (IOException e) {
-            throw new NuxeoException("Could not check all pages",e);
+            throw new NuxeoException("Could not check all pages", e);
         }
     }
 
     static boolean hasImageOnAllPages(Blob inBlob) {
-        try (PDDocument doc = PDDocument.load(inBlob.getStream())) {
+        try (PDDocument doc = Loader.loadPDF(inBlob.getFile())) {
             for (PDPage page : doc.getDocumentCatalog().getPages()) {
                 PDResources pdResources = page.getResources();
                 boolean gotIt = false;
@@ -114,7 +119,7 @@ class TestUtils {
             }
             return true;
         } catch (IOException e) {
-            throw new NuxeoException("Could not check all pages",e);
+            throw new NuxeoException("Could not check all pages", e);
         }
     }
 

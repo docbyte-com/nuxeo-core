@@ -24,8 +24,6 @@ import java.util.List;
 import org.nuxeo.ecm.platform.actions.Action;
 import org.nuxeo.ecm.platform.actions.ActionContext;
 import org.nuxeo.ecm.platform.actions.ActionFilter;
-import org.nuxeo.ecm.platform.actions.ActionFilterRegistry;
-import org.nuxeo.ecm.platform.actions.ActionRegistry;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -67,7 +65,6 @@ public interface ActionManager extends Serializable {
     ActionFilter[] getFilters(String actionId);
 
     /**
-     * @see ActionFilterRegistry#getFilter(String)
      * @since 9.1
      */
     ActionFilter getFilter(String filterId);
@@ -97,13 +94,11 @@ public interface ActionManager extends Serializable {
     List<Action> getAllActions(String category);
 
     /**
-     * @see ActionRegistry#addAction(Action)
      * @since 9.1
      */
     void addAction(Action action);
 
     /**
-     * @see ActionRegistry#removeAction(String)
      * @since 9.1
      */
     Action removeAction(String actionId);

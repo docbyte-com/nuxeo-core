@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component name="org.nuxeo.platform.TemplateSources.rest.types.contrib">
+
+  <extension target="org.nuxeo.ecm.platform.types.TypeService"
+    point="types">
+
+    <type id="WebTemplateSource" coretype="WebTemplateSource">
+      <label>WebTemplateSource</label>
+      <icon>/icons/webtemplate.png</icon>
+      <bigIcon>/icons/webtemplate_100.png</bigIcon>
+      <default-view>view_documents</default-view>
+      <category>SimpleDocument</category>
+    </type>
+
+  </extension>
+
+</component>

@@ -35,16 +35,14 @@ import org.nuxeo.ecm.webengine.security.guards.And;
 import org.nuxeo.ecm.webengine.security.guards.IsAdministratorGuard;
 import org.nuxeo.runtime.annotations.AnnotationManager;
 
-import com.sun.jersey.server.spi.component.ResourceComponentConstructor;
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class ResourceTypeImpl extends AbstractResourceType {
 
     public ResourceTypeImpl(WebEngine engine, ModuleImpl module, ResourceTypeImpl superType, String name,
-            ClassProxy clazz, ResourceComponentConstructor constructor, int visibility) {
-        super(engine, module, superType, name, clazz, constructor, visibility);
+            ClassProxy clazz, int visibility) {
+        super(engine, module, superType, name, clazz, visibility);
     }
 
     @Override
@@ -55,14 +53,14 @@ public class ResourceTypeImpl extends AbstractResourceType {
             return;
         }
         String g = wo.guard();
-        if (g != null && g.length() > 0) {
+        if (g != null && !g.isEmpty()) {
             try {
                 guard = PermissionService.parse(g);
             } catch (ParseException e) {
                 throw new NuxeoException("Failed to parse guard: " + g + " on WebObject " + c.getName(), e);
             }
         } else {
-            loadGuardFromAnnoation(c);
+            loadGuardFromAnnotation(c);
         }
         Access requireAdministrators = wo.administrator();
         if (requireAdministrators != Access.NULL) {

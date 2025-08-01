@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
-import org.nuxeo.ecm.restapi.server.jaxrs.adapters.PreviewAdapter;
+import org.nuxeo.ecm.restapi.server.adapters.PreviewAdapter;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @WithFrameworkProperty(name = PreviewAdapter.LEGACY_PEVIEW_PROP, value = "true")

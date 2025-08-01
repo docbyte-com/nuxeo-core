@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -32,7 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -49,8 +48,11 @@ import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -79,8 +81,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDisableBlobDelete() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
         doc = session.createDocument(doc);
@@ -97,8 +99,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testSharedBlobDelete() throws IOException {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         final String CONTENT = "hello world";
         // Create 2 docs referencing the same blob as main content
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
@@ -132,8 +134,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-multi-repo-delete.xml")
-    public void testBlobDeleteMultiRepo() throws IOException {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
+    public void testBlobDeleteMultiRepo() {
         final String CONTENT = "multiRepo";
         // Create 2 docs in 2 different repos but referencing the same blob as main content
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
@@ -175,8 +177,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDryRun() throws IOException {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("dry run"));
         doc = session.createDocument(doc);
@@ -198,10 +200,8 @@ public class TestDocumentBlobGC {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "This test is to make sure repos without ecm:blobKeys capabilities will not delete blobs that MUST not be deleted.")
     public void testUnsupportedDeleteBlobOnVCS() {
-        assumeTrue(
-                "This test is to make sure repos without ecm:blobKeys capabilities will not delete blobs that MUST not be deleted.",
-                coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("UnsupportedDeleteBlobOnVCS"));
         doc = session.createDocument(doc);
@@ -224,8 +224,8 @@ public class TestDocumentBlobGC {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testIllegalDeleteBlobNullRepositoryName() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("IllegalDeleteBlobNullRepositoryName"));
         doc = session.createDocument(doc);
@@ -244,8 +244,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRemoveDocument() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
         doc = session.createDocument(doc);
@@ -264,8 +264,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRemoveDocumentWithPrefixAndUnprefixedKey() throws IOException {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         // Create a doc referencing a blob
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("toBeRemoved"));
@@ -304,8 +304,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterRecursiveRemoveDocument() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         // Create a couple of docs under a common root
         DocumentModel folder = session.createDocumentModel("/", "folder", "Folder");
         folder = session.createDocument(folder);
@@ -330,8 +330,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterEditBlobProperty() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("before"));
         doc = session.createDocument(doc);
@@ -352,9 +352,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-shared-storage-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobOnSharedStorageAndMonoRepository() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
-
         // Create 3 docs
         // 2 referencing the same blob as main content but dispatched in 2 different providers
         Blob b = Blobs.createBlob("dispatch");
@@ -412,9 +411,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-dispatcher-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterDispatch() {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
-
         // Create 2 docs referencing the same blob as main content
         Blob b = Blobs.createBlob("dispatch");
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
@@ -451,8 +449,8 @@ public class TestDocumentBlobGC {
     // NXP-31833
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
-    public void testBlobDeleteCrossRepositoryProvider() throws IOException {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
+    public void testBlobDeleteCrossRepositoryProvider() {
         final String CONTENT = "multiRepo";
         // Create 2 docs in 2 different repos but referencing the same blob as main content
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
@@ -501,8 +499,8 @@ public class TestDocumentBlobGC {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-delete.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testDeleteBlobAfterDeployDipatcherRules() throws Exception {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
         Blob b = Blobs.createBlob("toNotBeRemoved");
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
         doc1.setPropertyValue("file:content", (Serializable) b);

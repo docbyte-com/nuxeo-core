@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -53,8 +55,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 7.4
  */
@@ -63,8 +63,6 @@ import com.google.inject.Inject;
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.ecm.automation.core:test-operations.xml")
 public class PermissionAutomationTest {
-
-    protected DocumentModel src;
 
     @Inject
     protected CoreSession session;
@@ -80,6 +78,8 @@ public class PermissionAutomationTest {
     @RuntimeService
     protected UserManager userManager;
 
+    protected DocumentModel src;
+
     protected OperationContext ctx;
 
     @Before
@@ -92,8 +92,7 @@ public class PermissionAutomationTest {
 
         when(userManager.getUserModel("existingUser")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getGroupModel("existingGroup")).thenReturn(SimpleDocumentModel.ofSchemas("group"));
-        when(administratorGroupsProvider.getAdministratorsGroups()).thenReturn(
-                Collections.singletonList("administrators"));
+        when(administratorGroupsProvider.getAdministratorsGroups()).thenReturn(List.of("administrators"));
         ctx = new OperationContext(session);
     }
 
@@ -109,7 +108,7 @@ public class PermissionAutomationTest {
 
             // Add permission
             Map<String, Object> params = new HashMap<>();
-            params.put("user", "existingUser");
+            params.put("users", "existingUser");
             params.put("permission", "Write");
             automationService.run(ctx, AddPermission.ID, params);
             ctx.setInput(src);
@@ -119,10 +118,10 @@ public class PermissionAutomationTest {
             params.put("permission", "Everything");
             params.put("id", "existingUser:Write:true:Administrator::");
 
-            assertEquals("Write", src.getACP().getACL(ACL.LOCAL_ACL).get(0).getPermission());
+            assertEquals("Write", src.getACP().getACL(ACL.LOCAL_ACL).getFirst().getPermission());
             automationService.run(ctx, ReplacePermission.ID, params);
             src.refresh();
-            assertEquals("Everything", src.getACP().getACL(ACL.LOCAL_ACL).get(0).getPermission());
+            assertEquals("Everything", src.getACP().getACL(ACL.LOCAL_ACL).getFirst().getPermission());
         } finally {
             // Tear down
             src.getACP().removeACEsByUsername(ACL.LOCAL_ACL, "existingUser");

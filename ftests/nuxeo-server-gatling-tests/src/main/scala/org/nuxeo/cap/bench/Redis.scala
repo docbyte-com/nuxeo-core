@@ -146,7 +146,7 @@ object Redis {
         }
       )
     }
-    false
+    session
   }
 
   def markDocumentCreated(session: Session) = {
@@ -159,7 +159,7 @@ object Redis {
         }
       )
     }
-    false
+    session
   }
 
   def getRandomDoc() = {

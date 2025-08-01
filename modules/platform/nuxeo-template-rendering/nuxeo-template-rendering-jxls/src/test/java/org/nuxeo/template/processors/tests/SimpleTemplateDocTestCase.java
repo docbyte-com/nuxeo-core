@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -67,11 +67,6 @@ public abstract class SimpleTemplateDocTestCase {
 
     @Inject
     protected CoreSession session;
-
-    protected boolean useJXLS1() {
-        return Framework.getService(ConfigurationService.class)
-                        .isBooleanTrue(JXLSTemplateProcessor.USE_JXLS1_CONFIG_PROP);
-    }
 
     protected TemplateBasedDocument setupTestDocs() throws Exception {
 

@@ -39,10 +39,6 @@ import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.contribution.impl.AbstractContributionRegistry;
 
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.modelapi.annotation.IntrospectionModeller;
-import com.sun.jersey.server.spi.component.ResourceComponentConstructor;
-
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
@@ -169,11 +165,11 @@ public class TypeRegistry extends AbstractContributionRegistry<String, TypeDescr
     }
 
     public ResourceType[] getTypes() {
-        return types.values().toArray(new ResourceType[types.size()]);
+        return types.values().toArray(ResourceType[]::new);
     }
 
     public AdapterType[] getAdapters() {
-        return adapters.values().toArray(new AdapterType[adapters.size()]);
+        return adapters.values().toArray(AdapterType[]::new);
     }
 
     public void registerTypeDescriptor(TypeDescriptor td) {
@@ -277,9 +273,8 @@ public class TypeRegistry extends AbstractContributionRegistry<String, TypeDescr
     }
 
     protected void installTypeContribution(String key, TypeDescriptor object) {
-        ResourceComponentConstructor constructor = new ResourceComponentConstructor(module.sic, ComponentScope.PerRequest, IntrospectionModeller.createResource(object.clazz.get()));
         AbstractResourceType type = new ResourceTypeImpl(engine, module, null, object.type, object.clazz,
-                constructor, object.visibility);
+                object.visibility);
         if (object.superType != null) {
             type.superType = types.get(object.superType);
             assert type.superType != null; // must never be null since the object is resolved
@@ -300,8 +295,7 @@ public class TypeRegistry extends AbstractContributionRegistry<String, TypeDescr
     }
 
     protected void installAdapterContribution(String key, AdapterDescriptor object) {
-        ResourceComponentConstructor constructor = new ResourceComponentConstructor(module.sic, ComponentScope.PerRequest, IntrospectionModeller.createResource(object.clazz.get()));
-        AdapterTypeImpl type = new AdapterTypeImpl(engine, module, null, object.type, object.name, object.clazz, constructor,
+        AdapterTypeImpl type = new AdapterTypeImpl(engine, module, null, object.type, object.name, object.clazz,
                 object.visibility);
         if (object.superType != null) {
             type.superType = types.get(object.superType);
@@ -339,8 +333,7 @@ public class TypeRegistry extends AbstractContributionRegistry<String, TypeDescr
 
     protected void updateAdapterContribution(String key, AdapterDescriptor object) {
         AbstractResourceType t = types.get(key);
-        if (t instanceof AdapterTypeImpl) { // update the type class
-            AdapterTypeImpl adapter = (AdapterTypeImpl) t;
+        if (t instanceof AdapterTypeImpl adapter) { // update the type class
             adapter.clazz = object.clazz;
             adapter.loadAnnotations(engine.getAnnotationManager());
             t.flushCache();
@@ -353,7 +346,7 @@ public class TypeRegistry extends AbstractContributionRegistry<String, TypeDescr
     protected void uninstallContribution(String key, TypeDescriptor value) {
         AbstractResourceType t = types.remove(key);
         if (t instanceof AdapterTypeImpl) {
-            adapters.remove(((AdapterTypeImpl) t).name);
+            adapters.remove(t.name);
         }
     }
 

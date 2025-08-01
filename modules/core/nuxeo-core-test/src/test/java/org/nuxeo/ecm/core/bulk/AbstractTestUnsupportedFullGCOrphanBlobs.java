@@ -21,7 +21,7 @@ package org.nuxeo.ecm.core.bulk;
 import static org.junit.Assert.assertThrows;
 import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction;

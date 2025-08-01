@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
-  <version>2023.17-SNAPSHOT</version>
+  <version>2025.2-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Nuxeo ECM Projects</name>
   <description>Nuxeo ECM Platform and related components.</description>
@@ -39,6 +39,7 @@
   </ciManagement>
 
   <modules>
+    <module>boms</module>
     <module>modules</module>
   </modules>
 
@@ -55,66 +56,62 @@
     <!-- <license.useMissingFile>true</license.useMissingFile> -->
     <!-- <license.missingFile>src/main/license/THIRD-PARTY.properties</license.missingFile> -->
 
-    <nuxeo.platform.version>2023.17-SNAPSHOT</nuxeo.platform.version>
+    <nuxeo.platform.version>2025.2-SNAPSHOT</nuxeo.platform.version>
     <nuxeo.distribution.name>lts</nuxeo.distribution.name>
     <nuxeo.platform.javadoc.version>${project.version}</nuxeo.platform.javadoc.version>
 
     <nuxeo.connect.client.version>1.8.6</nuxeo.connect.client.version>
     <!-- nuxeo-distribution-tools is still used as a dependency -->
-    <nuxeo.distribution.tools.version>1.15</nuxeo.distribution.tools.version>
+    <nuxeo.distribution.tools.version>2.0</nuxeo.distribution.tools.version>
     <!-- ant-assembly-maven-plugin is only used as a plugin -->
-    <ant.assembly.version>2.1.6</ant.assembly.version>
+    <ant.assembly.version>2.1.7</ant.assembly.version>
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
-    <nuxeo.java.client.version>3.14.0</nuxeo.java.client.version>
 
-    <tomcat.version>9.0.93</tomcat.version>
-    <opensearch.version>1.3.18</opensearch.version>
-    <netty.version>4.1.112.Final</netty.version>
-    <netty.boringssl.version>2.0.65.Final</netty.boringssl.version>
+    <tomcat.version>10.1.40</tomcat.version>
+    <opensearch1.version>1.3.20</opensearch1.version>
+    <netty.version>4.2.0.Final</netty.version>
+    <netty.boringssl.version>2.0.70.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
-    <guice.version>3.0</guice.version>
-    <jersey.version>1.19.4</jersey.version>
-    <chemistry.opencmis.version>1.1.1-NX01</chemistry.opencmis.version>
+    <guice.version>7.0.0</guice.version>
+    <jersey.version>3.1.10</jersey.version>
+    <chemistry.opencmis.version>2.0.0</chemistry.opencmis.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
-    <apache.poi.version>5.2.3</apache.poi.version>
+    <apache.poi.version>5.4.1</apache.poi.version>
     <jodreport.version>2.4.0</jodreport.version>
-    <jxls.version>1.0.6-NX02</jxls.version>
-    <jxls2.version>2.14.0</jxls2.version>
-    <keycloak.version>24.0.5</keycloak.version>
-    <xdocreport.version>1.0.6</xdocreport.version>
-    <google.http.client.version>1.45.0</google.http.client.version>
-    <google.oauth.client.version>1.36.0</google.oauth.client.version>
-    <google.api.client.version>1.35.2</google.api.client.version>
+    <jxls.version>3.0.0</jxls.version>
+    <keycloak.version>25.0.3</keycloak.version>
+    <xdocreport.version>2.1.0</xdocreport.version>
+    <google.http.client.version>1.47.0</google.http.client.version>
+    <google.oauth.client.version>1.39.0</google.oauth.client.version>
+    <google.api.client.version>2.7.2</google.api.client.version>
     <google.api.drive.version>v2-rev20201130-1.31.0</google.api.drive.version>
     <box.api.version>1.1.0</box.api.version>
-    <selenium.version>2.53.0</selenium.version>
-    <pdfbox.version>2.0.32</pdfbox.version>
-    <pdfbox.jbig2.version>2.99.0-NX1</pdfbox.jbig2.version>
-    <aws.version>1.12.650</aws.version>
-    <gcp.version>2.41.0</gcp.version>
-    <jackson1.version>1.9.11</jackson1.version>
-    <jackson.version>2.12.7</jackson.version>
-    <jackson.bom.version>2.12.7.20240502</jackson.bom.version>
-    <bouncycastle.version>1.78.1</bouncycastle.version>
+    <pdfbox.version>3.0.4</pdfbox.version>
+    <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
+    <aws.version>2.31.31</aws.version>
+    <gcp.version>2.52.0</gcp.version>
+    <jackson1.version>1.9.13</jackson1.version>
+    <jackson.bom.version>2.19.0</jackson.bom.version>
+    <bouncycastle.version>1.80</bouncycastle.version>
     <avro.version>1.12.0</avro.version>
-    <restlet.version>2.4.3</restlet.version>
+    <restlet.version>2.4.4</restlet.version>
     <jmock.version>2.13.1</jmock.version>
-    <wro4j.version>1.10.1</wro4j.version>
+    <wro4j.version>2.1.1</wro4j.version>
     <xalan.version>2.7.3</xalan.version>
-    <scim.v2.sdk.version>2.4.0</scim.v2.sdk.version>
+    <scim.v2.sdk.version>3.2.0</scim.v2.sdk.version>
 
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
-    <org.ops4j.pax.version>4.13.5</org.ops4j.pax.version>
-    <org.apache.log4j.version>2.23.1</org.apache.log4j.version>
+    <org.ops4j.pax.version>4.14.0</org.ops4j.pax.version>
+    <org.apache.log4j.version>2.24.3</org.apache.log4j.version>
     <org.slf4j.version>1.7.36</org.slf4j.version>
-    <gatling.version>3.4.2</gatling.version>
-    <gatling-plugin.version>3.1.2</gatling-plugin.version>
-    <scala.version>2.12.19</scala.version>
+    <gatling.version>3.12.0</gatling.version>
+    <gatling-plugin.version>4.11.0</gatling-plugin.version>
+    <scala.version>2.13.16</scala.version>
     <scala-logging.version>3.9.5</scala-logging.version>
-    <scala-maven-plugin.version>4.9.1</scala-maven-plugin.version>
+    <scala-maven-plugin.version>4.9.5</scala-maven-plugin.version>
 
     <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
 
@@ -146,19 +143,19 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>4.11.3</mongo.java.driver.version>
-    <quartz.mongodb.version>2.2.0-rc2</quartz.mongodb.version>
+    <mongo.java.driver.version>5.4.0</mongo.java.driver.version>
+    <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
-    <kafka.version>3.8.0</kafka.version>
-    <confluent.version>6.2.15</confluent.version>
-    <metrics.version>5.0.0-rc3</metrics.version>
-    <amqp.client.version>5.21.0</amqp.client.version>
-    <maven.surefire.version>2.22.2</maven.surefire.version>
+    <kafka.version>3.9.0</kafka.version>
+    <confluent.version>7.9.0</confluent.version>
+    <metrics.version>5.0.0</metrics.version>
+    <amqp.client.version>5.25.0</amqp.client.version>
+      <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
-    <prometheus.client.version>0.11.0</prometheus.client.version>
-    <protobuf.java.version>3.25.4</protobuf.java.version>
-    <opensaml.version>4.3.2</opensaml.version>
-    <quartz.version>2.5.0-rc1</quartz.version>
+    <prometheus.client.version>0.16.0</prometheus.client.version>
+    <protobuf.java.version>4.30.2</protobuf.java.version>
+    <opensaml.version>5.1.4</opensaml.version>
+    <quartz.version>2.5.0</quartz.version>
   </properties>
 
   <dependencyManagement>
@@ -208,6 +205,13 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-datasource</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-server</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -234,6 +238,30 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-mongodb</artifactId>
+        <type>test-jar</type>
+        <scope>test</scope>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1</artifactId>
+        <type>test-jar</type>
+        <scope>test</scope>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+        <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
@@ -403,6 +431,13 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-convert</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -475,8 +510,46 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-query</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-schema</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-schema</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-search</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-search</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-search-client-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-search-client-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -509,8 +582,22 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-storage-mem</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+        <artifactId>nuxeo-core-storage-mongodb</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -636,6 +723,13 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-directory-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-ldap</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -676,6 +770,13 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-directory-mongodb</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-types-contrib</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -691,13 +792,10 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-forms-layout-api</artifactId>
+        <artifactId>nuxeo-platform-filemanager</artifactId>
         <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-forms-layout-core</artifactId>
-        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -744,11 +842,6 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-mod_sso</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-login-ntlm</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -818,11 +911,6 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-scim-server</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-scim-v2</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -835,6 +923,13 @@
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-oauth</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -871,6 +966,18 @@
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-core</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -927,12 +1034,7 @@
         <scope>test</scope>
       </dependency>
 
-      <!-- Nuxeo Theme -->
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.theme</groupId>
-        <artifactId>nuxeo-theme-styling</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
+      <!-- Nuxeo Web Resources -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-api</artifactId>
@@ -975,17 +1077,19 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
+        <artifactId>nuxeo-webengine-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-base</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
-        <artifactId>nuxeo-webengine-jaxrs</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
-        <artifactId>nuxeo-webengine-ui</artifactId>
+        <artifactId>nuxeo-webengine-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1029,8 +1133,22 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
+        <artifactId>nuxeo-automation-features</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-server</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
+        <artifactId>nuxeo-automation-server</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
@@ -1039,8 +1157,22 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
+        <artifactId>nuxeo-automation-io</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-scripting</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
+        <artifactId>nuxeo-automation-scripting</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
@@ -1063,11 +1195,6 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-audit-api</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -1077,6 +1204,11 @@
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-directory-storage</artifactId>
+        <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -1093,6 +1225,36 @@
         <artifactId>nuxeo-platform-audit-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-sql</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-sql</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-audit-test</artifactId>
+        <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -1114,11 +1276,6 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-comment-core</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-rest-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -1130,11 +1287,6 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-csv-export</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-forms-layout-export</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1156,8 +1308,21 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-imaging-test</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-thumbnail</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-thumbnail</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -1194,11 +1359,19 @@
         <artifactId>nuxeo-platform-notification</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-preview-core</artifactId>
         <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-preview-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -1228,11 +1401,6 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-io</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-relations-jena-plugin</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1288,45 +1456,6 @@
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-seqgen</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-seqgen</artifactId>
-        <version>${nuxeo.platform.version}</version>
-        <type>test-jar</type>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-audit</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-audit</artifactId>
-        <version>${nuxeo.platform.version}</version>
-        <type>test-jar</type>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-http-read-only</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-automation</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-rest</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-io</artifactId>
         <version>${nuxeo.platform.version}</version>
@@ -1339,6 +1468,12 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-test</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-rest-opensearch1-passthrough</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1409,13 +1544,6 @@
         <scope>test</scope>
       </dependency>
 
-      <!-- WebDAV -->
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-webdav</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-
       <!-- Importer -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -1429,7 +1557,7 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-importer-jaxrs</artifactId>
+        <artifactId>nuxeo-importer-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1535,6 +1663,13 @@
         <artifactId>nuxeo-binary-metadata</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-binary-metadata</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
 
       <!-- Nuxeo Platform Signature -->
       <dependency>
@@ -1623,7 +1758,7 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
-        <artifactId>nuxeo-template-rendering-jaxrs</artifactId>
+        <artifactId>nuxeo-template-rendering-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1674,11 +1809,6 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-elasticsearch</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
-        <artifactId>nuxeo-drive-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1740,13 +1870,6 @@
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
-      <!-- 3D -->
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-3d</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
-
       <!-- Target platforms -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
@@ -1772,7 +1895,7 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
-        <artifactId>nuxeo-target-platforms-jaxrs</artifactId>
+        <artifactId>nuxeo-target-platforms-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
@@ -1788,12 +1911,6 @@
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
-      <!-- Audit -->
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-audit-storage-directory</artifactId>
-        <version>${nuxeo.platform.version}</version>
-      </dependency>
 
       <!-- Adobe CC Connector -->
       <dependency>
@@ -1835,19 +1952,13 @@
         <classifier>jar-with-dependencies</classifier>
       </dependency>
       <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
+        <groupId>cloud.docbyte.nuxeo.ftests</groupId>
         <artifactId>nuxeo-functional-tests</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
 
       <!-- Packages -->
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.packages</groupId>
-        <artifactId>nuxeo-3d-package</artifactId>
-        <version>${nuxeo.platform.version}</version>
-        <type>zip</type>
-      </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-adobe-connector-package</artifactId>
@@ -1857,6 +1968,24 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-amazon-s3-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-audit-mongodb-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-audit-opensearch1-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-audit-sql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
@@ -1994,6 +2123,12 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-opensearch1-embed-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-oracle-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -2024,6 +2159,12 @@
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-shibboleth-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -2043,6 +2184,18 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-tree-snapshot-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-uidgen-opensearch1-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-uidgen-sql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
@@ -2102,7 +2255,7 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.connect</groupId>
+        <groupId>cloud.docbyte.nuxeo.connect</groupId>
         <artifactId>nuxeo-connect-client</artifactId>
         <version>${nuxeo.connect.client.version}</version>
         <classifier>standalone</classifier>
@@ -2124,119 +2277,97 @@
       <!-- specifications -->
       <dependency>
         <groupId>com.sun.activation</groupId>
-        <artifactId>javax.activation</artifactId>
-        <version>1.2.0</version>
+        <artifactId>jakarta.activation</artifactId>
+        <version>2.0.1</version>
       </dependency>
       <dependency>
-        <groupId>javax.annotation</groupId>
-        <artifactId>javax.annotation-api</artifactId> <!-- provided by Tomcat -->
-        <version>1.3.2</version>
+        <groupId>jakarta.activation</groupId>
+        <artifactId>jakarta.activation-api</artifactId>
+        <version>2.1.3</version>
       </dependency>
       <dependency>
-        <groupId>javax.inject</groupId>
-        <artifactId>javax.inject</artifactId>
-        <version>1</version>
+        <groupId>jakarta.annotation</groupId>
+        <artifactId>jakarta.annotation-api</artifactId>
+        <version>3.0.0</version>
+        <scope>provided</scope> <!-- by Tomcat -->
       </dependency>
       <dependency>
-        <groupId>javax.mail</groupId>
-        <artifactId>mail</artifactId>
-        <version>1.4.7</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.activation</groupId> <!-- use com.sun.activation:javax.activation instead -->
-            <artifactId>activation</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>jakarta.el</groupId>
+        <artifactId>jakarta.el-api</artifactId>
+        <version>5.0.1</version>
+        <scope>provided</scope> <!-- by Tomcat -->
       </dependency>
       <dependency>
-        <groupId>javax.persistence</groupId>
-        <artifactId>javax.persistence-api</artifactId>
-        <version>2.2</version>
+        <groupId>jakarta.inject</groupId>
+        <artifactId>jakarta.inject-api</artifactId>
+        <version>2.0.1</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet.jsp</groupId>
-        <artifactId>jsp-api</artifactId>
-        <version>2.2</version>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <version>2.1.3</version>
       </dependency>
       <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>groovy-engine</artifactId>
-        <version>1.0</version>
+        <groupId>org.eclipse.angus</groupId>
+        <artifactId>jakarta.mail</artifactId>
+        <version>2.0.3</version>
       </dependency>
       <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>jexl-engine</artifactId>
-        <version>1.0</version>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>js-engine</artifactId>
-        <version>1.0</version>
+        <groupId>jakarta.servlet</groupId>
+        <artifactId>jakarta.servlet-api</artifactId>
+        <version>6.0.0</version>
+        <scope>provided</scope> <!-- by Tomcat -->
       </dependency>
       <dependency>
-        <groupId>javax.script</groupId>
-        <artifactId>bsh-engine</artifactId>
-        <version>1.0</version>
+        <groupId>jakarta.servlet.jsp</groupId>
+        <artifactId>jakarta.servlet.jsp-api</artifactId>
+        <version>3.1.1</version>
+        <scope>provided</scope> <!-- by Tomcat -->
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>javax.servlet-api</artifactId> <!-- provided by Tomcat -->
-        <version>4.0.1</version>
+        <groupId>jakarta.servlet.jsp.jstl</groupId>
+        <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+        <version>3.0.2</version>
       </dependency>
       <dependency>
-        <groupId>javax.servlet</groupId>
-        <artifactId>jstl</artifactId>
-        <version>1.2</version>
+        <groupId>org.glassfish.web</groupId>
+        <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+        <version>3.0.1</version>
       </dependency>
       <dependency>
-        <groupId>javax.transaction</groupId>
-        <artifactId>javax.transaction-api</artifactId>
-        <version>1.3</version>
+        <groupId>jakarta.transaction</groupId>
+        <artifactId>jakarta.transaction-api</artifactId>
+        <version>2.0.1</version>
       </dependency>
       <dependency>
-        <groupId>javax.validation</groupId>
-        <artifactId>validation-api</artifactId>
-        <version>1.1.0.Final</version>
+        <groupId>jakarta.validation</groupId>
+        <artifactId>jakarta.validation-api</artifactId>
+        <version>3.0.2</version>
       </dependency>
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>jsr311-api</artifactId>
-        <version>1.1.1</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>2.3.3</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>4.0.2</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
-        <version>2.3.9</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation instead -->
-            <groupId>com.sun.activation</groupId>
-            <artifactId>jakarta.activation</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>4.0.5</version>
       </dependency>
       <dependency>
-        <groupId>javax.xml.ws</groupId>
-        <artifactId>jaxws-api</artifactId>
-        <version>2.3.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jaxb-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <groupId>jakarta.xml.ws</groupId>
+        <artifactId>jakarta.xml.ws-api</artifactId>
+        <version>4.0.2</version>
       </dependency>
 
       <!-- commons -->
@@ -2252,29 +2383,24 @@
         <version>1.4.0</version>
       </dependency>
       <dependency>
-        <groupId>commons-fileupload</groupId>
-        <artifactId>commons-fileupload</artifactId>
-        <version>1.5</version>
-      </dependency>
-      <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.8.0</version>
+        <version>2.19.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.16.0</version>
+        <version>3.17.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-collections4</artifactId>
-        <version>4.4</version>
+        <version>4.5.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.12.0</version>
+        <version>1.13.1</version>
       </dependency>
       <!-- Keep the dependency for external libraries -->
       <dependency>
@@ -2285,7 +2411,7 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.9.4</version>
+        <version>1.10.1</version>
         <exclusions>
           <exclusion>
             <groupId>commons-collections</groupId>
@@ -2305,9 +2431,9 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.3.3</version>
+        <version>1.3.5</version>
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId> <!-- without javax. -->
@@ -2329,17 +2455,17 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.17.1</version>
+        <version>1.18.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-compress</artifactId>
-        <version>1.26.2</version>
+        <version>1.27.1</version>
       </dependency>
       <dependency>
-        <groupId>commons-jexl</groupId>
-        <artifactId>commons-jexl</artifactId>
-        <version>1.1</version>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-jexl3</artifactId>
+        <version>3.5.0</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
@@ -2349,19 +2475,12 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-pool2</artifactId>
-        <version>2.12.0</version>
+        <version>2.12.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
-        <version>2.12.0</version>
-        <exclusions>
-          <!-- exclude jakarta artifacts which conflict with their javax equivalent -->
-          <exclusion>
-            <groupId>jakarta.transaction</groupId>
-            <artifactId>jakarta.transaction-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>2.13.0-NX02</version>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -2400,121 +2519,28 @@
       <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.12.7</version>
+        <version>2.14.0</version>
       </dependency>
-
-      <!-- OpenSearch -->
-      <dependency>
-        <groupId>org.opensearch</groupId>
-        <artifactId>opensearch</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>opensearch-rest-high-level-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>opensearch-rest-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.client</groupId>
-        <artifactId>transport</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.opensearch.plugin</groupId>
-        <artifactId>transport-netty4-client</artifactId>
-        <version>${opensearch.version}</version>
-      </dependency>
-      <!-- specify a jna version compatible with ARM architecture -->
+      <!-- specify a jna version compatible with ARM architecture, required by MariaDB, OpenSearch -->
       <dependency>
         <groupId>net.java.dev.jna</groupId>
         <artifactId>jna</artifactId>
-        <version>5.14.0</version>
+        <version>5.17.0</version>
       </dependency>
 
       <!-- need a version more recent than the one pulled by transport-netty4-client -->
+      <!-- also used by mockserver-netty -->
       <dependency>
         <groupId>io.netty</groupId>
-        <artifactId>netty-handler</artifactId>
+        <artifactId>netty-bom</artifactId>
         <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-codec</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-codec-http</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-codec-http2</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-codec-socks</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-common</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-buffer</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-transport</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-resolver</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <!-- needed by gatling -->
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-handler-proxy</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-resolver-dns</artifactId>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-transport-native-epoll</artifactId>
-        <classifier>linux-x86_64</classifier>
-        <version>${netty.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.netty</groupId>
-        <artifactId>netty-transport-native-unix-common</artifactId>
-        <version>${netty.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-tcnative-boringssl-static</artifactId>
         <version>${netty.boringssl.version}</version>
-      </dependency>
-
-      <!-- needed for embedded mode -->
-      <dependency>
-        <groupId>org.opensearch.plugin</groupId>
-        <artifactId>analysis-common</artifactId>
-        <version>${opensearch.version}</version>
       </dependency>
 
       <!-- apache -->
@@ -2551,7 +2577,7 @@
       <dependency>
         <groupId>org.apache.xmlbeans</groupId>
         <artifactId>xmlbeans</artifactId>
-        <version>5.1.1</version>
+        <version>5.3.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.directory.shared</groupId>
@@ -2620,39 +2646,15 @@
         </exclusions>
       </dependency>
 
-      <!-- Guessed versions of code included in JBoss 5.1.0.GA or at least
-        compliant -->
-      <dependency>
-        <groupId>org.jboss.logging</groupId>
-        <artifactId>jboss-logging-log4j</artifactId>
-        <version>2.1.2.GA</version>
-      </dependency>
-
       <dependency>
         <groupId>cglib</groupId>
         <artifactId>cglib-nodep</artifactId>
         <version>3.3.0</version>
       </dependency>
-      <!-- NXP-10566: EL implementation chosen, set as the default
-        implementation in Tomcat by nuxeo-platform-el in file at
-        META-INF/services/javax.el.ExpressionFactory
-      -->
       <dependency>
-        <groupId>org.jboss.el</groupId>
-        <artifactId>jboss-el</artifactId>
-        <version>1.0_02.CR6</version>
-        <exclusions>
-          <!-- use org.apache.tomcat:tomcat-el-api instead -->
-          <exclusion>
-            <groupId>javax.el</groupId>
-            <artifactId>el-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.hibernate</groupId>
+        <groupId>org.hibernate.orm</groupId>
         <artifactId>hibernate-core</artifactId>
-        <version>5.6.15.Final</version>
+        <version>6.5.3.Final</version>
       </dependency>
 
       <dependency>
@@ -2663,20 +2665,9 @@
 
       <!-- jxls -->
       <dependency>
-        <groupId>net.sf.jxls</groupId>
-        <artifactId>jxls-core</artifactId>
-        <version>${jxls.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.sf.jxls</groupId>
-        <artifactId>jxls-reader</artifactId>
-        <version>${jxls.version}</version>
-      </dependency>
-      <!-- jxls 2 -->
-      <dependency>
         <groupId>org.jxls</groupId>
         <artifactId>jxls</artifactId>
-        <version>${jxls2.version}</version>
+        <version>${jxls.version}</version>
         <exclusions>
           <exclusion>
             <groupId>ch.qos.logback</groupId>
@@ -2687,7 +2678,7 @@
       <dependency>
         <groupId>org.jxls</groupId>
         <artifactId>jxls-poi</artifactId>
-        <version>${jxls2.version}</version>
+        <version>${jxls.version}</version>
       </dependency>
 
       <!-- docx report -->
@@ -2741,7 +2732,7 @@
       <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
-        <version>2.2.224</version>
+        <version>2.3.232</version>
         <scope>provided</scope>
       </dependency>
 
@@ -2758,12 +2749,12 @@
       <dependency>
         <groupId>com.github.librepdf</groupId>
         <artifactId>openpdf</artifactId>
-        <version>1.4.2</version>
+        <version>2.0.3</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
         <artifactId>freemarker</artifactId>
-        <version>2.3.33</version>
+        <version>2.3.34</version>
       </dependency>
       <dependency>
         <groupId>concurrent</groupId>
@@ -2779,19 +2770,19 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.26.3</version>
+        <version>3.27.3</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
-        <version>1.3</version>
+        <version>3.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-library</artifactId>
-        <version>1.3</version>
+        <version>3.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -2800,7 +2791,7 @@
         <version>${quartz.version}</version>
       </dependency>
       <dependency>
-        <groupId>com.novemberain</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.novemberain</groupId>
         <artifactId>quartz-mongodb</artifactId>
         <version>${quartz.mongodb.version}</version>
         <exclusions>
@@ -2813,38 +2804,15 @@
       </dependency>
       <dependency>
         <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-api</artifactId>
+        <artifactId>log4j-bom</artifactId>
         <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-core</artifactId>
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-1.2-api</artifactId> <!-- redirect log4j to log4j2 -->
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-jcl</artifactId> <!-- redirect commons-logging to log4j2 -->
-        <version>${org.apache.log4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-slf4j-impl</artifactId> <!-- use log4j-slf4j18-impl when upgrading SLF4j to 1.8 -->
-        <version>${org.apache.log4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${org.slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.sf.ehcache</groupId>
-        <artifactId>ehcache-core</artifactId>
-        <version>2.6.11</version>
       </dependency>
       <!-- deprecated - use jackson instead -->
       <dependency>
@@ -2872,18 +2840,6 @@
         <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.jaxrs</groupId>
-        <artifactId>jackson-jaxrs-json-provider</artifactId>
-        <version>${jackson.version}</version>
-        <!-- Exclude dependency causing conflict with Tomcat -->
-        <exclusions>
-          <exclusion>
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>net.sf.ezmorph</groupId>
         <artifactId>ezmorph</artifactId>
         <version>1.0.4</version>
@@ -2891,20 +2847,18 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-csv</artifactId>
-        <version>1.10.0</version>
+        <version>1.14.0</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
         <artifactId>plexus-utils</artifactId>
-        <version>3.5.1</version>
+        <version>4.0.2</version>
       </dependency>
       <dependency>
         <groupId>org.osgi</groupId>
         <artifactId>org.osgi.core</artifactId>
-        <version>4.2.0</version>
+        <version>4.3.1</version>
       </dependency>
-      <!-- OSGI compendium - do not change to org.osgi group since it is
-        not containing all needed classes -->
       <dependency>
         <groupId>org.osgi</groupId>
         <artifactId>org.osgi.compendium</artifactId>
@@ -2918,13 +2872,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>2.2</version>
-      </dependency>
-      <!-- jsp library for login and error pages -->
-      <dependency>
-        <groupId>org.apache.taglibs</groupId>
-        <artifactId>taglibs-standard-impl</artifactId>
-        <version>1.2.5</version>
+        <version>2.4</version>
       </dependency>
       <dependency>
         <groupId>antlr</groupId>
@@ -2934,24 +2882,24 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.3</version>
+        <version>42.7.5</version>
       </dependency>
       <!-- fix transitive dependency of org.postgresql:postgresql to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.46.0</version>
+        <version>3.49.2</version>
       </dependency>
 
       <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-        <version>8.0.30</version>
+        <groupId>com.mysql</groupId>
+        <artifactId>mysql-connector-j</artifactId>
+        <version>9.3.0</version>
       </dependency>
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>2.7.12</version>
+        <version>3.5.3</version>
       </dependency>
       <!-- Informative declarations, Oracle drivers are not publicly available. -->
       <dependency>
@@ -2981,8 +2929,7 @@
       <dependency>
         <groupId>com.microsoft.sqlserver</groupId>
         <artifactId>mssql-jdbc</artifactId>
-        <version>7.4.1.jre8</version>
-        <scope>provided</scope>
+        <version>7.4.1.jre12</version>
       </dependency>
       <dependency>
         <groupId>org.jmock</groupId>
@@ -3031,6 +2978,11 @@
       </dependency>
       <dependency>
         <groupId>org.apache.pdfbox</groupId>
+        <artifactId>pdfbox-io</artifactId>
+        <version>${pdfbox.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.pdfbox</groupId>
         <artifactId>pdfbox-tools</artifactId>
         <version>${pdfbox.version}</version>
       </dependency>
@@ -3057,7 +3009,7 @@
       <dependency>
         <groupId>com.thoughtworks.xstream</groupId>
         <artifactId>xstream</artifactId>
-        <version>1.4.20</version>
+        <version>1.4.21</version>
         <exclusions>
           <exclusion>
             <groupId>xpp3</groupId>
@@ -3077,8 +3029,8 @@
       </dependency>
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
-        <artifactId>groovy-all</artifactId>
-        <version>2.4.21</version>
+        <artifactId>groovy-jsr223</artifactId>
+        <version>3.0.24</version>
       </dependency>
       <dependency>
         <groupId>org.mvel</groupId>
@@ -3094,100 +3046,111 @@
         <scope>test</scope>
         <exclusions>
           <exclusion>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>mailapi</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-          </exclusion>
-          <!-- jakarta artifacts are not allowed, mockserver-netty/mockserver-core/swagger-parser/swagger-core depends on it -->
-          <exclusion>
-            <groupId>jakarta.validation</groupId>
-            <artifactId>jakarta.validation-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
 
       <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-core</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-json</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-client</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-server</artifactId>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-common</artifactId>
         <version>${jersey.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>com.sun.jersey</groupId>
-            <artifactId>jersey-core</artifactId>
+            <!-- Same as the original but repackaged for OSGi -->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-servlet</artifactId>
+        <groupId>org.glassfish.jersey.core</groupId>
+        <artifactId>jersey-server</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- Same as the original but repackaged for OSGi -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.sun.jersey.contribs</groupId>
-        <artifactId>jersey-apache-client4</artifactId>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
         <version>${jersey.version}</version>
+        <exclusions>
+          <!-- Same as the original but repackaged for OSGi -->
+          <exclusion>
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
-        <groupId>com.sun.jersey.contribs</groupId>
-        <artifactId>jersey-multipart</artifactId>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet-core</artifactId>
+        <version>${jersey.version}</version>
+        <exclusions>
+          <exclusion>
+            <!-- Same as the original but repackaged for OSGi -->
+            <groupId>org.glassfish.hk2.external</groupId>
+            <artifactId>jakarta.inject</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.glassfish.jersey.media</groupId>
+        <artifactId>jersey-media-multipart</artifactId>
         <version>${jersey.version}</version>
       </dependency>
 
       <dependency>
         <groupId>com.fasterxml.woodstox</groupId>
         <artifactId>woodstox-core</artifactId>
-        <version>6.7.0</version>
+        <version>7.1.0</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.uuid</groupId>
+        <artifactId>java-uuid-generator</artifactId>
+        <version>5.1.0</version>
       </dependency>
 
       <dependency>
         <groupId>org.apache.geronimo.components</groupId>
         <artifactId>geronimo-transaction</artifactId>
-        <version>3.1.4-NX1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jta_1.1_spec</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-j2ee-connector_1.6_spec</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>4.0.0-NX1</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.11.0</version>
+        <version>2.13.1</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>32.1.3-jre</version>
+        <version>33.4.8-jre</version>
       </dependency>
       <!-- fix transitive dependencies of com.google.guava:guava to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
-        <version>2.30.0</version>
+        <version>2.38.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>failureaccess</artifactId>
-        <version>1.0.2</version>
+        <version>1.0.3</version>
       </dependency>
 
       <dependency>
@@ -3236,49 +3199,9 @@
         <version>0.11a</version>
       </dependency>
       <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>jena</artifactId>
-        <version>2.6.4-NX</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>json-jena</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>arq</artifactId>
-        <version>2.8.8</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.hp.hpl.jena</groupId>
-            <artifactId>json-jena</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- conflicts with woodstox-core needed by jackson-dataformat-xml -->
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>wstx-asl</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.hp.hpl.jena</groupId>
-        <artifactId>iri</artifactId>
-        <version>0.8</version>
-      </dependency>
-      <dependency>
         <groupId>com.ibm.icu</groupId>
         <artifactId>icu4j</artifactId>
-        <version>67.1</version>
+        <version>76.1</version>
       </dependency>
       <dependency>
         <groupId>org.restlet.jse</groupId>
@@ -3288,7 +3211,7 @@
       <dependency>
         <groupId>org.apache.ant</groupId>
         <artifactId>ant</artifactId>
-        <version>1.10.14</version>
+        <version>1.10.15</version>
       </dependency>
       <dependency>
         <groupId>org.eclipse.jdt</groupId>
@@ -3308,105 +3231,7 @@
       <dependency>
         <groupId>org.json</groupId>
         <artifactId>json</artifactId>
-        <version>20231013</version>
-      </dependency>
-
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-api</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-support</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-firefox-driver</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-ie-driver</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-chrome-driver</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>htmlunit-driver</artifactId>
-        <version>2.70.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>htmlunit</artifactId>
-        <version>2.20</version>
-        <exclusions>
-          <exclusion>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.seleniumhq.selenium</groupId>
-        <artifactId>selenium-server-standalone</artifactId>
-        <version>${selenium.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>net.jsourcerer.webdriver</groupId>
-        <artifactId>JSErrorCollector</artifactId>
-        <version>0.6</version>
-      </dependency>
-      <dependency>
-        <groupId>biz.neustar</groupId>
-        <artifactId>browsermob-proxy</artifactId>
-        <version>2.0-beta-7</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.seleniumhq.selenium</groupId>
-            <artifactId>selenium-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpcore</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpmime</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-jdk14</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-io</artifactId>
-          </exclusion>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
-          <exclusion>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId> <!-- without javax. -->
-          </exclusion>
-          <!-- use org.dom4j:dom4j instead -->
-          <exclusion>
-            <groupId>dom4j</groupId>
-            <artifactId>dom4j</artifactId>
-          </exclusion>
-          <!-- use org.bouncycastle:bcprov-jdk18on instead -->
-          <exclusion>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk15on</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>20250107</version>
       </dependency>
       <dependency>
         <groupId>net.oauth.core</groupId>
@@ -3479,7 +3304,7 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat as catalina.jar, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -3496,7 +3321,7 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
@@ -3509,10 +3334,23 @@
         <version>${tomcat.version}</version>
         <!-- provided by Tomcat as jasper.jar, excluded in final assembly -->
         <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
+          <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
             <groupId>org.apache.tomcat</groupId>
             <artifactId>tomcat-servlet-api</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.tomcat</groupId>
+        <artifactId>tomcat-jasper-el</artifactId>
+        <version>${tomcat.version}</version>
+        <!-- provided by Tomcat as jasper-el.jar, excluded in final assembly -->
+        <exclusions>
+          <!-- we use official jakarta.el:jakarta.el-api instead -->
+          <exclusion>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-el-api</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -3609,12 +3447,12 @@
       <dependency>
         <groupId>org.apache.santuario</groupId>
         <artifactId>xmlsec</artifactId>
-        <version>2.3.4</version>
+        <version>4.0.4</version>
       </dependency>
       <dependency>
         <groupId>org.owasp.esapi</groupId>
         <artifactId>esapi</artifactId>
-        <version>2.5.4.0</version>
+        <version>2.6.0.0</version>
         <exclusions>
           <exclusion>
             <groupId>xml-apis</groupId>
@@ -3673,86 +3511,6 @@
           </exclusion>
         </exclusions>
       </dependency>
-      <!-- SCIM v1-->
-      <dependency>
-        <artifactId>scim-sdk</artifactId>
-        <groupId>com.unboundid.product.scim</groupId>
-        <version>1.7.1</version>
-        <exclusions>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
-          <exclusion>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <!-- SCIM v1 - Tests -->
-      <dependency>
-        <groupId>org.apache.wink</groupId>
-        <artifactId>wink-client-apache-httpclient</artifactId>
-        <version>1.4</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jcl-over-slf4j</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-annotation_1.1_spec</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>javax.activation</groupId>
-            <artifactId>activation</artifactId>
-          </exclusion>
-          <exclusion>
-            <!-- use com.sun.jersey:jersey-core instead -->
-            <groupId>javax.ws.rs</groupId>
-            <artifactId>jsr311-api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>info.simplecloud</groupId>
-        <artifactId>scimcore</artifactId>
-        <version>0.1</version>
-        <scope>test</scope>
-        <exclusions>
-          <!-- exposes a package conflicting with JDK -->
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jsr173_api</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>info.simplecloud.scimproxy</groupId>
-        <artifactId>compliance</artifactId>
-        <version>0.1</version>
-        <classifier>classes</classifier>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-beanutils</groupId>
-            <artifactId>commons-beanutils-core</artifactId>
-          </exclusion>
-          <!-- we use official javax.servlet:javax.servlet-api instead -->
-          <exclusion>
-            <groupId>org.mortbay.jetty</groupId>
-            <artifactId>servlet-api</artifactId>
-          </exclusion>
-          <!-- exposes a package conflicting with JDK -->
-          <exclusion>
-            <groupId>javax.xml.bind</groupId>
-            <artifactId>jsr173_api</artifactId>
-          </exclusion>
-          <!-- banned -->
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
       <dependency>
         <!-- not used by the platform, keep it if third party leveraged it -->
         <groupId>commons-validator</groupId>
@@ -3762,36 +3520,15 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>not-yet-commons-ssl</artifactId>
-        <version>0.3.9</version>
+        <version>0.3.11</version>
         <scope>test</scope>
       </dependency>
 
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>3.12.4</version>
+        <version>5.17.0</version>
         <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.jackrabbit</groupId>
-        <artifactId>jackrabbit-webdav</artifactId>
-        <version>2.22.0</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.concordion</groupId>
-        <artifactId>concordion</artifactId>
-        <version>1.5.1</version>
-        <exclusions>
-          <exclusion>
-            <groupId>jboss</groupId>
-            <artifactId>javassist</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>xom</groupId>
-            <artifactId>xom</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.antlr</groupId>
@@ -3802,7 +3539,7 @@
       <dependency>
         <groupId>jaxen</groupId>
         <artifactId>jaxen</artifactId>
-        <version>1.2.0</version>
+        <version>2.0.0</version>
       </dependency>
       <dependency>
         <groupId>xalan</groupId>
@@ -3833,11 +3570,6 @@
       </dependency>
 
       <dependency>
-        <groupId>net.oauth.core</groupId>
-        <artifactId>oauth-provider</artifactId>
-        <version>20090531</version>
-      </dependency>
-      <dependency>
         <groupId>org.javasimon</groupId>
         <artifactId>javasimon-core</artifactId>
         <version>2.5.0</version>
@@ -3866,6 +3598,12 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <!-- bridge for library using dropwizard 3.x/4.x -->
+      <dependency>
+        <groupId>io.dropwizard.metrics5</groupId>
+        <artifactId>metrics-legacy-adapter</artifactId>
+        <version>${metrics.version}</version>
+      </dependency>
       <!-- transitive dependency of io.dropwizard.metrics5:metrics-graphite to upgrade -->
       <dependency>
         <groupId>com.rabbitmq</groupId>
@@ -3887,7 +3625,7 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>9.7</version>
+        <version>9.8</version>
       </dependency>
 
       <dependency>
@@ -3899,45 +3637,18 @@
 
       <!-- OpenCMIS -->
       <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-commons-api</artifactId>
+        <groupId>org.nuxeo.chemistry.opencmis</groupId>
+        <artifactId>chemistry-opencmis</artifactId>
         <version>${chemistry.opencmis.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-commons-impl</artifactId>
-        <version>${chemistry.opencmis.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.codehaus.woodstox</groupId>
-            <artifactId>woodstox-core-asl</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-server-support</artifactId>
-        <version>${chemistry.opencmis.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-client-api</artifactId>
-        <version>${chemistry.opencmis.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
+        <groupId>org.nuxeo.chemistry.opencmis</groupId>
         <artifactId>chemistry-opencmis-client-impl</artifactId>
         <version>${chemistry.opencmis.version}</version>
         <exclusions>
-          <exclusion>
-            <groupId>org.apache.felix</groupId>
-            <artifactId>org.osgi.core</artifactId>
-          </exclusion>
-          <!-- jaxws not needed -->
+          <!-- jaxws for cxf not needed -->
           <exclusion>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
@@ -3953,15 +3664,11 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-server-bindings</artifactId>
+        <groupId>org.nuxeo.chemistry.opencmis</groupId>
+        <artifactId>chemistry-opencmis-client-bindings</artifactId>
         <version>${chemistry.opencmis.version}</version>
         <exclusions>
-          <!-- jaxws not needed -->
-          <exclusion>
-            <groupId>com.sun.xml.ws</groupId>
-            <artifactId>jaxws-rt</artifactId>
-          </exclusion>
+          <!-- jaxws for cxf not needed -->
           <exclusion>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
@@ -3973,11 +3680,11 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.chemistry.opencmis</groupId>
-        <artifactId>chemistry-opencmis-client-bindings</artifactId>
+        <groupId>org.nuxeo.chemistry.opencmis</groupId>
+        <artifactId>chemistry-opencmis-server-bindings</artifactId>
         <version>${chemistry.opencmis.version}</version>
         <exclusions>
-          <!-- jaxws not needed -->
+          <!-- jaxws for cxf not needed -->
           <exclusion>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
@@ -4001,12 +3708,6 @@
       </dependency>
 
       <dependency>
-        <groupId>net.java.dev.webdav</groupId>
-        <artifactId>webdav-jaxrs</artifactId>
-        <version>1.2.1-nx1</version>
-      </dependency>
-
-      <dependency>
         <groupId>net.htmlparser.jericho</groupId>
         <artifactId>jericho-html</artifactId>
         <version>3.4</version>
@@ -4021,38 +3722,36 @@
       <dependency>
         <groupId>org.apache.xbean</groupId>
         <artifactId>xbean-naming</artifactId>
-        <version>4.25</version>
+        <version>4.27</version>
       </dependency>
 
       <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-core</artifactId>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
         <version>${aws.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
       </dependency>
       <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-s3</artifactId>
-        <version>${aws.version}</version>
+        <groupId>software.amazon.encryption.s3</groupId>
+        <artifactId>amazon-s3-encryption-client-java</artifactId>
+        <version>3.3.2</version>
       </dependency>
       <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-cloudfront</artifactId>
-        <version>${aws.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-sts</artifactId>
-        <version>${aws.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.amazonaws</groupId>
-        <artifactId>aws-java-sdk-ses</artifactId>
-        <version>${aws.version}</version>
+        <groupId>software.amazon.awssdk.crt</groupId>
+        <artifactId>aws-crt</artifactId>
+        <version>0.38.1</version>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
         <artifactId>google-cloud-storage</artifactId>
         <version>${gcp.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <!-- fix protobuf-java-* version for Google Storage package -->
       <dependency>
@@ -4069,35 +3768,28 @@
       <dependency>
         <groupId>com.google.http-client</groupId>
         <artifactId>google-http-client-apache-v2</artifactId>
-        <version>1.44.2</version>
+        <version>1.47.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.http-client</groupId>
         <artifactId>google-http-client-gson</artifactId>
-        <version>1.45.0</version>
+        <version>1.46.3</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-api</artifactId>
-        <version>1.66.0</version>
+        <version>1.72.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-context</artifactId>
-        <version>1.66.0</version>
+        <version>1.72.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.azure</groupId>
         <artifactId>azure-storage-blob</artifactId>
-        <version>12.27.0</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>12.30.0</version>
       </dependency>
 
       <dependency>
@@ -4106,7 +3798,6 @@
         <version>1.7.1</version>
         <exclusions>
          <exclusion>
-            <!-- use com.sun.activation:javax.activation instead -->
             <groupId>javax.activation</groupId>
             <artifactId>activation</artifactId>
           </exclusion>
@@ -4133,18 +3824,18 @@
       <dependency>
         <groupId>org.ops4j.pax.url</groupId>
         <artifactId>pax-url-aether</artifactId>
-        <version>1.6.0</version>
+        <version>2.6.16</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.thetransactioncompany</groupId>
         <artifactId>cors-filter</artifactId>
-        <version>2.10</version>
+        <version>3.1</version>
       </dependency>
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.174</version>
+        <version>4.8.179</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -4158,6 +3849,13 @@
         <groupId>org.skyscreamer</groupId>
         <artifactId>jsonassert</artifactId>
         <version>1.5.3</version>
+        <scope>test</scope>
+      </dependency>
+
+      <dependency>
+        <groupId>org.xmlunit</groupId>
+        <artifactId>xmlunit-assertj3</artifactId>
+        <version>2.10.0</version>
         <scope>test</scope>
       </dependency>
 
@@ -4177,11 +3875,6 @@
         <groupId>ro.isdc.wro4j</groupId>
         <artifactId>wro4j-core</artifactId>
         <version>${wro4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.vaadin</groupId>
-        <artifactId>vaadin-sass-compiler</artifactId>
-        <version>0.9.13</version>
       </dependency>
 
       <dependency>
@@ -4249,12 +3942,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.client</groupId>
-        <artifactId>nuxeo-java-client</artifactId>
-        <version>${nuxeo.java.client.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
         <groupId>org.apache.pdfbox</groupId>
         <artifactId>jbig2-imageio</artifactId>
         <version>${pdfbox.jbig2.version}</version>
@@ -4284,18 +3971,24 @@
         <groupId>io.confluent</groupId>
         <artifactId>kafka-schema-registry-client</artifactId>
         <version>${confluent.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-jakarta-servlet-filter-adapter</artifactId>
+        <version>${keycloak.version}</version>
         <exclusions>
           <exclusion>
-            <groupId>org.glassfish.jersey.core</groupId>
-            <artifactId>jersey-common</artifactId>
+            <!-- use bouncycastle jdk15on instead of jdk18on -->
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk18on</artifactId>
           </exclusion>
           <exclusion>
-            <groupId>jakarta.ws.rs</groupId>
-            <artifactId>jakarta.ws.rs-api</artifactId>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk18on</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
-
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-tomcat-adapter</artifactId>
@@ -4305,13 +3998,6 @@
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-common</artifactId>
         <version>${keycloak.version}</version>
-        <exclusions>
-          <exclusion>
-            <!-- use com.sun.activation:javax.activation-api instead -->
-            <groupId>jakarta.activation</groupId>
-            <artifactId>jakarta.activation-api</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
@@ -4351,7 +4037,7 @@
       </dependency>
       <dependency>
         <groupId>io.opencensus</groupId>
-        <artifactId>opencensus-contrib-http-servlet</artifactId>
+        <artifactId>opencensus-contrib-http-util</artifactId>
         <version>${opencensus.version}</version>
       </dependency>
       <dependency>
@@ -4393,23 +4079,12 @@
       <dependency>
         <groupId>com.squareup.okio</groupId>
         <artifactId>okio-jvm</artifactId>
-        <version>3.9.0</version>
+        <version>3.11.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.thrift</groupId>
         <artifactId>libthrift</artifactId>
-        <version>0.20.0</version>
-        <exclusions>
-          <!-- exclude jakarta artifacts which conflict with their javax equivalent -->
-          <exclusion>
-            <groupId>jakarta.annotation</groupId>
-            <artifactId>jakarta.annotation-api</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>0.21.0</version>
       </dependency>
       <!-- transitive dependency of opencensus-exporter-trace-datadog to upgrade -->
       <dependency>
@@ -4421,7 +4096,7 @@
       <dependency>
         <groupId>com.lmax</groupId>
         <artifactId>disruptor</artifactId>
-        <version>3.4.4</version>
+        <version>4.0.0</version>
       </dependency>
 
       <dependency>
@@ -4432,7 +4107,7 @@
       <dependency>
         <groupId>org.jgrapht</groupId>
         <artifactId>jgrapht-core</artifactId>
-        <version>1.0.1</version>
+        <version>1.5.2</version>
       </dependency>
 
       <dependency>
@@ -4453,7 +4128,7 @@
       <dependency>
         <groupId>com.auth0</groupId>
         <artifactId>java-jwt</artifactId>
-        <version>3.19.4</version>
+        <version>4.5.0</version>
       </dependency>
       <dependency>
         <groupId>com.beetstra.jutf7</groupId>
@@ -4471,7 +4146,7 @@
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
-        <version>3.1.6</version>
+        <version>4.3.0</version>
       </dependency>
 
       <!-- Datadog -->
@@ -4490,35 +4165,35 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>0.115.1</version>
+        <version>1.48.2</version>
       </dependency>
 
       <!-- Nashorn -->
       <dependency>
         <groupId>org.openjdk.nashorn</groupId>
         <artifactId>nashorn-core</artifactId>
-        <version>15.4</version>
+        <version>15.6</version>
       </dependency>
       <!-- fix transitive dependencies of org.openjdk.nashorn:nashorn-core to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-analysis</artifactId>
-        <version>7.3.1</version>
+        <version>9.8</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-commons</artifactId>
-        <version>7.3.1</version>
+        <version>9.8</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-tree</artifactId>
-        <version>7.3.1</version>
+        <version>9.8</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-util</artifactId>
-        <version>7.3.1</version>
+        <version>9.8</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -4542,12 +4217,12 @@
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-jcl</artifactId>
+      <artifactId>log4j-slf4j-impl</artifactId>
       <scope>runtime</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j-impl</artifactId>
+      <artifactId>log4j-appserver</artifactId>
       <scope>runtime</scope>
     </dependency>
 
@@ -4577,6 +4252,10 @@
                   <message>No Snapshots Allowed!</message>
                   <onlyWhenRelease>false</onlyWhenRelease>
                   <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
+                  <includes>
+                    <include>org.nuxeo:nuxeo-ftest</include>
+                    <include>org.nuxeo.connect:nuxeo-connect-client</include>
+                  </includes>
                   <excludes>
                     <exclude>com.nuxeo*</exclude>
                     <exclude>org.nuxeo*</exclude>
@@ -4585,48 +4264,13 @@
               </rules>
             </configuration>
           </execution>
-          <execution>
-            <id>enforce-nuxeo-dependencies</id>
-            <goals>
-              <goal>enforce</goal>
-            </goals>
-            <configuration>
-              <skip>${nuxeo.skip.enforcer}</skip>
-              <rules>
-                <requireReleaseDeps>
-                  <message>No Snapshots Allowed!</message>
-                  <onlyWhenRelease>false</onlyWhenRelease>
-                  <failWhenParentIsSnapshot>false</failWhenParentIsSnapshot>
-                  <includes>
-                    <include>cloud.docbyte.nuxeo:nuxeo-ftest</include>
-                    <include>org.nuxeo.connect:nuxeo-connect-client</include>
-                  </includes>
-                </requireReleaseDeps>
-              </rules>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>remove-old-installers</id>
-            <goals>
-              <goal>remove-project-artifact</goal>
-            </goals>
-            <configuration>
-              <removeAll>false</removeAll>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
-          <release>17</release>
+          <release>21</release>
         </configuration>
       </plugin>
       <plugin>
@@ -4640,39 +4284,6 @@
             <net.sourceforge.cobertura.datafile>
               ${project.build.directory}/cobertura/cobertura.ser
             </net.sourceforge.cobertura.datafile>
-            <!-- Used by org.nuxeo.ecm.core.storage.sql.DatabaseHelper -->
-            <nuxeo.test.vcs.db>${nuxeo.test.vcs.db}</nuxeo.test.vcs.db>
-            <nuxeo.test.vcs.url>${nuxeo.test.vcs.url}</nuxeo.test.vcs.url>
-            <nuxeo.test.vcs.server>${nuxeo.test.vcs.server}</nuxeo.test.vcs.server>
-            <nuxeo.test.vcs.port>${nuxeo.test.vcs.port}</nuxeo.test.vcs.port>
-            <nuxeo.test.vcs.database>${nuxeo.test.vcs.database}</nuxeo.test.vcs.database>
-            <nuxeo.test.vcs.user>${nuxeo.test.vcs.user}</nuxeo.test.vcs.user>
-            <nuxeo.test.vcs.password>${nuxeo.test.vcs.password}</nuxeo.test.vcs.password>
-            <!-- Used by org.nuxeo.ecm.core.test.StorageConfiguration -->
-            <!-- (and org.nuxeo.runtime.mongodb.MongoDBFeature) -->
-            <nuxeo.test.core>${nuxeo.test.core}</nuxeo.test.core>
-            <nuxeo.test.mongodb.server>${nuxeo.test.mongodb.server}</nuxeo.test.mongodb.server>
-            <nuxeo.test.mongodb.dbname>${nuxeo.test.mongodb.dbname}</nuxeo.test.mongodb.dbname>
-            <nuxeo.test.elasticsearch.addressList>${nuxeo.test.elasticsearch.addressList}</nuxeo.test.elasticsearch.addressList>
-            <nuxeo.test.s3storage.bucket>${nuxeo.test.s3storage.bucket}</nuxeo.test.s3storage.bucket>
-            <nuxeo.test.s3storage.transient.bucket>${nuxeo.test.s3storage.transient.bucket}</nuxeo.test.s3storage.transient.bucket>
-            <nuxeo.test.s3storage.policy.bucket>${nuxeo.test.s3storage.policy.bucket}</nuxeo.test.s3storage.policy.bucket>
-            <nuxeo.test.s3storage.bucket_prefix>${nuxeo.test.s3storage.bucket_prefix}</nuxeo.test.s3storage.bucket_prefix>
-            <nuxeo.test.s3storage.provider.test.bucket_prefix>${nuxeo.test.s3storage.provider.test.bucket_prefix}</nuxeo.test.s3storage.provider.test.bucket_prefix>
-            <nuxeo.test.s3storage.provider.other.bucket_prefix>${nuxeo.test.s3storage.provider.other.bucket_prefix}</nuxeo.test.s3storage.provider.other.bucket_prefix>
-            <nuxeo.test.s3storage.crypt.kms.clientside.key>${nuxeo.test.s3storage.crypt.kms.clientside.key}</nuxeo.test.s3storage.crypt.kms.clientside.key>
-            <nuxeo.test.gcp.project>${nuxeo.test.gcp.project}</nuxeo.test.gcp.project>
-            <nuxeo.test.gcp.bucket>${nuxeo.test.gcp.bucket}</nuxeo.test.gcp.bucket>
-            <nuxeo.test.gcp.bucket_prefix>${nuxeo.test.gcp.bucket_prefix}</nuxeo.test.gcp.bucket_prefix>
-            <nuxeo.test.gcp.provider.test.bucket_prefix>${nuxeo.test.gcp.provider.test.bucket_prefix}</nuxeo.test.gcp.provider.test.bucket_prefix>
-            <nuxeo.test.gcp.provider.other.bucket_prefix>${nuxeo.test.gcp.provider.other.bucket_prefix}</nuxeo.test.gcp.provider.other.bucket_prefix>
-            <nuxeo.test.azure.account.name>${nuxeo.test.azure.account.name}</nuxeo.test.azure.account.name>
-            <nuxeo.test.azure.account.key>${nuxeo.test.azure.account.key}</nuxeo.test.azure.account.key>
-            <nuxeo.test.azure.container>${nuxeo.test.azure.container}</nuxeo.test.azure.container>
-            <nuxeo.test.azure.prefix>${nuxeo.test.azure.prefix}</nuxeo.test.azure.prefix>
-            <nuxeo.test.azure.provider.test.prefix>${nuxeo.test.azure.provider.test.prefix}</nuxeo.test.azure.provider.test.prefix>
-            <nuxeo.test.azure.provider.other.prefix>${nuxeo.test.azure.provider.other.prefix}</nuxeo.test.azure.provider.other.prefix>
-
           </systemPropertyVariables>
           <includes>
             <include>**/Test*.java</include>
@@ -4684,10 +4295,6 @@
           </excludes>
           <trimStackTrace>false</trimStackTrace>
         </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-eclipse-plugin</artifactId>
       </plugin>
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
@@ -4806,8 +4413,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <!-- Newer versions don't build the expected MANIFEST.MF -->
-          <version>2.6</version>
+          <version>3.4.2</version>
           <configuration>
             <archive>
               <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
@@ -4819,9 +4425,10 @@
           </configuration>
         </plugin>
         <plugin>
+          <!-- For addons packaging UI resources -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>1.8</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -4836,7 +4443,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.8.0</version>
+          <version>3.11.2</version>
           <configuration>
             <doclint>all,-missing</doclint>
             <show>protected</show>
@@ -4863,17 +4470,16 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jxr-plugin</artifactId>
-          <version>2.5</version>
+          <version>3.6.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.7.1</version>
+          <version>3.8.1</version>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
               <artifact>org.apache.logging.log4j:log4j-api</artifact>
               <artifact>org.apache.logging.log4j:log4j-core</artifact>
-              <artifact>org.apache.logging.log4j:log4j-jcl</artifact>
               <artifact>org.apache.logging.log4j:log4j-slf4j-impl</artifact>
               <artifact>org.apache.logging.log4j:log4j-1.2-api</artifact>
               <artifact>junit:junit</artifact>
@@ -4884,32 +4490,27 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-          <version>2.6.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-eclipse-plugin</artifactId>
-          <version>2.10</version>
+          <version>3.4.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.5.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-report-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.5.3</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>${maven.surefire.version}</version>
+          <version>3.5.3</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.surefire</groupId>
               <artifactId>surefire-junit47</artifactId>
-              <version>${maven.surefire.version}</version>
+              <version>3.5.3</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -4918,24 +4519,52 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>1.12</version>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>2.44.4</version>
+          <dependencies>
+            <dependency>
+              <groupId>cloud.docbyte.nuxeo</groupId>
+              <artifactId>nuxeo-build-tools</artifactId>
+              <version>3</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <ratchetFrom>origin/2025</ratchetFrom>
+            <upToDateChecking>
+              <enabled>false</enabled>
+            </upToDateChecking>
+            <java>
+              <excludes>
+                <exclude>src/main/java/org/nuxeo/ecm/core/query/sql/parser/parser.java</exclude>
+                <exclude>src/main/java/org/nuxeo/ecm/core/query/sql/parser/Scanner.java</exclude>
+                <exclude>src/main/java/org/nuxeo/ecm/core/query/sql/parser/sym.java</exclude>
+              </excludes>
+              <endWithNewline/>
+              <indent>
+                <spaces>true</spaces>
+                <spacesPerTab>4</spacesPerTab>
+              </indent>
+              <removeUnusedImports />
+              <importOrder>
+                <file>nuxeo.importorder</file>
+              </importOrder>
+              <eclipse>
+                <file>nuxeo_formatter.xml</file>
+                <version>4.32</version>
+              </eclipse>
+            </java>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.13.0</version>
+          <version>3.14.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
           <version>3.3.1</version>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.felix</groupId>
-          <artifactId>maven-bundle-plugin</artifactId>
-          <version>2.5.4</version>
         </plugin>
         <plugin>
           <groupId>org.nuxeo.build</groupId>
@@ -4952,16 +4581,16 @@
         </plugin>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.7.1</version>
         </plugin>
         <plugin>
           <artifactId>maven-help-plugin</artifactId>
-          <version>2.2</version>
+          <version>3.5.1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.17.1</version>
+          <version>2.18.0</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -4970,22 +4599,22 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-deploy-plugin</artifactId>
-          <version>2.8.2</version>
+          <version>3.1.4</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-install-plugin</artifactId>
-          <version>2.5.2</version>
+          <version>3.1.4</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
-          <version>3.20.0</version>
+          <version>3.21.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-enforcer-plugin</artifactId>
-          <version>1.4.1</version>
+          <version>3.5.0</version>
           <configuration>
             <rules>
               <requirePluginVersions>
@@ -5005,10 +4634,10 @@
                   ant-assembly-maven-plugin instead.</message>
               </bannedPlugins>
               <requireMavenVersion>
-                <version>[3.1.1,)</version>
+                <version>[3.6.3,)</version>
               </requireMavenVersion>
               <requireJavaVersion>
-                <version>[17,)</version>
+                <version>[21,)</version>
               </requireJavaVersion>
               <bannedDependencies>
                 <excludes>
@@ -5055,20 +4684,13 @@
                 <message>do not use org.bouncycastle:-jdk15on artifacts, use jdk18on ones instead</message>
               </bannedDependencies>
               <bannedDependencies>
-                <!-- use official javax.servlet:javax.servlet-api instead -->
+                <!-- use official jakarta.servlet:jakarta.servlet-api instead -->
                 <excludes>
                   <exclude>org.apache.tomcat:tomcat-servlet-api</exclude>
                   <exclude>org.mortbay.jetty:servlet-api-2.5</exclude>
                   <exclude>org.mortbay.jetty:servlet-api</exclude>
-                  <exclude>javax.servet:servlet-api</exclude>
                 </excludes>
-                <message>use javax.servlet:javax.servlet-api instead</message>
-              </bannedDependencies>
-              <bannedDependencies>
-                <excludes>
-                  <exclude>javax.annotations:jsr250-api</exclude>
-                </excludes>
-                <message>use javax.annotation:javax.annotation-api instead</message>
+                <message>use jakarta.servlet:jakarta.servlet-api instead</message>
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>
@@ -5096,18 +4718,44 @@
               </bannedDependencies>
               <bannedDependencies>
                 <excludes>
-                  <exclude>jakarta.activation:jakarta.activation-api</exclude>
-                  <exclude>jakarta.annotation:jakarta.annotation-api</exclude>
-                  <exclude>jakarta.inject:jakarta.inject-api</exclude>
-                  <exclude>jakarta.mail:jakarta.mail-api</exclude>
-                  <exclude>jakarta.persistence:jakarta.persistence-api</exclude>
-                  <exclude>jakarta.servlet:jakarta.servlet-api</exclude>
-                  <exclude>jakarta.xml.soap:jakarta.xml.soap-api</exclude>
-                  <exclude>jakarta.transaction:jakarta.transaction-api</exclude>
-                  <exclude>jakarta.validation:jakarta.validation-api</exclude>
-                  <exclude>jakarta.ws.rs:jakarta.ws.rs-api</exclude>
+                  <exclude>com.sun.activation:javax.activation</exclude>
+                  <exclude>javax.activation:javax.activation-api</exclude>
+                  <exclude>javax.annotation:javax.annotation-api</exclude>
+                  <exclude>javax.annotations:jsr250-api</exclude>
+                  <exclude>javax.inject:javax.inject</exclude>
+                  <exclude>com.sun.mail:javax.mail</exclude>
+                  <exclude>com.sun.mail:mailapi</exclude>
+                  <exclude>javax.mail:javax.mail-api</exclude>
+                  <exclude>javax.mail:mail</exclude>
+                  <exclude>javax.persistence:javax.persistence-api</exclude>
+                  <exclude>javax.persistence:persistence-api</exclude>
+                  <exclude>javax.servlet:javax.servlet-api</exclude>
+                  <exclude>javax.servlet:servlet-api</exclude>
+                  <exclude>javax.servlet.jsp:javax.servlet.jsp-api</exclude>
+                  <exclude>javax.servlet.jsp:jsp-api</exclude>
+                  <exclude>javax.servlet.jsp.jstl:jstl</exclude>
+                  <exclude>javax.servlet:jstl</exclude>
+                  <exclude>javax.transaction:javax.transaction-api</exclude>
+                  <exclude>javax.transaction:transaction-api</exclude>
+                  <exclude>javax.validation:validation-api</exclude>
+                  <exclude>javax.ws.rs:javax.ws.rs-api</exclude>
+                  <exclude>javax.ws.rs:jsr311-api</exclude>
+                  <exclude>javax.xml.bind:jaxb-api</exclude>
+                  <exclude>javax.xml.ws:jaxws-api</exclude>
                 </excludes>
-                <message>jakarta artifacts must not be used, use their javax equivalent</message>
+                <message>javax artifacts must not be used, use their jakarta equivalent</message>
+              </bannedDependencies>
+              <bannedDependencies>
+                <excludes>
+                  <exclude>com.sun.jersey:jersey-client</exclude>
+                  <exclude>com.sun.jersey:jersey-core</exclude>
+                  <exclude>com.sun.jersey:jersey-json</exclude>
+                  <exclude>com.sun.jersey:jersey-server</exclude>
+                  <exclude>com.sun.jersey:jersey-servlet</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-apache-client4</exclude>
+                  <exclude>com.sun.jersey.contribs:jersey-multipart</exclude>
+                </excludes>
+                <message>jersey 1.x must not be used since the upgrade to jersey 2.x</message>
               </bannedDependencies>
               <!-- logging exclusions -->
               <bannedDependencies>
@@ -5139,12 +4787,12 @@
         </plugin>
         <plugin>
           <artifactId>maven-jarsigner-plugin</artifactId>
-          <version>1.4</version>
+          <version>3.1.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
-          <version>2.6</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.jboss.tattletale</groupId>
@@ -5178,7 +4826,7 @@
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>5.3.2</version>
+          <version>12.1.1</version>
           <!-- run manually with mvn -nsu -Pdistrib org.owasp:dependency-check-maven:aggregate -->
           <!-- report file is in target/dependency-check-report.html -->
           <configuration>
@@ -5196,7 +4844,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>1.20</version>
+          <version>2.5.0</version>
           <configuration>
             <!-- <generateBundle>true</generateBundle> -->
             <!-- <verbose>true</verbose> -->
@@ -5213,12 +4861,6 @@
             <!-- </includedLicenses> -->
             <licenseMerges>
               <!-- WARN: be careful with formatters, there must be no line return within a license name -->
-              <licenseMerge>AL 1.0
-                |Apache License, Version 1.0
-                |apache-1.0</licenseMerge>
-              <licenseMerge>AL 1.1
-                |Apache License, Version 1.1
-                |Apache Software License, version 1.1</licenseMerge>
               <licenseMerge>AL 2.0
                 |ALv2
                 |ASF 2.0
@@ -5244,10 +4886,12 @@
                 |Apache Software License, version 2.0
                 |Apache Software License - Version 2.0
                 |The Apache License, Version 2.0
+                |The Apache Software License, version 2.0
                 |The Apache Software License, Version 2.0</licenseMerge>
               <licenseMerge>BSD 2
                 |BSD-2-Clause
-                |BSD 2-Clause License</licenseMerge>
+                |BSD 2-Clause License
+                |The BSD 2-Clause License</licenseMerge>
               <licenseMerge>BSD 3
                 |The BSD 3-Clause License
                 |BSD 3-clause
@@ -5256,18 +4900,20 @@
                 |BSD 3-clause New License
                 |3-Clause BSD License
                 |New BSD License
-                |BSD
+                |BSD licence
                 |BSD License
                 |BSD License 2.0
-                |BSD license
-                |BSD licence
                 |BSD New license
                 |BSD style
                 |BSD-style license
                 |The BSD License
                 |http://jaxen.codehaus.org/license.html</licenseMerge>
               <licenseMerge>BSD 4
+                |Indiana University Extreme! Lab Software License
                 |Indiana University Extreme! Lab Software License, vesion 1.1.1</licenseMerge>
+              <licenseMerge>CC0
+                |CC0 1.0 Universal
+                |Public Domain, per Creative Commons CC0</licenseMerge>
               <licenseMerge>CDDL 1.0
                 |CDDL
                 |CDDL license
@@ -5275,14 +4921,6 @@
                 |CDDL License
                 |Common Development and Distribution License (CDDL) v1.0
                 |COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) Version 1.0</licenseMerge>
-              <licenseMerge>CDDL 1.0 + GPL 2
-                |CDDL+GPL
-                |CDDL+GPL License
-                |COMMON DEVELOPMENT AND DISTRIBUTION LICENSE (CDDL) plus GPL</licenseMerge>
-              <licenseMerge>CDDL 1.0 + GPL 2 CPE
-                |CDDL/GPLv2+CE
-                |Dual License: CDDL 1.0 and GPL V2 with Classpath Exception
-                |CDDL + GPLv2 with classpath exception</licenseMerge>
               <licenseMerge>CDDL 1.1 + GPL 2
                 |CDDL v1.1 / GPL v2 dual license
                 |Dual license consisting of the CDDL v1.1 and GPL v2</licenseMerge>
@@ -5291,12 +4929,8 @@
                 |Common Public License (CPL), Version 1.0
                 |Common Public License - v 1.0
                 |Common Public License Version 1.0</licenseMerge>
-              <licenseMerge>CC BY-SA 3.0
-                |Creative Commons 3.0 BY-SA</licenseMerge>
-              <licenseMerge>CC0
-                |CC0 1.0 Universal
-                |Public Domain, per Creative Commons CC0</licenseMerge>
               <licenseMerge>EDL 1.0
+                |Eclipse Distribution License v. 1.0
                 |Eclipse Distribution License - v 1.0</licenseMerge>
               <licenseMerge>EPL 1.0
                 |EPL 1.0 license
@@ -5308,10 +4942,25 @@
                 |Eclipse Public License, Version 1.0
                 |Eclipse Public License - Version 1.0</licenseMerge>
               <licenseMerge>EPL 2.0
-                |Eclipse Public License - v 2.0</licenseMerge>
-              <licenseMerge>EPL 1.0 + MPL 2.0
-                |MPL 2.0 or EPL 1.0
-                |The H2 License, Version 1.0</licenseMerge>
+                |EPL-2.0
+                |Eclipse Public License v. 2.0
+                |Eclipse Public License - v 2.0
+                |Eclipse Public License (EPL) 2.0</licenseMerge>
+              <licenseMerge>GPL 2
+                |GPL license
+                |GNU General Public License v2
+                |GNU General Public License Version 2
+                |GNU General Public License version 2 (GPLv2)
+                |GNU Library General Public License v2.1 or later
+                |The GNU General Public License, Version 2</licenseMerge>
+              <licenseMerge>GPL 2 CPE
+                |GPLv2+CE
+                |GPL2 w/ CPE
+                |GPL v2 with the Classpath exception
+                |GPL-2.0-with-classpath-exception</licenseMerge>
+              <licenseMerge>GPL 2 UFOSS
+                |The GNU General Public License, v2 with FOSS exception
+                |The GNU General Public License, v2 with Universal FOSS Exception, v1.0</licenseMerge>
               <licenseMerge>LGPL 2.1
                 |GNU Lesser General Public License, 2.1
                 |GNU Lesser General Public License v2.1
@@ -5327,6 +4976,7 @@
                 |LGPL, version 2.1
                 |LGPL 2.1 license
                 |LGPL-2.1
+                |LGPL-2.1-or-later
                 |GNU Lesser General Public License (LGPL)
                 |lgpl
                 |LGPL
@@ -5341,20 +4991,6 @@
                 |GNU Lesser General Public License, Version 3
                 |GNU LESSER GENERAL PUBLIC LICENSE, version 3 (LGPL-3.0)
                 |GNU Lesser General Public License, Version 3 or later</licenseMerge>
-              <licenseMerge>GPL 2
-                |GPL license
-                |GNU General Public License v2
-                |GNU General Public License Version 2
-                |GNU General Public License version 2 (GPLv2)
-                |The GNU General Public License, Version 2</licenseMerge>
-              <licenseMerge>GPL 2 CPE
-                |GPLv2+CE
-                |GPL2 w/ CPE</licenseMerge>
-              <licenseMerge>GPL 2 UFOSS
-                |The GNU General Public License, v2 with FOSS exception</licenseMerge>
-              <licenseMerge>GPL 3
-                |GPL v3
-                |GENERAL PUBLIC LICENSE, version 3 (GPL-3.0)</licenseMerge>
               <licenseMerge>MIT
                 |MIT License
                 |MIT license
@@ -5379,15 +5015,11 @@
                 |Public domain, Sun Microsoystems
                 |The SAX License</licenseMerge>
               <licenseMerge>UnboundID
-                |UnboundID SCIM SDK Free Use License</licenseMerge>
-              <licenseMerge>UnboundID
-                |UnboundID SCIM 2.0 CLIENT SDK Free Use License</licenseMerge>
-              <licenseMerge>Unicode
-                |Unicode/ICU License
-                |ICU License</licenseMerge>
+                |UnboundID SCIM2 SDK Free Use License)</licenseMerge>
               <licenseMerge>W3C
                 |The W3C Software License
                 |The W3C License
+                |W3C license
                 |W3C Software Copyright Notice and License</licenseMerge>
             </licenseMerges>
           </configuration>
@@ -5408,17 +5040,17 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>1.4</version>
+          <version>3.2.1</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>1.6.0</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.45.0</version>
+          <version>0.46.0</version>
           <extensions>true</extensions>
         </plugin>
       </plugins>
@@ -5431,7 +5063,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
-        <version>3.7.0</version>
+        <version>3.9.0</version>
         <reportSets>
           <reportSet>
             <configuration>
@@ -5585,7 +5217,7 @@
             </reportSets>
             <configuration>
               <!-- skip modules having issues to be built due to test-jars -->
-              <skippedModules>nuxeo-core-test,nuxeo-automation-test,nuxeo-platform-test</skippedModules>
+              <skippedModules>nuxeo-core-storage-sql-test,nuxeo-core-test,nuxeo-automation-test,nuxeo-platform-audit-test,nuxeo-platform-directory-test,nuxeo-platform-test,nuxeo-features-test,nuxeo-platform-imaging-test</skippedModules>
               <windowtitle>Nuxeo ${project.version} API Documentation</windowtitle>
               <doctitle>Nuxeo ${project.version} API Documentation</doctitle>
               <header>Nuxeo ${project.version}</header>
@@ -5615,10 +5247,6 @@
                 <group>
                   <title>Nuxeo WebEngine Packages</title>
                   <packages>org.nuxeo.webengine*:org.nuxeo.ecm.webengine*</packages>
-                </group>
-                <group>
-                  <title>Nuxeo Theme Packages</title>
-                  <packages>org.nuxeo.theme:org.nuxeo.theme.*</packages>
                 </group>
               </groups>
             </configuration>
@@ -5656,212 +5284,9 @@
       </properties>
     </profile>
 
-    <!-- Used for multi-database tests -->
-    <profile>
-      <id>customdb</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.nuxeo.build</groupId>
-            <artifactId>ant-assembly-maven-plugin</artifactId>
-            <inherited>false</inherited>
-            <executions>
-              <execution>
-                <id>setup-vcs</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>build</goal>
-                </goals>
-                <configuration>
-                  <buildFiles>
-                    <buildFile>${basedir}/integration/vcstests.xml</buildFile>
-                  </buildFiles>
-                  <targets>
-                    <target>vcs-tests-setup</target>
-                    <target>prepare-db</target>
-                  </targets>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>properties-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>read-project-properties</goal>
-                </goals>
-                <configuration>
-                  <files>
-                    <file>${user.home}/nuxeo-test-vcs.properties</file>
-                  </files>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
     <profile>
       <id>default</id>
     </profile>
-    <profile>
-      <id>pgsql</id>
-      <properties>
-        <nuxeo.test.vcs.db>PostgreSQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>5432</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mssql</id>
-      <properties>
-        <nuxeo.test.vcs.db>SQLServer</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1433</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <!-- DEPRECATED since 9.10 see NXP-23813 -->
-      <id>oracle10g</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc14</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle11g</id>
-      <!-- DEPRECATED since 9.10 see NXP-23813 -->
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc6</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle12c</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc7</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>oracle18c</id>
-      <dependencies>
-        <dependency>
-          <groupId>com.oracle.jdbc</groupId>
-          <artifactId>ojdbc8</artifactId>
-        </dependency>
-      </dependencies>
-      <properties>
-        <nuxeo.test.vcs.db>Oracle</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>1521</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mysql</id>
-      <properties>
-        <nuxeo.test.vcs.db>MySQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>3306</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>mariadb</id>
-      <properties>
-        <nuxeo.test.vcs.db>MySQL</nuxeo.test.vcs.db>
-        <nuxeo.db.port.default>3306</nuxeo.db.port.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>dbsmem</id>
-      <properties>
-        <nuxeo.test.core>mem</nuxeo.test.core>
-      </properties>
-    </profile>
-    <profile>
-      <id>mongodb</id>
-      <properties>
-        <nuxeo.test.core>mongodb</nuxeo.test.core>
-        <nuxeo.mongodb.server.default>localhost:27017</nuxeo.mongodb.server.default>
-      </properties>
-    </profile>
-    <profile>
-      <id>kafka</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>properties-maven-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>read-kafka-properties</id>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>read-project-properties</goal>
-                </goals>
-                <configuration>
-                  <files>
-                    <file>/etc/kafka.properties</file>
-                    <file>${user.home}/kafka.properties</file>
-                    <file>kafka.properties</file>
-                  </files>
-                  <quiet>true</quiet>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <!-- used by nuxeo-stream -->
-                <kafka>true</kafka>
-                <kafka.bootstrap.servers>${kafka.bootstrap.servers}</kafka.bootstrap.servers>
-                <!-- used by unit tests from feature -->
-                <nuxeo.test.stream>kafka</nuxeo.test.stream>
-                <nuxeo.test.kafka.servers>${kafka.bootstrap.servers}</nuxeo.test.kafka.servers>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>confluent</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-              <systemPropertyVariables>
-                <confluent>true</confluent>
-                <confluent.schema.registry>${confluent.schema.registry}</confluent.schema.registry>
-              </systemPropertyVariables>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!--
       Used to build for a custom environment:
         - in an alternative build directory
@@ -5894,6 +5319,16 @@
                 </configuration>
               </execution>
             </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration combine.children="append">
+              <systemPropertiesFile>${user.home}/nuxeo-test-${custom.environment}.properties</systemPropertiesFile>
+              <systemPropertyVariables combine.children="append">
+                <custom.environment.log.dir>target-${custom.environment}</custom.environment.log.dir>
+              </systemPropertyVariables>
+            </configuration>
           </plugin>
         </plugins>
       </build>

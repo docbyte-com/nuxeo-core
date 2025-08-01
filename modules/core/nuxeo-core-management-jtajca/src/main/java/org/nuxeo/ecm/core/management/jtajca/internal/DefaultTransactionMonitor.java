@@ -24,10 +24,11 @@ import java.util.List;
 import java.util.Map;
 
 import javax.naming.NamingException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.geronimo.transaction.manager.TransactionImpl;
 import org.apache.geronimo.transaction.manager.TransactionManagerImpl;
@@ -235,13 +236,13 @@ public class DefaultTransactionMonitor implements TransactionManagerMonitor, Tra
         stats.endTimestamp = System.currentTimeMillis();
         stats.status = TransactionStatistics.Status.fromCode(code);
         switch (code) {
-        case Status.STATUS_COMMITTED:
-            lastCommittedStatistics = stats;
-            break;
-        case Status.STATUS_ROLLEDBACK:
-            lastRollbackedStatistics = stats;
-            stats.endCapturedContext = new Throwable("** rollback context **");
-            break;
+            case Status.STATUS_COMMITTED:
+                lastCommittedStatistics = stats;
+                break;
+            case Status.STATUS_ROLLEDBACK:
+                lastRollbackedStatistics = stats;
+                stats.endCapturedContext = new Throwable("** rollback context **");
+                break;
         }
     }
 

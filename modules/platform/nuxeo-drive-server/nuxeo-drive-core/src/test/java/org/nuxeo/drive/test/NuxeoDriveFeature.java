@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,53 @@
  */
 package org.nuxeo.drive.test;
 
+import org.nuxeo.audit.listener.StreamAuditEventListener;
+import org.nuxeo.audit.test.AuditFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.transientstore.keyvalueblob.KeyValueBlobTransientStoreFeature;
+import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.RuntimeHarness;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
-@Features({ KeyValueBlobTransientStoreFeature.class, PlatformFeature.class, CollectionFeature.class,
-        SQLAuditFeature.class })
 @Deploy("org.nuxeo.drive.core")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.platform.webapp.types")
 @Deploy("org.nuxeo.ecm.platform.search.core")
-@Deploy("org.nuxeo.ecm.platform.tag")
-@Deploy("org.nuxeo.ecm.automation.core")
+@Deploy("org.nuxeo.ecm.platform.userworkspace")
+@Deploy("org.nuxeo.ecm.platform.web.common")
+@Deploy("org.nuxeo.ecm.platform.webapp.types")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-sync-root-cache-contrib.xml")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-types-contrib.xml")
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-descendants-scrolling-cache-contrib.xml")
+@Features({ //
+        AuditFeature.class, //
+        AutomationCoreFeature.class, //
+        CollectionFeature.class, //
+        FileManagerFeature.class, //
+        KeyValueBlobTransientStoreFeature.class, //
+        PlatformFeature.class })
+@WithFrameworkProperty(name = StreamAuditEventListener.STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP, value = "true")
 public class NuxeoDriveFeature implements RunnerFeature {
 
+    @Override
+    public void start(FeaturesRunner runner) {
+        String contrib;
+        if (runner.getFeature(AuditFeature.class).isBackendSql()) {
+            contrib = "OSGI-INF/test-nuxeodrive-sql-change-finder-contrib.xml";
+        } else {
+            contrib = "OSGI-INF/test-nuxeodrive-sql-change-finder-empty-contrib.xml";
+        }
+        try {
+            RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
+            harness.deployContrib("org.nuxeo.drive.core.test", contrib);
+        } catch (Exception e) {
+            throw new NuxeoException(e);
+        }
+    }
 }

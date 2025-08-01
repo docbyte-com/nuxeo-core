@@ -291,4 +291,8 @@ public class CoreQueryAndFetchPageProvider extends AbstractPageProvider<Map<Stri
         super.refresh();
     }
 
+    @Override
+    public String getScroller() {
+        return "repository";
+    }
 }

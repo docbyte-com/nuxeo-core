@@ -19,7 +19,8 @@
 package org.nuxeo.ecm.core.api;
 
 import java.io.Serializable;
-import javax.validation.constraints.NotNull;
+
+import jakarta.validation.constraints.NotNull;
 
 /**
  * Interface to be implemented by asynchronous services.

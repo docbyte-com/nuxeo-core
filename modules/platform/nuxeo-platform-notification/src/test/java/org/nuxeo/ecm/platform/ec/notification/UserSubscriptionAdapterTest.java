@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,8 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.inject.Inject;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,17 +40,15 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, NotificationFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class UserSubscriptionAdapterTest {
 
     @Inject
-    private CoreSession session;
+    protected CoreSession session;
 
-    private DocumentModel doc;
+    protected DocumentModel doc;
 
     @Before
     public void doBefore() {

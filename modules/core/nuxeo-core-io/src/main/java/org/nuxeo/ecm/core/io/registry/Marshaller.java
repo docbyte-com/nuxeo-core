@@ -21,8 +21,8 @@ package org.nuxeo.ecm.core.io.registry;
 
 import java.lang.reflect.Type;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
@@ -49,7 +49,7 @@ public interface Marshaller<EntityType> {
      * Checks if this marshaller can handle the marshalling request.
      * <p>
      * Please note it's useless to check that clazz is an instance of EntityType or if generic type and entity type are
-     * compatible (unlike JAX-RS which just checks the clazz, not the generic type). It's also useless to check
+     * compatible (unlike Jakarta RS which just checks the clazz, not the generic type). It's also useless to check
      * {@link Supports} is compatible with mediatype. This is already done by the {@link MarshallerRegistry}
      * </p>
      * <p>

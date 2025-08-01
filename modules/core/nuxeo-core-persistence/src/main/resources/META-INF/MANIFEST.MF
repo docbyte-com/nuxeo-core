@@ -11,11 +11,7 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Eclipse-BuddyPolicy: dependent
 Nuxeo-Component: OSGI-INF/persistence-service.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0.0",
- javax.naming,
- javax.persistence,
- javax.persistence.spi,
- javax.transaction;version="1.1",
+Import-Package: javax.naming,
  org.apache.commons.logging,
  org.hibernate,
  org.hibernate.cfg,

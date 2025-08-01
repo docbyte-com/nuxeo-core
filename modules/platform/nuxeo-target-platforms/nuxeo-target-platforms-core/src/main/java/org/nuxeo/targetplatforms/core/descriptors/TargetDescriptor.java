@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.xml.serialize.OutputFormat;
@@ -29,6 +31,7 @@ import org.nuxeo.common.xmap.DOMSerializer;
 import org.nuxeo.common.xmap.annotation.XContent;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
+import org.nuxeo.runtime.model.Descriptor;
 import org.w3c.dom.DocumentFragment;
 
 /**
@@ -37,51 +40,51 @@ import org.w3c.dom.DocumentFragment;
  * @since 5.7.1
  */
 @SuppressWarnings("deprecation")
-public class TargetDescriptor {
+public class TargetDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(TargetDescriptor.class);
 
     @XNode("@id")
-    String id;
+    protected String id;
 
     @XNode("@enabled")
-    Boolean enabled;
+    protected Boolean enabled;
 
     @XNode("@restricted")
-    Boolean restricted;
+    protected Boolean restricted;
 
     @XNode("@deprecated")
-    Boolean deprecated;
+    protected Boolean deprecated;
 
     @XNode("@parent")
-    String parent;
+    protected String parent;
 
     @XNode("name")
-    String name;
+    protected String name;
 
     @XNode("version")
-    String version;
+    protected String version;
 
     @XNode("refVersion")
-    String refVersion;
+    protected String refVersion;
 
     @XNode("label")
-    String label;
+    protected String label;
 
     @XNode("status")
-    String status;
+    protected String status;
 
     @XNode("releaseDate")
-    String releaseDate;
+    protected String releaseDate;
 
     @XNode("endOfAvailability")
-    String endOfAvailability;
+    protected String endOfAvailability;
 
     @XNode("downloadLink")
-    String downloadLink;
+    protected String downloadLink;
 
     // retrieve HTML tags => introspect DOM on setter
-    String description;
+    protected String description;
 
     @XContent("description")
     public void setDescription(DocumentFragment descriptionDOM) {
@@ -95,7 +98,12 @@ public class TargetDescriptor {
     }
 
     @XNodeList(value = "types/type", type = ArrayList.class, componentType = String.class)
-    List<String> types;
+    protected List<String> types;
+
+    @Override
+    public String getId() {
+        return id;
+    }
 
     public boolean isEnableSet() {
         return enabled != null;
@@ -105,21 +113,12 @@ public class TargetDescriptor {
         return enabled == null || Boolean.TRUE.equals(enabled);
     }
 
-    // needed for contributions merge
-    public void setEnabled(boolean enabled) {
-        this.enabled = Boolean.valueOf(enabled);
-    }
-
-    public String getId() {
-        return id;
-    }
-
     public boolean isRestricted() {
-        return restricted != null && Boolean.TRUE.equals(restricted);
+        return Boolean.TRUE.equals(restricted);
     }
 
     public boolean isDeprecated() {
-        return deprecated != null && Boolean.TRUE.equals(deprecated);
+        return Boolean.TRUE.equals(deprecated);
     }
 
     public String getParent() {
@@ -173,30 +172,22 @@ public class TargetDescriptor {
         return types.contains(type);
     }
 
-    @Override
-    public TargetDescriptor clone() {
-        TargetDescriptor clone = new TargetDescriptor();
-        doClone(clone);
-        return clone();
-    }
-
-    protected void doClone(TargetDescriptor clone) {
-        clone.id = id;
-        clone.enabled = enabled;
-        clone.restricted = restricted;
-        clone.deprecated = deprecated;
-        clone.parent = parent;
-        clone.name = name;
-        clone.version = version;
-        clone.refVersion = refVersion;
-        clone.label = label;
-        clone.status = status;
-        clone.releaseDate = releaseDate;
-        clone.endOfAvailability = endOfAvailability;
-        clone.downloadLink = downloadLink;
-        clone.description = description;
-        if (types != null) {
-            clone.types = new ArrayList<>(types);
-        }
+    protected void doMerge(TargetDescriptor merged, TargetDescriptor other) {
+        merged.id = id;
+        // support merge only for enabled boolean
+        merged.enabled = ObjectUtils.defaultIfNull(other.enabled, enabled);
+        merged.restricted = restricted;
+        merged.deprecated = deprecated;
+        merged.parent = parent;
+        merged.name = name;
+        merged.version = version;
+        merged.refVersion = refVersion;
+        merged.label = label;
+        merged.status = status;
+        merged.releaseDate = releaseDate;
+        merged.endOfAvailability = endOfAvailability;
+        merged.downloadLink = downloadLink;
+        merged.description = description;
+        merged.types = new ArrayList<>(CollectionUtils.emptyIfNull(types));
     }
 }

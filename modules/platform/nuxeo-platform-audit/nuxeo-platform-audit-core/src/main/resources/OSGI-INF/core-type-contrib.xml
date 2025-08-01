@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
-
-<component name="org.nuxeo.ecm.platform.audit.core.types-contrib" version="1.0">
+<component name="org.nuxeo.audit.core.types-contrib" version="1.0">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.core.types-contrib</alias>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
     <schema name="basicauditsearch" prefix="bas" src="schemas/basicauditsearch.xsd" />

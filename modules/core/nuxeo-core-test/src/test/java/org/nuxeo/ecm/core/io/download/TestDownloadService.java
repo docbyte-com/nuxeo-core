@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,9 +35,11 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static org.nuxeo.ecm.core.io.download.DownloadHelper.INLINE;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EVENT_NAME;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_CLIENT_REASON;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_RENDITION;
@@ -61,10 +63,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
@@ -92,10 +94,11 @@ import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.LoginComponent;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @RunWith(FeaturesRunner.class)
@@ -110,30 +113,36 @@ public class TestDownloadService {
 
     @Test
     public void testBasicDownloadGet() throws Exception {
-        doTestBasicDownload(false);
+        doTestBasicDownload(false, false);
+    }
+
+    @Test
+    public void testBasicInlineDownloadGet() throws Exception {
+        doTestBasicDownload(false, true);
     }
 
     @Test
     public void testBasicDownloadHead() throws Exception {
-        doTestBasicDownload(true);
+        doTestBasicDownload(true, false);
     }
 
-    protected void doTestBasicDownload(boolean head) throws Exception {
+    protected void doTestBasicDownload(boolean head, boolean inline) throws Exception {
         // ascii filename is used directly
-        doTestBasicDownload(head, "cafe.txt", "filename=cafe.txt");
+        doTestBasicDownload(head, inline, "cafe.txt", "filename=cafe.txt");
         // non-ascii filename gets RFC2231 encoding
-        doTestBasicDownload(head, "caf\u00e9.txt", "filename*=UTF-8''caf%C3%A9.txt");
+        doTestBasicDownload(head, inline, "caf\u00e9.txt", "filename*=UTF-8''caf%C3%A9.txt");
     }
 
-    protected void doTestBasicDownload(boolean head, String filename, String filenameInHeader) throws Exception {
-        // regular download
-        doTestBasicDownload(head, filename, filenameInHeader, false);
-        // download with empty=true in Content-Type
-        doTestBasicDownload(head, filename, filenameInHeader, true);
-    }
-
-    protected void doTestBasicDownload(boolean head, String filename, String filenameInHeader, boolean empty)
+    protected void doTestBasicDownload(boolean head, boolean inline, String filename, String filenameInHeader)
             throws Exception {
+        // regular download
+        doTestBasicDownload(head, inline, filename, filenameInHeader, false);
+        // download with empty=true in Content-Type
+        doTestBasicDownload(head, inline, filename, filenameInHeader, true);
+    }
+
+    protected void doTestBasicDownload(boolean head, boolean inline, String filename, String filenameInHeader,
+            boolean empty) throws Exception {
         // blob to download
         String blobValue = "Hello World Caf\u00e9";
         String mimeType = "text/plain";
@@ -162,9 +171,12 @@ public class TestDownloadService {
         // send download request
         DownloadContext context = DownloadContext.builder(request, response)
                                                  .blob(blob)
+                                                 .inline(inline)
                                                  .lastModified(lastModified)
                                                  .build();
         downloadService.downloadBlob(context);
+
+        verify(request, inline ? times(1) : never()).setAttribute(INLINE, "true");
 
         // assert headers (mockito wants us to assert all header in same order they were set)
         if (empty) {
@@ -172,7 +184,8 @@ public class TestDownloadService {
         } else {
             verify(response).setHeader(eq("ETag"), eq('"' + digest + '"'));
         }
-        verify(response).setHeader(eq("Content-Disposition"), eq("attachment; " + filenameInHeader));
+        verify(response).setHeader(eq("Content-Disposition"),
+                eq((inline ? "inline" : "attachment") + "; " + filenameInHeader));
         verify(response).setHeader(eq("Accept-Ranges"), eq("bytes"));
         // assert others interactions
         verify(response).setContentType(eq(mimeType));
@@ -445,7 +458,6 @@ public class TestDownloadService {
      * @since 9.3
      */
     @Test
-    @SuppressWarnings("deprecation")
     public void testAsyncDownload() throws IOException {
         // blob to download
         String blobValue = "Hello World";
@@ -461,7 +473,6 @@ public class TestDownloadService {
         // mock response
         HttpServletResponse response = mock(HttpServletResponse.class);
         ServletOutputStream sos = new DummyServletOutputStream(out);
-        @SuppressWarnings("resource")
         PrintWriter printWriter = new PrintWriter(sos);
         when(response.getOutputStream()).thenReturn(sos);
         when(response.getWriter()).thenReturn(printWriter);
@@ -476,12 +487,7 @@ public class TestDownloadService {
         // do tests while logged in
         LoginComponent.pushPrincipal(principal);
         try {
-            // send status request for not complete stored blob, should be in progress
-            downloadService.downloadBlobStatus(request, response, key, "download");
-            assertEquals("{\"key\":\"" + key + "\",\"completed\":false,\"progress\":-1}", out.toString());
-
             // send download request for not completed stored blob, should be accepted
-            out.reset();
             downloadService.downloadBlob(request, response, key, "download");
             assertEquals("", out.toString());
             verify(response, atLeastOnce()).setStatus(202);
@@ -489,11 +495,7 @@ public class TestDownloadService {
             ts.setCompleted(key, true);
             ts.putParameter(key, DownloadService.TRANSIENT_STORE_PARAM_PROGRESS, 100);
             out.reset();
-            // send status request for complete stored blob, should be complete
-            downloadService.downloadBlobStatus(request, response, key, "download");
-            assertEquals("{\"key\":\"" + key + "\",\"completed\":true,\"progress\":100}", out.toString());
 
-            out.reset();
             // send download request for complete stored blob
             downloadService.downloadBlob(request, response, key, "download");
             assertEquals(blobValue, out.toString());
@@ -522,11 +524,11 @@ public class TestDownloadService {
         // do tests while logged in
         LoginComponent.pushPrincipal(principal);
         try {
-            // send download request for non existing key, should be not found
+            // send download request for non-existing key, should be not found
             downloadService.downloadBlob(request, response, "undefinedKey", "download");
             verify(response, atLeastOnce()).sendError(404);
 
-            // send download request for non existing blob, should be not found
+            // send download request for non-existing blob, should be not found
             out.reset();
             downloadService.downloadBlob(request, response, key, "download");
             verify(response, atLeastOnce()).sendError(404);
@@ -536,7 +538,7 @@ public class TestDownloadService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class)
+    @ConditionalIgnore(condition = IgnoreIfWindows.class)
     public void testTransientCleanup() throws IOException {
         // transfer temporary file into a blob
         Path path = Files.createTempFile("pfouh", "pfouh");

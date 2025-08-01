@@ -1,0 +1,39 @@
+<?xml version="1.0" ?>
+<commands>
+  <command name="uninstall" param="nuxeo-web-ui-3.1.7" exitCode="0" pending="false">
+    <messages />
+    <packages>
+      <package>
+        <id>nuxeo-web-ui-3.1.7</id>
+        <state>DOWNLOADED</state>
+        <version>3.1.7</version>
+        <name>nuxeo-web-ui</name>
+        <type>ADDON</type>
+        <supportsHotReload>false</supportsHotReload>
+        <title>Nuxeo Web UI</title>
+        <description>Web UI is the primary UI for the Nuxeo Platform. It is an ideal starting point for any Digital Asset Management, Case Management or Document Management project.
+        </description>
+        <licenseType>Apache License, Version 2.0</licenseType>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+      </package>
+    </packages>
+  </command>
+  <command name="remove" param="nuxeo-web-ui-3.1.7" exitCode="0" pending="false">
+    <messages />
+    <packages>
+      <package>
+        <id>nuxeo-web-ui-3.1.7</id>
+        <state>REMOTE</state>
+        <version>3.1.7</version>
+        <name>nuxeo-web-ui</name>
+        <type>ADDON</type>
+        <supportsHotReload>false</supportsHotReload>
+        <title>Nuxeo Web UI</title>
+        <description>Web UI is the primary UI for the Nuxeo Platform. It is an ideal starting point for any Digital Asset Management, Case Management or Document Management project.
+        </description>
+        <licenseType>Apache License, Version 2.0</licenseType>
+        <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+      </package>
+    </packages>
+  </command>
+</commands>

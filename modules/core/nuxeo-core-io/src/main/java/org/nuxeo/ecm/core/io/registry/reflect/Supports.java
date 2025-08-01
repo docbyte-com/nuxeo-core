@@ -38,7 +38,7 @@ import java.lang.annotation.Target;
 public @interface Supports {
 
     /**
-     * see {@link javax.ws.rs.core.MediaType}
+     * see {@link jakarta.ws.rs.core.MediaType}
      *
      * @since 7.2
      */

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.runtime.model.impl;
+
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
 
 import org.nuxeo.common.xmap.XMap;
 import org.nuxeo.common.xmap.XMapException;
@@ -31,7 +30,6 @@ import org.nuxeo.common.xmap.annotation.XParent;
 import org.nuxeo.runtime.model.Extension;
 import org.nuxeo.runtime.model.ExtensionPoint;
 import org.nuxeo.runtime.model.RegistrationInfo;
-import org.w3c.dom.Element;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -76,10 +74,6 @@ public class ExtensionPointImpl implements ExtensionPoint {
         return superComponent;
     }
 
-    public Extension createExtension(Element element) {
-        return null;
-    }
-
     public Object[] loadContributions(RegistrationInfo owner, Extension extension) {
         Object[] contribs = extension.getContributions();
         if (contribs != null) {
@@ -94,13 +88,15 @@ public class ExtensionPointImpl implements ExtensionPoint {
                     if (contrib != null) {
                         xmap.register(contrib);
                     } else {
-                        throw new RuntimeException("Unknown implementation class when contributing to "
-                                + owner.getComponent().getName());
+                        throw new RuntimeException(
+                                "Unknown implementation class when contributing to " + owner.getComponent().getName());
                     }
                 }
             }
             try {
-                contribs = xmap.loadAll(new XMapContext(extension.getContext()), extension.getElement());
+                var ctx = new XMapContext(extension.getContext());
+                ctx.setProperty(CONTRIBUTING_COMPONENT, extension.getComponent());
+                contribs = xmap.loadAll(ctx, extension.getElement());
             } catch (XMapException e) {
                 throw new RuntimeException(
                         e.getMessage() + " while processing component: " + extension.getComponent().getName().getName(),

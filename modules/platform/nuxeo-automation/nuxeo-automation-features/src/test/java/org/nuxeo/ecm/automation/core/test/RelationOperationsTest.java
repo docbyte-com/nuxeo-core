@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.nuxeo.ecm.automation.core.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,15 +30,14 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
-import org.nuxeo.ecm.automation.core.events.EventHandlerRegistry;
 import org.nuxeo.ecm.automation.core.operations.FetchContextDocument;
 import org.nuxeo.ecm.automation.core.operations.services.CreateRelation;
 import org.nuxeo.ecm.automation.core.operations.services.DeleteRelation;
 import org.nuxeo.ecm.automation.core.operations.services.GetRelations;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -47,13 +46,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 @Deploy("org.nuxeo.ecm.relations.api")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
-@Deploy("org.nuxeo.ecm.automation.core:test-relation-jena-contrib.xml")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 public class RelationOperationsTest {
 
     protected static final String conformsTo = "http://purl.org/dc/terms/ConformsTo";
@@ -63,13 +59,10 @@ public class RelationOperationsTest {
     protected DocumentModel dst;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    EventHandlerRegistry reg;
-
-    @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected OperationContext ctx;
 
@@ -117,7 +110,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -165,7 +158,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -213,7 +206,7 @@ public class RelationOperationsTest {
         DocumentModelList docs = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs.size());
-        assertEquals(dst, docs.get(0));
+        assertEquals(dst, docs.getFirst());
 
         ctx.clear();
         ctx.setInput(src);
@@ -241,7 +234,7 @@ public class RelationOperationsTest {
         DocumentModelList docs3 = (DocumentModelList) service.run(ctx, chain);
 
         assertEquals(1, docs3.size());
-        assertEquals(dst, docs3.get(0));
+        assertEquals(dst, docs3.getFirst());
 
         ctx.clear();
         ctx.setInput(src);

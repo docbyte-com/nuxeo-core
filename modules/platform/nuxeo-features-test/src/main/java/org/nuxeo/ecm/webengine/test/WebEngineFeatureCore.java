@@ -18,11 +18,12 @@
  */
 package org.nuxeo.ecm.webengine.test;
 
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
 
-@Deploy("org.nuxeo.ecm.webengine.core")
-@Deploy("org.nuxeo.ecm.platform.web.common")
-public class WebEngineFeatureCore implements RunnerFeature {
+/**
+ * @deprecated since 2025.0, use {@link WebEngineCoreFeature} instead.
+ */
+@Deprecated(since = "2025.0", forRemoval = true)
+public class WebEngineFeatureCore extends WebEngineCoreFeature {
 
 }

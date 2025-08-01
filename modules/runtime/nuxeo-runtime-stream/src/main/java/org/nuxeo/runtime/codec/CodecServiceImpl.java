@@ -26,8 +26,8 @@ import java.util.Map;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.lib.stream.codec.Codec;
-import org.nuxeo.runtime.kafka.KafkaConfigServiceImpl;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 public class CodecServiceImpl extends DefaultComponent implements CodecService {
@@ -62,7 +62,7 @@ public class CodecServiceImpl extends DefaultComponent implements CodecService {
 
     @Override
     public int getApplicationStartedOrder() {
-        return KafkaConfigServiceImpl.APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.KAFKA;
     }
 
     @Override

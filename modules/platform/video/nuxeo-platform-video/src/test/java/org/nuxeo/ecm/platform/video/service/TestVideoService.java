@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Before;
@@ -44,7 +44,6 @@ import org.nuxeo.ecm.platform.video.TranscodedVideo;
 import org.nuxeo.ecm.platform.video.Video;
 import org.nuxeo.ecm.platform.video.VideoFeature;
 import org.nuxeo.ecm.platform.video.VideoInfo;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -87,6 +86,14 @@ public class TestVideoService {
         assertEquals(480, transcodedVideo.getHeight());
         assertEquals(23.98, transcodedVideo.getFrameRate(), 0.1);
         assertEquals("matroska,webm", transcodedVideo.getFormat());
+    }
+
+    @Test
+    public void testGetAutoConversionNames() {
+        List<String> autoVideoConversionNames = videoService.getAutomaticVideoConversionsNames();
+        assertEquals(2, autoVideoConversionNames.size());
+        assertTrue(autoVideoConversionNames.contains("WebM 480p"));
+        assertTrue(autoVideoConversionNames.contains("MP4 480p"));
     }
 
     protected static Video getTestVideo() throws IOException {

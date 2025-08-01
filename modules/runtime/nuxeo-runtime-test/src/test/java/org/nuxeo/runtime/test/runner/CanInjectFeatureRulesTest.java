@@ -20,7 +20,7 @@ package org.nuxeo.runtime.test.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.ClassRule;
 import org.junit.Rule;

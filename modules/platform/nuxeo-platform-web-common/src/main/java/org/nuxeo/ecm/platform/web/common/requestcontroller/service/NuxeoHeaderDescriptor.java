@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,22 @@
  * Contributors:
  *     Thierry Martins
  */
-
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XContent;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:tm@nuxeo.com">Thierry Martins</a>
  * @since 6.0
  */
 @XObject(value = "header")
-public class NuxeoHeaderDescriptor implements Cloneable {
+public class NuxeoHeaderDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
@@ -36,17 +39,12 @@ public class NuxeoHeaderDescriptor implements Cloneable {
     @XNode("@enabled")
     protected Boolean enabled = true;
 
+    @XContent
     protected String value;
 
-    public String getValue() {
-        return value;
-    }
-
-    @XContent
-    public void setValue(String value) {
-        if (value != null) {
-            this.value = value.trim();
-        }
+    @Override
+    public String getId() {
+        return name;
     }
 
     public String getName() {
@@ -57,20 +55,17 @@ public class NuxeoHeaderDescriptor implements Cloneable {
         return enabled;
     }
 
+    public String getValue() {
+        return StringUtils.trim(value);
+    }
+
     @Override
-    public NuxeoHeaderDescriptor clone() throws CloneNotSupportedException {
-        NuxeoHeaderDescriptor d = new NuxeoHeaderDescriptor();
-        d.name = name;
-        d.enabled = enabled;
-        d.value = value;
-        return d;
+    public Descriptor merge(Descriptor o) {
+        var other = (NuxeoHeaderDescriptor) o;
+        var merged = new NuxeoHeaderDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.value = defaultIfNull(other.value, value);
+        return merged;
     }
-
-    public void merge(NuxeoHeaderDescriptor source) {
-        enabled = source.enabled;
-        if (source.value != null) {
-            value = source.value;
-        }
-    }
-
 }

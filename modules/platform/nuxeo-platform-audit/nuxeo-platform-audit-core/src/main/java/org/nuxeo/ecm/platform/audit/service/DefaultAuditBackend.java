@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.platform.audit.service;
 
 import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.service.LogEntryProvider.createProvider;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -33,10 +32,13 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.core.api.CursorResult;
 import org.nuxeo.ecm.core.api.CursorService;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.ScrollResult;
+import org.nuxeo.ecm.core.io.registry.MarshallerHelper;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.persistence.PersistenceProvider;
 import org.nuxeo.ecm.core.persistence.PersistenceProviderFactory;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExpr;
@@ -57,15 +59,21 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * Contains the Hibernate based (legacy) implementation
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@code org.nuxeo.sql.audit.SQLAuditBackend} instead
  */
-public class DefaultAuditBackend extends AbstractAuditBackend {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public class DefaultAuditBackend extends AbstractAuditBackend<LogEntry> {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     protected PersistenceProvider persistenceProvider;
 
-    protected CursorService<Iterator<LogEntry>, LogEntry, String> cursorService;
+    protected CursorService<Iterator<LogEntry>, LogEntry, String> cursorService = new CursorService<>(
+            ThrowableFunction.asFunction(
+                    entry -> MarshallerHelper.objectToJson(entry, RenderingContext.CtxBuilder.get())));
 
+    @SuppressWarnings("removal")
     public DefaultAuditBackend(NXAuditEventsService component, AuditBackendDescriptor config) {
         super(component, config);
         activatePersistenceProvider();
@@ -80,21 +88,15 @@ public class DefaultAuditBackend extends AbstractAuditBackend {
 
     @Override
     public int getApplicationStartedOrder() {
-        DefaultComponent component = (DefaultComponent) Framework.getRuntime().getComponent(
-                "org.nuxeo.ecm.core.persistence.PersistenceComponent");
+        var component = (DefaultComponent) Framework.getRuntime()
+                                                    .getComponent(
+                                                            "org.nuxeo.ecm.core.persistence.PersistenceComponent");
         return component.getApplicationStartedOrder() + 1;
     }
 
     @Override
     public void onApplicationStarted() {
         activatePersistenceProvider();
-        cursorService = new CursorService<>(entry -> {
-            try {
-                return OBJECT_MAPPER.writeValueAsString(entry);
-            } catch (IOException e) {
-                throw new NuxeoException("Unable to serialize entry");
-            }
-        });
     }
 
     @Override
@@ -130,13 +132,13 @@ public class DefaultAuditBackend extends AbstractAuditBackend {
 
     protected <T> T apply(boolean needActivateSession, Function<LogEntryProvider, T> function) {
         return getOrCreatePersistenceProvider().run(Boolean.valueOf(needActivateSession), em -> {
-            return function.apply(createProvider(em));
+            return function.apply(LogEntryProvider.createProvider(em));
         });
     }
 
     protected void accept(boolean needActivateSession, Consumer<LogEntryProvider> consumer) {
         getOrCreatePersistenceProvider().run(Boolean.valueOf(needActivateSession), em -> {
-            consumer.accept(createProvider(em));
+            consumer.accept(LogEntryProvider.createProvider(em));
         });
     }
 
@@ -190,6 +192,10 @@ public class DefaultAuditBackend extends AbstractAuditBackend {
         return apply(false, provider -> provider.queryLogsByPage(eventIds, limit, category, path, pageNb, pageSize));
     }
 
+    /**
+     * @deprecated since 2025.0, seems unused
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     @Override
     public long syncLogCreationEntries(final String repoId, final String path, final Boolean recurs) {
         return apply(false, provider -> syncLogCreationEntries(provider, repoId, path, recurs));

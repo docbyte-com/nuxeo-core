@@ -22,7 +22,7 @@ useful for Connect, IO and Studio features.
   in the Admin Center.
 - nuxeo-target-platforms-io: export of target platforms and packages
   information providing Json serialization.
-- nuxeo-target-platforms-jaxrs: REST API for Json exports (see below)
+- nuxeo-target-platforms-rest: REST API for Json exports (see below)
 - nuxeo-target-platforms-sample: sample contributions to the service.
 
 ## Versions

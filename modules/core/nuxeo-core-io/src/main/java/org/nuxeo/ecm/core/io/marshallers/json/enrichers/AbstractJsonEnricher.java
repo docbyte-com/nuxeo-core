@@ -25,7 +25,7 @@ import static com.fasterxml.jackson.core.JsonToken.FIELD_NAME;
 import java.io.IOException;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

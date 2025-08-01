@@ -26,14 +26,14 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import javax.mail.Address;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
-import javax.mail.Transport;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.Address;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.MimeMessage;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.mail.action.MailBoxActions;
@@ -202,7 +202,8 @@ public class MailServiceImpl extends DefaultComponent implements MailService {
     }
 
     @Override
-    public void sendMail(String text, String subject, String factory, Address[] recipients, Map<String, Object> context) {
+    public void sendMail(String text, String subject, String factory, Address[] recipients,
+            Map<String, Object> context) {
         Session session = getSession(factory, context);
         Message message = new MimeMessage(session);
         try {

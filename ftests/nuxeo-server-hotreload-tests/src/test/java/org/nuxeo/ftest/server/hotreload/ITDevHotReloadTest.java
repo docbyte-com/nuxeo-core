@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeTrue;
-import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
+import static org.nuxeo.http.test.HttpClientTestRule.NUXEO_URL;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,11 +36,10 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
-import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.http.test.HttpClientTestRule;
@@ -92,11 +90,8 @@ public class ITDevHotReloadTest {
 
     @Test
     public void testHotReloadSequence() {
-        String storageConf = StorageConfiguration.defaultSystemProperty(StorageConfiguration.CORE_PROPERTY,
-                StorageConfiguration.DEFAULT_CORE);
-        assumeTrue("This test only works with VCS", StorageConfiguration.CORE_VCS.equals(storageConf));
         Map<String, Object> parameters = new HashMap<>();
-        parameters.put("sequenceName", "hibernateSequencer");
+        parameters.put("sequenceName", "default");
         restHelper.operation("javascript.getSequence", parameters);
     }
 

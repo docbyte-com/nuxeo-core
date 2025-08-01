@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,14 +55,6 @@ public class TransactionalFeature implements RunnerFeature {
     public interface Waiter {
 
         /**
-         * @deprecated since 10.3, use {@link #await(Duration)} instead.
-         */
-        @Deprecated
-        default boolean await(long deadline) throws InterruptedException {
-            return await(Duration.ofMillis(deadline - System.currentTimeMillis()));
-        }
-
-        /**
          * @since 10.3
          */
         boolean await(Duration duration) throws InterruptedException;
@@ -76,14 +67,6 @@ public class TransactionalFeature implements RunnerFeature {
 
     public void nextTransaction() {
         nextTransaction(Duration.ofMinutes(3));
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link #nextTransaction(Duration)} instead.
-     */
-    @Deprecated
-    public void nextTransaction(long duration, TimeUnit unit) {
-        nextTransaction(Duration.ofMillis(unit.toMillis(duration)));
     }
 
     public void nextTransaction(Duration duration) {

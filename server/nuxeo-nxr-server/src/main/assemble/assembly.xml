@@ -37,9 +37,34 @@
           <artifact groupId="!cloud.docbyte.nuxeo*" scope="" />
           <artifact groupId="cloud.docbyte.nuxeo.lib*" scope="" />
         </includes>
+        <excludes>
+          <artifact scope="test" />
+          <artifact scope="provided" />
+          <artifact type="pom" />
+        </excludes>
       </artifact:set>
     </copy>
     <nx:rmdups dir="${nxr}/lib" />
+
+    <!-- Container libs -->
+    <copy todir="${nxr}/containerlib" overwrite="true">
+      <fileset dir="${nxr}/lib">
+        <include name="nuxeo-runtime-*" />
+        <include name="commons-lang-*" />
+        <include name="commons-lang3-*" />
+        <include name="commons-logging-*" />
+        <include name="freemarker-*" />
+        <include name="jakarta.activation-*" />
+        <include name="jakarta.mail-*" />
+        <include name="xercesImpl-*" />
+        <!-- install sl4j bridge in container classpath -->
+        <include name="slf4j*" />
+        <include name="log4j-*" /> <!-- log4j2 / bridges: jcl, slf4j, log4j -->
+        <!-- install log4j2 JSON logging dependencies in container classpath -->
+        <include name="jackson-*" />
+      </fileset>
+    </copy>
+    <nx:rmdups dir="${nxr}/containerlib" />
 
     <!-- Templates -->
     <copy todir="${nxr}/templates" overwrite="true">
@@ -52,6 +77,7 @@
     </copy>
     <copy todir="${nxr}/templates/mongodb/nxserver/lib">
       <artifact:file artifactId="bson" />
+      <artifact:file artifactId="bson-record-codec" />
       <artifact:file artifactId="mongodb-driver-core" />
       <artifact:file artifactId="mongodb-driver-sync" />
       <artifact:file artifactId="quartz-mongodb" />

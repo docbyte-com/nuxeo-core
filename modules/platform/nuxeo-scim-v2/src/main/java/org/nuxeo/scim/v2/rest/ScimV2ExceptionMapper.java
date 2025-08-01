@@ -18,13 +18,7 @@
  */
 package org.nuxeo.scim.v2.rest;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-
-import javax.inject.Singleton;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +29,10 @@ import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ErrorResponse;
 import com.unboundid.scim2.server.utils.ServerUtils;
 
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
+
 /**
  * @since 2023.15
  */
@@ -43,9 +41,6 @@ import com.unboundid.scim2.server.utils.ServerUtils;
 public class ScimV2ExceptionMapper extends WebEngineExceptionMapper {
 
     private static final Logger log = LogManager.getLogger(ScimV2ExceptionMapper.class);
-
-    @Context
-    protected HttpHeaders headers; // NOSONAR
 
     @Override
     public Response toResponse(Throwable t) {

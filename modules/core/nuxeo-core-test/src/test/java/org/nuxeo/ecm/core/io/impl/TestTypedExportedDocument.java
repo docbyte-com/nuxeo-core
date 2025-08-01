@@ -25,7 +25,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Iterator;
 
-import javax.inject.Inject;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.transform.Transformer;
@@ -36,6 +35,8 @@ import javax.xml.transform.sax.SAXSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dom4j.io.DocumentSource;

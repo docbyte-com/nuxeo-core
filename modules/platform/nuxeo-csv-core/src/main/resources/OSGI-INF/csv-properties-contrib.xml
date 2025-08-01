@@ -11,6 +11,14 @@
       @since 10.3
     </documentation>
     <property name="nuxeo.csv.import.legacyDateFormat">false</property>
+
+    <documentation>
+      Property to trim values of the CSV files.
+      Defaults to true.
+
+      @since 2025.0
+    </documentation>
+    <property name="nuxeo.csv.import.trim">true</property>
   </extension>
 
 </component>

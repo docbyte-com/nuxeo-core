@@ -4,7 +4,9 @@
 
   <#if "${nuxeo.mongodb.directories.enabled}" == "true">
   <require>org.nuxeo.ecm.directories</require>
+  <#if (common-sql.target)?? >
   <require>org.nuxeo.template.directory.sql</require>
+  </#if>
   <extension target="org.nuxeo.directory.mongodb.MongoDBDirectoryFactory" point="directories">
 
     <directory name="template-directory" template="true">

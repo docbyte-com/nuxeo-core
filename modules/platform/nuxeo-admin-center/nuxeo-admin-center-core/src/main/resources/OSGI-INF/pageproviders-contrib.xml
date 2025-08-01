@@ -34,28 +34,6 @@
       <pageSize>10</pageSize>
     </coreQueryPageProvider>
 
-    <genericPageProvider class="org.nuxeo.ecm.platform.audit.api.AuditPageProvider" name="EVENTS_VIEW">
-      <searchDocumentType>BasicAuditSearch</searchDocumentType>
-      <whereClause>
-        <predicate parameter="log.eventDate" operator="BETWEEN">
-          <field schema="basicauditsearch" name="startDate"/>
-          <field schema="basicauditsearch" name="endDate"/>
-        </predicate>
-        <predicate parameter="log.category" operator="=">
-          <field schema="basicauditsearch" name="eventCategory"/>
-        </predicate>
-        <predicate parameter="log.eventId" operator="IN">
-          <field schema="basicauditsearch" name="eventIds"/>
-        </predicate>
-        <predicate parameter="log.principalName" operator="=">
-          <field schema="basicauditsearch" name="principalName"/>
-        </predicate>
-      </whereClause>
-      <sort column="log.eventDate" ascending="false"/>
-      <pageSize>10</pageSize>
-      <maxPageSize>1000</maxPageSize>
-    </genericPageProvider>
-
     <genericPageProvider class="org.nuxeo.ecm.platform.query.nxql.CoreQueryAndFetchPageProvider"
                          name="PERMISSIONS_SEARCH">
       <searchDocumentType>PermissionsSearch</searchDocumentType>

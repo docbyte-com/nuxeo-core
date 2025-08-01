@@ -22,6 +22,7 @@
   <xs:element name="theme" type="xs:string" default="sites"/>
   <xs:element name="themePage" type="xs:string" default="workspace"/>
   <xs:element name="themePerspective" type="xs:string"/>
+
   <xs:element name="email" type="xs:string"/>
 
   <xs:element name="welcomeText" type="nxs:clob"/>

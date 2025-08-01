@@ -31,13 +31,6 @@
       <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
 
-    <filter-mapping>
-      <filter-name>WebContextFilter</filter-name>
-      <url-pattern>/scim/v2/*</url-pattern>
-      <dispatcher>REQUEST</dispatcher>
-      <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-
   </extension>
 
 </fragment>

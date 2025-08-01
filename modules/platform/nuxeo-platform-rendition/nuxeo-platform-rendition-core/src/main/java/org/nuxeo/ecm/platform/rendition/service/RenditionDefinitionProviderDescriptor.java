@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.platform.rendition.service;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor contribution {@link RenditionDefinitionProvider}s.
@@ -34,7 +36,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 7.2
  */
 @XObject("renditionDefinitionProvider")
-public class RenditionDefinitionProviderDescriptor {
+public class RenditionDefinitionProviderDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(RenditionDefinitionProviderDescriptor.class);
 
@@ -42,7 +44,7 @@ public class RenditionDefinitionProviderDescriptor {
     protected String name;
 
     @XNode("@enabled")
-    Boolean enabled;
+    protected Boolean enabled;
 
     @XNode("@class")
     protected Class<? extends RenditionDefinitionProvider> providerClass;
@@ -51,6 +53,11 @@ public class RenditionDefinitionProviderDescriptor {
 
     @XNodeList(value = "filters/filter-id", type = ArrayList.class, componentType = String.class)
     protected List<String> filterIds;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -100,15 +107,14 @@ public class RenditionDefinitionProviderDescriptor {
     }
 
     @Override
-    public RenditionDefinitionProviderDescriptor clone() {
-        RenditionDefinitionProviderDescriptor clone = new RenditionDefinitionProviderDescriptor();
-        clone.name = name;
-        clone.enabled = enabled;
-        clone.providerClass = providerClass;
-        if (filterIds != null) {
-            clone.filterIds = new ArrayList<>();
-            clone.filterIds.addAll(filterIds);
-        }
-        return clone;
+    public Descriptor merge(Descriptor o) {
+        var other = (RenditionDefinitionProviderDescriptor) o;
+        var merged = new RenditionDefinitionProviderDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.providerClass = defaultIfNull(other.providerClass, providerClass);
+        merged.filterIds = new ArrayList<>(filterIds);
+        merged.filterIds.addAll(other.filterIds);
+        return merged;
     }
 }

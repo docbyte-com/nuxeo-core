@@ -20,7 +20,7 @@ package org.nuxeo.runtime.test.runner;
 
 import static org.junit.Assert.assertNotNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

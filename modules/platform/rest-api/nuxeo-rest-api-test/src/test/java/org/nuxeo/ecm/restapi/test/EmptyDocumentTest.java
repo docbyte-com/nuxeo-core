@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.restapi.test;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
@@ -26,13 +25,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.Rule;
@@ -52,8 +49,8 @@ import org.nuxeo.ecm.platform.rendition.io.PublicationJsonEnricher;
 import org.nuxeo.ecm.platform.rendition.io.RenditionJsonEnricher;
 import org.nuxeo.ecm.platform.tag.io.TagsJsonEnricher;
 import org.nuxeo.ecm.platform.types.SubtypesJsonEnricher;
-import org.nuxeo.ecm.restapi.server.jaxrs.enrichers.AuditJsonEnricher;
-import org.nuxeo.ecm.restapi.server.jaxrs.enrichers.HasContentJsonEnricher;
+import org.nuxeo.ecm.restapi.server.enrichers.AuditJsonEnricher;
+import org.nuxeo.ecm.restapi.server.enrichers.HasContentJsonEnricher;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.http.test.handler.VoidHandler;
@@ -75,14 +72,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 @Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-dummy-listener-contrib.xml")
 public class EmptyDocumentTest {
 
-    protected static final Map<String, String> HEADERS = Collections.singletonMap("properties", "*");
+    protected static final Map<String, String> HEADERS = Map.of("properties", "*");
 
-    protected static final Map<String, String> ENRICHERS_HEADERS = Collections.singletonMap("enrichers-document",
-            String.join(",",
-                    Arrays.asList(HasContentJsonEnricher.NAME, FirstAccessibleAncestorJsonEnricher.NAME,
-                            BasePermissionsJsonEnricher.NAME, BreadcrumbJsonEnricher.NAME, PublicationJsonEnricher.NAME,
-                            TagsJsonEnricher.NAME, PreviewJsonEnricher.NAME, FavoritesJsonEnricher.NAME,
-                            AuditJsonEnricher.NAME, SubtypesJsonEnricher.NAME, RenditionJsonEnricher.NAME)));
+    protected static final Map<String, String> ENRICHERS_HEADERS = Map.of("enrichers-document",
+            String.join(",", HasContentJsonEnricher.NAME, FirstAccessibleAncestorJsonEnricher.NAME,
+                    BasePermissionsJsonEnricher.NAME, BreadcrumbJsonEnricher.NAME, PublicationJsonEnricher.NAME,
+                    TagsJsonEnricher.NAME, PreviewJsonEnricher.NAME, FavoritesJsonEnricher.NAME, AuditJsonEnricher.NAME,
+                    SubtypesJsonEnricher.NAME, RenditionJsonEnricher.NAME));
 
     @Inject
     protected CoreSession session;

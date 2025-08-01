@@ -21,20 +21,20 @@ package org.nuxeo.ecm.platform.audit.impl;
 import java.io.Serializable;
 import java.util.Date;
 
-import javax.persistence.Column;
-import javax.persistence.DiscriminatorColumn;
-import javax.persistence.DiscriminatorValue;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.Transient;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.Lob;
+import jakarta.persistence.Table;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
@@ -43,16 +43,20 @@ import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
  * Extended audit info entities, used to persist contributed extended information.
  *
  * @author Stephane Lacoin (Nuxeo EP software engineer)
+ * @deprecated since 2025.0, it is not useful anymore except for nuxeo-platform-audit-sql
  */
+@SuppressWarnings("removal")
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @Table(name = "NXP_LOGS_EXTINFO")
 @DiscriminatorColumn(name = "DISCRIMINATOR")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoImpl implements ExtendedInfo {
 
     private static final long serialVersionUID = 1L;
 
-    private ExtendedInfoImpl() {
+    // default constructor needed by hibernate
+    protected ExtendedInfoImpl() {
     }
 
     public static ExtendedInfoImpl createExtendedInfo(Serializable value) {
@@ -113,7 +117,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private LongInfo() {
+        protected LongInfo() {
         }
 
         public LongInfo(long value) {
@@ -145,7 +149,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private DateInfo() {
+        protected DateInfo() {
         }
 
         public DateInfo(Date value) {
@@ -178,7 +182,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private StringInfo() {
+        protected StringInfo() {
         }
 
         public StringInfo(String value) {
@@ -210,7 +214,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private DoubleInfo() {
+        protected DoubleInfo() {
         }
 
         public DoubleInfo(Double value) {
@@ -242,7 +246,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private BooleanInfo() {
+        protected BooleanInfo() {
         }
 
         public BooleanInfo(Boolean value) {
@@ -274,7 +278,7 @@ public class ExtendedInfoImpl implements ExtendedInfo {
         private static final long serialVersionUID = 1L;
 
         // default constructor needed by hibernate
-        private BlobInfo() {
+        protected BlobInfo() {
         }
 
         public BlobInfo(Serializable value) {

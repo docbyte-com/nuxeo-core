@@ -23,20 +23,19 @@ import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.RFC2231;
 import org.nuxeo.ecm.core.api.Blob;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobStatus;
 import org.nuxeo.ecm.core.blob.BlobStore;
@@ -47,15 +46,16 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.TransactionalBlobStore;
 import org.nuxeo.ecm.core.io.download.DownloadHelper;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.HttpMethod;
-import com.amazonaws.services.cloudfront.CloudFrontUrlSigner;
-import com.amazonaws.services.cloudfront.util.SignerUtils.Protocol;
-import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
-import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.StorageClass;
-import com.amazonaws.services.s3.transfer.TransferManager;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.services.cloudfront.CloudFrontUtilities;
+import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 /**
  * Blob provider that stores files in S3.
@@ -78,7 +78,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
     @Override
     protected BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException {
         config = getConfiguration(properties);
-        log.info("Registering S3 blob provider '" + blobProviderId);
+        log.info("Registering S3 blob provider {}", blobProviderId);
         KeyStrategy keyStrategy = getKeyStrategy();
 
         // main S3 blob store wrapped in a caching store
@@ -127,7 +127,7 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
     }
 
     @Override
-    public TransferManager getTransferManager() {
+    public S3TransferManager getTransferManager() {
         return config.transferManager;
     }
 
@@ -143,7 +143,12 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
 
     /** Checks if the bucket exists (used in health check probes). */
     public boolean canAccessBucket() {
-        return config.amazonS3.doesBucketExistV2(config.bucketName);
+        try {
+            config.amazonS3.headBucket(b -> b.bucket(config.bucketName));
+            return true;
+        } catch (NoSuchBucketException e) {
+            return false;
+        }
     }
 
     /**
@@ -164,20 +169,18 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             objectKey = key.substring(0, seppos);
             versionId = key.substring(seppos + 1);
         }
-        String bucketKey = config.bucketKey(objectKey);
-        GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey, versionId);
-        ObjectMetadata metadata;
         try {
-            metadata = config.amazonS3.getObjectMetadata(request);
-        } catch (AmazonServiceException e) {
+            return config.amazonS3.headObject(
+                    b -> b.bucket(config.bucketName).key(config.bucketKey(objectKey)).versionId(versionId))
+                                  .contentLength();
+        } catch (SdkException e) {
             if (S3BlobStore.isMissingKey(e)) {
-                // don't crash for a missing blob, even though it means the storage is corrupted
                 log.debug("Failed to get information on blob: {}", key, e);
+                // don't crash for a missing blob, even though it means the storage is corrupted
                 return -1;
             }
             throw new IOException(e);
         }
-        return metadata.getContentLength();
     }
 
     @Override
@@ -187,25 +190,25 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             return null;
         }
         String bucketKey = config.bucketKey(stripBlobKeyPrefix(blob.getKey()));
-        Date expiration = new Date(System.currentTimeMillis() + config.directDownloadExpire * 1000);
+        long expiresMs = config.directDownloadExpire * 1000;
         try {
             if (config.cloudFront.enabled) {
-                return getURICloudFront(bucketKey, blob, expiration, servletRequest);
+                return getURICloudFront(bucketKey, blob, Instant.ofEpochMilli(expiresMs), servletRequest);
             } else {
-                return getURIS3(bucketKey, blob, expiration, servletRequest);
+                return getURIS3(bucketKey, blob, Duration.ofMillis(expiresMs), servletRequest);
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
     }
 
-    protected URI getURICloudFront(String bucketKey, ManagedBlob blob, Date expiration,
+    protected URI getURICloudFront(String bucketKey, ManagedBlob blob, Instant expiration,
             HttpServletRequest servletRequest) throws URISyntaxException {
         String[] parts = bucketKey.split(String.valueOf(VER_SEP));
         bucketKey = parts[0];
         CloudFrontConfiguration cloudFront = config.cloudFront;
-        Protocol protocol = cloudFront.protocol;
-        String baseURI = protocol == Protocol.http || protocol == Protocol.https
+        String protocol = cloudFront.protocol;
+        String baseURI = "http".equals(protocol) || "https".equals(protocol)
                 ? protocol + "://" + cloudFront.distributionDomain + "/" + bucketKey
                 : bucketKey;
         URIBuilder uriBuilder = new URIBuilder(baseURI);
@@ -225,29 +228,47 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             }
         }
         URI uri = uriBuilder.build();
-        if (cloudFront.privateKey == null) {
+        if (cloudFront.privateKeyPath == null) {
             return uri;
         } else {
-            String signedURL = CloudFrontUrlSigner.getSignedURLWithCannedPolicy(uri.toString(), cloudFront.keyPairId,
-                    cloudFront.privateKey, expiration);
-            return new URI(signedURL);
+            CannedSignerRequest cannedRequest;
+            try {
+                cannedRequest = CannedSignerRequest.builder()
+                                                   .resourceUrl(uri.toString())
+                                                   .privateKey(cloudFront.privateKeyPath)
+                                                   .keyPairId(cloudFront.keyPairId)
+                                                   .expirationDate(expiration)
+                                                   .build();
+            } catch (Exception e) {
+                // why v2 sdk is throwing Exception :|
+                throw new NuxeoException("Cannot generate cloud front url", e);
+            }
+            return new URI(CloudFrontUtilities.create().getSignedUrlWithCannedPolicy(cannedRequest).url());
         }
     }
 
-    protected URI getURIS3(String bucketKey, ManagedBlob blob, Date expiration, HttpServletRequest servletRequest)
+    protected URI getURIS3(String bucketKey, ManagedBlob blob, Duration expiration, HttpServletRequest servletRequest)
             throws URISyntaxException {
         // split version id if part of file key
         String[] parts = bucketKey.split(String.valueOf(VER_SEP));
-        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(config.bucketName, parts[0],
-                HttpMethod.GET);
-        if (parts.length > 1) {
-            request.setVersionId(parts[1]);
+        S3Presigner.Builder s3Presignerbuilder = S3Presigner.builder()
+                                                            .credentialsProvider(config.awsCredentialsProvider)
+                                                            .region(config.region);
+        if (config.endpointOverride != null) {
+            s3Presignerbuilder.endpointOverride(config.endpointOverride);
         }
-        request.addRequestParameter("response-content-type", getContentTypeHeader(blob));
-        request.addRequestParameter("response-content-disposition", getContentDispositionHeader(blob, servletRequest));
-        request.setExpiration(expiration);
-        URL url = config.amazonS3.generatePresignedUrl(request);
-        return url.toURI();
+        try (S3Presigner presigner = s3Presignerbuilder.build()) {
+            var presignRequest = GetObjectPresignRequest.builder().signatureDuration(expiration).getObjectRequest(b -> {
+                b.bucket(config.bucketName)
+                 .key(parts[0])
+                 .responseContentDisposition(getContentDispositionHeader(blob, servletRequest))
+                 .responseContentType(getContentTypeHeader(blob));
+                if (parts.length > 1) {
+                    b.versionId(parts[1]);
+                }
+            }).build();
+            return presigner.presignGetObject(presignRequest).url().toURI();
+        }
     }
 
     protected String getContentTypeHeader(Blob blob) {
@@ -266,46 +287,46 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
     public BlobStatus getStatus(ManagedBlob blob) throws IOException {
         String key = stripBlobKeyPrefix(blob.getKey());
         String objectKey;
-        String versionId;
         int seppos = key.indexOf(VER_SEP);
         if (seppos < 0) {
             objectKey = key;
-            versionId = null;
         } else {
             objectKey = key.substring(0, seppos);
-            versionId = key.substring(seppos + 1);
         }
         String bucketKey = config.bucketKey(objectKey);
-        GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey, versionId);
-        ObjectMetadata metadata;
+        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                                                               .bucket(config.bucketName)
+                                                               .key(bucketKey)
+                                                               .build();
         try {
-            metadata = config.amazonS3.getObjectMetadata(request);
-        } catch (AmazonServiceException e) {
+            HeadObjectResponse response = config.amazonS3.headObject(headObjectRequest);
+            BlobStatus blobStatus = new BlobStatus();
+            // storage class is null for STANDARD
+            String storageClass = response.storageClassAsString();
+            blobStatus.withStorageClass(storageClass);
+            if (StorageClass.STANDARD.toString().equals(storageClass)) {
+                blobStatus.withStorageClass(null);
+            }
+            // the object storage class can be Standard or Glacier.
+            // the Glacier Storage class can have one of these 3 states:
+            // x-amz-restore absent
+            // x-amz-restore: ongoing-request="true"
+            // x-amz-restore: ongoing-request="false", expiry-date="Fri, 23 Dec 2012 00:00:00 GMT"
+            String restore = response.restore();
+            boolean ongoingRestore = S3Utils.isOnGoingRestore(restore);
+            Instant downloadableUntil = S3Utils.getRestoreExpiryDate(restore);
+            boolean downloadable = storageClass == null || downloadableUntil != null;
+            blobStatus.withDownloadable(downloadable)
+                      .withDownloadableUntil(downloadableUntil)
+                      .withOngoingRestore(ongoingRestore);
+            return blobStatus;
+        } catch (SdkException e) {
             if (S3BlobStore.isMissingKey(e)) {
-                // don't crash for a missing blob, even though it means the storage is corrupted
-                log.error("Failed to get information on blob: {}", key, e);
+                log.error("Failed to get information on blob: {}", key);
                 return new BlobStatus().withDownloadable(false);
             }
-            throw new IOException(e);
+            throw e;
         }
-        // storage class is null for STANDARD
-        String storageClass = metadata.getStorageClass();
-        if (StorageClass.Standard.toString().equals(storageClass)) {
-            storageClass = null;
-        }
-        // the object storage class can be Standard or Glacier.
-        // the Glacier Storage class can have one of these 3 states:
-        // x-amz-restore absent
-        // x-amz-restore: ongoing-request="true"
-        // x-amz-restore: ongoing-request="false", expiry-date="Fri, 23 Dec 2012 00:00:00 GMT"
-        Date date = metadata.getRestoreExpirationTime();
-        Instant downloadableUntil = date == null ? null : date.toInstant();
-        boolean downloadable = storageClass == null || downloadableUntil != null;
-        boolean ongoingRestore = BooleanUtils.isTrue(metadata.getOngoingRestore());
-        return new BlobStatus().withStorageClass(storageClass)
-                               .withDownloadable(downloadable)
-                               .withDownloadableUntil(downloadableUntil)
-                               .withOngoingRestore(ongoingRestore);
     }
 
     @Override

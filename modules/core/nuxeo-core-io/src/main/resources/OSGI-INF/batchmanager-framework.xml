@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.io.BatchManager" version="1.0">
+  <alias>org.nuxeo.ecm.automation.server.BatchManager</alias>
+
+  <documentation>
+    This component provides a service to be able to upload some blobs and store them temporarily so that you can execute
+    an Automation Operation on these Blobs.
+
+    @author Thierry Delprat (tdelprat@nuxeo.com)
+  </documentation>
+
+  <implementation class="org.nuxeo.ecm.core.io.upload.batch.BatchManagerComponent" />
+
+  <service>
+    <provide interface="org.nuxeo.ecm.core.io.upload.batch.BatchManager" />
+  </service>
+
+  <extension-point name="handlers">
+    <object class="org.nuxeo.ecm.core.io.upload.batch.BatchHandlerDescriptor"/>
+  </extension-point>
+</component>

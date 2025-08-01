@@ -78,7 +78,7 @@ public class ConfigurationChecker {
 
     protected static final String DEFAULT_CONTEXT_NAME = "/core";
 
-    protected static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "17" };
+    protected static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "21" };
 
     protected static final String JVMCHECK_PROP = "jvmcheck";
 
@@ -361,7 +361,6 @@ public class ConfigurationChecker {
         var checkers = new ArrayList<BackingChecker>();
         var items = new ArrayList<>(configHolder.getIncludedTemplateNames());
         // Add backing without template
-        items.add("elasticsearch");
         items.add("kafka");
         for (String item : items) {
             try {

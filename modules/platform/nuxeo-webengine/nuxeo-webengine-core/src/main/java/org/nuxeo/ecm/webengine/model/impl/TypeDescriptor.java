@@ -56,14 +56,11 @@ public class TypeDescriptor implements Cloneable {
 
     @XNode("@visibility")
     public void setVisibility(String v) {
-        if (v.equals("public")) {
-            visibility = TypeVisibility.PUBLIC;
-        } else if (v.equals("protected")) {
-            visibility = TypeVisibility.PROTECTED;
-        } else if (v.equals("private")) {
-            visibility = TypeVisibility.PRIVATE;
-        } else {
-            visibility = TypeVisibility.DEFAULT;
+        switch (v) {
+            case "public" -> visibility = TypeVisibility.PUBLIC;
+            case "protected" -> visibility = TypeVisibility.PROTECTED;
+            case "private" -> visibility = TypeVisibility.PRIVATE;
+            default -> visibility = TypeVisibility.DEFAULT;
         }
     }
 

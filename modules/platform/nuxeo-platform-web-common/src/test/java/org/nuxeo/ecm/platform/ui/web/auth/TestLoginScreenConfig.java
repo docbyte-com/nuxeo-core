@@ -33,9 +33,10 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MultivaluedMap;
 
+import org.glassfish.jersey.uri.UriComponent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.ui.web.auth.service.LoginScreenConfig;
@@ -49,8 +50,6 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
 import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-
-import com.sun.jersey.api.uri.UriComponent;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
@@ -82,7 +81,6 @@ public class TestLoginScreenConfig {
         assertTrue(config.hasVideos());
         assertEquals(2, config.getVideos().size());
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
 
         LoginVideo loginVideo = config.getVideos().get(0);
         assertTrue(isNotBlank(loginVideo.getType()));
@@ -133,7 +131,6 @@ public class TestLoginScreenConfig {
         assertNotNull(config.getProvider("facebook"));
         assertNotNull(config.getProvider("linkedin"));
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
         assertNull(config.getDisableBackgroundSizeCover());
 
         assertEquals("XXXX", config.getProvider("google").getLink(null, null));
@@ -151,7 +148,6 @@ public class TestLoginScreenConfig {
         assertEquals("#DDDDDD", config.getHeaderStyle());
         assertEquals("Something", config.getFooterStyle());
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
         assertEquals(2, config.getProviders().size());
         assertNotNull(config.getProvider("google"));
         assertNotNull(config.getProvider("linkedin"));
@@ -372,31 +368,31 @@ public class TestLoginScreenConfig {
 
     // NXP-30831
     @Test
-    public void testRemoveNewsDisplayMobileBannerMerge() throws Exception {
+    public void testRemoveNewsDisplayMerge() throws Exception {
         LoginScreenConfig config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertTrue(config.getDisplayNews());
-        assertTrue(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
-        hotDeployer.deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner.xml");
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews.xml");
 
         config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
         assertEquals("someurl", config.getNewsIframeUrl());
 
-        hotDeployer.deploy("org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews-displayMobileBanner2.xml");
+        hotDeployer.deploy(
+                "org.nuxeo.ecm.platform.web.common.test:OSGI-INF/test-loginscreenconfig-merge-removeNews2.xml");
 
         config = authService.getLoginScreenConfig();
 
         assertNotNull(config);
         assertFalse(config.getDisplayNews());
-        assertFalse(config.getDisplayMobileBanner());
-        assertEquals("aNewURLWhichShouldntCauseNewsActivationAsRemoveNewsIsTrueInPreviousContrib", config.getNewsIframeUrl());
+        assertEquals("aNewURLWhichShouldntCauseNewsActivationAsRemoveNewsIsTrueInPreviousContrib",
+                config.getNewsIframeUrl());
     }
 
     // this test should be the last one because it un-deploys a contribution deployed by annotation on the class

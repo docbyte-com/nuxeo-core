@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-platform-audit-parent</artifactId>
@@ -11,10 +11,13 @@
   <packaging>pom</packaging>
 
   <modules>
-    <module>nuxeo-platform-audit-api</module>
     <module>nuxeo-platform-audit-core</module>
+    <module>nuxeo-platform-audit-directory-storage</module>
     <module>nuxeo-platform-audit-io</module>
     <module>nuxeo-platform-audit-mongodb</module>
+    <module>nuxeo-platform-audit-opensearch1</module>
+    <module>nuxeo-platform-audit-sql</module>
+    <module>nuxeo-platform-audit-test</module>
   </modules>
 
 </project>

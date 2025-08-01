@@ -21,21 +21,21 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 object ScnSearch {
 
-  def get = (duration: Duration, pause: FiniteDuration) => {
+  def get = (duration: FiniteDuration, pause: FiniteDuration) => {
     scenario("SearchRest").exec(
       during(duration, "counterName") {
         feed(Feeders.users).repeat(10) {
           feed(Feeders.fulltextSearch)
             .randomSwitch(
-              10.0 -> exec(NuxeoRest.search("SELECT * FROM Document", comment = "Search All")),
-              10.0 -> exec(NuxeoRest.search("SELECT * FROM Document", sortBy = "dc:modified", sortOrder = "DESC", comment = "Search All sorted")),
-              10.0 -> exec(NuxeoRest.search("SELECT * FROM Document WHERE ecm:primaryType='Folder'", sortBy = "dc:title", comment = "Search folders sorted")),
-              10.0 -> exec(NuxeoRest.search("SELECT * FROM Document WHERE ecm:path STARTSWITH '/default-domain/workspaces/Bench_Gatling/u09/t/g/f' AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 AND ecm:isVersion = 0 AND ecm:isTrashed = 0", comment = "Search on path")),
-              60.0 -> exec(NuxeoRest.search("SELECT * FROM Document WHERE ecm:fulltext.dc:title = '${term}' AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 AND ecm:isVersion = 0 AND ecm:isTrashed = 0", comment = "Search fulltext"))
+              10.0 -> NuxeoRest.search("SELECT * FROM Document", comment = "Search All"),
+              10.0 -> NuxeoRest.search("SELECT * FROM Document", sortBy = "dc:modified", sortOrder = "DESC", comment = "Search All sorted"),
+              10.0 -> NuxeoRest.search("SELECT * FROM Document WHERE ecm:primaryType='Folder'", sortBy = "dc:title", comment = "Search folders sorted"),
+              10.0 -> NuxeoRest.search("SELECT * FROM Document WHERE ecm:path STARTSWITH '/default-domain/workspaces/Bench_Gatling/u09/t/g/f' AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 AND ecm:isVersion = 0 AND ecm:isTrashed = 0", comment = "Search on path"),
+              60.0 -> NuxeoRest.search("SELECT * FROM Document WHERE ecm:fulltext.dc:title = '#{term}' AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isProxy = 0 AND ecm:isVersion = 0 AND ecm:isTrashed = 0", comment = "Search fulltext")
             )
             .pause(pause)
         }

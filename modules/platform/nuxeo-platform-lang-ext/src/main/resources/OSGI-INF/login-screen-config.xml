@@ -6,6 +6,8 @@
     point="loginScreen">
     <loginScreenConfig>
       <supportedLocales append="true">
+        <locale>ar</locale><!-- Arabic -->
+        <locale>ar_SA</locale><!-- Arabic - Saudi Arabia -->
         <locale>de</locale><!-- German - Germany -->
         <locale>de_DE</locale><!-- German - Germany -->
         <locale>es</locale><!-- Spanish - Spain -->
@@ -13,6 +15,8 @@
         <locale>eu_ES</locale><!-- Basque -->
         <locale>fr</locale><!-- French - France -->
         <locale>fr_FR</locale><!-- French - France -->
+        <locale>he</locale><!-- Hebrew -->
+        <locale>he_IL</locale><!-- Hebrew - Israel -->
         <locale>id_ID</locale><!-- Indonesian - Indonesia -->
         <locale>it_IT</locale><!-- Italian - Italy -->
         <locale>ja</locale><!-- Japanese (Gregorian calendar) - Japan -->

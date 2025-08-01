@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,22 +17,20 @@
  *     Nuxeo - initial API and implementation
  *     Academie de Rennes - proxy CAS support
  *     Revolution Linux - Username string cleanup
- *
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.proxy;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -47,12 +45,14 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
  */
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.ecm.platform.login.mod_sso")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.platform.login.mod_sso.test")
 @Deploy("org.nuxeo.ecm.platform.login.mod_sso.test:OSGI-INF/mod_sso-descriptor-bundle.xml")
 public class TestProxyAuthenticator {
 
     @Test
-    public void testProxyAuthenticationWithoutReplacement() throws Exception {
+    public void testProxyAuthenticationWithoutReplacement() {
 
         ProxyAuthenticator proxyAuth = new ProxyAuthenticator();
 
@@ -75,7 +75,7 @@ public class TestProxyAuthenticator {
     }
 
     @Test
-    public void testProxyAuthenticationWithReplacement() throws Exception {
+    public void testProxyAuthenticationWithReplacement() {
 
         ProxyAuthenticator proxyAuth = new ProxyAuthenticator();
 

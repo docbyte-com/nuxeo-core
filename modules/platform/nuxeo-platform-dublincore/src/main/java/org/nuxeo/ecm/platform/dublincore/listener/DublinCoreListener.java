@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class DublinCoreListener implements EventListener {
      */
     @Override
     public void handleEvent(Event event) {
-        if (!(event.getContext()instanceof DocumentEventContext docCtx)) {
+        if (!(event.getContext() instanceof DocumentEventContext docCtx)) {
             return;
         }
 
@@ -80,6 +80,11 @@ public class DublinCoreListener implements EventListener {
         }
 
         DocumentModel doc = docCtx.getSourceDocument();
+
+        if (!doc.hasSchema("dublincore")) {
+            log.info("No DublinCore update on document without dublincore schema, doc: {}", doc);
+            return;
+        }
 
         if (doc.isVersion()) {
             log.debug("No DublinCore update on versions except for the issued date");

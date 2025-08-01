@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +55,7 @@ public class TestSetCompoundDocs {
     protected AutomationService automationService;
 
     @Test
-    public void shouldsetCompoundDocs() throws OperationException {
+    public void shouldSetCompoundDocs() throws OperationException {
         DocumentModel doc = session.createDocumentModel("/default-domain/workspaces", "folder", "Folder");
         session.createDocument(doc);
         List<String> compoundDocs = new ArrayList<>();

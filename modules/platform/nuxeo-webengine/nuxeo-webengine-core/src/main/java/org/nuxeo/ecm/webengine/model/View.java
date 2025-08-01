@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.webengine.model;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 

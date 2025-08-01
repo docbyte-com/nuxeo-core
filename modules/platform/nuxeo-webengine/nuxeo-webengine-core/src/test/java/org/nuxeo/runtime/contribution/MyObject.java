@@ -60,8 +60,7 @@ public class MyObject {
         if (obj == this) {
             return true;
         }
-        if (obj instanceof MyObject) {
-            MyObject myf = (MyObject) obj;
+        if (obj instanceof MyObject myf) {
             if (!id.equals(myf.id)) {
                 return false;
             }

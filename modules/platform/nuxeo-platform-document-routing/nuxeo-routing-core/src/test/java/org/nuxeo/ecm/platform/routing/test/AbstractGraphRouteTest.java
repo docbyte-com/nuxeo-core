@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRoutingService;
 import org.nuxeo.ecm.platform.routing.api.exception.DocumentRouteNotLockedException;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -45,6 +46,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(WorkflowFeature.class)
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public abstract class AbstractGraphRouteTest {
 
     // a doc, associated to the route

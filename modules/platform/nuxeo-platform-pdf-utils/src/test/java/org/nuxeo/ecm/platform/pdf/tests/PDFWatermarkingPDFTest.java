@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import java.io.IOException;
+
+import jakarta.inject.Inject;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,35 +41,31 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import javax.inject.Inject;
-import java.io.IOException;
-
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
 public class PDFWatermarkingPDFTest {
 
-    private static final String PDF_PATH = "/files/test-watermark.pdf";
-    static final String PDF_WATERMARK_PATH = "/files/logo.pdf";
+    protected static final String PDF_PATH = "/files/test-watermark.pdf";
+
+    protected static final String PDF_WATERMARK_PATH = "/files/logo.pdf";
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    PDFTransformationService pdfTransformationService;
+    protected PDFTransformationService pdfTransformationService;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Test
     public void testServiceDefault() throws IOException {
         Blob input = new FileBlob(getClass().getResourceAsStream(PDF_PATH));
         Blob overlayBlob = new FileBlob(getClass().getResourceAsStream(PDF_WATERMARK_PATH));
-        Blob result = pdfTransformationService.overlayPDF(input,overlayBlob);
+        Blob result = pdfTransformationService.overlayPDF(input, overlayBlob);
         Assert.assertNotNull(result);
-        Assert.assertNotEquals(
-                TestUtils.calculateMd5(input.getFile()),
-                TestUtils.calculateMd5(result.getFile()));
+        Assert.assertNotEquals(TestUtils.calculateMd5(input.getFile()), TestUtils.calculateMd5(result.getFile()));
     }
 
     @Test

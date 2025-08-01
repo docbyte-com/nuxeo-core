@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.DataFileWriter;
@@ -96,10 +96,8 @@ public class TestAvroMapper {
         try {
             Blob b1 = (Blob) e.getValue();
             Blob b2 = (Blob) o.getValue();
-            return b1.getLength() == b2.getLength()
-                    && b1.getString().equals(b2.getString())
-                    && b1.getEncoding().equals(b2.getEncoding())
-                    && b1.getMimeType().equals(b2.getMimeType());
+            return b1.getLength() == b2.getLength() && b1.getString().equals(b2.getString())
+                    && b1.getEncoding().equals(b2.getEncoding()) && b1.getMimeType().equals(b2.getMimeType());
         } catch (Exception e1) {
             return false;
         }
@@ -130,19 +128,13 @@ public class TestAvroMapper {
         if (!(Objects.equals(e.getName(), o.getName()) && e.getClass().equals(o.getClass()))) {
             return false;
         }
-        if (e instanceof ArrayProperty) {
-            return equals((ArrayProperty) e, (ArrayProperty) o);
-        }
-        if (e instanceof BlobProperty) {
-            return equals((BlobProperty) e, (BlobProperty) o);
-        }
-        if (e instanceof ComplexProperty) {
-            return equals((ComplexProperty) e, (ComplexProperty) o);
-        }
-        if (e instanceof ListProperty) {
-            return equals((ListProperty) e, (ListProperty) o);
-        }
-        return Objects.equals(e.getValue(), o.getValue());
+        return switch (e) {
+            case ArrayProperty properties -> equals(properties, (ArrayProperty) o);
+            case BlobProperty properties -> equals(properties, (BlobProperty) o);
+            case ComplexProperty properties -> equals(properties, (ComplexProperty) o);
+            case ListProperty properties -> equals(properties, (ListProperty) o);
+            default -> Objects.equals(e.getValue(), o.getValue());
+        };
     }
 
     protected void test(String path) throws IOException {

@@ -25,8 +25,8 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -129,7 +129,6 @@ public class DigestAuthenticator implements NuxeoAuthenticationPlugin {
 
     @Override
     public Boolean needLoginPrompt(HttpServletRequest httpRequest) {
-        // @TODO: Use DIGEST authentication for WebDAV and WSS
         return Boolean.TRUE;
     }
 
@@ -193,7 +192,7 @@ public class DigestAuthenticator implements NuxeoAuthenticationPlugin {
         String digest;
         if (qop == null) {
             digest = ha1 + ":" + nonce + ":" + ha2;
-        } else if ("auth".equals(qop)) {
+        } else if ("cloud/docbyte/aws/auth".equals(qop)) {
             digest = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2;
         } else {
             throw new IllegalArgumentException("This method does not support a qop: '" + qop + "'");

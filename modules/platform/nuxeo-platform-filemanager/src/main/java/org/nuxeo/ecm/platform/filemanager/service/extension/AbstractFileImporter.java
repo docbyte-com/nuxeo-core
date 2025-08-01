@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,15 +34,12 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentSecurityException;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.pathsegment.PathSegmentService;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
-import org.nuxeo.ecm.platform.filemanager.api.FileManager;
-import org.nuxeo.ecm.platform.filemanager.service.FileManagerService;
 import org.nuxeo.ecm.platform.filemanager.utils.FileManagerUtils;
 import org.nuxeo.ecm.platform.types.Type;
 import org.nuxeo.ecm.platform.types.TypeManager;
@@ -80,18 +77,6 @@ public abstract class AbstractFileImporter implements FileImporter {
      * @deprecated since 2021.34, use {@link CoreSession#DISABLE_AUDIT_LOGGER} instead
      */
     public static final String DISABLE_AUDIT_LOGGER = "disableAuditLogger";
-
-    // to be used by plugin implementation to gain access to standard file
-    // creation utility methods without having to lookup the service
-    /**
-     * @deprecated since 10.3, use {@link Framework#getService(Class)} instead if needed
-     */
-    @Deprecated(since = "10.3")
-    protected transient FileManagerService fileManagerService;
-
-    protected AbstractFileImporter() {
-        this.fileManagerService = (FileManagerService) Framework.getService(FileManager.class);
-    }
 
     @Override
     public List<String> getFilters() {
@@ -202,16 +187,6 @@ public abstract class AbstractFileImporter implements FileImporter {
     }
 
     @Override
-    public DocumentModel create(CoreSession session, Blob content, String path, boolean overwrite, String fullname,
-            TypeManager typeService) throws IOException {
-        FileImporterContext context = FileImporterContext.builder(session, content, path)
-                                                         .overwrite(overwrite)
-                                                         .fileName(fullname)
-                                                         .build();
-        return createOrUpdate(context);
-    }
-
-    @Override
     public DocumentModel createOrUpdate(FileImporterContext context) throws IOException {
         CoreSession session = context.getSession();
         String path = getNearestContainerPath(session, context.getParentPath());
@@ -281,23 +256,6 @@ public abstract class AbstractFileImporter implements FileImporter {
             }
         }
         return doc;
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link Framework#getService(Class)} instead if needed
-     */
-    @Deprecated(since = "10.3")
-    public FileManagerService getFileManagerService() {
-        return fileManagerService;
-    }
-
-    /**
-     * @deprecated since 10.3, use {@link Framework#getService(Class)} instead if needed
-     */
-    @Deprecated(since = "10.3")
-    @Override
-    public void setFileManagerService(FileManagerService fileManagerService) {
-        this.fileManagerService = fileManagerService;
     }
 
     @Override

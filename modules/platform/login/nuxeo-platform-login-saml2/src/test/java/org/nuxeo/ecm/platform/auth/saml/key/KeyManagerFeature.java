@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import org.junit.ClassRule;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.TemporaryKeyStore;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
@@ -32,7 +33,9 @@ import org.nuxeo.runtime.test.runner.RuntimeHarness;
 /**
  * @since 2023.0
  */
+@Deploy("org.nuxeo.ecm.platform.login.saml2:OSGI-INF/key-manager-service.xml")
 @Deploy("org.nuxeo.ecm.platform.login.saml2.test")
+@Features(RuntimeFeature.class)
 public class KeyManagerFeature implements RunnerFeature {
 
     public static final String KEY_STORE_TYPE = "JKS";

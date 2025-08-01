@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,14 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.platform.ui.web.auth.service.LoginProviderLink;
@@ -81,17 +79,6 @@ public class LoginScreenHelper {
      */
     public static void unregisterLoginScreenConfig(LoginScreenConfig config) {
         getPluggableAuthenticationService().unregisterLoginScreenConfig(config);
-    }
-
-    /**
-     * @deprecated since 10.10, use
-     *             {@link #registerSingleProviderLoginScreenConfig(String, String, String, String, String, LoginProviderLinkComputer)}
-     *             instead
-     */
-    @Deprecated
-    public static void registerLoginProvider(String name, String iconUrl, String link, String label, String description,
-            LoginProviderLinkComputer computer) {
-        registerSingleProviderLoginScreenConfig(name, iconUrl, link, label, description, computer);
     }
 
     public static String getValueWithDefault(String value, String defaultValue) {
@@ -155,25 +142,6 @@ public class LoginScreenHelper {
                      .sorted((p1, p2) -> p2.compareTo(p1))
                      .map(LoginStartupPage::getPath)
                      .collect(Collectors.toList());
-    }
-
-    /**
-     * Returns whether mobile app banner should be display or not. If the {@code displayMobileBanner} request parameter
-     * is used, then it overrides the {@link LoginScreenConfig#getDisplayMobileBanner()} configuration. If there is no
-     * {@link LoginScreenConfig}, the default value is {@code true}.
-     *
-     * @since 2021.12
-     */
-    public static boolean getDisplayMobileBanner(HttpServletRequest request) {
-        String displayMobileBannerReqParam = request.getParameter("displayMobileBanner");
-        if (StringUtils.isNotBlank(displayMobileBannerReqParam)) {
-            return Boolean.parseBoolean(displayMobileBannerReqParam);
-        }
-        LoginScreenConfig config = getConfig();
-        if (config == null) {
-            return true;
-        }
-        return config.getDisplayMobileBanner();
     }
 
     /**

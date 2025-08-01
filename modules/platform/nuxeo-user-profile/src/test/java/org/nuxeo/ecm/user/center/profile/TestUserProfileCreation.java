@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@
  */
 package org.nuxeo.ecm.user.center.profile;
 
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -34,39 +34,35 @@ import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.userworkspace.api.UserWorkspaceService;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
+@Features(UserProfileFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class)
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.user.center.profile")
 public class TestUserProfileCreation {
 
     @Inject
-    CoreFeature coreFeature;
+    protected CoreFeature coreFeature;
 
     @Inject
-    UserWorkspaceService userWorkspaceService;
+    protected UserWorkspaceService userWorkspaceService;
 
     @Inject
-    DirectoryService directoryService;
+    protected DirectoryService directoryService;
 
     @Inject
-    UserProfileService ups;
+    protected UserProfileService ups;
 
     @Test
-    public void testAdminCreate() throws Exception {
+    public void testAdminCreate() {
 
         DocumentModel user;
         try (Session userDir = directoryService.getDirectory("userDirectory").getSession()) {
             Map<String, Object> user1 = new HashMap<>();
             user1.put("username", "user1");
-            user1.put("groups", Arrays.asList(new String[] { "members" }));
+            user1.put("groups", List.of("members"));
             user = userDir.createEntry(user1);
         }
 

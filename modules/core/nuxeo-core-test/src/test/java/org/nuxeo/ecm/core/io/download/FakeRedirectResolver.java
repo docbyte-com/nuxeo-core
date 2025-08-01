@@ -21,14 +21,13 @@ package org.nuxeo.ecm.core.io.download;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
 
 /**
  * @author loopingz
- *
  */
 public class FakeRedirectResolver implements RedirectResolver {
 

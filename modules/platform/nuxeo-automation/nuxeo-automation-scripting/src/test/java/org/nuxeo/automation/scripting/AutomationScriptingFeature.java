@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,14 +19,18 @@ package org.nuxeo.automation.scripting;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
-
-import javax.inject.Inject;
+import java.util.Set;
 
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
 import org.nuxeo.automation.scripting.internals.AutomationScriptingServiceImpl;
 import org.nuxeo.automation.scripting.internals.ScriptingOperationImpl;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,16 +41,16 @@ import com.google.inject.Binder;
 /**
  * @since 8.4
  */
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.automation.scripting")
-@Deploy("org.nuxeo.ecm.automation.scripting:automation-scripting-contrib.xml")
-@Deploy("org.nuxeo.ecm.automation.scripting:core-types-contrib.xml")
+@Deploy("org.nuxeo.ecm.automation.scripting.tests:automation-scripting-contrib.xml")
+@Deploy("org.nuxeo.ecm.automation.scripting.tests:core-types-contrib.xml")
+@Features({ //
+        AutomationCoreFeature.class, //
+        AutomationIOFeature.class, //
+        AutomationFeaturesFeature.class, //
+        AutomationServerFeature.class, //
+        WebEngineCoreFeature.class })
 public class AutomationScriptingFeature implements RunnerFeature {
-
-    @Inject
-    protected AutomationScriptingService scripting;
 
     protected FeaturesRunner runner;
 
@@ -55,27 +59,28 @@ public class AutomationScriptingFeature implements RunnerFeature {
         this.runner = runner;
     }
 
-    InputStream load(String location) throws IOException {
+    protected InputStream load(String location) throws IOException {
         return runner.getTargetTestResource(location).openStream();
     }
 
-    public <T> T run(String location, CoreSession session, Class<T> typeof) throws Exception {
-        try (AutomationScriptingService.Session context = scripting.get(session)) {
-            return typeof.cast(context.run(load(location)));
+    public <T> T run(String location, CoreSession coreSession, Class<T> typeof) throws Exception {
+        try (var session = Framework.getService(AutomationScriptingService.class).get(coreSession);
+                var stream = load(location)) {
+            return typeof.cast(session.run(stream));
         }
     }
 
     /**
      * This version receives an explicit {@code scripting} parameter because of a bug in injection that doesn't allow to
      * use the previous method with a test-method-level {@code Deploy} (the old value of a component stays injected).
-     *
+     * TODO fix the bug this method is talking about
+     * 
      * @since 10.2
+     * @deprecated since 2025.0, use {@link #run(String, CoreSession, Class)} instead reports
      */
     public <T> T run(AutomationScriptingService scripting, String location, CoreSession session, Class<T> typeof)
             throws Exception {
-        try (AutomationScriptingService.Session context = scripting.get(session)) {
-            return typeof.cast(context.run(load(location)));
-        }
+        return run(location, session, typeof);
     }
 
     /**
@@ -86,11 +91,10 @@ public class AutomationScriptingFeature implements RunnerFeature {
     public void runScriptWithFrameworkProperties(Object input, Map<String, Object> params, String location,
             CoreSession session) throws Exception {
         // The ScriptEngine is final and instantiated before annotations are taken into account. We need a new one.
-        try (AutomationScriptingService.Session s = new AutomationScriptingServiceImpl().get(session)) {
+        try (AutomationScriptingService.Session s = new AutomationScriptingServiceImpl(Set.of()).get(session)) {
             @SuppressWarnings("ConstantConditions")
             var scriptInputStream = getClass().getClassLoader().getResource(location).openStream();
             s.handleof(scriptInputStream, ScriptingOperationImpl.Runnable.class).run(input, params);
         }
     }
-
 }

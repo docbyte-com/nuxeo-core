@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,15 @@
  */
 package org.nuxeo.runtime.mongodb;
 
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY;
+
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 
 /**
  * @since 9.1
  */
-public final class IgnoreNoMongoDB implements ConditionalIgnoreRule.Condition {
+public final class IgnoreNoMongoDB implements ConditionalIgnore.Condition {
 
     // change this to force tests on a local MongoDB instance (cf MongoDBFeature for configuration)
     public static final boolean MONGODB_FORCE = false;
@@ -38,14 +41,18 @@ public final class IgnoreNoMongoDB implements ConditionalIgnoreRule.Condition {
         if (MONGODB_FORCE) {
             return false;
         }
+        // deprecated since 2025.0
         if (CORE_MONGODB.equals(System.getProperty(CORE_PROPERTY))) {
+            return false;
+        }
+        if (STORAGE_MONGODB_SERVER_PROPERTY.isConfigured() && STORAGE_MONGODB_DBNAME_PROPERTY.isConfigured()) {
             return false;
         }
         return true;
     }
 
     @Override
-    public boolean supportsClassRule() {
-        return true;
+    public boolean needsRuntime() {
+        return false;
     }
 }

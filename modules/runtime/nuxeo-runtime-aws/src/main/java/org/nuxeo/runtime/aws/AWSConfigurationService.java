@@ -19,8 +19,9 @@
  */
 package org.nuxeo.runtime.aws;
 
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * The service providing AWS configuration.
@@ -34,8 +35,8 @@ public interface AWSConfigurationService {
      *
      * @return the AWS credentials, or {@code null} if not defined
      */
-    default AWSCredentials getAWSCredentials() {
-        return getAWSCredentials(null);
+    default AwsCredentials getAwsCredentials() {
+        return getAwsCredentials(null);
     }
 
     /**
@@ -45,44 +46,45 @@ public interface AWSConfigurationService {
      * @return the AWS credentials, or {@code null} if not defined
      * @since 11.1
      */
-    AWSCredentials getAWSCredentials(String id);
+    AwsCredentials getAwsCredentials(String id);
 
     /**
-     * Enriches the given client configuration with an SSL socket factory from the default configuration.
+     * Enriches the given client builder with an SSL socket factory from the default configuration.
      *
-     * @param config the configuration to enrich
-     * @since 2021.10
+     * @param builder the http client builder
+     * @since 2025.0
      */
-    default void configureSSL(ClientConfiguration config) {
-        configureSSL(null, config);
+    default void configureSSL(ApacheHttpClient.Builder builder) {
+        configureSSL(null, builder);
     }
 
     /**
-     * Enriches the given client configuration with an SSL socket factory from the given configuration.
+     * Enriches the given client builder with an SSL socket factory from the given configuration.
      *
      * @param id the custom configuration id
-     * @param config the configuration to enrich
-     * @since 2021.10
+     * @param builder the http client builder
+     * @since 2025.0
      */
-    void configureSSL(String id, ClientConfiguration config);
+    void configureSSL(String id, ApacheHttpClient.Builder builder);
 
     /**
-     * Enriches the given {@link ClientConfiguration} with default proxy configuration.
+     * Enriches the given {@link ApacheHttpClient.Builder} with default proxy configuration.
      *
-     * @param config the configuration to enrich
-     * @since 2023.4
+     * @param builder the http client builder
+     * @since 2025.0
      */
-    default void configureProxy(ClientConfiguration config) {
+    default void configureProxy(ApacheHttpClient.Builder builder) {
         throw new UnsupportedOperationException();
     }
 
     /**
-     * Gets the AWS Region for the default configuration.
+     * Gets the Aws Region for the default configuration.
      *
-     * @return the AWS Region, or {@code null} if not defined
+     * @return the Aws Region, or {@code null} if not defined
+     * @since 2023.1
      */
-    default String getAWSRegion() {
-        return getAWSRegion(null);
+    default Region getAwsRegion() {
+        return getAwsRegion(null);
     }
 
     /**
@@ -90,8 +92,8 @@ public interface AWSConfigurationService {
      *
      * @param id the configuration id, or {@code null} for the default
      * @return the AWS Region, or {@code null} if not defined
-     * @since 11.1
+     * @since 2023.1
      */
-    String getAWSRegion(String id);
+    Region getAwsRegion(String id);
 
 }

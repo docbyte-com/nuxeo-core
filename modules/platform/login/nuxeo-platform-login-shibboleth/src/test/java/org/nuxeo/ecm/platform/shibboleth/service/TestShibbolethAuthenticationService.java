@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,33 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
-/**
- * @author <a href="mailto:troger@nuxeo.com">Thomas Roger</a>
- */
-
 package org.nuxeo.ecm.platform.shibboleth.service;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.shibboleth.ShibbolethFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
+/**
+ * @author <a href="mailto:troger@nuxeo.com">Thomas Roger</a>
+ */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(ShibbolethFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.login.shibboleth")
 @Deploy("org.nuxeo.ecm.platform.login.shibboleth:OSGI-INF/test-shibboleth-authentication-contrib.xml")
 public class TestShibbolethAuthenticationService {
 
@@ -60,7 +58,7 @@ public class TestShibbolethAuthenticationService {
         String redirectURL = "https://test.nuxeo.org";
         String loginURL = service.getLoginURL(redirectURL);
 
-        String encodedRedirectUrl = URLEncoder.encode(redirectURL, "UTF-8");
+        String encodedRedirectUrl = URLEncoder.encode(redirectURL, UTF_8);
         assertEquals("https://host/Shibboleth.sso/WAYF?target=" + encodedRedirectUrl, loginURL);
     }
 
@@ -69,7 +67,7 @@ public class TestShibbolethAuthenticationService {
         String redirectURL = "https://test.nuxeo.org";
         String logoutURL = service.getLogoutURL(redirectURL);
 
-        String encodedRedirectUrl = URLEncoder.encode(redirectURL, "UTF-8");
+        String encodedRedirectUrl = URLEncoder.encode(redirectURL, UTF_8);
         assertEquals("https://host/Shibboleth.sso/Logout?return=" + encodedRedirectUrl, logoutURL);
     }
 
@@ -91,7 +89,7 @@ public class TestShibbolethAuthenticationService {
     }
 
     @Test
-    public void testUserMetada() {
+    public void testUserMetadata() {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setHeader("uid", "FrÃ©dÃ©ric");
         request.setHeader("uid1", "value1");

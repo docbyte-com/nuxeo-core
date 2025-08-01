@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,6 @@
  * limitations under the License.
  *
  * Contributors:
- *
  *      Nelson Silva <nsilva@nuxeo.com>
  */
 package org.nuxeo.ecm.restapi.test;
@@ -30,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringJoiner;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;

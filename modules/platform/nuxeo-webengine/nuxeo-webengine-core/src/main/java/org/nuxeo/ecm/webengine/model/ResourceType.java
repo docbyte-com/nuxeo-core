@@ -41,9 +41,9 @@ public interface ResourceType {
 
     boolean isDerivedFrom(String type);
 
-    Class<? extends Resource> getResourceClass();
+    <R extends Resource> Class<R> getResourceClass();
 
-    <T extends Resource> T newInstance(Class<T> typeof, WebContext context);
+    <R extends Resource> R newInstance();
 
     ResourceType getSuperType();
 

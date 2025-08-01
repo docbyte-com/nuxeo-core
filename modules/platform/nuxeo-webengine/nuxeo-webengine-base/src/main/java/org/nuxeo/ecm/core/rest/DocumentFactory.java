@@ -48,9 +48,7 @@ public class DocumentFactory {
     }
 
     public static DocumentObject newDocument(WebContext ctx, String path) {
-        PathRef pathRef = new PathRef(path);
-        DocumentModel doc = ctx.getCoreSession().getDocument(pathRef);
-        return (DocumentObject) ctx.newObject(doc.getType(), doc);
+        return newDocument(ctx, new PathRef(path));
     }
 
     public static DocumentObject newDocument(WebContext ctx, DocumentRef ref) {

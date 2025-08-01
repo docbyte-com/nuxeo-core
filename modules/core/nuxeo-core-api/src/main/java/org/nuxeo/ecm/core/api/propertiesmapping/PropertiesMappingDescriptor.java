@@ -24,18 +24,24 @@ import java.util.Map;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 5.6
  */
 @XObject("mapping")
-public class PropertiesMappingDescriptor {
+public class PropertiesMappingDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
 
     @XNodeMap(value = "property", key = "@path", type = HashMap.class, componentType = String.class)
     protected Map<String, String> properties = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;

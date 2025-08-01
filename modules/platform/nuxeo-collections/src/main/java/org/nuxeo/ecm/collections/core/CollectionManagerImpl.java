@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -178,15 +178,8 @@ public class CollectionManagerImpl extends DefaultComponent implements Collectio
     }
 
     @Override
-    @Deprecated
-    public DocumentModel getUserDefaultCollections(final DocumentModel context, final CoreSession session) {
-        return getUserDefaultCollections(session);
-    }
-
-    @Override
     public DocumentModel getUserDefaultCollections(final CoreSession session) {
-        return Framework.getService(CollectionLocationService.class)
-                                                            .getUserDefaultCollectionsRoot(session);
+        return Framework.getService(CollectionLocationService.class).getUserDefaultCollectionsRoot(session);
     }
 
     @Override
@@ -288,20 +281,21 @@ public class CollectionManagerImpl extends DefaultComponent implements Collectio
 
     @Override
     public void processRestoredCollection(DocumentModel collection, DocumentModel version) {
-        final Set<String> collectionMemberIdsToBeRemoved = new TreeSet<>(
+        Set<String> collectionMemberIdsToBeRemoved = new TreeSet<>(
                 collection.getAdapter(Collection.class).getCollectedDocumentIds());
-        collectionMemberIdsToBeRemoved.removeAll(version.getAdapter(Collection.class).getCollectedDocumentIds());
+        version.getAdapter(Collection.class).getCollectedDocumentIds().forEach(collectionMemberIdsToBeRemoved::remove);
 
-        final Set<String> collectionMemberIdsToBeAdded = new TreeSet<>(
+        Set<String> collectionMemberIdsToBeAdded = new TreeSet<>(
                 version.getAdapter(Collection.class).getCollectedDocumentIds());
-        collectionMemberIdsToBeAdded.removeAll(collection.getAdapter(Collection.class).getCollectedDocumentIds());
+        collection.getAdapter(Collection.class).getCollectedDocumentIds().forEach(collectionMemberIdsToBeAdded::remove);
 
         int i = 0;
         while (i < collectionMemberIdsToBeRemoved.size()) {
             int limit = (int) (((i + CollectionAsynchrnonousQuery.MAX_RESULT) > collectionMemberIdsToBeRemoved.size())
-                    ? collectionMemberIdsToBeRemoved.size() : (i + CollectionAsynchrnonousQuery.MAX_RESULT));
+                    ? collectionMemberIdsToBeRemoved.size()
+                    : (i + CollectionAsynchrnonousQuery.MAX_RESULT));
             RemoveFromCollectionWork work = new RemoveFromCollectionWork(collection.getRepositoryName(),
-                                                                         collection.getId(), new ArrayList<>(collectionMemberIdsToBeRemoved).subList(i, limit), i);
+                    collection.getId(), new ArrayList<>(collectionMemberIdsToBeRemoved).subList(i, limit), i);
             WorkManager workManager = Framework.getService(WorkManager.class);
             workManager.schedule(work, WorkManager.Scheduling.IF_NOT_SCHEDULED, true);
 
@@ -310,9 +304,10 @@ public class CollectionManagerImpl extends DefaultComponent implements Collectio
         i = 0;
         while (i < collectionMemberIdsToBeAdded.size()) {
             int limit = (int) (((i + CollectionAsynchrnonousQuery.MAX_RESULT) > collectionMemberIdsToBeAdded.size())
-                    ? collectionMemberIdsToBeAdded.size() : (i + CollectionAsynchrnonousQuery.MAX_RESULT));
+                    ? collectionMemberIdsToBeAdded.size()
+                    : (i + CollectionAsynchrnonousQuery.MAX_RESULT));
             DuplicateCollectionMemberWork work = new DuplicateCollectionMemberWork(collection.getRepositoryName(),
-                                                                                   collection.getId(), new ArrayList<>(collectionMemberIdsToBeAdded).subList(i, limit), i);
+                    collection.getId(), new ArrayList<>(collectionMemberIdsToBeAdded).subList(i, limit), i);
             WorkManager workManager = Framework.getService(WorkManager.class);
             workManager.schedule(work, WorkManager.Scheduling.IF_NOT_SCHEDULED, true);
 

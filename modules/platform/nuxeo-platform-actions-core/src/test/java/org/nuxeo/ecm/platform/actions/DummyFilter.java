@@ -21,10 +21,12 @@
 
 package org.nuxeo.ecm.platform.actions;
 
+import org.nuxeo.runtime.model.Descriptor;
+
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-public class DummyFilter implements ActionFilter {
+public class DummyFilter implements ActionFilter, Descriptor {
 
     protected String id;
 

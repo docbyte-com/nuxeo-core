@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.sql.kvstore">
+
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/keyvaluestore" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
+  </extension>
+
+  <extension target="org.nuxeo.runtime.kv.KeyValueService" point="configuration">
+    <store name="default" class="org.nuxeo.ecm.core.storage.sql.kv.SQLKeyValueStore">
+      <property name="datasource">jdbc/keyvaluestore</property>
+      <property name="table">kv</property>
+    </store>
+  </extension>
+
+</component>

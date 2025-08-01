@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,7 +135,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
 
     protected final MongoClient mongoClient;
 
-    protected final MongoDBConverter converter;
+    protected final MongoDBRepositoryConverter converter;
 
     protected final MongoDBCursorService cursorService;
 
@@ -200,7 +200,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
         } else {
             idValuesKeys = Set.of();
         }
-        converter = new MongoDBConverter(useCustomId ? null : KEY_ID, DBSSession.TRUE_OR_NULL_BOOLEAN_KEYS,
+        converter = new MongoDBRepositoryConverter(useCustomId ? null : KEY_ID, DBSSession.TRUE_OR_NULL_BOOLEAN_KEYS,
                 idValuesKeys);
         cursorService = new MongoDBCursorService(converter);
 
@@ -326,7 +326,7 @@ public class MongoDBRepository extends DBSRepositoryBase {
         return idKey;
     }
 
-    protected MongoDBConverter getConverter() {
+    protected MongoDBRepositoryConverter getConverter() {
         return converter;
     }
 
@@ -379,33 +379,25 @@ public class MongoDBRepository extends DBSRepositoryBase {
 
     protected void markReferencedBlobs(Document ob, BiConsumer<String, String> markerCallback) {
         for (var value : ob.values()) {
-            if (value instanceof List) {
-                @SuppressWarnings("unchecked")
-                List<Object> list = (List<Object>) value;
-                for (Object v : list) {
+            switch (value) {
+                case List<?> list -> list.forEach(v -> {
                     if (v instanceof Document) {
                         markReferencedBlobs((Document) v, markerCallback);
                     } else {
                         markReferencedBlob(v, markerCallback);
                     }
-                }
-            } else if (value instanceof Object[]) {
-                for (Object v : (Object[]) value) {
-                    markReferencedBlob(v, markerCallback);
-                }
-            } else if (value instanceof Document) {
-                markReferencedBlobs((Document) value, markerCallback);
-            } else {
-                markReferencedBlob(value, markerCallback);
+                });
+                case Object[] objects -> List.of(objects).forEach(v -> markReferencedBlob(v, markerCallback));
+                case Document document -> markReferencedBlobs(document, markerCallback);
+                case null, default -> markReferencedBlob(value, markerCallback);
             }
         }
     }
 
     protected void markReferencedBlob(Object value, BiConsumer<String, String> markerCallback) {
-        if (!(value instanceof String)) {
+        if (!(value instanceof String key)) {
             return;
         }
-        String key = (String) value;
         markerCallback.accept(key, repositoryName);
     }
 

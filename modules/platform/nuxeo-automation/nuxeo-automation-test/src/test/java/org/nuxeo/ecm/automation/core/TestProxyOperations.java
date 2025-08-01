@@ -20,7 +20,7 @@ import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

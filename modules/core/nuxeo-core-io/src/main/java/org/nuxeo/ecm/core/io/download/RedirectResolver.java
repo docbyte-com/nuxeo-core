@@ -21,21 +21,19 @@ package org.nuxeo.ecm.core.io.download;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
 
 /**
- *
- * @since 8.3
- * Return a URI to redirect client to for a specified blob if possible
+ * @since 8.3 Return a URI to redirect client to for a specified blob if possible
  */
 public interface RedirectResolver {
 
-
     /**
      * Return a redirect URI if possible to the specified Blob
+     * 
      * @param blob to get the URI for
      * @param usage for
      * @param request Native Http request

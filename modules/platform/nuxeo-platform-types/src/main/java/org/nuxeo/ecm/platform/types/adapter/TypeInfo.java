@@ -23,7 +23,6 @@ package org.nuxeo.ecm.platform.types.adapter;
 
 import java.util.Map;
 
-import org.nuxeo.ecm.platform.forms.layout.api.BuiltinModes;
 import org.nuxeo.ecm.platform.types.SubType;
 import org.nuxeo.ecm.platform.types.TypeView;
 
@@ -54,20 +53,6 @@ public interface TypeInfo {
     String getDescription();
 
     String getId();
-
-    /**
-     * Returns layout names for this mode, defaulting to layouts defined for mode {@link BuiltinModes#ANY}
-     */
-    String[] getLayouts(String mode);
-
-    /**
-     * Returns layout names for this mode, defaulting to layouts defined for given default mode name.
-     * <p>
-     * If parameter "defaultMode" is null, returns only layout defined for given mode.
-     *
-     * @since 5.3.1
-     */
-    String[] getLayouts(String mode, String defaultMode);
 
     String getDefaultView();
 

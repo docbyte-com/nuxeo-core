@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,12 +24,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +37,9 @@ import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoGroup;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.BaseSession;
@@ -49,10 +49,8 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 public class TestCreateOrUpdateGroup {
@@ -98,8 +96,8 @@ public class TestCreateOrUpdateGroup {
             NuxeoGroup group = userManager.getGroup(GROUP);
             assertNotNull(group);
             assertEquals(GROUPLABEL, group.getLabel());
-            assertEquals(Collections.singletonList(GROUP2), group.getParentGroups());
-            assertEquals(Collections.singletonList(USER1), group.getMemberUsers());
+            assertEquals(List.of(GROUP2), group.getParentGroups());
+            assertEquals(List.of(USER1), group.getMemberUsers());
 
             // cannot create if mode = create and the group exists
             params.put("mode", "create");
@@ -138,8 +136,8 @@ public class TestCreateOrUpdateGroup {
             NuxeoGroup group = userManager.getGroup(GROUP);
             assertNotNull(group);
             assertEquals(GROUPLABEL, group.getLabel());
-            assertEquals(Collections.singletonList(GROUP2), group.getParentGroups());
-            assertEquals(Collections.singletonList(USER1), group.getMemberUsers());
+            assertEquals(List.of(GROUP2), group.getParentGroups());
+            assertEquals(List.of(USER1), group.getMemberUsers());
 
             // now update
             params = new HashMap<>();
@@ -155,8 +153,8 @@ public class TestCreateOrUpdateGroup {
             assertNotNull(group);
             assertEquals(GROUPLABEL2, group.getLabel());
             // list of parent groups is replaced
-            assertEquals(Collections.singletonList(GROUP3), group.getParentGroups());
-            assertEquals(Arrays.asList(USER2, USER3), group.getMemberUsers());
+            assertEquals(List.of(GROUP3), group.getParentGroups());
+            assertEquals(List.of(USER2, USER3), group.getMemberUsers());
 
             // clear parent groups
             params = new HashMap<>();
@@ -182,7 +180,7 @@ public class TestCreateOrUpdateGroup {
             group = userManager.getGroup(GROUP);
             assertNotNull(group);
             // list of parent groups is cleared
-            assertEquals(Collections.singletonList(GROUP2), group.getMemberGroups());
+            assertEquals(List.of(GROUP2), group.getMemberGroups());
         }
     }
 
@@ -203,8 +201,8 @@ public class TestCreateOrUpdateGroup {
             group = userManager.getGroup(BaseSession.computeMultiTenantDirectoryId(TENANT_ID, GROUP));
             assertNotNull(group);
             assertEquals(GROUPLABEL, group.getLabel());
-            assertEquals(Collections.singletonList(GROUP2), group.getParentGroups());
-            assertEquals(Collections.singletonList(USER1), group.getMemberUsers());
+            assertEquals(List.of(GROUP2), group.getParentGroups());
+            assertEquals(List.of(USER1), group.getMemberUsers());
         }
     }
 

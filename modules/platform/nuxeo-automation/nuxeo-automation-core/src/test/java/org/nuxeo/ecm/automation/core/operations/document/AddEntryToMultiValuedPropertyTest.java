@@ -24,7 +24,7 @@ import static junit.framework.Assert.fail;
 
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,8 +53,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.platform.query.api.test:test-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api.test:test-pageprovider-contrib.xml")
 public class TestPageProviderAggregates {
 
@@ -65,7 +65,7 @@ public class TestPageProviderAggregates {
     protected CoreSession session;
 
     @Test
-    public void testAggregateDefinitionEmpty() throws Exception {
+    public void testAggregateDefinitionEmpty() {
 
         PageProviderDefinition ppd = pps.getPageProviderDefinition("CURRENT_DOCUMENT_CHILDREN");
         List<AggregateDefinition> aggs = ppd.getAggregates();
@@ -75,7 +75,7 @@ public class TestPageProviderAggregates {
     }
 
     @Test
-    public void testAggregateDefinition() throws Exception {
+    public void testAggregateDefinition() {
         PageProviderDefinition ppd = pps.getPageProviderDefinition("TEST_AGGREGATES");
         List<AggregateDefinition> aggs = ppd.getAggregates();
         assertNotNull(aggs);
@@ -116,7 +116,7 @@ public class TestPageProviderAggregates {
     }
 
     @Test
-    public void testAggregateSelection() throws Exception {
+    public void testAggregateSelection() {
         PageProviderDefinition ppd = pps.getPageProviderDefinition("TEST_AGGREGATES");
         HashMap<String, Serializable> props = new HashMap<>();
         props.put(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (AbstractSession) session);
@@ -132,11 +132,12 @@ public class TestPageProviderAggregates {
         for (AggregateDefinition def : aggDefs) {
             AggregateBase<Bucket> agg = new AggregateBase<>(def, pp.getSearchDocumentModel());
             switch (agg.getId()) {
-            case "source_agg":
-                assertEquals("Aggregate(source_agg, terms, dc:source, [for search, you know], null)", agg.toString());
-                break;
-            case "coverage_agg":
-                assertEquals("Aggregate(coverage_agg, histogram, dc:coverage, [], null)", agg.toString());
+                case "source_agg":
+                    assertEquals("Aggregate(source_agg, terms, dc:source, [for search, you know], null)",
+                            agg.toString());
+                    break;
+                case "coverage_agg":
+                    assertEquals("Aggregate(coverage_agg, histogram, dc:coverage, [], null)", agg.toString());
             }
         }
     }

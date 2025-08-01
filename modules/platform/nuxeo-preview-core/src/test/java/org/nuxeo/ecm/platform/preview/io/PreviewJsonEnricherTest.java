@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.preview.io;
 
 import java.net.URL;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -32,23 +31,18 @@ import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.platform.preview.PreviewCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.platform.convert")
-@Deploy("org.nuxeo.ecm.core.mimetype")
-@Deploy("org.nuxeo.ecm.platform.preview")
-@Deploy("org.nuxeo.ecm.platform.dublincore")
+@Features({ CoreFeature.class, PreviewCoreFeature.class })
 public class PreviewJsonEnricherTest extends AbstractJsonWriterTest.External<DocumentModelJsonWriter, DocumentModel> {
+
+    @Inject
+    protected CoreSession session;
 
     public PreviewJsonEnricherTest() {
         super(DocumentModelJsonWriter.class, DocumentModel.class);
     }
-
-    @Inject
-    private CoreSession session;
 
     @Test
     public void test() throws Exception {

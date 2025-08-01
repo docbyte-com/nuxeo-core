@@ -60,7 +60,7 @@ public class AnnotatedClass<T> {
     }
 
     public Annotation[] getAnnotations() {
-        return annotations.values().toArray(new Annotation[annotations.size()]);
+        return annotations.values().toArray(Annotation[]::new);
     }
 
     public Annotation[] getDeclaredAnnotations() {
@@ -105,7 +105,7 @@ public class AnnotatedClass<T> {
     }
 
     public AnnotatedMethod[] getAnnotatedMethods() {
-        return methods.values().toArray(new AnnotatedMethod[methods.size()]);
+        return methods.values().toArray(AnnotatedMethod[]::new);
     }
 
     public AnnotatedMethod[] getDeclaredAnnotatedMethods() {
@@ -115,7 +115,7 @@ public class AnnotatedClass<T> {
                 result.add(am);
             }
         }
-        return result.toArray(new AnnotatedMethod[result.size()]);
+        return result.toArray(AnnotatedMethod[]::new);
     }
 
     // TODO: cache this?
@@ -126,7 +126,7 @@ public class AnnotatedClass<T> {
                 result.add(am);
             }
         }
-        return result.toArray(new AnnotatedMethod[result.size()]);
+        return result.toArray(AnnotatedMethod[]::new);
     }
 
     public AnnotatedMethod[] getDeclaredAnnotatedMethods(Class<? extends Annotation> annotationClass) {
@@ -136,7 +136,7 @@ public class AnnotatedClass<T> {
                 result.add(am);
             }
         }
-        return result.toArray(new AnnotatedMethod[result.size()]);
+        return result.toArray(AnnotatedMethod[]::new);
     }
 
     public void addMethod(AnnotatedMethod method) {

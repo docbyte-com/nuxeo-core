@@ -18,6 +18,9 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl.util;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.opencmis.impl.util.ListUtils.getBatchedList;
 
 import java.math.BigInteger;
@@ -25,8 +28,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
-
 import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils.BatchedList;
 
 public class TestListUtils {

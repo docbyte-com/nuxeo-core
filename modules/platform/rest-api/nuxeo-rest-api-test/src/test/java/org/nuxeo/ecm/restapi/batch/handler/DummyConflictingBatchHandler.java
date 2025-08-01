@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,8 @@
  */
 package org.nuxeo.ecm.restapi.batch.handler;
 
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.BatchFileInfo;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.handler.impl.DefaultBatchHandler;
+import org.nuxeo.ecm.core.io.upload.batch.BatchFileInfo;
+import org.nuxeo.ecm.core.io.upload.batch.impl.DefaultBatchHandler;
 
 public class DummyConflictingBatchHandler extends DefaultBatchHandler {
 

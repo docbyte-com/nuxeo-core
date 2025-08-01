@@ -20,7 +20,7 @@ package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.blob.BlobManager;

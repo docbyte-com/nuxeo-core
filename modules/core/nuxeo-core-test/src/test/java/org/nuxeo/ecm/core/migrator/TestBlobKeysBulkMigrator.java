@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,9 @@
 package org.nuxeo.ecm.core.migrator;
 
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.ONE_MINUTE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.model.Repository.CAPABILITY_QUERY_BLOB_KEYS;
 import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_AFTER_STATE;
 import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_BEFORE_STATE;
@@ -32,9 +30,10 @@ import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_ID;
 import static org.nuxeo.ecm.core.storage.dbs.BlobKeysBulkMigrator.MIGRATION_UNSUPPORTED_STATE;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,12 +43,16 @@ import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.model.Repository;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.capabilities.CapabilitiesService;
 import org.nuxeo.runtime.migration.MigrationService;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -100,8 +103,8 @@ public class TestBlobKeysBulkMigrator {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
     public void testBulkMigrationDBS() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
         createDocuments();
         assertEquals(NB_DOCS_WITH_CONTENT + NB_DOCS_WITHOUT_CONTENT, getNbFilesWithoutBlobKeys());
         Framework.getProperties().put("nuxeo.test.repository.disable.blobKeys", "false");
@@ -113,7 +116,7 @@ public class TestBlobKeysBulkMigrator {
         migrationService.runStep(MIGRATION_ID, MIGRATION_BEFORE_TO_AFTER_STEP);
 
         // await its end
-        await().atMost(ONE_MINUTE).until(() -> !migrationService.getStatus(MIGRATION_ID).isRunning());
+        await().atMost(Duration.ofMinutes(1)).until(() -> !migrationService.getStatus(MIGRATION_ID).isRunning());
 
         var afterState = migrationService.getStatus(MIGRATION_ID).getState();
         assertEquals(MIGRATION_AFTER_STATE, afterState);
@@ -122,8 +125,9 @@ public class TestBlobKeysBulkMigrator {
     }
 
     @Test
+    @Deploy("org.nuxeo.ecm.core.storage.dbs:OSGI-INF/dbs-blob-keys-migration.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "VCS feature only")
     public void testBulkMigrationVCS() {
-        assumeTrue("VCS feature only", coreFeature.getStorageConfiguration().isVCS());
         Framework.getProperties().put("nuxeo.test.repository.disable.blobKeys", "false");
         assertBlobKeysCapability(false);
         var beforeState = migrationService.probeAndSetState(MIGRATION_ID);

@@ -192,38 +192,6 @@ public interface Event extends Serializable {
     void setIsCommitEvent(boolean isCommit);
 
     /**
-     * @deprecated since 10.3
-     */
-    @Deprecated
-    default boolean isLocal() {
-        return false;
-    }
-
-    /**
-     * @deprecated since 10.3
-     */
-    @Deprecated
-    default void setLocal(boolean isLocal) {
-        // deprecated
-    }
-
-    /**
-     * @deprecated since 10.3
-     */
-    @Deprecated
-    default boolean isPublic() {
-        return true;
-    }
-
-    /**
-     * @deprecated since 10.3
-     */
-    @Deprecated
-    default void setPublic(boolean isPublic) {
-        // deprecated
-    }
-
-    /**
      * Tests if event is Immediate
      * <p>
      * Immediate events are sent in bundle without waiting for a commit

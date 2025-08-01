@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,30 @@
  */
 package org.nuxeo.ecm.web.resources.core;
 
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
+
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.FileUtils;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.web.resources.api.Resource;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * @since 7.3
  */
 @XObject("resource")
 public class ResourceDescriptor implements Resource {
+
+    private static final Logger log = LogManager.getLogger(ResourceDescriptor.class);
 
     @XNode("@name")
     public String name;
@@ -63,7 +72,10 @@ public class ResourceDescriptor implements Resource {
     public boolean shrinkable = true;
 
     @XNode("uri")
-    protected String uri;
+    protected volatile String uri;
+
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributor;
 
     @Override
     public String getName() {
@@ -96,6 +108,31 @@ public class ResourceDescriptor implements Resource {
 
     @Override
     public String getURI() {
+        if (uri == null) {
+            synchronized (this) {
+                if (uri == null) {
+                    // build it from local classpath
+                    // XXX: hacky wildcard support
+                    if (path != null) {
+                        boolean hasWildcard = false;
+                        if (path.endsWith("*")) {
+                            hasWildcard = true;
+                            path = path.substring(0, path.length() - 1);
+                        }
+                        URL url = contributor.getContext().getLocalResource(path);
+                        if (url == null) {
+                            log.error("Cannot resolve local URL for resource: {} with path: {}", name, path);
+                        } else {
+                            String builtUri = url.toString();
+                            if (hasWildcard) {
+                                builtUri += "*";
+                            }
+                            uri = builtUri;
+                        }
+                    }
+                }
+            }
+        }
         return uri;
     }
 

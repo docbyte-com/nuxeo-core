@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,12 +19,11 @@
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.security.Principal;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,13 +33,13 @@ import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.context.ContextHelper;
 import org.nuxeo.ecm.automation.context.ContextService;
 import org.nuxeo.ecm.automation.core.scripting.Scripting;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.automation.features.PlatformFunctions;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -48,20 +47,18 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, PlatformFeature.class })
 public class FunctionsTest {
 
     protected DocumentModel src;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    ContextService ctxService;
+    protected ContextService ctxService;
 
-    OperationContext ctx;
+    protected OperationContext ctx;
 
     @Before
     public void initRepo() throws Exception {
@@ -75,16 +72,15 @@ public class FunctionsTest {
     }
 
     @After
-    public void clearRepo() throws Exception {
+    public void clearRepo() {
         session.removeChildren(session.getRootDocument().getRef());
     }
 
     @Test
-    public void testPrincipalWrapper() throws Exception {
+    public void testPrincipalWrapper() {
         Map<String, ContextHelper> contextHelperList = ctxService.getHelperFunctions();
         PlatformFunctions functions = (PlatformFunctions) contextHelperList.get("Fn");
         assertEquals(functions, Scripting.newExpression("Fn").eval(ctx));
-        assertTrue(functions instanceof PlatformFunctions);
 
         NuxeoPrincipal np = (functions).getPrincipal("Administrator");
         assertEquals("Administrator", np.getName());
@@ -92,7 +88,7 @@ public class FunctionsTest {
                 ((Principal) Scripting.newExpression("Fn.getPrincipal(\"Administrator\")").eval(ctx)).getName());
     }
 
-    public void testPrincipalProperties() throws Exception {
+    public void testPrincipalProperties() {
         NuxeoPrincipalImpl np = new NuxeoPrincipalImpl("test");
         np.setFirstName("Bob");
         assertEquals("test", Scripting.newExpression("CurrentUser.name").eval(ctx));

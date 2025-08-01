@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ package org.nuxeo.ecm.core.opencmis.impl.server;
 
 import static org.apache.chemistry.opencmis.commons.server.CallContext.BINDING_ATOMPUB;
 import static org.apache.chemistry.opencmis.commons.server.CallContext.BINDING_BROWSER;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_REMOVED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
@@ -27,9 +29,9 @@ import static org.nuxeo.ecm.core.opencmis.impl.server.NuxeoContentStream.DIGEST_
 import static org.nuxeo.ecm.core.opencmis.impl.server.NuxeoObjectData.REND_STREAM_RENDITION_PREFIX;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -46,8 +48,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.OperationContext;
@@ -124,6 +126,10 @@ import org.apache.chemistry.opencmis.server.support.wrapper.CallContextAwareCmis
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.LogEntryConstants;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.common.utils.Path;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -139,7 +145,6 @@ import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PartialList;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.CompoundFilter;
@@ -155,14 +160,16 @@ import org.nuxeo.ecm.core.io.download.DownloadService.DownloadContext;
 import org.nuxeo.ecm.core.opencmis.impl.server.versioning.CMISVersioningFilter;
 import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils;
 import org.nuxeo.ecm.core.opencmis.impl.util.ListUtils.BatchedList;
-import org.nuxeo.ecm.core.opencmis.impl.util.SimpleImageInfo;
 import org.nuxeo.ecm.core.opencmis.impl.util.TypeManagerImpl;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
+import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.schema.FacetNames;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchResponse;
+import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.security.SecurityService;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.mimetype.MimetypeNotFoundException;
@@ -170,15 +177,9 @@ import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.service.RenditionService;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsIterableQueryResultImpl;
-import org.nuxeo.elasticsearch.core.EsSearchHitConverter;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-import org.opensearch.action.search.SearchResponse;
-import org.opensearch.search.SearchHits;
 
 /**
  * Nuxeo implementation of the CMIS Services, on top of a {@link CoreSession}.
@@ -204,7 +205,9 @@ public class NuxeoCmisService extends AbstractCmisService
 
     public static final String PERMISSION_NOTHING = "Nothing";
 
-    /** Synthetic property for change log entries recording the log entry id. */
+    /**
+     * Synthetic property for change log entries recording the log entry id.
+     */
     public static final String NX_CHANGE_LOG_ID = "nuxeo:changeLogId";
 
     public static final String ES_AUDIT_ID = "id";
@@ -226,10 +229,14 @@ public class NuxeoCmisService extends AbstractCmisService
 
     protected CallContext callContext;
 
-    /** @since 11.1 */
+    /**
+     * @since 11.1
+     */
     protected boolean responseAlreadySent;
 
-    /** Filter that hides HiddenInNavigation and deleted objects. */
+    /**
+     * Filter that hides HiddenInNavigation and deleted objects.
+     */
     protected final Filter documentFilter;
 
     protected final Set<String> readPermissions;
@@ -373,7 +380,9 @@ public class NuxeoCmisService extends AbstractCmisService
         }
     }
 
-    /** Gets the filter that hides HiddenInNavigation and deleted objects. */
+    /**
+     * Gets the filter that hides HiddenInNavigation and deleted objects.
+     */
     protected Filter getDocumentFilter() {
         Filter facetFilter = new FacetFilter(FacetNames.HIDDEN_IN_NAVIGATION, false);
         Filter trashedFilter = docModel -> !docModel.isTrashed();
@@ -487,7 +496,9 @@ public class NuxeoCmisService extends AbstractCmisService
         return !documentFilter.accept(doc);
     }
 
-    /** Creates bare unsaved document model. */
+    /**
+     * Creates bare unsaved document model.
+     */
     protected DocumentModel createDocumentModel(ObjectId folder, TypeDefinition type) {
         DocumentModel doc;
         String typeId = type.getId();
@@ -512,7 +523,9 @@ public class NuxeoCmisService extends AbstractCmisService
         return doc;
     }
 
-    /** Creates and save document model. */
+    /**
+     * Creates and save document model.
+     */
     protected DocumentModel createDocumentModel(ObjectId folder, ContentStream contentStream, String name) {
         FileManager fileManager = Framework.getService(FileManager.class);
         MimetypeRegistryService mtr = (MimetypeRegistryService) Framework.getService(MimetypeRegistry.class);
@@ -571,18 +584,18 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         if (typeId == null) {
             switch (baseType) {
-            case CMIS_DOCUMENT:
-                typeId = BaseTypeId.CMIS_DOCUMENT.value();
-                break;
-            case CMIS_FOLDER:
-                typeId = BaseTypeId.CMIS_FOLDER.value();
-                break;
-            case CMIS_POLICY:
-                throw new CmisRuntimeException("Cannot create policy");
-            case CMIS_RELATIONSHIP:
-                throw new CmisRuntimeException("Cannot create relationship");
-            default:
-                throw new CmisRuntimeException("No base type");
+                case CMIS_DOCUMENT:
+                    typeId = BaseTypeId.CMIS_DOCUMENT.value();
+                    break;
+                case CMIS_FOLDER:
+                    typeId = BaseTypeId.CMIS_FOLDER.value();
+                    break;
+                case CMIS_POLICY:
+                    throw new CmisRuntimeException("Cannot create policy");
+                case CMIS_RELATIONSHIP:
+                    throw new CmisRuntimeException("Cannot create relationship");
+                default:
+                    throw new CmisRuntimeException("No base type");
             }
         }
         if (type == null) {
@@ -718,7 +731,9 @@ public class NuxeoCmisService extends AbstractCmisService
         np.setValue(value);
     }
 
-    /** Sets initial versioning state and returns its id. */
+    /**
+     * Sets initial versioning state and returns its id.
+     */
     protected String setInitialVersioningState(NuxeoObjectData object, VersioningState versioningState) {
         if (versioningState == null) {
             // default is MAJOR, per spec
@@ -726,26 +741,26 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         String id;
         switch (versioningState) {
-        case NONE: // cannot be made non-versionable in Nuxeo
-        case CHECKEDOUT:
-            object.doc.setLock();
-            save();
-            id = object.getId();
-            break;
-        case MINOR:
-            object.doc.checkIn(VersioningOption.MINOR, null);
-            save();
-            // id = ref.toString();
-            id = object.getId();
-            break;
-        case MAJOR:
-            object.doc.checkIn(VersioningOption.MAJOR, null);
-            save();
-            // id = ref.toString();
-            id = object.getId();
-            break;
-        default:
-            throw new AssertionError(versioningState);
+            case NONE: // cannot be made non-versionable in Nuxeo
+            case CHECKEDOUT:
+                object.doc.setLock();
+                save();
+                id = object.getId();
+                break;
+            case MINOR:
+                object.doc.checkIn(VersioningOption.MINOR, null);
+                save();
+                // id = ref.toString();
+                id = object.getId();
+                break;
+            case MAJOR:
+                object.doc.checkIn(VersioningOption.MAJOR, null);
+                save();
+                // id = ref.toString();
+                id = object.getId();
+                break;
+            default:
+                throw new AssertionError(versioningState);
         }
         return id;
     }
@@ -936,7 +951,9 @@ public class NuxeoCmisService extends AbstractCmisService
         }
     }
 
-    /** @deprecated since 11.1, now unused */
+    /**
+     * @deprecated since 11.1, now unused
+     */
     @Deprecated
     protected void setResponseHeader(String headerName, Blob blob, CallContext callContext) {
         String digest = NuxeoPropertyData.transcodeHexToBase64(blob.getDigest());
@@ -947,7 +964,9 @@ public class NuxeoCmisService extends AbstractCmisService
         response.setHeader(headerName, digest);
     }
 
-    /** @deprecated since 11.1, now unused */
+    /**
+     * @deprecated since 11.1, now unused
+     */
     @Deprecated
     protected ContentStream getRenditionServiceStream(String objectId, String renditionName) {
         RenditionService renditionService = Framework.getService(RenditionService.class);
@@ -1292,27 +1311,27 @@ public class NuxeoCmisService extends AbstractCmisService
 
     protected static String permissionToNuxeo(String permission) {
         switch (permission) {
-        case BasicPermissions.READ:
-            return SecurityConstants.READ;
-        case BasicPermissions.WRITE:
-            return SecurityConstants.READ_WRITE;
-        case BasicPermissions.ALL:
-            return SecurityConstants.EVERYTHING;
-        default:
-            return permission;
+            case BasicPermissions.READ:
+                return SecurityConstants.READ;
+            case BasicPermissions.WRITE:
+                return SecurityConstants.READ_WRITE;
+            case BasicPermissions.ALL:
+                return SecurityConstants.EVERYTHING;
+            default:
+                return permission;
         }
     }
 
     protected static String permissionFromNuxeo(String permission) {
         switch (permission) {
-        case SecurityConstants.READ:
-            return BasicPermissions.READ;
-        case SecurityConstants.READ_WRITE:
-            return BasicPermissions.WRITE;
-        case SecurityConstants.EVERYTHING:
-            return BasicPermissions.ALL;
-        default:
-            return permission;
+            case SecurityConstants.READ:
+                return BasicPermissions.READ;
+            case SecurityConstants.READ_WRITE:
+                return BasicPermissions.WRITE;
+            case SecurityConstants.EVERYTHING:
+                return BasicPermissions.ALL;
+            default:
+                return permission;
         }
     }
 
@@ -1375,7 +1394,7 @@ public class NuxeoCmisService extends AbstractCmisService
             ods = ods.subList(0, max);
         }
         String latestChangeLogToken;
-        if (ods.size() == 0) {
+        if (ods.isEmpty()) {
             latestChangeLogToken = null;
         } else {
             ObjectData last = ods.get(ods.size() - 1);
@@ -1395,12 +1414,18 @@ public class NuxeoCmisService extends AbstractCmisService
      * @return null if not enough elements found with the current page size
      */
     protected List<ObjectData> readAuditLog(String repositoryId, long minId, int max, int pageSize) {
-        AuditReader reader = Framework.getService(AuditReader.class);
-        if (reader == null) {
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend == null) {
             throw new CmisRuntimeException("Cannot find audit service");
         }
-        List<LogEntry> entries = reader.getLogEntriesAfter(minId, pageSize, repositoryId, DOCUMENT_CREATED,
-                DOCUMENT_UPDATED, DOCUMENT_REMOVED);
+        var builder = new AuditQueryBuilder().predicate(
+                Predicates.eq(LogEntryConstants.LOG_REPOSITORY_ID, repositoryId))
+                                             .and(Predicates.in(LOG_EVENT_ID, DOCUMENT_CREATED, DOCUMENT_UPDATED,
+                                                     DOCUMENT_REMOVED))
+                                             .and(Predicates.gte(LOG_ID, minId))
+                                             .order(OrderByExprs.asc(LOG_ID))
+                                             .limit(pageSize);
+        List<LogEntry> entries = auditBackend.queryLogs(builder);
         List<ObjectData> ods = new ArrayList<>();
         for (LogEntry entry : entries) {
             ObjectData od = getLogEntryObjectData(entry);
@@ -1459,13 +1484,13 @@ public class NuxeoCmisService extends AbstractCmisService
     }
 
     protected String getLatestChangeLogToken(String repositoryId) {
-        AuditReader reader = Framework.getService(AuditReader.class);
-        if (reader == null) {
+        var auditBackend = Framework.getService(AuditBackend.class);
+        if (auditBackend == null) {
             log.warn("Audit Service not found. latest change log token will be '0'");
             return "0";
             // throw new CmisRuntimeException("Cannot find audit service");
         }
-        long id = reader.getLatestLogId(repositoryId, DOCUMENT_CREATED, DOCUMENT_UPDATED, DOCUMENT_REMOVED);
+        long id = auditBackend.getLatestLogId(repositoryId, DOCUMENT_CREATED, DOCUMENT_UPDATED, DOCUMENT_REMOVED);
         return String.valueOf(id);
     }
 
@@ -1573,11 +1598,12 @@ public class NuxeoCmisService extends AbstractCmisService
             IterableQueryResult it;
             try {
                 if (useElasticsearch) {
-                    ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-                    NxQueryBuilder qb = new NxQueryBuilder(coreSession).nxql(nxql)
-                                                                       .limit(1000)
-                                                                       .onlyElasticsearchResponse();
-                    it = new EsIterableQueryResultImpl(ess, ess.scroll(qb, 1000));
+                    SearchService searchService = Framework.getService(SearchService.class);
+                    SearchQuery searchQuery = SearchQuery.builder(nxql, coreSession)
+                                                         .scrollSize(1000)
+                                                         .scrollKeepAlive(Duration.ofSeconds(1000))
+                                                         .build();
+                    it = searchService.search(searchQuery).getHitsAsIterator();
                 } else {
                     // distinct documents - new Object[0] is necessary for compilation
                     it = coreSession.queryAndFetch(nxql, NXQL.NXQL, true, new Object[0]);
@@ -1647,17 +1673,13 @@ public class NuxeoCmisService extends AbstractCmisService
             PartialList<Map<String, Serializable>> pl;
             try {
                 if (useElasticsearch) {
-                    ElasticSearchService ess = Framework.getService(ElasticSearchService.class);
-                    NxQueryBuilder qb = new NxQueryBuilder(coreSession).nxql(nxql)
-                                                                       .limit((int) limit)
-                                                                       .offset((int) offset)
-                                                                       .onlyElasticsearchResponse();
-                    SearchResponse esResponse = ess.queryAndAggregate(qb).getElasticsearchResponse();
-                    // Convert response
-                    SearchHits esHits = esResponse.getHits();
-                    List<Map<String, Serializable>> list = new EsSearchHitConverter(
-                            qb.getSelectFieldsAndTypes()).convert(esHits.getHits());
-                    pl = new PartialList<>(list, esHits.getTotalHits().value);
+                    SearchService searchService = Framework.getService(SearchService.class);
+                    SearchQuery searchQuery = SearchQuery.builder(nxql, coreSession)
+                                                         .limit((int) limit)
+                                                         .offset((int) offset)
+                                                         .build();
+                    SearchResponse response = searchService.search(searchQuery);
+                    pl = response.getHitsAsMap();
                 } else {
                     // distinct documents
                     pl = coreSession.queryProjection(nxql, NXQL.NXQL, true, limit, offset, -1);
@@ -2121,8 +2143,7 @@ public class NuxeoCmisService extends AbstractCmisService
         }
         // CoreSession returns them in creation order,
         // CMIS wants them last first
-        Collections.reverse(list);
-        return list;
+        return list.reversed();
     }
 
     @Override
@@ -2144,8 +2165,7 @@ public class NuxeoCmisService extends AbstractCmisService
         if (Boolean.TRUE.equals(major)) {
             // we must list all versions
             List<DocumentModel> versions = coreSession.getVersions(doc.getRef());
-            Collections.reverse(versions);
-            for (DocumentModel ver : versions) {
+            for (DocumentModel ver : versions.reversed()) {
                 if (ver.isMajorVersion()) {
                     return getObject(repositoryId, ver.getId(), filter, includeAllowableActions, includeRelationships,
                             renditionFilter, includePolicyIds, includeAcl, null);
@@ -2174,7 +2194,7 @@ public class NuxeoCmisService extends AbstractCmisService
         if (doc.isFolder()) {
             // check that there are no children left
             DocumentModelList docs = coreSession.getChildren(new IdRef(objectId), null, documentFilter, null);
-            if (docs.size() > 0) {
+            if (!docs.isEmpty()) {
                 throw new CmisConstraintException("Cannot delete non-empty folder: " + objectId);
             }
         }

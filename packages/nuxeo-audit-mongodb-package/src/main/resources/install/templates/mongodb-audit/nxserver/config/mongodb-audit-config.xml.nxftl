@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.mongodb.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.mongodb.audit.contrib</alias>
+
+  <extension target="org.nuxeo.runtime.mongodb.MongoDBComponent" point="connection">
+    <connection id="audit/default">
+      <server>${nuxeo.audit.backend.default.mongodb.server}</server>
+      <dbname>${nuxeo.audit.backend.default.mongodb.dbname}</dbname>
+      <ssl>${nuxeo.audit.backend.default.mongodb.ssl}</ssl>
+      <trustStorePath>${nuxeo.audit.backend.default.mongodb.truststore.path}</trustStorePath>
+      <trustStorePassword>${nuxeo.audit.backend.default.mongodb.truststore.password}</trustStorePassword>
+      <trustStoreType>${nuxeo.audit.backend.default.mongodb.truststore.type}</trustStoreType>
+      <keyStorePath>${nuxeo.audit.backend.default.mongodb.keystore.path}</keyStorePath>
+      <keyStorePassword>${nuxeo.audit.backend.default.mongodb.keystore.password}</keyStorePassword>
+      <keyStoreType>${nuxeo.audit.backend.default.mongodb.keystore.type}</keyStoreType>
+    </connection>
+  </extension>
+
+</component>

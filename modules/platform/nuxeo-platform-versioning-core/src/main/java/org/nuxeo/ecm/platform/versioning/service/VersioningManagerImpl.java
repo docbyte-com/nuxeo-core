@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,29 +33,17 @@ import org.nuxeo.runtime.model.DefaultComponent;
  */
 public class VersioningManagerImpl extends DefaultComponent implements VersioningManager {
 
-    /**
-     * @deprecated since 10.10, seems unused
-     */
-    @Deprecated
-    public static final String COMPONENT_ID = "org.nuxeo.ecm.platform.versioning.VersioningManager";
-
     @Override
     public VersionIncEditOptions getVersionIncEditOptions(DocumentModel doc) {
         VersionIncEditOptions options = new VersionIncEditOptions();
         VersioningService service = Framework.getService(VersioningService.class);
         for (VersioningOption option : service.getSaveOptions(doc)) {
-            VersioningActions action;
-            switch (option) {
-            case MINOR:
-                action = VersioningActions.ACTION_INCREMENT_MINOR;
-                break;
-            case MAJOR:
-                action = VersioningActions.ACTION_INCREMENT_MAJOR;
-                break;
-            default:
-                action = VersioningActions.ACTION_NO_INCREMENT;
-            }
-            if (option == service.getSaveOptions(doc).get(0)) {
+            VersioningActions action = switch (option) {
+                case MINOR -> VersioningActions.ACTION_INCREMENT_MINOR;
+                case MAJOR -> VersioningActions.ACTION_INCREMENT_MAJOR;
+                default -> VersioningActions.ACTION_NO_INCREMENT;
+            };
+            if (option == service.getSaveOptions(doc).getFirst()) {
                 options.setDefaultVersioningAction(action);
             }
             options.addOption(action);

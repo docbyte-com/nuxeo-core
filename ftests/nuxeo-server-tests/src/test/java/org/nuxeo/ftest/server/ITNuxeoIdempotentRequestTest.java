@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,19 +20,20 @@ package org.nuxeo.ftest.server;
 
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_NO_CONTENT;
-import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.nuxeo.ecm.platform.web.common.idempotency.NuxeoIdempotentFilter.HEADER_KEY;
-import static org.nuxeo.functionaltests.AbstractTest.NUXEO_URL;
+import static org.nuxeo.http.test.HttpClientTestRule.NUXEO_URL;
 
 import java.util.Date;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.MethodRule;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.functionaltests.LogTestWatchman;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -52,6 +53,9 @@ public class ITNuxeoIdempotentRequestTest {
             NXQL.ECM_PATH, PARENT_PATH);
 
     private static final String TEST_TITLE = "testdoc";
+
+    @Rule
+    public MethodRule watchman = new LogTestWatchman();
 
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
@@ -86,24 +90,17 @@ public class ITNuxeoIdempotentRequestTest {
      * Prevents from random failures when counting children.
      */
     protected void waitForAsyncWork() {
-        String entity = """
-                {
-                  "params": {
-                    "timeoutSecond": 110,
-                    "refresh": true,
-                    "waitForAudit": true
-                  }
-                }
-                """;
-        httpClient.buildPostRequest("/automation/Elasticsearch.WaitForIndexing")
-                  .entity(entity)
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        httpClient.buildPostRequest("/management/search/wait")
+                  .addQueryParameter("timeoutSecond", "110")
+                  .addQueryParameter("refresh", "true")
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_NO_CONTENT, status.intValue()));
     }
 
     protected int getNumberOfChildren() {
         return httpClient.buildGetRequest("/search/execute")
                          .addQueryParameter("query", QUERY_CHILDREN)
-                         .executeAndThen(new JsonNodeHandler(), node -> node.get("entries").size() - 1);
+                         .executeAndThen(new JsonNodeHandler(), node -> node.get("entries").size());
     }
 
     protected String fetchDocumentTile(String id) {

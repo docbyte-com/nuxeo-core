@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.uidgen.testGenerators">
+
+  <require>org.nuxeo.runtime.datasource.test</require>
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/nxuidsequencer" global="jdbc/${nuxeo.test.sql.database}"/>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.persistence.PersistenceComponent" point="hibernate">
+    <hibernateConfiguration name="NXUIDSequencer">
+      <datasource>nxuidsequencer</datasource>
+      <properties>
+        <property name="hibernate.hbm2ddl.auto">update</property>
+      </properties>
+    </hibernateConfiguration>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="default" class="org.nuxeo.ecm.platform.uidgen.JPAUIDSequencerImpl" />
+  </extension>
+
+</component>

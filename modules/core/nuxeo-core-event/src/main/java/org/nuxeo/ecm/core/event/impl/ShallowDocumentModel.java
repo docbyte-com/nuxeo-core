@@ -32,13 +32,11 @@ import org.nuxeo.ecm.core.api.DataModel;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.Lock;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.PropertyException;
 import org.nuxeo.ecm.core.api.VersioningOption;
-import org.nuxeo.ecm.core.api.model.DocumentPart;
 import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.api.model.PropertyVisitor;
 import org.nuxeo.ecm.core.api.model.resolver.DocumentPropertyObjectResolverImpl;
@@ -171,7 +169,7 @@ public class ShallowDocumentModel implements DocumentModel {
 
     @Override
     public boolean isTrashed() {
-        return LifeCycleConstants.DELETED_STATE.equals(lifecycleState);
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -418,16 +416,6 @@ public class ShallowDocumentModel implements DocumentModel {
     @Override
     public boolean isVersionable() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isPrefetched(String xpath) {
-        return false;
-    }
-
-    @Override
-    public boolean isPrefetched(String schemaName, String name) {
-        return false;
     }
 
     @Override

@@ -18,17 +18,23 @@
  */
 package org.nuxeo.ecm.platform.actions;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for action.
@@ -36,7 +42,7 @@ import org.nuxeo.runtime.api.Framework;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @XObject("action")
-public class Action implements Serializable, Cloneable, Comparable<Action> {
+public class Action implements Serializable, Cloneable, Comparable<Action>, Descriptor {
 
     public static final String[] EMPTY_CATEGORIES = new String[0];
 
@@ -100,7 +106,7 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
     protected boolean filtered = false;
 
     /**
-     * Attribute that provides a hint for action ordering.
+     * Provides a hint for action ordering.
      * <p>
      * :XXX: Action ordering remains a problem. We will continue to use the existing strategy of, by default, ordering
      * actions by specificity of registration and order of definition.
@@ -110,8 +116,6 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
 
     @XNodeList(value = "category", type = String[].class, componentType = String.class)
     protected String[] categories = EMPTY_CATEGORIES;
-
-    // 'action -> filter(s)' association
 
     @XNodeList(value = "filter-id", type = ArrayList.class, componentType = String.class)
     protected List<String> filterIds;
@@ -127,11 +131,49 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
         this.categories = categories;
     }
 
+    public Action(Action other) {
+        id = other.id;
+        link = other.link;
+        enabled = other.enabled;
+        label = other.label;
+        icon = other.icon;
+        confirm = other.confirm;
+        help = other.help;
+        immediate = other.immediate;
+        accessKey = other.accessKey;
+        type = other.type;
+        if (other.properties != null) {
+            properties = other.properties.clone();
+        }
+        available = other.available;
+        filtered = other.filtered;
+        order = other.order;
+        if (other.categories != null) {
+            categories = other.categories.clone();
+        }
+        if (other.filterIds != null) {
+            filterIds = new ArrayList<>(other.filterIds);
+        }
+        if (other.filters != null) {
+            filters = new ActionFilter[other.filters.length];
+            for (int i = 0; i < other.filters.length; i++) {
+                filters[i] = other.filters[i].clone();
+            }
+        }
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
     /**
      * Returns true if the enabled element was set on the descriptor, useful for merging.
      *
      * @since 5.8
+     * @deprecated since 2025.0 unused
      */
+    @Deprecated(since = "2025.0")
     public boolean isEnableSet() {
         return enabled != null;
     }
@@ -141,7 +183,7 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
     }
 
     public void setEnabled(boolean enabled) {
-        this.enabled = Boolean.valueOf(enabled);
+        this.enabled = enabled;
     }
 
     protected String getStringProperty(String prop) {
@@ -157,7 +199,7 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
 
     public String getLabel() {
         if (label == null) {
-            return getStringProperty("label");
+            return defaultIfNull(getStringProperty("label"), getId());
         }
         return label;
     }
@@ -204,16 +246,14 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
      * Returns the categories as a list.
      *
      * @since 7.2
+     * @deprecated since 2025.0 unused
      */
+    @Deprecated(since = "2025.0")
     public List<String> getCategoryList() {
         if (categories == null) {
             return null;
         }
-        return Arrays.asList(categories);
-    }
-
-    public String getId() {
-        return id;
+        return List.of(categories);
     }
 
     @Override
@@ -250,9 +290,17 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
     }
 
     public List<String> getFilterIds() {
-        return filterIds;
+        var filterIds = new LinkedHashSet<>(getIfNull(this.filterIds, List::of));
+        for (var filter : getIfNull(getFilters(), () -> new ActionFilter[] {})) {
+            filterIds.add(filter.getId());
+        }
+        return List.copyOf(filterIds);
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public void setFilterIds(List<String> filterIds) {
         this.filterIds = filterIds;
     }
@@ -265,6 +313,10 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
         this.filters = filters;
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public void setCategories(String[] categories) {
         this.categories = categories;
     }
@@ -328,24 +380,32 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
         help = title;
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public boolean isImmediate() {
         if (immediate == null) {
             Map<String, Serializable> props = getProperties();
             if (props != null && props.containsKey("immediate")) {
                 Object obj = props.get("immediate");
-                if (obj instanceof String) {
-                    return Boolean.valueOf((String) obj).booleanValue();
-                } else if (obj instanceof Boolean) {
-                    return ((Boolean) obj).booleanValue();
+                if (obj instanceof String s) {
+                    return Boolean.parseBoolean(s);
+                } else if (obj instanceof Boolean b) {
+                    return b;
                 }
             }
             return false;
         }
-        return immediate.booleanValue();
+        return immediate;
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public void setImmediate(boolean immediate) {
-        this.immediate = Boolean.valueOf(immediate);
+        this.immediate = immediate;
     }
 
     /**
@@ -364,7 +424,9 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
 
     /**
      * @since 5.6
+     * @deprecated since 2025.0 unused
      */
+    @Deprecated(since = "2025.0")
     public ActionPropertiesDescriptor getPropertiesDescriptor() {
         return properties;
     }
@@ -378,7 +440,7 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
     }
 
     /**
-     * Sets local properties programatically
+     * Sets local properties programmatically
      *
      * @since 5.6
      */
@@ -407,7 +469,9 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
 
     /**
      * @since 5.6
+     * @deprecated since 2025.0 unused
      */
+    @Deprecated(since = "2025.0")
     public void setAccessKey(String accessKey) {
         this.accessKey = accessKey;
     }
@@ -430,11 +494,10 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
         if (other == null) {
             return false;
         }
-        if (!(other instanceof Action)) {
+        if (!(other instanceof Action otherAction)) {
             return false;
         }
-        Action otherAction = (Action) other;
-        return id == null ? otherAction.id == null : id.equals(otherAction.id);
+        return Objects.equals(id, otherAction.id);
     }
 
     @Override
@@ -442,38 +505,55 @@ public class Action implements Serializable, Cloneable, Comparable<Action> {
         return id == null ? 0 : id.hashCode();
     }
 
+    /**
+     * @deprecated since 2025.0 This is not the purpose of clone. use {@link Action#Action(Action)} instead
+     */
     @Override
+    @Deprecated(since = "2025.0")
     public Action clone() {
-        Action clone = new Action();
-        clone.id = id;
-        clone.link = link;
-        clone.enabled = enabled;
-        clone.label = label;
-        clone.icon = icon;
-        clone.confirm = confirm;
-        clone.help = help;
-        clone.immediate = immediate;
-        clone.accessKey = accessKey;
-        clone.type = type;
-        if (properties != null) {
-            clone.properties = properties.clone();
-        }
-        clone.available = available;
-        clone.filtered = filtered;
-        clone.order = order;
-        if (categories != null) {
-            clone.categories = categories.clone();
-        }
-        if (filterIds != null) {
-            clone.filterIds = new ArrayList<>(filterIds);
-        }
-        if (filters != null) {
-            clone.filters = new ActionFilter[filters.length];
-            for (int i = 0; i < filters.length; i++) {
-                clone.filters[i] = filters[i].clone();
-            }
-        }
-        return clone;
+        return new Action(this);
     }
 
+    @Override
+    public Action merge(Descriptor o) {
+        var other = (Action) o;
+        var merged = new Action();
+        merged.id = id;
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.icon = defaultIfNull(other.icon, icon);
+        var categoriesSet = new LinkedHashSet<>(List.of(getIfNull(categories, () -> new String[] {})));
+        categoriesSet.addAll(List.of(getIfNull(other.categories, () -> new String[] {})));
+        merged.categories = categoriesSet.toArray(String[]::new);
+        merged.label = defaultIfNull(other.label, label);
+        merged.link = defaultIfNull(other.link, link);
+        merged.confirm = defaultIfBlank(other.confirm, confirm);
+        merged.help = defaultIfNull(other.help, help);
+        merged.immediate = defaultIfNull(other.immediate, immediate);
+        other.accessKey = defaultIfNull(other.accessKey, accessKey);
+        merged.type = defaultIfNull(other.type, type);
+        merged.order = other.order > 0 ? other.order : order;
+        var filterIdsSet = new LinkedHashSet<>(getIfNull(filterIds, List::of));
+        filterIdsSet.addAll(getIfNull(other.filterIds, List::of));
+        merged.filterIds = new ArrayList<>(filterIdsSet);
+        var filtersSet = new LinkedHashSet<>(List.of(getIfNull(filters, () -> new ActionFilter[] {})));
+        filtersSet.addAll(List.of(getIfNull(other.filters, () -> new ActionFilter[] {})));
+        merged.filters = filtersSet.toArray(ActionFilter[]::new);
+        if (other.properties == null) {
+            if (properties != null) {
+                merged.properties = properties.clone();
+            }
+        } else {
+            if (other.properties.isAppend()) {
+                if (properties == null) {
+                    merged.properties = other.properties.clone();
+                } else {
+                    merged.properties = properties.clone();
+                    merged.properties.merge(other.properties.clone());
+                }
+            } else {
+                merged.properties = other.properties.clone();
+            }
+        }
+        return merged;
+    }
 }

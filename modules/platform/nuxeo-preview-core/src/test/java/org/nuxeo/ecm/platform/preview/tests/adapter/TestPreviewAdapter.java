@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  * Contributors:
  *     Thierry Martins <tmartins@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.preview.tests.adapter;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -37,24 +37,22 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
-import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
+import org.nuxeo.ecm.platform.preview.PreviewCoreFeature;
 import org.nuxeo.ecm.platform.preview.api.HtmlPreviewAdapter;
 import org.nuxeo.ecm.platform.preview.helper.PreviewHelper;
 import org.nuxeo.runtime.api.Framework;
@@ -63,22 +61,11 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.convert")
-@Deploy("org.nuxeo.ecm.platform.preview")
+@Features({ CoreFeature.class, PreviewCoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.htmlsanitizer")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.preview:doctype-contrib-test.xml")
 public class TestPreviewAdapter {
-
-    @Inject
-    CoreSession session;
-
-    @Inject
-    protected ConversionService conversionService;
-
-    @Inject
-    protected MimetypeRegistry mimetypeRegistry;
 
     protected static final String BAD = "<html>\n" //
             + "<body>\n" //
@@ -87,11 +74,17 @@ public class TestPreviewAdapter {
             + "</body>\n" //
             + "</html>";
 
+    @Inject
+    protected CoreSession session;
+
+    @Inject
+    protected ConversionService conversionService;
+
     @Test
-    public void testNoBlob() throws Exception {
+    public void testNoBlob() {
         DocumentModel document = session.createDocumentModel("File");
         HtmlPreviewAdapter adapter = document.getAdapter(HtmlPreviewAdapter.class);
-        assertEquals(false, adapter.hasBlobToPreview());
+        assertFalse(adapter.hasBlobToPreview());
         assertFalse(PreviewHelper.blobSupportsPreview(document, "file:content"));
         List<Blob> blobs = adapter.getFilePreviewBlobs();
         assertEquals(Collections.emptyList(), blobs);
@@ -158,11 +151,8 @@ public class TestPreviewAdapter {
     protected List<Blob> doGetPreviewBlobs(Blob blob) {
         DocumentModel document = session.createDocumentModel("File");
         HtmlPreviewAdapter adapter = document.getAdapter(HtmlPreviewAdapter.class);
-        Map<String, Serializable> file = new HashMap<>();
-        // Attach one file to the list
-        file.put("file", (Serializable) blob);
         document.setPropertyValue("file:content", (Serializable) blob);
-        assertEquals(true, adapter.hasBlobToPreview());
+        assertTrue(adapter.hasBlobToPreview());
         assertTrue(PreviewHelper.blobSupportsPreview(document, "file:content"));
         return adapter.getFilePreviewBlobs();
     }
@@ -172,18 +162,18 @@ public class TestPreviewAdapter {
         DocumentModel document = session.createDocumentModel("CustomDoc");
 
         // no preview adapter should be found in this case (empty files property)
-        assertEquals(null, document.getAdapter(HtmlPreviewAdapter.class));
+        assertNull(document.getAdapter(HtmlPreviewAdapter.class));
         assertFalse(PreviewHelper.blobSupportsPreview(document, "files:files/0/file"));
 
         Blob blob = new StringBlob("test");
         Map<String, Serializable> file = new HashMap<>();
         // Attach one file to the list
         file.put("file", (Serializable) blob);
-        ArrayList<Map<String, Serializable>> files = new ArrayList<>();
+        var files = new ArrayList<>();
         files.add(file);
         document.setPropertyValue("files:files", files);
         HtmlPreviewAdapter adapter = document.getAdapter(HtmlPreviewAdapter.class);
-        assertEquals(true, adapter.hasBlobToPreview());
+        assertTrue(adapter.hasBlobToPreview());
         assertTrue(PreviewHelper.blobSupportsPreview(document, "files:files/0/file"));
         List<Blob> blobs = adapter.getFilePreviewBlobs();
         assertEquals(1, blobs.size());
@@ -192,7 +182,7 @@ public class TestPreviewAdapter {
     }
 
     @Test
-    public void testFolderishDocument() throws Exception {
+    public void testFolderishDocument() {
         DocumentModel document = session.createDocumentModel("File");
         document.addFacet("Folderish");
         HtmlPreviewAdapter adapter = document.getAdapter(HtmlPreviewAdapter.class);
@@ -204,7 +194,7 @@ public class TestPreviewAdapter {
         Blob blob = new StringBlob("thisismytest", "text/plain");
         // convert using SimpleBlobHolder (like ConvertAdapter)
         BlobHolder blobHolder = new SimpleBlobHolder(blob);
-        BlobHolder res = conversionService.convertToMimeType("text/html", blobHolder , null);
+        BlobHolder res = conversionService.convertToMimeType("text/html", blobHolder, null);
         List<Blob> blobs = res.getBlobs();
         assertEquals(1, blobs.size());
         String preview = blobs.get(0).getString();

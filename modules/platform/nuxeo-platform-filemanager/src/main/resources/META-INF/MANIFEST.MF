@@ -19,7 +19,6 @@ Nuxeo-Component: OSGI-INF/filemanager-digestcomputer-event-contrib.xml,
  OSGI-INF/nxfilemanager-service.xml,
 Bundle-ManifestVersion: 2
 Import-Package: au.com.bytecode.opencsv,
- javax.annotation;version="1.0",
  org.apache.commons.logging,
  org.nuxeo.common.collections,
  org.nuxeo.common.utils,

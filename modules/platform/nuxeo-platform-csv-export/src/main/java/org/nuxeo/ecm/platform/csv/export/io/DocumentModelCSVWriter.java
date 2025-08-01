@@ -29,6 +29,8 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.List;
 
+import jakarta.inject.Inject;
+
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -41,6 +43,7 @@ import org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter;
 import org.nuxeo.ecm.core.io.marshallers.csv.OutputStreamWithCSVWriter;
 import org.nuxeo.ecm.core.io.registry.Writer;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
+import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Schema;
 
@@ -53,6 +56,9 @@ public class DocumentModelCSVWriter extends AbstractCSVWriter<DocumentModel> {
     public static final String SCHEMAS_CTX_DATA = "schemas";
 
     public static final String XPATHS_CTX_DATA = "xpaths";
+
+    @Inject
+    protected SchemaManager schemaManager;
 
     public DocumentModelCSVWriter() {
         super();

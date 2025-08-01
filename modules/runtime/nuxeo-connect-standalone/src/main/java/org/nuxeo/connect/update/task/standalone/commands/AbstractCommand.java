@@ -21,14 +21,13 @@ package org.nuxeo.connect.update.task.standalone.commands;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.w3c.dom.Element;
-
 import org.nuxeo.connect.update.PackageException;
 import org.nuxeo.connect.update.PackageUpdateService;
 import org.nuxeo.connect.update.ValidationStatus;
 import org.nuxeo.connect.update.task.Command;
 import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.connect.update.task.guards.Guard;
+import org.w3c.dom.Element;
 
 /**
  * All commands have 2 attributes: fail and ignore which are EL expressions.
@@ -143,7 +142,7 @@ public abstract class AbstractCommand implements Command {
         }
         v = element.getAttribute("if");
         if (v.length() > 0) {
-            ignore = String.format("!(%s)", v);
+            ignore = String.format("${!(%s)}", v);
         }
         readFrom(element);
     }

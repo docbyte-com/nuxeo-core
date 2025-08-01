@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +36,7 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.operations.services.workmanager.WorkManagerRunWorkInFailure;
 import org.nuxeo.ecm.automation.core.util.StringList;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.impl.blob.JSONBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -54,9 +55,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeStreamFeature.class, CoreFeature.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestWorkManagerRunWorkInFailure {
 

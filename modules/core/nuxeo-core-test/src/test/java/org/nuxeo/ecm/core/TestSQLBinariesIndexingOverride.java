@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static org.junit.Assume.assumeTrue;
 import java.io.Serializable;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,18 +46,21 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.runtime.reload")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-override-indexing-contrib.xml")
 public class TestSQLBinariesIndexingOverride {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -70,33 +73,17 @@ public class TestSQLBinariesIndexingOverride {
         StorageConfiguration storageConfiguration = coreFeature.getStorageConfiguration();
         assumeTrue("fulltext search not supported", storageConfiguration.supportsFulltextSearch());
         assumeTrue("multiple fulltext indexes not supported", storageConfiguration.supportsMultipleFulltextIndexes());
-
-        // cannot be done through @Deploy, because the framework variables
-        // about repository configuration aren't ready yet
-        deployer.deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-override-indexing-contrib.xml");
-    }
-
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     @Test
-    public void testTwoBinaryIndexes() throws Exception {
+    public void testTwoBinaryIndexes() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // main index
         res = session.query("SELECT * FROM Document WHERE ecm:fulltext = 'test'");
@@ -108,19 +95,19 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testGetBinaryFulltext() throws Exception {
+    public void testGetBinaryFulltext() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // main index
         res = session.query("SELECT * FROM Document WHERE ecm:fulltext = 'test'");
         assertEquals(1, res.size());
-        Map<String, String> map = session.getBinaryFulltext(res.get(0).getRef());
+        Map<String, String> map = session.getBinaryFulltext(res.getFirst().getRef());
         assertTrue(map.containsValue(" test "));
         StorageConfiguration database = coreFeature.getStorageConfiguration();
         if (!(database.isVCSMySQL() || database.isVCSSQLServer())) {
@@ -133,14 +120,14 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testExcludeFieldBlob() throws Exception {
+    public void testExcludeFieldBlob() {
         DocumentModelList res;
         DocumentModel doc = session.createDocumentModel("/", "source", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("test"));
         doc = session.createDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // indexes the skip file:content
 
@@ -155,10 +142,10 @@ public class TestSQLBinariesIndexingOverride {
     }
 
     @Test
-    public void testEnforceFulltextFieldSizeLimit() throws Exception {
+    public void testEnforceFulltextFieldSizeLimit() {
         SQLRepositoryService repositoryService = Framework.getService(SQLRepositoryService.class);
-        RepositoryDescriptor repositoryDescriptor = repositoryService.getRepositoryImpl(
-                session.getRepositoryName()).getRepositoryDescriptor();
+        RepositoryDescriptor repositoryDescriptor = repositoryService.getRepositoryImpl(session.getRepositoryName())
+                                                                     .getRepositoryDescriptor();
         int fulltextFieldSizeLimit = repositoryDescriptor.getFulltextDescriptor().getFulltextFieldSizeLimit();
         assertEquals(1024, fulltextFieldSizeLimit); // from XML config
 
@@ -183,7 +170,7 @@ public class TestSQLBinariesIndexingOverride {
             doc = session.createDocument(doc);
             session.save();
 
-            waitForFulltextIndexing();
+            txFeature.nextTransaction();
 
             // main index
             res = session.query(String.format(query, NXQL.escapeString(content)));

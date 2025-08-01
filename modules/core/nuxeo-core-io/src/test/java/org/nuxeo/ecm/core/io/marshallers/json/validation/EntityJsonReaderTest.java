@@ -17,7 +17,7 @@
 
 package org.nuxeo.ecm.core.io.marshallers.json.validation;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 

@@ -25,7 +25,7 @@ import static org.junit.Assume.assumeTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +48,7 @@ import org.nuxeo.template.deckjs.DeckJSConverterConstants;
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.template.manager.api")
 @Deploy("org.nuxeo.template.manager")
-@Deploy("org.nuxeo.template.manager.jaxrs")
+@Deploy("org.nuxeo.template.manager.rest")
 @Deploy("org.nuxeo.template.deckjs")
 @Deploy("org.nuxeo.ecm.platform.convert")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")

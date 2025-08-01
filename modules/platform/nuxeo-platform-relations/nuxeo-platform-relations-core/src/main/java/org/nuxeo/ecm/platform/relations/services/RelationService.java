@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,27 +87,21 @@ public class RelationService extends DefaultComponent implements RelationManager
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals("graphtypes")) {
-            registerGraphType(contribution);
-        } else if (extensionPoint.equals("graphs")) {
-            registerGraph(contribution);
-        } else if (extensionPoint.equals("resourceadapters")) {
-            registerResourceAdapter(contribution);
-        } else {
-            log.error("Unknown extension point: {}, can't register !", extensionPoint);
+        switch (extensionPoint) {
+            case "graphtypes" -> registerGraphType(contribution);
+            case "graphs" -> registerGraph(contribution);
+            case "resourceadapters" -> registerResourceAdapter(contribution);
+            default -> log.error("Unknown extension point: {}, can't register !", extensionPoint);
         }
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals("graphtypes")) {
-            unregisterGraphType(contribution);
-        } else if (extensionPoint.equals("graphs")) {
-            unregisterGraph(contribution);
-        } else if (extensionPoint.equals("resourceadapters")) {
-            unregisterResourceAdapter(contribution);
-        } else {
-            log.error("Unknown extension point: {}, can't unregister !", extensionPoint);
+        switch (extensionPoint) {
+            case "graphtypes" -> unregisterGraphType(contribution);
+            case "graphs" -> unregisterGraph(contribution);
+            case "resourceadapters" -> unregisterResourceAdapter(contribution);
+            default -> log.error("Unknown extension point: {}, can't unregister !", extensionPoint);
         }
     }
 
@@ -398,20 +392,11 @@ public class RelationService extends DefaultComponent implements RelationManager
         }
         log.info("Relation Service initialization");
         for (String graphName : graphDescriptions.keySet()) {
-            GraphDescription desc = graphDescriptions.get(graphName);
             log.info("create RDF Graph: {}", graphName);
-            if (desc.getGraphType().equalsIgnoreCase("jena")) {
-                // init jena Graph outside of Tx
-                TransactionHelper.runWithoutTransaction(() -> {
-                    Graph graph = getGraphByName(graphName);
-                    graph.size();
-                });
-            } else {
-                TransactionHelper.runInTransaction(() -> {
-                    Graph graph = getGraphByName(graphName);
-                    graph.size();
-                });
-            }
+            TransactionHelper.runInTransaction(() -> {
+                Graph graph = getGraphByName(graphName);
+                graph.size();
+            });
         }
     }
 

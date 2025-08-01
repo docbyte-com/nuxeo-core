@@ -20,12 +20,12 @@
 
 package org.nuxeo.ecm.core.api;
 
+import java.util.function.Supplier;
+
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-
-import java.util.function.Supplier;
 
 /**
  * Utilities to work with locks
@@ -76,6 +76,9 @@ public class LockHelper {
                     TransactionHelper.startTransaction();
 
                     return supplier.get();
+                } catch (Exception e) {
+                    TransactionHelper.setTransactionRollbackOnly();
+                    throw e;
                 } finally {
                     try {
                         TransactionHelper.commitOrRollbackTransaction();

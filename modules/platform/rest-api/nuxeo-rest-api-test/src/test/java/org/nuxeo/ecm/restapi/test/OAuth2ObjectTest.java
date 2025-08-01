@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -206,20 +206,21 @@ public class OAuth2ObjectTest {
     @Test
     public void iCanCreateProvider() {
         String serviceName = "myservice";
-        String data = "{\n" + //
-                "   \"authorizationServerURL\": \"https://test.oauth2.provider/authorization\",\n" + //
-                "   \"clientId\": \"clientId\",\n" + //
-                "   \"clientSecret\": \"123secret321\",\n" + //
-                "   \"description\": \"My Service\",\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2ServiceProvider\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"scopes\": [\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope0\",\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope1\"\n" + //
-                "   ],\n" + //
-                "   \"serviceName\": \"myservice\",\n" + //
-                "   \"tokenServerURL\": \"https://test.oauth2.provider/token\"\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2ServiceProvider",
+                  "authorizationServerURL": "https://test.oauth2.provider/authorization",
+                  "clientId": "clientId",
+                  "clientSecret": "123secret321",
+                  "description": "My Service",
+                  "isEnabled": true,
+                  "scopes": [
+                    "https://test.oauth2.provider/scopes/scope0",
+                    "https://test.oauth2.provider/scopes/scope1"
+                  ],
+                  "serviceName": "myservice",
+                  "tokenServerURL": "https://test.oauth2.provider/token"
+                }""";
         httpClient.buildPostRequest(PROVIDER_PATH)
                   .credentials("user1", "user1")
                   .entity(data)
@@ -232,20 +233,21 @@ public class OAuth2ObjectTest {
 
     @Test
     public void iCantCreateProviderWithBlankServiceName() {
-        String data = "{\n" + //
-                "   \"authorizationServerURL\": \"https://test.oauth2.provider/authorization\",\n" + //
-                "   \"clientId\": \"clientId\",\n" + //
-                "   \"clientSecret\": \"123secret321\",\n" + //
-                "   \"description\": \"My Service\",\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2ServiceProvider\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"scopes\": [\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope0\",\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope1\"\n" + //
-                "   ],\n" + //
-                "   \"serviceName\": \" \",\n" + //
-                "   \"tokenServerURL\": \"https://test.oauth2.provider/token\"\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2ServiceProvider",
+                  "authorizationServerURL": "https://test.oauth2.provider/authorization",
+                  "clientId": "clientId",
+                  "clientSecret": "123secret321",
+                  "description": "My Service",
+                  "isEnabled": true,
+                  "scopes": [
+                    "https://test.oauth2.provider/scopes/scope0",
+                    "https://test.oauth2.provider/scopes/scope1"
+                  ],
+                  "serviceName": " ",
+                  "tokenServerURL": "https://test.oauth2.provider/token"
+                }""";
         httpClient.buildPostRequest(PROVIDER_PATH)
                   .entity(data)
                   .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST),
@@ -263,20 +265,21 @@ public class OAuth2ObjectTest {
                       assertFalse(node.get("isEnabled").booleanValue());
                   });
 
-        String data = "{\n" + //
-                "   \"authorizationServerURL\": \"https://test.oauth2.provider/authorization\",\n" + //
-                "   \"clientId\": \"myId\",\n" + //
-                "   \"clientSecret\": \"123secret321\",\n" + //
-                "   \"description\": \"Test OAuth2 Provider 2\",\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2ServiceProvider\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"scopes\": [\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope0\",\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope1\"\n" + //
-                "   ],\n" + //
-                "   \"serviceName\": \"test-oauth2-provider-2\",\n" + //
-                "   \"tokenServerURL\": \"https://test.oauth2.provider/token\"\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2ServiceProvider",
+                  "authorizationServerURL": "https://test.oauth2.provider/authorization",
+                  "clientId": "myId",
+                  "clientSecret": "123secret321",
+                  "description": "Test OAuth2 Provider 2",
+                  "isEnabled": true,
+                  "scopes": [
+                    "https://test.oauth2.provider/scopes/scope0",
+                    "https://test.oauth2.provider/scopes/scope1"
+                  ],
+                  "serviceName": "test-oauth2-provider-2",
+                  "tokenServerURL": "https://test.oauth2.provider/token"
+                }""";
         httpClient.buildPutRequest(getProviderPath(TEST_OAUTH2_PROVIDER_2))
                   .credentials("user1", "user1")
                   .entity(data)
@@ -293,20 +296,21 @@ public class OAuth2ObjectTest {
 
     @Test
     public void iCantUpdateInvalidProvider() {
-        String data = "{\n" + //
-                "   \"authorizationServerURL\": \"https://test.oauth2.provider/authorization\",\n" + //
-                "   \"clientId\": \"myId\",\n" + //
-                "   \"clientSecret\": \"123secret321\",\n" + //
-                "   \"description\": \"Test OAuth2 Provider 2\",\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2ServiceProvider\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"scopes\": [\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope0\",\n" + //
-                "      \"https://test.oauth2.provider/scopes/scope1\"\n" + //
-                "   ],\n" + //
-                "   \"serviceName\": \"test-oauth2-provider-2\",\n" + //
-                "   \"tokenServerURL\": \"https://test.oauth2.provider/token\"\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2ServiceProvider",
+                  "authorizationServerURL": "https://test.oauth2.provider/authorization",
+                  "clientId": "myId",
+                  "clientSecret": "123secret321",
+                  "description": "Test OAuth2 Provider 2",
+                  "isEnabled": true,
+                  "scopes": [
+                    "https://test.oauth2.provider/scopes/scope0",
+                    "https://test.oauth2.provider/scopes/scope1"
+                  ],
+                  "serviceName": "test-oauth2-provider-2",
+                  "tokenServerURL": "https://test.oauth2.provider/token"
+                }""";
 
         httpClient.buildPutRequest(getProviderPath("fake"))
                   .entity(data)
@@ -405,31 +409,32 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanGetTokensProvidedByNuxeo() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-21 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-21 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(TOKEN_PATH_NUXEO_AS_PROVIDER)
                   .executeAndConsume(new StringHandler(),
                           body -> JSONAssert.assertEquals(data, body, JSONCompareMode.NON_EXTENSIBLE));
@@ -440,31 +445,32 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanSearchTokensByNuxeoLogin() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": null,
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(SEARCH_TOKENS_PATH)
                   .addQueryParameter(SEARCH_TOKENS_QUERY_PARAM, "er1")
                   .executeAndConsume(new StringHandler(),
@@ -476,31 +482,32 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanSearchTokensByFullNuxeoLogin() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": null,
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(SEARCH_TOKENS_PATH)
                   .addQueryParameter(SEARCH_TOKENS_QUERY_PARAM, "user1")
                   .executeAndConsume(new StringHandler(),
@@ -512,31 +519,32 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanSearchTokensByServiceName() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-21 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-21 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(SEARCH_TOKENS_PATH)
                   .addQueryParameter(SEARCH_TOKENS_QUERY_PARAM, "token.store")
                   .executeAndConsume(new StringHandler(),
@@ -548,31 +556,32 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanSearchTokensByFullServiceName() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-21 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-21 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(SEARCH_TOKENS_PATH)
                   .addQueryParameter(SEARCH_TOKENS_QUERY_PARAM, "org.nuxeo.server.token.store")
                   .executeAndConsume(new StringHandler(),
@@ -584,61 +593,62 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanSearchTokensByServiceNameOrNuxeoLogin() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"Administrator\",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"serviceLogin\": \"Administrator@email.com\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-08 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-21 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": \"my-client\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-20 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "Administrator",
+                      "clientId": null,
+                      "serviceLogin": "Administrator@email.com",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": null,
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "isShared": false,
+                      "clientId": null,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-08 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-21 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "org.nuxeo.server.token.store",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": "my-client",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-20 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(SEARCH_TOKENS_PATH)
                   .addQueryParameter(SEARCH_TOKENS_QUERY_PARAM, "u")
                   .executeAndConsume(new StringHandler(),
@@ -661,41 +671,42 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanGetTokensConsumedByNuxeo() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Tokens\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"Administrator\",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"serviceLogin\": \"Administrator@email.com\",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user1\",\n" + //
-                "         \"serviceLogin\": \"my1@mail \",\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-09 11:11:11\"\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "         \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "         \"nuxeoLogin\": \"user2\",\n" + //
-                "         \"serviceLogin\": \"my2@mail \",\n" + //
-                "         \"isShared\": false,\n" + //
-                "         \"clientId\": null,\n" + //
-                "         \"sharedWith\": [\"null\"],\n" + //
-                "         \"creationDate\": \"2017-05-08 11:11:11\"\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Tokens",
+                  "entries": [
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "Administrator",
+                      "clientId": null,
+                      "serviceLogin": "Administrator@email.com",
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user1",
+                      "serviceLogin": "my1@mail ",
+                      "clientId": null,
+                      "isShared": false,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-09 11:11:11"
+                    },
+                    {
+                      "entity-type": "nuxeoOAuth2Token",
+                      "serviceName": "test-oauth2-provider",
+                      "nuxeoLogin": "user2",
+                      "serviceLogin": "my2@mail ",
+                      "isShared": false,
+                      "clientId": null,
+                      "sharedWith": ["null"],
+                      "creationDate": "2017-05-08 11:11:11"
+                    }
+                  ]
+                }""";
         httpClient.buildGetRequest(TOKEN_PATH_NUXEO_AS_CLIENT)
                   .executeAndConsume(new StringHandler(),
                           body -> JSONAssert.assertEquals(data, body, JSONCompareMode.NON_EXTENSIBLE));
@@ -745,11 +756,6 @@ public class OAuth2ObjectTest {
                   .executeAndConsume(jsonNodeHandler,
                           node -> verifyToken(node, TEST_OAUTH2_PROVIDER, null, "user1", "2017-05-09 11:11:11"));
 
-        // test deprecated oauth2/token/{provider}/{user}
-        httpClient.buildGetRequest(TOKEN_PATH + "/" + TEST_OAUTH2_PROVIDER + "/user1")
-                  .executeAndConsume(jsonNodeHandler,
-                          node -> verifyToken(node, TEST_OAUTH2_PROVIDER, null, "user1", "2017-05-09 11:11:11"));
-
         // will get a 404 if not token is found for the provider/user pair
         httpClient.buildGetRequest(TOKEN_PATH + "/provider/" + TEST_OAUTH2_PROVIDER + "/user/user3")
                   .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_NOT_FOUND, status.intValue()));
@@ -770,47 +776,34 @@ public class OAuth2ObjectTest {
     public void iCanUpdateProviderToken() {
         var jsonNodeHandler = new JsonNodeHandler();
 
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "   \"clientId\": null,\n" + //
-                "   \"creationDate\": \"2017-05-10 11:11:11\",\n" + //
-                "   \"isShared\": false,\n" + //
-                "   \"nuxeoLogin\": \"user1\",\n" + //
-                "   \"serviceLogin\": \"my1@mail\",\n" + //
-                "   \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "   \"sharedWith\": []\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Token",
+                  "clientId": null,
+                  "creationDate": "2017-05-10 11:11:11",
+                  "isShared": false,
+                  "nuxeoLogin": "user1",
+                  "serviceLogin": "my1@mail",
+                  "serviceName": "test-oauth2-provider",
+                  "sharedWith": []
+                }""";
         httpClient.buildPutRequest(TOKEN_PATH + "/provider/" + TEST_OAUTH2_PROVIDER + "/user/user1")
                   .entity(data)
                   .executeAndConsume(jsonNodeHandler,
                           node -> verifyToken(node, TEST_OAUTH2_PROVIDER, null, "user1", "2017-05-10 11:11:11"));
 
-        // test deprecated oauth2/token/{provider}/{user}
-        data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "   \"clientId\": null,\n" + //
-                "   \"creationDate\": \"2017-05-10 11:11:11\",\n" + //
-                "   \"isShared\": false,\n" + //
-                "   \"nuxeoLogin\": \"user1\",\n" + //
-                "   \"serviceLogin\": \"my1@mail\",\n" + //
-                "   \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "   \"sharedWith\": []\n" + //
-                "}";
-        httpClient.buildPutRequest(TOKEN_PATH + "/" + TEST_OAUTH2_PROVIDER + "/user1")
-                  .entity(data)
-                  .executeAndConsume(jsonNodeHandler,
-                          node -> verifyToken(node, TEST_OAUTH2_PROVIDER, null, "user1", "2017-05-10 11:11:11"));
-
         // users must be able to update their own tokens
-        data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "   \"clientId\": null,\n" + "   \"creationDate\": \"2017-05-11 11:11:11\",\n" + //
-                "   \"isShared\": false,\n" + //
-                "   \"nuxeoLogin\": \"user1\",\n" + //
-                "   \"serviceLogin\": \"my1@mail\",\n" + //
-                "   \"serviceName\": \"test-oauth2-provider\",\n" + //
-                "   \"sharedWith\": []\n" + //
-                "}";
+        data = """
+                {
+                  "entity-type": "nuxeoOAuth2Token",
+                  "clientId": null,
+                  "creationDate": "2017-05-11 11:11:11",
+                  "isShared": false,
+                  "nuxeoLogin": "user1",
+                  "serviceLogin": "my1@mail",
+                  "serviceName": "test-oauth2-provider",
+                  "sharedWith": []
+                }""";
         httpClient.buildPutRequest(TOKEN_PATH + "/provider/" + TEST_OAUTH2_PROVIDER + "/user/user1")
                   .credentials("user1", "user1")
                   .entity(data)
@@ -842,10 +835,6 @@ public class OAuth2ObjectTest {
         httpClient.buildDeleteRequest(TOKEN_PATH + "/provider/" + TEST_OAUTH2_PROVIDER + "/user/user2")
                   .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_NO_CONTENT, status.intValue()));
         httpClient.buildGetRequest(TOKEN_PATH + "/provider/" + TEST_OAUTH2_PROVIDER + "/user/user1")
-                  .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_NOT_FOUND, status.intValue()));
-
-        // test deprecated oauth2/token/{provider}/{user}
-        httpClient.buildGetRequest(TOKEN_PATH + "/" + TEST_OAUTH2_PROVIDER + "/user1")
                   .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_NOT_FOUND, status.intValue()));
     }
 
@@ -892,32 +881,34 @@ public class OAuth2ObjectTest {
     public void iCanUpdateClientToken() {
         var jsonNodeHandler = new JsonNodeHandler();
 
-        String data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "   \"clientId\": \"my-client\",\n" + //
-                "   \"creationDate\": \"2017-05-21 11:11:11\",\n" + //
-                "   \"isShared\": false,\n" + //
-                "   \"nuxeoLogin\": \"user1\",\n" + //
-                "   \"serviceLogin\": \"my1@mail\",\n" + //
-                "   \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "   \"sharedWith\": []\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "nuxeoOAuth2Token",
+                  "clientId": "my-client",
+                  "creationDate": "2017-05-21 11:11:11",
+                  "isShared": false,
+                  "nuxeoLogin": "user1",
+                  "serviceLogin": "my1@mail",
+                  "serviceName": "org.nuxeo.server.token.store",
+                  "sharedWith": []
+                }""";
         httpClient.buildPutRequest(TOKEN_PATH + "/client/" + TEST_CLIENT + "/user/user1")
                   .entity(data)
                   .executeAndConsume(jsonNodeHandler,
                           node -> verifyToken(node, TOKEN_STORE, TEST_CLIENT, "user1", "2017-05-21 11:11:11"));
 
         // users must be able to update their own tokens
-        data = "{\n" + //
-                "   \"entity-type\": \"nuxeoOAuth2Token\",\n" + //
-                "   \"clientId\": \"my-client\",\n" + //
-                "   \"creationDate\": \"2017-05-22 11:11:11\",\n" + //
-                "   \"isShared\": false,\n" + //
-                "   \"nuxeoLogin\": \"user1\",\n" + //
-                "   \"serviceLogin\": \"my1@mail\",\n" + //
-                "   \"serviceName\": \"org.nuxeo.server.token.store\",\n" + //
-                "   \"sharedWith\": []\n" + //
-                "}";
+        data = """
+                {
+                  "entity-type": "nuxeoOAuth2Token",
+                  "clientId": "my-client",
+                  "creationDate": "2017-05-22 11:11:11",
+                  "isShared": false,
+                  "nuxeoLogin": "user1",
+                  "serviceLogin": "my1@mail",
+                  "serviceName": "org.nuxeo.server.token.store",
+                  "sharedWith": []
+                }""";
         httpClient.buildPutRequest(TOKEN_PATH + "/client/" + TEST_CLIENT + "/user/user1")
                   .credentials("user1", "user1")
                   .entity(data)
@@ -980,45 +971,47 @@ public class OAuth2ObjectTest {
     // test oauth2/client
     @Test
     public void iCanGetClients() {
-        String data = ("{\n" + //
-                "   \"entity-type\": \"oauth2Clients\",\n" + //
-                "   \"entries\": [\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"oauth2Client\",\n" + //
-                "         \"name\": \"%s\",\n" + //
-                "         \"redirectURIs\": [\n" + //
-                "            \"nuxeo://authorize\"\n" + //
-                "         ],\n" + //
-                "         \"secret\": \"2113425ygfsd\",\n" + //
-                "         \"id\": \"%s\",\n" + //
-                "         \"isAutoGrant\": true,\n" + //
-                "         \"isEnabled\": true\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"oauth2Client\",\n" + //
-                "         \"name\": \"%s\",\n" + //
-                "         \"redirectURIs\": [\n" + //
-                "            \"nuxeo://authorize\"\n" + //
-                "         ],\n" + //
-                "         \"secret\": \"s234dsfsdss\",\n" + //
-                "         \"id\": \"%s\",\n" + //
-                "         \"isAutoGrant\": true,\n" + //
-                "         \"isEnabled\": true\n" + //
-                "      },\n" + //
-                "      {\n" + //
-                "         \"entity-type\": \"oauth2Client\",\n" + //
-                "         \"name\": \"%s\",\n" + //
-                "         \"redirectURIs\": [\n" + //
-                "            \"nuxeo://authorize\"\n" + //
-                "         ],\n" + //
-                "         \"secret\": \"s234dsfsdss\",\n" + //
-                "         \"id\": \"%s\",\n" + //
-                "         \"isAutoGrant\": false,\n" + //
-                "         \"isEnabled\": false\n" + //
-                "      }\n" + //
-                "   ]\n" + //
-                "}\n").formatted(TEST_CLIENT_NAME, TEST_CLIENT, TEST_CLIENT_NAME_2, TEST_CLIENT_2, TEST_CLIENT_NAME_3,
-                        TEST_CLIENT_3);
+        String data = """
+                {
+                  "entity-type": "oauth2Clients",
+                  "entries": [
+                    {
+                      "entity-type": "oauth2Client",
+                      "name": "%s",
+                      "redirectURIs": [
+                        "nuxeo://authorize"
+                       ],
+                      "secret": "2113425ygfsd",
+                      "id": "%s",
+                      "isAutoGrant": true,
+                      "isEnabled": true
+                    },
+                    {
+                      "entity-type": "oauth2Client",
+                      "name": "%s",
+                      "redirectURIs": [
+                        "nuxeo://authorize"
+                       ],
+                      "secret": "s234dsfsdss",
+                      "id": "%s",
+                      "isAutoGrant": true,
+                      "isEnabled": true
+                    },
+                    {
+                      "entity-type": "oauth2Client",
+                      "name": "%s",
+                      "redirectURIs": [
+                        "nuxeo://authorize"
+                      ],
+                      "secret": "s234dsfsdss",
+                      "id": "%s",
+                      "isAutoGrant": false,
+                      "isEnabled": false
+                    }
+                  ]
+                }
+                """.formatted(TEST_CLIENT_NAME, TEST_CLIENT, TEST_CLIENT_NAME_2, TEST_CLIENT_2, TEST_CLIENT_NAME_3,
+                TEST_CLIENT_3);
 
         httpClient.buildGetRequest(CLIENT_PATH)
                   .executeAndConsume(new StringHandler(),
@@ -1027,17 +1020,18 @@ public class OAuth2ObjectTest {
 
     @Test
     public void iCanGetClient() {
-        String data = ("{\n" + //
-                "   \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"name\": \"%s\",\n" + //
-                "   \"secret\": \"2113425ygfsd\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "      \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}").formatted(TEST_CLIENT_NAME, TEST_CLIENT);
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "name": "%s",
+                  "secret": "2113425ygfsd",
+                  "id": "%s",
+                  "isAutoGrant": true,
+                  "isEnabled": true,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""".formatted(TEST_CLIENT_NAME, TEST_CLIENT);
 
         httpClient.buildGetRequest(getClientPath(TEST_CLIENT))
                   .executeAndConsume(new StringHandler(),
@@ -1076,14 +1070,15 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void cannotCreateClientByUnauthorizedUsers() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-4\",\n" + //
-                "   \"name\": \"Nuxeo Client 4\",\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-4",
+                  "name": "Nuxeo Client 4",
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""";
         httpClient.buildPostRequest(CLIENT_PATH)
                   .credentials("user1", "user1")
                   .entity(data)
@@ -1107,14 +1102,15 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void cannotUpdateClientByUnauthorizedUsers() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"Nuxeo Client 5\",\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "Nuxeo Client 5",
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""";
         httpClient.buildPutRequest(getClientPath(TEST_CLIENT))
                   .credentials("user1", "user1")
                   .entity(data)
@@ -1127,16 +1123,17 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCannotMakeOperationOnClientWithoutId() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"name\": \"Nuxeo Client 2\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "name": "Nuxeo Client 2",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""";
         String responseError = createResponseError("Client Id is required", SC_BAD_REQUEST);
         httpClient.buildPostRequest(CLIENT_PATH)
                   .entity(data)
@@ -1149,16 +1146,17 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCannotMakeOperationOnClientWithoutName() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-6\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-6",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""";
         String responseError = createResponseError("Client name is required", SC_BAD_REQUEST);
         httpClient.buildPostRequest(CLIENT_PATH)
                   .entity(data)
@@ -1171,14 +1169,15 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCannotMakeOperationOnClientWithoutRedirectURIs() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"client-id-7\",\n" + //
-                "   \"name\": \"Nuxeo Client 7\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "client-id-7",
+                  "name": "Nuxeo Client 7",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true
+                }""";
         String responseError = createResponseError("Redirect URIs is required", SC_BAD_REQUEST);
         httpClient.buildPostRequest(CLIENT_PATH)
                   .entity(data)
@@ -1192,15 +1191,16 @@ public class OAuth2ObjectTest {
     @Test
     public void iCannotMakeOperationOnClientWithoutValidRedirectURIs() {
         List<String> invalidURIs = List.of("http://authorize", "http://localhost.somecompany.com");
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"client-id-7\",\n" + //
-                "   \"name\": \"Nuxeo Client 7\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"redirectURIs\":[\"%s\"]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "client-id-7",
+                  "name": "Nuxeo Client 7",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true,
+                  "redirectURIs":["%s"]
+                }""";
         for (String uri : invalidURIs) {
             String responseError = createResponseError(String.format("'%s' is not a valid redirect URI", uri),
                     SC_BAD_REQUEST);
@@ -1216,21 +1216,22 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCannotReCreateExistingClient() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"Nuxeo Client 8\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "Nuxeo Client 8",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""".formatted(TEST_CLIENT);
         String responseError = createResponseError(String.format("Client with id '%s' already exists", TEST_CLIENT),
                 SC_BAD_REQUEST);
         httpClient.buildPostRequest(CLIENT_PATH)
-                  .entity(String.format(data, TEST_CLIENT))
+                  .entity(data)
                   .executeAndConsume(new StringHandler(SC_BAD_REQUEST),
                           body -> JSONAssert.assertEquals(responseError, body, JSONCompareMode.LENIENT));
     }
@@ -1242,19 +1243,20 @@ public class OAuth2ObjectTest {
     public void iCannotUpdateUnExistingClient() {
         String clientId = "unExisting-client-id";
 
-        String data = "{\n" + //
-                "   \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"Nuxeo Client 9\",\n" + //
-                "   \"isEnabled\": false,\n" + //
-                "   \"secret\": \"4321\",\n" + //
-                "   \"isAutoGrant\": false,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "      \"nuxeo://authorization\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "Nuxeo Client 9",
+                  "isEnabled": false,
+                  "secret": "4321",
+                  "isAutoGrant": false,
+                  "redirectURIs": [
+                    "nuxeo://authorization"
+                  ]
+                }""".formatted(clientId);
         httpClient.buildPutRequest(getClientPath(clientId))
-                  .entity(String.format(data, clientId))
+                  .entity(data)
                   .executeAndConsume(new HttpStatusCodeHandler(),
                           status -> assertEquals(SC_NOT_FOUND, status.intValue()));
     }
@@ -1275,17 +1277,18 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanCreateClient() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-10\",\n" + //
-                "   \"name\": \"Nuxeo Client 10\",\n" + //
-                "   \"isEnabled\": true,\n" + //
-                "   \"secret\": \"1234\",\n" + //
-                "   \"isAutoGrant\": true,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-10",
+                  "name": "Nuxeo Client 10",
+                  "isEnabled": true,
+                  "secret": "1234",
+                  "isAutoGrant": true,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""";
         httpClient.buildPostRequest(CLIENT_PATH)
                   .entity(data)
                   .executeAndConsume(new StringHandler(SC_CREATED),
@@ -1297,26 +1300,28 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanCreateClientWithRequiredFieldsOnly() {
-        String data = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-11\",\n" + //
-                "   \"name\": \"Nuxeo Client 11\",\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\",\"nuxeo://authorize2\", \"nuxeo://authorize3\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-11",
+                  "name": "Nuxeo Client 11",
+                  "redirectURIs": [
+                    "nuxeo://authorize","nuxeo://authorize2", "nuxeo://authorize3"
+                  ]
+                }""";
 
-        String expected = "{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-11\",\n" + //
-                "   \"name\": \"Nuxeo Client 11\",\n" + //
-                "   \"isEnabled\": false,\n" + //
-                "   \"secret\": null,\n" + //
-                "   \"isAutoGrant\": false,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize2\", \"nuxeo://authorize\",\"nuxeo://authorize3\"\n" + //
-                "   ]\n" + //
-                "}";
+        String expected = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-11",
+                  "name": "Nuxeo Client 11",
+                  "isEnabled": false,
+                  "secret": null,
+                  "isAutoGrant": false,
+                  "redirectURIs": [
+                    "nuxeo://authorize2", "nuxeo://authorize","nuxeo://authorize3"
+                  ]
+                }""";
         httpClient.buildPostRequest(CLIENT_PATH)
                   .entity(data)
                   .executeAndConsume(new StringHandler(SC_CREATED),
@@ -1328,26 +1333,28 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanUpdateClientWithRequiredFieldsOnly() {
-        String data = ("{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"%s\",\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ]\n" + //
-                "}").formatted(TEST_CLIENT_NAME, TEST_CLIENT);
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "%s",
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ]
+                }""".formatted(TEST_CLIENT_NAME, TEST_CLIENT);
 
-        String expected = ("{\n" + //
-                " \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"%s\",\n" + //
-                "   \"isEnabled\": false,\n" + //
-                "   \"isAutoGrant\": false,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "       \"nuxeo://authorize\"\n" + //
-                "   ],\n" + //
-                "   \"secret\": null\n" + //
-                "}").formatted(TEST_CLIENT_NAME, TEST_CLIENT);
+        String expected = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "%s",
+                  "isEnabled": false,
+                  "isAutoGrant": false,
+                  "redirectURIs": [
+                    "nuxeo://authorize"
+                  ],
+                  "secret": null
+                }""".formatted(TEST_CLIENT_NAME, TEST_CLIENT);
         httpClient.buildPutRequest(getClientPath(TEST_CLIENT))
                   .entity(data)
                   .executeAndConsume(new StringHandler(),
@@ -1359,17 +1366,18 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCannotUpdateClientWithExistingClientId() {
-        String data = ("{\n" + //
-                "   \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"%s\",\n" + //
-                "   \"name\": \"%s\",\n" + //
-                "   \"isEnabled\": false,\n" + //
-                "   \"secret\": \"4321\",\n" + //
-                "   \"isAutoGrant\": false,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "      \"nuxeo://authorization\"\n" + //
-                "   ]\n" + //
-                "}").formatted(TEST_CLIENT_2, TEST_CLIENT_NAME_2);
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "%s",
+                  "name": "%s",
+                  "isEnabled": false,
+                  "secret": "4321",
+                  "isAutoGrant": false,
+                  "redirectURIs": [
+                    "nuxeo://authorization"
+                  ]
+                }""".formatted(TEST_CLIENT_2, TEST_CLIENT_NAME_2);
         String responseError = createResponseError(String.format("Client with id '%s' already exists", TEST_CLIENT_2),
                 SC_BAD_REQUEST);
         httpClient.buildPutRequest(getClientPath(TEST_CLIENT))
@@ -1384,17 +1392,18 @@ public class OAuth2ObjectTest {
      */
     @Test
     public void iCanUpdateClient() {
-        String data = "{\n" + //
-                "   \"entity-type\": \"oauth2Client\",\n" + //
-                "   \"id\": \"nuxeo-client-2\",\n" + //
-                "   \"name\": \"Nuxeo Client 207\",\n" + //
-                "   \"isEnabled\": false,\n" + //
-                "   \"secret\": \"4321\",\n" + //
-                "   \"isAutoGrant\": false,\n" + //
-                "   \"redirectURIs\": [\n" + //
-                "      \"nuxeo://authorization\"\n" + //
-                "   ]\n" + //
-                "}";
+        String data = """
+                {
+                  "entity-type": "oauth2Client",
+                  "id": "nuxeo-client-2",
+                  "name": "Nuxeo Client 207",
+                  "isEnabled": false,
+                  "secret": "4321",
+                  "isAutoGrant": false,
+                  "redirectURIs": [
+                    "nuxeo://authorization"
+                  ]
+                }""";
         httpClient.buildPutRequest(getClientPath(TEST_CLIENT))
                   .entity(data)
                   .executeAndConsume(new StringHandler(),

@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.el;
 
-import javax.el.ELContext;
+import jakarta.el.ELContext;
 
 /**
  * Service providing access to EL-related functions.

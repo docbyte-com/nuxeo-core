@@ -53,10 +53,6 @@ public class KafkaConfigDescriptor implements Descriptor {
     @XNode("@name")
     public String name;
 
-    @Deprecated
-    @XNode("@zkServers")
-    public String zkServers;
-
     @XNode("@topicPrefix")
     public String topicPrefix;
 

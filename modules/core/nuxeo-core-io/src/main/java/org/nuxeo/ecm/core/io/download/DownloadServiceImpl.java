@@ -19,8 +19,10 @@
  */
 package org.nuxeo.ecm.core.io.download;
 
+import static java.lang.Boolean.TRUE;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
+import static org.nuxeo.ecm.core.io.download.DownloadHelper.INLINE;
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
 import java.io.File;
@@ -50,8 +52,9 @@ import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Base64;
@@ -75,7 +78,6 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolderAdapterService;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
-import org.nuxeo.ecm.core.api.impl.blob.AsyncBlob;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
@@ -125,7 +127,7 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
     private static final String MD5 = "MD5";
 
     protected enum Action {
-        DOWNLOAD, DOWNLOAD_FROM_DOC, INFO, BLOBSTATUS
+        DOWNLOAD, DOWNLOAD_FROM_DOC, INFO
     }
 
     protected ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
@@ -261,7 +263,6 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
             case NXDOWNLOADINFO -> Pair.of(downloadPath, Action.INFO);
             case NXFILE -> Pair.of(downloadPath, Action.DOWNLOAD_FROM_DOC);
             case NXBIGBLOB -> Pair.of(downloadPath, Action.DOWNLOAD);
-            case NXBLOBSTATUS -> Pair.of(downloadPath, Action.BLOBSTATUS);
             default -> null;
         };
         // @formatter:on
@@ -307,7 +308,6 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
             case INFO -> handleDownload(req, resp, downloadPath, baseUrl, true);
             case DOWNLOAD_FROM_DOC -> handleDownload(req, resp, downloadPath, baseUrl, false);
             case DOWNLOAD -> downloadBlob(req, resp, downloadPath, "download");
-            case BLOBSTATUS -> downloadBlobStatus(req, resp, downloadPath, "download");
             default -> resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Invalid URL syntax");
         }
         // @formatter:on
@@ -389,19 +389,8 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
     }
 
     @Override
-    public void downloadBlobStatus(HttpServletRequest request, HttpServletResponse response, String key, String reason)
-            throws IOException {
-        downloadBlob(request, response, key, reason, true);
-    }
-
-    @Override
     public void downloadBlob(HttpServletRequest request, HttpServletResponse response, String key, String reason)
             throws IOException {
-        downloadBlob(request, response, key, reason, false);
-    }
-
-    protected void downloadBlob(HttpServletRequest request, HttpServletResponse response, String key, String reason,
-            boolean status) throws IOException {
         TransientStore ts = Framework.getService(TransientStoreService.class).getStore(TRANSIENT_STORE_STORE_NAME);
         if (!ts.exists(key)) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
@@ -421,22 +410,16 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
             return;
         }
         boolean isCompleted = ts.isCompleted(key);
-        if (!status && !isCompleted) {
+        if (!isCompleted) {
             response.setStatus(HttpServletResponse.SC_ACCEPTED);
             return;
         }
-        Blob blob;
-        if (status) {
-            Serializable progress = ts.getParameter(key, TRANSIENT_STORE_PARAM_PROGRESS);
-            blob = new AsyncBlob(key, isCompleted, progress != null ? (int) progress : -1);
-        } else {
-            blob = blobs.get(0);
-        }
+        var blob = blobs.get(0);
         try {
             DownloadContext context = DownloadContext.builder(request, response).blob(blob).reason(reason).build();
             downloadBlob(context);
         } finally {
-            if (!status && !isHead(request)) {
+            if (!isHead(request)) {
                 ts.remove(key);
             }
         }
@@ -559,6 +542,9 @@ public class DownloadServiceImpl extends DefaultComponent implements DownloadSer
         }
 
         // check Blob Manager external download link
+        if (TRUE.equals(inline)) {
+            request.setAttribute(INLINE, "true");
+        }
         URI uri = redirectResolver.getURI(blob, UsageHint.DOWNLOAD, request);
         if (uri != null) {
             try {

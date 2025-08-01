@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 
 /**
  * Exception thrown when access to a document is denied.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.migrator;
 
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.ONE_MINUTE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
@@ -32,7 +31,7 @@ import static org.nuxeo.ecm.core.migrator.AbstractBulkMigrator.PARAM_MIGRATION_S
 import java.time.Duration;
 import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -100,7 +99,8 @@ public class TestBulkMigrator {
         migrationService.runStep(DummyBulkMigrator.MIGRATION_ID, "before-to-after");
 
         // await its end
-        await().atMost(ONE_MINUTE).until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
+        await().atMost(Duration.ofMinutes(1))
+               .until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
 
         // assert after state (ie: there are no documents with dc:title = 'Content to migrate')
         var afterState = migrationService.probeAndSetState(DummyBulkMigrator.MIGRATION_ID);
@@ -132,7 +132,8 @@ public class TestBulkMigrator {
         migrationService.runStep(DummyBulkMigrator.MIGRATION_ID, "before-to-after");
 
         // Await its end
-        await().atMost(ONE_MINUTE).until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
+        await().atMost(Duration.ofMinutes(1))
+               .until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
         // assert after state (ie: there are no documents with dc:title = 'Content to migrate')
         var afterState = migrationService.probeAndSetState(DummyBulkMigrator.MIGRATION_ID);
         assertEquals(DummyBulkMigrator.MIGRATION_AFTER_STATE, afterState);
@@ -144,7 +145,7 @@ public class TestBulkMigrator {
         migrationService.probeAndRun(DummyBulkMigrator.MIGRATION_ID);
 
         // retrieve the bulk status for migration action, that will assert the migration is running on top of BAF
-        var bulkStatus = await().atMost(ONE_MINUTE)
+        var bulkStatus = await().atMost(Duration.ofMinutes(1))
                                 .until(() -> bulkService.getStatuses(SYSTEM_USERNAME)
                                                         .stream()
                                                         .filter(s -> MigrationAction.ACTION_NAME.equals(s.getAction()))
@@ -158,7 +159,8 @@ public class TestBulkMigrator {
         assertEquals("before-to-after", bulkCommand.getParam(PARAM_MIGRATION_STEP));
 
         // await its end
-        await().atMost(ONE_MINUTE).until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
+        await().atMost(Duration.ofMinutes(1))
+               .until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
 
         // refresh the status
         bulkStatus = bulkService.getStatus(bulkStatus.getId());
@@ -180,7 +182,8 @@ public class TestBulkMigrator {
         assertNotNull(processor);
 
         // await its end
-        await().atMost(ONE_MINUTE).until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
+        await().atMost(Duration.ofMinutes(1))
+               .until(() -> !migrationService.getStatus(DummyBulkMigrator.MIGRATION_ID).isRunning());
 
         // assert it is terminated
         assertTrue(processor.isTerminated());
@@ -193,7 +196,7 @@ public class TestBulkMigrator {
         assertTrue(processor == null || processor.isTerminated());
         migrationService.probeAndRun(DummyFailingBulkMigrator.MIGRATION_ID);
         // await its failure
-        await().dontCatchUncaughtExceptions().atMost(ONE_MINUTE).until(() -> {
+        await().dontCatchUncaughtExceptions().atMost(Duration.ofMinutes(1)).until(() -> {
             var status = migrationService.getStatus(DummyFailingBulkMigrator.MIGRATION_ID);
             return !status.isRunning() && status.hasError();
         });

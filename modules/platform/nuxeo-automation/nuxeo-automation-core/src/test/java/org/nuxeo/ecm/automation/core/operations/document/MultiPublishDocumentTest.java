@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,14 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import static org.junit.Assert.assertEquals;
 
-import com.google.inject.Inject;
+import java.util.List;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,9 +39,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-
 /**
  * @since 9.1
  */
@@ -51,10 +48,10 @@ import java.util.Arrays;
 public class MultiPublishDocumentTest {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected DocumentModel folder;
 
@@ -115,8 +112,7 @@ public class MultiPublishDocumentTest {
         ctx.setInput(fileToPublish);
         OperationChain chain = new OperationChain("multiPublishDocumentWithArrayInput");
         chain.add(FetchContextDocument.ID);
-        chain.add(MultiPublishDocument.ID).set("target",
-                new ArrayList<>(Arrays.asList(section.getId(), section2.getId())));
+        chain.add(MultiPublishDocument.ID).set("target", List.of(section.getId(), section2.getId()));
         service.run(ctx, chain);
 
         assertEquals(1, session.getChildren(section.getRef()).size());

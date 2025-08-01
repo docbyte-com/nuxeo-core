@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.nuxeo.ecm.automation.TypeAdapter;
@@ -34,7 +35,8 @@ public class AdapterKeyedRegistry extends SuperKeyedRegistry<TypeAdapterKey, Typ
 
     protected final Set<Class<?>> blacklist;
 
-    public AdapterKeyedRegistry() {
+    public AdapterKeyedRegistry(Map<? extends TypeAdapterKey, ? extends TypeAdapter> registry) {
+        super(registry);
         blacklist = new HashSet<>();
         blacklist.add(Serializable.class);
         blacklist.add(Cloneable.class);

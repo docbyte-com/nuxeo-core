@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,9 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.directory.mongodb;
 
-import java.io.Serializable;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bson.Document;
@@ -59,7 +48,7 @@ public class MongoDBSerializationHelper {
      * @return the new BSON object
      */
     public static Document fieldMapToBson(String key, Object value) {
-        return fieldMapToBson(Collections.singletonMap(key, value));
+        return org.nuxeo.runtime.mongodb.MongoDBSerializationHelper.fieldMapToBson(key, value);
     }
 
     /**
@@ -69,14 +58,7 @@ public class MongoDBSerializationHelper {
      * @return the new BSON object
      */
     public static Document fieldMapToBson(Map<String, Object> fieldMap) {
-        Document doc = new Document();
-        for (Map.Entry<String, Object> entry : fieldMap.entrySet()) {
-            Object val = valueToBson(entry.getValue());
-            if (val != null) {
-                doc.put(entry.getKey(), val);
-            }
-        }
-        return doc;
+        return org.nuxeo.runtime.mongodb.MongoDBSerializationHelper.fieldMapToBson(fieldMap);
     }
 
     /**
@@ -86,19 +68,7 @@ public class MongoDBSerializationHelper {
      * @return the BSON object
      */
     public static Object valueToBson(Object value) {
-        if (value instanceof Map) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> map = (Map<String, Object>) value;
-            return fieldMapToBson(map);
-        } else if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> values = (List<Object>) value;
-            return listToBson(values);
-        } else if (value instanceof Object[]) {
-            return listToBson(Arrays.asList((Object[]) value));
-        } else {
-            return serializableToBson(value);
-        }
+        return org.nuxeo.runtime.mongodb.MongoDBSerializationHelper.valueToBson(value);
     }
 
     /**
@@ -119,21 +89,6 @@ public class MongoDBSerializationHelper {
         }
     }
 
-    protected static List<Object> listToBson(List<Object> values) {
-        List<Object> objects = new ArrayList<>(values.size());
-        for (Object value : values) {
-            objects.add(valueToBson(value));
-        }
-        return objects;
-    }
-
-    protected static Object serializableToBson(Object value) {
-        if (value instanceof Calendar) {
-            return ((Calendar) value).getTime();
-        }
-        return value;
-    }
-
     /**
      * Create a map from a BSON object
      *
@@ -141,68 +96,6 @@ public class MongoDBSerializationHelper {
      * @return the new map
      */
     public static Map<String, Object> bsonToFieldMap(Document doc) {
-        Map<String, Object> fieldMap = new HashMap<>();
-        for (String key : doc.keySet()) {
-            if (MONGODB_ID.equals(key)) {
-                // skip native id
-                continue;
-            }
-            fieldMap.put(key, bsonToValue(doc.get(key)));
-        }
-        return fieldMap;
+        return org.nuxeo.runtime.mongodb.MongoDBSerializationHelper.bsonToFieldMap(doc);
     }
-
-    protected static Serializable bsonToValue(Object value) {
-        if (value instanceof List) {
-            @SuppressWarnings("unchecked")
-            List<Object> list = (List<Object>) value;
-            if (list.isEmpty()) {
-                return null;
-            } else {
-                Class<?> klass = Object.class;
-                for (Object o : list) {
-                    if (o != null) {
-                        klass = scalarToSerializableClass(o.getClass());
-                        break;
-                    }
-                }
-                if (Document.class.isAssignableFrom(klass)) {
-                    List<Serializable> l = new ArrayList<>(list.size());
-                    for (Object o : list) {
-                        l.add((Serializable) bsonToFieldMap((Document) o));
-                    }
-                    return (Serializable) l;
-                } else {
-                    // turn the list into a properly-typed array
-                    Object[] array = (Object[]) Array.newInstance(klass, list.size());
-                    int i = 0;
-                    for (Object o : list) {
-                        array[i++] = scalarToSerializable(o);
-                    }
-                    return array;
-                }
-            }
-        } else if (value instanceof Document) {
-            return (Serializable) bsonToFieldMap((Document) value);
-        } else {
-            return scalarToSerializable(value);
-        }
-    }
-
-    protected static Class<?> scalarToSerializableClass(Class<?> klass) {
-        if (Date.class.isAssignableFrom(klass)) {
-            return Calendar.class;
-        }
-        return klass;
-    }
-
-    protected static Serializable scalarToSerializable(Object value) {
-        if (value instanceof Date) {
-            Calendar cal = Calendar.getInstance();
-            cal.setTime((Date) value);
-            return cal;
-        }
-        return (Serializable) value;
-    }
-
 }

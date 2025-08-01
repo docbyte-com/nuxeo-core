@@ -4,10 +4,11 @@
   <require>org.nuxeo.ecm.core.bulk</require>
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="recomputeViews" inputStream="bulk/recomputeViews" bucketSize="10" batchSize="1" httpEnabled="false"
+    <action name="recomputeViews" defaultScroller="repository" inputStream="bulk/recomputeViews" bucketSize="10"
+      batchSize="1" httpEnabled="false"
       validationClass="org.nuxeo.ecm.platform.picture.recompute.RecomputeViewsActionValidation" />
-    <action name="recomputeViewsBackground" inputStream="bulk/recomputeViewsBackground" bucketSize="10" batchSize="1"
-      httpEnabled="false" enabled="${nuxeo.bulk.action.recomputeViewsBackground.enabled:=false}"
+    <action name="recomputeViewsBackground" defaultScroller="repository" inputStream="bulk/recomputeViewsBackground"
+      bucketSize="10" batchSize="1" httpEnabled="false" enabled="${nuxeo.bulk.action.recomputeViewsBackground.enabled:=false}"
       validationClass="org.nuxeo.ecm.platform.picture.recompute.RecomputeViewsActionValidation" />
   </extension>
 

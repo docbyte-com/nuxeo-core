@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -597,9 +597,8 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
             if (res instanceof List<?>) {
                 res = ((List<?>) res).toArray();
             }
-            if (res instanceof Object[]) {
+            if (res instanceof Object[] list) {
                 // try to convert to String[]
-                Object[] list = (Object[]) res;
                 String[] tmp = new String[list.length];
                 try {
                     System.arraycopy(list, 0, tmp, 0, list.length);
@@ -714,18 +713,14 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
         try (OperationContext context = getExecutionContext(getSession())) {
             Expression expr = Scripting.newExpression(taskDueDateExpr);
             Object res = expr.eval(context);
-            if (res instanceof DateWrapper) {
-                return ((DateWrapper) res).getDate();
-            } else if (res instanceof Date) {
-                return (Date) res;
-            } else if (res instanceof Calendar) {
-                return ((Calendar) res).getTime();
-            } else if (res instanceof String) {
-                return DateParser.parseW3CDateTime((String) res);
-            } else {
-                throw new DocumentRouteException(
+            return switch (res) {
+                case DateWrapper dateWrapper -> dateWrapper.getDate();
+                case Date date -> date;
+                case Calendar calendar -> calendar.getTime();
+                case String s -> DateParser.parseW3CDateTime(s);
+                case null, default -> throw new DocumentRouteException(
                         "The following expression can not be evaluated to a date: " + taskDueDateExpr);
-            }
+            };
         } catch (DocumentRouteException e) {
             throw e;
         } catch (RuntimeException e) {
@@ -788,8 +783,7 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
         service.startInstance(subRouteInstanceId, docs, map, getSession());
         // return the sub-route
         // subRouteInstance.refresh();
-        DocumentRoute subRoute = subRouteInstance.getAdapter(DocumentRoute.class);
-        return subRoute;
+        return subRouteInstance.getAdapter(DocumentRoute.class);
     }
 
     protected Map<String, Serializable> getSubRouteInitialVariables() {
@@ -811,6 +805,7 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
     /*
      * Code similar to the one in OperationChainContribution.
      */
+    @SuppressWarnings("unchecked")
     protected <T> T valueOrExpression(Class<T> klass, String v, OperationContext context, String kind)
             throws DocumentRouteException {
         if (!v.startsWith(EXPR_PREFIX)) {
@@ -823,7 +818,7 @@ public class GraphNodeImpl extends DocumentRouteElementImpl implements GraphNode
         } else {
             expr = Scripting.newExpression(v);
         }
-        Object res = null;
+        Object res;
         try {
             res = expr.eval(context);
             // stupid eval() method throws generic Exception

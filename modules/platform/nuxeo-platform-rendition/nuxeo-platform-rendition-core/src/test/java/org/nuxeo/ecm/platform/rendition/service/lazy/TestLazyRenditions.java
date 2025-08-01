@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  * Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.rendition.service.lazy;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -28,6 +27,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
 
+import jakarta.inject.Inject;
+
 import org.apache.commons.io.IOUtils;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -35,6 +36,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.event.EventService;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
@@ -46,25 +48,22 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
-import com.google.inject.Inject;
-
-@RunWith(FeaturesRunner.class)
-@Features({ RenditionFeature.class, TransientStoreFeature.class })
-@Deploy("org.nuxeo.ecm.platform.rendition.core:test-lazy-rendition-contrib.xml")
 /**
  * Check that LazyRendition work via Nuxeo native API
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
+@RunWith(FeaturesRunner.class)
+@Features({ RenditionFeature.class, TransientStoreFeature.class })
+@Deploy("org.nuxeo.ecm.platform.rendition.core:test-lazy-rendition-contrib.xml")
 public class TestLazyRenditions {
 
     @Inject
-    RenditionService rs;
+    protected RenditionService rs;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @AfterClass
     public static void cleanup() throws Exception {

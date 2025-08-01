@@ -61,6 +61,8 @@ public abstract class AbstractMetricsReporter implements MetricsReporter {
 
     public static final String DEFAULT_SAMPLER_PROB = "0.1";
 
+    public static final String NUXEO_URL_PROP = "nuxeo.url";
+
     protected Map<String, String> options;
 
     protected long pollInterval;
@@ -103,7 +105,7 @@ public abstract class AbstractMetricsReporter implements MetricsReporter {
 
     protected String getHostnameFromNuxeoUrl() {
         try {
-            String url = Framework.getProperty("nuxeo.url");
+            String url = Framework.getProperty(NUXEO_URL_PROP);
             if (isBlank(url)) {
                 return "";
             }

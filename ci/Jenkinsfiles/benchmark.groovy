@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.32"
+library identifier: "platform-ci-shared-library@v0.0.53"
 
 boolean isTriggeredByCron() {
   return currentBuild.getBuildCauses('org.jenkinsci.plugins.parameterizedscheduler.ParameterizedTimerTriggerCause')
@@ -64,7 +64,7 @@ void gatling(String parameters) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-benchmark-lts-2023'
+    label 'jenkins-nuxeo-benchmark-lts-2025'
   }
   options {
     timeout(time: 12, unit: 'HOURS')
@@ -90,7 +90,6 @@ pipeline {
     BENCHMARK_NAMESPACE = "${CURRENT_NAMESPACE}-benchmark"
     SERVICE_TAG = "benchmark-${BUILD_NUMBER}"
     BENCHMARK_NB_DOCS = '100000'
-    HELMFILE_COMMAND = "helmfile --file ci/helm/helmfile.yaml --helm-binary /usr/bin/helm3"
     MAVEN_CLI_ARGS = '-B -nsu -P-nexus,nexus-private,bench -Dnuxeo.bench.itests=false'
     MAVEN_OPTS = "$MAVEN_OPTS -Xms2g -Xmx2g -XX:+TieredCompilation -XX:TieredStopAtLevel=1"
     NUXEO_DOCKER_IMAGE = "${NUXEO_DOCKER_IMAGE_WITH_VERSION.replaceAll(':.*', '')}"
@@ -198,7 +197,7 @@ pipeline {
       environment {
         GAT_REPORT_ARTIFACT_GROUP = 'org.nuxeo.tools'
         GAT_REPORT_ARTIFACT_ID = 'gatling-report'
-        GAT_REPORT_ARTIFACT_VERSION = '6.1'
+        GAT_REPORT_ARTIFACT_VERSION = '6.3'
         GAT_REPORT_ARTIFACT_TYPE = 'jar'
         GAT_REPORT_ARTIFACT_CLASSIFIER = 'capsule-fat'
         GAT_REPORT_ARTIFACT = "${GAT_REPORT_ARTIFACT_ID}-${GAT_REPORT_ARTIFACT_VERSION}-${GAT_REPORT_ARTIFACT_CLASSIFIER}.${GAT_REPORT_ARTIFACT_TYPE}"
@@ -324,9 +323,8 @@ pipeline {
             nxGit.cloneRepository(name: "${BENCH_SITE_REPO}", branch: 'master')
             dir("${BENCH_SITE_REPO}") {
               // configure git credentials & master branch
+              nxGit.setupCredentials()
               sh """
-                jx step git credentials
-                git config credential.helper store
                 git checkout master
                 git branch --set-upstream-to=origin/master master
               """

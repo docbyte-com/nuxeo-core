@@ -15,7 +15,6 @@ Nuxeo-Component: OSGI-INF/opencmis-contrib.xml,
  OSGI-INF/cmis-versioning-contrib.xml
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Import-Package: javax.resource,
- javax.servlet,
  org.antlr.runtime,
  org.antlr.runtime.tree,
  org.apache.chemistry.opencmis.client.api,

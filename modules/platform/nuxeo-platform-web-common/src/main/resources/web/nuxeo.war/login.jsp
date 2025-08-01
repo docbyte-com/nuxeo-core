@@ -2,14 +2,14 @@
 <!-- Nuxeo Enterprise Platform -->
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page language="java"%>
+<%@ page import="java.time.Year"%>
 <%@ page import="java.util.List"%>
 <%@ page import="java.util.Locale"%>
+<%@ page import="java.util.stream.Stream"%>
 <%@ page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page import="org.apache.commons.lang3.StringEscapeUtils"%>
-<%@ page import="org.joda.time.DateTime"%>
 <%@ page import="org.nuxeo.ecm.core.api.repository.RepositoryManager"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper"%>
-<%@ page import="org.nuxeo.ecm.platform.web.common.MobileBannerHelper"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.service.LoginProviderLink"%>
 <%@ page import="org.nuxeo.ecm.platform.ui.web.auth.service.LoginScreenConfig"%>
@@ -25,8 +25,6 @@
 <%
 String productName = Framework.getProperty(Environment.PRODUCT_NAME);
 String productVersion = Framework.getProperty(Environment.PRODUCT_VERSION);
-String testerName = Framework.getProperty("org.nuxeo.ecm.tester.name");
-boolean isTesting = "Nuxeo-Selenium-Tester".equals(testerName);
 String context = request.getContextPath();
 
 HttpSession httpSession = request.getSession(false);
@@ -37,6 +35,7 @@ if (httpSession!=null && httpSession.getAttribute(NXAuthConstants.USERIDENT_KEY)
 Locale locale = request.getLocale();
 String selectedLanguage = locale.getLanguage();
 selectedLanguage = Framework.getService(LocaleProvider.class).getLocaleWithDefault(selectedLanguage).getLanguage();
+String dir = Stream.of("ar", "he", "fa", "ur").anyMatch(selectedLanguage::startsWith) ? "rtl" : "ltr";
 
 boolean maintenanceMode = AdminStatusHelper.isInstanceInMaintenanceMode();
 String maintenanceMessage = AdminStatusHelper.getMaintenanceMessage();
@@ -62,16 +61,15 @@ String logoWidth = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoWid
 String logoHeight = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoHeight(), "22");
 String logoAlt = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoAlt(), "Nuxeo");
 String logoUrl = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoUrl(), context + "/img/login_logo.png");
-String currentYear = new DateTime().toString("Y");
+String currentYear = Integer.toString(Year.now().getValue());
 
 boolean hasVideos = screenConfig.hasVideos();
 String muted = screenConfig.getVideoMuted() ? "muted " : "";
 String loop = screenConfig.getVideoLoop() ? "loop " : "";
 
-boolean displayMobileBanner = LoginScreenHelper.getDisplayMobileBanner(request);
 %>
 
-<html class="no-js" lang="<%= selectedLanguage %>">
+<html class="no-js" lang="<%= selectedLanguage %>" dir="<%= dir %>">
 <%
 if (selectedLanguage != null) { %>
 <fmt:setLocale value="<%= selectedLanguage %>"/>
@@ -88,12 +86,6 @@ if (selectedLanguage != null) { %>
 <link rel="shortcut icon" type="image/x-icon" href="<%=context%>/icons/favicon.ico" />
 <script type="text/javascript" src="<%=context%>/scripts/detect_timezone.js"></script>
 <script type="text/javascript" src="<%=context%>/scripts/nxtimezone.js"></script>
-<% if (displayMobileBanner) { %>
-<script type="text/javascript" src="<%=context%>/scripts/mobile-banner.js"></script>
-<% } %>
-<script type="text/javascript">
-  nxtz.resetTimeZoneCookieIfNotSet();
-</script>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -227,10 +219,6 @@ if (selectedLanguage != null) { %>
     margin: 0 56px;
     max-width: <%=loginBoxWidth%>;
     width: 100%;
-  }
-
-  .mobile-apps {
-    display: none;
   }
 
   .main {
@@ -392,50 +380,6 @@ if (selectedLanguage != null) { %>
     width: 100%;
   }
 
-  <% if (displayMobileBanner) { %>
-  /* =Mobile Banner */
-  #mobileBanner {
-    /* set to block to display the mobile banner */
-    display: none;
-    margin-top: -1rem;
-    padding: 0 0 0.6rem;
-    text-align: center;
-  }
-
-  a.mobileAppLink {
-    -webkit-appearance: none;
-       -moz-appearance: none;
-            appearance: none;
-    background-color: #fff;
-    border: 1px solid #000;
-    border-radius: 4px;
-    color: #000;
-    cursor: pointer;
-    display: inline-block;
-    font-weight: 600;
-    letter-spacing: 0.1px;
-    line-height: 1.5;
-    padding: 0.375rem 1.25rem;
-    text-decoration: none;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
-  }
-  a.mobileAppLink:hover {
-    background-color: #bcbfbf;
-    border-color: #4a4a4a;
-  }
-  
-  <% } %>
-
-  .show-for-ios,
-  .show-for-android {
-    display: none;
-  }
-
-  .is-ios .show-for-ios,
-  .is-android .show-for-android {
-    display: inline;
-  }
-
   /* Mobile devices */
   @media all and (max-width: 850px) {
     body {
@@ -446,13 +390,6 @@ if (selectedLanguage != null) { %>
 
     .container {
       background: none;
-    }
-
-    .mobile-apps {
-      align-items: center;
-      display: flex;
-      flex: 1 1 auto;
-      justify-content: center;
     }
 
     .news,
@@ -469,7 +406,7 @@ if (selectedLanguage != null) { %>
 </head>
 
 <body>
-<% if (hasVideos && !isTesting) { %>
+<% if (hasVideos) { %>
 <video autoplay <%= muted + loop %> preload="auto" poster="<%=backgroundPath%>" id="bgvid">
   <% for (LoginVideo video : screenConfig.getVideos()) { %>
   <source src="<%= video.getSrc() %>" type="<%= video.getType() %>">
@@ -556,26 +493,14 @@ if (selectedLanguage != null) { %>
         <%}%>
       </form>
     </div>
-    <% if (showNews && !isTesting) { %>
+    <% if (showNews) { %>
     <div class="news">
       <iframe id="news" class="news-container" style="visibility: hidden"
-        onload="javascript:this.style.visibility='visible';"
         data-src="<%=iframeUrl%>"></iframe>
     </div>
+
     <% } %>
   </section>
-  <div class="mobile-apps">
-    <div>
-      <a href="https://itunes.apple.com/app/nuxeo/id1103802613" target="_blank" rel="noopener" class="show-for-ios">
-        <img class="app-icons" src="https://www.nuxeo.com/assets/imgs/icons/app-store.svg" alt="Apple App Store"
-          height="45" />
-      </a>
-      <a href="https://play.google.com/store/apps/details?id=com.nuxeomobile" target="_blank" rel="noopener" class="show-for-android">
-        <img class="app-icons" src="https://www.nuxeo.com/assets/imgs/icons/google-play-badge.png" alt="Google Play"
-          height="45" />
-      </a>
-    </div>
-  </div>
   <footer>
     <fmt:message bundle="${messages}" key="label.login.copyright">
       <fmt:param value="<%=currentYear %>" />
@@ -585,93 +510,11 @@ if (selectedLanguage != null) { %>
     <%=productVersion%>
   </footer>
 </div>
-<% if (displayMobileBanner) {
-    String androidApplicationURL = MobileBannerHelper.getURLForAndroidApplication(request);
-    String iOSApplicationURL = MobileBannerHelper.getURLForIOSApplication(request);
-    String appStoreURL = MobileBannerHelper.getAppStoreURL();
-    RepositoryManager repositoryManager = Framework.getService(RepositoryManager.class);
-    String defaultRepositoryName = repositoryManager.getDefaultRepositoryName();
 
-    String requestedUrlFragment = null;
-    Cookie[] cookies = request.getCookies();
-    if (cookies != null) {
-        for (Cookie cookie : cookies) {
-            if (NXAuthConstants.START_PAGE_FRAGMENT_KEY.equals(cookie.getName())) {
-                requestedUrlFragment = StringEscapeUtils.escapeEcmaScript(cookie.getValue());
-            }
-        }
-    }
-%>
-<div id="mobileBanner">
-  <a id="androidAppLink" class="mobileAppLink" href="<%=androidApplicationURL%>">
-    <fmt:message bundle="${messages}" key="label.mobile.openInApp" />
-  </a>
-  <a id="iOSAppLink" class="mobileAppLink"
-    data-action="<%=iOSApplicationURL%>"
-    onclick="nuxeo.mobile.openIOSAppOrAppStore(this.getAttribute('data-action'), '<%=appStoreURL%>');">
-    <fmt:message bundle="${messages}" key="label.mobile.openInApp" />
-  </a>
-</div>
-
-<script type="text/javascript">
-  // Build mobile app links if the mobile banner is displayed
-  <% if (StringUtils.isNotBlank(requestedUrlFragment)) { %>
-
-  var urlFragment = decodeURIComponent('<%=requestedUrlFragment%>');
-  var docPart;
-  if (urlFragment.startsWith('!/browse')) {
-    // no repository name for 'browse' URL
-    docPart = urlFragment.replace('!/browse/', '<%=defaultRepositoryName%>/path/');
-  } else {
-    // !/doc/ URL
-    var parts = urlFragment.split('/');
-    if (parts.length === 3) {
-      // no server in URL
-      docPart = "<%=defaultRepositoryName%>/id/" + parts[2];
-    } else if (parts.length === 4) {
-      docPart = parts[2] + "/id/" + parts[3];
-    }
-  }
-
-  if (docPart) {
-    var androidAppLink = document.getElementById('androidAppLink');
-    var iOSAppLink = document.getElementById('iOSAppLink');
-    androidAppLink.href += docPart;
-    iOSAppLink.setAttribute('data-action', iOSAppLink.getAttribute('data-action') + docPart);
-  }
-
-  nuxeo.mobile.displayMobileBanner('mobileBanner', 'block', 'androidAppLink', 'iOSAppLink');
-  <% } %>
-</script>
+<script type="text/javascript" src="<%=context%>/scripts/username-focus.js"></script>
+<% if (showNews) { %>
+<script type="text/javascript" src="<%=context%>/scripts/news-iframe.js"></script>
 <% } %>
-
-<script type="text/javascript">
-  document.getElementById('username').focus();
-
-  <% if (showNews && !isTesting) { %>
-  // Don't load iframe on mobile devices
-  if (window.matchMedia("(min-device-width: 850px)").matches) {
-    newsIframe = document.getElementById('news');
-    if (newsIframe) {
-      newsIframe.src = newsIframe.getAttribute('data-src');
-    }
-  }
-  <% } %>
-
-  <% if (displayMobileBanner) { %>
-  if (window.matchMedia("(max-device-width: 850px)").matches) {
-    // Add classes for app stores
-    var htmlClasses = [];
-    if (/iPhone|iPad|iPod/.test(window.navigator.userAgent)) {
-      htmlClasses.push('is-ios');
-    }
-    if (/Android/.test(window.navigator.userAgent)) {
-      htmlClasses.push('is-android');
-    }
-    document.documentElement.className = htmlClasses.join(' ');
-  }
-  <% } %>
-</script>
 
 <!--   Current User = <%=request.getRemoteUser()%> -->
 

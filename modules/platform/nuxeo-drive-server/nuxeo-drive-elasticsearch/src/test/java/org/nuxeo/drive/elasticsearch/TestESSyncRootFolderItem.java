@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,13 +42,13 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * Tests the {@link ESSyncRootFolderItem}.
@@ -60,8 +56,9 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @since 8.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ NuxeoDriveFeature.class, RepositoryElasticSearchFeature.class })
+@Features({ NuxeoDriveFeature.class, CoreSearchFeature.class })
 @Deploy("org.nuxeo.drive.elasticsearch:OSGI-INF/nuxeodrive-elasticsearch-adapter-contrib.xml")
+@ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class, cause = "RepositorySearchClient can not order by ecm:path")
 public class TestESSyncRootFolderItem {
 
     protected static final String DEFAULT_FILE_SYSTEM_ITEM_ID_PREFIX = "defaultFileSystemItemFactory#test#";
@@ -72,50 +69,36 @@ public class TestESSyncRootFolderItem {
     protected CoreSession session;
 
     @Inject
+    protected TransactionalFeature txFeature;
+
+    @Inject
     protected NuxeoDriveManager nuxeoDriveManager;
 
     @Inject
     protected FileSystemItemAdapterService fileSystemItemAdapterService;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
-
-    @Inject
-    protected WorkManager workManager;
 
     protected DocumentModel syncRootFolder;
 
     protected ESSyncRootFolderItemFactory esSyncRootFolderItemFactory;
 
     @Before
-    public void createTestDocs() throws InterruptedException, ExecutionException, TimeoutException {
-
-        // Drop and initialize ES indexes
-        esa.initIndexes(true);
-
+    public void createTestDocs() {
         // Register a sync root
         syncRootFolder = session.createDocumentModel("/", "syncRoot", FOLDER_TYPE);
         syncRootFolder = session.createDocument(syncRootFolder);
         nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), syncRootFolder, session);
+        txFeature.nextTransaction();
 
         // Build a document tree under the sync root with:
         // - 4 levels
         // - 5 files per folder
         // - 2 folders per folder
         // => 105 documents
-        buildAndIndexTree(syncRootFolder.getPathAsString(), 4, 5, 2);
+        buildTree(syncRootFolder.getPathAsString(), 4, 1, 5, 2);
+        txFeature.nextTransaction();
 
         esSyncRootFolderItemFactory = (ESSyncRootFolderItemFactory) ((FileSystemItemAdapterServiceImpl) fileSystemItemAdapterService).getFileSystemItemFactory(
                 "defaultSyncRootFolderItemFactory");
-    }
-
-    protected void buildAndIndexTree(String parentPath, int maxLevel, int fileCount, int folderCount)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        startTransaction();
-        buildTree(parentPath, maxLevel, 1, fileCount, folderCount);
-        TransactionHelper.commitOrRollbackTransaction();
-        waitForCompletion();
-        startTransaction();
     }
 
     protected void buildTree(String parentPath, int maxLevel, int level, int fileCount, int folderCount) {
@@ -138,19 +121,6 @@ public class TestESSyncRootFolderItem {
             session.createDocument(folder);
             buildTree(parentPath + "/" + name, maxLevel, level + 1, fileCount, folderCount);
         }
-    }
-
-    protected void startTransaction() {
-        if (!TransactionHelper.isTransactionActive()) {
-            TransactionHelper.startTransaction();
-        }
-        Assert.assertEquals(0, esa.getPendingWorkerCount());
-    }
-
-    public void waitForCompletion() throws InterruptedException, ExecutionException, TimeoutException {
-        workManager.awaitCompletion(20, TimeUnit.SECONDS);
-        esa.prepareWaitForIndexing().get(20, TimeUnit.SECONDS);
-        esa.refresh();
     }
 
     @Test

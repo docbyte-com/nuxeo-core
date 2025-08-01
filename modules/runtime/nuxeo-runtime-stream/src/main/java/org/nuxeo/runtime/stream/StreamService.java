@@ -18,6 +18,7 @@
  */
 package org.nuxeo.runtime.stream;
 
+import java.time.Duration;
 import java.time.Instant;
 
 import org.nuxeo.lib.stream.computation.StreamManager;
@@ -34,8 +35,9 @@ public interface StreamService {
     StreamManager getStreamManager();
 
     /**
-     * Gets a {@link LogManager} corresponding to the config name. The service takes care of closing the manager on
-     * shutdown you should not do it directly.
+     * Gets a {@link LogManager} corresponding to the config name.
+     * <p>
+     * The service takes care of closing the manager on shutdown you should not do it directly.
      *
      * @deprecated since 11.1 just use {@link #getLogManager()}.
      */
@@ -43,7 +45,6 @@ public interface StreamService {
     default LogManager getLogManager(String configName) {
         return getLogManager();
     }
-
 
     /**
      * Gets a {@link StreamManager} that uses a LogManager matching the config name.
@@ -81,6 +82,7 @@ public interface StreamService {
 
     /**
      * Restart the computation thread pool.
+     * <p>
      * Do nothing if the computation thread pool is already started.
      *
      * @since 2021.25
@@ -89,6 +91,7 @@ public interface StreamService {
 
     /**
      * Moving computation position to the end of stream.
+     * <p>
      * The computation thread pool must be stopped using {@link #stopComputation(Name)} before changing its position.
      *
      * @since 2021.25
@@ -97,6 +100,7 @@ public interface StreamService {
 
     /**
      * Moving computation position to the beginning of stream.
+     * <p>
      * The computation thread pool must be stopped using {@link #stopComputation(Name)} before changing its position.
      *
      * @since 2021.25
@@ -105,6 +109,7 @@ public interface StreamService {
 
     /**
      * Moving computation position to a specific offset for a partition.
+     * <p>
      * The computation thread pool must be stopped using {@link #stopComputation(Name)} before changing its position.
      *
      * @since 2021.25
@@ -113,10 +118,18 @@ public interface StreamService {
 
     /**
      * Moving computation position after a date.
+     * <p>
      * The computation thread pool must be stopped using {@link #stopComputation(Name)} before changing its position.
      *
      * @since 2021.25
      */
     boolean setComputationPositionAfterDate(Name computation, Name stream, Instant dateTime);
 
+    /**
+     * Waits for the computation to have no lag, for internal use only.
+     *
+     * @return {@code true} if there's no lag between producer and consumer or {@code false} if timeout is exceeded
+     * @since 2025.0
+     */
+    boolean await(Name computation, Name stream, Duration duration) throws InterruptedException;
 }

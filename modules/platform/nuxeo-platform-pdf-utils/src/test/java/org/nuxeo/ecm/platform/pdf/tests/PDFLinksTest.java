@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-`2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,15 @@
  */
 package org.nuxeo.ecm.platform.pdf.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+
 import java.io.File;
 import java.util.List;
+
+import jakarta.inject.Inject;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
@@ -38,10 +45,6 @@ import org.nuxeo.ecm.platform.pdf.operations.PDFExtractLinksOperation;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import javax.inject.Inject;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
@@ -53,24 +56,24 @@ public class PDFLinksTest {
     private static final String PDF_LINKED_3_LOCAL_PATH = TestUtils.PDF_LINKED_3_PATH.replace("files/", "");
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Test
     public void testLaunchAndRemoteLinks() throws Exception {
         File f = FileUtils.getResourceFileFromContext(TestUtils.PDF_LINKED_1_PATH);
         FileBlob fb = new FileBlob(f);
-        PDFLinks pdfl = new PDFLinks(fb);
-        List<LinkInfo> launchLinks = pdfl.getLaunchLinks();
-        assertEquals(2, launchLinks.size());
-        assertEquals(PDF_LINKED_2_LOCAL_PATH, launchLinks.get(0).getLink());
-        assertEquals(PDF_LINKED_3_LOCAL_PATH, launchLinks.get(1).getLink());
-        List<LinkInfo> remoteLinks = pdfl.getRemoteGoToLinks();
-        assertEquals(1, remoteLinks.size());
-        assertEquals(PDF_LINKED_2_LOCAL_PATH, remoteLinks.get(0).getLink());
-        pdfl.close();
+        try (PDFLinks pdfl = new PDFLinks(fb)) {
+            List<LinkInfo> launchLinks = pdfl.getLaunchLinks();
+            assertEquals(2, launchLinks.size());
+            assertEquals(PDF_LINKED_2_LOCAL_PATH, launchLinks.get(0).getLink());
+            assertEquals(PDF_LINKED_3_LOCAL_PATH, launchLinks.get(1).getLink());
+            List<LinkInfo> remoteLinks = pdfl.getRemoteGoToLinks();
+            assertEquals(1, remoteLinks.size());
+            assertEquals(PDF_LINKED_2_LOCAL_PATH, remoteLinks.get(0).getLink());
+        }
     }
 
     @Test

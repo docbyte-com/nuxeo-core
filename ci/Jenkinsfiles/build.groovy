@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.32"
+library identifier: "platform-ci-shared-library@v0.0.53"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -119,8 +119,7 @@ def buildUnitTestStage(env) {
           //   - in an alternative build directory
           //   - loading some test framework system properties
           def mvnCommand = "mvn ${MAVEN_CLI_ARGS} -rf :nuxeo-core-parent test"
-          mvnCommand += " -Dcustom.environment=${env} -Dcustom.environment.log.dir=target-${env}"
-          mvnCommand += " -Dnuxeo.test.core=${env == 'mongodb' ? 'mongodb' : 'vcs'}"
+          mvnCommand += " -Dcustom.environment=${env}"
 
           if (isDev) {
             // empty file required by the read-project-properties goal of the properties-maven-plugin with the
@@ -129,28 +128,6 @@ def buildUnitTestStage(env) {
 
             executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
           } else {
-            // prepare test framework system properties
-            // prefix sample: nuxeo-lts-pr-48-3-mongodb
-            def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
-            def testBlobProviderPrefix = "$bucketPrefix-test"
-            def otherBlobProviderPrefix = "$bucketPrefix-other"
-            sh """
-              cat ci/mvn/nuxeo-test-${env}.properties \
-                ci/mvn/nuxeo-test-opensearch.properties \
-                ci/mvn/nuxeo-test-s3.properties \
-                ci/mvn/nuxeo-test-gcp.properties \
-                ci/mvn/nuxeo-test-azure.properties \
-                > ci/mvn/nuxeo-test-${env}.properties~gen
-              BUCKET_PREFIX=${bucketPrefix} \
-                TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
-                OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
-                NAMESPACE=${testNamespace} \
-                DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
-                envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
-            """
-
-            def kafkaHost = "${TEST_KAFKA_K8S_OBJECT}.${testNamespace}.${TEST_SERVICE_DOMAIN_SUFFIX}:${TEST_KAFKA_PORT}"
-            mvnCommand += " -Pkafka -Dkafka.bootstrap.servers=${kafkaHost}"
             mvnCommand += " -Dkafka.version=3.4.1"
 
             echo "${env} unit tests: install external services"
@@ -168,6 +145,25 @@ def buildUnitTestStage(env) {
                   "GCP_CREDENTIALS_PATH=/home/jenkins/.config/gcloud/credentials.json",
                   "AZURE_STORAGE_ACCESS_KEY=${azureAccountKey}"
               ]) {
+                // prepare test framework system properties
+                // prefix sample: nuxeo-lts-pr-48-3-mongodb
+                def bucketPrefix = "$GITHUB_REPO-$BRANCH_NAME-$BUILD_NUMBER-${env}".toLowerCase()
+                def testBlobProviderPrefix = "$bucketPrefix-test"
+                def otherBlobProviderPrefix = "$bucketPrefix-other"
+                sh """
+                  cat ci/mvn/nuxeo-test-${env}.properties \
+                    ci/mvn/nuxeo-test-kafka.properties \
+                    ci/mvn/nuxeo-test-opensearch.properties \
+                    ci/mvn/nuxeo-test-s3.properties \
+                    ci/mvn/nuxeo-test-gcp.properties \
+                    ci/mvn/nuxeo-test-azure.properties \
+                    > ci/mvn/nuxeo-test-${env}.properties~gen
+                  BUCKET_PREFIX=${bucketPrefix} \
+                    TEST_BLOB_PROVIDER_PREFIX=${testBlobProviderPrefix} \
+                    OTHER_BLOB_PROVIDER_PREFIX=${otherBlobProviderPrefix} \
+                    envsubst < ci/mvn/nuxeo-test-${env}.properties~gen > ${HOME}/nuxeo-test-${env}.properties
+                """
+                // execute maven command
                 executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
               }
             }
@@ -206,7 +202,7 @@ def auditNuxeo(namespace) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-platform-lts-2023'
+    label 'jenkins-nuxeo-platform-lts-2025'
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
@@ -234,8 +230,9 @@ pipeline {
     DOCKER_TAG = nxUtils.getMajorMovingVersion(version: env.VERSION)
     CHANGE_BRANCH = "${env.CHANGE_BRANCH != null ? env.CHANGE_BRANCH : BRANCH_NAME}"
     CHANGE_TARGET = "${env.CHANGE_TARGET != null ? env.CHANGE_TARGET : BRANCH_NAME}"
+    REFERENCE_BRANCH = nxGitHub.getReferenceBranch()
     GITHUB_REPO = 'nuxeo-lts'
-    AWS_REGION = 'eu-west-3'
+    AWS_REGION = 'us-east-1'
     AWS_ROLE_ARN = 'arn:aws:iam::783725821734:role/nuxeo-s3directupload-role'
     AWS_CREDENTIALS_SECRET = 'aws-credentials'
     AZURE_CREDENTIALS_SECRET = 'azure-credentials'
@@ -302,14 +299,7 @@ pipeline {
       steps {
         container('maven') {
           script {
-            def branch = env.CHANGE_TARGET
-            // retrieve reference branch (ie: 202x) if PR targets another PR
-            if (nxUtils.isPullRequest()) {
-              withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
-                branch = sh(returnStdout: true, script: "gh pr view ${branch} --json baseRefName -q .baseRefName 2>/dev/null || echo '${branch}'")
-              }
-            }
-            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: branch, relativePath: 'nuxeo-patches')
+            nxGit.cloneRepository(name: 'nuxeo-hf-protection', branch: env.REFERENCE_BRANCH, relativePath: 'nuxeo-patches')
           }
           dir('nuxeo-patches') {
             sh './prepare-patches'
@@ -319,20 +309,51 @@ pipeline {
     }
 
     stage('Build') {
-      environment {
-        MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
-        MAVEN_OPTS = "${MAVEN_OPTS} ${nxUtils.isPullRequest() ? '-Xms6g -Xmx6g' : '-Xms3g -Xmx3g'}"
-      }
-      steps {
-        container('maven') {
-          nxWithGitHubStatus(context: 'maven/build', message: 'Build') {
-            echo """
-            ----------------------------------------
-            Compile
-            ----------------------------------------"""
-            echo "MAVEN_OPTS=$MAVEN_OPTS"
-            sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -DskipTests install"
-            sh "mvn ${MAVEN_CLI_ARGS} -f server/pom.xml -DskipTests install"
+      parallel {
+        stage('Compile') {
+          environment {
+            MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} ${nxUtils.isPullRequest() ? '' : '-Pjavadoc -DadditionalJOption=-J-Xmx3g -DadditionalJOption=-J-Xms3g'}"
+            MAVEN_OPTS = "${MAVEN_OPTS} ${nxUtils.isPullRequest() ? '-Xms6g -Xmx6g' : '-Xms3g -Xmx3g'}"
+          }
+          steps {
+            container('maven') {
+              nxWithGitHubStatus(context: 'maven/build', message: 'Build') {
+                echo """
+                ----------------------------------------
+                Compile
+                ----------------------------------------"""
+                echo "MAVEN_OPTS=$MAVEN_OPTS"
+                sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -DskipTests install"
+                sh "mvn ${MAVEN_CLI_ARGS} -f server/pom.xml -DskipTests install"
+              }
+            }
+          }
+        }
+        stage('Formatting check') {
+          when {
+            // if current version is higher than default branch (aka: version in maintenance) run formatting check
+            expression { nxGitHub.getDefaultBranch().toInteger() < env.REFERENCE_BRANCH.toInteger() }
+          }
+          environment {
+            // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
+            MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} --settings /root/.m2/settings.xml -Duser.home=/home/jenkins"
+          }
+          steps {
+            container('maven-mongodb') {
+              warnError(message: 'Formatting check has failed') {
+                nxWithGitHubStatus(context: 'maven/lint', message: 'Lint') {
+                  script {
+                    echo """
+                    ----------------------------------------
+                    Check formatting
+                    ----------------------------------------"""
+                    sh "git fetch origin 2025:origin/2025"
+                    def profiles = 'distrib,docker,ftestsTier5,ftestsTier6,ftestsTier7'
+                    sh "mvn ${MAVEN_CLI_ARGS} -V -T4C -P${profiles} -Dcustom.environment=spotless spotless:check"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -515,29 +536,28 @@ pipeline {
         container('maven') {
           nxWithGitHubStatus(context: 'utests/runtime', message: 'Unit tests - runtime') {
             script {
-              def testNamespace = "${TEST_NAMESPACE_PREFIX}-runtime"
-              def kafkaHost = "${TEST_KAFKA_K8S_OBJECT}.${testNamespace}.${TEST_SERVICE_DOMAIN_SUFFIX}:${TEST_KAFKA_PORT}"
               echo """
                 ----------------------------------------
                 Run runtime unit tests
                 ----------------------------------------"""
               echo 'runtime unit tests: install external services'
-              nxWithHelmfileDeployment(namespace: testNamespace, environment: 'runtimeUnitTests') {
+              nxWithHelmfileDeployment(namespace: "${TEST_NAMESPACE_PREFIX}-runtime", environment: 'runtimeUnitTests') {
                 try {
                   echo 'runtime unit tests: run Maven'
                   echo "MAVEN_OPTS=$MAVEN_OPTS"
+                  sh "envsubst < ci/mvn/nuxeo-test-runtime.properties > ${HOME}/nuxeo-test-runtime.properties"
                   dir('modules/runtime') {
                     retry(2) {
                       sh """
                         mvn ${MAVEN_CLI_ARGS} \
-                          -Pkafka -Dkafka.bootstrap.servers=${kafkaHost} \
+                          -Dcustom.environment=runtime \
                           -Dkafka.version=3.4.1 \
                           install
                       """
                     }
                   }
                 } finally {
-                  junit testResults: '**/target/surefire-reports/*.xml'
+                  junit testResults: '**/target-runtime/surefire-reports/*.xml'
                 }
               }
             }

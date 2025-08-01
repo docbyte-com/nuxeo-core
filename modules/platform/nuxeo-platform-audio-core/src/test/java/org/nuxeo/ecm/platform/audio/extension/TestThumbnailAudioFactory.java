@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
@@ -50,8 +50,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.platform.audio.AudioCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -61,9 +60,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.5
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.audio.core")
-@Deploy("org.nuxeo.ecm.platform.tag")
+@Features(AudioCoreFeature.class)
 public class TestThumbnailAudioFactory {
 
     @Inject
@@ -130,9 +127,11 @@ public class TestThumbnailAudioFactory {
         FrameBodyAPIC frameBody = new FrameBodyAPIC();
         frameBody.setDescription("description");
         if (thumbnailFilePath != null) {
-            frameBody.setImageData(getClass().getResourceAsStream(thumbnailFilePath).readAllBytes());
-            if (thumbnailMimeType != null) {
-                frameBody.setMimeType(thumbnailMimeType);
+            try (var stream = getClass().getResourceAsStream(thumbnailFilePath)) {
+                frameBody.setImageData(stream.readAllBytes());
+                if (thumbnailMimeType != null) {
+                    frameBody.setMimeType(thumbnailMimeType);
+                }
             }
         }
         frame.setBody(frameBody);

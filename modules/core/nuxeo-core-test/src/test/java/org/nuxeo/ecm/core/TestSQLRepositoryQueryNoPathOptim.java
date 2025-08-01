@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,12 @@ package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.Serializable;
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blob;
@@ -36,44 +34,32 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.storage.sql.RepositoryDescriptor;
 import org.nuxeo.ecm.core.storage.sql.coremodel.SQLRepositoryService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.HotDeployer;
 
 /**
  * Test path search without pathOptimizations
  */
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-no-pathoptimizations-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
 public class TestSQLRepositoryQueryNoPathOptim {
-
-    @Inject
-    protected CoreFeature coreFeature;
 
     @Inject
     protected CoreSession session;
 
     @Inject
     protected SQLRepositoryService sqlRepositoryService;
-
-    @Inject
-    protected HotDeployer deployer;
-
-    @Before
-    public void setUp() throws Exception {
-        // cannot be done through @Deploy, because the framework variables
-        // about repository configuration aren't ready yet
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-        deployer.deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-no-pathoptimizations-contrib.xml");
-        RepositoryDescriptor desc = sqlRepositoryService.getRepositoryDescriptor(session.getRepositoryName());
-        assertFalse("Path optim should be disabled", desc.getPathOptimizationsEnabled());
-    }
 
     protected Calendar getCalendar(int year, int month, int day, int hours, int minutes, int seconds) {
         Calendar cal = Calendar.getInstance();
@@ -101,7 +87,7 @@ public class TestSQLRepositoryQueryNoPathOptim {
      *        \- testfile4 (UUID_11) (content UUID_12)
      * </pre>
      */
-    protected void createDocs() throws Exception {
+    protected void createDocs() {
         DocumentModel folder1 = session.createDocumentModel("/", "testfolder1", "Folder");
         folder1.setPropertyValue("dc:title", "testfolder1_Title");
         folder1 = session.createDocument(folder1);
@@ -154,7 +140,13 @@ public class TestSQLRepositoryQueryNoPathOptim {
     }
 
     @Test
-    public void testStartsWith() throws Exception {
+    public void testPathOptimizationsIsDisable() {
+        RepositoryDescriptor desc = sqlRepositoryService.getRepositoryDescriptor(session.getRepositoryName());
+        assertFalse("Path optim should be disabled", desc.getPathOptimizationsEnabled());
+    }
+
+    @Test
+    public void testStartsWith() {
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -186,7 +178,7 @@ public class TestSQLRepositoryQueryNoPathOptim {
     }
 
     @Test
-    public void testStartsWithMove() throws Exception {
+    public void testStartsWithMove() {
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -209,7 +201,7 @@ public class TestSQLRepositoryQueryNoPathOptim {
     }
 
     @Test
-    public void testRemoveChildren() throws Exception {
+    public void testRemoveChildren() {
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -229,7 +221,7 @@ public class TestSQLRepositoryQueryNoPathOptim {
     }
 
     @Test
-    public void testAncestorId() throws Exception {
+    public void testAncestorId() {
         DocumentModelList dml;
         createDocs();
 

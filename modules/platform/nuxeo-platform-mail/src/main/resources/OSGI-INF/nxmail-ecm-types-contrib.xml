@@ -9,19 +9,6 @@
       <bigIcon>/icons/mail_100.png</bigIcon>
       <category>SimpleDocument</category>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>mailMessage</layout>
-        <layout>noLabelFiles</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>mailMessage</layout>
-        <layout>noLabelFiles</layout>
-        <layout>dublincore</layout>
-      </layouts>
-      <!-- files content already on summary page -->
-      <layouts mode="view">
-        <layout>mailMessage</layout>
-      </layouts>
     </type>
 
     <type id="MailFolder">
@@ -30,9 +17,6 @@
       <bigIcon>/icons/mailfolder_100.png</bigIcon>
       <category>Collaborative</category>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>mail_folder</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>mail_document_content</contentView>
       </contentViews>

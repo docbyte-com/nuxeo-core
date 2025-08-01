@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.web.common.vh;
 
 import static org.nuxeo.common.http.HttpHeaders.NUXEO_VIRTUAL_HOST;
@@ -28,8 +25,8 @@ import static org.nuxeo.common.http.HttpHeaders.X_FORWARDED_PROTO;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.REQUESTED_URL;
 import static org.nuxeo.launcher.config.ConfigurationConstants.PARAM_NUXEO_VIRTUAL_HOST;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -107,19 +104,18 @@ public class VirtualHostHelper {
                 String scheme = httpRequest.getScheme();
 
                 if (!local) {
-                    String forwardedPort = httpRequest.getHeader(X_FORWARDED_PORT);
-
-                    if (forwardedPort != null) {
-                        try {
-                            serverPort = Integer.parseInt(forwardedPort);
-                        } catch (NumberFormatException e) {
-                            log.error("Unable to get forwarded port from header", e);
-                        }
+                    int forwardedPort = getForwardedPort(httpRequest);
+                    if (forwardedPort != -1) {
+                        serverPort = forwardedPort;
                     }
 
                     String forwardedProto = httpRequest.getHeader(X_FORWARDED_PROTO);
                     if (forwardedProto != null) {
                         scheme = forwardedProto;
+                        // configure serverPort if X_FORWARDED_PORT is not present
+                        if (forwardedPort == -1) {
+                            serverPort = "https".equals(scheme) ? HTTPS_PORT_NUMBER : HTTP_PORT_NUMBER;
+                        }
                     }
 
                     // Detect virtual hosting based in standard header
@@ -127,7 +123,7 @@ public class VirtualHostHelper {
                     if (forwardedHost != null) {
                         if (forwardedHost.contains(":")) {
                             serverName = forwardedHost.split(":")[0];
-                            serverPort = Integer.valueOf(forwardedHost.split(":")[1]);
+                            serverPort = Integer.parseInt(forwardedHost.split(":")[1]);
                         } else {
                             serverName = forwardedHost;
                             serverPort = "https".equals(scheme) ? HTTPS_PORT_NUMBER : HTTP_PORT_NUMBER;
@@ -143,6 +139,18 @@ public class VirtualHostHelper {
             log.debug("Could not retrieve base url correctly", new Throwable());
         }
         return baseURL;
+    }
+
+    protected static int getForwardedPort(HttpServletRequest httpRequest) {
+        String forwardedPort = httpRequest.getHeader(X_FORWARDED_PORT);
+        if (forwardedPort != null) {
+            try {
+                return Integer.parseInt(forwardedPort);
+            } catch (NumberFormatException e) {
+                log.error("Unable to get forwarded port from header", e);
+            }
+        }
+        return -1;
     }
 
     /**

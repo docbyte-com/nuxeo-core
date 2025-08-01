@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.Logger;
-import org.jgrapht.experimental.dag.DirectedAcyclicGraph;
 import org.jgrapht.graph.DefaultEdge;
+import org.jgrapht.graph.DirectedAcyclicGraph;
 import org.nuxeo.lib.stream.StreamRuntimeException;
 import org.nuxeo.lib.stream.codec.Codec;
 import org.nuxeo.lib.stream.computation.ComputationMetadataMapping;
@@ -146,11 +146,11 @@ public class LogStreamProcessor implements StreamProcessor {
                     .filter(stream -> !settings.isExternal(Name.ofUrn(stream)))
                     .forEach(stream -> {
                         ObjectNode item = OBJECT_MAPPER.createObjectNode();
-                item.put("name", stream);
-                item.put("partitions", settings.getPartitions(stream));
-                item.put("codec", settings.getCodec(stream).getName());
-                streamsNode.add(item);
-            });
+                        item.put("name", stream);
+                        item.put("partitions", settings.getPartitions(stream));
+                        item.put("codec", settings.getCodec(stream).getName());
+                        streamsNode.add(item);
+                    });
             ret.set("streams", streamsNode);
             // list computations with settings
             ArrayNode computationsNode = OBJECT_MAPPER.createArrayNode();

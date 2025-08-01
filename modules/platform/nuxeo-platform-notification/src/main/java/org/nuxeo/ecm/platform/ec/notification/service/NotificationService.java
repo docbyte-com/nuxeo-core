@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.nuxeo.mail.MailServiceImpl.DEFAULT_SENDER;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.io.Serializable;
 import java.net.URL;
@@ -30,10 +31,14 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentLocation;
@@ -49,7 +54,6 @@ import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventProducer;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.ec.notification.NotificationListenerHook;
@@ -68,9 +72,9 @@ import org.nuxeo.mail.MailService;
 import org.nuxeo.mail.MailServiceImpl;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.Extension;
 
 /**
  * @author <a href="mailto:npaslaru@nuxeo.com">Narcis Paslaru</a>
@@ -81,10 +85,6 @@ public class NotificationService extends DefaultComponent implements Notificatio
 
     public static final ComponentName NAME = new ComponentName(
             "org.nuxeo.ecm.platform.ec.notification.service.NotificationService");
-
-    /** @deprecated since 10.2, seems unused */
-    @Deprecated
-    public static final String SUBSCRIPTION_NAME = "UserSubscription";
 
     protected static final String NOTIFICATIONS_EP = "notifications";
 
@@ -97,7 +97,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     protected static final String NOTIFICATION_VETO_EP = "notificationListenerVeto";
 
     // FIXME: performance issue when putting URLs in a Map.
-    protected static final Map<String, URL> TEMPLATES_MAP = new HashMap<>();
+    protected Map<String, URL> templateUrls;
 
     protected EmailHelper emailHelper = new EmailHelper();
 
@@ -105,13 +105,11 @@ public class NotificationService extends DefaultComponent implements Notificatio
 
     protected NotificationRegistry notificationRegistry;
 
-    protected DocumentViewCodecManager docLocator;
+    protected Map<String, NotificationListenerHook> hookListeners;
 
-    protected final Map<String, NotificationListenerHook> hookListeners = new HashMap<>();
+    protected List<NotificationListenerVeto> notificationVetos;
 
-    protected NotificationListenerVetoRegistry notificationVetoRegistry;
-
-    protected String senderName = DEFAULT_SENDER;
+    protected String senderName;
 
     @Override
     @SuppressWarnings("unchecked")
@@ -124,97 +122,87 @@ public class NotificationService extends DefaultComponent implements Notificatio
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         notificationRegistry = new NotificationRegistryImpl();
-        notificationVetoRegistry = new NotificationListenerVetoRegistry();
-
-        // init default settings
-        generalSettings = new GeneralSettingsDescriptor();
-        generalSettings.serverPrefix = "http://localhost:8080/core/";
-        generalSettings.eMailSubjectPrefix = "[Docbyte]";
-        generalSettings.mailSessionJndiName = "java:/Mail";
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         notificationRegistry.clear();
-        notificationVetoRegistry.clear();
         notificationRegistry = null;
-        notificationVetoRegistry = null;
     }
 
     @Override
+    @SuppressWarnings("deprecation") // for getMailSessionJndiName & registerJndiSMTPSender
     public void start(ComponentContext context) {
-        super.start(context);
-        if (generalSettings.getMailSenderName() == null) {
+        templateUrls = this.<TemplateDescriptor> getDescriptors(TEMPLATES_EP)
+                           .stream()
+                           .filter(descriptor -> descriptor.getSrcAsURL() != null)
+                           .collect(Collectors.toMap(TemplateDescriptor::getName, TemplateDescriptor::getSrcAsURL));
+        generalSettings = ObjectUtils.getIfNull(getDescriptor(GENERAL_SETTINGS_EP, UNIQUE_DESCRIPTOR_ID), () -> {
+            // init default settings
+            var generalSettings = new GeneralSettingsDescriptor();
+            generalSettings.serverPrefix = "http://localhost:8080/nuxeo/";
+            generalSettings.eMailSubjectPrefix = "[Nuxeo]";
+            generalSettings.mailSessionJndiName = "java:/Mail";
+            return generalSettings;
+        });
+        hookListeners = this.<NotificationListenerHookDescriptor> getDescriptors(NOTIFICATION_HOOK_EP)
+                            .stream()
+                            .<NotificationListenerHookWithName> mapMulti((descriptor, consumer) -> {
+                                try {
+                                    consumer.accept(new NotificationListenerHookWithName(descriptor.getName(),
+                                            descriptor.getHookListener().getDeclaredConstructor().newInstance()));
+                                } catch (ReflectiveOperationException e) {
+                                    log.error(e);
+                                }
+                            })
+                            .collect(Collectors.toMap(NotificationListenerHookWithName::name,
+                                    NotificationListenerHookWithName::hook));
+        notificationVetos = this.<NotificationListenerVetoDescriptor> getDescriptors(NOTIFICATION_VETO_EP)
+                                .stream()
+                                .<NotificationListenerVeto> mapMulti((descriptor, consumer) -> {
+                                    try {
+                                        consumer.accept(descriptor.getNotificationVeto()
+                                                                  .getDeclaredConstructor()
+                                                                  .newInstance());
+                                    } catch (ReflectiveOperationException e) {
+                                        log.error("Unable to instantiate NotificationListenerVeto with id: {}",
+                                                descriptor.getId(), e);
+                                    }
+                                })
+                                .toList();
+        senderName = Optional.ofNullable(generalSettings.getMailSenderName()).orElseGet(() -> {
             var jndiSessionName = generalSettings.getMailSessionJndiName();
             if (!jndiSessionName.equals(MailConstants.DEFAULT_MAIL_JNDI_NAME)) {
-                log.warn(
-                        "Your GeneralSettingsDescriptor has been contributed with a custom mailSessionJndiName. This field is now deprecated. Please use mailSenderName and contribute a MailSenderDescriptor");
-                senderName = ((MailServiceImpl) Framework.getService(MailService.class)).registerJndiSMTPSender(
+                log.warn("Your GeneralSettingsDescriptor has been contributed with a custom mailSessionJndiName. "
+                        + "This field is now deprecated. Please use mailSenderName and contribute a MailSenderDescriptor");
+                return ((MailServiceImpl) Framework.getService(MailService.class)).registerJndiSMTPSender(
                         jndiSessionName);
             } // else keep default
-        } else {
-            senderName = generalSettings.getMailSenderName();
-        }
+            return DEFAULT_SENDER;
+        });
     }
 
     @Override
-    public void registerExtension(Extension extension) {
+    public void stop(ComponentContext context) {
+        templateUrls = null;
+        generalSettings = null;
+        hookListeners = null;
+        notificationVetos = null;
+        senderName = null;
+    }
+
+    @Override
+    public void registerContribution(Object contribution, String xp, ComponentInstance component) {
         log.info("Registering notification extension");
-        String xp = extension.getExtensionPoint();
         if (NOTIFICATIONS_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                NotificationDescriptor notifDesc = (NotificationDescriptor) contrib;
-                notificationRegistry.registerNotification(notifDesc, getNames(notifDesc.getEvents()));
-            }
-        } else if (TEMPLATES_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                TemplateDescriptor templateDescriptor = (TemplateDescriptor) contrib;
-                templateDescriptor.setContext(extension.getContext());
-                registerTemplate(templateDescriptor);
-            }
-        } else if (GENERAL_SETTINGS_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                registerGeneralSettings((GeneralSettingsDescriptor) contrib);
-            }
-        } else if (NOTIFICATION_HOOK_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                NotificationListenerHookDescriptor desc = (NotificationListenerHookDescriptor) contrib;
-                Class<? extends NotificationListenerHook> clazz = desc.hookListener;
-                try {
-                    NotificationListenerHook hookListener = clazz.getDeclaredConstructor().newInstance();
-                    registerHookListener(desc.name, hookListener);
-                } catch (ReflectiveOperationException e) {
-                    log.error(e);
-                }
-            }
-        } else if (NOTIFICATION_VETO_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                NotificationListenerVetoDescriptor desc = (NotificationListenerVetoDescriptor) contrib;
-                notificationVetoRegistry.addContribution(desc);
-            }
+            NotificationDescriptor notifDesc = (NotificationDescriptor) contribution;
+            notificationRegistry.registerNotification(notifDesc, getNames(notifDesc.getEvents()));
+        } else {
+            super.registerContribution(contribution, xp, component);
         }
-    }
-
-    private void registerHookListener(String name, NotificationListenerHook hookListener) {
-        hookListeners.put(name, hookListener);
-    }
-
-    protected void registerGeneralSettings(GeneralSettingsDescriptor desc) {
-        generalSettings = desc;
-        String serverPrefix = Framework.expandVars(generalSettings.serverPrefix);
-        if (serverPrefix != null) {
-            generalSettings.serverPrefix = serverPrefix.endsWith("//")
-                    ? serverPrefix.substring(0, serverPrefix.length() - 1)
-                    : serverPrefix;
-        }
-        generalSettings.eMailSubjectPrefix = Framework.expandVars(generalSettings.eMailSubjectPrefix);
-        generalSettings.mailSessionJndiName = Framework.expandVars(generalSettings.mailSessionJndiName);
     }
 
     private static List<String> getNames(List<NotificationEventDescriptor> events) {
@@ -226,32 +214,18 @@ public class NotificationService extends DefaultComponent implements Notificatio
     }
 
     @Override
-    public void unregisterExtension(Extension extension) {
-        String xp = extension.getExtensionPoint();
+    public void unregisterContribution(Object contribution, String xp, ComponentInstance component) {
         if (NOTIFICATIONS_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                NotificationDescriptor notifDesc = (NotificationDescriptor) contrib;
-                notificationRegistry.unregisterNotification(notifDesc);
-            }
-        } else if (TEMPLATES_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                TemplateDescriptor templateDescriptor = (TemplateDescriptor) contrib;
-                templateDescriptor.setContext(extension.getContext());
-                unregisterTemplate(templateDescriptor);
-            }
-        } else if (NOTIFICATION_VETO_EP.equals(xp)) {
-            Object[] contribs = extension.getContributions();
-            for (Object contrib : contribs) {
-                NotificationListenerVetoDescriptor vetoDescriptor = (NotificationListenerVetoDescriptor) contrib;
-                notificationVetoRegistry.removeContribution(vetoDescriptor);
-            }
+            NotificationDescriptor notifDesc = (NotificationDescriptor) contribution;
+            notificationRegistry.unregisterNotification(notifDesc);
+        } else {
+            super.unregisterContribution(contribution, xp, component);
         }
     }
 
-    public NotificationListenerVetoRegistry getNotificationListenerVetoRegistry() {
-        return notificationVetoRegistry;
+    @Override
+    public URL getTemplateUrl(String name) {
+        return templateUrls.get(name);
     }
 
     @Override
@@ -267,7 +241,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     protected void disableEvents(DocumentModel doc) {
         doc.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, TRUE);
         doc.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, TRUE);
-        doc.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, TRUE);
+        doc.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, TRUE);
         doc.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, TRUE);
         doc.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, TRUE);
     }
@@ -275,7 +249,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     protected void restoreEvents(DocumentModel doc) {
         doc.putContextData(DublinCoreListener.DISABLE_DUBLINCORE_LISTENER, null);
         doc.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, null);
-        doc.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, null);
+        doc.putContextData(AuditComponent.DISABLE_AUDIT_LOGGER, null);
         doc.putContextData(VersioningService.DISABLE_AUTO_CHECKOUT, null);
         doc.putContextData(VersioningService.DISABLE_AUTOMATIC_VERSIONING, null);
     }
@@ -360,21 +334,12 @@ public class NotificationService extends DefaultComponent implements Notificatio
         removeSubscriptions(username, singletonList(notification), doc);
     }
 
-    private static void registerTemplate(TemplateDescriptor td) {
-        if (td.src != null && td.src.length() > 0) {
-            URL url = td.getContext().getResource(td.src);
-            TEMPLATES_MAP.put(td.name, url);
-        }
-    }
-
-    private static void unregisterTemplate(TemplateDescriptor td) {
-        if (td.name != null) {
-            TEMPLATES_MAP.remove(td.name);
-        }
-    }
-
+    /**
+     * @deprecated since 2025.0, use {@link NotificationManager#getTemplateUrl(String)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static URL getTemplateURL(String name) {
-        return TEMPLATES_MAP.get(name);
+        return Framework.getService(NotificationManager.class).getTemplateUrl(name);
     }
 
     public String getServerUrlPrefix() {
@@ -458,8 +423,10 @@ public class NotificationService extends DefaultComponent implements Notificatio
         DocumentLocation docLoc = new DocumentLocationImpl(doc);
         DocumentView docView = new DocumentViewImpl(docLoc);
         docView.setViewId("view_documents");
-        infoMap.put("docUrl", getDocLocator().getUrlFromDocumentView(docView, true,
-                NotificationServiceHelper.getNotificationService().getServerUrlPrefix()));
+        infoMap.put("docUrl",
+                Framework.getService(DocumentViewCodecManager.class)
+                         .getUrlFromDocumentView(docView, true,
+                                 NotificationServiceHelper.getNotificationService().getServerUrlPrefix()));
 
         if (freemarkerTemplateName == null) {
             freemarkerTemplateName = "defaultNotifTemplate";
@@ -474,13 +441,6 @@ public class NotificationService extends DefaultComponent implements Notificatio
                 log.debug("Failed to send notification email: {}", e::toString);
             }
         }
-    }
-
-    private DocumentViewCodecManager getDocLocator() {
-        if (docLocator == null) {
-            docLocator = Framework.getService(DocumentViewCodecManager.class);
-        }
-        return docLocator;
     }
 
     @Override
@@ -511,7 +471,7 @@ public class NotificationService extends DefaultComponent implements Notificatio
     }
 
     public Collection<NotificationListenerVeto> getNotificationVetos() {
-        return notificationVetoRegistry.getVetos();
+        return notificationVetos;
     }
 
     @Override
@@ -537,4 +497,6 @@ public class NotificationService extends DefaultComponent implements Notificatio
         return doc;
     }
 
+    record NotificationListenerHookWithName(String name, NotificationListenerHook hook) {
+    }
 }

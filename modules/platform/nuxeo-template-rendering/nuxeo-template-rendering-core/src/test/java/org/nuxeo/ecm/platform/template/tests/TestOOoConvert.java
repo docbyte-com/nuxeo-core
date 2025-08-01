@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.platform.template.tests;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -33,9 +34,10 @@ import org.junit.Test;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+@ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
 public class TestOOoConvert extends BaseConverterTest {
 
     protected static final String ODT_MT = "application/vnd.oasis.opendocument.text";
@@ -116,7 +118,7 @@ public class TestOOoConvert extends BaseConverterTest {
         XWPFWordExtractor extractor = new XWPFWordExtractor(doc);
 
         String text = extractor.getText();
-        assertTrue(text.length() > 0);
+        assertFalse(text.isEmpty());
         assertTrue(text.contains("Titre 1"));
 
         docxFile.delete();
@@ -127,8 +129,7 @@ public class TestOOoConvert extends BaseConverterTest {
         ConversionService cs = Framework.getService(ConversionService.class);
 
         BlobHolder bh = getBlobFromPath("data/testMe.html", "text/html");
-        String converterName = cs.getConverterName(bh.getBlob().getMimeType(),
-                "application/msword");
+        String converterName = cs.getConverterName(bh.getBlob().getMimeType(), "application/msword");
         assertEquals("any2doc", converterName);
 
         boolean isAvailable = cs.isConverterAvailable(converterName).isAvailable();
@@ -142,7 +143,7 @@ public class TestOOoConvert extends BaseConverterTest {
         WordExtractor extractor = new WordExtractor(doc);
 
         String text = extractor.getText();
-        assertTrue(text.length() > 0);
+        assertFalse(text.isEmpty());
         assertTrue(text.contains("Titre 1"));
 
         docFile.delete();

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -62,7 +62,7 @@ public class DocWithDefaultValuesTest {
             () -> restServerFeature.getRestApiUrl());
 
     @Test
-    public void testScalarCreatedWithDefaultValue() throws Exception {
+    public void testScalarCreatedWithDefaultValue() {
         // given a doc saved with a property with a default value not modified
         String entity = """
                 {
@@ -83,7 +83,7 @@ public class DocWithDefaultValuesTest {
     }
 
     @Test
-    public void testScalarSetOnNullSetsDefaultValueAgain() throws Exception {
+    public void testScalarSetOnNullSetsDefaultValueAgain() {
         // given a doc saved with a property with a default value set to null
         String entity = """
                 {
@@ -107,7 +107,7 @@ public class DocWithDefaultValuesTest {
     }
 
     @Test
-    public void testMultiCreatedWithDefaultValue() throws Exception {
+    public void testMultiCreatedWithDefaultValue() {
         // given a doc saved with a property with a default value not modified
         String entity = """
                 {
@@ -128,7 +128,7 @@ public class DocWithDefaultValuesTest {
     }
 
     @Test
-    public void testMultiSetOnNullSetsDefaultValueAgain() throws Exception {
+    public void testMultiSetOnNullSetsDefaultValueAgain() {
         // given a doc saved with a property with a default value set to null
         String entity = """
                 {

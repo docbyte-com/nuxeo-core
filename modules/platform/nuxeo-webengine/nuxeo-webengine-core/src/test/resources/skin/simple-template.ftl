@@ -1,0 +1,3 @@
+{
+"location": "simple-template.ftl"
+}

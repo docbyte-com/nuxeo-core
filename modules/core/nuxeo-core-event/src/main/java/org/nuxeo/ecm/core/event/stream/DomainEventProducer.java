@@ -18,10 +18,15 @@
  */
 package org.nuxeo.ecm.core.event.stream;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.lib.stream.computation.Record;
+import org.nuxeo.lib.stream.log.LogOffset;
 
 /**
  * Collects Core Events and produces Domain Event Records.
@@ -59,4 +64,27 @@ public abstract class DomainEventProducer {
      */
     public abstract List<Record> getDomainEvents();
 
+    /**
+     * This hook is called once the records have been produced downstream, providing the list of produced record
+     * offsets.
+     *
+     * @since 2025.0
+     */
+    public void postCommitHook(List<LogOffset> offsets) {
+        // do nothing
+    }
+
+    /**
+     * Helper that returns the higher offsets per partitions.
+     *
+     * @since 2025.0
+     */
+    public List<LogOffset> maxPerPartition(List<LogOffset> offsets) {
+        return offsets.stream()
+                      .collect(Collectors.toMap(LogOffset::partition, Function.identity(),
+                              BinaryOperator.maxBy(Comparator.comparingLong(LogOffset::offset))))
+                      .values()
+                      .stream()
+                      .toList();
+    }
 }

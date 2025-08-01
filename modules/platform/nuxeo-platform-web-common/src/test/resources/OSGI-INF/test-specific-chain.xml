@@ -57,7 +57,6 @@
 
       <allowedPlugins>
         <plugin>BASIC_AUTH</plugin>
-        <plugin>NTLM_AUTH</plugin>
       </allowedPlugins>
     </specificAuthenticationChain>
 

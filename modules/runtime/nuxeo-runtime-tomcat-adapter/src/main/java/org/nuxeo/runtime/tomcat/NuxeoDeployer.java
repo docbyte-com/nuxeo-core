@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import org.apache.catalina.Lifecycle;
 import org.apache.catalina.LifecycleEvent;
 import org.apache.catalina.LifecycleListener;
 import org.apache.catalina.LifecycleState;
-import org.apache.catalina.core.ContainerBase;
 import org.apache.catalina.core.StandardHost;
 import org.nuxeo.osgi.application.FrameworkBootstrap;
 
@@ -63,11 +62,9 @@ public class NuxeoDeployer implements LifecycleListener {
         Lifecycle lifecycle = event.getLifecycle();
         String type = event.getType();
 
-        if (lifecycle instanceof Container && Lifecycle.BEFORE_START_EVENT.equals(type)) {
-            Container container = (Container) lifecycle;
+        if (lifecycle instanceof Container container && Lifecycle.BEFORE_START_EVENT.equals(type)) {
             preprocess(container);
-        } else if (lifecycle instanceof StandardHost && Lifecycle.AFTER_START_EVENT.equals(type)) {
-            StandardHost container = (StandardHost) lifecycle;
+        } else if (lifecycle instanceof StandardHost container && Lifecycle.AFTER_START_EVENT.equals(type)) {
             checkFailures(container);
         }
     }
@@ -83,6 +80,7 @@ public class NuxeoDeployer implements LifecycleListener {
             throw new IllegalStateException("Some contexts failed to start.");
         }
     }
+
     protected void preprocess(Container container) {
         try {
             ClassLoader parentCl = container.getParentClassLoader();
@@ -92,8 +90,8 @@ public class NuxeoDeployer implements LifecycleListener {
             File deployerJar = FrameworkBootstrap.findFileStartingWidth(bundles, "nuxeo-runtime-deploy");
             File commonJar = FrameworkBootstrap.findFileStartingWidth(bundles, "nuxeo-common");
             if (deployerJar == null || commonJar == null) {
-                System.out.println("Deployer and/or common JAR (nuxeo-runtime-deploy* | nuxeo-common*) not found in "
-                        + bundles);
+                System.out.println(
+                        "Deployer and/or common JAR (nuxeo-runtime-deploy* | nuxeo-common*) not found in " + bundles);
                 return;
             }
             List<URL> urls = new ArrayList<>();
@@ -143,15 +141,4 @@ public class NuxeoDeployer implements LifecycleListener {
         }
         return tomcatHome;
     }
-
-    /**
-     * @deprecated Since 10.1, use {@link #preprocess(Container)} instead.
-     */
-    @Deprecated
-    protected void handleEvent(ContainerBase container, LifecycleEvent event) {
-        if (Lifecycle.BEFORE_START_EVENT.equals(event.getType())) {
-            preprocess(container);
-        }
-    }
-
 }

@@ -24,12 +24,13 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.Properties;
 
-import javax.mail.Session;
 import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.RefAddr;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
+
+import jakarta.mail.Session;
 
 import org.nuxeo.mail.MailSessionBuilder;
 import org.nuxeo.runtime.api.Framework;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nour AL KOTOB
  */
-
 package org.nuxeo.ecm.core.convert.tests;
 
 import static org.junit.Assert.assertFalse;
@@ -24,22 +23,22 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 /**
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/test-bypass-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/test-bypass-contrib.xml")
 public class TestBypassOverride {
 
     @Test
-    public void testContribution(){
+    public void testContribution() {
         assertTrue(ConversionServiceImpl.getConverterDescriptor("testBypassTrue").isBypassIfSameMimeType());
         assertFalse(ConversionServiceImpl.getConverterDescriptor("testBypassFalse").isBypassIfSameMimeType());
         assertFalse(ConversionServiceImpl.getConverterDescriptor("testBypassDefault").isBypassIfSameMimeType());
@@ -47,7 +46,7 @@ public class TestBypassOverride {
 
     @Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/test-bypass-override-contrib.xml")
     @Test
-    public void testContributionOverride(){
+    public void testContributionOverride() {
         assertFalse(ConversionServiceImpl.getConverterDescriptor("testBypassTrue").isBypassIfSameMimeType());
         assertTrue(ConversionServiceImpl.getConverterDescriptor("testBypassFalse").isBypassIfSameMimeType());
         assertTrue(ConversionServiceImpl.getConverterDescriptor("testBypassDefault").isBypassIfSameMimeType());

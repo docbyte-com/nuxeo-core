@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +58,7 @@ public class PostContentCreationHandlersTest {
     protected CoreSession session;
 
     @Test
-    public void testHandler() throws Exception {
+    public void testHandler() {
         DocumentModel root = session.getRootDocument();
         DocumentModelList rootChildren = session.getChildren(root.getRef());
         assertEquals(2, rootChildren.size());

@@ -69,7 +69,7 @@ public class SimpleFormDataProvider extends HashMap<String, String[]> implements
         if (values == null) {
             return;
         }
-        String[] ar = values.toArray(new String[values.size()]);
+        String[] ar = values.toArray(String[]::new);
         put(key, ar);
     }
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,16 @@ package org.nuxeo.ecm.automation.io.json.test;
 
 import java.io.ByteArrayOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationType;
-import org.nuxeo.ecm.automation.jaxrs.io.JsonWriter;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
+import org.nuxeo.ecm.automation.io.rest.JsonWriter;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -38,16 +39,14 @@ import org.skyscreamer.jsonassert.JSONAssert;
  * @since 5.9.4
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, WebEngineFeatureCore.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
+@Features({ AutomationCoreFeature.class, AutomationIOFeature.class })
 @Deploy("org.nuxeo.ecm.automation.io:test-chains.xml")
 @Deploy("org.nuxeo.ecm.automation.io:operations-contrib-test.xml")
+@BlacklistComponent("org.nuxeo.ecm.automation.server.marshallers") // needs AutomationServer
 public class TestAutomationJson {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected String getJsonChain(String chainId) throws Exception {
         OperationType op = service.getOperation(chainId);
@@ -198,25 +197,6 @@ public class TestAutomationJson {
                     "order" : 0,
                     "values" : [ ]
                   } ],
-                  "widgets" : [ {
-                    "name" : "xpath",
-                    "type" : "codearea",
-                    "labels" : {
-                      "any" : "XPath"
-                    },
-                    "translated" : true,
-                    "fields" : [ {
-                      "fieldName" : "xpath",
-                      "propertyName" : "xpath"
-                    } ],
-                    "properties" : {
-                      "any" : {
-                        "height" : "100%",
-                        "language" : "xpath",
-                        "width" : "100%"
-                      }
-                    }
-                  } ]
                 }""";
         checkEquals(res, chain);
     }
@@ -255,25 +235,6 @@ public class TestAutomationJson {
                     "values" : [ "NXQL",
                  "CMISQL" ]
                   } ],
-                  "widgets" : [ {
-                    "name" : "query",
-                    "type" : "codearea",
-                    "labels" : {
-                      "any" : "Query"
-                    },
-                    "translated" : true,
-                    "fields" : [ {
-                      "fieldName" : "query",
-                      "propertyName" : "query"
-                    } ],
-                    "properties" : {
-                      "any" : {
-                        "height" : "100%",
-                        "language" : "nxql",
-                        "width" : "100%"
-                      }
-                    }
-                  } ]
                 }""";
         checkEquals(res, chain);
     }

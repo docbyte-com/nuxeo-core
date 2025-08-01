@@ -22,7 +22,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import org.junit.Test;
-import org.nuxeo.ecm.core.storage.sql.S3DirectBatchHandler;
 
 /**
  * @since 11.5

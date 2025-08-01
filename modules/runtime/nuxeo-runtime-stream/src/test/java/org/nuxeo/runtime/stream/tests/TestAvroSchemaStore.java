@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.avro.Schema;
 import org.apache.avro.SchemaNormalization;

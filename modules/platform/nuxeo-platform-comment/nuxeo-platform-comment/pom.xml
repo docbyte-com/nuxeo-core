@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-comment-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-platform-comment</artifactId>
@@ -21,12 +21,6 @@
       <artifactId>nuxeo-platform-notification</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-notification</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
@@ -37,14 +31,6 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-schema</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-relations-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-relations-jena-plugin</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -60,6 +46,17 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
+      <artifactId>nuxeo-automation-core</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-notification</artifactId>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Nuxeo - initial API and implementation
  *     Estelle Giuly <egiuly@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.template.pub.tests;
 
 import static org.junit.Assert.assertEquals;
@@ -33,10 +32,11 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -71,7 +71,7 @@ import org.nuxeo.template.api.adapters.TemplateSourceDocument;
 import org.nuxeo.template.processors.HtmlBodyExtractor;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, UserManagerFeature.class })
+@Features({ AuditFeature.class, CoreFeature.class, UserManagerFeature.class })
 @RepositoryConfig(init = RenditionPublicationRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.convert")
@@ -84,13 +84,12 @@ import org.nuxeo.template.processors.HtmlBodyExtractor;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.ecm.platform.publisher")
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.task.testing")
 @Deploy("org.nuxeo.ecm.platform.rendition.publisher")
 @Deploy("org.nuxeo.template.manager")
-@Deploy("org.nuxeo.template.manager:relations-default-jena-contrib.xml")
 public class TestRenditionPublication {
 
     protected static final String TEMPLATE_NAME = "mytestTemplate";
@@ -109,7 +108,7 @@ public class TestRenditionPublication {
     protected RenditionService renditionService;
 
     @Inject
-    TemplateProcessorService tps;
+    protected TemplateProcessorService tps;
 
     protected DocumentModel createTemplateDoc() throws Exception {
 
@@ -145,14 +144,14 @@ public class TestRenditionPublication {
         source = templateDoc.getAdapter(TemplateSourceDocument.class);
 
         assertEquals(1, source.getParams().size());
-        TemplateInput inputParam = source.getParams().get(0);
+        TemplateInput inputParam = source.getParams().getFirst();
         assertEquals("htmlContent", inputParam.getName());
         assertEquals("htmlPreview", inputParam.getSource());
 
         return templateDoc;
     }
 
-    protected DocumentModel createTemplateBasedDoc(DocumentModel templateDoc) throws Exception {
+    protected DocumentModel createTemplateBasedDoc(DocumentModel templateDoc) {
 
         DocumentModel root = session.getRootDocument();
 
@@ -201,21 +200,20 @@ public class TestRenditionPublication {
         defs = renditionService.getAvailableRenditionDefinitions(templateBasedDoc);
         assertEquals(4, defs.size());
 
-
     }
 
     @Test
     public void shouldPublishATemplateRendition() throws Exception {
 
         // setup tree
-        String defaultTreeName = publisherService.getAvailablePublicationTree().get(0);
+        String defaultTreeName = publisherService.getAvailablePublicationTree().getFirst();
         PublicationTree tree = publisherService.getPublicationTree(defaultTreeName, session, null);
 
         List<PublicationNode> nodes = tree.getChildrenNodes();
         assertEquals(1, nodes.size());
-        assertEquals("Section1", nodes.get(0).getTitle());
+        assertEquals("Section1", nodes.getFirst().getTitle());
 
-        PublicationNode targetNode = nodes.get(0);
+        PublicationNode targetNode = nodes.getFirst();
         assertTrue(tree.canPublishTo(targetNode));
 
         // create a template doc

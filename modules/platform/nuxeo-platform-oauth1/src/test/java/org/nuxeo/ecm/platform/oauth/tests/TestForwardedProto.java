@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.platform.oauth.tests;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.Test;
 import org.nuxeo.ecm.platform.ui.web.auth.oauth.NuxeoOAuth1Authenticator;

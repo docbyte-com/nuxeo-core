@@ -20,7 +20,7 @@ package org.nuxeo.ecm.platform.el;
 
 import java.util.function.Supplier;
 
-import javax.el.ELContext;
+import jakarta.el.ELContext;
 
 /**
  * Interface for an ELContext factory.

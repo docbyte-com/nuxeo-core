@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,17 @@
  *
  * Contributors:
  *     ldoguin
- *
  */
 package org.nuxeo.template.api.descriptor;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("outputFormat")
-public class OutputFormatDescriptor {
+public class OutputFormatDescriptor implements Descriptor {
 
     @XNode("@id")
     protected String id;
@@ -40,6 +42,7 @@ public class OutputFormatDescriptor {
     @XNode("@mimetype")
     protected String mimeType;
 
+    @Override
     public String getId() {
         return id;
     }
@@ -61,25 +64,14 @@ public class OutputFormatDescriptor {
     }
 
     @Override
-    public OutputFormatDescriptor clone() {
-        OutputFormatDescriptor clone = new OutputFormatDescriptor();
-        clone.enabled = enabled;
-        clone.chainId = chainId;
-        clone.mimeType = mimeType;
-        clone.label = label;
-        clone.id = id;
-        return clone;
-    }
-
-    public void merge(OutputFormatDescriptor srcOutFormat) {
-        if (srcOutFormat.mimeType != null) {
-            mimeType = srcOutFormat.mimeType;
-        }
-        if (srcOutFormat.chainId != null) {
-            chainId = srcOutFormat.chainId;
-        }
-        if (srcOutFormat.label != null) {
-            label = srcOutFormat.label;
-        }
+    public Descriptor merge(Descriptor o) {
+        var other = (OutputFormatDescriptor) o;
+        var merged = new OutputFormatDescriptor();
+        merged.id = id; // we merge based on id, so no name merging needed
+        merged.label = defaultIfBlank(other.label, label);
+        merged.enabled = other.enabled;
+        merged.chainId = defaultIfBlank(other.chainId, chainId);
+        merged.mimeType = defaultIfBlank(other.mimeType, mimeType);
+        return merged;
     }
 }

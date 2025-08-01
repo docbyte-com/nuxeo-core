@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,25 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
 
-import javax.servlet.http.HttpServletRequest;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  * @since 5.7
  */
 @XObject("loginProvider")
-public class LoginProviderLink {
+public class LoginProviderLink implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(LoginProviderLink.class);
 
@@ -51,14 +53,6 @@ public class LoginProviderLink {
         this.label = label;
         this.description = description;
         this.urlComputer = urlComputer;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof LoginProviderLink && name != null) {
-            return name.equals(((LoginProviderLink) obj).getName());
-        }
-        return super.equals(obj);
     }
 
     @XNode("@name")
@@ -81,6 +75,11 @@ public class LoginProviderLink {
 
     @XNode("description")
     protected String description;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -138,32 +137,25 @@ public class LoginProviderLink {
         return link;
     }
 
-    public void merge(LoginProviderLink newLink) {
-        if (newLink.link != null) {
-            link = newLink.link;
-        }
-        if (newLink.description != null) {
-            description = newLink.description;
-        }
-        if (newLink.iconPath != null) {
-            iconPath = newLink.iconPath;
-        }
-    }
-
-    /**
-     * @since 7.10
-     */
     @Override
-    protected LoginProviderLink clone() {
-        LoginProviderLink clone = new LoginProviderLink();
-        clone.description = description;
-        clone.iconPath = iconPath;
-        clone.label = label;
-        clone.link = link;
-        clone.name = name;
-        clone.remove = remove;
-        clone.urlComputerClass = urlComputerClass;
-        return clone;
+    public LoginProviderLink merge(Descriptor o) {
+        var other = (LoginProviderLink) o;
+        var merged = new LoginProviderLink();
+        merged.name = name; // we merge based on name, so no need for merging it
+        merged.label = defaultIfNull(other.label, label);
+        merged.remove = other.remove;
+        merged.iconPath = defaultIfNull(other.iconPath, iconPath);
+        merged.link = defaultIfNull(other.link, link);
+        merged.urlComputerClass = defaultIfNull(other.urlComputerClass, urlComputerClass);
+        merged.description = defaultIfNull(other.description, description);
+        return merged;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof LoginProviderLink && name != null) {
+            return name.equals(((LoginProviderLink) obj).getName());
+        }
+        return super.equals(obj);
+    }
 }

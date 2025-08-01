@@ -27,14 +27,12 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
-import org.nuxeo.runtime.annotations.loader.Indexable;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.TYPE })
-@Indexable({ "type", "superType" })
 public @interface WebObject {
 
     String type(); // the type name

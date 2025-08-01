@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,10 +35,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroModelFactory;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 import ro.isdc.wro.config.Context;
 import ro.isdc.wro.model.WroModel;
@@ -53,10 +51,7 @@ import ro.isdc.wro.util.WroTestUtils;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RuntimeFeature.class })
-@Deploy("org.nuxeo.web.resources.core")
-@Deploy("org.nuxeo.web.resources.wro")
-@Deploy("org.nuxeo.web.resources.wro:webresources-test-config.xml")
+@Features(WebResourcesWroFeature.class)
 public class TestNuxeoWroModelFactory {
 
     static final String BUNDLE = "org.nuxeo.web.resources.rest";
@@ -120,12 +115,11 @@ public class TestNuxeoWroModelFactory {
         assertTrue(myapp.hasResourcesOfType(ResourceType.CSS));
         assertTrue(myapp.hasResourcesOfType(ResourceType.JS));
         List<Resource> myappResources = myapp.getResources();
-        assertEquals(5, myappResources.size());
+        assertEquals(4, myappResources.size());
         assertEquals("nuxeo:jquery.js", myappResources.get(0).getUri());
         assertEquals("nuxeo:effects", myappResources.get(1).getUri());
         assertEquals("nuxeo:foldable-box.js", myappResources.get(2).getUri());
         assertEquals("nuxeo:foldable-box.css", myappResources.get(3).getUri());
-        assertEquals("nuxeo:nuxeo_dm_default.css", myappResources.get(4).getUri());
     }
 
 }

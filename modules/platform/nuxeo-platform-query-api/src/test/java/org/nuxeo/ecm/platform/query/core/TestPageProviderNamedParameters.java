@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,11 @@ import static org.junit.Assert.assertNotNull;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,10 +44,10 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * @since 7.3
@@ -61,10 +60,13 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestPageProviderNamedParameters {
 
     @Inject
-    PageProviderService service;
+    protected PageProviderService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Before
     public void createTestDocuments() {
@@ -73,8 +75,7 @@ public class TestPageProviderNamedParameters {
         // title by default
         for (int i = 4; i >= 0; i--) {
             DocumentModel doc = session.createDocumentModel("Folder");
-            doc.setPropertyValue("dc:title", "Document number" + i); // no
-                                                                     // space
+            doc.setPropertyValue("dc:title", "Document number" + i); // no space
             doc.setPathInfo(root.getPathAsString(), "doc_" + i);
 
             if (i == 2) {
@@ -88,10 +89,11 @@ public class TestPageProviderNamedParameters {
             session.createDocument(doc);
         }
         session.save();
+        txFeature.nextTransaction();
     }
 
     protected Map<String, Serializable> getPageProviderProps() {
-        return Collections.singletonMap(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (AbstractSession) session);
+        return Map.of(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (AbstractSession) session);
     }
 
     protected DocumentModel getSearchDocWithNamedParam(String propName, Serializable propValue) {
@@ -100,7 +102,7 @@ public class TestPageProviderNamedParameters {
             if (propName.contains(":")) {
                 doc.setPropertyValue(propName, propValue);
             } else {
-                HashMap<String, Object> params = new HashMap<>();
+                var params = new HashMap<String, Object>();
                 params.put(propName, propValue);
                 doc.putContextData(PageProviderService.NAMED_PARAMETERS, params);
             }
@@ -112,10 +114,9 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParameters() throws Exception {
+    public void testPageProviderWithNamedParameters() {
         DocumentModel searchDoc = getSearchDocWithNamedParam("parameter1", "Document number2");
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProvider", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProvider", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -127,10 +128,9 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParametersInvalid() throws Exception {
+    public void testPageProviderWithNamedParametersInvalid() {
         DocumentModel searchDoc = getSearchDocWithNamedParam(null, null);
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderInvalid", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderInvalid", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -145,10 +145,9 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParametersAndDoc() throws Exception {
+    public void testPageProviderWithNamedParametersAndDoc() {
         DocumentModel searchDoc = getSearchDocWithNamedParam("np:title", "Document number2");
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderWithDoc", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderWithDoc", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -160,10 +159,9 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParametersAndDocInvalid() throws Exception {
+    public void testPageProviderWithNamedParametersAndDocInvalid() {
         DocumentModel searchDoc = getSearchDocWithNamedParam("np:title", "Document number2");
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderWithDocInvalid", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderWithDocInvalid", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -178,19 +176,18 @@ public class TestPageProviderNamedParameters {
      * NXP-22829
      */
     @Test
-    public void testPageProviderWithNamedParametersAndList() throws Exception {
-        PageProviderService pps = Framework.getService(PageProviderService.class);
+    public void testPageProviderWithNamedParametersAndList() {
         Map<String, Serializable> ppp = getPageProviderProps();
         // test with an array
         DocumentModel searchDoc = getSearchDocWithNamedParam("types", new String[] { "File", "Folder" });
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderWithList", searchDoc, null, null, null, ppp);
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderWithList", searchDoc, null, null, null, ppp);
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
         assertNotNull(p);
         assertEquals(5, p.size()); // root + 4 created folder
         // test with a list
         searchDoc = getSearchDocWithNamedParam("types", (Serializable) Arrays.asList("File", "Folder"));
-        pp = pps.getPageProvider("namedParamProviderWithList", searchDoc, null, null, null, ppp);
+        pp = service.getPageProvider("namedParamProviderWithList", searchDoc, null, null, null, ppp);
         assertNotNull(pp);
         p = pp.getCurrentPage();
         assertNotNull(p);
@@ -201,10 +198,9 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParametersInWhereClause() throws Exception {
+    public void testPageProviderWithNamedParametersInWhereClause() {
         DocumentModel searchDoc = getSearchDocWithNamedParam("parameter1", "Document number2");
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderWithWhereClause", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderWithWhereClause", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -213,7 +209,7 @@ public class TestPageProviderNamedParameters {
 
         // retry without params
         searchDoc = getSearchDocWithNamedParam(null, null);
-        pp = pps.getPageProvider("namedParamProviderWithWhereClause", searchDoc, null, null, null,
+        pp = service.getPageProvider("namedParamProviderWithWhereClause", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         p = pp.getCurrentPage();
@@ -225,7 +221,7 @@ public class TestPageProviderNamedParameters {
      * @since 7.3
      */
     @Test
-    public void testPageProviderWithNamedParametersComplex() throws Exception {
+    public void testPageProviderWithNamedParametersComplex() {
         DocumentModel searchDoc = DocumentModelFactory.createDocumentModel("NamedParamDoc");
         HashMap<String, Object> params = new HashMap<>();
         params.put("parameter1", "Document number2");
@@ -234,8 +230,7 @@ public class TestPageProviderNamedParameters {
         searchDoc.setPropertyValue("np:dateMin", "2007-01-30 01:02:03+04:00");
         searchDoc.setPropertyValue("np:dateMax", "2007-03-23 01:02:03+04:00");
 
-        PageProviderService pps = Framework.getService(PageProviderService.class);
-        PageProvider<?> pp = pps.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null,
+        PageProvider<?> pp = service.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null,
                 getPageProviderProps());
         assertNotNull(pp);
         List<?> p = pp.getCurrentPage();
@@ -245,7 +240,7 @@ public class TestPageProviderNamedParameters {
         // remove filter on dates
         searchDoc.setPropertyValue("np:dateMin", null);
         searchDoc.setPropertyValue("np:dateMax", null);
-        pp = pps.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null, getPageProviderProps());
+        pp = service.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null, getPageProviderProps());
         assertNotNull(pp);
         p = pp.getCurrentPage();
         assertNotNull(p);
@@ -253,7 +248,7 @@ public class TestPageProviderNamedParameters {
 
         // remove filter on title
         searchDoc.putContextData(PageProviderService.NAMED_PARAMETERS, null);
-        pp = pps.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null, getPageProviderProps());
+        pp = service.getPageProvider("namedParamProviderComplex", searchDoc, null, null, null, getPageProviderProps());
         assertNotNull(pp);
         p = pp.getCurrentPage();
         assertNotNull(p);

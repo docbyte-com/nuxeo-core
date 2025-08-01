@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2009-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,6 @@ import org.nuxeo.ecm.platform.routing.api.exception.DocumentRouteAlredayLockedEx
 import org.nuxeo.ecm.platform.routing.api.exception.DocumentRouteException;
 import org.nuxeo.ecm.platform.routing.api.exception.DocumentRouteNotLockedException;
 import org.nuxeo.ecm.platform.task.Task;
-import org.nuxeo.runtime.model.RuntimeContext;
 
 /**
  * The DocumentRoutingService allows manipulation of {@link DocumentRoute DocumentRoutes}.
@@ -234,14 +233,6 @@ public interface DocumentRoutingService {
     DocumentRoute importRouteModel(URL templateResource, boolean overwrite, CoreSession session);
 
     /**
-     * Registers a new route model template to be imported at application startup.
-     *
-     * @param resource the resource
-     * @since 5.6
-     */
-    void registerRouteResource(RouteModelResourceType resource, RuntimeContext extensionContext);
-
-    /**
      * Returns all the route models resource templates. Use the <code>routeModelImporter</code> extension point to
      * contribute new resources.
      *
@@ -418,7 +409,7 @@ public interface DocumentRoutingService {
      * @deprecated since 2023, use GarbageCollectRoutesAction instead
      */
     @Deprecated
-    int doCleanupDoneAndCanceledRouteInstances(String reprositoryName, int limit);
+    int doCleanupDoneAndCanceledRouteInstances(String repositoryName, int limit);
 
     /**
      * @since 7.2

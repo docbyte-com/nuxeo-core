@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,13 @@ package org.nuxeo.ecm.automation.core.operations.users;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,10 +34,10 @@ import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
@@ -50,10 +49,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 public class TestQueryUsers {
@@ -79,7 +76,7 @@ public class TestQueryUsers {
     @Inject
     protected AutomationService automationService;
 
-    private static final Map<String, Object> map(Object... args) {
+    protected static Map<String, Object> map(Object... args) {
         Map<String, Object> map = new LinkedHashMap<>();
         for (int i = 0; i < args.length;) {
             map.put((String) args[i++], args[i++]);
@@ -123,7 +120,7 @@ public class TestQueryUsers {
             Map<String, Object> params = new HashMap<>();
             params.put("pattern", FIRSTNAME);
             Blob blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -140,7 +137,7 @@ public class TestQueryUsers {
             params.put("pattern", FIRSTNAME);
             params.put("tenantId", TENANTID);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser2", //
                             "firstName", "syd", //
@@ -157,7 +154,7 @@ public class TestQueryUsers {
             Map<String, Object> params = new HashMap<>();
             params.put("firstName", FIRSTNAME);
             Blob blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -174,7 +171,7 @@ public class TestQueryUsers {
             params.put("firstName", FIRSTNAME);
             params.put("lastName", LASTNAME);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser", //
                             "firstName", "syd", //
@@ -186,7 +183,7 @@ public class TestQueryUsers {
             params.put("firstName", FIRSTNAME);
             params.put("tenantId", TENANTID);
             blob = (Blob) automationService.run(ctx, QueryUsers.ID, params);
-            assertJsonUserList(Arrays.asList( //
+            assertJsonUserList(List.of( //
                     map( //
                             "username", "testuser2", //
                             "firstName", "syd", //

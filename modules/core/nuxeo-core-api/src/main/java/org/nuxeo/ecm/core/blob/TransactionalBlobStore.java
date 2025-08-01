@@ -26,10 +26,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,8 +45,8 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * Until the transaction is committed, blobs are stored in a transient store. Upon commit, they are sent to the
  * permanent store.
  * <p>
- * It is important that a copy operation between the transient store and the permanent store be extremely fast and never fail, as it
- * will be done during commit.
+ * It is important that a copy operation between the transient store and the permanent store be extremely fast and never
+ * fail, as it will be done during commit.
  *
  * @since 11.1
  */
@@ -202,7 +202,7 @@ public class TransactionalBlobStore extends AbstractBlobStore implements Synchro
     }
 
     @Override
-    public OptionalOrUnknown<InputStream>getStream(String key) throws IOException {
+    public OptionalOrUnknown<InputStream> getStream(String key) throws IOException {
         if (TransactionHelper.isTransactionActive()) {
             String transientKey = getTransientKey(key);
             if (isDeleteMarker(transientKey)) {

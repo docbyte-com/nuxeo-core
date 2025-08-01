@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,19 @@
  *
  * Contributors:
  *     btatar
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.picture.api.ImagingService;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -38,14 +35,14 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author btatar
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 public class TestImagingService {
 
     @Inject
     protected ImagingService imagingService;
 
     @Test
-    public void testConfigurationContrib() throws Exception {
+    public void testConfigurationContrib() {
         String conversionFormat = imagingService.getConfigurationValue("conversionFormat", "png");
 
         assertEquals("jpg", conversionFormat);
@@ -53,7 +50,7 @@ public class TestImagingService {
     }
 
     @Test
-    public void testUnregisteredConfiguration() throws Exception {
+    public void testUnregisteredConfiguration() {
         String testConfiguration = imagingService.getConfigurationValue("testConfiguration");
         assertNull(testConfiguration);
 

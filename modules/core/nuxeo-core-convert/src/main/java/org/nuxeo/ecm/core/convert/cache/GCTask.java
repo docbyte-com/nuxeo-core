@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
 package org.nuxeo.ecm.core.convert.cache;
 
@@ -31,7 +28,9 @@ import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
  * Task for GC dedicated Thread.
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@link ConversionCacheGCTask} instead
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class GCTask implements Runnable {
 
     private static final Logger log = LogManager.getLogger(GCTask.class);

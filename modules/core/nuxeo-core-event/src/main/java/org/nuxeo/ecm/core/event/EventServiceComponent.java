@@ -23,16 +23,16 @@ import java.time.Duration;
 
 import org.nuxeo.ecm.core.event.impl.EventListenerDescriptor;
 import org.nuxeo.ecm.core.event.impl.EventServiceImpl;
-import org.nuxeo.ecm.core.event.pipe.EventPipeDescriptor;
-import org.nuxeo.ecm.core.event.pipe.dispatch.EventDispatcherDescriptor;
+import org.nuxeo.ecm.core.event.stream.DomainEventProducerDescriptor;
 import org.nuxeo.runtime.RuntimeMessage.Level;
 import org.nuxeo.runtime.RuntimeMessage.Source;
-import org.nuxeo.ecm.core.event.stream.DomainEventProducerDescriptor;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Event Service Component, allowing registration of contributions and doing the event service shutdown upon
@@ -40,7 +40,11 @@ import org.nuxeo.runtime.model.DefaultComponent;
  */
 public class EventServiceComponent extends DefaultComponent {
 
-    public static final int APPLICATION_STARTED_ORDER = -500;
+    /**
+     * @deprecated since 2025.0, use {@link ComponentStartOrders#EVENT} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final int APPLICATION_STARTED_ORDER = ComponentStartOrders.EVENT;
 
     public static final String EVENT_LISTENER_XP = "listener";
 
@@ -57,16 +61,23 @@ public class EventServiceComponent extends DefaultComponent {
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         service = new EventServiceImpl();
     }
 
     @Override
     public void start(ComponentContext context) {
-        service.init();
+        var domainEventProducers = this.<DomainEventProducerDescriptor> getDescriptors(DOMAIN_EVENT_PRODUCER_XP)
+                                       .stream()
+                                       .filter(DomainEventProducerDescriptor::isEnabled)
+                                       .toList();
+        service.init(domainEventProducers, getDescriptor(EVENT_DISPATCHER_XP, Descriptor.UNIQUE_DESCRIPTOR_ID),
+                getDescriptors(EVENT_PIPE_XP));
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         if (service != null) {
             String s = Framework.getProperty("org.nuxeo.ecm.core.event.shutdown.timeoutMillis");
             long timeout = s == null ? DEFAULT_SHUTDOWN_TIMEOUT : Long.parseLong(s);
@@ -82,7 +93,7 @@ public class EventServiceComponent extends DefaultComponent {
 
     @Override
     public int getApplicationStartedOrder() {
-        return APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.EVENT;
     }
 
     @Override
@@ -99,14 +110,11 @@ public class EventServiceComponent extends DefaultComponent {
                 addRuntimeMessage(Level.ERROR, msg, Source.EXTENSION, compName.getName());
             }
         } else if (EVENT_PIPE_XP.equals(extensionPoint)) {
-            EventPipeDescriptor descriptor = (EventPipeDescriptor) contribution;
-            service.addEventPipe(descriptor);
+            register(EVENT_PIPE_XP, (Descriptor) contribution);
         } else if (EVENT_DISPATCHER_XP.equals(extensionPoint)) {
-            EventDispatcherDescriptor descriptor = (EventDispatcherDescriptor) contribution;
-            service.addEventDispatcher(descriptor);
+            register(EVENT_DISPATCHER_XP, (Descriptor) contribution);
         } else if (DOMAIN_EVENT_PRODUCER_XP.equals(extensionPoint)) {
-            DomainEventProducerDescriptor descriptor = (DomainEventProducerDescriptor) contribution;
-            service.addDomainEventProducer(descriptor);
+            register(DOMAIN_EVENT_PRODUCER_XP, (DomainEventProducerDescriptor) contribution);
         }
     }
 
@@ -115,14 +123,11 @@ public class EventServiceComponent extends DefaultComponent {
         if (EVENT_LISTENER_XP.equals(extensionPoint)) {
             service.removeEventListener((EventListenerDescriptor) contribution);
         } else if (EVENT_PIPE_XP.equals(extensionPoint)) {
-            EventPipeDescriptor descriptor = (EventPipeDescriptor) contribution;
-            service.removeEventPipe(descriptor);
+            unregister(EVENT_PIPE_XP, (Descriptor) contribution);
         } else if (EVENT_DISPATCHER_XP.equals(extensionPoint)) {
-            EventDispatcherDescriptor descriptor = (EventDispatcherDescriptor) contribution;
-            service.removeEventDispatcher(descriptor);
+            unregister(EVENT_DISPATCHER_XP, (Descriptor) contribution);
         } else if (DOMAIN_EVENT_PRODUCER_XP.equals(extensionPoint)) {
-            DomainEventProducerDescriptor descriptor = (DomainEventProducerDescriptor) contribution;
-            service.removeDomainEventProducer(descriptor);
+            unregister(DOMAIN_EVENT_PRODUCER_XP, (Descriptor) contribution);
         }
     }
 

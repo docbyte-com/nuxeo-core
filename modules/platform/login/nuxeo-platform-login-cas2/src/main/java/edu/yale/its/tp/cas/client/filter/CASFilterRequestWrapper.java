@@ -32,7 +32,8 @@
 
 package edu.yale.its.tp.cas.client.filter;
 
-import javax.servlet.http.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
 /**
  * <p>

@@ -18,18 +18,24 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
+import static java.lang.Boolean.FALSE;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
+import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.nuxeo.ecm.core.blob.scroll.AbstractBlobScroll;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.ObjectVersion;
+import software.amazon.awssdk.services.s3.model.S3Object;
 
 /**
  * Scroll objects of the s3 blob store of a #{@link S3BlobProvider}, the scroll query is the provider id.
@@ -38,55 +44,118 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
  */
 public class S3BlobScroll extends AbstractBlobScroll<S3BlobProvider> {
 
-    protected AmazonS3 amazonS3;
+    protected S3Client amazonS3;
 
     protected S3BlobStoreConfiguration config;
 
-    protected ObjectListing list;
+    protected Iterator<ListObjectsV2Response> it;
 
-    protected ListObjectsRequest listObjectsRequest;
+    protected ListObjectsV2Request request;
+
+    protected ListObjectVersionsRequest.Builder versionsRequestBuilder;
+
+    protected ListObjectVersionsResponse versionsList;
 
     protected S3BlobStore store;
 
+    protected boolean useVersion;
+
     @Override
     public void init(S3BlobProvider s3BlobProvider) {
-        list = null;
+        this.it = null;
         this.store = (S3BlobStore) s3BlobProvider.store.unwrap();
         this.config = this.store.config;
+        this.useVersion = this.store.hasVersioning();
         this.amazonS3 = this.store.amazonS3;
-        listObjectsRequest = new ListObjectsRequest().withBucketName(this.store.bucketName)
-                                                     .withPrefix(this.store.bucketPrefix);
-        listObjectsRequest.withMaxKeys(size);
-        if (config.getSubDirsDepth() == 0) {
-            // optimization in case of flat hierarchy to do not list sub folders content
-            listObjectsRequest.setDelimiter(DELIMITER);
+        if (useVersion) {
+            versionsRequestBuilder = ListObjectVersionsRequest.builder()
+                                                              .bucket(this.store.bucketName)
+                                                              .prefix(this.store.bucketPrefix)
+                                                              .maxKeys(size);
+            if (config.getSubDirsDepth() == 0) {
+                // use delimiter to avoid useless listing of objects in "subdirectories"
+                versionsRequestBuilder.delimiter(DELIMITER);
+            }
+        } else {
+            ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder()
+                                                                       .bucket(this.store.bucketName)
+                                                                       .prefix(this.store.bucketPrefix)
+                                                                       .maxKeys(size);
+            if (config.getSubDirsDepth() == 0) {
+                // use delimiter to avoid useless listing of objects in "subdirectories"
+                builder.delimiter(DELIMITER);
+            }
+            request = builder.build();
         }
     }
 
     @Override
     public boolean hasNext() {
-        return list == null || list.isTruncated();
+        if (useVersion) {
+            return hasNextVersions();
+        } else {
+            return hasNextObject();
+        }
+    }
+
+    protected boolean hasNextObject() {
+        return it == null || it.hasNext();
+    }
+
+    protected boolean hasNextVersions() {
+        return versionsList == null || versionsList.isTruncated();
     }
 
     @Override
     public List<String> next() {
-        if (list == null) {
-            list = amazonS3.listObjects(listObjectsRequest);
+        if (useVersion) {
+            return nextVersions();
         } else {
-            if (!list.isTruncated()) {
-                throw new NoSuchElementException();
-            }
-            list = amazonS3.listNextBatchOfObjects(list);
+            return nextObjects();
+        }
+    }
+
+    protected List<String> nextObjects() {
+        if (it == null) {
+            it = amazonS3.listObjectsV2Paginator(request).iterator();
+        } else if (!it.hasNext()) {
+            throw new NoSuchElementException();
         }
         List<String> result = new ArrayList<>();
-        for (S3ObjectSummary summary : list.getObjectSummaries()) {
-            String path = summary.getKey().substring(store.bucketPrefix.length());
+        for (S3Object s3Object : it.next().contents()) {
+            String path = s3Object.key().substring(store.bucketPrefix.length());
             // if sub dir depth is greater than 0, it means we have a path strategy in place
             String key = config.getSubDirsDepth() == 0 ? path : store.pathStrategy.getKeyForPath(path);
             if (key == null) {
                 continue;
             }
-            addTo(result, key, () -> summary.getSize());
+            addTo(result, key, s3Object::size);
+        }
+        return result;
+    }
+
+    protected List<String> nextVersions() {
+        if (versionsList == null) {
+            versionsList = amazonS3.listObjectVersions(versionsRequestBuilder.build());
+        } else {
+            if (FALSE.equals(versionsList.isTruncated())) {
+                throw new NoSuchElementException();
+            }
+            var keyMarker = versionsList.nextKeyMarker();
+            var versionIdMarker = versionsList.nextVersionIdMarker();
+            versionsList = amazonS3.listObjectVersions(
+                    versionsRequestBuilder.keyMarker(keyMarker).versionIdMarker(versionIdMarker).build());
+        }
+        List<String> result = new ArrayList<>();
+        for (ObjectVersion version : versionsList.versions()) {
+            String path = version.key().substring(store.bucketPrefix.length());
+            // if sub dir depth is greater than 0, it means we have a path strategy in place
+            String key = config.getSubDirsDepth() == 0 ? path : store.pathStrategy.getKeyForPath(path);
+            if (key == null) {
+                continue;
+            }
+            key += (VER_SEP + version.versionId());
+            addTo(result, key, version::size);
         }
         return result;
     }

@@ -20,19 +20,24 @@
  */
 package org.nuxeo.ecm.core.test;
 
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.CORE_SERVICE_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MEM;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL;
 import static org.nuxeo.ecm.core.model.Session.PROP_ALLOW_DELETE_UNDELETABLE_DOCUMENTS;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.net.URL;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.BaseCoreFeature;
+import org.nuxeo.ecm.core.RepositoryFeature;
 import org.nuxeo.ecm.core.api.CloseableCoreSession;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -48,11 +53,18 @@ import org.nuxeo.ecm.core.api.local.DummyLoginFeature;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
+import org.nuxeo.ecm.core.cache.CacheFeature;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.event.CoreEventFeature;
+import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.model.stream.StreamDocumentGC;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.repository.RepositoryService;
+import org.nuxeo.ecm.core.schema.CoreSchemaFeature;
+import org.nuxeo.ecm.core.storage.mem.DBSMemRepositoryFeature;
+import org.nuxeo.ecm.core.storage.mongodb.DBSMongoDBRepositoryFeature;
+import org.nuxeo.ecm.core.storage.sql.VCSRepositoryFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
@@ -61,11 +73,11 @@ import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.management.ManagementFeature;
-import org.nuxeo.runtime.model.URLStreamRef;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.test.runner.Defaults;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.DynamicFeaturesLoader;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
@@ -73,7 +85,6 @@ import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -87,28 +98,11 @@ import com.google.inject.Binder;
  * In addition, by injecting the feature itself, some helper methods are available to open new sessions.
  */
 @Deploy("org.nuxeo.runtime.reload")
-@Deploy("org.nuxeo.runtime.kv")
-@Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.runtime.mongodb")
-@Deploy("org.nuxeo.runtime.migration")
-@Deploy("org.nuxeo.ecm.core.schema")
 @Deploy("org.nuxeo.ecm.core.query")
-@Deploy("org.nuxeo.ecm.core.api")
-@Deploy("org.nuxeo.ecm.core")
-@Deploy("org.nuxeo.ecm.core.io")
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.core.test")
-@Deploy("org.nuxeo.ecm.core.mimetype")
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
-@Deploy("org.nuxeo.ecm.core.storage")
-@Deploy("org.nuxeo.ecm.core.storage.sql")
-@Deploy("org.nuxeo.ecm.core.storage.sql.test")
-@Deploy("org.nuxeo.ecm.core.storage.dbs")
-@Deploy("org.nuxeo.ecm.core.storage.mem")
-@Deploy("org.nuxeo.ecm.core.storage.mongodb")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.platform.el")
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blob-contrib.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Features({
         // Runtime features
@@ -118,15 +112,22 @@ import com.google.inject.Binder;
         RuntimeStreamFeature.class, //
         TransactionalFeature.class, //
         // Core features
-        // keep WorkManagerFeature before CoreBulkFeature because transactional waiter registration order matters
-        WorkManagerFeature.class, //
+        BaseCoreFeature.class, //
+        CacheFeature.class, //
+        ConvertFeature.class, //
         CoreBulkFeature.class, //
         CoreEventFeature.class, //
-        DummyLoginFeature.class })
+        CoreIOFeature.class, //
+        CoreSchemaFeature.class, //
+        DummyLoginFeature.class, //
+        MigrationFeature.class, //
+        WorkManagerFeature.class })
 @LoggerLevel(klass = StreamOrphanBlobGC.class, level = "ERROR")
 public class CoreFeature implements RunnerFeature {
 
     private static final Logger log = LogManager.getLogger(CoreFeature.class);
+
+    protected final Class<? extends RepositoryFeature> repositoryFeatureClass;
 
     protected ACP rootAcp;
 
@@ -150,6 +151,17 @@ public class CoreFeature implements RunnerFeature {
         return storageConfiguration;
     }
 
+    public CoreFeature(DynamicFeaturesLoader loader) {
+        repositoryFeatureClass = switch (CORE_SERVICE_VALUE) {
+            case STORAGE_MEM -> DBSMemRepositoryFeature.class;
+            case STORAGE_MONGODB -> DBSMongoDBRepositoryFeature.class;
+            case STORAGE_SQL, "vcs" -> VCSRepositoryFeature.class;
+            default ->
+                throw new UnsupportedOperationException("Core type: " + CORE_SERVICE_VALUE + " is not supported");
+        };
+        loader.loadFeature(repositoryFeatureClass);
+    }
+
     /**
      * Wait for version and blob GCs.
      */
@@ -159,26 +171,21 @@ public class CoreFeature implements RunnerFeature {
         if (blobGCDisabled && docGCDisabled) {
             return true;
         }
-        StreamService service = Framework.getService(StreamService.class);
-        org.nuxeo.lib.stream.log.LogManager logManager = service.getLogManager();
-        long deadline = System.currentTimeMillis() + duration.toMillis();
-        long docGCLag = 0;
-        long blobGCLag = 0;
+        var streamService = Framework.getService(StreamService.class);
+        long start = System.currentTimeMillis();
+        long deadline = start + duration.toMillis();
+        Supplier<Duration> remainingDuration = () -> duration.minusMillis(System.currentTimeMillis() - start);
         do {
-            docGCLag = docGCDisabled ? 0
-                    : logManager.getLag(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
-                            Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME)).lag();
-            if (docGCLag == 0) {
-                blobGCLag = blobGCDisabled ? 0
-                        : logManager.getLag(Name.ofUrn(StreamOrphanBlobGC.STREAM_NAME),
-                                Name.ofUrn(StreamOrphanBlobGC.COMPUTATION_NAME)).lag();
-                if (blobGCLag == 0) {
+            if (docGCDisabled || streamService.await(Name.ofUrn(StreamDocumentGC.STREAM_NAME),
+                    Name.ofUrn(StreamDocumentGC.COMPUTATION_NAME), remainingDuration.get())) {
+                if (blobGCDisabled || streamService.await(Name.ofUrn(StreamOrphanBlobGC.STREAM_NAME),
+                        Name.ofUrn(StreamOrphanBlobGC.COMPUTATION_NAME), remainingDuration.get())) {
                     return true;
                 }
             }
             Thread.sleep(50);
         } while (System.currentTimeMillis() < deadline);
-        log.warn("await timeout on GCs, docGC lag: {}, blobGC lag: {}", docGCLag, blobGCLag);
+        log.warn("await timeout on GCs");
         return false;
     }
 
@@ -186,7 +193,7 @@ public class CoreFeature implements RunnerFeature {
     public void initialize(FeaturesRunner runner) {
         runner.getFeature(RuntimeFeature.class).registerHandler(new CoreDeployer());
 
-        storageConfiguration = new StorageConfiguration(this);
+        storageConfiguration = new StorageConfiguration(runner.getFeature(repositoryFeatureClass));
         txFeature = runner.getFeature(TransactionalFeature.class);
         txFeature.addWaiter(this::awaitGC);
         loginFeature = runner.getFeature(DummyLoginFeature.class);
@@ -210,29 +217,11 @@ public class CoreFeature implements RunnerFeature {
 
     @Override
     public void start(FeaturesRunner runner) {
-        try {
-            RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-            storageConfiguration.init();
-            for (String bundle : storageConfiguration.getExternalBundles()) {
-                try {
-                    harness.deployBundle(bundle);
-                } catch (Exception e) {
-                    throw new NuxeoException(e);
-                }
-            }
-            URL blobContribUrl = storageConfiguration.getBlobManagerContrib(runner);
-            harness.getContext().deploy(new URLStreamRef(blobContribUrl));
-            URL repoContribUrl = storageConfiguration.getRepositoryContrib(runner);
-            harness.getContext().deploy(new URLStreamRef(repoContribUrl));
-        } catch (IOException e) {
-            throw new NuxeoException(e);
-        }
     }
 
     @Override
     public void beforeRun(FeaturesRunner runner) {
-        // wait for async tasks that may have been triggered by
-        // RuntimeFeature (typically repo initialization)
+        // wait for async tasks that may have been triggered by RuntimeFeature (typically repo initialization)
         txFeature.nextTransaction(Duration.ofSeconds(10));
         if (granularity != Granularity.METHOD) {
             // we need a transaction to properly initialize the session
@@ -355,7 +344,7 @@ public class CoreFeature implements RunnerFeature {
                 deferredIds.add(id);
             }
         }
-        adminSession.removeDocuments(deferredIds.toArray(new DocumentRef[0]));
+        adminSession.removeDocuments(deferredIds.toArray(DocumentRef[]::new));
     }
 
     protected void initializeSession() {
@@ -383,7 +372,7 @@ public class CoreFeature implements RunnerFeature {
     }
 
     public String getRepositoryName() {
-        return getStorageConfiguration().getRepositoryName();
+        return "test";
     }
 
     public CoreSession getCoreSession(String username) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,8 @@ public interface CollectionManager {
      * @param documentToBeAdded the document to be added
      * @param session the core session
      */
-    void addToNewCollection(String newTitle, String newDescription, DocumentModel documentToBeAdded, CoreSession session);
+    void addToNewCollection(String newTitle, String newDescription, DocumentModel documentToBeAdded,
+            CoreSession session);
 
     /**
      * Add a list of document to a new collection.
@@ -155,8 +156,8 @@ public interface CollectionManager {
     boolean isInCollection(final DocumentModel collection, final DocumentModel document, final CoreSession session);
 
     /**
-     * Move the member1 right after the member2 within the collection. If the member2 is null, then the member1 is
-     * moved to first position of the collection.
+     * Move the member1 right after the member2 within the collection. If the member2 is null, then the member1 is moved
+     * to first position of the collection.
      *
      * @param session the session
      * @param collection the collection
@@ -198,7 +199,6 @@ public interface CollectionManager {
      *
      * @param collection the collection
      * @param version the version
-     *
      * @since 7.3
      */
     void processRestoredCollection(final DocumentModel collection, final DocumentModel version);
@@ -229,13 +229,6 @@ public interface CollectionManager {
      * @since 5.9.4
      */
     DocumentModel createCollection(final CoreSession session, String title, String description, String path);
-
-    /**
-     * @deprecated since 10.3 use {@link #getUserDefaultCollections(CoreSession)} instead
-     * @since 6.0
-     */
-    @Deprecated
-    DocumentModel getUserDefaultCollections(final DocumentModel context, final CoreSession session);
 
     /**
      * Get user collections root document.

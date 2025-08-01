@@ -29,7 +29,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import org.apache.catalina.connector.Request;
 import org.apache.catalina.connector.Response;
@@ -78,6 +78,7 @@ public class DevValve extends ValveBase {
     }
 
     private final File getSDKFile(String path) {
+        IOUtils.checkPathTraversal(path);
         return new File(new File(getHome(), "sdk"), path);
     }
 

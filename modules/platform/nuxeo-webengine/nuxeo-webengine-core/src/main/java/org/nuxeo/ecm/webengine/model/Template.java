@@ -21,11 +21,12 @@
 
 package org.nuxeo.ecm.webengine.model;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.SocketException;
 import java.util.HashMap;
@@ -114,11 +115,7 @@ public class Template {
 
     public void render(OutputStream out) {
         Writer w;
-        try {
-            w = new OutputStreamWriter(out, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new NuxeoException("Failed to create output stream: unsupported encoding", e);
-        }
+        w = new OutputStreamWriter(out, UTF_8);
         ctx.render(script(), args, w);
         try {
             w.flush();

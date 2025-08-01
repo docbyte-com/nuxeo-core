@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.importer.tests;
 import static org.junit.Assert.assertArrayEquals;
 import static org.nuxeo.runtime.api.Framework.NUXEO_TESTING_SYSTEM_PROP;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;

@@ -19,12 +19,12 @@
 
 package org.nuxeo.ecm.core.io.registry;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
-import static javax.ws.rs.core.MediaType.TEXT_XML;
-import static javax.ws.rs.core.MediaType.TEXT_XML_TYPE;
-import static javax.ws.rs.core.MediaType.WILDCARD;
-import static javax.ws.rs.core.MediaType.WILDCARD_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.TEXT_XML;
+import static jakarta.ws.rs.core.MediaType.TEXT_XML_TYPE;
+import static jakarta.ws.rs.core.MediaType.WILDCARD;
+import static jakarta.ws.rs.core.MediaType.WILDCARD_TYPE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -38,8 +38,8 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Before;
 import org.junit.Test;

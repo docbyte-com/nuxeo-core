@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  *  Contributors:
  *      Kevin Leturc <kleturc@nuxeo.com>
  */
-
 package org.nuxeo.ecm.restapi.test;
 
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
@@ -26,8 +25,7 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ_WRITE;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
-import javax.validation.constraints.NotNull;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -138,7 +136,6 @@ public class DocumentSecuredPropertyTest {
                   .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_CREATED, status.intValue()));
     }
 
-    @NotNull
     protected String instantiateDocumentBody() {
         return """
                 {

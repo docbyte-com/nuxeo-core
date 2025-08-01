@@ -46,13 +46,13 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.mail.FetchProfile;
-import javax.mail.Flags;
-import javax.mail.Flags.Flag;
-import javax.mail.Folder;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Store;
+import jakarta.mail.FetchProfile;
+import jakarta.mail.Flags;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Folder;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Store;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -80,12 +80,6 @@ public final class MailCoreHelper {
     public static final String PIPE_NAME = "nxmail";
 
     public static final String INBOX = "INBOX";
-
-    /**
-     * @deprecated since 10.3, use {@link TrashService} instead
-     */
-    @Deprecated
-    public static final String DELETED_LIFECYCLE_STATE = "deleted";
 
     public static final long EMAILS_LIMIT_DEFAULT = 100;
 

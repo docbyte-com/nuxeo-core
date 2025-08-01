@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -15,17 +15,27 @@
   <dependencies>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
-      <artifactId>nuxeo-3d-package</artifactId>
-      <type>zip</type>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-adobe-connector-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-amazon-s3-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-mongodb-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-audit-sql-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
@@ -140,6 +150,11 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-opensearch1-embed-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-oracle-package</artifactId>
       <type>zip</type>
     </dependency>
@@ -158,13 +173,16 @@
       <artifactId>nuxeo-scan-importer-package</artifactId>
       <type>zip</type>
     </dependency>
-    <!--
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-scim-v2-package</artifactId>
       <type>zip</type>
     </dependency>
-    -->
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-shibboleth-login-package</artifactId>
@@ -183,6 +201,16 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-tree-snapshot-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-uidgen-opensearch1-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-uidgen-sql-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>

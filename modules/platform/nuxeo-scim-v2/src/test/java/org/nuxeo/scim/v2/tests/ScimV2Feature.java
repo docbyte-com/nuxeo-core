@@ -26,10 +26,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -44,9 +44,9 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * @since 2023.14
  */
-@Features({ AutomationServerFeature.class, WebEngineFeature.class })
 @Deploy("org.nuxeo.scim.v2")
 @Deploy("org.nuxeo.scim.v2:test-scim-v2-runtime-server-contrib.xml")
+@Features({ AutomationFeature.class, WebEngineFeature.class })
 public class ScimV2Feature implements RunnerFeature {
 
     @Inject

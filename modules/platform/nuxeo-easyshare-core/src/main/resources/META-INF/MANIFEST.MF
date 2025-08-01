@@ -1,12 +1,14 @@
 Manifest-Version: 1.0
-Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=easy
- share;package=org/nuxeo/easyshare
+Nuxeo-WebModule: org.nuxeo.ecm.webengine.app.WebEngineModule;name=easyshare;package=org/nuxeo/easyshare
 Bundle-Vendor: Nuxeo
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .
 Bundle-Version: 1.0.0
 Bundle-Name: nuxeo-easyshare-core
-Nuxeo-Component: OSGI-INF/extensions.xml, OSGI-INF/easyshare-contrib.xml
+Nuxeo-Component: OSGI-INF/easyshare-contrib.xml,
+ OSGI-INF/easyshare-core-contrib.xml,
+ OSGI-INF/easyshare-notification-contrib.xml,
+ OSGI-INF/easyshare-type-contrib.xml
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: nuxeo-easyshare-core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7

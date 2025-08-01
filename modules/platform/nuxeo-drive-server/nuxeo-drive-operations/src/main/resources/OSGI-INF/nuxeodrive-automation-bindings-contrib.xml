@@ -11,9 +11,6 @@
     <binding name="NuxeoDrive.TearDownIntegrationTests">
       <administrator>true</administrator>
     </binding>
-    <binding name="NuxeoDrive.WaitForAsyncCompletion">
-      <administrator>true</administrator>
-    </binding>
     <binding name="NuxeoDrive.SetVersioningOptions">
       <administrator>true</administrator>
     </binding>

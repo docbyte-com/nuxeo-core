@@ -24,7 +24,9 @@ package org.nuxeo.osgi;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Dictionary;
+import java.util.List;
 
 import org.nuxeo.osgi.services.ServiceReferenceImpl;
 import org.nuxeo.osgi.services.ServiceRegistrationImpl;
@@ -80,6 +82,12 @@ public class OSGiBundleContext implements BundleContext {
     }
 
     @Override
+    public Bundle getBundle(String location) {
+        // not implemented
+        return null;
+    }
+
+    @Override
     public ServiceReference[] getAllServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
         // TODO Auto-generated method stub
         return null;
@@ -122,9 +130,20 @@ public class OSGiBundleContext implements BundleContext {
     }
 
     @Override
+    public <S> ServiceReference<S> getServiceReference(Class<S> clazz) {
+        return getServiceReference(clazz.getName());
+    }
+
+    @Override
     public ServiceReference[] getServiceReferences(String clazz, String filter) throws InvalidSyntaxException {
         ServiceRegistration reg = bundle.osgi.services.get(clazz);
         return reg != null ? new ServiceReference[] { reg.getReference() } : null;
+    }
+
+    @Override
+    public <S> Collection<ServiceReference<S>> getServiceReferences(Class<S> clazz, String filter) throws InvalidSyntaxException {
+        var serviceReferences = getServiceReferences(clazz.getName(), filter);
+        return serviceReferences == null ? List.of() : List.of(serviceReferences);
     }
 
     @Override
@@ -166,6 +185,11 @@ public class OSGiBundleContext implements BundleContext {
     @Override
     public ServiceRegistration registerService(String clazz, Object service, Dictionary properties) {
         return registerService(new String[] { clazz }, service, properties);
+    }
+
+    @Override
+    public <S> ServiceRegistration<S> registerService(Class<S> clazz, S service, Dictionary<String, ?> properties) {
+        return registerService(clazz.getName(), service, properties);
     }
 
     @Override

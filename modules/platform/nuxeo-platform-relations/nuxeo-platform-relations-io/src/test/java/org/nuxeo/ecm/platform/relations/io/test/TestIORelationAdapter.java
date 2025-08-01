@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.platform.relations.io.test;
 
 import static org.junit.Assert.assertEquals;
@@ -33,10 +31,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.Path;
@@ -54,6 +53,7 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.io.api.IOManager;
 import org.nuxeo.ecm.platform.io.api.IOResourceAdapter;
 import org.nuxeo.ecm.platform.io.api.IOResources;
+import org.nuxeo.ecm.platform.relations.CoreGraph;
 import org.nuxeo.ecm.platform.relations.api.Graph;
 import org.nuxeo.ecm.platform.relations.api.Node;
 import org.nuxeo.ecm.platform.relations.api.QNameResource;
@@ -64,7 +64,6 @@ import org.nuxeo.ecm.platform.relations.api.impl.QNameResourceImpl;
 import org.nuxeo.ecm.platform.relations.api.impl.ResourceImpl;
 import org.nuxeo.ecm.platform.relations.api.impl.StatementImpl;
 import org.nuxeo.ecm.platform.relations.io.IORelationResources;
-import org.nuxeo.ecm.platform.relations.jena.JenaGraph;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -77,12 +76,14 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@Deploy("org.nuxeo.ecm.relations")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.ecm.relations.io.tests:io-test-framework.xml")
 @Deploy("org.nuxeo.ecm.relations.io.tests:io-relations-test-contrib.xml")
-@Deploy("org.nuxeo.ecm.relations.io.tests:jena-test-bundle.xml")
+@Ignore // read & write are not supported on default graph
 public class TestIORelationAdapter {
 
-    private static final String graphName = "myrelations";
+    private static final String graphName = "default";
 
     private static final String documentNamespace = "http://www.ecm.org/uid/";
 
@@ -117,16 +118,14 @@ public class TestIORelationAdapter {
     @Inject
     private RelationManager rService;
 
-    private JenaGraph graph;
+    private Graph graph;
 
     private String repoName;
 
     @Before
-    public void setUp() throws Exception {
-        Graph graph = rService.getGraphByName(graphName);
+    public void setUp() {
+        graph = rService.getGraphByName(graphName);
         assertNotNull(graph);
-        assertEquals(JenaGraph.class, graph.getClass());
-        this.graph = (JenaGraph) graph;
 
         createDocuments();
         repoName = session.getRepositoryName();
@@ -147,7 +146,7 @@ public class TestIORelationAdapter {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         if (graph != null) {
             graph.clear();
         }
@@ -157,14 +156,14 @@ public class TestIORelationAdapter {
         return Thread.currentThread().getContextClassLoader().getResourceAsStream(filePath);
     }
 
-    private static JenaGraph getMemoryGraph() {
-        JenaGraph graph = new JenaGraph();
+    private Graph getMemoryGraph() {
+        var graph = new CoreGraph(session);
         Map<String, String> namespaces = new HashMap<>();
         namespaces.put("rdf", "http://www.w3.org/1999/02/22-rdf-syntax-ns#");
         namespaces.put("dcterms", "http://purl.org/dc/terms/");
         namespaces.put("uid", "http://www.ecm.org/uid/");
         namespaces.put("metadata", "http://www.ecm.org/metadata/");
-        graph.setNamespaces(namespaces);
+        graph.getNamespaces().putAll(namespaces);
         return graph;
     }
 
@@ -174,7 +173,7 @@ public class TestIORelationAdapter {
         assertNotEquals(0, graph.size().longValue());
     }
 
-    private static void compareGraph(String filePath, Graph graph) {
+    private void compareGraph(String filePath, Graph graph) {
         Graph newGraph = getMemoryGraph();
         feedGraph(filePath, newGraph);
         List<Statement> expected = newGraph.getStatements();
@@ -202,15 +201,15 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testExtractResources() throws Exception {
+    public void testExtractResources() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("all");
         assertNotNull(adapter);
         List<DocumentRef> sources = Arrays.asList(new DocumentRef[] { new IdRef(doc1Ref) });
         IORelationResources ioRes = (IORelationResources) adapter.extractResources(repoName, sources);
-        List<Statement> expected = Arrays.asList(new Statement[] {
-                new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
-                new StatementImpl(doc1Resource, references, simpleResource) });
+        List<Statement> expected = Arrays.asList(
+                new Statement[] { new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
+                        new StatementImpl(doc1Resource, references, simpleResource) });
         Collections.sort(expected);
         assertEquals(2, ioRes.getStatements().size());
         List<Statement> actual = ioRes.getStatements();
@@ -219,14 +218,14 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testExtractResourcesIgnoreExternal() throws Exception {
+    public void testExtractResourcesIgnoreExternal() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("ignore-external");
         assertNotNull(adapter);
         List<DocumentRef> sources = Arrays.asList(new DocumentRef[] { new IdRef(doc1Ref) });
         IORelationResources ioRes = (IORelationResources) adapter.extractResources(repoName, sources);
-        List<Statement> expected = Arrays.asList(new Statement[] { new StatementImpl(doc1Resource, references,
-                simpleResource) });
+        List<Statement> expected = Arrays.asList(
+                new Statement[] { new StatementImpl(doc1Resource, references, simpleResource) });
         Collections.sort(expected);
         assertEquals(1, ioRes.getStatements().size());
         List<Statement> actual = ioRes.getStatements();
@@ -235,7 +234,7 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testGetResourcesAsXML() throws Exception {
+    public void testGetResourcesAsXML() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("all");
         assertNotNull(adapter);
@@ -259,9 +258,9 @@ public class TestIORelationAdapter {
         InputStream stream = getTestFile("data/exported_statements.xml");
         IORelationResources ioRes = (IORelationResources) adapter.loadResourcesFromXML(stream);
         stream.close();
-        List<Statement> expected = Arrays.asList(new Statement[] {
-                new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
-                new StatementImpl(doc1Resource, references, simpleResource) });
+        List<Statement> expected = Arrays.asList(
+                new Statement[] { new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
+                        new StatementImpl(doc1Resource, references, simpleResource) });
         Collections.sort(expected);
         assertEquals(2, ioRes.getStatements().size());
         List<Statement> actual = ioRes.getStatements();
@@ -270,7 +269,7 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testTranslateResources() throws Exception {
+    public void testTranslateResources() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("all");
         assertNotNull(adapter);
@@ -280,9 +279,9 @@ public class TestIORelationAdapter {
         docRefMap.put(new IdRef(doc1Ref), new IdRef(doc1RefCopy));
         DocumentTranslationMap map = new DocumentTranslationMapImpl(repoName, repoName, docRefMap);
         IORelationResources ioRes = (IORelationResources) adapter.translateResources(repoName, resources, map);
-        List<Statement> expected = Arrays.asList(new Statement[] {
-                new StatementImpl(doc2Resource, isBasedOn, doc1ResourceCopy),
-                new StatementImpl(doc1ResourceCopy, references, simpleResource) });
+        List<Statement> expected = Arrays.asList(
+                new Statement[] { new StatementImpl(doc2Resource, isBasedOn, doc1ResourceCopy),
+                        new StatementImpl(doc1ResourceCopy, references, simpleResource) });
         Collections.sort(expected);
         assertEquals(2, ioRes.getStatements().size());
         List<Statement> actual = ioRes.getStatements();
@@ -291,7 +290,7 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testTranslateResourcesNoChanges() throws Exception {
+    public void testTranslateResourcesNoChanges() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("all");
         assertNotNull(adapter);
@@ -301,9 +300,9 @@ public class TestIORelationAdapter {
         docRefMap.put(new IdRef(doc1Ref), new IdRef(doc1Ref));
         DocumentTranslationMap map = new DocumentTranslationMapImpl(repoName, repoName, docRefMap);
         IORelationResources ioRes = (IORelationResources) adapter.translateResources(repoName, resources, map);
-        List<Statement> expected = Arrays.asList(new Statement[] {
-                new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
-                new StatementImpl(doc1Resource, references, simpleResource) });
+        List<Statement> expected = Arrays.asList(
+                new Statement[] { new StatementImpl(doc2Resource, isBasedOn, doc1Resource),
+                        new StatementImpl(doc1Resource, references, simpleResource) });
         Collections.sort(expected);
         assertEquals(2, ioRes.getStatements().size());
         List<Statement> actual = ioRes.getStatements();
@@ -312,7 +311,7 @@ public class TestIORelationAdapter {
     }
 
     @Test
-    public void testStoreResources() throws Exception {
+    public void testStoreResources() {
         feedGraph("data/initial_statements.xml", graph);
         IOResourceAdapter adapter = ioService.getAdapter("all");
         assertNotNull(adapter);

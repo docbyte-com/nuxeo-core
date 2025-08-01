@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2009-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.platform.routing.core.impl;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.MAX_RESULTS_PROPERTY;
@@ -31,16 +31,17 @@ import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.DONE_A
 import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.GC_ROUTES_ACTION_NAME;
 import static org.nuxeo.ecm.platform.routing.core.listener.DocumentRoutingWorkflowInstancesCleanup.CLEANUP_WORKFLOW_INSTANCES_BATCH_SIZE_PROPERTY;
 import static org.nuxeo.ecm.platform.routing.core.listener.DocumentRoutingWorkflowInstancesCleanup.CLEANUP_WORKFLOW_INSTANCES_ORPHAN_PROPERTY;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.io.IOException;
 import java.io.Serializable;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -98,7 +99,6 @@ import org.nuxeo.ecm.platform.routing.core.api.DocumentRoutingEngineService;
 import org.nuxeo.ecm.platform.routing.core.audit.RoutingAuditHelper;
 import org.nuxeo.ecm.platform.routing.core.io.NodeAccessRunner;
 import org.nuxeo.ecm.platform.routing.core.listener.RouteModelsInitializator;
-import org.nuxeo.ecm.platform.routing.core.registries.RouteTemplateResourceRegistry;
 import org.nuxeo.ecm.platform.task.Task;
 import org.nuxeo.ecm.platform.task.TaskConstants;
 import org.nuxeo.ecm.platform.task.TaskEventNames;
@@ -108,9 +108,7 @@ import org.nuxeo.ecm.platform.task.core.service.TaskEventNotificationHelper;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.RuntimeContext;
 
 /**
  * The implementation of the routing service.
@@ -136,13 +134,8 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
 
     public static final String PERSISTER_XP = "persister";
 
-    /**
-     * @since 7.10
-     */
+    /** @since 7.10 */
     public static final String ACTOR_ACE_CREATOR = "Workflow";
-
-    // FIXME: use ContributionFragmentRegistry instances instead to handle hot
-    // reload
 
     public static final String ROUTE_MODELS_IMPORTER_XP = "routeModelImporter";
 
@@ -151,34 +144,11 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
 
     protected DocumentRoutingPersister persister;
 
-    protected RouteTemplateResourceRegistry routeResourcesRegistry = new RouteTemplateResourceRegistry();
+    protected List<URL> routeResourceURLs;
 
     protected RepositoryInitializationHandler repositoryInitializationHandler;
 
     private Cache modelsCache;
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (PERSISTER_XP.equals(extensionPoint)) {
-            PersisterDescriptor des = (PersisterDescriptor) contribution;
-            try {
-                persister = des.getKlass().getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new NuxeoException(e);
-            }
-        } else if (ROUTE_MODELS_IMPORTER_XP.equals(extensionPoint)) {
-            RouteModelResourceType res = (RouteModelResourceType) contribution;
-            registerRouteResource(res, contributor.getRuntimeContext());
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (contribution instanceof RouteModelResourceType) {
-            routeResourcesRegistry.removeContribution((RouteModelResourceType) contribution);
-        }
-        super.unregisterContribution(contribution, extensionPoint, contributor);
-    }
 
     protected static void fireEvent(String eventName, Map<String, Serializable> eventProperties, DocumentRoute route,
             CoreSession session) {
@@ -536,6 +506,18 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
     @Override
     public void start(ComponentContext context) {
         modelsCache = Framework.getService(CacheService.class).getCache(WORKFLOW_MODELS_CACHE);
+        persister = Optional.ofNullable(this.<PersisterDescriptor> getDescriptor(PERSISTER_XP, UNIQUE_DESCRIPTOR_ID))
+                            .map(PersisterDescriptor::instantiatePersister)
+                            .orElseGet(DocumentRoutingTreePersister::new);
+        routeResourceURLs = this.<RouteModelResourceType> getDescriptors(ROUTE_MODELS_IMPORTER_XP)
+                                .stream()
+                                .map(RouteModelResourceType::getURL)
+                                .toList();
+    }
+
+    @Override
+    public void stop(ComponentContext context) {
+        routeResourceURLs = null;
     }
 
     @Override
@@ -548,8 +530,7 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
 
     @Override
     public List<URL> getRouteModelTemplateResources() {
-        // test contrib parsing and deployment
-        return new ArrayList<>(routeResourcesRegistry.getRouteModelTemplateResources());
+        return new ArrayList<>(routeResourceURLs);
     }
 
     @SuppressWarnings("unchecked")
@@ -577,39 +558,6 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
     }
 
     @Override
-    public void registerRouteResource(RouteModelResourceType res, RuntimeContext context) {
-        if (res.getPath() != null && res.getId() != null) {
-            if (routeResourcesRegistry.getResource(res.getId()) != null) {
-                routeResourcesRegistry.removeContribution(res);
-            }
-            if (res.getUrl() == null) {
-                res.setUrl(getUrlFromPath(res, context));
-            }
-            routeResourcesRegistry.addContribution(res);
-        }
-    }
-
-    protected URL getUrlFromPath(RouteModelResourceType res, RuntimeContext extensionContext) {
-        String path = res.getPath();
-        if (path == null) {
-            return null;
-        }
-        URL url;
-        try {
-            url = new URL(path);
-        } catch (MalformedURLException e) {
-            url = extensionContext.getLocalResource(path);
-            if (url == null) {
-                url = extensionContext.getResource(path);
-            }
-            if (url == null) {
-                url = res.getClass().getResource(path);
-            }
-        }
-        return url;
-    }
-
-    @Override
     public DocumentRoute getRouteModelWithId(CoreSession session, String id) {
         String routeDocModelId = getRouteModelDocIdWithId(session, id);
         DocumentModel routeDoc = session.getDocument(new IdRef(routeDocModelId));
@@ -632,7 +580,7 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
                     routeIds.add(map.get("ecm:uuid").toString());
                 }
             }
-            return routeIds.get(0);
+            return routeIds.getFirst();
         });
     }
 
@@ -865,14 +813,14 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
                 DocumentModelList docs = routeInstance.getAttachedDocumentModels();
                 removePermissionsForTaskActors(session, docs, task);
                 // task is considered processed with the status "null" when is canceled
-                updateTaskInfo(session, routeInstance, task, null);
+                updateTaskInfo(session, routeInstance, task);
             }
             session.saveDocument(task.getDocument());
 
         });
     }
 
-    protected void updateTaskInfo(CoreSession session, GraphRoute graph, Task task, String status) {
+    protected void updateTaskInfo(CoreSession session, GraphRoute graph, Task task) {
         String nodeId = task.getVariable(DocumentRoutingConstants.TASK_NODE_ID_KEY);
         if (StringUtils.isEmpty(nodeId)) {
             throw new DocumentRouteException("No nodeId found on task: " + task.getId());
@@ -881,7 +829,7 @@ public class DocumentRoutingServiceImpl extends DefaultComponent implements Docu
 
         NuxeoPrincipal principal = session.getPrincipal();
         String actor = principal.getActingUser();
-        node.updateTaskInfo(task.getId(), true, status, actor, null);
+        node.updateTaskInfo(task.getId(), true, null, actor, null);
     }
 
     @Override

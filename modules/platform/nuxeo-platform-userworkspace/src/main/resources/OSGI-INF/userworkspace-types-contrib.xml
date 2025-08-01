@@ -11,13 +11,6 @@
       <category>SuperDocument</category>
       <description>UserWorkspacesRoot.description</description>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>

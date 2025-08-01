@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.quota.automation;
 
-import org.nuxeo.ecm.automation.jaxrs.DefaultJsonAdapter;
+import org.nuxeo.ecm.automation.io.DefaultJsonAdapter;
 
 public class TestableJsonAdapter extends DefaultJsonAdapter {
 

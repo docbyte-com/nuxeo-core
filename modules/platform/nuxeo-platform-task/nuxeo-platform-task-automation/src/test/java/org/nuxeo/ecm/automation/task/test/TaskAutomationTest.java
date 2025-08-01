@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.automation.task.test;
 
+import static java.util.Calendar.JULY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -25,12 +26,11 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.TimeZone;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -40,6 +40,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.task.CreateTask.OperationTaskVariableName;
 import org.nuxeo.ecm.automation.task.GetUserTasks;
 import org.nuxeo.ecm.core.api.Blob;
@@ -48,11 +49,11 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.event.EventService;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.task.Task;
 import org.nuxeo.ecm.platform.task.TaskComment;
 import org.nuxeo.ecm.platform.task.TaskService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -61,28 +62,29 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author Anahide Tchertchian
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
+@Features(AutomationCoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.task.automation")
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.task.testing")
 @Deploy("org.nuxeo.ecm.platform.task.automation:test-operations.xml")
+@BlacklistComponent("org.nuxeo.ecm.platform.task.contentTemplate") // needs ContentTemplateService
+@BlacklistComponent("org.nuxeo.ecm.platform.task.test.directories") // needs GenericDirectory
 public class TaskAutomationTest {
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Inject
-    TaskService taskService;
+    protected TaskService taskService;
 
     protected DocumentModel document;
 
     @Before
-    public void initRepo() throws Exception {
+    public void initRepo() {
         document = coreSession.createDocumentModel("/", "task-root", "TaskRoot");
         document.setPropertyValue("dc:title", "Task");
         document = coreSession.createDocument(document);
@@ -128,7 +130,7 @@ public class TaskAutomationTest {
         assertEquals("test comment", comment.getText());
 
         Calendar calendar = Calendar.getInstance();
-        calendar.set(2006, 6, 6, 15, 10, 15);
+        calendar.set(2006, JULY, 6, 15, 10, 15);
         calendar.set(Calendar.MILLISECOND, 0);
         calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
         assertEquals(calendar.getTime(), task.getDueDate());
@@ -209,7 +211,7 @@ public class TaskAutomationTest {
         }
 
         tasks = taskService.getTaskInstances(document, (NuxeoPrincipal) null, coreSession);
-        Collections.sort(tasks, new TaskInstanceComparator());
+        tasks.sort(new TaskInstanceComparator());
         assertEquals(3, tasks.size());
 
         Task task1 = tasks.get(0);
@@ -242,7 +244,7 @@ public class TaskAutomationTest {
         // ended tasks are filtered
         assertEquals(2, tasks.size());
 
-        Collections.sort(tasks, new TaskInstanceComparator());
+        tasks.sort(new TaskInstanceComparator());
 
         // check other tasks
         Task task2 = tasks.get(0);
@@ -337,7 +339,7 @@ public class TaskAutomationTest {
 
     }
 
-    class TaskInstanceComparator implements Comparator<Task> {
+    protected static class TaskInstanceComparator implements Comparator<Task> {
         @Override
         public int compare(Task o1, Task o2) {
             // return o1.getCreated().compareTo(o2.getCreated());

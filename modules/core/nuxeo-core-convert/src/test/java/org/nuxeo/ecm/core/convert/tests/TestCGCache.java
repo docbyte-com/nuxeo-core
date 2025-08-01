@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,19 +15,19 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.core.convert.tests;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,8 +36,8 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
-import org.nuxeo.ecm.core.convert.cache.ConversionCacheGCManager;
 import org.nuxeo.ecm.core.convert.cache.ConversionCacheHolder;
 import org.nuxeo.ecm.core.convert.extension.Converter;
 import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
@@ -47,12 +47,12 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-enabled-gc.xml")
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/converters-test-contrib3.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-frequent-gc-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib3.xml")
 public class TestCGCache {
 
     @Inject
-    ConversionService cs;
+    protected ConversionService cs;
 
     @Test
     public void testCGTask() throws Exception {
@@ -60,28 +60,20 @@ public class TestCGCache {
         Converter cv = deployConverter();
         assertNotNull(cv);
 
-        int cacheSize1 = ConversionCacheHolder.getNbCacheEntries();
         BlobHolder bh = getBlobHolder();
         BlobHolder result = cs.convert("identity", bh, null);
         assertNotNull(result);
 
-        int cacheSize2 = ConversionCacheHolder.getNbCacheEntries();
         // check new cache entry was created
-        assertEquals(1, cacheSize2 - cacheSize1);
+        assertEquals(1, ConversionCacheHolder.getNbCacheEntries());
 
-        // wait for the GCThread to run
-        int retryCount = 0;
-        int noRuns = ConversionCacheGCManager.getGCRuns();
-        while (ConversionCacheGCManager.getGCRuns() == noRuns && retryCount++ < 5) {
-            Thread.sleep(1100);
-        }
-        assertTrue(ConversionCacheGCManager.getGCRuns() > 0);
-
-        int cacheSize3 = ConversionCacheHolder.getNbCacheEntries();
-        assertEquals(0, cacheSize3 - cacheSize1);
+        // wait for the GCThread to run - 1s configured
+        await().atMost(Duration.ofSeconds(2))
+               .pollInterval(Duration.ofSeconds(1))
+               .until(() -> ConversionCacheHolder.getNbCacheEntries() == 0);
     }
 
-    private Converter deployConverter() throws Exception {
+    private Converter deployConverter() {
         return ConversionServiceImpl.getConverter("identity");
     }
 

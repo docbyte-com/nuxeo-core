@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.core.storage.sql;
 
 import java.io.Serializable;
@@ -104,51 +103,51 @@ public enum PropertyType {
             return null;
         }
         switch (this) {
-        case STRING:
-            if (value instanceof String) {
-                return (String) value;
-            }
-            throw new IllegalArgumentException("value is not a String: " + value);
-        case BOOLEAN:
-            if (value instanceof Boolean) {
-                return (Boolean) value;
-            }
-            throw new IllegalArgumentException("value is not a Boolean: " + value);
-        case LONG:
-            if (value instanceof Long) {
-                return (Long) value;
-            }
-            if (value instanceof DeltaLong) {
-                return (DeltaLong) value;
-            }
-            throw new IllegalArgumentException("value is not a Long: " + value);
-        case DOUBLE:
-            if (value instanceof Double) {
-                return (Double) value;
-            }
-            throw new IllegalArgumentException("value is not a Double: " + value);
-        case DATETIME:
-            if (value instanceof Calendar) {
-                return (Calendar) value;
-            }
-            if (value instanceof Date) {
-                Calendar cal = new GregorianCalendar(); // XXX timezone
-                cal.setTime((Date) value);
-                return cal;
-            }
-            throw new IllegalArgumentException("value is not a Calendar: " + value);
-        case BINARY:
-            if (value instanceof String) {
-                return (String) value;
-            }
-            throw new IllegalArgumentException("value is not a binary String: " + value);
-        case ACL:
-            if (value instanceof ACLRow) {
-                return (ACLRow) value;
-            }
-            throw new IllegalArgumentException("value is not a ACLRow: " + value);
-        default:
-            throw new RuntimeException(this.toString());
+            case STRING:
+                if (value instanceof String) {
+                    return (String) value;
+                }
+                throw new IllegalArgumentException("value is not a String: " + value);
+            case BOOLEAN:
+                if (value instanceof Boolean) {
+                    return (Boolean) value;
+                }
+                throw new IllegalArgumentException("value is not a Boolean: " + value);
+            case LONG:
+                if (value instanceof Long) {
+                    return (Long) value;
+                }
+                if (value instanceof DeltaLong) {
+                    return (DeltaLong) value;
+                }
+                throw new IllegalArgumentException("value is not a Long: " + value);
+            case DOUBLE:
+                if (value instanceof Double) {
+                    return (Double) value;
+                }
+                throw new IllegalArgumentException("value is not a Double: " + value);
+            case DATETIME:
+                if (value instanceof Calendar) {
+                    return (Calendar) value;
+                }
+                if (value instanceof Date) {
+                    Calendar cal = new GregorianCalendar(); // XXX timezone
+                    cal.setTime((Date) value);
+                    return cal;
+                }
+                throw new IllegalArgumentException("value is not a Calendar: " + value);
+            case BINARY:
+                if (value instanceof String) {
+                    return (String) value;
+                }
+                throw new IllegalArgumentException("value is not a binary String: " + value);
+            case ACL:
+                if (value instanceof ACLRow) {
+                    return (ACLRow) value;
+                }
+                throw new IllegalArgumentException("value is not a ACLRow: " + value);
+            default:
+                throw new RuntimeException(this.toString());
         }
     }
 
@@ -165,9 +164,9 @@ public enum PropertyType {
             return emptyArray;
         }
         Serializable[] newValue;
-        if (value instanceof Serializable[]) {
+        if (value instanceof Serializable[] values) {
             // update in place
-            newValue = (Serializable[]) value;
+            newValue = values;
         } else {
             newValue = new Serializable[value.length];
         }
@@ -184,26 +183,20 @@ public enum PropertyType {
      * @param array {@code true} if an array type is required
      */
     public static PropertyType fromFieldType(Type fieldType, boolean array) {
-        if (fieldType instanceof StringType) {
-            return array ? ARRAY_STRING : STRING;
-        } else if (fieldType instanceof BooleanType) {
-            return array ? ARRAY_BOOLEAN : BOOLEAN;
-        } else if (fieldType instanceof LongType) {
-            return array ? ARRAY_LONG : LONG;
-        } else if (fieldType instanceof DoubleType) {
-            return array ? ARRAY_DOUBLE : DOUBLE;
-        } else if (fieldType instanceof DateType) {
-            return array ? ARRAY_DATETIME : DATETIME;
-        } else if (fieldType instanceof BinaryType) {
-            return array ? ARRAY_BINARY : BINARY;
-        } else if (fieldType instanceof IntegerType) {
-            throw new RuntimeException("Unimplemented primitive type: " + fieldType.getClass().getName());
-        } else if (fieldType instanceof SimpleTypeImpl) {
+        return switch (fieldType) {
+            case StringType ignored -> array ? ARRAY_STRING : STRING;
+            case BooleanType ignored -> array ? ARRAY_BOOLEAN : BOOLEAN;
+            case LongType ignored -> array ? ARRAY_LONG : LONG;
+            case DoubleType ignored -> array ? ARRAY_DOUBLE : DOUBLE;
+            case DateType ignored -> array ? ARRAY_DATETIME : DATETIME;
+            case BinaryType ignored -> array ? ARRAY_BINARY : BINARY;
+            case IntegerType ignored ->
+                throw new RuntimeException("Unimplemented primitive type: " + fieldType.getClass().getName());
             // simple type with constraints -- ignore constraints XXX
-            return fromFieldType(fieldType.getSuperType(), array);
-        } else {
-            throw new RuntimeException("Invalid primitive type: " + fieldType.getClass().getName());
-        }
+            case SimpleTypeImpl simpleType -> fromFieldType(simpleType.getSuperType(), array);
+            case null -> throw new RuntimeException("Invalid null primitive type");
+            default -> throw new RuntimeException("Invalid primitive type: " + fieldType.getClass().getName());
+        };
     }
 
 }

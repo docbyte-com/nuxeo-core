@@ -25,6 +25,7 @@ import org.nuxeo.launcher.config.ConfigurationHolder;
 import org.nuxeo.launcher.config.backingservices.BackingChecker;
 import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.lib.stream.log.kafka.KafkaLogManager;
+import org.nuxeo.log4j.Redactor;
 
 /**
  * @since 11.3
@@ -54,7 +55,10 @@ public class KafkaChecker implements BackingChecker {
                 config.consumerProperties.properties)) {
             manager.exists(Name.ofUrn("input/null"));
         } catch (Exception e) {
-            throw new ConfigurationException("Unable to reach Kafka using: " + config.producerProperties.properties, e);
+            throw new ConfigurationException(
+                    String.format("Unable to connect to Kafka, please check your configuration: %s",
+                            new Redactor().maskSensitive(config.producerProperties.properties.toString())),
+                    e);
         }
     }
 }

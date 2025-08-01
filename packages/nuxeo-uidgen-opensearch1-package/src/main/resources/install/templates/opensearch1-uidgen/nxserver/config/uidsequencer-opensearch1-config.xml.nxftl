@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.uidsequencer.opensearch1.config">
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="client">
+    <client id="seq/default">
+<#if "${(nuxeo.opensearch1.embed.enabled)!}" == "true" && "${nuxeo.uidsequencer.default.opensearch1.client.server}" == "">
+      <embedServer>${nuxeo.opensearch1.embed.name}</embedServer>
+<#else>
+      <server>${nuxeo.uidsequencer.default.opensearch1.client.server}</server>
+</#if>
+      <connectionTimeout>${nuxeo.uidsequencer.default.opensearch1.client.connectionTimeout}</connectionTimeout>
+      <socketTimeout>${nuxeo.uidsequencer.default.opensearch1.client.socketTimeout}</socketTimeout>
+      <sslCertificateVerification>${nuxeo.uidsequencer.default.opensearch1.client.sslCertificateVerification}</sslCertificateVerification>
+      <username>${nuxeo.uidsequencer.default.opensearch1.client.username}</username>
+      <password>${nuxeo.uidsequencer.default.opensearch1.client.password}</password>
+      <trustStore type="${nuxeo.uidsequencer.default.opensearch1.client.trustStore.type}">
+        <path>${nuxeo.uidsequencer.default.opensearch1.client.trustStore.path}</path>
+        <password>${nuxeo.uidsequencer.default.opensearch1.client.trustStore.password}</password>
+      </trustStore>
+      <keyStore type="${nuxeo.uidsequencer.default.opensearch1.client.keyStore.type}">
+        <path>${nuxeo.uidsequencer.default.opensearch1.client.keyStore.path}</path>
+        <password>${nuxeo.uidsequencer.default.opensearch1.client.keyStore.password}</password>
+      </keyStore>
+    </client>
+  </extension>
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="${nuxeo.uidsequencer.default.opensearch1.index.name}">
+      <client id="seq/default" />
+      <settings>
+        {
+          "number_of_shards" : 1,
+          "index.translog.durability": "${nuxeo.uidsequencer.default.opensearch1.settings.indexTranslogDurability}",
+          "auto_expand_replicas" : "0-all"
+        }
+      </settings>
+      <mapping>
+        {
+          "_source" : {
+            "enabled": false
+          },
+          "enabled" : false
+        }
+      </mapping>
+    </index>
+  </extension>
+
+</component>

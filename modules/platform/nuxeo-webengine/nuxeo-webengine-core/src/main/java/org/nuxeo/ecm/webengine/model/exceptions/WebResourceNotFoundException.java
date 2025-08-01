@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.webengine.model.exceptions;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 

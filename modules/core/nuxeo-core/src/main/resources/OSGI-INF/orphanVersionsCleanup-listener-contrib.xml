@@ -5,8 +5,8 @@
 
   <!-- bulk action implementing the new orphan versions full GC -->
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
-    <action name="garbageCollectOrphanVersions" inputStream="bulk/garbageCollectOrphanVersions" bucketSize="100"
-      batchSize="25" />
+    <action name="garbageCollectOrphanVersions" defaultScroller="repository"
+      inputStream="bulk/garbageCollectOrphanVersions" bucketSize="100" batchSize="25" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">

@@ -20,7 +20,7 @@
 
 package org.nuxeo.wopi.exception;
 
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 
 /**
  * @since 10.3

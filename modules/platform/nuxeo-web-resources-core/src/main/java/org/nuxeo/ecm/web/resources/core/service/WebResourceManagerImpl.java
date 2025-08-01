@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
  */
 package org.nuxeo.ecm.web.resources.core.service;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.codehaus.plexus.util.dag.CycleDetectedException;
@@ -37,9 +38,9 @@ import org.nuxeo.ecm.web.resources.api.ResourceContext;
 import org.nuxeo.ecm.web.resources.api.ResourceType;
 import org.nuxeo.ecm.web.resources.api.service.WebResourceManager;
 import org.nuxeo.ecm.web.resources.core.ProcessorDescriptor;
+import org.nuxeo.ecm.web.resources.core.ResourceBundleDescriptor;
 import org.nuxeo.ecm.web.resources.core.ResourceDescriptor;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -51,126 +52,73 @@ public class WebResourceManagerImpl extends DefaultComponent implements WebResou
 
     protected static final String RESOURCES_ENDPOINT = "resources";
 
-    protected ResourceRegistry resources;
-
     protected static final String RESOURCE_BUNDLES_ENDPOINT = "bundles";
-
-    protected ResourceBundleRegistry resourceBundles;
 
     protected static final String PROCESSORS_ENDPOINT = "processors";
 
-    protected ProcessorRegistry processors;
+    protected Map<String, ProcessorDescriptor> processors;
 
     // Runtime Component API
 
     @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        resources = new ResourceRegistry();
-        resourceBundles = new ResourceBundleRegistry();
-        processors = new ProcessorRegistry();
+    public void start(ComponentContext context) {
+        processors = this.<ProcessorDescriptor> getDescriptors(PROCESSORS_ENDPOINT)
+                         .stream()
+                         .filter(ProcessorDescriptor::isEnabled)
+                         .collect(Collectors.toMap(ProcessorDescriptor::getName, Function.identity()));
     }
 
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (RESOURCES_ENDPOINT.equals(extensionPoint)) {
-            ResourceDescriptor resource = (ResourceDescriptor) contribution;
-            computeResourceUri(resource, contributor);
-            registerResource(resource);
-        } else if (RESOURCE_BUNDLES_ENDPOINT.equals(extensionPoint)) {
-            ResourceBundle bundle = (ResourceBundle) contribution;
-            registerResourceBundle(bundle);
-        } else if (PROCESSORS_ENDPOINT.equals(extensionPoint)) {
-            ProcessorDescriptor p = (ProcessorDescriptor) contribution;
-            log.info("Register processor: {}", p::getName);
-            processors.addContribution(p);
-            log.info("Done registering processor: {}", p::getName);
-        } else {
-            log.error("Unknown contribution to the service, extension point: {}: {}", extensionPoint, contribution);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (RESOURCES_ENDPOINT.equals(extensionPoint)) {
-            Resource resource = (Resource) contribution;
-            unregisterResource(resource);
-        } else if (RESOURCE_BUNDLES_ENDPOINT.equals(extensionPoint)) {
-            ResourceBundle bundle = (ResourceBundle) contribution;
-            unregisterResourceBundle(bundle);
-        } else if (PROCESSORS_ENDPOINT.equals(extensionPoint)) {
-            ProcessorDescriptor p = (ProcessorDescriptor) contribution;
-            log.info("Removing processor: {}", p::getName);
-            processors.removeContribution(p);
-            log.info("Done removing processor: {}", p::getName);
-        } else {
-            log.error("Unknown contribution to the service, extension point: {}: {}", extensionPoint, contribution);
-        }
-    }
-
-    // service API
-
-    protected void computeResourceUri(ResourceDescriptor resource, ComponentInstance contributor) {
-        String uri = resource.getURI();
-        if (uri == null) {
-            // build it from local classpath
-            // XXX: hacky wildcard support
-            String path = resource.getPath();
-            if (path != null) {
-                boolean hasWildcard = false;
-                if (path.endsWith("*")) {
-                    hasWildcard = true;
-                    path = path.substring(0, path.length() - 1);
-                }
-                URL url = contributor.getContext().getLocalResource(path);
-                if (url == null) {
-                    log.error("Cannot resolve local URL for resource: {} with path: {}", resource::getName,
-                            resource::getPath);
-                } else {
-                    String builtUri = url.toString();
-                    if (hasWildcard) {
-                        builtUri += "*";
-                    }
-                    resource.setURI(builtUri);
-                }
-            }
-        }
+    public void stop(ComponentContext context) {
+        processors = null;
     }
 
     @Override
     public Resource getResource(String name) {
-        return resources.getResource(name);
+        // compute the resource dynamically as there's API to register/unregister Resource
+        return this.<ResourceDescriptor> getDescriptors(RESOURCES_ENDPOINT)
+                   .stream()
+                   .filter(descriptor -> descriptor.getName().equals(name))
+                   .findFirst()
+                   .orElse(null);
     }
 
     @Override
     public ResourceBundle getResourceBundle(String name) {
-        return resourceBundles.getResourceBundle(name);
+        // compute the resource dynamically as there's API to register/unregister Resource
+        return this.<ResourceBundleDescriptor> getDescriptors(RESOURCE_BUNDLES_ENDPOINT)
+                   .stream()
+                   .filter(descriptor -> descriptor.getName().equals(name))
+                   .findFirst()
+                   .orElse(null);
     }
 
     @Override
     public List<ResourceBundle> getResourceBundles() {
-        return resourceBundles.getResourceBundles();
+        return new ArrayList<>(this.<ResourceBundleDescriptor> getDescriptors(RESOURCE_BUNDLES_ENDPOINT));
     }
 
     @Override
     public Processor getProcessor(String name) {
-        return processors.getProcessor(name);
+        return processors.get(name);
     }
 
     @Override
     public List<Processor> getProcessors() {
-        return processors.getProcessors();
+        return new ArrayList<>(processors.values().stream().sorted().toList());
     }
 
     @Override
     public List<Processor> getProcessors(String type) {
-        return processors.getProcessors(type);
+        Predicate<ProcessorDescriptor> processorFilter = descriptor -> type == null
+                || descriptor.getTypes().contains(type);
+        return new ArrayList<>(processors.values().stream().filter(processorFilter).sorted().toList());
     }
 
     @Override
     public List<Resource> getResources(ResourceContext context, String bundleName, String type) {
         List<Resource> res = new ArrayList<>();
-        ResourceBundle rb = resourceBundles.getResourceBundle(bundleName);
+        ResourceBundle rb = getResourceBundle(bundleName);
         if (rb == null) {
             log.debug("Unknown bundle named: {}", bundleName);
             return res;
@@ -233,12 +181,7 @@ public class WebResourceManagerImpl extends DefaultComponent implements WebResou
     @Override
     public void registerResourceBundle(ResourceBundle bundle) {
         log.info("Register resource bundle: {}", bundle::getName);
-        if (bundle.getResources().removeIf(StringUtils::isBlank)) {
-            log.error("Some resources references were null or blank while setting " + bundle.getName()
-                    + " and have been supressed. This probably happened because some <resource> tags were empty in "
-                    + "the xml declaration. The correct form is <resource>resource name</resource>.");
-        }
-        resourceBundles.addContribution(bundle);
+        register(RESOURCE_BUNDLES_ENDPOINT, bundle);
         log.info("Done registering resource bundle: {}", bundle::getName);
         setModifiedNow();
     }
@@ -246,7 +189,7 @@ public class WebResourceManagerImpl extends DefaultComponent implements WebResou
     @Override
     public void unregisterResourceBundle(ResourceBundle bundle) {
         log.info("Removing resource bundle: {}", bundle::getName);
-        resourceBundles.removeContribution(bundle);
+        unregister(RESOURCE_BUNDLES_ENDPOINT, bundle);
         log.info("Done removing resource bundle: {}", bundle::getName);
         setModifiedNow();
     }
@@ -254,7 +197,7 @@ public class WebResourceManagerImpl extends DefaultComponent implements WebResou
     @Override
     public void registerResource(Resource resource) {
         log.info("Register resource: {}", resource::getName);
-        resources.addContribution(resource);
+        register(RESOURCES_ENDPOINT, resource);
         log.info("Done registering resource: {}", resource::getName);
         setModifiedNow();
     }
@@ -262,7 +205,7 @@ public class WebResourceManagerImpl extends DefaultComponent implements WebResou
     @Override
     public void unregisterResource(Resource resource) {
         log.info("Removing resource: {}", resource::getName);
-        resources.removeContribution(resource);
+        unregister(RESOURCES_ENDPOINT, resource);
         log.info("Done removing resource: {}", resource::getName);
         setModifiedNow();
     }

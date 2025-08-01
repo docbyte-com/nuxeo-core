@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger <troger@nuxeo.com>
  */
-
 package org.nuxeo.ecm.quota;
 
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -41,17 +40,6 @@ public interface QuotaStatsUpdater {
      * @param session an unrestricted {@link CoreSession} to be used
      */
     void updateStatistics(CoreSession session, DocumentEventContext docCtx, Event event);
-
-    /**
-     * Compute the initial statistics on the whole repository for this {@code QuotaStatsUpdater}.
-     *
-     * @param session an unrestricted {@link CoreSession} to be used
-     * @deprecated since 10.1, use other signature
-     */
-    @Deprecated
-    default void computeInitialStatistics(CoreSession session, final QuotaStatsInitialWork currentWorker) {
-        computeInitialStatistics(session, currentWorker, null);
-    }
 
     /**
      * Compute the initial statistics under the given path for this {@code QuotaStatsUpdater}.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,10 +45,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
-import javax.inject.Inject;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -62,20 +62,20 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
-import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.io.DummyServletOutputStream;
 import org.nuxeo.ecm.core.io.download.DownloadService;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.core.test.DocumentSetRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.transientstore.api.TransientStore;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreService;
 import org.nuxeo.ecm.platform.csv.export.action.CSVExportAction;
-import org.nuxeo.elasticsearch.test.RepositoryLightElasticSearchFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -87,8 +87,7 @@ import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreBulkFeature.class, CoreFeature.class, DirectoryFeature.class,
-        RepositoryLightElasticSearchFeature.class })
+@Features({ CoreSearchFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.ecm.platform.csv.export")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
@@ -313,13 +312,14 @@ public class TestCSVExportAction {
     }
 
     @Test
-    public void testDownloadCSV() throws Exception {
-        testDownloadCSV("default");
+    public void testDownloadCSVWithRepository() throws Exception {
+        testDownloadCSV("repository");
     }
 
     @Test
-    public void testDownloadCSVWithElasticScroller() throws Exception {
-        testDownloadCSV("elastic");
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
+    public void testDownloadCSVWithOpensearchScroller() throws Exception {
+        testDownloadCSV("search");
     }
 
     @Test

@@ -23,6 +23,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import java.io.IOException;
 import java.io.InputStream;
 
+import jakarta.ws.rs.core.MediaType;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntityEnclosingRequest;
@@ -32,8 +34,6 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.function.ThrowableConsumer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import javax.ws.rs.core.MediaType;
 
 /**
  * @since 2023.13
@@ -48,8 +48,8 @@ class HttpClientTestRuleLogger {
         // nothing
     }
 
-    protected static void logDebugInfo(HttpClientTestRule httpClient, HttpUriRequest request, HttpResponse response) {
-        String requestLog = buildRequestLog(httpClient, request);
+    protected static void logDebugInfo(HttpUriRequest request, HttpResponse response) {
+        String requestLog = buildRequestLog(request);
         String responseLog = buildResponseLog(response);
         log.error("""
                 An error occurred during HTTP request execution or during HTTP response handling:
@@ -60,7 +60,7 @@ class HttpClientTestRuleLogger {
                 """, requestLog.indent(8), responseLog.indent(8));
     }
 
-    protected static String buildRequestLog(HttpClientTestRule httpClient, HttpUriRequest request) {
+    protected static String buildRequestLog(HttpUriRequest request) {
         StringBuilder builder = new StringBuilder();
         try {
             builder.append(request.getMethod())
@@ -70,16 +70,6 @@ class HttpClientTestRuleLogger {
                    .append(request.getProtocolVersion())
                    .append(System.lineSeparator());
             builder.append("Headers:").append(System.lineSeparator());
-            for (var header : httpClient.headers.entrySet()) {
-                // only print global header if request doesn't override it
-                if (request.getFirstHeader(header.getKey()) == null) {
-                    builder.append("    ")
-                            .append(header.getKey())
-                            .append(": ")
-                            .append(header.getValue())
-                            .append(System.lineSeparator());
-                }
-            }
             for (var header : request.getAllHeaders()) {
                 builder.append("    ")
                        .append(header.getName())
@@ -148,8 +138,13 @@ class HttpClientTestRuleLogger {
     }
 
     protected static String jsonPrettyPrint(InputStream stream) throws IOException {
-        // deserialize with Jackson to have a pretty print
-        var node = MAPPER.readTree(stream);
-        return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        try {
+            // deserialize with Jackson to have a pretty print
+            var node = MAPPER.readTree(stream);
+            return MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(node);
+        } catch (IOException e) {
+            stream.reset();
+            return IOUtils.toString(stream, UTF_8);
+        }
     }
 }

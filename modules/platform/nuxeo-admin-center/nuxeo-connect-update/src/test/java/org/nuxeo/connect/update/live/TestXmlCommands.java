@@ -20,7 +20,7 @@ package org.nuxeo.connect.update.live;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.runner.RunWith;
 import org.nuxeo.connect.update.ConnectUpdateFeature;

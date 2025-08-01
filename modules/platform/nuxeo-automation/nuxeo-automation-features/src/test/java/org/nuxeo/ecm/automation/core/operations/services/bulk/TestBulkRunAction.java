@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,13 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,14 +42,13 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.util.StringList;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.core.bulk.action.SetPropertiesAction;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DocumentSetRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -68,12 +65,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @since 10.2
  */
-@Features({ CoreFeature.class, CoreBulkFeature.class })
+@Features(AutomationFeaturesFeature.class)
 @RunWith(FeaturesRunner.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.server")
-@Deploy("org.nuxeo.ecm.automation.features")
-@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.automation.features:test-providers.xml")
 @RepositoryConfig(init = DocumentSetRepositoryInit.class, cleanup = Granularity.CLASS)
@@ -256,7 +249,9 @@ public class TestBulkRunAction {
             service.run(ctx, BulkRunAction.ID, params);
             fail("Expected exception");
         } catch (NuxeoException e) {
-            assertEquals("Failed to invoke operation Bulk.RunAction, Could not get Provider Definition from either query or provider name", e.getMessage());
+            assertEquals(
+                    "Failed to invoke operation Bulk.RunAction, Could not get Provider Definition from either query or provider name",
+                    e.getMessage());
         }
 
         // should work with unparameterized simpleProviderTest1
@@ -303,8 +298,9 @@ public class TestBulkRunAction {
     public void testExcludeDocs() throws Exception {
         // List doc ids that match a query
         DocumentModel model = session.getDocument(new PathRef("/default-domain/workspaces/test"));
-        String nxql = String.format("SELECT * from ComplexDoc WHERE ecm:parentId='%s' AND ecm:isProxy = 0", model.getId());
-        List<String> ids = session.query(nxql).stream().map(DocumentModel::getId).collect(Collectors.toList());
+        String nxql = String.format("SELECT * from ComplexDoc WHERE ecm:parentId='%s' AND ecm:isProxy = 0",
+                model.getId());
+        List<String> ids = session.query(nxql).stream().map(DocumentModel::getId).toList();
         assertTrue(ids.size() > 2);
 
         // Build a bulk command based on the query but excluding 2 doc ids

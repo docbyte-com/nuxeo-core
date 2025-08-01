@@ -1,0 +1,76 @@
+/*
+ * Copyright 2018, OpenCensus Authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.nuxeo.ecm.platform.web.common.tracing;
+
+import jakarta.annotation.Nullable;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import io.opencensus.common.ExperimentalApi;
+import io.opencensus.contrib.http.HttpExtractor;
+
+/**
+ * This class extracts attributes from {@link HttpServletRequest} and {@link HttpServletResponse}.
+ * 
+ * @implNote Copied from {@code io.opencensus:opencensus-contrib-http-servlet} to make it Jakarta compatible
+ */
+@ExperimentalApi
+class OcHttpServletExtractor extends HttpExtractor<HttpServletRequest, HttpServletResponse> {
+    @Override
+    public String getHost(HttpServletRequest request) {
+        return request.getServerName();
+    }
+
+    @Override
+    public String getMethod(HttpServletRequest request) {
+        return request.getMethod();
+    }
+
+    @Override
+    public String getPath(HttpServletRequest request) {
+        // Path defined in the spec at
+        // https://github.com/census-instrumentation/opencensus-specs/blob/master/trace/HTTP.md#attributes
+        // is equivalent of URI in HttpServlet.
+        return request.getRequestURI();
+    }
+
+    @Override
+    public String getUserAgent(HttpServletRequest request) {
+        return request.getHeader("User-Agent");
+    }
+
+    @Override
+    public int getStatusCode(@Nullable HttpServletResponse response) {
+        if (response != null) {
+            return response.getStatus();
+        }
+        return 0;
+    }
+
+    @Override
+    public String getUrl(HttpServletRequest request) {
+        // Url defined in the spec at
+        // https://github.com/census-instrumentation/opencensus-specs/blob/master/trace/HTTP.md#attributes
+        // is equivalent of URL + QueryString in HttpServlet.
+        return request.getRequestURL().toString() + "?" + request.getQueryString();
+    }
+
+    @Override
+    public String getRoute(HttpServletRequest request) {
+        return "";
+    }
+}

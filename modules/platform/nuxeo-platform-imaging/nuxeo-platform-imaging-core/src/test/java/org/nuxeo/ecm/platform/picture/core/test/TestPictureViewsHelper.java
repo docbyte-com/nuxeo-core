@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +40,7 @@ import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.picture.PictureViewsHelper;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -50,7 +50,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 2021.12
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.dublincore")
 public class TestPictureViewsHelper {
 
@@ -61,6 +61,7 @@ public class TestPictureViewsHelper {
     protected TransactionalFeature txFeature;
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testComputePictureViewsModificationDate() throws IOException {
         DocumentModel doc = session.createDocumentModel("/", "pictureDoc", "Picture");
         Blob blob = Blobs.createBlob(FileUtils.getResourceFileFromContext("images/test.jpg"), "image/jpeg",

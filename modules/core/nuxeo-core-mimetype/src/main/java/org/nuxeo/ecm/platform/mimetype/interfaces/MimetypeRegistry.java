@@ -38,6 +38,13 @@ public interface MimetypeRegistry {
     String DEFAULT_MIMETYPE = "application/octet-stream";
 
     /**
+     * Undefined MIME type marker, can be returned by the jMimeMagic library.
+     *
+     * @since 2023.18
+     */
+    String UNDEFINED_MIMETYPE = "???";
+
+    /**
      * @since 2021.9
      */
     String XML_MIMETYPE = "text/xml";
@@ -179,8 +186,8 @@ public interface MimetypeRegistry {
      * Retrieves the normalized mime type for the given {@code mimeType}.
      *
      * @param mimeType the mime for which we are looking for the normalized one
-     * @return an {@code Optional} with a present value if the normalized mime type can be found, otherwise an
-     *         empty {@code Optional}
+     * @return an {@code Optional} with a present value if the normalized mime type can be found, otherwise an empty
+     *         {@code Optional}
      * @since 11.1
      */
     Optional<String> getNormalizedMimeType(String mimeType);

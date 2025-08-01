@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,9 +31,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-import javax.el.ELContext;
-import javax.el.ValueExpression;
-import javax.validation.constraints.NotNull;
+import jakarta.el.ELContext;
+import jakarta.el.ValueExpression;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,6 +63,7 @@ import org.nuxeo.ecm.platform.query.core.BucketRangeDate;
 import org.nuxeo.ecm.platform.query.core.BucketTerm;
 import org.nuxeo.ecm.platform.query.core.CoreQueryPageProviderDescriptor;
 import org.nuxeo.ecm.platform.query.core.GenericPageProviderDescriptor;
+import org.nuxeo.ecm.platform.query.core.MockBucket;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryAndFetchPageProvider;
 import org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
@@ -128,7 +129,7 @@ public class PageProviderHelper {
      * @since 11.1
      */
     public static PageProviderDefinition getQueryPageProviderDefinition(String query, Map<String, String> properties,
-                                                                        boolean escapeParameters, boolean quoteParameters) {
+            boolean escapeParameters, boolean quoteParameters) {
         CoreQueryPageProviderDescriptor desc = new CoreQueryPageProviderDescriptor();
         desc.setName(StringUtils.EMPTY);
         desc.setPattern(query);
@@ -323,7 +324,7 @@ public class PageProviderHelper {
             }
 
             query = NXQLQueryBuilder.getQuery(pattern, parameters, def.getQuotePatternParameters(),
-                    def.getEscapePatternParameters(), searchDocumentModel, null);
+                    def.getEscapePatternParameters(), searchDocumentModel);
         } else {
             if (searchDocumentModel == null) {
                 throw new NuxeoException(
@@ -331,7 +332,7 @@ public class PageProviderHelper {
                                 provider.getName()));
             }
             String additionalClause = NXQLQueryBuilder.appendClause(aggregatesClause, quickFiltersClause);
-            query = NXQLQueryBuilder.getQuery(searchDocumentModel, whereClause, additionalClause, parameters, null);
+            query = NXQLQueryBuilder.getQuery(searchDocumentModel, whereClause, additionalClause, parameters);
         }
         return query;
     }
@@ -354,12 +355,14 @@ public class PageProviderHelper {
                     // the JSON serialization of the named parameters
                     List<String> keys = StreamSupport.stream(node.spliterator(), false)
                                                      .map(value -> value.asText().replaceAll("^\"|\"$", ""))
-                                                     .collect(Collectors.toList());
+                                                     .toList();
                     // Build aggregate clause from given keys in the named parameters
-                    String aggClause = aggregate.getBuckets()
+                    // Use extended buckets to take into account buckets that match a selected value but are not
+                    // included in the list of regular buckets, because maximum bucket count is exceeded
+                    String aggClause = aggregate.getExtendedBuckets()
                                                 .stream()
                                                 .filter(bucket -> keys.contains(bucket.getKey()))
-                                                .map(bucket -> getClauseFromBucket(bucket, aggregate.getXPathField()))
+                                                .map(bucket -> getClauseFromBucket(bucket, aggregate.getField()))
                                                 .collect(Collectors.joining(" OR "));
                     if (StringUtils.isNotEmpty(aggClause)) {
                         aggClause = "(" + aggClause + ")";
@@ -375,31 +378,34 @@ public class PageProviderHelper {
     }
 
     protected static String getClauseFromBucket(Bucket bucket, String field) {
-        String clause;
         // Replace potential '.' path separator with '/' character
-        field = field.replaceAll("\\.", "/");
-        if (bucket instanceof BucketTerm) {
-            clause = field + "='" + bucket.getKey() + "'";
-        } else if (bucket instanceof BucketRange) {
-            BucketRange bucketRange = (BucketRange) bucket;
-            clause = getRangeClause(field, bucketRange);
-        } else if (bucket instanceof BucketRangeDate) {
-            BucketRangeDate bucketRangeDate = (BucketRangeDate) bucket;
-            clause = getRangeDateClause(field, bucketRangeDate);
-        } else {
-            throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
-        }
-        return clause;
+        field = field.replace("\\.", "/");
+        return switch (bucket) {
+            case BucketTerm bucketTerm -> getTermClause(field, bucketTerm.getKey());
+            // the best we can do is apply term clause
+            case MockBucket mockBucket -> getTermClause(field, mockBucket.getKey());
+            case BucketRange bucketRange -> getRangeClause(field, bucketRange);
+            case BucketRangeDate bucketRangeDate -> getRangeDateClause(field, bucketRangeDate);
+            case null -> throw new NuxeoException("Unknown null bucket instance for NXQL translation");
+            default -> throw new NuxeoException("Unknown bucket instance for NXQL translation : " + bucket.getClass());
+        };
+    }
+
+    /**
+     * @since 2023.18
+     */
+    protected static String getTermClause(String field, String key) {
+        return field + "='" + StringUtils.replace(key, "'", "\\'") + "'";
     }
 
     protected static String getRangeClause(String field, BucketRange bucketRange) {
         Type type = Framework.getService(SchemaManager.class).getField(field).getType();
-        Double from = bucketRange.getFrom() != null ? bucketRange.getFrom() : Double.NEGATIVE_INFINITY;
-        Double to = bucketRange.getTo() != null ? bucketRange.getTo() : Double.POSITIVE_INFINITY;
+        double from = bucketRange.getFrom() != null ? bucketRange.getFrom() : Double.NEGATIVE_INFINITY;
+        double to = bucketRange.getTo() != null ? bucketRange.getTo() : Double.POSITIVE_INFINITY;
         if (type instanceof IntegerType) {
-            return field + " BETWEEN " + from.intValue() + " AND " + to.intValue();
+            return field + " BETWEEN " + (int) from + " AND " + (int) to;
         } else if (type instanceof LongType) {
-            return field + " BETWEEN " + from.longValue() + " AND " + to.longValue();
+            return field + " BETWEEN " + (long) from + " AND " + (long) to;
         }
         return field + " BETWEEN " + from + " AND " + to;
     }

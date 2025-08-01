@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,10 @@
 package org.nuxeo.ecm.automation.core.events;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.AutomationService;
@@ -30,6 +32,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.runtime.api.Framework;
 
 /**
  * TODO: This service should be moved in another project, and renamed since it's a service, not a simple registry...
@@ -40,114 +43,69 @@ public class EventHandlerRegistry {
 
     private static final Logger log = LogManager.getLogger(EventHandlerRegistry.class);
 
-    protected final AutomationService svc;
+    protected final Map<String, List<EventHandler>> handlers;
 
-    protected EventRegistry handlers;
+    protected final Map<String, List<EventHandler>> postCommitHandlers;
 
-    protected EventRegistry pchandlers;
-
-    public EventHandlerRegistry(AutomationService svc) {
-        this.svc = svc;
-        handlers = new EventRegistry();
-        pchandlers = new EventRegistry();
+    public EventHandlerRegistry(Map<String, List<EventHandler>> handlers,
+            Map<String, List<EventHandler>> postCommitHandlers) {
+        this.handlers = handlers;
+        this.postCommitHandlers = postCommitHandlers;
     }
 
     public List<EventHandler> getEventHandlers(String eventId) {
-        return handlers.lookup().get(eventId);
+        return handlers.get(eventId);
     }
 
     public List<EventHandler> getPostCommitEventHandlers(String eventId) {
-        return pchandlers.lookup().get(eventId);
-    }
-
-    public void putEventHandler(EventHandler handler) {
-        handlers.addContribution(handler);
-    }
-
-    public synchronized void putPostCommitEventHandler(EventHandler handler) {
-        pchandlers.addContribution(handler);
-    }
-
-    public synchronized void removePostCommitEventHandler(EventHandler handler) {
-        pchandlers.removeContribution(handler);
-    }
-
-    public synchronized void removeEventHandler(EventHandler handler) {
-        handlers.removeContribution(handler);
-    }
-
-    public synchronized void clear() {
-        handlers = new EventRegistry();
-        pchandlers = new EventRegistry();
+        return postCommitHandlers.get(eventId);
     }
 
     public Set<String> getPostCommitEventNames() {
-        return pchandlers.lookup().keySet();
+        return postCommitHandlers.keySet();
     }
 
     public boolean acceptEvent(Event event, List<EventHandler> handlers) {
-        if (handlers == null || handlers.isEmpty()) {
+        if (CollectionUtils.isEmpty(handlers)) {
             return false;
         }
-
-        try (OperationContext ctx = open(event)) {
-            EventContext ectx = event.getContext();
+        var eventContext = event.getContext();
+        try (OperationContext ctx = getOperationContext(eventContext)) {
             ctx.put("Event", event);
-            for (EventHandler handler : handlers) {
-                if (handler.isEnabled(ctx, ectx, true)) {
-                    return true;
-                }
-            }
-            return false;
+            return handlers.stream().anyMatch(handler -> handler.isEnabled(ctx, eventContext, true));
         }
     }
-
-    protected OperationContext open(Event event) {
-        EventContext ectx = event.getContext();
-        if (ectx instanceof DocumentEventContext) {
-            OperationContext ctx = new OperationContext(ectx.getCoreSession());
-            ctx.setInput(((DocumentEventContext) ectx).getSourceDocument());
-            return ctx;
-        }
-        return new OperationContext();
-    }
-
-    // TODO: impl remove handlers method? or should refactor runtime to be able
-    // to redeploy only using clear() method
 
     public void handleEvent(Event event, List<EventHandler> handlers, boolean saveSession) {
         if (handlers == null || handlers.isEmpty()) {
             return; // ignore
         }
 
-        EventContext ectx = event.getContext();
+        var eventContext = event.getContext();
         for (EventHandler handler : handlers) {
-            try (OperationContext ctx = getContext(ectx)) {
+            try (OperationContext ctx = getOperationContext(eventContext)) {
                 ctx.put("Event", event);
                 ctx.setCommit(saveSession); // avoid reentrant events
-                if (handler.isEnabled(ctx, ectx, false)) {
+                if (handler.isEnabled(ctx, eventContext, false)) {
                     // TODO this will save the session at each iteration!
-                    svc.run(ctx, handler.getChainId());
+                    Framework.getService(AutomationService.class).run(ctx, handler.getChainId());
                 }
             } catch (OperationException e) {
-                log.error("Failed to handle event " + event.getName() + " using chain: " + handler.getChainId(), e);
+                log.error("Failed to handle event: {} using chain: {}", event.getName(), handler.getChainId(), e);
                 throw new NuxeoException(e);
             } catch (NuxeoException e) {
-                log.error("Failed to handle event " + event.getName() + " using chain: " + handler.getChainId(), e);
+                log.error("Failed to handle event: {} using chain: {}", event.getName(), handler.getChainId(), e);
                 throw e;
             }
         }
     }
 
-    protected OperationContext getContext(EventContext ectx) {
-        if (ectx instanceof DocumentEventContext) {
-            OperationContext ctx = new OperationContext(ectx.getCoreSession());
-            ctx.setInput(((DocumentEventContext) ectx).getSourceDocument());
+    protected OperationContext getOperationContext(EventContext eventContext) {
+        if (eventContext instanceof DocumentEventContext documentEventContext) {
+            OperationContext ctx = new OperationContext(eventContext.getCoreSession());
+            ctx.setInput(documentEventContext.getSourceDocument());
             return ctx;
         }
-        // not a document event .. the chain must begin with void
-        // operation - session is not available.
         return new OperationContext();
     }
-
 }

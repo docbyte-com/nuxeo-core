@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-chemistry</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
   <artifactId>nuxeo-opencmis-tests</artifactId>
   <name>Nuxeo Chemistry OpenCMIS Tests</name>
@@ -29,15 +29,6 @@
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-query</artifactId>
     </dependency>
-    <!-- audit -->
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
-      <artifactId>nuxeo-core-persistence</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-api</artifactId>
-    </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-audit-core</artifactId>
@@ -55,12 +46,8 @@
       <artifactId>nuxeo-thumbnail</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-audit</artifactId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -92,27 +79,27 @@
     </dependency>
     <!-- OpenCMIS -->
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-commons-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-commons-impl</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-support</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-server-bindings</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.chemistry.opencmis</groupId>
+      <groupId>org.nuxeo.chemistry.opencmis</groupId>
       <artifactId>chemistry-opencmis-client-impl</artifactId>
     </dependency>
     <dependency>
@@ -147,25 +134,21 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-core</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <artifactId>nuxeo-platform-audit-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-core</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1</artifactId>
       <type>test-jar</type>
-      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-seqgen</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
       <type>test-jar</type>
-      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-      <artifactId>nuxeo-elasticsearch-audit</artifactId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
     </dependency>

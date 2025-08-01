@@ -36,7 +36,7 @@ import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * A view to be used by regular JAX-RS resources to be able to use freemarker templates.
+ * A view to be used by regular REST resources to be able to use freemarker templates.
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
@@ -61,6 +61,10 @@ public class TemplateView {
         return url;
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TemplateView#TemplateView(WebContext, Object, String)} instead
+     */
+    @Deprecated(since = "2025.0")
     public TemplateView(Object owner, String name) {
         this(WebEngine.getActiveContext(), owner, name);
     }
@@ -69,6 +73,10 @@ public class TemplateView {
         this(ctx, owner, findTemplate(owner, name));
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TemplateView#TemplateView(WebContext, Object, URL)} instead
+     */
+    @Deprecated(since = "2025.0")
     public TemplateView(Object owner, URL url) {
         this(WebEngine.getActiveContext(), owner, url);
     }

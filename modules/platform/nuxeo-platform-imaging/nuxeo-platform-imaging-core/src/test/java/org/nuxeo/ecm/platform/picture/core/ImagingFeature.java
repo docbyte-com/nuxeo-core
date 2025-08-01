@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,19 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
- * since 11.3
+ * @since 11.3
+ * @deprecated since 2025.0, use {@link ImagingCoreFeature} instead or
+ *             {@code org.nuxeo.ecm.platform.picture.test.ImagingFeature} from nuxeo-platform-imaging-test module
  */
-@Features(AutomationCoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
 @Deploy("org.nuxeo.ecm.actions")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.platform.tag")
 @Deploy("org.nuxeo.ecm.platform.picture.core.tests:OSGI-INF/empty-picture-configuration-contrib.xml")
+@Features(AutomationCoreFeature.class)
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ImagingFeature implements RunnerFeature {
 
 }

@@ -77,9 +77,14 @@
 
     <!-- Generate install.xml content -->
     <var name="install.bundles" value="" />
-    <var name="install.bundles"
-         value="${line.separator}
+    <if>
+      <available file="${outdir}/package/install/bundles" />
+      <then>
+        <var name="install.bundles"
+             value="${line.separator}
   &lt;update file=&quot;${package.root}/install/bundles&quot; todir=&quot;${env.bundles}&quot; /&gt;" />
+      </then>
+    </if>
 
     <var name="install.libs" value="" />
     <if>
@@ -125,7 +130,7 @@
     </copy>
 
     <if>
-      <available file="src/main/resources/bundles" />
+      <available file="${outdir}/package/install/bundles" />
       <then>
         <nx:studioExtraction todir="${outdir}/package">
           <fileset dir="${outdir}/package/install/bundles"/>

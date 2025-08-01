@@ -2,7 +2,7 @@
 <component name="org.nuxeo.ecm.core.uidgen.test-contrib">
 
   <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
-    <sequencer name="dummySequencer" class="org.nuxeo.ecm.core.uidgen.DummyUIDSequencerImpl" default="true" />
+    <sequencer name="dummySequencer" class="org.nuxeo.ecm.core.uidgen.DummyUIDSequencerImpl" />
   </extension>
 
   <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="generators">

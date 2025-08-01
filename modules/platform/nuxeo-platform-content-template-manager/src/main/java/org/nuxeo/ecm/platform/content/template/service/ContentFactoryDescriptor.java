@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,40 +15,43 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.content.template.service;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Content factory descriptor. Immutable.
  */
 @XObject(value = "contentFactory")
-public class ContentFactoryDescriptor {
+public class ContentFactoryDescriptor implements Descriptor {
 
     @XNode("@name")
-    private String name;
+    protected String name;
 
     @XNode("@enabled")
-    private boolean enabled = true;
+    protected boolean enabled = true;
 
     @XNode("@class")
-    private Class<ContentFactory> className;
+    protected Class<ContentFactory> className;
 
-    public Class<ContentFactory> getClassName() {
-        return className;
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public boolean getEnabled() {
         return enabled;
     }
 
-    public String getName() {
-        return name;
+    public Class<ContentFactory> getClassName() {
+        return className;
     }
 
 }

@@ -21,12 +21,12 @@
 
 package org.nuxeo.ecm.platform.actions;
 
+import org.nuxeo.runtime.model.Descriptor;
+
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-public interface ActionFilter {
-
-    String getId();
+public interface ActionFilter extends Descriptor {
 
     void setId(String id);
 
@@ -43,7 +43,7 @@ public interface ActionFilter {
      *            on given context.
      * @param context mandatory context holding variables to check against.
      * @return true if filters configuration for given action and context. Returns false if an error occurs during one
-     *          of the conditions evaluation.
+     *         of the conditions evaluation.
      */
     boolean accept(Action action, ActionContext context);
 

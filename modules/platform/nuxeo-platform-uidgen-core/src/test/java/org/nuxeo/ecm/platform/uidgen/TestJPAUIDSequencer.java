@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,16 @@ package org.nuxeo.ecm.platform.uidgen;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.core.uidgen.UIDGeneratorComponent.DEFAULT_SEQUENCER_NAME;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.core.uidgen.UIDSequencer;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,10 +39,11 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 7.4
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features({ DataSourceFeature.class, CoreEventFeature.class })
+@Deploy("org.nuxeo.ecm.core:OSGI-INF/uidgenerator-service.xml")
 @Deploy("org.nuxeo.ecm.core.persistence")
 @Deploy("org.nuxeo.ecm.platform.uidgen.core")
-@Deploy("org.nuxeo.ecm.platform.uidgen.core.tests:OSGI-INF/uidgenerator-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.uidgen.core.tests")
 public class TestJPAUIDSequencer {
 
     @Inject
@@ -49,7 +52,7 @@ public class TestJPAUIDSequencer {
     @Test
     public void testSequencer() {
 
-        UIDSequencer seq = service.getSequencer("hibernateSequencer");
+        UIDSequencer seq = service.getSequencer(DEFAULT_SEQUENCER_NAME);
 
         // Test UIDSequencer#getNext
         assertEquals(1, seq.getNextLong("mySequence"));

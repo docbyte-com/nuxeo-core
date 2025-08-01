@@ -23,14 +23,17 @@ import java.security.Principal;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpFilter;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpFilter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.ThreadContext;
 import org.nuxeo.lib.stream.Log4jCorrelation;
 
@@ -40,13 +43,16 @@ import io.opencensus.trace.AttributeValue;
 import io.opencensus.trace.Span;
 import io.opencensus.trace.Tracing;
 
-
 /**
  * Add some tags to span created by OcHttpServletFilter
  */
 public class TracingWebFilter extends HttpFilter {
 
+    private static final Logger log = LogManager.getLogger(TracingWebFilter.class);
+
     protected FilterConfig config;
+
+    public static final String TRACE_PARENT_HEADER = "traceparent";
 
     protected static final String USER_KEY = "http.user";
 
@@ -68,6 +74,12 @@ public class TracingWebFilter extends HttpFilter {
     @Override
     protected void doFilter(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
+        String traceparent = req.getHeader(TRACE_PARENT_HEADER);
+        if (traceparent != null && traceparent.length() < 53) {
+            log.warn("Removing invalid {} header: '{}', size: {}", TRACE_PARENT_HEADER, traceparent,
+                    traceparent.length());
+            req = new IgnoreInvalidTraceParentWrapper(req);
+        }
         Span span = Tracing.getTracer().getCurrentSpan();
         addTags(span, req);
         addTracingCorrelation(span);
@@ -117,5 +129,20 @@ public class TracingWebFilter extends HttpFilter {
     protected void removeDatadogTracingCorrelation() {
         ThreadContext.remove(DD_TRACE_ID_CONTEXT_KEY);
         ThreadContext.remove(DD_SPAN_ID_CONTEXT_KEY);
+    }
+
+    public static class IgnoreInvalidTraceParentWrapper extends HttpServletRequestWrapper {
+
+        public IgnoreInvalidTraceParentWrapper(HttpServletRequest request) {
+            super(request);
+        }
+
+        @Override
+        public String getHeader(String name) {
+            if (TRACE_PARENT_HEADER.equalsIgnoreCase(name)) {
+                return null;
+            }
+            return super.getHeader(name);
+        }
     }
 }

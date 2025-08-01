@@ -27,8 +27,9 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.naming.directory.DirContext;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Assert;

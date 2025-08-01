@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Ricardo Dias
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -27,6 +26,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -44,8 +45,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 8.3
  */
@@ -56,10 +55,10 @@ import com.google.inject.Inject;
 public class AddItemToListPropertyTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession coreSession;
+    protected CoreSession coreSession;
 
     protected DocumentModel testFolder;
 
@@ -106,8 +105,9 @@ public class AddItemToListPropertyTest {
         try (OperationContext ctx = new OperationContext(coreSession)) {
             ctx.setInput(doc);
             OperationChain chain = new OperationChain("testAddItemToPropertyChain");
-            chain.add(AddItemToListProperty.ID).set("xpath", "ds:fields").set("complexJsonProperties",
-                    fieldsDataAsJson);
+            chain.add(AddItemToListProperty.ID)
+                 .set("xpath", "ds:fields")
+                 .set("complexJsonProperties", fieldsDataAsJson);
             DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
             List<?> dbFields = (List<?>) resultDoc.getPropertyValue("ds:fields");
             assertEquals(5, dbFields.size());
@@ -124,8 +124,9 @@ public class AddItemToListPropertyTest {
         try (OperationContext ctx = new OperationContext(coreSession)) {
             ctx.setInput(doc);
             OperationChain chain = new OperationChain("testChain");
-            chain.add(AddItemToListProperty.ID).set("xpath", "ds:fields").set("complexJsonProperties",
-                    fieldsDataAsJson);
+            chain.add(AddItemToListProperty.ID)
+                 .set("xpath", "ds:fields")
+                 .set("complexJsonProperties", fieldsDataAsJson);
 
             DocumentModel resultDoc = (DocumentModel) service.run(ctx, chain);
             List<?> dbFields = (List<?>) resultDoc.getPropertyValue("ds:fields");

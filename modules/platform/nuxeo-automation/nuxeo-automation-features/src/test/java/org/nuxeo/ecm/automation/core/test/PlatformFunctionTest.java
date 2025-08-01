@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,14 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
-import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.automation.features.PlatformFunctions;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -47,8 +46,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.7
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.automation.features:test-vocabularies-contrib.xml")
 @Deploy("org.nuxeo.ecm.automation.features:test-platform-functions.xml")
 public class PlatformFunctionTest {
@@ -122,31 +120,22 @@ public class PlatformFunctionTest {
     }
 
     @Test
-    public void testGetVocabularyLabel() throws OperationException {
+    public void testGetVocabularyLabel() {
         String vocabularyName = "continent";
-        Session vocabularySession = directoryService.open(vocabularyName);
-        String entryId = "europe";
-        String entryLabel = "label.directories.continent." + entryId;
-        String notEntryId = "dream_land";
+        try (Session vocabularySession = directoryService.open(vocabularyName)) {
+            String entryId = "europe";
+            String entryLabel = "label.directories.continent." + entryId;
+            String notEntryId = "dream_land";
 
-        assertTrue(vocabularySession.hasEntry(entryId));
-        assertFalse(vocabularySession.hasEntry(notEntryId));
-        assertEquals(entryLabel, pf.getVocabularyLabel(vocabularyName, entryId));
-        assertEquals(notEntryId, pf.getVocabularyLabel(vocabularyName, notEntryId));
+            assertTrue(vocabularySession.hasEntry(entryId));
+            assertFalse(vocabularySession.hasEntry(notEntryId));
+            assertEquals(entryLabel, pf.getVocabularyLabel(vocabularyName, entryId));
+            assertEquals(notEntryId, pf.getVocabularyLabel(vocabularyName, notEntryId));
+        }
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.automation.features:test-platform-sequencers.xml")
-    public void testGetNextIdUsingHibernate() {
-        // for backwards compatibility the default sequenceId generator can be switched to hibernate,
-        // our test hibernateSequencer skips every 10 so we know we are using it.
-        assertEquals(Long.valueOf("10"), Long.valueOf(pf.getNextId("testin")));
-        assertEquals(Long.valueOf("20"), Long.valueOf(pf.getNextId("testin")));
-        assertEquals(Long.valueOf("30"), Long.valueOf(pf.getNextId("testin")));
-    }
-
-    @Test
-    public void testGetNextWithoutHibernate() {
+    public void testGetNext() {
         assertEquals(Long.valueOf("1"), Long.valueOf(pf.getNextId("testin")));
         assertEquals(Long.valueOf("2"), Long.valueOf(pf.getNextId("testin")));
         assertEquals(Long.valueOf("3"), Long.valueOf(pf.getNextId("testin")));

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,13 @@ import static org.nuxeo.ecm.platform.filemanager.RepositoryInit.PATH_FOLDER;
 import static org.nuxeo.ecm.platform.filemanager.RepositoryInit.PATH_WORKSPACE;
 import static org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfigurationConstants.UI_TYPES_CONFIGURATION_DEFAULT_TYPE;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.filemanager.service.extension.DefaultFileImporter;
@@ -42,12 +41,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 /**
  * @author <a href="mailto:ei@nuxeo.com">Eugen Ionica</a>
  */
-
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(FileManagerFeature.class)
 @RepositoryConfig(init = RepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
 @Deploy("org.nuxeo.ecm.platform.filemanager:test-ui-types-local-configuration.xml")
 public class TestDefaultFileImporter {
 
@@ -55,7 +51,7 @@ public class TestDefaultFileImporter {
     protected CoreSession session;
 
     @Test
-    public void testDefautImportType() throws Exception {
+    public void testDefaultImportType() {
         assertNotNull(session);
         DocumentModel workspace = session.getDocument(new PathRef(PATH_WORKSPACE));
         assertNotNull(workspace);

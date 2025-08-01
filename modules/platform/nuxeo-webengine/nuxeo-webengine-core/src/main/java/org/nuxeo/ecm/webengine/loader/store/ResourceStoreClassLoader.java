@@ -20,11 +20,12 @@ package org.nuxeo.ecm.webengine.loader.store;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -101,7 +102,7 @@ public class ResourceStoreClassLoader extends ClassLoader implements Cloneable {
         int i = name.lastIndexOf('.');
         if (i > -1) {
             String pkgname = name.substring(0, i);
-            Package pkg = getPackage(pkgname);
+            Package pkg = getDefinedPackage(pkgname);
             if (pkg == null) {
                 definePackage(pkgname, null, null, null, null, null, null, null);
             }
@@ -110,34 +111,24 @@ public class ResourceStoreClassLoader extends ClassLoader implements Cloneable {
 
     @Override
     protected URL findResource(String name) {
-        ResourceStore[] _stores = stores; // use a local variable
-        if (_stores != null) {
-            for (final ResourceStore store : _stores) {
-                final URL url = store.getURL(name);
-                if (url != null) {
-                    log.trace("{} found resource: {}", getId(), name);
-                    return url;
-                }
-            }
-        }
-        return null;
+        return streamResources(name).findFirst().orElse(null);
     }
 
     @Override
-    protected Enumeration<URL> findResources(String name) throws IOException {
+    protected Enumeration<URL> findResources(String name) {
+        return streamResources(name).collect(
+                Collectors.collectingAndThen(Collectors.toList(), Collections::enumeration));
+    }
+
+    private Stream<URL> streamResources(String name) {
         ResourceStore[] _stores = stores; // use a local variable
         if (_stores != null) {
-            List<URL> result = new ArrayList<>();
-            for (final ResourceStore store : _stores) {
-                final URL url = store.getURL(name);
-                if (url != null) {
-                    log.trace("{} found resource: {}", getId(), name);
-                    result.add(url);
-                }
-            }
-            return Collections.enumeration(result);
+            return Stream.of(_stores)
+                         .map(store -> store.getURL(name))
+                         .filter(Objects::nonNull)
+                         .peek(url -> log.trace("{} found resource: {}", getId(), name));
         }
-        return null;
+        return Stream.empty();
     }
 
     @Override
@@ -202,7 +193,7 @@ public class ResourceStoreClassLoader extends ClassLoader implements Cloneable {
     }
 
     protected String getId() {
-        return "" + this + "[" + this.getClass().getClassLoader() + "]";
+        return this + "[" + this.getClass().getClassLoader() + "]";
     }
 
     /**

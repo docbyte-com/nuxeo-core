@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,12 @@ package org.nuxeo.ecm.automation.core.operations.users;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,10 +36,10 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.util.Properties;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
@@ -48,10 +48,8 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 public class TestCreateOrUpdateUser {
@@ -94,7 +92,7 @@ public class TestCreateOrUpdateUser {
 
             NuxeoPrincipal principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME, principal.getFirstName());
-            assertEquals(Arrays.asList(MEMBERS), principal.getGroups());
+            assertEquals(List.of(MEMBERS), principal.getGroups());
 
             // cannot create if mode = create and the user exists
             params.put("mode", "create");
@@ -131,7 +129,7 @@ public class TestCreateOrUpdateUser {
 
             NuxeoPrincipal principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME, principal.getFirstName());
-            assertEquals(Arrays.asList(MEMBERS), principal.getGroups());
+            assertEquals(List.of(MEMBERS), principal.getGroups());
 
             DocumentModel group1 = userManager.getBareGroupModel();
             DocumentModel group2 = userManager.getBareGroupModel();
@@ -155,7 +153,7 @@ public class TestCreateOrUpdateUser {
 
             principal = userManager.getPrincipal(USERNAME);
             assertEquals(FIRSTNAME2, principal.getFirstName());
-            assertEquals(Arrays.asList(GROUP1, GROUP2), principal.getGroups());
+            assertEquals(List.of(GROUP1, GROUP2), principal.getGroups());
 
             // clear groups
             params = new HashMap<>();

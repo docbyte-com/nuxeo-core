@@ -22,14 +22,14 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -63,7 +63,7 @@ public class OAuth2Callback extends ModuleRoot {
      */
     @GET
     @Path("{serviceProviderName}/callback")
-    public Object doGet(@PathParam("serviceProviderName") String serviceProviderName) throws IOException {
+    public Response doGet(@PathParam("serviceProviderName") String serviceProviderName) throws IOException {
 
         OAuth2ServiceProviderRegistry registry = Framework.getService(OAuth2ServiceProviderRegistry.class);
         OAuth2ServiceProvider provider = registry.getProvider(serviceProviderName);
@@ -87,6 +87,6 @@ public class OAuth2Callback extends ModuleRoot {
 
         String token = (credential == null) ? "" : credential.getAccessToken();
         args.put("token", token);
-        return getView("index").args(args);
+        return Response.ok(getView("index").args(args)).build();
     }
 }

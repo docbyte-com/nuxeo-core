@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.directory.sql;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 import java.io.Serializable;
 import java.sql.Connection;
@@ -68,7 +68,6 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.OperationNotAllowedException;
 import org.nuxeo.ecm.directory.PasswordHelper;
 import org.nuxeo.ecm.directory.sql.SQLQueryBuilder.ColumnAndValue;
-import org.nuxeo.ecm.directory.sql.filter.SQLComplexFilter;
 
 /**
  * This class represents a session against an SQLDirectory.
@@ -211,8 +210,7 @@ public class SQLSession extends BaseSession {
 
         String id = String.valueOf(fieldMap.get(idFieldName));
         try {
-            DocumentModel docModel = BaseSession.createEntryModel(schemaName, id, fieldMap, isReadOnly());
-            return docModel;
+            return BaseSession.createEntryModel(schemaName, id, fieldMap, isReadOnly());
         } catch (PropertyException e) {
             log.error(e, e);
             return null;
@@ -246,30 +244,30 @@ public class SQLSession extends BaseSession {
         if (staticFilters.length == 0) {
             return whereClause;
         }
-        if (whereClause != null && whereClause.trim().length() > 0) {
+        if (StringUtils.isNotBlank(whereClause)) {
             whereClause = whereClause + " AND ";
         } else {
             whereClause = "";
         }
+        var whereClauseBuilder = new StringBuilder(whereClause);
         for (int i = 0; i < staticFilters.length; i++) {
             SQLStaticFilter filter = staticFilters[i];
-            whereClause += filter.getDirectoryColumn(table, getDirectory().useNativeCase()).getQuotedName();
-            whereClause += " " + filter.getOperator() + " ";
-            whereClause += "? ";
+            whereClauseBuilder.append(filter.getDirectoryColumn(table, getDirectory().useNativeCase()).getQuotedName())
+                              .append(" ")
+                              .append(filter.getOperator())
+                              .append(" ")
+                              .append("? ");
 
             if (i < staticFilters.length - 1) {
-                whereClause = whereClause + " AND ";
+                whereClauseBuilder.append(" AND ");
             }
         }
-        return whereClause;
+        return whereClauseBuilder.toString();
     }
 
     protected void addFilterWhereClause(StringBuilder clause, List<ColumnAndValue> params) {
-        if (staticFilters.length == 0) {
-            return;
-        }
         for (SQLStaticFilter filter : staticFilters) {
-            if (clause.length() > 0) {
+            if (!clause.isEmpty()) {
                 clause.append(" AND ");
             }
             Column column = filter.getDirectoryColumn(table, getDirectory().useNativeCase());
@@ -290,8 +288,8 @@ public class SQLSession extends BaseSession {
     }
 
     protected void addFilterValuesForLog(List<Serializable> values) {
-        for (int i = 0; i < staticFilters.length; i++) {
-            values.add(staticFilters[i].getValue());
+        for (SQLStaticFilter staticFilter : staticFilters) {
+            values.add(staticFilter.getValue());
         }
     }
 
@@ -411,24 +409,13 @@ public class SQLSession extends BaseSession {
                     value = null;
                 }
                 if (value != null) {
-                    if (value instanceof SQLComplexFilter) {
-                        SQLComplexFilter complexFilter = (SQLComplexFilter) value;
-                        operator = complexFilter.getOperator();
-                        rightSide = complexFilter.getRightSide();
-                    } else if (substring) {
+                    if (substring) {
                         // NB : remove double % in like query NXGED-833
-                        String searchedValue = null;
-                        switch (substringMatchType) {
-                        case subany:
-                            searchedValue = '%' + String.valueOf(value).toLowerCase() + '%';
-                            break;
-                        case subinitial:
-                            searchedValue = String.valueOf(value).toLowerCase() + '%';
-                            break;
-                        case subfinal:
-                            searchedValue = '%' + String.valueOf(value).toLowerCase();
-                            break;
-                        }
+                        String searchedValue = switch (substringMatchType) {
+                            case subany -> '%' + String.valueOf(value).toLowerCase() + '%';
+                            case subinitial -> String.valueOf(value).toLowerCase() + '%';
+                            case subfinal -> '%' + String.valueOf(value).toLowerCase();
+                        };
                         filterMap.put(columnName, searchedValue);
                         if (dialect.supportsIlike()) {
                             operator = " ILIKE "; // postgresql rules
@@ -550,7 +537,7 @@ public class SQLSession extends BaseSession {
                 fillPreparedStatementFields(filterMap, orderedColumns, ps);
 
                 // execute the query and create a documentModel list
-                DocumentModelList list = new DocumentModelListImpl();
+                var list = new DocumentModelListImpl();
                 try (ResultSet rs = ps.executeQuery()) {
                     while (rs.next()) {
 
@@ -596,10 +583,10 @@ public class SQLSession extends BaseSession {
                     if (list.size() > limit) { // list.size() not totalSize, we may have an offset already
                         list = new DocumentModelListImpl(list.subList(0, limit));
                     }
-                    ((DocumentModelListImpl) list).setTotalSize(totalSize);
+                    list.setTotalSize(totalSize);
                 }
                 if (trucatedResults) {
-                    ((DocumentModelListImpl) list).setTotalSize(-2);
+                    list.setTotalSize(-2);
                 }
                 return list;
             }
@@ -608,6 +595,7 @@ public class SQLSession extends BaseSession {
             try {
                 sqlConnection.close();
             } catch (SQLException e1) {
+                // empty
             }
             throw new DirectoryException("query failed", e);
         }
@@ -647,7 +635,7 @@ public class SQLSession extends BaseSession {
             OrderByList orders = queryBuilder.orders();
             if (!orders.isEmpty()) {
                 for (OrderByExpr ob : orders) {
-                    if (orderBy.length() != 0) {
+                    if (!orderBy.isEmpty()) {
                         orderBy.append(", ");
                     }
                     orderBy.append(dialect.openQuote());
@@ -787,7 +775,7 @@ public class SQLSession extends BaseSession {
             OrderByList orders = queryBuilder.orders();
             if (!orders.isEmpty()) {
                 for (OrderByExpr ob : orders) {
-                    if (orderBy.length() != 0) {
+                    if (!orderBy.isEmpty()) {
                         orderBy.append(", ");
                     }
                     orderBy.append(dialect.openQuote());
@@ -1096,12 +1084,8 @@ public class SQLSession extends BaseSession {
         for (Column column : orderedColumns) {
             Object value = filterMap.get(column.getKey());
 
-            if (value instanceof SQLComplexFilter) {
-                index = ((SQLComplexFilter) value).setFieldValue(ps, index, column);
-            } else {
-                setFieldValue(ps, index, column, value);
-                index++;
-            }
+            setFieldValue(ps, index, column, value);
+            index++;
         }
         addFilterValues(ps, index);
     }

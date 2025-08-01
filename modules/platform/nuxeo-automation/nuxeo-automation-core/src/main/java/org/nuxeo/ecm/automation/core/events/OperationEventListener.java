@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,10 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class OperationEventListener implements EventListener {
 
-    protected EventHandlerRegistry registry;
-
     @Override
     public void handleEvent(Event event) {
-        if (registry == null) {
-            registry = Framework.getService(EventHandlerRegistry.class);
-        }
+        var registry = Framework.getService(EventHandlerRegistry.class);
         List<EventHandler> handlers = registry.getEventHandlers(event.getName());
         registry.handleEvent(event, handlers, false);
     }
-
 }

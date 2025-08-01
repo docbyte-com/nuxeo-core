@@ -22,7 +22,7 @@ package org.nuxeo.ecm.core.io.registry;
 import java.lang.reflect.Type;
 import java.util.Collection;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Instantiations;
@@ -40,7 +40,6 @@ import org.nuxeo.ecm.core.io.registry.reflect.Instantiations;
  * </extension>
  * }
  * </pre>
- *
  * <p>
  * You can also register/deregister your marshaller programmatically by calling {@link #register(Class)} and
  * {@link #deregister(Class)}.

@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;

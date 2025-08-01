@@ -12,8 +12,8 @@ nuxeo.cache.maxsize=10000
 nuxeo.cache.ttl=20
 nuxeo.cache.concurrencylevel=50
 
-# Use Elasticsearch for all page provider
-elasticsearch.override.pageproviders=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,tree_children,advanced_search,nxql_search
+# Use Search service for all page provider
+nuxeo.search.pageproviders.override=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,tree_children,advanced_search,nxql_search,GET_TASKS_FOR_ACTORS,GET_TASKS_FOR_ACTORS_OR_DELEGATED_ACTORS,GET_TASKS_FOR_PROCESS,GET_TASKS_FOR_PROCESS_AND_ACTORS,GET_TASKS_FOR_PROCESS_AND_NODE,GET_TASKS_FOR_TARGET_DOCUMENT,GET_TASKS_FOR_TARGET_DOCUMENTS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS_OR_DELEGATED_ACTORS
 
 # Disable db fulltext indexing
 nuxeo.vcs.fulltext.search.disabled=true
@@ -22,12 +22,9 @@ nuxeo.vcs.fulltext.search.disabled=true
 nuxeo.vcs.optimizations.acl.enabled=false
 nuxeo.vcs.optimizations.path.enabled=false
 
-# Tune Elasticsearch indexing
-elasticsearch.indexing.maxThreads=6
-elasticsearch.reindex.bucketReadSize=1000
-elasticsearch.reindex.bucketWriteSize=200
-elasticsearch.adminCenter.displayClusterInfo=true
-elasticsearch.index.translog.durability=async
+# Tune OpenSearch
+nuxeo.audit.backend.default.opensearch1.settings.indexTranslogDurability=async
+nuxeo.search.client.default.opensearch1.settings.indexTranslogDurability=async
 
 # Scale on bulk scrolling
 nuxeo.core.bulk.scroller.concurrencyMax=6

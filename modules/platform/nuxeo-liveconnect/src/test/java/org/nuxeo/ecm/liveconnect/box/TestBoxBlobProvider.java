@@ -25,7 +25,7 @@ import static org.mockito.Mockito.spy;
 import static org.nuxeo.ecm.liveconnect.LiveConnectFeature.SERVICE_BOX_ID;
 import static org.nuxeo.ecm.liveconnect.LiveConnectFeature.createBlob;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

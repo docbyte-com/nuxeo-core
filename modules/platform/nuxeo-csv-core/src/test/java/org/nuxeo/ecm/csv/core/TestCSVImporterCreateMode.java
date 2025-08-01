@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -585,7 +585,7 @@ public class TestCSVImporterCreateMode extends AbstractCSVImporterTest {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-properties-contrib.xml")
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-legacy-date-format-contrib.xml")
     public void shouldCreateDocumentWithLegacyDateFormat() throws IOException, InterruptedException {
         CSVImporterOptions options = new CSVImporterOptions.Builder().build();
 

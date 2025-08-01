@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,28 +45,29 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.platform.pdf.PDFTextExtractor;
 import org.nuxeo.ecm.platform.pdf.operations.PDFExtractTextOperation;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26793")
+@ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26793")
 public class PDFTextExtractorTest {
 
-    private FileBlob pdfFileBlob;
-
-    private DocumentModel testDocsFolder;
-
-    private DocumentModel testDoc;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected FileBlob pdfFileBlob;
+
+    protected DocumentModel testDocsFolder;
+
+    protected DocumentModel testDoc;
 
     protected OperationContext ctx;
 

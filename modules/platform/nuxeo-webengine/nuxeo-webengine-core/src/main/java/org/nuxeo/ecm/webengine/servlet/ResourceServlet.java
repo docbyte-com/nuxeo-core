@@ -25,17 +25,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.Module;
-import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.runtime.api.Framework;
 
@@ -68,7 +67,7 @@ public class ResourceServlet extends HttpServlet {
             return;
         }
 
-        Module module = engine.getModule(moduleName, (WebContext) req.getAttribute(WebContext.class.getName()));
+        Module module = engine.getModule(moduleName);
         if (module == null) {
             resp.sendError(404);
             return;
@@ -118,7 +117,6 @@ public class ResourceServlet extends HttpServlet {
     }
 
     protected static void sendTextContent(ScriptFile file, HttpServletResponse resp) throws IOException {
-        // Writer out = resp.getWriter();
         @SuppressWarnings("resource") // not ours to close
         OutputStream out = resp.getOutputStream();
         try (InputStream in = file.getInputStream()) {

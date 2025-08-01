@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.hamcrest.Matchers;
 import org.junit.Assert;

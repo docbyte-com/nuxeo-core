@@ -24,10 +24,11 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
-import javax.inject.Inject;
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
+
+import jakarta.inject.Inject;
 
 import org.junit.Ignore;
 import org.junit.Test;

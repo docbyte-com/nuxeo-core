@@ -63,14 +63,10 @@ public class Scripting {
     }
 
     public static CompiledScript compileScript(ScriptEngine engine, File file) throws ScriptException {
-        if (engine instanceof Compilable) {
-            Compilable comp = (Compilable) engine;
+        if (engine instanceof Compilable comp) {
             try {
-                Reader reader = new FileReader(file);
-                try {
+                try (Reader reader = new FileReader(file)) {
                     return comp.compile(reader);
-                } finally {
-                    reader.close();
                 }
             } catch (IOException e) {
                 throw new ScriptException(e);
@@ -131,18 +127,15 @@ public class Scripting {
             CompiledScript comp = getCompiledScript(engine, script.getFile()); // use cache for compiled scripts
             if (comp != null) {
                 return comp.eval(ctx);
-            } // compilation not supported - eval it on the fly
-            try {
-                Reader reader = new FileReader(script.getFile());
-                try { // TODO use __result__ to pass return value for engine that doesn't returns like jython
-                    Object result = engine.eval(reader, ctx);
-                    if (result == null) {
-                        result = bindings.get("__result__");
-                    }
-                    return result;
-                } finally {
-                    reader.close();
+            }
+            // compilation not supported - eval it on the fly
+            // TODO use __result__ to pass return value for engine that doesn't returns like jython
+            try (Reader reader = new FileReader(script.getFile())) {
+                Object result = engine.eval(reader, ctx);
+                if (result == null) {
+                    result = bindings.get("__result__");
                 }
+                return result;
             } catch (IOException e) {
                 throw new ScriptException(e);
             }
@@ -168,7 +161,7 @@ public class Scripting {
         return null;
     }
 
-    class Entry {
+    static class Entry {
         public CompiledScript script;
 
         public long lastModified;

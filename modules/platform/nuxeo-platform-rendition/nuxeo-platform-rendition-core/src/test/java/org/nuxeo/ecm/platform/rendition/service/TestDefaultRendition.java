@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,11 +38,12 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.rendition.Renderable;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * @since 9.3
@@ -51,6 +52,8 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 @Features(RenditionFeature.class)
 @Deploy("org.nuxeo.ecm.platform.collections.core")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-default-rendition-schemas.xml")
 public class TestDefaultRendition {
 
@@ -112,13 +115,13 @@ public class TestDefaultRendition {
     public void testDefaultRenditionOnFolderishAndCollectionContainers() throws Exception {
         DocumentModel customFolderish01 = session.createDocumentModel("/", "dummy-custom-folderish", "CustomFolderish");
         customFolderish01 = session.createDocument(customFolderish01);
-        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt", "File",
-                session);
-        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt", "File",
-                session);
+        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt",
+                "File", session);
+        TestRenditionProvider.createBlobDoc(customFolderish01.getPathAsString(), "dummy-file01", "dummy-file01.txt",
+                "File", session);
 
-        DocumentModel customCollection = session.createDocumentModel(customFolderish01.getPathAsString(), "dummy-custom-collection",
-                "CustomCollection");
+        DocumentModel customCollection = session.createDocumentModel(customFolderish01.getPathAsString(),
+                "dummy-custom-collection", "CustomCollection");
         customCollection = session.createDocument(customCollection);
         DocumentModel folder11 = session.createDocumentModel("/", "dummy-folder", "Folder");
         folder11 = session.createDocument(folder11);
@@ -171,7 +174,7 @@ public class TestDefaultRendition {
      * @since 10.3
      */
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void testDefaultRenditionOverride() throws Exception {
         DocumentModel folder = session.createDocumentModel("/", "dummy-folder", "Folder");
         folder = session.createDocument(folder);

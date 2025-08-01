@@ -30,8 +30,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,8 +56,7 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
 /**
- * Helper class to build some {@link MailMessage}s from {@link Map}s and send them through the
- * {@link MailService}.
+ * Helper class to build some {@link MailMessage}s from {@link Map}s and send them through the {@link MailService}.
  *
  * <pre>
  * Hashtable mail = new Hashtable();

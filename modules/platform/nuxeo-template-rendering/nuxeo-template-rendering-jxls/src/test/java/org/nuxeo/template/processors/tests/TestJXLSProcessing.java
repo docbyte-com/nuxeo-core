@@ -18,11 +18,9 @@
  */
 package org.nuxeo.template.processors.tests;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -44,11 +42,6 @@ import org.nuxeo.template.processors.jxls.JXLSTemplateProcessor;
 public class TestJXLSProcessing extends SimpleTemplateDocTestCase {
 
     @Test
-    public void testJXLSVersion() {
-        assertFalse(useJXLS1());
-    }
-
-    @Test
     public void testFileUpdateFromParams() throws Exception {
 
         TemplateBasedDocument adapter = setupTestDocs();
@@ -56,39 +49,35 @@ public class TestJXLSProcessing extends SimpleTemplateDocTestCase {
         assertNotNull(testDoc);
 
         List<TemplateInput> params = new ArrayList<>();
-        TemplateInput input = new TemplateInput("variable1", "YoVar1");
+        var input = new TemplateInput("variable1", "YoVar1");
         params.add(input);
 
         testDoc = adapter.saveParams(TEMPLATE_NAME, params, true);
         session.save();
 
-        JXLSTemplateProcessor processor = new JXLSTemplateProcessor();
+        var processor = new JXLSTemplateProcessor();
 
         Blob newBlob = processor.renderTemplate(adapter, TEMPLATE_NAME);
 
-        // System.out.println(((FileBlob) newBlob).getFile().getAbsolutePath());
-
-        XL2TextConverter xlConverter = new XL2TextConverter();
+        var xlConverter = new XL2TextConverter();
         BlobHolder textBlob = xlConverter.convert(new SimpleBlobHolder(newBlob), null);
 
         String xlContent = textBlob.getBlob().getString();
-
-        // System.out.println(xlContent);
 
         assertTrue(xlContent.contains(testDoc.getId()));
         assertTrue(xlContent.contains(testDoc.getTitle()));
         assertTrue(xlContent.contains((String) testDoc.getPropertyValue("dc:description")));
         assertTrue(xlContent.contains("YoVar1"));
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
+        var dateFormat = new SimpleDateFormat("MM/dd/yyyy");
         assertTrue(xlContent.contains(dateFormat.format(Calendar.getInstance().getTime())));
     }
 
     @Override
     protected Blob getTemplateBlob() throws IOException {
-        String filename = useJXLS1() ? "jxls_simpletest.xls" : "jxls2_simpletest.xls";
-        File file = FileUtils.getResourceFileFromContext("data/" + filename);
-        Blob blob = Blobs.createBlob(file);
+        var filename = "jxls_simpletest.xls";
+        var file = FileUtils.getResourceFileFromContext("data/" + filename);
+        var blob = Blobs.createBlob(file);
         blob.setFilename(filename);
         return blob;
     }

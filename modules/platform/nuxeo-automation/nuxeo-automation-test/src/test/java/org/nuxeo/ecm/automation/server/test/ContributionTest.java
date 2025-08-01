@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.server.AutomationServer;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.automation.server.RestBinding;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -39,16 +40,12 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, WebEngineFeatureCore.class })
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.automation.server")
+@Features({ AutomationCoreFeature.class, AutomationServerFeature.class, WebEngineCoreFeature.class })
 @Deploy("org.nuxeo.ecm.automation.server:test-bindings.xml")
-// @RepositoryConfig(cleanup=Granularity.METHOD)
 public class ContributionTest {
 
     @Inject
-    AutomationServer server;
+    protected AutomationServer server;
 
     // ------ Tests comes here --------
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,67 +20,51 @@
  */
 package org.nuxeo.ecm.automation.test;
 
+import jakarta.inject.Inject;
+
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.automation.scripting.AutomationScriptingFeature;
 import org.nuxeo.ecm.automation.OperationCallback;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.core.trace.TracerFactory;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
+import org.nuxeo.ecm.automation.io.AutomationIOFeature;
+import org.nuxeo.ecm.automation.server.AutomationServerFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 import com.google.inject.Binder;
-import com.google.inject.Provider;
 
 /**
- * Based on the existing {@link PlatformFeature}, AutomationFeature is a simple feature that includes
- * org.nuxeo.ecm.automation.core and org.nuxeo.ecm.automation.features bundles.
+ * The feature deploys the {@link PlatformFeature} and all automation bundles.
  *
  * @since 5.7
  * @since 5.6-HF02
+ * @since 2025.0, the features deploys all automation bundles
  */
-@Features({ PlatformFeature.class, AutomationCoreFeature.class })
-@Deploy("org.nuxeo.ecm.actions")
-@Deploy("org.nuxeo.ecm.automation.features")
-@Deploy("org.nuxeo.ecm.automation.scripting")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.runtime.management")
+@Features({ //
+        AutomationCoreFeature.class, //
+        AutomationIOFeature.class, //
+        AutomationFeaturesFeature.class, //
+        AutomationServerFeature.class, //
+        AutomationScriptingFeature.class, //
+        PlatformFeature.class })
 public class AutomationFeature implements RunnerFeature {
 
-    protected final OperationContextProvider contextProvider = new OperationContextProvider();
+    @Inject
+    protected TracerFactory tracerFactory;
 
-    protected final TracerProvider tracerProvider = new TracerProvider();
+    @Inject
+    protected CoreFeature coreFeature;
 
     protected OperationContext context;
 
-    protected TracerFactory tracerFactory;
-
     protected OperationCallback tracer;
-
-    protected CoreFeature coreFeature;
-
-    public class OperationContextProvider implements Provider<OperationContext> {
-
-        @Override
-        public OperationContext get() {
-            return getContext();
-        }
-
-    }
-
-    class TracerProvider implements Provider<OperationCallback> {
-
-        @Override
-        public OperationCallback get() {
-            return getTracer();
-        }
-
-    }
 
     protected OperationContext getContext() {
         if (context == null) {
@@ -105,10 +89,8 @@ public class AutomationFeature implements RunnerFeature {
 
     @Override
     public void configure(FeaturesRunner runner, Binder binder) {
-        binder.bind(OperationContext.class).toProvider(contextProvider).in(AutomationScope.INSTANCE);
-        binder.bind(OperationCallback.class).toProvider(tracerProvider).in(AutomationScope.INSTANCE);
-        coreFeature = runner.getFeature(CoreFeature.class);
-        tracerFactory = Framework.getService(TracerFactory.class);
+        binder.bind(OperationContext.class).toProvider(this::getContext).in(AutomationScope.INSTANCE);
+        binder.bind(OperationCallback.class).toProvider(this::getTracer).in(AutomationScope.INSTANCE);
     }
 
     @Override

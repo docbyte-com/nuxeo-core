@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,45 +15,38 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.ec.notification.service;
 
+import java.net.URL;
+
+import org.nuxeo.common.xmap.Resource;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
-import org.nuxeo.runtime.model.RuntimeContext;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:npaslaru@nuxeo.com">Narcis Paslaru</a>
  */
 @XObject("template")
-public class TemplateDescriptor {
+public class TemplateDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
 
     @XNode("@src")
-    protected String src;
+    protected Resource src;
 
-    // this is set by the type service to the context that knows how to locate
-    // the schema file
-    private RuntimeContext context;
-
-    public TemplateDescriptor() {
+    @Override
+    public String getId() {
+        return name;
     }
 
-    public TemplateDescriptor(String name) {
-        this.name = name;
+    public String getName() {
+        return name;
     }
 
-    public RuntimeContext getContext() {
-        return context;
+    public URL getSrcAsURL() {
+        return src.toURL();
     }
-
-    public void setContext(RuntimeContext context) {
-        this.context = context;
-    }
-
 }

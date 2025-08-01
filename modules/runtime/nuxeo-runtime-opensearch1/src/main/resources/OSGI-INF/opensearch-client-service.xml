@@ -1,0 +1,64 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch1.OpenSearchComponent">
+
+  <implementation class="org.nuxeo.runtime.opensearch1.OpenSearchComponent" />
+
+  <service>
+    <provide interface="org.nuxeo.runtime.opensearch1.OpenSearchClientService" />
+  </service>
+
+  <extension-point name="client">
+    <documentation>
+      Extension point used to configure access to a OpenSearch server or cluster. The service will return the 'default'
+      access if the asked one hasn't been contributed.
+
+      This sets up a OpenSearchClient; host is mandatory.
+      <code>
+        <client id="default">
+          <server>localhost:9200</server>
+          <connectionTimeout>5s</connectionTimeout>
+          <socketTimeout>20s</socketTimeout>
+          <sslCertificateVerification>true</sslCertificateVerification>
+          <username>bob</username>
+          <password>pass</password>
+          <trustStore type="jks">
+            <path>/path/to/cacerts.jks</path> <!-- mandatory field if trustStore defined -->
+            <password>changeit</password>
+          </trustStore>
+          <keyStore type="jks">
+            <path>/path/to/keystore.jks</path> <!-- mandatory field if trustStore defined -->
+            <password>changeit</password>
+          </keyStore>
+        </client>
+      </code>
+    </documentation>
+
+    <object class="org.nuxeo.runtime.opensearch1.client.OpenSearchClientConfig" />
+  </extension-point>
+
+  <extension-point name="index">
+    <documentation>
+      Extension point used to configure an OpenSearch index.
+      <code>
+        <index name="indexName" enabled="true" create="true" manageAlias="false" writeAlias="">
+          <client id="default" /> <!-- which client the index is created against -->
+          <settings file="/path/to/settings.json">
+            {
+              "or": "plain settings"
+            }
+          </settings>
+          <!-- setting append to true will push the given mapping in addition to the previous ones -->
+          <!-- setting append to false (the default) will declare the given mapping as the main mapping -->
+          <mapping file="/path/to/mapping.json" append="false">
+            {
+            "or": "plain settings"
+            }
+          </mapping>
+        </index>
+      </code>
+    </documentation>
+
+    <object class="org.nuxeo.runtime.opensearch1.OpenSearchIndexConfig" />
+  </extension-point>
+
+</component>

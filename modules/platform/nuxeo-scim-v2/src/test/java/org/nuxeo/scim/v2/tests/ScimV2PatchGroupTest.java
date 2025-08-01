@@ -27,8 +27,6 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
-import javax.inject.Inject;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -49,6 +47,8 @@ import com.unboundid.scim2.common.messages.PatchOpType;
 import com.unboundid.scim2.common.messages.PatchOperation;
 import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.utils.JsonUtils;
+
+import jakarta.inject.Inject;
 
 /**
  * Tests the SCIM 2.0 patch feature for Group resources.
@@ -338,9 +338,10 @@ public class ScimV2PatchGroupTest {
 
     // The path of an "add" patch operation must not include any value selection filters
     @Test
-    public void testAdditional6() {
-        assertThrows(IllegalArgumentException.class,
-                () -> newPatchRequest(ADD, "members[value eq \"joe\"]", "{\"value\":\"jack\"}")); // NOSONAR
+    public void testAdditional6() throws JsonProcessingException, ScimException {
+        newGroupModel("people", null);
+        var patch = newPatchRequest(ADD, "members[value eq \"joe\"]", "{\"value\":\"jack\"}"); // NOSONAR
+        assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoGroup("people", patch));
     }
 
     // The value of a "replace" patch operation with a "members" path must be a Member object

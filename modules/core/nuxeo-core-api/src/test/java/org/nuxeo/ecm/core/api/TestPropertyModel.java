@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
@@ -38,6 +39,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -76,6 +78,7 @@ public class TestPropertyModel {
 
     protected DocumentPartImpl dp;
 
+    @SafeVarargs
     static <T> ArrayList<T> arrayList(T... args) {
         ArrayList<T> list = new ArrayList<>(args.length);
         list.addAll(Arrays.asList(args));
@@ -115,7 +118,7 @@ public class TestPropertyModel {
         }
     }
 
-    private class FileName implements Serializable {
+    private static class FileName implements Serializable {
         private static final long serialVersionUID = -3238719896844696496L;
 
         String extension;
@@ -128,7 +131,7 @@ public class TestPropertyModel {
         }
     }
 
-    private class BlobFile implements Serializable {
+    private static class BlobFile implements Serializable {
         private static final long serialVersionUID = 4486693420148155780L;
 
         final FileName fileName = new FileName();
@@ -143,7 +146,7 @@ public class TestPropertyModel {
         }
     }
 
-    private class Book {
+    private static class Book {
 
         private String title;
 
@@ -165,11 +168,7 @@ public class TestPropertyModel {
             map.put("book:creationDate", creationDate);
             map.put("book:price", price);
             map.put("book:keywords", keywords);
-            if (references == null) {
-                map.put("book:references", new ArrayList<Serializable>());
-            } else {
-                map.put("book:references", references);
-            }
+            map.put("book:references", Objects.requireNonNullElseGet(references, () -> new ArrayList<Serializable>()));
             map.put("book:file", file != null ? file.getMap() : new HashMap<String, Serializable>());
             if (authors == null) {
                 map.put("book:authors", new ArrayList<HashMap<String, Serializable>>());
@@ -194,21 +193,22 @@ public class TestPropertyModel {
         dp = new DocumentPartImpl(schema);
     }
 
-    @SuppressWarnings("unchecked")
-    protected static void clearMap(Map<String, Serializable> map) {
-        Iterator<Map.Entry<String, Serializable>> it = map.entrySet().iterator();
+    /**
+     * @param map the map to remove null values from
+     */
+    protected static void clearMap(Map<?, ?> map) {
+        Iterator<? extends Entry<?, ?>> it = map.entrySet().iterator();
         while (it.hasNext()) {
-            Map.Entry<String, Serializable> entry = it.next();
-            Serializable v = entry.getValue();
-            if (v == null) {
-                it.remove();
-            } else if (v instanceof Map) {
-                clearMap((Map<String, Serializable>) v);
-            } else if (v instanceof List) {
-                for (Serializable el : (List<Serializable>) v) {
-                    if (el instanceof Map) {
-                        clearMap((Map<String, Serializable>) el);
+            Map.Entry<?, ?> entry = it.next();
+            switch (entry.getValue()) {
+                case null -> it.remove();
+                case Map<?, ?> m -> clearMap(m);
+                case List<?> list -> list.forEach(value -> {
+                    if (value instanceof Map<?, ?> m) {
+                        clearMap(m);
                     }
+                });
+                default -> {
                 }
             }
         }
@@ -274,7 +274,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testXPath() throws Exception {
+    public void testXPath() {
         Property prop = dp.get("file");
         assertEquals("book:file", prop.getXPath());
         prop = prop.get("fileName");
@@ -304,7 +304,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testPropertyAccess() throws Exception {
+    public void testPropertyAccess() {
         // test complex property access
         Property prop = dp.get("title");
         assertTrue(prop.isScalar());
@@ -390,7 +390,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testPropertyValueAccess() throws Exception {
+    public void testPropertyValueAccess() {
         // test setters
         Property prop = dp.get("title");
         prop.setValue("The title");
@@ -430,7 +430,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testReadOnlyValue() throws Exception {
+    public void testReadOnlyValue() {
         Property prop = dp.resolvePath("file/fileName/extension");
         try {
             prop.setReadOnly(true);
@@ -456,7 +456,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testDefaultFactories() throws Exception {
+    public void testDefaultFactories() {
         Book book = new Book();
         Author author = new Author();
         author.name.firstName = "John";
@@ -483,7 +483,7 @@ public class TestPropertyModel {
      * Compatibility test - this should be removed when ListDiff will be no more used in nuxeo.
      */
     @Test
-    public void testListDiffCompatibility() throws Exception {
+    public void testListDiffCompatibility() {
         Book book = new Book();
         book.authors = new ArrayList<>();
         book.authors.add(new Author(1));
@@ -523,7 +523,7 @@ public class TestPropertyModel {
      * Compatibility test - this should be removed when ListDiff will be no more used in nuxeo.
      */
     @Test
-    public void testListDiffCompatibilityForScalarList() throws Exception {
+    public void testListDiffCompatibilityForScalarList() {
         ArrayList<String> references = arrayList("a", "b", "c", "d", "e");
         dp.get("references").init(references);
 
@@ -543,7 +543,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testScalarList() throws Exception {
+    public void testScalarList() {
         ArrayList<String> references = arrayList("a", "b", "c", "d", "e");
         dp.get("references").init(references);
 
@@ -570,7 +570,7 @@ public class TestPropertyModel {
     }
 
     @Test
-    public void testBlob() throws Exception {
+    public void testBlob() {
         Book book = new Book();
         BlobFile file = new BlobFile();
         file.fileName.extension = "xml";
@@ -635,13 +635,13 @@ public class TestPropertyModel {
         assertEquals(blob1.getString(), blob2.getString());
 
         // now check arrays
-        assertTrue(Arrays.equals(keywords1, keywords2));
+        assertArrayEquals(keywords1, keywords2);
         assertEquals(references1, references2);
     }
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testDirtyChildren() throws Exception {
+    public void testDirtyChildren() {
         Iterator<Property> it = dp.getDirtyChildren();
         assertFalse(it.hasNext());
 
@@ -659,7 +659,7 @@ public class TestPropertyModel {
         map.remove("book:keywords");
         map.remove("book:file");
         List<Serializable> list = (List<Serializable>) map.get("book:authors");
-        Map<String, Serializable> amap = (Map<String, Serializable>) list.get(0);
+        Map<String, Serializable> amap = (Map<String, Serializable>) list.getFirst();
         amap.remove("age");
         amap = (Map<String, Serializable>) amap.get("name");
         amap.remove("lastName");
@@ -696,7 +696,7 @@ public class TestPropertyModel {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testInit() throws Exception {
+    public void testInit() {
         Book book = new Book();
         Author author = new Author();
         author.name.firstName = "John";
@@ -749,7 +749,7 @@ public class TestPropertyModel {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testExport() throws Exception {
+    public void testExport() {
         Book book = new Book();
         Author author = new Author();
         author.name.firstName = "John";

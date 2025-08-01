@@ -40,13 +40,6 @@ public interface NuxeoPrincipal extends Principal, Serializable {
     String TRANSIENT_USER_PREFIX = "transient/";
 
     /**
-     * @since 8.1
-     * @deprecated since 10.3.
-     */
-    @Deprecated
-    String TRANSIENT_USER_FORMAT = TRANSIENT_USER_PREFIX + "%s/%s";
-
-    /**
      * Property that defines if a transient username should be unique no matter what base username is provided, or if a
      * transient username should be always the same for a given base username.
      *

@@ -20,11 +20,11 @@ package org.nuxeo.connect.update.task.guards;
 
 import java.util.Map;
 
-import org.apache.commons.jexl.Expression;
-import org.apache.commons.jexl.ExpressionFactory;
-import org.apache.commons.jexl.JexlContext;
-import org.apache.commons.jexl.parser.ParseException;
-import org.nuxeo.common.utils.ExceptionUtils;
+import org.apache.commons.jexl3.JexlBuilder;
+import org.apache.commons.jexl3.JexlContext;
+import org.apache.commons.jexl3.JxltEngine;
+import org.apache.commons.jexl3.MapContext;
+import org.apache.commons.jexl3.introspection.JexlPermissions;
 import org.nuxeo.connect.update.PackageUpdateService;
 
 /**
@@ -32,43 +32,25 @@ import org.nuxeo.connect.update.PackageUpdateService;
  */
 public class Guard {
 
+    protected static final JxltEngine jexl = new JexlBuilder().permissions(JexlPermissions.UNRESTRICTED)
+                                                              .create()
+                                                              .createJxltEngine();
+
     protected final String value;
 
-    protected Expression expr;
+    protected JxltEngine.Expression expr;
 
     public Guard(String expr) {
         value = expr;
-        try {
-            this.expr = ExpressionFactory.createExpression(expr);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } catch (Exception e) { // stupid JEXL API throws Exception
-            throw ExceptionUtils.runtimeException(e);
-        }
+        this.expr = jexl.createExpression(expr);
     }
 
     public boolean evaluate(final Map<String, Object> map) {
         map.put("Version", new VersionHelper());
         map.put("Platform", new PlatformHelper());
         map.put("Packages", new PackagesHelper((PackageUpdateService) map.get("packageUpdateService")));
-        JexlContext ctx = new JexlContext() {
-            @Override
-            @SuppressWarnings("rawtypes")
-            public void setVars(Map arg0) {
-                // do nothing
-            }
-
-            @Override
-            @SuppressWarnings("rawtypes")
-            public Map getVars() {
-                return map;
-            }
-        };
-        try {
-            return (Boolean) expr.evaluate(ctx);
-        } catch (Exception e) { // stupid JEXL API throws Exception
-            throw ExceptionUtils.runtimeException(e);
-        }
+        JexlContext ctx = new MapContext(map);
+        return (Boolean) expr.evaluate(ctx);
     }
 
 }

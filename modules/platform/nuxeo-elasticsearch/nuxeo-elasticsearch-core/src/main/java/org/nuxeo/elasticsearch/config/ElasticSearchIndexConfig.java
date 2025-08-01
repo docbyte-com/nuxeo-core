@@ -47,10 +47,6 @@ import org.nuxeo.elasticsearch.core.IncrementalIndexNameGenerator;
  */
 @XObject(value = "elasticSearchIndex")
 public class ElasticSearchIndexConfig {
-    public static final String DEFAULT_SETTING_FILE = "default-doc-settings.json";
-
-    public static final String DEFAULT_MAPPING_FILE = "default-doc-mapping.json";
-
     protected static final String DEFAULT_REPOSITORY_NAME = "default";
 
     protected static final String WRITE_SUFFIX = "-write";
@@ -139,7 +135,7 @@ public class ElasticSearchIndexConfig {
         } else if (settings != null && !settings.isEmpty()) {
             return settings;
         }
-        return contentOfFile(DEFAULT_SETTING_FILE);
+        throw new IllegalStateException("No settings configured");
     }
 
     protected String contentOfFile(String filename) {
@@ -181,7 +177,7 @@ public class ElasticSearchIndexConfig {
         } else if (mapping != null && !mapping.isEmpty()) {
             return mapping;
         }
-        return contentOfFile(DEFAULT_MAPPING_FILE);
+        throw new IllegalStateException("No mapping configured");
     }
 
     public List<String> getExtraMappings() {

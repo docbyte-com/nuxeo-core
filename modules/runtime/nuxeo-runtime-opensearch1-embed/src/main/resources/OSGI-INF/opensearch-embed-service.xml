@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent">
+
+  <implementation class="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent" />
+
+  <service>
+    <provide interface="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedService" />
+  </service>
+
+  <extension-point name="server">
+    <documentation>
+      Extension point to configure an embedded OpenSearch instance.
+
+      It creates a local node using the same JVM as Nuxeo.
+
+      This is a test configuration and must NOT be used in production.
+
+      <code>
+        <server name="MyCluster">
+          <dataPath>/var/lib/nuxeo/opensearch/</dataPath>
+          <nodeName>MyNuxeo</nodeName>
+        </server>
+      </code>
+    </documentation>
+
+    <object class="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedServerConfig" />
+  </extension-point>
+
+</component>

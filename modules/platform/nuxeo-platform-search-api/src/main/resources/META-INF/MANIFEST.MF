@@ -14,8 +14,7 @@ Bundle-Vendor: Nuxeo
 Eclipse-LazyStart: false
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.security.auth.login,
+Import-Package: javax.security.auth.login,
  org.apache.commons.logging,
  org.nuxeo.common.utils,
  org.nuxeo.common.xmap.annotation,

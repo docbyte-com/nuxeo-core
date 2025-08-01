@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,14 +42,14 @@ import com.google.inject.Binder;
  * The feature will look for {@link WithUser} annotation on the test method, then on the class method, and use its value
  * to log in the given user.
  * <p>
- * You can then get the logged in principal with help of {@link #getPrincipal()} or by using injection.
+ * You can then get the logged-in principal with help of {@link #getPrincipal()} or by using injection.
  * <p>
- * By default the feature will log in as Administrator, like the {@code org.nuxeo.ecm.core.test.CoreFeature} does.
+ * By default, the feature will log in as Administrator, like the {@code org.nuxeo.ecm.core.test.CoreFeature} does.
  *
  * @since 11.1
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.core.api.tests:OSGI-INF/dummy-login-config.xml")
+@Features(RuntimeFeature.class)
 public class DummyLoginFeature implements RunnerFeature {
 
     protected NuxeoLoginContext loginContext;

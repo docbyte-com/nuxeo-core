@@ -21,7 +21,7 @@ package org.nuxeo.runtime.test.runner;
 import java.io.File;
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
 package org.nuxeo.ecm.core.convert.cache;
 
@@ -38,7 +35,9 @@ import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
  * Manages GC processing to clean up disk cache.
  *
  * @author tiry
+ * @deprecated since 2025.0, {@link ConversionCacheGCTask} handles everything
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ConversionCacheGCManager {
 
     private static final Logger log = LogManager.getLogger(ConversionCacheGCManager.class);
@@ -117,8 +116,7 @@ public class ConversionCacheGCManager {
             sortingMap.put(cacheEntry.getLastAccessedTime(), key);
         }
 
-        List<Date> accessTimeList = new ArrayList<>();
-        accessTimeList.addAll(sortingMap.keySet());
+        List<Date> accessTimeList = new ArrayList<>(sortingMap.keySet());
         Collections.sort(accessTimeList);
 
         long deletedVolume = 0;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -74,8 +74,7 @@ public class FileManagerService extends DefaultComponent implements FileManager 
 
     public static final String DEFAULT_FOLDER_TYPE_NAME = "Folder";
 
-    // TODO: OG: we should use an overridable query model instead of hardcoding
-    // the NXQL query
+    // TODO: OG: we should use an overridable query model instead of hardcoding the NXQL query
     public static final String QUERY = "SELECT * FROM Document WHERE file:content/digest = '%s'";
 
     public static final int MAX = 15;
@@ -189,7 +188,7 @@ public class FileManagerService extends DefaultComponent implements FileManager 
             return defaultCreateFolder(documentManager, fullname, path, overwrite);
         } else {
             // use the last registered folder importer
-            FolderImporter folderImporter = folderImporters.get(folderImporters.size() - 1);
+            FolderImporter folderImporter = folderImporters.getLast();
             return folderImporter.create(documentManager, fullname, path, overwrite,
                     Framework.getService(TypeManager.class));
         }
@@ -232,9 +231,8 @@ public class FileManagerService extends DefaultComponent implements FileManager 
         if (checkAllowedSubTypes && !Framework.getService(TypeManager.class)
                                               .isAllowedSubType(containerTypeName, container.getType(), container)) {
             // cannot create document file here
-            // TODO: we should better raise a dedicated exception to be
-            // catched by the FileManageActionsBean instead of returning
-            // null
+            // TODO: we should better raise a dedicated exception to be caught by the FileManageActionsBean instead of
+            // returning null
             return null;
         }
 
@@ -249,23 +247,6 @@ public class FileManagerService extends DefaultComponent implements FileManager 
 
         log.debug("Created container: {} with type {}", docModel::getName, () -> containerTypeName);
         return docModel;
-    }
-
-    @Override
-    public DocumentModel createDocumentFromBlob(CoreSession documentManager, Blob input, String path, boolean overwrite,
-            String fullName) throws IOException {
-        return createDocumentFromBlob(documentManager, input, path, overwrite, fullName, false);
-    }
-
-    @Override
-    public DocumentModel createDocumentFromBlob(CoreSession documentManager, Blob input, String path, boolean overwrite,
-            String fullName, boolean noMimeTypeCheck) throws IOException {
-        FileImporterContext context = FileImporterContext.builder(documentManager, input, path)
-                                                         .overwrite(overwrite)
-                                                         .fileName(fullName)
-                                                         .mimeTypeCheck(!noMimeTypeCheck)
-                                                         .build();
-        return createOrUpdateDocument(context);
     }
 
     @Override
@@ -298,21 +279,6 @@ public class FileManagerService extends DefaultComponent implements FileManager 
             boolean excludeOneToMany) {
         return importer.isEnabled() && !(importer.isOneToMany() && excludeOneToMany)
                 && (importer.matches(normalizedMimeType) || importer.matches(mimeType));
-    }
-
-    @Override
-    public DocumentModel updateDocumentFromBlob(CoreSession documentManager, Blob input, String path, String fullName) {
-        String filename = FileManagerUtils.fetchFileName(fullName);
-        DocumentModel doc = FileManagerUtils.getExistingDocByFileName(documentManager, path, filename);
-        if (doc != null) {
-            doc.setProperty("file", "content", input);
-
-            documentManager.saveDocument(doc);
-            documentManager.save();
-
-            log.debug("Updated the document: {}", doc::getName);
-        }
-        return doc;
     }
 
     public FileImporter getPluginByName(String name) {

@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<module>
+  <media-types>
+    <media-type id="xml">application/xml</media-type>
+  </media-types>
+</module>

@@ -148,40 +148,37 @@ public class PostfixExpression implements Iterable<PostfixExpression.Token> {
             String token = tok.nextToken();
             char c = token.charAt(0);
             switch (c) {
-            case ' ':
-            case '\t':
-            case '\r':
-            case '\n':
-            case '\f':
-                break;
-            case '(':
-                stack.push(new Token(LPARA, "("));
-                break;
-            case ')':
-                while (!stack.isEmpty() && stack.top().type != LPARA) {
-                    result.add(stack.pop());
-                }
-                if (stack.isEmpty()) {
-                    throw new ParseException("Not matching LPARA '(' found ", -1);
-                }
-                stack.pop(); // remove LPARA from stack
-                break;
-            default:
-                if ("OR".equals(token)) {
-                    pushOp(new Token(OR, "OR"), stack, result);
-                } else if ("AND".equals(token)) {
-                    pushOp(new Token(AND, "AND"), stack, result);
-                } else if ("NOT".equals(token)) {
-                    pushOp(new Token(NOT, "NOT"), stack, result);
-                } else {
-                    result.add(new Token(ARG, token));
-                }
+                case ' ':
+                case '\t':
+                case '\r':
+                case '\n':
+                case '\f':
+                    break;
+                case '(':
+                    stack.push(new Token(LPARA, "("));
+                    break;
+                case ')':
+                    while (!stack.isEmpty() && stack.top().type != LPARA) {
+                        result.add(stack.pop());
+                    }
+                    if (stack.isEmpty()) {
+                        throw new ParseException("Not matching LPARA '(' found ", -1);
+                    }
+                    stack.pop(); // remove LPARA from stack
+                    break;
+                default:
+                    switch (token) {
+                        case "OR" -> pushOp(new Token(OR, "OR"), stack, result);
+                        case "AND" -> pushOp(new Token(AND, "AND"), stack, result);
+                        case "NOT" -> pushOp(new Token(NOT, "NOT"), stack, result);
+                        default -> result.add(new Token(ARG, token));
+                    }
             }
         }
         while (!stack.isEmpty()) {
             result.add(stack.pop());
         }
-        this.expr = result.toArray(new Token[result.size()]);
+        this.expr = result.toArray(Token[]::new);
     }
 
 }

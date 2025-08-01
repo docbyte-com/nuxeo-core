@@ -20,7 +20,7 @@ package org.nuxeo.ecm.tokenauth.service;
 
 import java.io.Serializable;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -104,6 +104,7 @@ public interface TokenAuthenticationService extends Serializable {
 
     /**
      * Gets the token bindings for the specified user and application.
+     * 
      * @since 8.3
      */
     DocumentModelList getTokenBindings(String userName, String applicationName);

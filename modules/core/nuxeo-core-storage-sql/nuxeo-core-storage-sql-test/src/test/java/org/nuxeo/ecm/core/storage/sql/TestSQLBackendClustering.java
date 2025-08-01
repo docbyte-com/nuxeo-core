@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,15 +21,13 @@ package org.nuxeo.ecm.core.storage.sql;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 
 import java.io.Serializable;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.cluster.ClusterServiceImpl;
@@ -44,11 +42,6 @@ public class TestSQLBackendClustering extends SQLBackendTestCase {
 
     @Inject
     protected ClusterService clusterService;
-
-    @Before
-    public void checkSupported() {
-        assumeTrue(DatabaseHelper.DATABASE.supportsClustering());
-    }
 
     @After
     public void resetClusterNodeId() {
@@ -202,7 +195,7 @@ public class TestSQLBackendClustering extends SQLBackendTestCase {
     }
 
     @Test
-    public void testClusterInvalidationsPropagatorLeak() throws Exception {
+    public void testClusterInvalidationsPropagatorLeak() {
         List<?> queues = repository.invalidationsPropagator.queues;
         assertEquals(0, queues.size());
         Session session = repository.getConnection();

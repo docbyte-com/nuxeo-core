@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Funsho David
  *     Nuno Cunha <ncunha@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.comment;
 
 import static java.util.stream.Collectors.toList;
@@ -32,13 +31,12 @@ import static org.nuxeo.ecm.platform.comment.CommentUtils.newExternalComment;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -63,6 +61,7 @@ import org.nuxeo.ecm.platform.comment.api.exceptions.CommentSecurityException;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * @since 10.3
@@ -357,8 +356,7 @@ public abstract class AbstractTestCommentManager {
 
         assertEquals(comments.subList(3, 6),
                 commentManager.getComments(session, commentedDocModel.getId(), 3L, 1L, true));
-        List<Comment> reversedComments = new ArrayList<>(comments);
-        Collections.reverse(reversedComments);
+        List<Comment> reversedComments = new ArrayList<>(comments).reversed();
         assertEquals(reversedComments.subList(3, 6),
                 commentManager.getComments(session, commentedDocModel.getId(), 3L, 1L, false));
     }
@@ -668,6 +666,7 @@ public abstract class AbstractTestCommentManager {
                 newComment(commentedDocModel.getId(), "I am a comment!"));
         Comment c2 = commentManager.createComment(jamesSession, newComment(c1.getId(), "I am a reply!"));
         Comment c3 = commentManager.createComment(jamesSession, newComment(c2.getId(), "Me too!"));
+        transactionalFeature.nextTransaction();
 
         assertTrue(session.exists(new IdRef(c1.getId())));
         assertTrue(session.exists(new IdRef(c2.getId())));
@@ -680,6 +679,9 @@ public abstract class AbstractTestCommentManager {
             // TODO CommentNotFoundException came from bridge, it should be that
         } catch (CommentSecurityException | CommentNotFoundException cse) {
             // ok
+            assertTrue(TransactionHelper.isTransactionMarkedRollback());
+            TransactionHelper.commitOrRollbackTransaction();
+            TransactionHelper.startTransaction();
         }
         try {
             commentManager.deleteComment(janeSession, c3.getId());
@@ -687,6 +689,9 @@ public abstract class AbstractTestCommentManager {
             // TODO CommentNotFoundException came from bridge, it should be that
         } catch (CommentSecurityException | CommentNotFoundException cse) {
             // ok
+            assertTrue(TransactionHelper.isTransactionMarkedRollback());
+            TransactionHelper.commitOrRollbackTransaction();
+            TransactionHelper.startTransaction();
         }
 
         // check james can delete its first reply
@@ -1134,6 +1139,18 @@ public abstract class AbstractTestCommentManager {
         assertEquals("Administrator", reply2.getAuthor());
         assertEquals("I am a sub reply !", reply2.getText());
         assertEquals(reply.getId(), reply2.getParentId());
+    }
+
+    @Test
+    public void testCreateCommentsOnVersion() {
+        // Create version
+        DocumentRef vRef = session.checkIn(commentedDocModel.getRef(), VersioningOption.MAJOR, null);
+        DocumentModel version = session.getDocument(vRef);
+        // Add 2 comments on the version
+        Comment c1 = commentManager.createComment(session, newComment(version.getId(), "comment1"));
+        Comment c2 = commentManager.createComment(session, newComment(version.getId(), "comment2"));
+        // Assert comments are stored under the same parent
+        assertEquals(c1.getDocument().getParentRef(), c2.getDocument().getParentRef());
     }
 
 }

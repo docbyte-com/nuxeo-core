@@ -21,16 +21,16 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 public interface NuxeoExceptionHandler {
 
     String EXCEPTION_HANDLER_MARKER = "NuxeoExceptionHandlerMarker";
 
-    void handleException(HttpServletRequest request, HttpServletResponse response, Throwable t) throws IOException,
-            ServletException;
+    void handleException(HttpServletRequest request, HttpServletResponse response, Throwable t)
+            throws IOException, ServletException;
 
     void setParameters(NuxeoExceptionHandlerParameters parameters);
 

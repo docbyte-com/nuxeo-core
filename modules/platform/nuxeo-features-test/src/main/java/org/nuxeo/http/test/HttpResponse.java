@@ -54,8 +54,12 @@ public class HttpResponse {
      * @return the {@link HttpHeaders#LOCATION Location} header value, if any
      */
     public URI getLocation() {
+        var location = getFirstHeader(HttpHeaders.LOCATION);
+        if (location == null) {
+            throw new NuxeoException("Found no Location header");
+        }
         try {
-            return new URI(getFirstHeader(HttpHeaders.LOCATION));
+            return new URI(location);
         } catch (URISyntaxException e) {
             throw new NuxeoException("Unable to parse Location header", e);
         }

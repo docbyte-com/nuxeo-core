@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 /**
  * Exception thrown when a method tries to create a document that already exists through copy or move, or when trying to

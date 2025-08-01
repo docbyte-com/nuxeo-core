@@ -12,7 +12,8 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Version: 5.4.2.qualifier
 Bundle-ManifestVersion: 2
 Nuxeo-Component: OSGI-INF/ObjectResolverService.xml,
-  OSGI-INF/SchemaService.xml
+  OSGI-INF/SchemaService.xml,
+  OSGI-INF/SchemaContrib.xml
 Import-Package: com.sun.xml.xsom,
  com.sun.xml.xsom.impl,
  com.sun.xml.xsom.parser,

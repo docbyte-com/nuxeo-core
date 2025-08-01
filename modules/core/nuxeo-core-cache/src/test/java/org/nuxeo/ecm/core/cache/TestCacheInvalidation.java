@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
@@ -41,9 +41,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(CacheFeature.class)
-@Deploy("org.nuxeo.runtime.pubsub")
-@Deploy("org.nuxeo.ecm.core.cache:inmemory-cache-config.xml")
-@Deploy("org.nuxeo.ecm.core.cache:test-cluster.xml")
+@Deploy("org.nuxeo.ecm.core.cache.test:test-cluster.xml")
 public class TestCacheInvalidation {
 
     // from XML file

@@ -21,6 +21,7 @@ package org.nuxeo.drive.bench
 object Constants {
   val API_PATH = "/api/v1/path"
   val AUTOMATION_PATH = "/site/automation"
+  val MANAGEMENT_PATH = "/api/v1/management"
   val ROOT_WORKSPACE_PATH = "/default-domain/workspaces"
 
   val GAT_WS_NAME = "Bench_Drive"

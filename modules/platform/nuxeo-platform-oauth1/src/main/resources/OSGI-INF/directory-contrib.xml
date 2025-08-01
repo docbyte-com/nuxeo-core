@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.platform.oauth1.directoryContrib">
 
+  <!--
+    Deprecated since 2025.0, see OAuth 2.0 replacement in the nuxeo-platform-oauth module
+  -->
   <extension target="org.nuxeo.ecm.directory.GenericDirectory" point="directories">
 
     <directory name="oauthConsumers" extends="template-directory">

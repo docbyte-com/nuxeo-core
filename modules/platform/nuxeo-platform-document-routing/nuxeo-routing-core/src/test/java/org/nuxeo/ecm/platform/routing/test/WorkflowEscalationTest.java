@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -66,7 +66,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 5.7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WorkflowFeature.class, LogCaptureFeature.class })
+@Features(LogCaptureFeature.class)
 public class WorkflowEscalationTest extends AbstractGraphRouteTest {
 
     @Inject
@@ -403,12 +403,11 @@ public class WorkflowEscalationTest extends AbstractGraphRouteTest {
 
         node2.setPropertyValue(GraphNode.PROP_STOP, Boolean.TRUE);
         session.saveDocument(node2);
-        DocumentRoute route = instantiateAndRun(session);
+        instantiateAndRun(session);
 
         transactionalFeature.nextTransaction();
         DocumentModelList nodes = session.query(SUSPENDED_NODES_WITH_ESCALATION_QUERY);
         assertEquals(1, nodes.size());
-        DocumentModel nodeDoc = nodes.get(0);
 
         // this will trigger a Bulk Action
         eventService.fireEvent(new EventContextImpl().newEvent(EXECUTE_ESCALATION_RULE_EVENT));

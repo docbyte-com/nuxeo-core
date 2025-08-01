@@ -24,7 +24,7 @@ import static org.nuxeo.ecm.localconf.SimpleConfiguration.SIMPLE_CONFIGURATION_F
 import java.util.Collections;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;

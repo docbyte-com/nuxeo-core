@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.core.io.marshallers.json;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.ENTITY_FIELD_NAME;
 
 import java.io.IOException;

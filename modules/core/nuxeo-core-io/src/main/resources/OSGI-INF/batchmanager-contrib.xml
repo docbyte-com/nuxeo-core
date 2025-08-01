@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.io.batch.handler.DefaultBatchHandler" version="1.0">
+
+  <requires>org.nuxeo.ecm.core.transientstore.TransientStorageComponent</requires>
+
+  <extension target="org.nuxeo.ecm.core.io.BatchManager" point="handlers">
+    <batchHandler>
+      <name>default</name>
+      <class>org.nuxeo.ecm.core.io.upload.batch.impl.DefaultBatchHandler</class>
+      <property name="transientStore">BatchManagerCache</property>
+    </batchHandler>
+  </extension>
+  <extension target="org.nuxeo.ecm.core.transientstore.TransientStorageComponent" point="store">
+    <!-- Explicit declaration based on default configuration to enforce GC -->
+    <store name="automation" />
+    <store name="BatchManagerCache" />
+  </extension>
+</component>

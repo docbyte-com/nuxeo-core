@@ -21,12 +21,13 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.platform.usermanager.exceptions.InvalidPasswordException;
@@ -35,7 +36,6 @@ import org.nuxeo.ecm.user.invite.AlreadyProcessedRegistrationException;
 import org.nuxeo.ecm.user.invite.DefaultInvitationUserFactory;
 import org.nuxeo.ecm.user.invite.UserInvitationService;
 import org.nuxeo.ecm.user.invite.UserRegistrationException;
-import org.nuxeo.ecm.webengine.forms.FormData;
 import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
@@ -53,14 +53,13 @@ public class UserInvitationObject extends ModuleRoot {
 
     @POST
     @Path("validate")
-    public Object validateTrialForm() {
+    public Template validateTrialForm(MultivaluedMap<String, String> parameters) {
         UserInvitationService usr = fetchService();
 
-        FormData formData = getContext().getForm();
-        String requestId = formData.getString("RequestId");
-        formData.getString("ConfigurationName");
-        String password = formData.getString("Password");
-        String passwordConfirmation = formData.getString("PasswordConfirmation");
+        String requestId = parameters.getFirst("RequestId");
+        parameters.getFirst("ConfigurationName");
+        String password = parameters.getFirst("Password");
+        String passwordConfirmation = parameters.getFirst("PasswordConfirmation");
 
         // Check if the requestId is an existing one
         try {
@@ -74,19 +73,19 @@ public class UserInvitationObject extends ModuleRoot {
         }
 
         // Check if both entered passwords are correct
-        if (password == null || "".equals(password.trim())) {
+        if (password == null || password.trim().isEmpty()) {
             return redisplayFormWithErrorMessage("EnterPassword",
-                    ctx.getMessage("label.registerForm.validation.password"), formData);
+                    ctx.getMessage("label.registerForm.validation.password"), parameters);
         }
-        if (passwordConfirmation == null || "".equals(passwordConfirmation.trim())) {
+        if (passwordConfirmation == null || passwordConfirmation.trim().isEmpty()) {
             return redisplayFormWithErrorMessage("EnterPassword",
-                    ctx.getMessage("label.registerForm.validation.passwordconfirmation"), formData);
+                    ctx.getMessage("label.registerForm.validation.passwordconfirmation"), parameters);
         }
         password = password.trim();
         passwordConfirmation = passwordConfirmation.trim();
         if (!password.equals(passwordConfirmation)) {
             return redisplayFormWithErrorMessage("EnterPassword",
-                    ctx.getMessage("label.registerForm.validation.passwordvalidation"), formData);
+                    ctx.getMessage("label.registerForm.validation.passwordvalidation"), parameters);
         }
         Map<String, Serializable> registrationData = new HashMap<>();
         try {
@@ -116,13 +115,12 @@ public class UserInvitationObject extends ModuleRoot {
     }
 
     protected UserInvitationService fetchService() {
-        UserInvitationService usr = Framework.getService(UserInvitationService.class);
-        return usr;
+        return Framework.getService(UserInvitationService.class);
     }
 
     @GET
     @Path("enterpassword/{configurationName}/{requestId}")
-    public Object validatePasswordForm(@PathParam("requestId") String requestId,
+    public Template validatePasswordForm(@PathParam("requestId") String requestId,
             @PathParam("configurationName") String configurationName) {
 
         UserInvitationService usr = fetchService();
@@ -150,19 +148,22 @@ public class UserInvitationObject extends ModuleRoot {
         return new HashMap<>();
     }
 
-    protected Template redisplayFormWithMessage(String messageType, String formName, String message, FormData data) {
+    protected Template redisplayFormWithMessage(String messageType, String formName, String message,
+            MultivaluedMap<String, String> data) {
         Map<String, String> savedData = new HashMap<>();
-        for (String key : data.getKeys()) {
-            savedData.put(key, data.getString(key));
+        for (var key : data.keySet()) {
+            savedData.put(key, data.getFirst(key));
         }
         return getView(formName).arg("data", savedData).arg(messageType, message);
     }
 
-    protected Template redisplayFormWithInfoMessage(String formName, String message, FormData data) {
+    protected Template redisplayFormWithInfoMessage(String formName, String message,
+            MultivaluedMap<String, String> data) {
         return redisplayFormWithMessage("info", formName, message, data);
     }
 
-    protected Template redisplayFormWithErrorMessage(String formName, String message, FormData data) {
+    protected Template redisplayFormWithErrorMessage(String formName, String message,
+            MultivaluedMap<String, String> data) {
         return redisplayFormWithMessage("err", formName, message, data);
     }
 

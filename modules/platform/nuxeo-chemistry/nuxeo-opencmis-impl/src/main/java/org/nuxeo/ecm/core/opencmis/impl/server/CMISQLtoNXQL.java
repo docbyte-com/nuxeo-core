@@ -21,7 +21,6 @@ package org.nuxeo.ecm.core.opencmis.impl.server;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_DOCUMENT;
 import static org.apache.chemistry.opencmis.commons.enums.BaseTypeId.CMIS_RELATIONSHIP;
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -68,7 +67,6 @@ import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.IterableQueryResult;
 import org.nuxeo.ecm.core.api.PartialList;
-import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.opencmis.impl.util.TypeManagerImpl;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
@@ -413,11 +411,6 @@ public class CMISQLtoNXQL {
         }
         col.setInfo(column);
 
-        if (clauseType == WHERE && NuxeoTypeHelper.NX_LIFECYCLE_STATE.equals(col.getPropertyId())
-                && Framework.getService(TrashService.class).hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-            // explicit lifecycle query: do not include the 'deleted' lifecycle filter
-            skipDeleted = false;
-        }
         if (clauseType == WHERE && NuxeoTypeHelper.NX_ISTRASHED.equals(col.getPropertyId())) {
             // explicit trashed query: do not include the `isTrashed = 0` filter
             skipDeleted = false;
@@ -461,50 +454,50 @@ public class CMISQLtoNXQL {
      */
     protected String getSystemColumn(String propertyId) {
         switch (propertyId) {
-        case PropertyIds.OBJECT_ID:
-            return NXQL.ECM_UUID;
-        case PropertyIds.PARENT_ID:
-        case NuxeoTypeHelper.NX_PARENT_ID:
-            return NXQL.ECM_PARENTID;
-        case NuxeoTypeHelper.NX_PATH_SEGMENT:
-            return NXQL.ECM_NAME;
-        case NuxeoTypeHelper.NX_POS:
-            return NXQL.ECM_POS;
-        case PropertyIds.OBJECT_TYPE_ID:
-            return NXQL.ECM_PRIMARYTYPE;
-        case PropertyIds.SECONDARY_OBJECT_TYPE_IDS:
-        case NuxeoTypeHelper.NX_FACETS:
-            return NXQL.ECM_MIXINTYPE;
-        case PropertyIds.VERSION_LABEL:
-            return NXQL.ECM_VERSIONLABEL;
-        case PropertyIds.IS_LATEST_MAJOR_VERSION:
-            return NXQL.ECM_ISLATESTMAJORVERSION;
-        case PropertyIds.IS_LATEST_VERSION:
-            return NXQL.ECM_ISLATESTVERSION;
-        case NuxeoTypeHelper.NX_ISVERSION:
-            return NXQL.ECM_ISVERSION;
-        case NuxeoTypeHelper.NX_ISCHECKEDIN:
-            return NXQL.ECM_ISCHECKEDIN;
-        case NuxeoTypeHelper.NX_ISTRASHED:
-            return NXQL.ECM_ISTRASHED;
-        case NuxeoTypeHelper.NX_LIFECYCLE_STATE:
-            return NXQL.ECM_LIFECYCLESTATE;
-        case PropertyIds.NAME:
-            return NXQL_DC_TITLE;
-        case PropertyIds.DESCRIPTION:
-            return NXQL_DC_DESCRIPTION;
-        case PropertyIds.CREATED_BY:
-            return NXQL_DC_CREATOR;
-        case PropertyIds.CREATION_DATE:
-            return NXQL_DC_CREATED;
-        case PropertyIds.LAST_MODIFICATION_DATE:
-            return NXQL_DC_MODIFIED;
-        case PropertyIds.LAST_MODIFIED_BY:
-            return NXQL_DC_LAST_CONTRIBUTOR;
-        case PropertyIds.SOURCE_ID:
-            return NXQL_REL_SOURCE;
-        case PropertyIds.TARGET_ID:
-            return NXQL_REL_TARGET;
+            case PropertyIds.OBJECT_ID:
+                return NXQL.ECM_UUID;
+            case PropertyIds.PARENT_ID:
+            case NuxeoTypeHelper.NX_PARENT_ID:
+                return NXQL.ECM_PARENTID;
+            case NuxeoTypeHelper.NX_PATH_SEGMENT:
+                return NXQL.ECM_NAME;
+            case NuxeoTypeHelper.NX_POS:
+                return NXQL.ECM_POS;
+            case PropertyIds.OBJECT_TYPE_ID:
+                return NXQL.ECM_PRIMARYTYPE;
+            case PropertyIds.SECONDARY_OBJECT_TYPE_IDS:
+            case NuxeoTypeHelper.NX_FACETS:
+                return NXQL.ECM_MIXINTYPE;
+            case PropertyIds.VERSION_LABEL:
+                return NXQL.ECM_VERSIONLABEL;
+            case PropertyIds.IS_LATEST_MAJOR_VERSION:
+                return NXQL.ECM_ISLATESTMAJORVERSION;
+            case PropertyIds.IS_LATEST_VERSION:
+                return NXQL.ECM_ISLATESTVERSION;
+            case NuxeoTypeHelper.NX_ISVERSION:
+                return NXQL.ECM_ISVERSION;
+            case NuxeoTypeHelper.NX_ISCHECKEDIN:
+                return NXQL.ECM_ISCHECKEDIN;
+            case NuxeoTypeHelper.NX_ISTRASHED:
+                return NXQL.ECM_ISTRASHED;
+            case NuxeoTypeHelper.NX_LIFECYCLE_STATE:
+                return NXQL.ECM_LIFECYCLESTATE;
+            case PropertyIds.NAME:
+                return NXQL_DC_TITLE;
+            case PropertyIds.DESCRIPTION:
+                return NXQL_DC_DESCRIPTION;
+            case PropertyIds.CREATED_BY:
+                return NXQL_DC_CREATOR;
+            case PropertyIds.CREATION_DATE:
+                return NXQL_DC_CREATED;
+            case PropertyIds.LAST_MODIFICATION_DATE:
+                return NXQL_DC_MODIFIED;
+            case PropertyIds.LAST_MODIFIED_BY:
+                return NXQL_DC_LAST_CONTRIBUTOR;
+            case PropertyIds.SOURCE_ID:
+                return NXQL_REL_SOURCE;
+            case PropertyIds.TARGET_ID:
+                return NXQL_REL_TARGET;
         }
         return null;
     }

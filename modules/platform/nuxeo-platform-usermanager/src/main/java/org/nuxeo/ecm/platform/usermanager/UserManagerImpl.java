@@ -21,7 +21,7 @@
  */
 package org.nuxeo.ecm.platform.usermanager;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static org.nuxeo.ecm.platform.usermanager.UserConfig.GROUPS_COLUMN;
 
 import java.io.Serializable;
@@ -975,17 +975,17 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                     SubstringMatchType substringMatchType = dir.getDescriptor().getSubstringMatchType();
                     String value;
                     switch (substringMatchType) {
-                    case subany:
-                        value = '%' + likePattern + '%';
-                        break;
-                    case subinitial:
-                        value = likePattern + '%';
-                        break;
-                    case subfinal:
-                        value = '%' + likePattern;
-                        break;
-                    default:
-                        throw new IllegalStateException(substringMatchType.toString());
+                        case subany:
+                            value = '%' + likePattern + '%';
+                            break;
+                        case subinitial:
+                            value = likePattern + '%';
+                            break;
+                        case subfinal:
+                            value = '%' + likePattern;
+                            break;
+                        default:
+                            throw new IllegalStateException(substringMatchType.toString());
                     }
                     predicate = Predicates.ilike(key, value);
                 } else { // MatchType.EXACT

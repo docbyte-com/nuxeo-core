@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.automation.core.operations.users;
 
 import static org.junit.Assert.assertEquals;
@@ -26,13 +25,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.util.Properties;
-import org.nuxeo.ecm.core.api.CloseableCoreSession;
+import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 
@@ -80,8 +79,7 @@ public class TestCreateOrUpdateUserWithPowerUser extends AbstractTestWithPowerUs
     }
 
     protected void assertOperationCallFails(Map<String, Object> params) throws OperationException {
-        try (CloseableCoreSession session = openPowerUserCoreSession();
-                OperationContext ctx = new OperationContext(session)) {
+        try (OperationContext ctx = new OperationContext(getPowerUserCoreSession())) {
             automationService.run(ctx, CreateOrUpdateUser.ID, params);
             fail("Should have thrown NuxeoException");
         } catch (NuxeoException e) {
@@ -92,8 +90,8 @@ public class TestCreateOrUpdateUserWithPowerUser extends AbstractTestWithPowerUs
         }
     }
 
-    protected CloseableCoreSession openPowerUserCoreSession() {
+    protected CoreSession getPowerUserCoreSession() {
         NuxeoPrincipal principal = userManager.getPrincipal("leela");
-        return coreFeature.openCoreSession(principal);
+        return coreFeature.getCoreSession(principal);
     }
 }

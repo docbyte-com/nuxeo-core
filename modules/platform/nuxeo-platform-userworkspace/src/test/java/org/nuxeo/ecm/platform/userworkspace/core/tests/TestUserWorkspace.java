@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
@@ -58,6 +57,7 @@ import org.nuxeo.ecm.platform.userworkspace.core.service.AbstractUserWorkspaceIm
 import org.nuxeo.ecm.platform.userworkspace.core.service.UserWorkspaceDescriptor;
 import org.nuxeo.ecm.platform.userworkspace.core.service.UserWorkspaceServiceImplComponent;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -68,6 +68,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.platform.collections.core")
 @Deploy("org.nuxeo.ecm.platform.web.common")
+@BlacklistComponent("org.nuxeo.ecm.platform.userworkspace.operationsContrib") // needs OperationServiceComponent
+@BlacklistComponent("org.nuxeo.ecm.platform.types.web") // needs TypeService
 public class TestUserWorkspace {
 
     @Inject
@@ -295,8 +297,7 @@ public class TestUserWorkspace {
     }
 
     protected void expectCandidateNames(String username, String... expected) {
-        assertEquals(Arrays.asList(expected),
-                ((AbstractUserWorkspaceImpl) uwm).getCandidateUserWorkspaceNames(username));
+        assertEquals(List.of(expected), ((AbstractUserWorkspaceImpl) uwm).getCandidateUserWorkspaceNames(username));
     }
 
     @Test

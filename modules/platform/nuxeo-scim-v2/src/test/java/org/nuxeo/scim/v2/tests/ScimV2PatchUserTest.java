@@ -25,8 +25,6 @@ import static org.junit.Assert.assertThrows;
 
 import java.util.Objects;
 
-import javax.inject.Inject;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -45,6 +43,8 @@ import com.unboundid.scim2.common.messages.PatchOpType;
 import com.unboundid.scim2.common.messages.PatchOperation;
 import com.unboundid.scim2.common.messages.PatchRequest;
 import com.unboundid.scim2.common.utils.JsonUtils;
+
+import jakarta.inject.Inject;
 
 /**
  * Tests the SCIM 2.0 patch feature for User resources.
@@ -150,11 +150,13 @@ public class ScimV2PatchUserTest {
         checkUserModel(userModel, "joe", "Joe", null);
     }
 
-    // Not explicit in RFC: path field for add operations must not include any value selection filters
+    // Not explicit in RFC: path field for add operations must not include any value selection filters if no
+    // sub-attribute is specified
     @Test
-    public void testAdd9() {
-        assertThrows(IllegalArgumentException.class,
-                () -> newPatchRequest(ADD, "emails[type eq \"work\"]", "{\"value\":\"joe@devnull.com\"}")); // NOSONAR
+    public void testAdd9() throws JsonProcessingException, ScimException {
+        newUserModel("joe", null, null);
+        var patch = newPatchRequest(ADD, "emails[type eq \"work\"]", "{\"value\":\"joe@devnull.com\"}"); // NOSONAR
+        assertThrows(BadRequestException.class, () -> mappingService.patchNuxeoUser("joe", patch));
     }
 
     // ------------------------------ Remove ------------------------------

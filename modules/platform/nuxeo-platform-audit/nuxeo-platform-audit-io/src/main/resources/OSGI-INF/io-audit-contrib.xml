@@ -1,5 +1,7 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.ecm.platform.audit.io.contrib">
+<component name="org.nuxeo.audit.io.contrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.io.contrib</alias>
 
   <documentation>
     Sample contribution for audit logs copy.
@@ -8,24 +10,17 @@
     <pre>
       <extension target="org.nuxeo.ecm.platform.io.IOManager"
           point="adapters">
-
-        <adapter name="audit_logs"
-            class="org.nuxeo.ecm.platform.audit.io.IOAuditAdapter">
+        <adapter name="audit_logs" class="org.nuxeo.audit.io.IOAuditAdapter">
           <property name="nothing">default</property>
         </adapter>
-
       </extension>
     </pre>
   </documentation>
 
-  <extension target="org.nuxeo.ecm.platform.io.IOManager"
-      point="adapters">
-
-    <adapter name="audit_logs"
-        class="org.nuxeo.ecm.platform.audit.io.IOAuditAdapter">
+  <extension target="org.nuxeo.ecm.platform.io.IOManager" point="adapters">
+    <adapter name="audit_logs" class="org.nuxeo.audit.io.IOAuditAdapter">
       <property name="nothing">default</property>
     </adapter>
-
   </extension>
 
 </component>

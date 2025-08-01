@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -35,13 +36,17 @@ public class KeyValueServiceImpl extends DefaultComponent implements KeyValueSer
 
     public static final String DEFAULT_STORE_ID = "default";
 
-    public static final int APPLICATION_STARTED_ORDER = -500;
+    /**
+     * @deprecated since 2025.0, use {@link org.nuxeo.runtime.model.ComponentStartOrders#KV} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final int APPLICATION_STARTED_ORDER = ComponentStartOrders.KV;
 
     protected Map<String, KeyValueStoreProvider> providers = new ConcurrentHashMap<>();
 
     @Override
     public int getApplicationStartedOrder() {
-        return APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.KV;
     }
 
     @Override

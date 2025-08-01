@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,13 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
 package org.nuxeo.ecm.core.convert.cache;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,9 +33,10 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.common.utils.Path;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.service.ConversionServiceImpl;
@@ -92,18 +94,15 @@ public class ConversionCacheHolder {
     }
 
     protected static String getCacheEntryPath(String key) {
-        Path path = new Path(ConversionServiceImpl.getCacheBasePath());
-
-        List<String> subPath = getSubPathFromKey(key);
-
-        for (String subPart : subPath) {
-            path = path.append(subPart);
-            new File(path.toString()).mkdir();
+        Path entryPath = ConversionServiceImpl.getConvertCacheDirectory();
+        for (String subPart : getSubPathFromKey(key)) {
+            entryPath = entryPath.resolve(subPart);
         }
-
-        // path = path.append(key);
-
-        return path.toString();
+        try {
+            return Files.createDirectories(entryPath).toString();
+        } catch (IOException e) {
+            throw new NuxeoException("Unable to create cache entry sub directories for key: " + key, e);
+        }
     }
 
     public static void addToCache(String key, BlobHolder result) {
@@ -202,12 +201,36 @@ public class ConversionCacheHolder {
 
     /**
      * @since 6.0
+     * @deprecated since 2025.0, use {@link #clearCache} instead
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    @SuppressWarnings("removal")
     public static void deleteCache() {
         cacheLock.writeLock().lock();
         try {
             cache.clear();
             new File(ConversionServiceImpl.getCacheBasePath()).delete();
+        } finally {
+            cacheLock.writeLock().unlock();
+        }
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public static void clearCache() {
+        cacheLock.writeLock().lock();
+        try {
+            cache.clear();
+            var cacheDirectory = ConversionServiceImpl.getConvertCacheDirectory();
+            if (Files.exists(cacheDirectory)) {
+                try {
+                    FileUtils.deleteDirectory(cacheDirectory.toFile());
+                    Files.createDirectories(cacheDirectory);
+                } catch (IOException e) {
+                    throw new NuxeoException("Unable to delete/create cache directory: " + cacheDirectory, e);
+                }
+            }
         } finally {
             cacheLock.writeLock().unlock();
         }

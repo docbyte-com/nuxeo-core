@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -15,7 +15,6 @@
     <module>login</module>
     <module>nuxeo-admin-center</module>
     <module>nuxeo-adobe-connector-core</module>
-    <module>nuxeo-audit-storage-directory</module>
     <module>nuxeo-automation</module>
     <module>nuxeo-binary-metadata</module>
     <module>nuxeo-chemistry</module>
@@ -37,7 +36,6 @@
     <module>nuxeo-mail-amazon-ses</module>
     <module>nuxeo-multi-tenant-core</module>
     <module>nuxeo-permissions</module>
-    <module>nuxeo-platform-3d</module>
     <module>nuxeo-platform-actions-core</module>
     <module>nuxeo-platform</module>
     <module>nuxeo-platform-api</module>
@@ -52,9 +50,6 @@
     <module>nuxeo-platform-document-routing</module>
     <module>nuxeo-platform-dublincore</module>
     <module>nuxeo-platform-filemanager</module>
-    <module>nuxeo-platform-forms-layout-api</module>
-    <module>nuxeo-platform-forms-layout-core</module>
-    <module>nuxeo-platform-forms-layout-export</module>
     <module>nuxeo-platform-htmlsanitizer</module>
     <module>nuxeo-platform-imaging</module>
     <module>nuxeo-platform-importer</module>
@@ -80,6 +75,7 @@
     <module>nuxeo-platform-test</module>
     <module>nuxeo-platform-types</module>
     <module>nuxeo-platform-uidgen-core</module>
+    <module>nuxeo-platform-uidgen-opensearch1</module>
     <module>nuxeo-platform-url</module>
     <module>nuxeo-platform-usermanager</module>
     <module>nuxeo-platform-userpreferences</module>
@@ -92,13 +88,11 @@
     <module>nuxeo-platform-webapp-types</module>
     <module>nuxeo-preview-core</module>
     <module>nuxeo-quota</module>
-    <module>nuxeo-scim-server</module>
     <module>nuxeo-scim-v2</module>
     <module>nuxeo-search</module>
     <module>nuxeo-signature</module>
     <module>nuxeo-target-platforms</module>
     <module>nuxeo-template-rendering</module>
-    <module>nuxeo-theme-styling</module>
     <module>nuxeo-thumbnail</module>
     <module>nuxeo-tree-snapshot-core</module>
     <module>nuxeo-user-profile</module>
@@ -106,7 +100,6 @@
     <module>nuxeo-web-resources-api</module>
     <module>nuxeo-web-resources-core</module>
     <module>nuxeo-web-resources-wro</module>
-    <module>nuxeo-webdav</module>
     <module>nuxeo-webengine</module>
     <module>nuxeo-wopi</module>
     <module>rest-api</module>

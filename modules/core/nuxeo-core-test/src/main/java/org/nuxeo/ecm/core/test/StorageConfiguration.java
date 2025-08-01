@@ -18,35 +18,13 @@
  */
 package org.nuxeo.ecm.core.test;
 
-import static org.junit.Assert.assertNotNull;
-import static org.nuxeo.common.test.logging.NuxeoLoggingConstants.MARKER_CONSOLE_OVERRIDE;
-
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.core.storage.dbs.DBSHelper;
-import org.nuxeo.ecm.core.storage.sql.DatabaseDB2;
-import org.nuxeo.ecm.core.storage.sql.DatabaseH2;
-import org.nuxeo.ecm.core.storage.sql.DatabaseHelper;
-import org.nuxeo.ecm.core.storage.sql.DatabaseMySQL;
-import org.nuxeo.ecm.core.storage.sql.DatabaseOracle;
-import org.nuxeo.ecm.core.storage.sql.DatabasePostgreSQL;
-import org.nuxeo.ecm.core.storage.sql.DatabaseSQLServer;
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.mongodb.MongoDBConnectionHelper;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.runtime.test.runner.RuntimeHarness;
-import org.osgi.framework.Bundle;
-
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoDatabase;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
+import org.nuxeo.ecm.core.RepositoryFeature;
+import org.nuxeo.ecm.core.storage.mem.DBSMemRepositoryFeature;
+import org.nuxeo.ecm.core.storage.mongodb.DBSMongoDBRepositoryFeature;
+import org.nuxeo.ecm.core.storage.sql.VCSRepositoryFeature;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * Description of the specific capabilities of a repository for tests, and helper methods.
@@ -55,164 +33,93 @@ import com.mongodb.client.MongoDatabase;
  */
 public class StorageConfiguration {
 
-    private static final Logger log = LogManager.getLogger(StorageConfiguration.class);
-
-    public static final String CORE_PROPERTY = "nuxeo.test.core";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#CORE_SERVICE_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String CORE_PROPERTY = ThirdPartyUnderTest.CORE_SERVICE_PROPERTY.key();
 
     public static final String CORE_VCS = "vcs";
 
-    public static final String CORE_MEM = "mem";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MEM} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String CORE_MEM = ThirdPartyUnderTest.STORAGE_MEM;
 
-    public static final String CORE_MONGODB = "mongodb";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String CORE_MONGODB = ThirdPartyUnderTest.STORAGE_MONGODB;
 
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_SQL} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static final String DEFAULT_CORE = CORE_VCS;
 
-    private static final String MONGODB_SERVER_PROPERTY = "nuxeo.test.mongodb.server";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_SERVER_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_SERVER = ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY.defaultValue();
 
-    private static final String MONGODB_DBNAME_PROPERTY = "nuxeo.test.mongodb.dbname";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_DBNAME_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_DBNAME = ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY.defaultValue();
 
-    public static final String DEFAULT_MONGODB_SERVER = "localhost:27017";
+    protected final RepositoryFeature feature;
 
-    public static final String DEFAULT_MONGODB_DBNAME = "unittests";
-
-    private static final String CHANGE_TOKEN_ENABLED_PROPERTY = "nuxeo.test.changetoken.enabled";
-
-    private static final String CHANGE_TOKEN_ENABLED_DEFAULT = "true";
-
-    private String coreType;
-
-    private boolean isVCS;
-
-    private boolean isDBS;
-
-    private DatabaseHelper databaseHelper;
-
-    private DBSHelper dbsHelper;
-
-    final CoreFeature feature;
-
-    private boolean changeTokenEnabled;
-
-    public StorageConfiguration(CoreFeature feature) {
-        coreType = defaultSystemProperty(CORE_PROPERTY, DEFAULT_CORE);
+    public StorageConfiguration(RepositoryFeature feature) {
         this.feature = feature;
     }
 
+    /**
+     * @deprecated since 2025.0, use
+     *             {@link ThirdPartyUnderTest#computeSystemProperty(SystemProperty, SystemProperty...)} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static String defaultSystemProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            System.setProperty(name, value = def);
-        }
-        return value;
-    }
-
-    protected static String defaultProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            value = def;
-        }
-        Framework.getProperties().setProperty(name, value);
-        return value;
-    }
-
-    protected void init() {
-        changeTokenEnabled = Boolean.parseBoolean(
-                defaultProperty(CHANGE_TOKEN_ENABLED_PROPERTY, CHANGE_TOKEN_ENABLED_DEFAULT));
-        initJDBC();
-        switch (coreType) {
-            case CORE_VCS:
-                isVCS = true;
-                break;
-            case CORE_MEM:
-                isDBS = true;
-                break;
-            case CORE_MONGODB:
-                isDBS = true;
-                initMongoDB();
-                break;
-            default:
-                isDBS = true;
-                initExternal();
-        }
-    }
-
-    public void initJDBC() {
-        databaseHelper = DatabaseHelper.DATABASE;
-
-        log.info(MARKER_CONSOLE_OVERRIDE, "Deploying JDBC using " + databaseHelper.getClass().getSimpleName());
-
-        // setup system properties for generic XML extension points
-        // this is used both for VCS (org.nuxeo.ecm.core.storage.sql.RepositoryService)
-        // and DataSources (org.nuxeo.runtime.datasource) extension points
-        try {
-            databaseHelper.setUp();
-        } catch (SQLException e) {
-            throw new NuxeoException(e);
-        }
-    }
-
-    protected void initMongoDB() {
-        String mongoDBServer = defaultProperty(MONGODB_SERVER_PROPERTY, DEFAULT_MONGODB_SERVER);
-        String mongoDBDbName = defaultProperty(MONGODB_DBNAME_PROPERTY, DEFAULT_MONGODB_DBNAME);
-        try (MongoClient mongoClient = MongoDBConnectionHelper.newMongoClient(mongoDBServer)) {
-            MongoDatabase database = mongoClient.getDatabase(mongoDBDbName);
-            database.drop();
-        }
-    }
-
-    protected void initExternal() {
-        // Get DBSHelper by reflection
-        String className = String.format("org.nuxeo.ecm.core.storage.%s.DBSHelperImpl", coreType);
-        try {
-            dbsHelper = (DBSHelper) Class.forName(className).getDeclaredConstructor().newInstance();
-            dbsHelper.init();
-        } catch (ReflectiveOperationException e) {
-            throw new NuxeoException("DBSHelperImpl not found: " + className, e);
-        }
+        return ThirdPartyUnderTest.computeSystemProperty(new SystemProperty(name, def));
     }
 
     public boolean isVCS() {
-        return isVCS;
+        return feature instanceof VCSRepositoryFeature;
     }
 
     public boolean isVCSH2() {
-        return isVCS && databaseHelper instanceof DatabaseH2;
+        return feature instanceof VCSRepositoryFeature vcsRepositoryFeature && vcsRepositoryFeature.isH2();
     }
 
     public boolean isVCSPostgreSQL() {
-        return isVCS && databaseHelper instanceof DatabasePostgreSQL;
+        return feature instanceof VCSRepositoryFeature vcsRepositoryFeature && vcsRepositoryFeature.isPostgreSQL();
     }
 
     public boolean isVCSMySQL() {
-        return isVCS && databaseHelper instanceof DatabaseMySQL;
+        return feature instanceof VCSRepositoryFeature vcsRepositoryFeature && vcsRepositoryFeature.isMySQL();
     }
 
     public boolean isVCSOracle() {
-        return isVCS && databaseHelper instanceof DatabaseOracle;
+        return feature instanceof VCSRepositoryFeature vcsRepositoryFeature && vcsRepositoryFeature.isOracle();
     }
 
     public boolean isVCSSQLServer() {
-        return isVCS && databaseHelper instanceof DatabaseSQLServer;
-    }
-
-    public boolean isVCSDB2() {
-        return isVCS && databaseHelper instanceof DatabaseDB2;
+        return feature instanceof VCSRepositoryFeature vcsRepositoryFeature && vcsRepositoryFeature.isSQLServer();
     }
 
     public boolean isDBS() {
-        return isDBS;
+        return feature instanceof DBSMemRepositoryFeature || feature instanceof DBSMongoDBRepositoryFeature;
     }
 
     public boolean isDBSMem() {
-        return isDBS && CORE_MEM.equals(coreType);
+        return feature instanceof DBSMemRepositoryFeature;
     }
 
     public boolean isDBSMongoDB() {
-        return isDBS && CORE_MONGODB.equals(coreType);
-    }
-
-    public boolean isDBSExternal() {
-        return dbsHelper != null;
+        return feature instanceof DBSMongoDBRepositoryFeature;
     }
 
     public String getRepositoryName() {
@@ -221,13 +128,11 @@ public class StorageConfiguration {
 
     /**
      * For databases that do asynchronous fulltext indexing, sleep a bit.
+     *
+     * @deprecated since 2025.0, use {@link TransactionalFeature#nextTransaction()} instead, it now does nothing
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public void sleepForFulltext() {
-        if (isVCS()) {
-            databaseHelper.sleepForFulltext();
-        } else {
-            // DBS
-        }
     }
 
     /**
@@ -242,24 +147,25 @@ public class StorageConfiguration {
         }
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TransactionalFeature#nextTransaction()} instead, it now does nothing
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public void waitForAsyncCompletion() {
-        feature.waitForAsyncCompletion();
     }
 
+    /**
+     * @deprecated since 2025.0, use {@link TransactionalFeature#nextTransaction()} instead, it now does nothing
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     public void waitForFulltextIndexing() {
-        waitForAsyncCompletion();
-        sleepForFulltext();
     }
 
     /**
      * Checks if the database supports multiple fulltext indexes.
      */
     public boolean supportsMultipleFulltextIndexes() {
-        if (isVCS()) {
-            return databaseHelper.supportsMultipleFulltextIndexes();
-        } else {
-            return false; // DBS
-        }
+        return feature.supportsMultipleFulltextIndexes();
     }
 
     /**
@@ -268,76 +174,22 @@ public class StorageConfiguration {
      * @since 11.1
      */
     public boolean supportsFulltextSearch() {
-        if (isVCS()) {
-            return databaseHelper.supportsFulltextSearch();
-        } else { // isDBS
-            return true;
-        }
-    }
-
-    public List<String> getExternalBundles() {
-        if (isDBSExternal()) {
-            return Arrays.asList(String.format("org.nuxeo.ecm.core.storage.%s", coreType),
-                    String.format("org.nuxeo.ecm.core.storage.%s.test", coreType));
-        }
-        return Collections.emptyList();
-    }
-
-    public URL getBlobManagerContrib(FeaturesRunner runner) {
-        String bundleName = "org.nuxeo.ecm.core.test";
-        String contribPath = "OSGI-INF/test-storage-blob-contrib.xml";
-        RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-        Bundle bundle = harness.getOSGiAdapter().getRegistry().getBundle(bundleName);
-        URL contribURL = bundle.getEntry(contribPath);
-        assertNotNull("deployment contrib " + contribPath + " not found", contribURL);
-        return contribURL;
-    }
-
-    public URL getRepositoryContrib(FeaturesRunner runner) {
-        String msg;
-        if (isVCS()) {
-            msg = "Deploying a VCS repository";
-        } else if (isDBS()) {
-            msg = "Deploying a DBS repository using " + coreType;
-        } else {
-            throw new NuxeoException("Unkown test configuration (not vcs/dbs)");
-        }
-        log.info(MARKER_CONSOLE_OVERRIDE, msg);
-
-        String contribPath;
-        String bundleName;
-        if (isVCS()) {
-            bundleName = "org.nuxeo.ecm.core.storage.sql.test";
-            contribPath = databaseHelper.getDeploymentContrib();
-        } else {
-            bundleName = "org.nuxeo.ecm.core.test";
-            if (isDBSMem()) {
-                contribPath = "OSGI-INF/test-storage-repo-mem-contrib.xml";
-            } else if (isDBSMongoDB()) {
-                contribPath = "OSGI-INF/test-storage-repo-mongodb-contrib.xml";
-            } else if (isDBSExternal()) {
-                bundleName = String.format("org.nuxeo.ecm.core.storage.%s.test", coreType);
-                contribPath = "OSGI-INF/test-storage-repo-contrib.xml";
-            } else {
-                throw new NuxeoException("Unkown DBS test configuration (not mem/mongodb)");
-            }
-        }
-        RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-        Bundle bundle = harness.getOSGiAdapter().getRegistry().getBundle(bundleName);
-        URL contribURL = bundle.getEntry(contribPath);
-        assertNotNull("deployment contrib " + contribPath + " not found", contribURL);
-        return contribURL;
+        return feature.supportsFulltextSearch();
     }
 
     public boolean isChangeTokenEnabled() {
-        return changeTokenEnabled;
+        return feature.isChangeTokenEnabled();
     }
 
     /**
      * @since 9.2
      */
     public String getCoreType() {
-        return coreType;
+        String coreServiceValue = ThirdPartyUnderTest.CORE_SERVICE_VALUE;
+        if (ThirdPartyUnderTest.STORAGE_SQL.equals(coreServiceValue)) {
+            return CORE_VCS;
+        }
+        return coreServiceValue;
     }
 
 }

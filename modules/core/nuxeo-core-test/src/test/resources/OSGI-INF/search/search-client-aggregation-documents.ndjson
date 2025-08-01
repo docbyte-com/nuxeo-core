@@ -1,0 +1,10 @@
+{"ecm:repository": "default", "ecm:uuid": "a00", "ecm:primaryType": "File", "common:size": 100, "dc:modified": "2023-11-15T14:00:00.000Z", "dc:source": "foo", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a01", "ecm:primaryType": "File", "common:size": 100, "dc:modified": "2024-01-15T14:00:00.000Z", "dc:source": "foo", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a02", "ecm:primaryType": "File", "common:size": 10000, "dc:modified": "2024-02-15T14:00:00.000Z", "dc:source": "foo", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a03", "ecm:primaryType": "File", "common:size": 10000, "dc:modified": "2024-04-15T14:00:00.000Z", "dc:source": "foo", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a04", "ecm:primaryType": "File", "common:size": 1000000, "dc:modified": "2024-05-15T14:00:00.000Z", "dc:source": "bar", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a05", "ecm:primaryType": "File", "common:size": 1000000, "dc:modified": "2024-06-15T14:00:00.000Z", "dc:source": "bar", "dc:nature": "foo", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a06", "ecm:primaryType": "File", "common:size": 10000000, "dc:modified": "2024-06-15T14:00:00.000Z", "dc:source": "bar", "dc:nature": "bar", "ecm:isProxy": false}
+{"ecm:repository": "default", "ecm:uuid": "a07", "ecm:primaryType": "File", "common:size": 100000000, "dc:modified": "2024-12-15T14:00:00.000Z", "dc:source": "baz", "dc:nature": "bar", "ecm:isProxy": true}
+{"ecm:repository": "default", "ecm:uuid": "a08", "ecm:primaryType": "File", "common:size": 1000000000, "dc:modified": "2025-01-15T14:00:00.000Z", "dc:source": "baz", "ecm:isProxy": true}
+{"ecm:repository": "default", "ecm:uuid": "a09", "ecm:primaryType": "File", "common:size": 1000000000, "dc:modified": "2025-01-15T14:00:00.000Z", "ecm:isProxy": true}

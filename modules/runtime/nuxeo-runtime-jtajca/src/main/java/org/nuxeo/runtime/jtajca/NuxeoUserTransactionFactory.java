@@ -25,7 +25,8 @@ import javax.naming.Context;
 import javax.naming.Name;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
-import javax.transaction.UserTransaction;
+
+import jakarta.transaction.UserTransaction;
 
 /**
  * Factory for the UserTransaction.

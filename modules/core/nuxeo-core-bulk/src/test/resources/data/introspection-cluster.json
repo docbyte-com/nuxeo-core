@@ -1739,7 +1739,7 @@
           "k": "nuxeo.streams.global.stream.group.lag",
           "group": "bulk-makeBlob",
           "stream": "bulk-makeBlob",
-          "v": 55
+          "v": 10000
         },
         {
           "k": "nuxeo.streams.global.stream.group.lag",

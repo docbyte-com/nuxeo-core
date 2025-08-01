@@ -19,15 +19,17 @@
 package org.nuxeo.ecm.webengine.app.jersey;
 
 import java.io.IOException;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.nuxeo.ecm.webengine.jaxrs.Activator;
-import org.nuxeo.ecm.webengine.jaxrs.servlet.ApplicationServlet;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.nuxeo.ecm.webengine.rest.Activator;
+import org.nuxeo.ecm.webengine.rest.servlet.ApplicationServlet;
 
 /**
- * WebEngine integration with OSGi JAX-RS model from ECR.
+ * WebEngine integration with OSGi Jakarta RS model from ECR.
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
@@ -47,8 +49,8 @@ public class WebEngineServlet extends ApplicationServlet {
     }
 
     @Override
-    protected void containerService(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void containerService(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         if (isDirty) {
             reloadContainer();
         }

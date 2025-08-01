@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
+import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
 import static org.apache.http.HttpStatus.SC_CREATED;
 import static org.apache.http.HttpStatus.SC_FORBIDDEN;
@@ -26,15 +27,17 @@ import static org.apache.http.HttpStatus.SC_NO_CONTENT;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,11 +52,14 @@ import org.nuxeo.ecm.platform.usermanager.NuxeoGroupImpl;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.usermanager.io.NuxeoGroupJsonWriter;
+import org.nuxeo.ecm.restapi.server.usermanager.GroupRootObject;
+import org.nuxeo.ecm.restapi.server.usermanager.UserRootObject;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -78,6 +84,12 @@ public class UserGroupTest extends BaseUserTest {
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
+
+    @Rule
+    public final HttpClientTestRule nonAdminHttpClient = HttpClientTestRule.builder()
+                                                                           .url(() -> restServerFeature.getRestApiUrl())
+                                                                           .credentials("user1", "user1")
+                                                                           .build();
 
     protected void nextTransaction() {
         TransactionHelper.commitOrRollbackTransaction();
@@ -107,7 +119,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanUpdateAUser() throws Exception {
+    public void itCanUpdateAUser() throws IOException {
         // Given a modified user
         NuxeoPrincipal user = um.getPrincipal("user1");
         user.setFirstName("Paul");
@@ -143,7 +155,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanCreateAUser() throws Exception {
+    public void itCanCreateAUser() {
         // Given a new user
         NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
         principal.setFirstName("test");
@@ -153,7 +165,7 @@ public class UserGroupTest extends BaseUserTest {
 
         // When i POST it on the user endpoint
         httpClient.buildPostRequest("/user")
-                  .entity(getPrincipalAsJson(principal))
+                  .entity(getPrincipalAsJson(principal, "testPassword"))
                   .executeAndConsume(new JsonNodeHandler(SC_CREATED),
                           // Then a user is created
                           node -> assertEqualsUser("newuser", "test", "user", node));
@@ -169,7 +181,7 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itReturnsA409OnAlreadyExistentUser() throws Exception {
+    public void itReturnsA409OnAlreadyExistentUser() throws IOException {
         // Given an existent user
         NuxeoPrincipal user1 = new NuxeoPrincipalImpl("existentuser");
         um.createUser(user1.getModel());
@@ -181,6 +193,70 @@ public class UserGroupTest extends BaseUserTest {
                   .executeAndConsume(new HttpStatusCodeHandler(),
                           // Then it returns the JSON
                           status -> assertEquals(SC_CONFLICT, status.intValue()));
+    }
+
+    @Test
+    public void itReturnsA400OnEmptyUsername() throws IOException {
+        // Given a user with a null username
+        NuxeoPrincipal principal = new NuxeoPrincipalImpl(null);
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+
+        // Given a user with a blank username
+        principal.setName("");
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+    }
+
+    @Test
+    public void itReturnsA400OnEmptyPassword() throws IOException {
+        // Given a user with a null password
+        NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
+
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+
+        // Given a user with a blank password
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(principal, ""))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 400
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+    }
+
+    @Test
+    @WithFrameworkProperty(name = UserRootObject.ALLOW_EMPTY_PASSWORD_PROP, value = "true")
+    public void itReturnsA201OnEmptyPassword() throws IOException {
+        // Given a user with an empty password
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(new NuxeoPrincipalImpl("emptyPassword")))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 201
+                          status -> assertEquals(SC_CREATED, status.intValue()));
+
+        // Given a user with a blank password
+        // When i POST it on the user endpoint
+        httpClient.buildPostRequest("/user")
+                  .entity(getPrincipalAsJson(new NuxeoPrincipalImpl("blankPassword"), ""))
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          // Then I get a 201
+                          status -> assertEquals(SC_CREATED, status.intValue()));
     }
 
     @Test
@@ -230,12 +306,12 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanChangeAGroup() throws Exception {
+    public void itCanChangeAGroup() throws IOException {
         // Given a modified group
         NuxeoGroup group = um.getGroup("group1");
         group.setLabel("modifiedGroup");
-        group.setMemberUsers(List.of(new String[] { "user1", "user2" }));
-        group.setMemberGroups(List.of(new String[] { "group2" }));
+        group.setMemberUsers(List.of("user1", "user2"));
+        group.setMemberGroups(List.of("group2"));
         GroupConfig groupConfig = um.getGroupConfig();
         group.getModel().setProperty(groupConfig.schemaName, "description", "updated description");
 
@@ -262,9 +338,9 @@ public class UserGroupTest extends BaseUserTest {
         DocumentModel groupModel = um.getGroupModel("group1");
         GroupConfig groupConfig = um.getGroupConfig();
         groupModel.setProperty(groupConfig.schemaName, "description", "Initial description");
-        groupModel.setProperty(groupConfig.schemaName, "members", List.of(new String[] { "user1", "user2" }));
-        groupModel.setProperty(groupConfig.schemaName, "subGroups", List.of(new String[] { "group2" }));
-        groupModel.setProperty(groupConfig.schemaName, "parentGroups", List.of(new String[] { "group3" }));
+        groupModel.setProperty(groupConfig.schemaName, "members", List.of("user1", "user2"));
+        groupModel.setProperty(groupConfig.schemaName, "subGroups", List.of("group2"));
+        groupModel.setProperty(groupConfig.schemaName, "parentGroups", List.of("group3"));
         um.updateGroup(groupModel);
         nextTransaction();
 
@@ -388,12 +464,12 @@ public class UserGroupTest extends BaseUserTest {
     }
 
     @Test
-    public void itCanCreateAGroup() throws Exception {
+    public void itCanCreateAGroup() throws IOException {
         // Given a modified group
         NuxeoGroup group = new NuxeoGroupImpl("newGroup");
         group.setLabel("a new group");
-        group.setMemberUsers(List.of(new String[] { "user1", "user2" }));
-        group.setMemberGroups(List.of(new String[] { "group2" }));
+        group.setMemberUsers(List.of("user1", "user2"));
+        group.setMemberGroups(List.of("group2"));
         GroupConfig groupConfig = um.getGroupConfig();
         group.getModel().setProperty(groupConfig.schemaName, "description", "new description");
 
@@ -646,7 +722,7 @@ public class UserGroupTest extends BaseUserTest {
      * @since 10.10
      */
     @Test
-    public void itCantCreateUserWithUnknownGroup() throws Exception {
+    public void itCantCreateUserWithUnknownGroup() {
 
         NuxeoPrincipal principal = new NuxeoPrincipalImpl("newuser");
         principal.setFirstName("test");
@@ -656,7 +732,7 @@ public class UserGroupTest extends BaseUserTest {
         principal.setGroups(List.of("unknownGroup"));
 
         httpClient.buildPostRequest("/user")
-                  .entity(getPrincipalAsJson(principal))
+                  .entity(getPrincipalAsJson(principal, "testPassword"))
                   .executeAndConsume(new JsonNodeHandler(SC_FORBIDDEN),
                           node -> assertEquals("group does not exist: unknownGroup", node.get("message").textValue()));
     }
@@ -665,7 +741,7 @@ public class UserGroupTest extends BaseUserTest {
      * @since 10.10
      */
     @Test
-    public void itCantUpdateAUserWithUnknownGroup() throws Exception {
+    public void itCantUpdateAUserWithUnknownGroup() throws IOException {
 
         NuxeoPrincipal user = um.getPrincipal("user1");
         user.setFirstName("Paul");
@@ -677,6 +753,99 @@ public class UserGroupTest extends BaseUserTest {
                   .entity(getPrincipalAsJson(user))
                   .executeAndConsume(new JsonNodeHandler(SC_FORBIDDEN),
                           node -> assertEquals("group does not exist: unknownGroup", node.get("message").textValue()));
+    }
+
+    // NXP-33128
+    @Test
+    @WithFrameworkProperty(name = GroupRootObject.RESTRICT_ADMINISTRATORS_MEMBERS_PROP, value = "true")
+    public void itOnlyAdminCanReadAdminGroupMembers() {
+        var parentGroup = new NuxeoGroupImpl("parentGroup");
+        um.createGroup(parentGroup.getModel());
+
+        // Given a non administrator group: group1
+        var group = um.getGroup("group1");
+        group.setMemberGroups(List.of("group2"));
+        group.setParentGroups(List.of("parentGroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it returns the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, false));
+
+        // Given an administrator group: administrators
+        group = um.getGroup("administrators");
+        group.setMemberGroups(List.of("group3"));
+        group.setParentGroups(List.of("parentGroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it doesn't return the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, true));
+
+        // When I GET this group as an administrator user
+        httpClient.buildGetRequest("/group/" + group.getName())
+                  .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                          "memberUsers,memberGroups,parentGroups")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          // Then it returns the group's member users, member groups and parent groups
+                          node -> assertGroupMembers(node, false));
+
+        // Given a subgroup of an administrator group: group3
+        group = um.getGroup("group3");
+        group.setMemberUsers(List.of("user3", "user4"));
+        group.setMemberGroups(List.of("subgroup"));
+        um.updateGroup(group.getModel());
+        nextTransaction();
+
+        // When I GET this group as a non administrator user
+        nonAdminHttpClient.buildGetRequest("/group/" + group.getName())
+                          .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                                  "memberUsers,memberGroups,parentGroups")
+                          .executeAndConsume(new JsonNodeHandler(),
+                                  // Then it doesn't return the group's member users, member groups and parent groups
+                                  node -> assertGroupMembers(node, true));
+
+        // When I GET this group as an administrator user
+        httpClient.buildGetRequest("/group/" + group.getName())
+                  .addQueryParameter(FETCH_PROPERTIES + "." + NuxeoGroupJsonWriter.ENTITY_TYPE,
+                          "memberUsers,memberGroups,parentGroups")
+                  .executeAndConsume(new JsonNodeHandler(),
+                          // Then it returns the group's member users, member groups and parent groups
+                          node -> assertGroupMembers(node, false));
+    }
+
+    protected void assertGroupMembers(JsonNode groupNode, boolean empty) {
+        JsonNode memberUsers = groupNode.get("memberUsers");
+        assertNotNull(memberUsers);
+        assertTrue(memberUsers.isArray());
+
+        JsonNode memberGroups = groupNode.get("memberGroups");
+        assertNotNull(memberGroups);
+        assertTrue(memberGroups.isArray());
+
+        JsonNode parentGroups = groupNode.get("parentGroups");
+        assertNotNull(parentGroups);
+        assertTrue(parentGroups.isArray());
+
+        if (empty) {
+            assertTrue(memberUsers.isEmpty());
+            assertTrue(memberGroups.isEmpty());
+            assertTrue(parentGroups.isEmpty());
+        } else {
+            assertFalse(memberUsers.isEmpty());
+            assertFalse(memberGroups.isEmpty());
+            assertFalse(parentGroups.isEmpty());
+        }
     }
 
     /**

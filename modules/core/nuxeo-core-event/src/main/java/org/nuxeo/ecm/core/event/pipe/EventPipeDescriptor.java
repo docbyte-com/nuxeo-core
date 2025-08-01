@@ -19,12 +19,15 @@
  */
 package org.nuxeo.ecm.core.event.pipe;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap Descriptor for contributing a new {@link EventBundlePipe}
@@ -32,7 +35,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 8.4
  */
 @XObject("eventPipe")
-public class EventPipeDescriptor {
+public class EventPipeDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
@@ -57,6 +60,11 @@ public class EventPipeDescriptor {
     @XNode("@class")
     protected Class<? extends EventBundlePipe> clazz;
 
+    @Override
+    public String getId() {
+        return name;
+    }
+
     public String getName() {
         return name;
     }
@@ -80,14 +88,16 @@ public class EventPipeDescriptor {
         }
     }
 
-    public void merge(EventPipeDescriptor other) {
-        if (other.priority != null) {
-            priority = other.priority;
-        }
-        if (other.clazz != null) {
-            clazz = other.clazz;
-        }
-        parameters.putAll(other.getParameters());
+    @Override
+    public EventPipeDescriptor merge(Descriptor o) {
+        var other = (EventPipeDescriptor) o;
+        var merged = new EventPipeDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.priority = defaultIfNull(other.priority, priority);
+        merged.clazz = defaultIfNull(other.clazz, clazz);
+        merged.parameters.putAll(getParameters());
+        merged.parameters.putAll(other.getParameters());
+        return merged;
     }
 
     @Override

@@ -39,6 +39,17 @@
       </quickFilters>
     </coreQueryPageProvider>
 
+    <searchServicePageProvider name="SEARCH_ALL_REPOSITORIES_PP">
+      <property name="searchAllRepositories">true</property>
+      <pattern>SELECT * FROM Document
+        WHERE ecm:path = ?
+        AND ecm:isVersion = 0
+        AND ecm:mixinType != 'HiddenInNavigation'
+        AND ecm:isTrashed = 0
+      </pattern>
+      <sort ascending="true" column="dc:title" />
+    </searchServicePageProvider>
+
   </extension>
 
 </component>

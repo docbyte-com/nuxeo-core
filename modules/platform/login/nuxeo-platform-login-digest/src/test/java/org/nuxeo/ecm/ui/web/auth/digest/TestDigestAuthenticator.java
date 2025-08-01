@@ -1,5 +1,5 @@
 /*
-t * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+t * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ t * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
  */
 package org.nuxeo.ecm.ui.web.auth.digest;
 
-import static javax.ws.rs.core.HttpHeaders.AUTHORIZATION;
+import static jakarta.ws.rs.core.HttpHeaders.AUTHORIZATION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -68,17 +68,17 @@ public class TestDigestAuthenticator {
     protected DirectoryService dirService;
 
     @Test
-    public void testValidDigest() throws Exception {
+    public void testValidDigest() {
         doTestDigest(false);
     }
 
     @Test
-    public void testBadDigest() throws Exception {
+    public void testBadDigest() {
         doTestDigest(true);
 
     }
 
-    protected void doTestDigest(boolean corrupted) throws Exception {
+    protected void doTestDigest(boolean corrupted) {
         DigestAuthenticator auth = new DigestAuthenticator();
         HttpServletRequest request = mock(HttpServletRequest.class);
         HttpServletResponse response = null; // unused
@@ -117,7 +117,7 @@ public class TestDigestAuthenticator {
         String uri = "/core/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
         String cnonce = "d30fb25c5345b787bccd677d1cb93bd6";
         String nc = "00000001";
-        String qpop = "auth";
+        String qpop = "cloud/docbyte/aws/auth";
         String response;
         if (corrupted) {
             response = "0000dead0000";

@@ -87,14 +87,8 @@ public final class ZipUtils {
                 _zip(entryName + child.getName(), child, out);
             }
         } else {
-            InputStream in = null;
-            try {
-                in = new BufferedInputStream(new FileInputStream(file));
+            try (InputStream in = new BufferedInputStream(new FileInputStream(file))) {
                 _zip(entryName, in, out);
-            } finally {
-                if (in != null) {
-                    in.close();
-                }
             }
         }
     }
@@ -159,7 +153,7 @@ public final class ZipUtils {
 
     public static void zipFilesUsingPrefix(String prefix, File[] files, OutputStream out) throws IOException {
         try (ZipOutputStream zout = new ZipOutputStream(out)) {
-            if (prefix != null && prefix.length() > 0) {
+            if (StringUtils.isNotEmpty(prefix)) {
                 int p = prefix.indexOf('/');
                 while (p > -1) {
                     _putDirectoryEntry(prefix.substring(0, p), zout);
@@ -286,54 +280,6 @@ public final class ZipUtils {
     }
 
     // ________________ Entries ________________
-    /**
-     * Unzip directly the entry. The returned InputStream has to be closed.
-     *
-     * @return the input stream of the desired entry - has to be closed by the caller, or null if not found
-     * @param file the source file
-     * @param entryName the entry name that has to be extracted
-     * @deprecated since 10.1 (unused and fails to close a ZipFile)
-     */
-    @Deprecated
-    public static InputStream getEntryContentAsStream(File file, String entryName) throws IOException {
-        InputStream result = null;
-        ZipFile zip = new ZipFile(file);
-        ZipEntry entry = zip.getEntry(entryName);
-        if (entry != null) {
-            result = zip.getInputStream(entry);
-        }
-        return result;
-    }
-
-    /**
-     * Unzip directly the entry.
-     *
-     * @return the String content of the entry with name entryName
-     * @param file the source file
-     * @param entryName the entry name that has to be extracted
-     * @deprecated since 10.1 (unused and fails to close a ZipFile)
-     */
-    @Deprecated
-    public static String getEntryContentAsString(File file, String entryName) throws IOException {
-        try (InputStream resultStream = getEntryContentAsStream(file, entryName)) {
-            return IOUtils.toString(resultStream, UTF_8);
-        }
-    }
-
-    /**
-     * Unzips directly the entry.
-     *
-     * @return The byte array content of the entry with name entryName
-     * @param file the source file
-     * @param entryName the entry name that has to be extracted
-     * @deprecated since 10.1 (unused and fails to close a ZipFile)
-     */
-    @Deprecated
-    public static byte[] getEntryContentAsBytes(File file, String entryName) throws IOException {
-        try (InputStream resultStream = getEntryContentAsStream(file, entryName)) {
-            return IOUtils.toByteArray(resultStream);
-        }
-    }
 
     /**
      * Lists the entries on the zip file.
@@ -433,8 +379,8 @@ public final class ZipUtils {
     }
 
     /**
-     * Checks if the content of the {@link InputStream} is a valid zip.
-     * The method does not close the stream.
+     * Checks if the content of the {@link InputStream} is a valid zip. The method does not close the stream.
+     * 
      * @param stream the {@link InputStream} to be validated
      * @return true if the {@link InputStream} is a valid zip, false otherwise
      */

@@ -28,7 +28,7 @@ import java.net.URI;
 import java.time.OffsetDateTime;
 import java.util.Collection;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.blob.AbstractCloudBinaryManager;

@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -36,6 +36,8 @@
     <module>nuxeo-core-persistence</module>
     <module>nuxeo-core-query</module>
     <module>nuxeo-core-schema</module>
+    <module>nuxeo-core-search</module>
+    <module>nuxeo-core-search-clients</module>
     <module>nuxeo-core-storage</module>
     <module>nuxeo-core-storage-dbs</module>
     <module>nuxeo-core-storage-mem</module>

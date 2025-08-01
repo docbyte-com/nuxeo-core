@@ -342,23 +342,22 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
     }
 
     protected byte[] toBytes(Object value) {
-        if (value instanceof String) {
-            return ((String) value).getBytes(UTF_8);
-        } else if (value instanceof Long) {
-            return ((Long) value).toString().getBytes(UTF_8);
-        } else if (value instanceof byte[]) {
-            return (byte[]) value;
+        if (value instanceof String string) {
+            return string.getBytes(UTF_8);
+        } else if (value instanceof Long longValue) {
+            return longValue.toString().getBytes(UTF_8);
+        } else if (value instanceof byte[] bytes) {
+            return bytes;
         }
         return null;
     }
 
     protected String toString(Object value) {
-        if (value instanceof String) {
-            return (String) value;
-        } else if (value instanceof Long) {
-            return ((Long) value).toString();
-        } else if (value instanceof byte[]) {
-            byte[] bytes = (byte[]) value;
+        if (value instanceof String string) {
+            return string;
+        } else if (value instanceof Long longValue) {
+            return longValue.toString();
+        } else if (value instanceof byte[] bytes) {
             try {
                 return bytesToString(bytes);
             } catch (CharacterCodingException e) {
@@ -369,12 +368,11 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
     }
 
     protected Long toLong(Object value) throws NumberFormatException { // NOSONAR
-        if (value instanceof Long) {
-            return (Long) value;
-        } else if (value instanceof String) {
-            return Long.valueOf((String) value);
-        } else if (value instanceof byte[]) {
-            byte[] bytes = (byte[]) value;
+        if (value instanceof Long longValue) {
+            return longValue;
+        } else if (value instanceof String string) {
+            return Long.valueOf(string);
+        } else if (value instanceof byte[] bytes) {
             return bytesToLong(bytes);
         }
         return null;
@@ -387,18 +385,17 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
 
     protected void setToPreparedStatement(String sql, PreparedStatement ps, Column column, Serializable value)
             throws SQLException {
-        setToPreparedStatement(sql, ps, Arrays.asList(column), Arrays.asList(value));
+        setToPreparedStatement(sql, ps, List.of(column), List.of(value));
     }
 
     protected void setToPreparedStatement(String sql, PreparedStatement ps, Column column1, Serializable value1,
             Column column2, Serializable value2) throws SQLException {
-        setToPreparedStatement(sql, ps, Arrays.asList(column1, column2), Arrays.asList(value1, value2));
+        setToPreparedStatement(sql, ps, List.of(column1, column2), List.of(value1, value2));
     }
 
     protected void setToPreparedStatement(String sql, PreparedStatement ps, Column column1, Serializable value1,
             Column column2, Serializable value2, Column column3, Serializable value3) throws SQLException {
-        setToPreparedStatement(sql, ps, Arrays.asList(column1, column2, column3),
-                Arrays.asList(value1, value2, value3));
+        setToPreparedStatement(sql, ps, List.of(column1, column2, column3), List.of(value1, value2, value3));
     }
 
     protected void setToPreparedStatement(String sql, PreparedStatement ps, List<Column> columns,
@@ -446,7 +443,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
             while (rs.next()) {
                 String schema = rs.getString("TABLE_SCHEM");
                 if (schema != null) { // null for MySQL, doh!
-                    if ("INFORMATION_SCHEMA".equals(schema.toUpperCase())) {
+                    if ("INFORMATION_SCHEMA".equalsIgnoreCase(schema)) {
                         // H2 returns some system tables (locks)
                         continue;
                     }
@@ -648,7 +645,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                 String string = (String) stringCol.getFromResultSet(rs, 2);
                 byte[] bytes = (byte[]) bytesCol.getFromResultSet(rs, 3);
                 if (logger.isLogEnabled()) {
-                    logger.logResultSet(rs, Arrays.asList(longCol, stringCol, bytesCol));
+                    logger.logResultSet(rs, List.of(longCol, stringCol, bytesCol));
                 }
                 if (string != null) {
                     return string;
@@ -682,7 +679,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                     String string = (String) stringCol.getFromResultSet(rs, 3);
                     byte[] bytes = (byte[]) bytesCol.getFromResultSet(rs, 4);
                     if (logger.isLogEnabled()) {
-                        logger.logResultSet(rs, Arrays.asList(keyCol, longCol, stringCol, bytesCol));
+                        logger.logResultSet(rs, List.of(keyCol, longCol, stringCol, bytesCol));
                     }
                     Object value;
                     if (string != null) {
@@ -767,7 +764,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                 Long ttlValue = ttlToStorage(ttl);
                 List<Column> psColumns = new ArrayList<>();
                 List<Serializable> psValues = new ArrayList<>();
-                String sql = dialect.getUpsertSql(Arrays.asList(keyCol, longCol, stringCol, bytesCol, ttlCol),
+                String sql = dialect.getUpsertSql(List.of(keyCol, longCol, stringCol, bytesCol, ttlCol),
                         Arrays.asList(key, longValue, stringValue, bytesValue, ttlValue), psColumns, psValues);
                 for (int retry = 0; retry < MAX_RETRY; retry++) {
                     try {
@@ -798,8 +795,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                 PreparedStatement ps = connection.prepareStatement(setTTLSQL)) {
             setToPreparedStatement(setTTLSQL, ps, ttlCol, ttlToStorage(ttl), keyCol, key);
             int count = ps.executeUpdate();
-            boolean set = count == 1;
-            return set;
+            return count == 1;
         } catch (SQLException e) {
             throw new NuxeoException(e);
         }
@@ -838,7 +834,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                 List<Column> psColumns = new ArrayList<>();
                 List<Serializable> psValues = new ArrayList<>();
                 String insertOnConflictDoNothingSql = dialect.getInsertOnConflictDoNothingSql(
-                        Arrays.asList(keyCol, longCol, stringCol, bytesCol, ttlCol),
+                        List.of(keyCol, longCol, stringCol, bytesCol, ttlCol),
                         Arrays.asList(key, longValue, stringValue, bytesValue, ttlValue), psColumns, psValues);
                 boolean set;
                 if (insertOnConflictDoNothingSql != null) {
@@ -849,8 +845,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                     }
                 } else {
                     try (PreparedStatement ps = connection.prepareStatement(insertSQL)) {
-                        setToPreparedStatement(insertSQL, ps,
-                                Arrays.asList(keyCol, longCol, stringCol, bytesCol, ttlCol),
+                        setToPreparedStatement(insertSQL, ps, List.of(keyCol, longCol, stringCol, bytesCol, ttlCol),
                                 Arrays.asList(key, longValue, stringValue, bytesValue, ttlValue));
                         try {
                             ps.executeUpdate();
@@ -904,7 +899,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                         + " = ? WHERE " + keyColName + " = ? AND " + dialect.getQuotedNameForExpression(expectedCol)
                         + " = ?";
                 try (PreparedStatement ps = connection.prepareStatement(sql)) {
-                    setToPreparedStatement(sql, ps, Arrays.asList(ttlCol, valueCol, keyCol, expectedCol),
+                    setToPreparedStatement(sql, ps, List.of(ttlCol, valueCol, keyCol, expectedCol),
                             Arrays.asList(ttlToStorage(ttl), (Serializable) value, key, (Serializable) expected));
                     int count = ps.executeUpdate();
                     boolean set = count == 1;
@@ -923,21 +918,19 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
     public long addAndGet(String key, long delta) throws NumberFormatException { // NOSONAR
         try (Connection connection = getConnection()) {
             for (int retry = 0; retry < MAX_RETRY; retry++) {
-                String updateReturningSql;
                 boolean useReturnResultSet = false;
-                if (dialect instanceof DialectPostgreSQL) {
-                    updateReturningSql = updateReturningPostgreSQLSql;
-                } else if (dialect instanceof DialectOracle) {
-                    updateReturningSql = updateReturningOracleSql;
-                    useReturnResultSet = true;
-                } else if (dialect instanceof DialectSQLServer) {
-                    updateReturningSql = updateReturningSQLServerSql;
-                } else {
-                    updateReturningSql = null;
-                }
+                String updateReturningSql = switch (dialect) {
+                    case DialectPostgreSQL ignored -> updateReturningPostgreSQLSql;
+                    case DialectOracle ignored -> {
+                        useReturnResultSet = true;
+                        yield updateReturningOracleSql;
+                    }
+                    case DialectSQLServer ignored -> updateReturningSQLServerSql;
+                    case null, default -> null;
+                };
                 if (updateReturningSql != null) {
-                    List<Column> psColumns = Arrays.asList(longCol, keyCol);
-                    List<Serializable> psValues = Arrays.asList(Long.valueOf(delta), key);
+                    List<Column> psColumns = List.of(longCol, keyCol);
+                    List<Serializable> psValues = List.of(Long.valueOf(delta), key);
                     try (PreparedStatement ps = connection.prepareStatement(updateReturningSql)) {
                         setToPreparedStatement(updateReturningSql, ps, psColumns, psValues);
                         if (useReturnResultSet) {
@@ -990,7 +983,7 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
                             if (rs.next()) {
                                 currentLong = (Long) longCol.getFromResultSet(rs, 1);
                                 if (logger.isLogEnabled()) {
-                                    logger.logResultSet(rs, Arrays.asList(longCol));
+                                    logger.logResultSet(rs, List.of(longCol));
                                 }
                                 if (currentLong == null) {
                                     throw new NumberFormatException("Value is not a Long for key: " + key);
@@ -1071,10 +1064,4 @@ public class SQLKeyValueStore extends AbstractKeyValueStoreProvider {
             // else loop to try again
         }
     }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName() + "(" + name + ")";
-    }
-
 }

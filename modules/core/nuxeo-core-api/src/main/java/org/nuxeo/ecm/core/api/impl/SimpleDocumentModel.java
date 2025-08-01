@@ -20,7 +20,7 @@
  */
 package org.nuxeo.ecm.core.api.impl;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.schema.types.ComplexTypeImpl.canonicalXPath;
 
 import java.io.Serializable;
@@ -41,7 +41,6 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DataModel;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.Lock;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -493,7 +492,7 @@ public class SimpleDocumentModel implements DocumentModel {
 
     @Override
     public boolean isTrashed() {
-        return LifeCycleConstants.DELETED_STATE.equals(getCurrentLifeCycleState());
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -599,16 +598,6 @@ public class SimpleDocumentModel implements DocumentModel {
     @Override
     public Calendar getCheckinDate() {
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean isPrefetched(String xpath) {
-        return false;
-    }
-
-    @Override
-    public boolean isPrefetched(String schemaName, String name) {
-        return false;
     }
 
     @Override

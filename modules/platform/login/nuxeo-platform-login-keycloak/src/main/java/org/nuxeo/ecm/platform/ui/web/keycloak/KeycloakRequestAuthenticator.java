@@ -22,8 +22,8 @@ import java.lang.reflect.Method;
 import java.security.Principal;
 import java.util.List;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.catalina.authenticator.FormAuthenticator;
 import org.apache.catalina.connector.Request;
@@ -37,14 +37,14 @@ import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.OAuthRequestAuthenticator;
 import org.keycloak.adapters.RefreshableKeycloakSecurityContext;
 import org.keycloak.adapters.RequestAuthenticator;
+import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.tomcat.CatalinaCookieTokenStore;
-import org.keycloak.adapters.tomcat.CatalinaHttpFacade;
-import org.keycloak.adapters.tomcat.CatalinaSessionTokenStore;
+import org.nuxeo.shaded.keycloak.adapters.tomcat.CatalinaSessionTokenStore;
 import org.keycloak.adapters.tomcat.CatalinaUserSessionManagement;
 import org.keycloak.adapters.tomcat.GenericPrincipalFactory;
-import org.keycloak.adapters.tomcat.KeycloakAuthenticatorValve;
+import org.nuxeo.shaded.keycloak.adapters.tomcat.KeycloakAuthenticatorValve;
 import org.keycloak.enums.TokenStore;
 import org.keycloak.representations.AccessToken;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
@@ -70,7 +70,7 @@ public class KeycloakRequestAuthenticator extends RequestAuthenticator {
         return facade;
     }
 
-    public KeycloakRequestAuthenticator(Request request, HttpServletResponse response, CatalinaHttpFacade facade,
+    public KeycloakRequestAuthenticator(Request request, HttpServletResponse response, OIDCServletHttpFacade facade,
             KeycloakDeployment deployment) {
         super(facade, deployment);
         this.request = request;

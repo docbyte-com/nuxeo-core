@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ package org.nuxeo.ecm.automation.server;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 /**
  * A registry of REST bindings. Provides methods for checking if a given operation is allowed to be invoked in a REST
@@ -52,25 +52,6 @@ public interface AutomationServer {
      * Gets an array of registered bindings.
      */
     RestBinding[] getBindings();
-
-    /**
-     * Registers a new operation binding.
-     *
-     * @param binding the new binding to register
-     * @deprecated since 10.3 unused
-     */
-    @Deprecated
-    void addBinding(RestBinding binding);
-
-    /**
-     * Removes a binding for the given operation name.
-     *
-     * @param binding the binding to remove
-     * @return the removed binding if any, otherwise null
-     * @deprecated since 10.3 unused
-     */
-    @Deprecated
-    RestBinding removeBinding(RestBinding binding);
 
     /**
      * Checks if the given operation name is allowed in a REST call.

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Arnaud Kervern
  */
-
 package org.nuxeo.ecm.platform.shibboleth.computedgroups;
 
 import static org.junit.Assert.assertFalse;
@@ -24,20 +23,17 @@ import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.jboss.el.ExpressionFactoryImpl;
+import org.apache.el.ExpressionFactoryImpl;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -46,20 +42,24 @@ import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.computedgroups.GroupComputer;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
-import org.nuxeo.ecm.platform.test.UserManagerFeature;
+import org.nuxeo.ecm.platform.shibboleth.ShibbolethFeature;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class, UserManagerFeature.class })
+@Features(ShibbolethFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.content.template")
-@Deploy("org.nuxeo.ecm.platform.dublincore")
-@Deploy("org.nuxeo.ecm.platform.el")
-@Deploy("org.nuxeo.ecm.platform.login.shibboleth")
 public class TestShibbolethComputedGroup {
+
+    protected static String[] sampleArray = new String[] { "hello", "world" };
+
+    @Inject
+    protected DirectoryService directoryService;
+
+    protected Session userDir;
+
+    protected Session groupDir;
 
     @Before
     public void setUp() {
@@ -81,15 +81,6 @@ public class TestShibbolethComputedGroup {
             groupDir.close();
         }
     }
-
-    @Inject
-    protected DirectoryService directoryService;
-
-    protected Session userDir;
-
-    protected Session groupDir;
-
-    protected static String[] sampleArray = new String[] { "hello", "world" };
 
     @Test
     public void testOnlyEL() {
@@ -151,14 +142,12 @@ public class TestShibbolethComputedGroup {
 
         assertTrue(ELGroupComputerHelper.isValidEL("currentUser.user.email != \"test\""));
         assertFalse(ELGroupComputerHelper.isValidEL("fdsfds ! fdsf^6"));
-        // changed to assertTrue when switching from juel-impl to jboss-el
-        // implementation: can't see why this would not be a valid EL
-        assertTrue(ELGroupComputerHelper.isValidEL("testMethodCall == hello"));
+        assertFalse(ELGroupComputerHelper.isValidEL("testMethodCall == hello"));
         assertTrue(ELGroupComputerHelper.isValidEL("empty currentUser"));
     }
 
     protected DocumentModel createUser(String username) {
-        return userDir.createEntry(Collections.singletonMap("username", username));
+        return userDir.createEntry(Map.of("username", username));
     }
 
     protected DocumentModel createShibbGroup(String name, String el) {

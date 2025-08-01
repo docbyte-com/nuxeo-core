@@ -21,57 +21,25 @@ package org.nuxeo.elasticsearch;
 
 import static org.nuxeo.common.concurrent.ThreadFactories.newThreadFactory;
 import static org.nuxeo.elasticsearch.ElasticSearchConstants.ES_ENABLED_PROPERTY;
-import static org.nuxeo.elasticsearch.ElasticSearchConstants.INDEXING_QUEUE_ID;
-import static org.nuxeo.elasticsearch.ElasticSearchConstants.REINDEX_ON_STARTUP_PROPERTY;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.core.work.api.Work;
-import org.nuxeo.ecm.core.work.api.WorkManager;
-import org.nuxeo.elasticsearch.api.ESClient;
-import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
+import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.api.ElasticSearchIndexing;
-import org.nuxeo.elasticsearch.api.ElasticSearchService;
-import org.nuxeo.elasticsearch.api.EsResult;
-import org.nuxeo.elasticsearch.api.EsScrollResult;
-import org.nuxeo.elasticsearch.commands.IndexingCommand;
-import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
-import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.config.ElasticSearchDocWriterDescriptor;
-import org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.elasticsearch.core.ElasticSearchAdminImpl;
-import org.nuxeo.elasticsearch.core.ElasticSearchIndexingImpl;
-import org.nuxeo.elasticsearch.core.ElasticSearchServiceImpl;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
-import org.nuxeo.elasticsearch.query.NxQueryBuilder;
-import org.nuxeo.elasticsearch.work.IndexingWorker;
-import org.nuxeo.elasticsearch.work.ScrollingIndexingWorker;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.transaction.TransactionHelper;
-import org.opensearch.common.bytes.BytesReference;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -80,44 +48,15 @@ import com.google.common.util.concurrent.MoreExecutors;
 /**
  * Component used to configure and manage ElasticSearch integration
  */
-public class ElasticSearchComponent extends DefaultComponent
-        implements ElasticSearchAdmin, ElasticSearchIndexing, ElasticSearchService {
+public class ElasticSearchComponent extends DefaultComponent implements ElasticSearchAdmin {
 
     private static final Logger log = LogManager.getLogger(ElasticSearchComponent.class);
 
-    protected static final String EP_EMBEDDED_SERVER = "elasticSearchEmbeddedServer";
-
-    protected static final String EP_CLIENT_INIT = "elasticSearchClient";
-
     protected static final String EP_INDEX = "elasticSearchIndex";
-
-    protected static final String EP_DOC_WRITER = "elasticSearchDocWriter";
-
-    /**
-     * @since 11.1
-     */
-    protected static final String EP_HINTS = "elasticSearchHints";
-
-    protected static final long REINDEX_TIMEOUT = 20;
-
-    // Indexing commands that where received before the index initialization
-    protected final List<IndexingCommand> stackedCommands = Collections.synchronizedList(new ArrayList<>());
 
     protected final Map<String, ElasticSearchIndexConfig> indexConfig = new HashMap<>();
 
-    protected final AtomicInteger runIndexingWorkerCount = new AtomicInteger(0);
-
-    protected ElasticSearchEmbeddedServerConfig embeddedServerConfig;
-
-    protected ElasticSearchClientConfig clientConfig;
-
     protected ElasticSearchAdminImpl esa;
-
-    protected ElasticSearchIndexingImpl esi;
-
-    protected ElasticSearchServiceImpl ess;
-
-    protected JsonESDocumentWriter jsonESDocumentWriter;
 
     protected ListeningExecutorService waiterExecutorService;
 
@@ -125,51 +64,24 @@ public class ElasticSearchComponent extends DefaultComponent
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         switch (extensionPoint) {
-        case EP_EMBEDDED_SERVER:
-            ElasticSearchEmbeddedServerConfig serverContrib = (ElasticSearchEmbeddedServerConfig) contribution;
-            if (serverContrib.isEnabled()) {
-                embeddedServerConfig = serverContrib;
-                log.info("Registering embedded server configuration: {}, loaded from {}", embeddedServerConfig,
-                        contributor.getName());
-            } else if (embeddedServerConfig != null) {
-                log.info("Disabling previous embedded server configuration, deactivated by {}", contributor.getName());
-                embeddedServerConfig = null;
-            }
-            break;
-        case EP_CLIENT_INIT:
-            clientConfig = (ElasticSearchClientConfig) contribution;
-            break;
-        case EP_INDEX:
-            ElasticSearchIndexConfig idx = (ElasticSearchIndexConfig) contribution;
-            ElasticSearchIndexConfig previous = indexConfig.get(idx.getName());
-            if (idx.isEnabled()) {
-                if (previous != null) {
-                    previous.merge(idx);
-                    indexConfig.put(idx.getName(), previous);
-                } else {
-                    indexConfig.put(idx.getName(), idx);
+            case EP_INDEX:
+                ElasticSearchIndexConfig idx = (ElasticSearchIndexConfig) contribution;
+                ElasticSearchIndexConfig previous = indexConfig.get(idx.getName());
+                if (idx.isEnabled()) {
+                    if (previous != null) {
+                        previous.merge(idx);
+                        indexConfig.put(idx.getName(), previous);
+                    } else {
+                        indexConfig.put(idx.getName(), idx);
+                    }
+                    log.info("Registering index configuration: {}, loaded from {}", idx, contributor.getName());
+                } else if (previous != null) {
+                    log.info("Disabling index configuration: {}, deactivated by {}", previous, contributor.getName());
+                    indexConfig.remove(idx.getName());
                 }
-                log.info("Registering index configuration: {}, loaded from {}", idx, contributor.getName());
-            } else if (previous != null) {
-                log.info("Disabling index configuration: {}, deactivated by {}", previous, contributor.getName());
-                indexConfig.remove(idx.getName());
-            }
-            break;
-        case EP_DOC_WRITER:
-            ElasticSearchDocWriterDescriptor writerDescriptor = (ElasticSearchDocWriterDescriptor) contribution;
-            try {
-                jsonESDocumentWriter = writerDescriptor.getKlass().getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
-                log.error("Cannot instantiate jsonESDocumentWriter from {}", writerDescriptor::getKlass);
-                throw new NuxeoException(e);
-            }
-            break;
-        case EP_HINTS:
-            ESHintQueryBuilderDescriptor esHintDescriptor = (ESHintQueryBuilderDescriptor) contribution;
-            register(EP_HINTS, esHintDescriptor);
-            break;
-        default:
-            throw new IllegalStateException("Invalid EP: " + extensionPoint);
+                break;
+            default:
+                throw new IllegalStateException("Invalid EP: " + extensionPoint);
         }
     }
 
@@ -179,12 +91,8 @@ public class ElasticSearchComponent extends DefaultComponent
             log.info("Elasticsearch service is disabled");
             return;
         }
-        esa = new ElasticSearchAdminImpl(embeddedServerConfig, clientConfig, indexConfig, getDescriptors(EP_HINTS));
-        esi = new ElasticSearchIndexingImpl(esa, jsonESDocumentWriter);
-        ess = new ElasticSearchServiceImpl(esa);
+        esa = new ElasticSearchAdminImpl(indexConfig);
         initListenerThreadPool();
-        processStackedCommands();
-        reindexOnStartup();
     }
 
     @Override
@@ -200,29 +108,6 @@ public class ElasticSearchComponent extends DefaultComponent
                 esa.disconnect();
             } finally {
                 esa = null;
-                esi = null;
-                ess = null;
-            }
-        }
-    }
-
-    protected void reindexOnStartup() {
-        boolean reindexOnStartup = Boolean.parseBoolean(Framework.getProperty(REINDEX_ON_STARTUP_PROPERTY, "false"));
-        if (!reindexOnStartup) {
-            return;
-        }
-        for (String repositoryName : esa.getInitializedRepositories()) {
-            log.warn("Indexing repository: {} on startup", repositoryName);
-            runReindexingWorker(repositoryName, "SELECT ecm:uuid FROM Document");
-            try {
-                prepareWaitForIndexing().get(REINDEX_TIMEOUT, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                log.error(e.getMessage(), e);
-            } catch (TimeoutException e) {
-                log.warn("Indexation of repository {} not finished after {}s, continuing in background", repositoryName,
-                        REINDEX_TIMEOUT);
             }
         }
     }
@@ -236,19 +121,10 @@ public class ElasticSearchComponent extends DefaultComponent
         return ComponentStartOrders.ELASTIC;
     }
 
-    void processStackedCommands() {
-        if (!stackedCommands.isEmpty()) {
-            log.info("Processing {} indexing commands stacked during startup", stackedCommands.size());
-            runIndexingWorker(stackedCommands);
-            stackedCommands.clear();
-            log.debug("Done");
-        }
-    }
-
     // Es Admin ================================================================
 
     @Override
-    public ESClient getClient() {
+    public OpenSearchClient getClient() {
         return esa.getClient();
     }
 
@@ -312,47 +188,18 @@ public class ElasticSearchComponent extends DefaultComponent
         esa.syncSearchAndWriteAlias(searchIndexName);
     }
 
-    @SuppressWarnings("deprecation")
-    @Override
-    public long getPendingWorkerCount() {
-        WorkManager wm = Framework.getService(WorkManager.class);
-        return wm.getMetrics(INDEXING_QUEUE_ID).scheduled.longValue();
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
-    public long getRunningWorkerCount() {
-        WorkManager wm = Framework.getService(WorkManager.class);
-        return runIndexingWorkerCount.get() + wm.getMetrics(INDEXING_QUEUE_ID).getRunning().longValue();
-    }
-
-    @Override
-    public int getTotalCommandProcessed() {
-        return esa.getTotalCommandProcessed();
-    }
-
-    @Override
-    public boolean isEmbedded() {
-        return esa.isEmbedded();
-    }
-
     @Override
     public boolean useExternalVersion() {
         return esa.useExternalVersion();
     }
 
     @Override
-    public boolean isIndexingInProgress() {
-        return (runIndexingWorkerCount.get() > 0) || (getPendingWorkerCount() > 0) || (getRunningWorkerCount() > 0);
-    }
-
-    @Override
     public ListenableFuture<Boolean> prepareWaitForIndexing() {
         return waiterExecutorService.submit(() -> {
-            WorkManager wm = Framework.getService(WorkManager.class);
+            var searchIndexingService = Framework.getService(SearchIndexingService.class);
             boolean completed;
             do {
-                completed = wm.awaitCompletion(INDEXING_QUEUE_ID, 300, TimeUnit.SECONDS);
+                completed = searchIndexingService.await(Duration.ofMinutes(5));
             } while (!completed);
             return true;
         });
@@ -406,148 +253,8 @@ public class ElasticSearchComponent extends DefaultComponent
         esa.optimizeIndex(indexName);
     }
 
-    @Override
-    public void indexNonRecursive(IndexingCommand cmd) {
-        indexNonRecursive(Collections.singletonList(cmd));
-    }
-
-    // ES Indexing =============================================================
-
-    @Override
-    public void indexNonRecursive(List<IndexingCommand> cmds) {
-        if (!isReady()) {
-            stackCommands(cmds);
-            return;
-        }
-        log.debug("Process indexing commands: {}", () -> Arrays.toString(cmds.toArray()));
-        esi.indexNonRecursive(cmds);
-    }
-
-    protected void stackCommands(List<IndexingCommand> cmds) {
-        log.debug("Delaying indexing commands: Waiting for Index to be initialized, commands: {}",
-                () -> Arrays.toString(cmds.toArray()));
-        stackedCommands.addAll(cmds);
-    }
-
-    @Override
-    public void runIndexingWorker(List<IndexingCommand> cmds) {
-        if (!isReady()) {
-            stackCommands(cmds);
-            return;
-        }
-        runIndexingWorkerCount.incrementAndGet();
-        try {
-            dispatchWork(cmds);
-        } finally {
-            runIndexingWorkerCount.decrementAndGet();
-        }
-    }
-
-    /**
-     * Dispatch jobs between sync and async worker
-     */
-    protected void dispatchWork(List<IndexingCommand> cmds) {
-        Map<String, List<IndexingCommand>> syncCommands = new HashMap<>();
-        Map<String, List<IndexingCommand>> asyncCommands = new HashMap<>();
-        for (IndexingCommand cmd : cmds) {
-            if (cmd.isSync()) {
-                List<IndexingCommand> syncCmds = syncCommands.get(cmd.getRepositoryName());
-                if (syncCmds == null) {
-                    syncCmds = new ArrayList<>();
-                }
-                syncCmds.add(cmd);
-                syncCommands.put(cmd.getRepositoryName(), syncCmds);
-            } else {
-                List<IndexingCommand> asyncCmds = asyncCommands.get(cmd.getRepositoryName());
-                if (asyncCmds == null) {
-                    asyncCmds = new ArrayList<>();
-                }
-                asyncCmds.add(cmd);
-                asyncCommands.put(cmd.getRepositoryName(), asyncCmds);
-            }
-        }
-        runIndexingSyncWorker(syncCommands);
-        scheduleIndexingAsyncWorker(asyncCommands);
-    }
-
-    protected void scheduleIndexingAsyncWorker(Map<String, List<IndexingCommand>> asyncCommands) {
-        if (asyncCommands.isEmpty()) {
-            return;
-        }
-        WorkManager wm = Framework.getService(WorkManager.class);
-        for (String repositoryName : asyncCommands.keySet()) {
-            IndexingWorker idxWork = new IndexingWorker(repositoryName, asyncCommands.get(repositoryName));
-            // we are in afterCompletion don't wait for a commit
-            wm.schedule(idxWork, false);
-        }
-    }
-
-    protected void runIndexingSyncWorker(Map<String, List<IndexingCommand>> syncCommands) {
-        if (syncCommands.isEmpty()) {
-            return;
-        }
-        TransactionHelper.runWithoutTransaction(() -> {
-            for (String repositoryName : syncCommands.keySet()) {
-                IndexingWorker idxWork = new IndexingWorker(repositoryName, syncCommands.get(repositoryName));
-                idxWork.run();
-            }
-        });
-    }
-
-    @Override
-    public void runReindexingWorker(String repositoryName, String nxql, boolean syncAlias) {
-        if (nxql == null || nxql.isEmpty()) {
-            throw new IllegalArgumentException("Expecting an NXQL query");
-        }
-        ScrollingIndexingWorker worker = new ScrollingIndexingWorker(repositoryName, nxql, syncAlias);
-        WorkManager wm = Framework.getService(WorkManager.class);
-        wm.schedule(worker);
-    }
-
-    @Override
-    public void reindexRepository(String repositoryName) {
-        esa.dropAndInitRepositoryIndex(repositoryName, false);
-        runReindexingWorker(repositoryName, "SELECT ecm:uuid FROM Document", true);
-    }
-
-    @Override
-    public BytesReference source(DocumentModel doc) throws IOException {
-        return esi.source(doc);
-    }
-
-    // ES Search ===============================================================
-    @Override
-    public DocumentModelList query(NxQueryBuilder queryBuilder) {
-        return ess.query(queryBuilder);
-    }
-
-    @Override
-    public EsResult queryAndAggregate(NxQueryBuilder queryBuilder) {
-        return ess.queryAndAggregate(queryBuilder);
-    }
-
-    @Override
-    public EsScrollResult scroll(NxQueryBuilder queryBuilder, long keepAlive) {
-        return ess.scroll(queryBuilder, keepAlive);
-    }
-
-    @Override
-    public EsScrollResult scroll(EsScrollResult scrollResult) {
-        return ess.scroll(scrollResult);
-    }
-
-    @Override
-    public void clearScroll(EsScrollResult scrollResult) {
-        ess.clearScroll(scrollResult);
-    }
-
     // misc ====================================================================
     public boolean isReady() {
         return (esa != null) && esa.isReady();
-    }
-
-    @Override
-    public Optional<ESHintQueryBuilder> getHintByOperator(String name) {
-        return esa.getHintByOperator(name);
     }
 }

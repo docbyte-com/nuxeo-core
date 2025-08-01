@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,10 +27,9 @@ import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -248,7 +247,7 @@ public class TaskServiceTest {
         assertEquals(2, tasks.size());
         // order is database-dependent
         if (tasks.get(0).getActors().get(0).equals("members")) {
-            Collections.reverse(tasks);
+            tasks = tasks.reversed();
         }
 
         Task task1 = tasks.get(0);

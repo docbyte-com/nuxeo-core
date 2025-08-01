@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -54,15 +54,12 @@ import org.nuxeo.ecm.platform.routing.core.api.operation.SetWorkflowVar;
 import org.nuxeo.ecm.platform.routing.core.api.operation.StartWorkflowOperation;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphRoute;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
-import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 5.7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WorkflowFeature.class, WebEngineFeatureCore.class })
 public class WorkflowOperationsTest extends AbstractGraphRouteTest {
 
     @Inject

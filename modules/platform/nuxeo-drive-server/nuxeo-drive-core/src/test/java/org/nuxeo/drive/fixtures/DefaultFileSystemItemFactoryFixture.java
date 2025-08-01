@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,7 +33,7 @@ import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -73,7 +72,9 @@ import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
+import org.nuxeo.ecm.core.storage.mem.IgnoreIfDBSMemRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -1004,9 +1005,8 @@ public class DefaultFileSystemItemFactoryFixture {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test reload for in-memory repository")
     public void testFolderItemChildrenPageProviderOverride() throws Exception {
-        assumeFalse("Cannot test reload for in-memory repository", coreFeature.getStorageConfiguration().isDBSMem());
-
         nuxeoDriveManager.registerSynchronizationRoot(session.getPrincipal(), syncRootFolder, session);
         FolderItem syncRootFolderItem = (FolderItem) defaultSyncRootFolderItemFactory.getFileSystemItem(syncRootFolder);
         assertEquals(6, syncRootFolderItem.getChildren().size());

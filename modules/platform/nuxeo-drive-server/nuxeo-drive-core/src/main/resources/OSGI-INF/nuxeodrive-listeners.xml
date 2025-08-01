@@ -12,7 +12,6 @@
 
     <listener name="nuxeoDriveCacheInvalidationListener" async="false" postCommit="false"
       class="org.nuxeo.drive.listener.NuxeoDriveCacheInvalidationListener" priority="300">
-      <event>lifecycle_transition_event</event>
       <event>documentTrashed</event>
       <event>documentUntrashed</event>
       <event>documentRemoved</event>
@@ -34,7 +33,6 @@
       class="org.nuxeo.drive.listener.NuxeoDriveFileSystemDeletionListener" priority="200">
       <event>beforeDocumentModification</event>
       <event>aboutToMove</event>
-      <event>lifecycle_transition_event</event>
       <event>documentTrashed</event>
       <event>aboutToRemove</event>
       <event>beforeDocumentSecurityModification</event>
@@ -48,8 +46,10 @@
 
       @author Antoine Taillefer
     </documentation>
+    <!-- deprecated since 2023.28, virtual events are written in audit using the StreamAuditEventListener -->
     <listener name="nuxeoDriveVirtualEventLoggerListener" async="true" postCommit="true"
-      class="org.nuxeo.drive.listener.NuxeoDriveVirtualEventLogger" />
+      class="org.nuxeo.drive.listener.NuxeoDriveVirtualEventLogger"
+      enabled="${org.nuxeo.drive.virtual.events.listener.enabled:=false}" />
 
     <documentation>
       Handle group change events fired by the UserManager.
@@ -81,7 +81,7 @@
 
   </extension>
 
-  <extension target="org.nuxeo.ecm.platform.audit.service.NXAuditEventsService" point="event">
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
     <event name="rootRegistered" />
     <event name="rootUnregistered" />
   </extension>

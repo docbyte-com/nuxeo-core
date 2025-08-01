@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,9 +21,11 @@ package org.nuxeo.targetplatforms.core.descriptors;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for target platform contributions.
@@ -34,16 +36,16 @@ import org.nuxeo.common.xmap.annotation.XObject;
 public class TargetPlatformDescriptor extends TargetDescriptor {
 
     @XNode("fastTrack")
-    Boolean fastTrack;
+    protected Boolean fastTrack;
 
     @XNode("trial")
-    Boolean trial;
+    protected Boolean trial;
 
     @XNode("default")
-    Boolean isDefault;
+    protected Boolean isDefault;
 
     @XNodeList(value = "testVersions/version", type = ArrayList.class, componentType = String.class)
-    List<String> testVersions;
+    protected List<String> testVersions;
 
     public boolean isFastTrackSet() {
         return fastTrack != null;
@@ -74,20 +76,19 @@ public class TargetPlatformDescriptor extends TargetDescriptor {
     }
 
     @Override
-    public TargetPlatformDescriptor clone() {
-        TargetPlatformDescriptor clone = new TargetPlatformDescriptor();
-        doClone(clone);
-        return clone;
+    public Descriptor merge(Descriptor o) {
+        var other = (TargetPlatformDescriptor) o;
+        var merged = new TargetPlatformDescriptor();
+        doMerge(merged, other);
+        return merged;
     }
 
-    protected void doClone(TargetPlatformDescriptor clone) {
-        super.doClone(clone);
-        clone.fastTrack = fastTrack;
-        clone.trial = trial;
-        clone.isDefault = isDefault;
-        if (testVersions != null) {
-            clone.testVersions = new ArrayList<>(testVersions);
-        }
+    protected void doMerge(TargetPlatformDescriptor merged, TargetPlatformDescriptor other) {
+        super.doMerge(merged, other);
+        merged.fastTrack = fastTrack;
+        merged.trial = trial;
+        merged.isDefault = isDefault;
+        merged.testVersions = new ArrayList<>(CollectionUtils.emptyIfNull(testVersions));
     }
 
 }

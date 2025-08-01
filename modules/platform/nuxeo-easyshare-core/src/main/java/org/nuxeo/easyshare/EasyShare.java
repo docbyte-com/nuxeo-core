@@ -23,14 +23,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.mail.MessagingException;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -38,7 +38,8 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.collections.api.CollectionManager;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -49,6 +50,7 @@ import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.ec.notification.email.EmailHelper;
 import org.nuxeo.ecm.platform.ec.notification.service.NotificationServiceHelper;
 import org.nuxeo.ecm.platform.notification.api.Notification;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 import org.nuxeo.mail.MailException;
@@ -72,8 +74,31 @@ public class EasyShare extends ModuleRoot {
 
     private static final String SHARE_DOC_TYPE = "EasyShareFolder";
 
+    /**
+     * Returns {@code true} if the given {@code doc} is either:
+     * <ul>
+     * <li>A member of the given {@code sharedDoc} collection.</li>
+     * <li>A descendant of a foldersish member of the given {@code sharedDoc} collection.</li>
+     * <li>A descendant of the given {@code sharedDoc} folderish document.</li>
+     * </ul>
+     */
+    public static boolean isSharedDocument(CoreSession session, DocumentModel sharedDoc, DocumentModel doc) {
+        var collectionManager = Framework.getService(CollectionManager.class);
+        if (collectionManager.isInCollection(sharedDoc, doc, session)) {
+            return true;
+        }
+        var ancestors = session.getParentDocuments(doc.getRef());
+        for (var ancestor : ancestors) {
+            if (collectionManager.isInCollection(sharedDoc, ancestor, session)
+                    || sharedDoc.getRef().equals(ancestor.getRef())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @GET
-    public Object doGet() {
+    public Template doGet() {
         return getView("index");
     }
 
@@ -81,71 +106,69 @@ public class EasyShare extends ModuleRoot {
 
         return new EasyShareUnrestrictedRunner() {
             @Override
-            public Object run(CoreSession session, IdRef docRef) throws NuxeoException {
-                if (session.exists(docRef)) {
-                    DocumentModel docShare = session.getDocument(docRef);
+            public Response run(CoreSession session, IdRef docShareRef) throws NuxeoException {
+                if (!session.exists(docShareRef)) {
+                    return Response.ok(getView("denied")).build();
+                }
+                DocumentModel docShare = session.getDocument(docShareRef);
+                if (!SHARE_DOC_TYPE.equals(docShare.getType())) {
+                    return notFound();
+                }
+                if (!isShareValid(docShare)) {
+                    return Response.ok(getView("expired").arg("docShare", docShare)).build();
+                }
+                IdRef documentRef = new IdRef(docId);
+                DocumentModel document = session.getDocument(documentRef);
+                // accept the Easyshare folder itself or a shared document
+                if (!docShareRef.equals(documentRef) && !isSharedDocument(session, docShare, document)) {
+                    return notFound();
+                }
+                String query = buildQuery(document);
+                if (query == null) {
+                    return Response.ok(getView("denied")).build();
+                }
+                try (OperationContext opCtx = new OperationContext(session)) {
+                    OperationChain chain = new OperationChain("getEasyShareContent");
+                    chain.add("Document.Query")
+                         .set("query", query)
+                         .set("currentPageIndex", pageIndex)
+                         .set("pageSize", PAGE_SIZE);
 
-                    if (!SHARE_DOC_TYPE.equals(docShare.getType())) {
-                        return Response.serverError().status(Response.Status.NOT_FOUND).build();
+                    AutomationService automationService = Framework.getService(AutomationService.class);
+                    PaginableDocumentModelListImpl paginable = (PaginableDocumentModelListImpl) automationService.run(
+                            opCtx, chain);
+
+                    try (OperationContext ctx = new OperationContext(session)) {
+                        ctx.setInput(docShare);
+
+                        // Audit Log
+                        Map<String, Object> params = new HashMap<>();
+                        params.put("event", "Access");
+                        params.put("category", "Document");
+                        params.put("comment", "IP: " + getIpAddr());
+                        automationService.run(ctx, "Audit.Log", params);
                     }
 
-                    if (!checkIfShareIsValid(docShare)) {
-                        return getView("expired").arg("docShare", docShare);
-                    }
-
-                    DocumentModel document = session.getDocument(new IdRef(docId));
-
-                    String query = buildQuery(document);
-
-                    if (query == null) {
-                        return getView("denied");
-                    }
-
-                    try (OperationContext opCtx = new OperationContext(session)) {
-                        OperationChain chain = new OperationChain("getEasyShareContent");
-                        chain.add("Document.Query")
-                             .set("query", query)
-                             .set("currentPageIndex", pageIndex)
-                             .set("pageSize", PAGE_SIZE);
-
-                        AutomationService automationService = Framework.getService(AutomationService.class);
-                        PaginableDocumentModelListImpl paginable = (PaginableDocumentModelListImpl) automationService.run(
-                                opCtx, chain);
-
-                        try (OperationContext ctx = new OperationContext(session)) {
-                            ctx.setInput(docShare);
-
-                            // Audit Log
-                            Map<String, Object> params = new HashMap<>();
-                            params.put("event", "Access");
-                            params.put("category", "Document");
-                            params.put("comment", "IP: " + getIpAddr());
-                            automationService.run(ctx, "Audit.Log", params);
-                        }
-
-                        return getView("folderList")
-                                                    .arg("isFolder",
-                                                            document.isFolder()
+                    return Response.ok(getView("folderList")
+                                                            .arg("isFolder", document.isFolder()
                                                                     && !SHARE_DOC_TYPE.equals(document.getType())) // Backward
                                                                                                                    // compatibility
                                                                                                                    // to
                                                                                                                    // non-collection
-                                                    .arg("currentPageIndex", paginable.getCurrentPageIndex())
-                                                    .arg("numberOfPages", paginable.getNumberOfPages())
-                                                    .arg("docShare", docShare)
-                                                    .arg("docList", paginable)
-                                                    .arg("previousPageAvailable", paginable.isPreviousPageAvailable())
-                                                    .arg("nextPageAvailable", paginable.isNextPageAvailable())
-                                                    .arg("currentPageStatus",
-                                                            paginable.getProvider().getCurrentPageStatus());
+                                                            .arg("currentPageIndex", paginable.getCurrentPageIndex())
+                                                            .arg("numberOfPages", paginable.getNumberOfPages())
+                                                            .arg("docShare", docShare)
+                                                            .arg("docList", paginable)
+                                                            .arg("previousPageAvailable",
+                                                                    paginable.isPreviousPageAvailable())
+                                                            .arg("nextPageAvailable", paginable.isNextPageAvailable())
+                                                            .arg("currentPageStatus",
+                                                                    paginable.getProvider().getCurrentPageStatus()))
+                                   .build();
 
-                    } catch (Exception ex) {
-                        log.error(ex.getMessage());
-                        return getView("denied");
-                    }
-
-                } else {
-                    return getView("denied");
+                } catch (Exception ex) {
+                    log.error(ex.getMessage());
+                    return Response.ok(getView("denied")).build();
                 }
             }
         };
@@ -168,7 +191,7 @@ public class EasyShare extends ModuleRoot {
         return null;
     }
 
-    private boolean checkIfShareIsValid(DocumentModel docShare) {
+    protected boolean isShareValid(DocumentModel docShare) {
         Date today = new Date();
         Date expired = docShare.getProperty("dc:expired").getValue(Date.class);
         if (expired == null) {
@@ -187,16 +210,20 @@ public class EasyShare extends ModuleRoot {
         return true;
     }
 
+    protected Response notFound() {
+        return Response.serverError().status(Response.Status.NOT_FOUND).build();
+    }
+
     @Path("{shareId}/{folderId}")
     @GET
-    public Object getFolderListing(@PathParam("shareId") String shareId, @PathParam("folderId") final String folderId,
+    public Response getFolderListing(@PathParam("shareId") String shareId, @PathParam("folderId") final String folderId,
             @DefaultValue(DEFAULT_PAGE_INDEX) @QueryParam("p") final Long pageIndex) {
         return buildUnrestrictedRunner(folderId, pageIndex).runUnrestricted(shareId);
     }
 
     @Path("{shareId}")
     @GET
-    public Object getShareListing(@PathParam("shareId") String shareId,
+    public Response getShareListing(@PathParam("shareId") String shareId,
             @DefaultValue(DEFAULT_PAGE_INDEX) @QueryParam("p") Long pageIndex) {
         return buildUnrestrictedRunner(shareId, pageIndex).runUnrestricted(shareId);
     }
@@ -214,52 +241,51 @@ public class EasyShare extends ModuleRoot {
     public Response getFileStream(@PathParam("shareId") final String shareId, @PathParam("fileId") String fileId)
             throws NuxeoException {
 
-        return (Response) new EasyShareUnrestrictedRunner() {
+        return new EasyShareUnrestrictedRunner() {
             @Override
-            public Object run(CoreSession session, IdRef docRef) throws NuxeoException {
-                if (session.exists(docRef)) {
-                    DocumentModel doc = session.getDocument(docRef);
-                    try (OperationContext ctx = new OperationContext(session)) {
-                        DocumentModel docShare = session.getDocument(new IdRef(shareId));
+            public Response run(CoreSession session, IdRef docRef) throws NuxeoException {
+                if (!session.exists(docRef)) {
+                    return notFound();
+                }
+                DocumentModel docShare = session.getDocument(new IdRef(shareId));
+                if (!isShareValid(docShare)) {
+                    return notFound();
+                }
+                DocumentModel doc = session.getDocument(docRef);
+                if (!isSharedDocument(session, docShare, doc)) {
+                    return notFound();
+                }
+                try (OperationContext ctx = new OperationContext(session)) {
+                    Blob blob = doc.getAdapter(BlobHolder.class).getBlob();
 
-                        if (!checkIfShareIsValid(docShare)) {
-                            return Response.serverError().status(Response.Status.NOT_FOUND).build();
-                        }
+                    // Audit Log
+                    ctx.setInput(doc);
 
-                        Blob blob = doc.getAdapter(BlobHolder.class).getBlob();
+                    // Audit.Log automation parameter setting
+                    Map<String, Object> params = new HashMap<>();
+                    params.put("event", "Download");
+                    params.put("category", "Document");
+                    params.put("comment", "IP: " + getIpAddr());
+                    AutomationService service = Framework.getService(AutomationService.class);
+                    service.run(ctx, "Audit.Log", params);
 
-                        // Audit Log
-                        ctx.setInput(doc);
-
-                        // Audit.Log automation parameter setting
-                        Map<String, Object> params = new HashMap<>();
-                        params.put("event", "Download");
-                        params.put("category", "Document");
-                        params.put("comment", "IP: " + getIpAddr());
-                        AutomationService service = Framework.getService(AutomationService.class);
+                    if (doc.isProxy()) {
+                        DocumentModel liveDoc = session.getSourceDocument(docRef);
+                        ctx.setInput(liveDoc);
                         service.run(ctx, "Audit.Log", params);
 
-                        if (doc.isProxy()) {
-                            DocumentModel liveDoc = session.getSourceDocument(docRef);
-                            ctx.setInput(liveDoc);
-                            service.run(ctx, "Audit.Log", params);
-
-                        }
-
-                        // Email notification
-                        Map<String, Object> mail = new HashMap<>();
-                        mail.put("filename", blob.getFilename());
-                        sendNotification("easyShareDownload", docShare, mail);
-
-                        return Response.ok(blob.getStream(), blob.getMimeType()).build();
-
-                    } catch (Exception ex) {
-                        log.error("error ", ex);
-                        return Response.serverError().status(Response.Status.NOT_FOUND).build();
                     }
 
-                } else {
-                    return Response.serverError().status(Response.Status.NOT_FOUND).build();
+                    // Email notification
+                    Map<String, Object> mail = new HashMap<>();
+                    mail.put("filename", blob.getFilename());
+                    sendNotification("easyShareDownload", docShare, mail);
+
+                    return Response.ok(blob.getStream(), blob.getMimeType()).build();
+
+                } catch (Exception ex) {
+                    log.error("error ", ex);
+                    return notFound();
                 }
             }
         }.runUnrestricted(fileId);
@@ -268,7 +294,7 @@ public class EasyShare extends ModuleRoot {
 
     public void sendNotification(String notification, DocumentModel docShare, Map<String, Object> mail) {
 
-        Boolean hasNotification = docShare.getProperty("eshare:hasNotification").getValue(Boolean.class);
+        boolean hasNotification = docShare.getProperty("eshare:hasNotification").getValue(Boolean.class);
 
         if (hasNotification) {
             // Email notification
@@ -314,6 +340,7 @@ public class EasyShare extends ModuleRoot {
     }
 
     protected String getIpAddr() {
+        HttpServletRequest request = getContext().getRequest();
         String ip = request.getHeader("X-FORWARDED-FOR");
         if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
             ip = request.getHeader("Proxy-Client-IP");

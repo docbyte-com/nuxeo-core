@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,8 +24,9 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
-@Features({ DummyLoginFeature.class, PlatformFeature.class })
 @Deploy("org.nuxeo.ecm.platform.oauth1")
+@Deploy("org.nuxeo.ecm.platform.web.common")
+@Features({ DummyLoginFeature.class, PlatformFeature.class })
 public class OAuth1Feature implements RunnerFeature {
 
 }

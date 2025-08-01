@@ -20,7 +20,7 @@ package org.nuxeo.mail.amazon.ses;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +31,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.amazonaws.services.simpleemail.model.AmazonSimpleEmailServiceException;
+import software.amazon.awssdk.services.ses.model.SesException;
 
 /**
  * @since 2023.4
@@ -85,6 +85,6 @@ public class TestSESMailSender {
     protected void assertSESFail(MailMessage mailMessage) {
         var t = assertThrows("An error occurred while sending a mail", MailException.class,
                 () -> mailService.sendMail(mailMessage));
-        assertTrue(t.getCause() instanceof AmazonSimpleEmailServiceException);
+        assertTrue(t.getCause() instanceof SesException);
     }
 }

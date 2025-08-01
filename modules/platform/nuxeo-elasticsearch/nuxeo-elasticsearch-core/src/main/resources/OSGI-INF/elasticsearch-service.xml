@@ -4,69 +4,8 @@
   <implementation class="org.nuxeo.elasticsearch.ElasticSearchComponent" />
 
   <service>
-    <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchService" />
-    <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchIndexing" />
     <provide interface="org.nuxeo.elasticsearch.api.ElasticSearchAdmin" />
   </service>
-
-  <extension-point name="elasticSearchEmbeddedServer">
-    <documentation>
-      Extension point to setup an embedded Elasticsearch instance.
-
-      It creates a local node using the same JVM as Nuxeo.
-
-      This is a test configuration and must NOT be used in production,
-      it is limited to one shard and no replica.
-
-      <code>
-        <elasticSearchLocal clusterName="MyCluster" httpEnabled="true" indexStoreType="mmapfs" nodeName="MyNuxeo"
-                            pathData="/var/lib/nuxeo/elasticsearch/" />
-      </code>
-
-      Please refer to the Elasticsearch node configuration
-
-      clusterName is the cluster.name
-
-      nodeName is the node.name, default to nuxeoNode
-
-      pathData is the path.data
-
-      indexStoreType is the index.store_type
-
-      httpEnabled is the node.enable_http
-
-    </documentation>
-
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig" />
-  </extension-point>
-
-
-  <extension-point name="elasticSearchClient">
-    <documentation>
-      Extension point to define how to access the Elasticsearch cluster.
-
-      For the TransportClient protocol:
-      <code>
-        <elasticSeachClient class="org.nuxeo.elasticsearch.client.ESTransportClientFactory">
-          <option name="addressList">localhost:9300</option>
-          <option name="clusterName">elasticsearch</option>
-          <option name="clientTransportSniff">false</option>
-          <option name="clientTransportIgnoreClusterName">false</option>
-          <option name="clientTransportPingTimeout">5s</option>
-          <option name="clientTransportNodesSamplerInterval">5s</option>
-        </elasticSeachClient>
-      </code>
-
-      For a Rest client:
-      <code>
-        <elasticSeachClient class="org.nuxeo.elasticsearch.client.ESRestClientFactory">
-          <option name="addressList">localhost:9200</option>
-        </elasticSeachClient>
-      </code>
-
-    </documentation>
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchClientConfig" />
-  </extension-point>
 
   <extension-point name="elasticSearchIndex">
     <documentation>
@@ -109,31 +48,6 @@
     </documentation>
 
     <object class="org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig" />
-  </extension-point>
-
-  <extension-point name="elasticSearchDocWriter">
-    <documentation>
-      Extension point used to setup the writer used when a document is indexed.
-      Must extend the JsonESDocumentWriter class.
-
-      <code>
-        <writer class="org.nuxeo.elasticsearch.io.JsonESDocumentWriter" />
-      </code>
-
-    </documentation>
-    <object class="org.nuxeo.elasticsearch.config.ElasticSearchDocWriterDescriptor" />
-  </extension-point>
-
-
-  <extension-point name="elasticSearchHints">
-    <documentation>
-      Extension point used to define the NXQL hints which enables the use of Elasticsearch operators.
-      Must implement the ESHintQueryBuilder interface.
-
-      @see https://doc.nuxeo.com/nxdoc/nxql/#elasticsearch-nxql-hints to have the available ES hints.
-
-    </documentation>
-    <object class="org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor" />
   </extension-point>
 
 

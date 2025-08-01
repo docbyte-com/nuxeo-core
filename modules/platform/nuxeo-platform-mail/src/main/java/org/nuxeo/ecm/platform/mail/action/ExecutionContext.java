@@ -23,7 +23,7 @@ package org.nuxeo.ecm.platform.mail.action;
 
 import java.util.HashMap;
 
-import javax.mail.Message;
+import jakarta.mail.Message;
 
 /**
  * The execution context of an actions pipe.

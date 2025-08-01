@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,25 @@
  */
 package org.nuxeo.ecm.platform.picture;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants.CONVERSION_FORMAT;
 import static org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants.JPEG_CONVERSATION_FORMAT;
 import static org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants.OPTION_RESIZE_DEPTH;
 import static org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants.OPTION_RESIZE_HEIGHT;
 import static org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants.OPTION_RESIZE_WIDTH;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.awt.Point;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -69,9 +73,7 @@ import org.nuxeo.ecm.platform.picture.magick.utils.ImageIdentifier;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageResizer;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.transaction.TransactionHelper;
 
 public class ImagingComponent extends DefaultComponent implements ImagingService {
 
@@ -81,18 +83,37 @@ public class ImagingComponent extends DefaultComponent implements ImagingService
 
     public static final String PICTURE_CONVERSIONS_EP = "pictureConversions";
 
-    protected Map<String, String> configurationParameters = new HashMap<>();
+    protected Map<String, String> configurationParameters;
 
-    protected PictureConversionRegistry pictureConversionRegistry = new PictureConversionRegistry();
+    protected Map<String, PictureConversion> pictureConversions;
+
+    @Override
+    public void start(ComponentContext context) {
+        configurationParameters = Optional.ofNullable(
+                this.<ImagingConfigurationDescriptor> getDescriptor(CONFIGURATION_PARAMETERS_EP, UNIQUE_DESCRIPTOR_ID))
+                                          .map(ImagingConfigurationDescriptor::getParameters)
+                                          .orElseGet(Map::of);
+        pictureConversions = this.<PictureConversion> getDescriptors(PICTURE_CONVERSIONS_EP)
+                                 .stream()
+                                 .filter(PictureConversion::isEnabled)
+                                 .collect(Collectors.toMap(PictureConversion::getId, Function.identity()));
+
+    }
+
+    @Override
+    public void stop(ComponentContext context) {
+        configurationParameters = null;
+        pictureConversions = null;
+    }
 
     @Override
     public List<PictureConversion> getPictureConversions() {
-        return pictureConversionRegistry.getPictureConversions();
+        return pictureConversions.values().stream().sorted().toList();
     }
 
     @Override
     public PictureConversion getPictureConversion(String id) {
-        return pictureConversionRegistry.getPictureConversion(id);
+        return pictureConversions.get(id);
     }
 
     @Override
@@ -164,28 +185,6 @@ public class ImagingComponent extends DefaultComponent implements ImagingService
             log.error("Failed to get ImageInfo for file {}", blob.getFilename(), e);
         }
         return imageInfo;
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CONFIGURATION_PARAMETERS_EP.equals(extensionPoint)) {
-            ImagingConfigurationDescriptor desc = (ImagingConfigurationDescriptor) contribution;
-            configurationParameters.putAll(desc.getParameters());
-        } else if (PICTURE_CONVERSIONS_EP.equals(extensionPoint)) {
-            pictureConversionRegistry.addContribution((PictureConversion) contribution);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CONFIGURATION_PARAMETERS_EP.equals(extensionPoint)) {
-            ImagingConfigurationDescriptor desc = (ImagingConfigurationDescriptor) contribution;
-            for (String configuration : desc.getParameters().keySet()) {
-                configurationParameters.remove(configuration);
-            }
-        } else if (PICTURE_CONVERSIONS_EP.equals(extensionPoint)) {
-            pictureConversionRegistry.removeContribution((PictureConversion) contribution);
-        }
     }
 
     @Override
@@ -298,8 +297,8 @@ public class ImagingComponent extends DefaultComponent implements ImagingService
         if (StringUtils.isEmpty(extension)) {
             MimetypeRegistry mimetypeRegistry = Framework.getService(MimetypeRegistry.class);
             List<String> extensions = mimetypeRegistry.getExtensionsFromMimetypeName(viewBlob.getMimeType());
-            if (extensions != null && !extensions.isEmpty()) {
-                extension = extensions.get(0);
+            if (isNotEmpty(extensions)) {
+                extension = extensions.getFirst();
             }
         }
 
@@ -310,7 +309,7 @@ public class ImagingComponent extends DefaultComponent implements ImagingService
         pictureViewMap.put(PictureView.FIELD_FILENAME, viewFilename);
         pictureViewMap.put(PictureView.FIELD_CONTENT, (Serializable) viewBlob);
         pictureViewMap.put(PictureView.FIELD_INFO, viewBlobImageInfo);
-        if (viewBlobImageInfo != null){
+        if (viewBlobImageInfo != null) {
             pictureViewMap.put(PictureView.FIELD_WIDTH, viewBlobImageInfo.getWidth());
             pictureViewMap.put(PictureView.FIELD_HEIGHT, viewBlobImageInfo.getHeight());
         }

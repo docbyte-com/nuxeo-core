@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -30,8 +29,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.io.registry.MarshallerRegistry;
 import org.nuxeo.ecm.core.io.registry.MarshallingException;
@@ -153,8 +152,7 @@ public abstract class AbstractJsonWriter<EntityType> implements Writer<EntityTyp
      * @since 7.2
      */
     protected JsonGenerator getGenerator(OutputStream out, boolean getCurrentIfAvailable) throws IOException {
-        if (getCurrentIfAvailable && out instanceof OutputStreamWithJsonWriter) {
-            OutputStreamWithJsonWriter casted = (OutputStreamWithJsonWriter) out;
+        if (getCurrentIfAvailable && out instanceof OutputStreamWithJsonWriter casted) {
             return casted.getJsonGenerator();
         }
         return JsonFactoryProvider.get().createGenerator(out);
@@ -222,27 +220,26 @@ public abstract class AbstractJsonWriter<EntityType> implements Writer<EntityTyp
      */
     @SuppressWarnings("unchecked")
     protected void writeSerializable(Serializable value, JsonGenerator jg) throws IOException {
-        if (value instanceof Collection) {
-            jg.writeStartArray();
-            for (Serializable serializable : (Collection<Serializable>) value) {
-                writeSerializable(serializable, jg);
+        switch (value) {
+            case Collection<?> values -> {
+                jg.writeStartArray();
+                for (Serializable serializable : (Collection<Serializable>) values) {
+                    writeSerializable(serializable, jg);
+                }
+                jg.writeEndArray();
             }
-            jg.writeEndArray();
-        } else if (value instanceof Serializable[]) {
-            jg.writeStartArray();
-            for (Serializable serializable : (Serializable[]) value) {
-                writeSerializable(serializable, jg);
+            case Serializable[] serializables -> {
+                jg.writeStartArray();
+                for (Serializable serializable : serializables) {
+                    writeSerializable(serializable, jg);
+                }
+                jg.writeEndArray();
             }
-            jg.writeEndArray();
-        } else if (value instanceof String) {
-            jg.writeString((String) value);
-        } else if (value instanceof Boolean) {
-            jg.writeBoolean((boolean) value);
-        } else if (value instanceof Number) {
-            jg.writeNumber(value.toString());
-        } else {
+            case String string -> jg.writeString(string);
+            case Boolean bool -> jg.writeBoolean(bool);
+            case Number number -> jg.writeNumber(number.toString());
             // try with marshallers
-            writeEntity(value, jg);
+            case null, default -> writeEntity(value, jg);
         }
     }
 

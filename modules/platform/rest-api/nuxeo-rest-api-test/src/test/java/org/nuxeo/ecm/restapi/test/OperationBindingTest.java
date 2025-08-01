@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -43,8 +43,8 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.restapi.server.jaxrs.adapters.OperationAdapter;
-import org.nuxeo.ecm.restapi.server.jaxrs.blob.BlobAdapter;
+import org.nuxeo.ecm.restapi.server.adapters.OperationAdapter;
+import org.nuxeo.ecm.restapi.server.blob.BlobAdapter;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -141,7 +141,7 @@ public class OperationBindingTest {
     }
 
     @Test
-    public void itCanRunAChainOnMutlipleDocuments() {
+    public void itCanRunAChainOnMultipleDocuments() {
         // Given a folder
         DocumentModel folder = RestServerInit.getFolder(1, session);
 
@@ -179,13 +179,6 @@ public class OperationBindingTest {
 
         // Then the Automation trace output is a blob
         assertTrue(trace.getOutput() instanceof Blob);
-    }
-
-    @Test
-    public void automationResourceIsAlsoAvailableBehindAPIRoot() {
-        httpClient.buildGetRequest("/automation/doc")
-                  .accept("text/html")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
     }
 
     /**

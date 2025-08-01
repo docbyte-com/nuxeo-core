@@ -43,13 +43,6 @@
       <subtypes>
         <type hidden="create">Domain</type>
       </subtypes>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>
@@ -74,13 +67,6 @@
         <type hidden="create">SectionRoot</type>
         <type hidden="create">TemplateRoot</type>
       </subtypes>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>
@@ -105,15 +91,6 @@
         <type>File</type>
         <type>Note</type>
       </subtypes>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <!--<layout>file</layout>-->
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <!--<layout>file</layout>-->
-        <layout>dublincore</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>
@@ -135,13 +112,6 @@
         <type>File</type>
         <type>Note</type>
       </subtypes>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
       <contentViews category="content">
         <contentView>document_content</contentView>
       </contentViews>
@@ -157,17 +127,6 @@
       <category>SimpleDocument</category>
       <description>File.description</description>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <layout>file</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>file</layout>
-        <layout>dublincore</layout>
-      </layouts>
-      <!-- all content already on summary page -->
-      <layouts mode="view" />
     </type>
 
     <type id="Note">
@@ -177,21 +136,6 @@
       <category>SimpleDocument</category>
       <description>Note.description</description>
       <default-view>view_documents</default-view>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <layout>note</layout>
-      </layouts>
-      <layouts mode="summary">
-        <layout>note_summary_layout</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>note</layout>
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="view">
-        <layout>note</layout>
-      </layouts>
     </type>
   </extension>
 

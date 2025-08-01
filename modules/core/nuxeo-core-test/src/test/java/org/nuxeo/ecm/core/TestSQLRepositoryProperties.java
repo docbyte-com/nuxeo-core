@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,17 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.api.CoreSession.BINARY_FULLTEXT_MAIN_KEY;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ADDITIONAL_COMPLEX_FACET;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_ARRAY_STRING_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX2_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEXES_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_LONG_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRINGS_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRING_PROP;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -37,7 +48,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -52,7 +62,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -91,10 +101,13 @@ import org.nuxeo.ecm.core.storage.State;
 import org.nuxeo.ecm.core.storage.State.StateDiff;
 import org.nuxeo.ecm.core.storage.dbs.DBSConnection;
 import org.nuxeo.ecm.core.storage.dbs.DBSRepository;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -104,7 +117,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-restriction-contrib.xml")
@@ -126,7 +138,7 @@ public class TestSQLRepositoryProperties {
     @Inject
     protected HotDeployer deployer;
 
-    DocumentModel doc;
+    protected DocumentModel doc;
 
     @Before
     public void setUp() {
@@ -300,28 +312,28 @@ public class TestSQLRepositoryProperties {
 
     @Test
     public void testListWithNullFirst() {
-        doc = session.createDocumentModel("/", "doc2", "MyDocType");
+        doc = session.createDocumentModel("/", "doc2", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         // this tests on a property that is internally a list, not an array (yes we still have those!)
-        assertEquals(ListProperty.class, doc.getProperty("participants").getClass());
+        assertEquals(ListProperty.class, doc.getProperty("strings").getClass());
         String[] values = { null, "bar" };
-        doc.setPropertyValue("participants", values);
+        doc.setPropertyValue("strings", values);
         session.saveDocument(doc);
         session.save();
         nextTransaction();
         session = coreFeature.reopenCoreSession();
         doc = session.getDocument(doc.getRef());
-        assertEquals(Arrays.asList(values), doc.getPropertyValue("participants"));
+        assertEquals(Arrays.asList(values), doc.getPropertyValue(COMMON_STRINGS_PROP));
     }
 
     @Test
     public void testArrayConcurrentPushToEmpty() throws InterruptedException {
-        doTestArrayConcurrentPush(Collections.emptyList());
+        doTestArrayConcurrentPush(List.of());
     }
 
     @Test
     public void testArrayConcurrentPushToOneElement() throws InterruptedException {
-        doTestArrayConcurrentPush(Collections.singletonList("aaa"));
+        doTestArrayConcurrentPush(List.of("aaa"));
     }
 
     protected void doTestArrayConcurrentPush(List<String> start) throws InterruptedException {
@@ -351,7 +363,7 @@ public class TestSQLRepositoryProperties {
         Set<String> expected = new HashSet<>(start);
         expected.add("ddd");
         expected.add("eee");
-        assertEquals(expected, new HashSet<>(Arrays.asList(array)));
+        assertEquals(expected, new HashSet<>(List.of(array)));
     }
 
     protected void addValueToDoc(String value, CyclicBarrier barrier, List<Exception> exc) {
@@ -369,7 +381,7 @@ public class TestSQLRepositoryProperties {
                 // add the value to the existing list
                 DocumentModel d = s.getDocument(new PathRef("/doc"));
                 String[] array = (String[]) d.getPropertyValue("tp:stringArray");
-                List<String> list = array == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(array));
+                List<String> list = array == null ? new ArrayList<>() : new ArrayList<>(List.of(array));
                 list.add(value);
                 d.setPropertyValue("tp:stringArray", (Serializable) list);
                 s.saveDocument(d);
@@ -382,10 +394,9 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "pull optimization only available on DBS")
     public void testArrayConcurrentPull() throws InterruptedException {
-        assumeTrue("pull optimization only available on DBS", coreFeature.getStorageConfiguration().isDBS());
-
-        doc.setPropertyValue("tp:stringArray", (Serializable) Arrays.asList("foo", "bar", "baz"));
+        doc.setPropertyValue("tp:stringArray", (Serializable) List.of("foo", "bar", "baz"));
         session.saveDocument(doc);
         session.save();
         nextTransaction();
@@ -406,7 +417,7 @@ public class TestSQLRepositoryProperties {
         nextTransaction();
         doc.refresh();
         Object[] array = (Object[]) doc.getPropertyValue("tp:stringArray");
-        assertEquals(Collections.singletonList("baz"), Arrays.asList(array));
+        assertEquals(List.of("baz"), List.of(array));
     }
 
     protected void removeValueFromDoc(String value, CyclicBarrier barrier, List<Exception> exc) {
@@ -424,7 +435,7 @@ public class TestSQLRepositoryProperties {
                 // remove the value from the existing list
                 DocumentModel d = s.getDocument(new PathRef("/doc"));
                 String[] array = (String[]) d.getPropertyValue("tp:stringArray");
-                List<String> list = array == null ? new ArrayList<>() : new ArrayList<>(Arrays.asList(array));
+                List<String> list = array == null ? new ArrayList<>() : new ArrayList<>(List.of(array));
                 list.remove(value);
                 d.setPropertyValue("tp:stringArray", (Serializable) list);
                 s.saveDocument(d);
@@ -544,26 +555,23 @@ public class TestSQLRepositoryProperties {
     @Test
     public void testComplexListChangeAfterClear() {
         // complex list with one element
-        doc.setPropertyValue("tp:complexList",
-                (Serializable) Collections.singletonList(Collections.singletonMap("string", "foo")));
+        doc.setPropertyValue("tp:complexList", (Serializable) List.of(Map.of("string", "foo")));
         doc = session.saveDocument(doc);
         session.save();
 
         // clear
-        doc.setPropertyValue("tp:complexList", (Serializable) Collections.emptyList());
+        doc.setPropertyValue("tp:complexList", (Serializable) List.of());
         doc = session.saveDocument(doc);
         // don't save the session here
         // re-add one element (-> delete + insert in database)
-        doc.setPropertyValue("tp:complexList",
-                (Serializable) Collections.singletonList(Collections.singletonMap("string", "bar")));
+        doc.setPropertyValue("tp:complexList", (Serializable) List.of(Map.of("string", "bar")));
         doc = session.saveDocument(doc);
         session.save(); // save succeeds, no unique constraint problem
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListNullInStorage() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
         // we check for the fact that storage is null (actually unset) by using
         // a query (which would fail if we stored an empty list)
         String query = "SELECT * FROM TestDocument WHERE tp:complexList IS NULL";
@@ -575,7 +583,7 @@ public class TestSQLRepositoryProperties {
         assertEquals(1, dml.size());
 
         // on update
-        doc.setPropertyValue("tp:complexList", (Serializable) Collections.singletonList(map("string", "foo")));
+        doc.setPropertyValue("tp:complexList", (Serializable) List.of(map("string", "foo")));
         doc = session.saveDocument(doc);
         session.save();
         doc.setPropertyValue("tp:complexList", null);
@@ -589,12 +597,11 @@ public class TestSQLRepositoryProperties {
 
     // DBS-only test for in-db data corruption(?) (NXP-21278)
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testComplexListElementNullInStorage() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
-        doc.setPropertyValue("tp:complexList", (Serializable) Arrays.asList( //
-                Collections.singletonMap("string", "foo"), //
-                Collections.singletonMap("string", "bar")));
+        doc.setPropertyValue("tp:complexList", (Serializable) List.of( //
+                Map.of("string", "foo"), //
+                Map.of("string", "bar")));
         doc = session.saveDocument(doc);
         String id = doc.getId();
         session.save();
@@ -619,10 +626,10 @@ public class TestSQLRepositoryProperties {
 
     @Test
     public void testComplexListPropertyRemove() {
-        List<Map<String, Serializable>> values = Arrays.asList( //
-                Collections.singletonMap("string", "foo"), //
-                Collections.singletonMap("string", "bar"), //
-                Collections.singletonMap("string", "gee"));
+        List<Map<String, Serializable>> values = List.of( //
+                Map.of("string", "foo"), //
+                Map.of("string", "bar"), //
+                Map.of("string", "gee"));
         doc.setPropertyValue("tp:complexList", (Serializable) values);
         doc = session.saveDocument(doc);
 
@@ -660,7 +667,7 @@ public class TestSQLRepositoryProperties {
 
     @Test
     public void testComplexListPartialUpdate() {
-        List<Map<String, Serializable>> list = Collections.singletonList(Collections.singletonMap("string", "foo"));
+        List<Map<String, Serializable>> list = List.of(Map.of("string", "foo"));
         doc.setPropertyValue("tp:complexList", (Serializable) list);
         doc = session.saveDocument(doc);
         session.save();
@@ -686,12 +693,12 @@ public class TestSQLRepositoryProperties {
 
     @Test
     public void testComplexListConcurrentPushToEmpty() throws InterruptedException {
-        doTestComplexListConcurrentPush(Collections.emptyList());
+        doTestComplexListConcurrentPush(List.of());
     }
 
     @Test
     public void testComplexListConcurrentPushToOneElement() throws InterruptedException {
-        doTestComplexListConcurrentPush(Collections.singletonList("aaa"));
+        doTestComplexListConcurrentPush(List.of("aaa"));
     }
 
     protected void doTestComplexListConcurrentPush(List<String> startStrings) throws InterruptedException {
@@ -699,7 +706,7 @@ public class TestSQLRepositoryProperties {
 
         List<Map<String, Serializable>> list = new ArrayList<>();
         for (String string : startStrings) {
-            list.add(Collections.singletonMap("string", string));
+            list.add(Map.of("string", string));
         }
         doc.setPropertyValue("tp:complexList", (Serializable) list);
         session.saveDocument(doc);
@@ -751,7 +758,7 @@ public class TestSQLRepositoryProperties {
                 @SuppressWarnings("unchecked")
                 List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) d.getPropertyValue(
                         "tp:complexList");
-                list.add(Collections.singletonMap("string", string));
+                list.add(Map.of("string", string));
                 d.setPropertyValue("tp:complexList", (Serializable) list);
                 s.saveDocument(d);
                 s.save();
@@ -892,7 +899,7 @@ public class TestSQLRepositoryProperties {
         // check that this does not mark the doc dirty
         assertFalse(doc.isDirty());
         // but changing the property does
-        prop.setValue(Collections.singletonMap("string", "abc"));
+        prop.setValue(Map.of("string", "abc"));
         assertTrue(doc.isDirty());
     }
 
@@ -947,9 +954,8 @@ public class TestSQLRepositoryProperties {
 
     // NOTE that this test cannot pass if DEBUG_UUIDS=true due to the reset of the uuid counter
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testComplexPropertySchemaUpdate() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         // create a doc
         doc.setPropertyValue("tp:complex/string", "test");
         doc = session.saveDocument(doc);
@@ -964,31 +970,34 @@ public class TestSQLRepositoryProperties {
         Property prop = doc.getProperty("cmpf:attachedFile");
         Map<String, Object> expected = new HashMap<>();
         expected.put("name", null);
-        expected.put("vignettes", Collections.emptyList());
+        expected.put("vignettes", List.of());
         assertEquals(expected, prop.getValue());
 
         // check that we can write to it as well
-        prop.setValue(Collections.singletonMap("vignettes",
-                Collections.singletonList(Collections.singletonMap("width", Long.valueOf(123)))));
+        prop.setValue(Map.of("vignettes", List.of(Map.of("width", Long.valueOf(123)))));
         doc = session.saveDocument(doc);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testTwoComplexInSameSchema() throws InterruptedException {
         // create a doc with two complex lists in the same schema
-        doc = session.createDocumentModel("/", "mydoc", "MyDocType2");
+        doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.addFacet(COMMON_ADDITIONAL_COMPLEX_FACET);
         doc = session.createDocument(doc);
         DocumentRef docRef = doc.getRef();
         session.save();
         nextTransaction();
         doc.refresh();
-        assertEquals(map("foo", null, "bar", null), doc.getPropertyValue("cpx:complex"));
+        var complexMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertNull(complexMap.get("integer"));
+        assertNull(complexMap.get("long"));
 
         // another thread changes one of the complex properties
         Thread t = new Thread(() -> TransactionHelper.runInTransaction(
                 () -> CoreInstance.doPrivileged(session.getRepositoryName(), s -> {
                     DocumentModel d = s.getDocument(docRef);
-                    d.setPropertyValue("cpx:complex", (Serializable) map("foo", "1"));
+                    d.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("long", 1L));
                     d = s.saveDocument(d);
                     s.save();
                 })));
@@ -1002,15 +1011,23 @@ public class TestSQLRepositoryProperties {
 
         // property "complex" has the old value as the high-level doc has not been refreshed
         // but subsequent save shouldn't write this old value as it's not dirty
-        assertEquals(map("foo", null, "bar", null), doc.getPropertyValue("cpx:complex"));
+        complexMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertNull(complexMap.get("integer"));
+        assertNull(complexMap.get("long"));
         // change property "complex2"
-        doc.setPropertyValue("cpx:complex2", (Serializable) map("bar", "1"));
+        doc.setPropertyValue(COMMON_COMPLEX2_PROP, (Serializable) map("integer", 1L));
         doc = session.saveDocument(doc);
         session.save();
 
         // check that the value changed by the thread hasn't been overwritten
         doc.refresh();
-        assertEquals(map("foo", "1", "bar", null), doc.getPropertyValue("cpx:complex"));
+        complexMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertNull(complexMap.get("integer"));
+        assertEquals(1L, complexMap.get("long"));
+
+        var complex2Map = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX2_PROP);
+        assertEquals(1L, complex2Map.get("integer"));
+        assertNull(complex2Map.get("long"));
     }
 
     /*
@@ -1063,9 +1080,8 @@ public class TestSQLRepositoryProperties {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         File file = createTempFile();
         HashMap<String, String> map = new HashMap<>();
         String uri = String.format("fs:%s", file.getName());
@@ -1086,9 +1102,8 @@ public class TestSQLRepositoryProperties {
 
     // this time only set the uri
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobDocumentProperty2() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         File file = createTempFile();
         String uri = String.format("fs:%s", file.getName());
         doc.setPropertyValue("tp:externalcontent/uri", uri);
@@ -1107,9 +1122,8 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testExternalBlobListValue() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         // not null on list
         String propName = "tp:externalFileList";
         assertTrue(doc.getPropertyValue(propName) instanceof List);
@@ -1132,7 +1146,7 @@ public class TestSQLRepositoryProperties {
         List<Blob> blobs = (List<Blob>) actual;
         assertEquals(1, blobs.size());
         assertNotNull(blobs.get(0));
-        assertTrue(blobs.get(0) instanceof Blob);
+        assertNotNull(blobs.get(0));
         Blob actualBlob = blobs.get(0);
         assertEquals("Hello External Blob", actualBlob.getString());
         assertEquals("hello.txt", actualBlob.getFilename());
@@ -1143,9 +1157,8 @@ public class TestSQLRepositoryProperties {
     // ignore externalblob stuff
     @Ignore
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class)
     public void testSubExternalBlobValue() throws Exception {
-        assumeTrue(coreFeature.getStorageConfiguration().isVCS());
-
         String propName = "tp:externalFileComplexList";
         // not null on list
         assertTrue(doc.getPropertyValue(propName) instanceof List);
@@ -1334,15 +1347,15 @@ public class TestSQLRepositoryProperties {
     public void testPropertyDelta() {
         int base = 100;
         int delta = 123;
-        doc = session.createDocumentModel("/", "doc", "MyDocType");
-        doc.setPropertyValue("my:integer", Long.valueOf(base));
+        doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, Long.valueOf(base));
         doc = session.createDocument(doc);
         session.save();
 
-        doc.setPropertyValue("my:integer", DeltaLong.valueOf(Long.valueOf(base), delta));
+        doc.setPropertyValue(COMMON_INTEGER_PROP, DeltaLong.valueOf(Long.valueOf(base), delta));
 
         // re-reading the property before saveDocument() returns the Delta
-        Serializable value = doc.getPropertyValue("my:integer");
+        Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof DeltaLong);
         assertEquals(DeltaLong.valueOf(Long.valueOf(base), delta), value);
 
@@ -1350,17 +1363,17 @@ public class TestSQLRepositoryProperties {
 
         // write another property in the same schema
         // to make sure the delta is not applied twice
-        doc.setPropertyValue("my:string", "foo");
+        doc.setPropertyValue(COMMON_STRING_PROP, "foo");
         doc = session.saveDocument(doc);
 
         // after saveDocument() we still have a DeltaLong which is needed to keep base context
-        value = doc.getPropertyValue("my:integer");
+        value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof DeltaLong);
         assertEquals(DeltaLong.valueOf(Long.valueOf(base), delta), value);
 
         // even if we refetch it's still a DeltaLong
         doc = session.getDocument(new IdRef(doc.getId()));
-        value = doc.getPropertyValue("my:integer");
+        value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof DeltaLong);
         assertEquals(DeltaLong.valueOf(Long.valueOf(base), delta), value);
 
@@ -1368,13 +1381,13 @@ public class TestSQLRepositoryProperties {
         doc = session.getDocument(new IdRef(doc.getId()));
 
         // after save() and refetch we now have a Long
-        value = doc.getPropertyValue("my:integer");
+        value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(Long.valueOf(base + delta), value);
 
         // write another property in the same schema
         // to make sure the delta is not applied twice
-        doc.setPropertyValue("my:string", "bar");
+        doc.setPropertyValue(COMMON_STRING_PROP, "bar");
         doc = session.saveDocument(doc);
         session.save();
 
@@ -1382,7 +1395,7 @@ public class TestSQLRepositoryProperties {
 
         // after refetch it's a Long with the correct incremented value
         doc = session.getDocument(new IdRef(doc.getId()));
-        value = doc.getPropertyValue("my:integer");
+        value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(Long.valueOf(base + delta), value);
     }
@@ -1391,17 +1404,17 @@ public class TestSQLRepositoryProperties {
     public void testPropertyDeltaTwice() {
         int base = 100;
         int delta = 123;
-        doc = session.createDocumentModel("/", "doc", "MyDocType");
+        doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         Long v1 = Long.valueOf(base);
-        doc.setPropertyValue("my:integer", v1);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, v1);
         doc = session.createDocument(doc);
         session.save();
 
         DeltaLong v2 = DeltaLong.valueOf(v1, delta);
-        doc.setPropertyValue("my:integer", v2);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, v2);
         doc = session.saveDocument(doc);
         DeltaLong v3 = DeltaLong.valueOf(v2, delta);
-        doc.setPropertyValue("my:integer", v3);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, v3);
         doc = session.saveDocument(doc);
 
         session.save();
@@ -1410,22 +1423,22 @@ public class TestSQLRepositoryProperties {
 
         // after refetch it's a Long with the correct incremented value
         doc = session.getDocument(new IdRef(doc.getId()));
-        Serializable value = doc.getPropertyValue("my:integer");
+        Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(Long.valueOf(base + delta * 2), value);
     }
 
     @Test
     public void testPropertyDeltaWithoutSave() {
-        doc = session.createDocumentModel("/", "doc", "MyDocType");
-        doc.setPropertyValue("my:integer", Long.valueOf(100));
+        doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, Long.valueOf(100));
         doc = session.createDocument(doc);
         session.save();
 
         // reset to 0 then apply increment without intervening database save
-        doc.setPropertyValue("my:integer", Long.valueOf(0));
+        doc.setPropertyValue(COMMON_INTEGER_PROP, Long.valueOf(0));
         doc = session.saveDocument(doc);
-        doc.setPropertyValue("my:integer", DeltaLong.valueOf(Long.valueOf(0), 123));
+        doc.setPropertyValue(COMMON_INTEGER_PROP, DeltaLong.valueOf(Long.valueOf(0), 123));
         doc = session.saveDocument(doc);
         session.save();
 
@@ -1433,25 +1446,25 @@ public class TestSQLRepositoryProperties {
 
         // refetch
         doc = session.getDocument(new IdRef(doc.getId()));
-        Serializable value = doc.getPropertyValue("my:integer");
+        Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(Long.valueOf(123), value);
     }
 
     @Test
     public void testPropertyDeltaAfterNull() {
-        doc = session.createDocumentModel("/", "doc", "MyDocType");
-        doc.setPropertyValue("my:integer", Long.valueOf(0));
+        doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, Long.valueOf(0));
         doc = session.createDocument(doc);
         session.save();
 
         // set to null
-        doc.setPropertyValue("my:integer", null);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, null);
         doc = session.saveDocument(doc);
         session.save();
 
         // now apply the delta
-        doc.setPropertyValue("my:integer", DeltaLong.valueOf(null, 123));
+        doc.setPropertyValue(COMMON_INTEGER_PROP, DeltaLong.valueOf(null, 123));
         doc = session.saveDocument(doc);
         session.save();
 
@@ -1459,7 +1472,7 @@ public class TestSQLRepositoryProperties {
 
         // after refetch it's a Long with the correct value
         doc = session.getDocument(new IdRef(doc.getId()));
-        Serializable value = doc.getPropertyValue("my:integer");
+        Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertNotNull(value);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(123, ((Long) value).longValue());
@@ -1473,8 +1486,8 @@ public class TestSQLRepositoryProperties {
         int n = 10;
         int base = 100;
         for (int i = 0; i < n; i++) {
-            DocumentModel doc = session.createDocumentModel("/", "doc" + i, "MyDocType");
-            doc.setPropertyValue("my:integer", Long.valueOf(base));
+            DocumentModel doc = session.createDocumentModel("/", "doc" + i, COMMON_DOC_TYPE);
+            doc.setPropertyValue(COMMON_INTEGER_PROP, Long.valueOf(base));
             doc = session.createDocument(doc);
         }
         session.save();
@@ -1492,10 +1505,10 @@ public class TestSQLRepositoryProperties {
                 // the full value
                 value = DeltaLong.valueOf(Long.valueOf(base), i);
             }
-            doc.setPropertyValue("my:integer", value);
+            doc.setPropertyValue(COMMON_INTEGER_PROP, value);
             if (i % 2 == 0) {
                 // also sometimes change another property
-                doc.setPropertyValue("my:string", "foo" + i);
+                doc.setPropertyValue(COMMON_STRING_PROP, "foo" + i);
             }
             doc = session.saveDocument(doc);
         }
@@ -1506,7 +1519,7 @@ public class TestSQLRepositoryProperties {
 
         for (int i = 0; i < n; i++) {
             DocumentModel doc = session.getDocument(new PathRef("/doc" + i));
-            Serializable value = doc.getPropertyValue("my:integer");
+            Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
             Serializable expected;
             if (i < n / 2) {
                 expected = Long.valueOf(i);
@@ -1522,23 +1535,22 @@ public class TestSQLRepositoryProperties {
      */
     @Test
     public void testPropertyDeltaOnCreate() {
-        doc = session.createDocumentModel("/", "doc", "MyDocType");
-        doc.setPropertyValue("my:integer", DeltaLong.valueOf(Long.valueOf(100), 123));
+        doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_INTEGER_PROP, DeltaLong.valueOf(Long.valueOf(100), 123));
         doc = session.createDocument(doc);
         session.save();
 
-        Serializable value = doc.getPropertyValue("my:integer");
+        Serializable value = doc.getPropertyValue(COMMON_INTEGER_PROP);
         assertTrue(value.getClass().getName(), value instanceof Long);
         assertEquals(223, ((Long) value).longValue());
     }
 
     // DBS-only test for in-db data migration
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class)
     public void testMigrationListVsString() {
-        assumeTrue(coreFeature.getStorageConfiguration().isDBS());
-
         // create a doc
-        DocumentModel doc = session.createDocumentModel("/", "domain", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         String id = doc.getId();
         session.save();
@@ -1547,15 +1559,15 @@ public class TestSQLRepositoryProperties {
 
         // change data
         StateDiff diff = new StateDiff();
-        diff.put("dc:subjects", "a"); // put a string instead of an array
-        diff.put("dc:title", new String[] { "aa", "bb" }); // put an array instead of a string
+        diff.put(COMMON_ARRAY_STRING_PROP, "a"); // put a string instead of an array
+        diff.put(COMMON_STRING_PROP, new String[] { "aa", "bb" }); // put an array instead of a string
         changeDoc(id, diff);
 
         // check that we don't crash on read
         doc = session.getDocument(doc.getRef());
-        assertEquals(Collections.singletonList("a"), Arrays.asList((Object[]) doc.getPropertyValue("dc:subjects")));
-        assertEquals("aa", doc.getPropertyValue("dc:title"));
-        assertNull(doc.getPropertyValue("dc:contributors"));
+        assertEquals(List.of("a"), List.of((Object[]) doc.getPropertyValue(COMMON_ARRAY_STRING_PROP)));
+        assertEquals("aa", doc.getPropertyValue(COMMON_STRING_PROP));
+        assertNull(doc.getPropertyValue(COMMON_ARRAY_INTEGER_PROP));
     }
 
     // change data in the database to make it like we just migrated the fields from different types
@@ -1569,113 +1581,110 @@ public class TestSQLRepositoryProperties {
 
     @Test
     public void testComplexListArrayElementResetWithNull() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType");
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "foo" })));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of(Map.of("strings", new String[] { "foo" })));
         doc = session.createDocument(doc);
         session.save();
 
         // set map value to null
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", null)));
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of(Collections.singletonMap("strings", null)));
         doc = session.saveDocument(doc);
         session.save();
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) doc.getPropertyValue("complexlist");
+        var list = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
         assertEquals(1, list.size());
         Map<String, Serializable> map = list.get(0);
-        Object[] array = (Object[]) map.get("array");
+        Object[] array = (Object[]) map.get("arrayString");
         assertNull(array);
     }
 
     @Test
     public void testComplexListArrayElementResetWithEmptyArray() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType");
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "foo" })));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "foo" })));
         doc = session.createDocument(doc);
         session.save();
 
         // set map value to empty array
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] {})));
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of(Map.of("arrayString", new String[] {})));
         doc = session.saveDocument(doc);
         session.save();
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) doc.getPropertyValue("complexlist");
+        var list = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
         assertEquals(1, list.size());
         Map<String, Serializable> map = list.get(0);
-        Object[] array = (Object[]) map.get("array");
+        Object[] array = (Object[]) map.get("arrayString");
         assertNull(array);
     }
 
     @Test
     public void testComplexListArrayElementModify() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType");
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "foo" })));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "foo" })));
         doc = session.createDocument(doc);
         session.save();
 
         // replace map value with new array of same size
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "bar" })));
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "bar" })));
         doc = session.saveDocument(doc);
         session.save();
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) doc.getPropertyValue("complexlist");
+        var list = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
         assertEquals(1, list.size());
         Map<String, Serializable> map = list.get(0);
-        assertEquals(1, ((String[]) map.get("array")).length);
-        assertEquals("bar", ((String[]) map.get("array"))[0]);
+        assertEquals(1, ((String[]) map.get("arrayString")).length);
+        assertEquals("bar", ((String[]) map.get("arrayString"))[0]);
     }
 
     @Test
     public void testComplexListArrayElementGrow() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType");
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "foo" })));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "foo" })));
         doc = session.createDocument(doc);
         session.save();
 
         // replace map value with new array of bigger size
-        doc.setPropertyValue("complexlist", (Serializable) Collections.singletonList(
-                Collections.singletonMap("array", new String[] { "bar", "baz" })));
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "bar", "baz" })));
         doc = session.saveDocument(doc);
         session.save();
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) doc.getPropertyValue("complexlist");
+        var list = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
         assertEquals(1, list.size());
         Map<String, Serializable> map = list.get(0);
-        assertEquals(2, ((String[]) map.get("array")).length);
-        assertEquals("bar", ((String[]) map.get("array"))[0]);
-        assertEquals("baz", ((String[]) map.get("array"))[1]);
+        assertEquals(2, ((String[]) map.get("arrayString")).length);
+        assertEquals("bar", ((String[]) map.get("arrayString"))[0]);
+        assertEquals("baz", ((String[]) map.get("arrayString"))[1]);
     }
 
     @Test
     public void testComplexListArrayElementShrink() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType");
-        doc.setPropertyValue("complexlist", (Serializable) Collections.singletonList(
-                Collections.singletonMap("array", new String[] { "foo", "bar" })));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "foo", "bar" })));
         doc = session.createDocument(doc);
         session.save();
 
         // replace map value with new array of smaller size
-        doc.setPropertyValue("complexlist",
-                (Serializable) Collections.singletonList(Collections.singletonMap("array", new String[] { "baz" })));
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("arrayString", new String[] { "baz" })));
         doc = session.saveDocument(doc);
         session.save();
 
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> list = (List<Map<String, Serializable>>) doc.getPropertyValue("complexlist");
+        var list = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
         assertEquals(1, list.size());
         Map<String, Serializable> map = list.get(0);
-        assertEquals(1, ((String[]) map.get("array")).length);
-        assertEquals("baz", ((String[]) map.get("array"))[0]);
+        assertEquals(1, ((String[]) map.get("arrayString")).length);
+        assertEquals("baz", ((String[]) map.get("arrayString"))[0]);
     }
 
     /**
@@ -1686,16 +1695,16 @@ public class TestSQLRepositoryProperties {
      */
     @Test
     public void testGetComplexMap() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType2");
-        doc.setPropertyValue("cpx:complex", (Serializable) map("foo", "foo1"));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("string", "foo1"));
         doc = session.createDocument(doc);
         session.save();
 
         // check
         @SuppressWarnings("unchecked")
-        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue("cpx:complex");
-        Map<String, Serializable> expectedMap = map("foo", "foo1", "bar", null);
-        assertEquals(expectedMap, updatedMap);
+        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertEquals("foo1", updatedMap.get("string"));
+        assertNull(updatedMap.get("integer"));
     }
 
     /**
@@ -1709,101 +1718,96 @@ public class TestSQLRepositoryProperties {
     @SuppressWarnings("unchecked")
     @Test
     public void testSetComplexMap() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType2");
-        doc.setPropertyValue("cpx:complex", (Serializable) map("foo", "foo1", "bar", "bar1"));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("string", "string1", "long", 1L));
         doc = session.createDocument(doc);
         session.save();
 
         // update
-        doc.setPropertyValue("cpx:complex", (Serializable) map("foo", "foo2"));
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("string", "string2"));
         doc = session.saveDocument(doc);
         session.save();
 
         // check
-        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue("cpx:complex");
-        Map<String, Serializable> expectedMap;
+        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertEquals("string2", updatedMap.get("string"));
         if (schemaManager.getClearComplexPropertyBeforeSet()) {
-            expectedMap = map("foo", "foo2", "bar", null);
+            assertNull(updatedMap.get("long"));
         } else {
-            expectedMap = map("foo", "foo2", "bar", "bar1");
+            assertEquals(1L, updatedMap.get("long"));
         }
-        assertEquals(expectedMap, updatedMap);
 
         // update again
         // do an individual update through property xpath
-        doc.getProperty("cpx:complex/bar").setValue("bar2");
+        doc.getProperty(COMMON_COMPLEX_LONG_PROP).setValue(2L);
 
         // check
-        updatedMap = (Map<String, Serializable>) doc.getPropertyValue("cpx:complex");
-        expectedMap = map("foo", "foo2", "bar", "bar2");
-        assertEquals(expectedMap, updatedMap);
+        updatedMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertEquals("string2", updatedMap.get("string"));
+        assertEquals(2L, updatedMap.get("long"));
     }
 
     /**
      * <pre>
-     * from {"foo": "foo1", "bar": "bar1"}
-     * write {"foo": null}
-     * =&gt; {"foo": null, "bar": null}
-     * COMPAT: {"foo": null, "bar": "bar1"}
+     * from {"string": "string1", "long": 1}
+     * write {"string": null}
+     * =&gt; {"string": null, "long": null}
+     * COMPAT: {"string": null, "long": 1}
      * </pre>
      */
     @Test
     public void testSetComplexMapWithNullValue() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType2");
-        doc.setPropertyValue("cpx:complex", (Serializable) map("foo", "foo1", "bar", "bar1"));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("string", "string1", "long", 1L));
         doc = session.createDocument(doc);
         session.save();
 
         // update with a null value
-        doc.setPropertyValue("cpx:complex", (Serializable) map("foo", null));
+        doc.setPropertyValue(COMMON_COMPLEX_PROP, (Serializable) map("string", null));
         doc = session.saveDocument(doc);
         session.save();
 
         // check
         @SuppressWarnings("unchecked")
-        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue("cpx:complex");
-        Map<String, Serializable> expectedMap;
+        Map<String, Serializable> updatedMap = (Map<String, Serializable>) doc.getPropertyValue(COMMON_COMPLEX_PROP);
+        assertNull(updatedMap.get("string"));
         if (schemaManager.getClearComplexPropertyBeforeSet()) {
-            expectedMap = map("foo", null, "bar", null);
+            assertNull(updatedMap.get("long"));
         } else {
-            expectedMap = map("foo", null, "bar", "bar1");
+            assertEquals(1L, updatedMap.get("long"));
         }
-        assertEquals(expectedMap, updatedMap);
     }
 
     /**
      * <pre>
-     * from [{"foo": "foo1", "bar": "bar1"}]
-     * write [{"foo": "foo2"}]
-     * =&gt; [{"foo": "foo2", "bar": null}]
-     * COMPAT: [{"foo": "foo2", "bar": "bar1"}]
+     * from [{"string": "string1", "long": 1}]
+     * write [{"string": "string2"}]
+     * =&gt; [{"string": "string2", "bar": null}]
+     * COMPAT: [{"string": "string2", "bar": 1}]
      * </pre>
      */
     @Test
     public void testSetComplexMapInList() {
-        DocumentModel doc = session.createDocumentModel("/", "mydoc", "MyDocType2");
-        doc.setPropertyValue("cpxl:complexList",
-                (Serializable) Collections.singletonList(map("foo", "foo1", "bar", "bar1")));
+        DocumentModel doc = session.createDocumentModel("/", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of(map("string", "string1", "long", 1L)));
         doc = session.createDocument(doc);
         session.save();
 
         // update
-        List<Map<String, Serializable>> updateList = Collections.singletonList(map("foo", "foo2"));
-        doc.setPropertyValue("cpxl:complexList", (Serializable) updateList);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of(map("string", "string2")));
         doc = session.saveDocument(doc);
         session.save();
 
         // check
         @SuppressWarnings("unchecked")
-        List<Map<String, Serializable>> updatedList = (List<Map<String, Serializable>>) doc.getPropertyValue(
-                "cpxl:complexList");
-        List<Map<String, Serializable>> expectedList;
+        var updatedList = (List<Map<String, Serializable>>) doc.getPropertyValue(COMMON_COMPLEXES_PROP);
+        assertFalse(updatedList.isEmpty());
+        assertEquals("string2", updatedList.get(0).get("string"));
         if (schemaManager.getClearComplexPropertyBeforeSet()) {
-            expectedList = Collections.singletonList(map("foo", "foo2", "bar", null));
+            assertNull(updatedList.get(0).get("long"));
         } else {
-            expectedList = Collections.singletonList(map("foo", "foo2", "bar", "bar1"));
+            assertEquals(1L, updatedList.get(0).get("long"));
         }
-        assertEquals(expectedList, updatedList);
     }
 
     // NXP-30550
@@ -1855,8 +1859,8 @@ public class TestSQLRepositoryProperties {
     @Test
     public void testSetDocumentSystemPropOnVersion() {
         // what we test
-        List<String> stringSysProps = Arrays.asList("fulltextSimple", "fulltextBinary", "fulltextJobId");
-        List<String> booleanSysProps = Collections.singletonList("isTrashed");
+        List<String> stringSysProps = List.of("fulltextSimple", "fulltextBinary", "fulltextJobId");
+        List<String> booleanSysProps = List.of("isTrashed");
 
         DocumentModel doc = session.createDocumentModel("/", "doc", "File");
         doc = session.createDocument(doc);

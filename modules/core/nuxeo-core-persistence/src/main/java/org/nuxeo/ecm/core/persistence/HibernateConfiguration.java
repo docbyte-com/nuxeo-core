@@ -27,11 +27,12 @@ import java.util.Map;
 
 import javax.naming.Context;
 import javax.naming.NamingException;
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
-import javax.persistence.spi.PersistenceUnitTransactionType;
-import javax.transaction.TransactionManager;
-import javax.transaction.UserTransaction;
+
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Persistence;
+import jakarta.persistence.spi.PersistenceUnitTransactionType;
+import jakarta.transaction.TransactionManager;
+import jakarta.transaction.UserTransaction;
 
 import org.hibernate.HibernateException;
 import org.hibernate.cfg.AvailableSettings;
@@ -74,13 +75,12 @@ public class HibernateConfiguration implements EntityManagerFactoryProvider {
 
     @Override
     public EntityManagerFactory getFactory(String txType) {
-        Map<String, String> properties = new HashMap<>();
-        properties.putAll(hibernateProperties);
+        Map<String, String> properties = new HashMap<>(hibernateProperties);
 
         if (txType == null) {
             txType = getTxType();
         }
-        properties.put(AvailableSettings.JPA_TRANSACTION_TYPE, txType);
+        properties.put(AvailableSettings.JAKARTA_TRANSACTION_TYPE, txType);
         // no need to set "hibernate.transaction.coordinator_class" (AvailableSettings.TRANSACTION_COORDINATOR_STRATEGY)
         // as in Hibernate 3, it is now done by EntityManagerFactoryBuilderImpl#normalizeTransactionCoordinator
         if (txType.equals(JTA)) {

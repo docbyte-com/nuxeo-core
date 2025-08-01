@@ -23,11 +23,7 @@ import static org.apache.commons.lang3.ObjectUtils.getFirstNonNull;
 import java.util.function.Supplier;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.runners.model.FrameworkMethod;
-import org.nuxeo.ecm.core.blob.BlobManager;
-import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 /**
@@ -35,15 +31,8 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 public class AbstractCloudBlobProviderFeature implements RunnerFeature {
 
-    protected static void clearBlobStore(String blobProviderId) {
-        var blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blobProviderId);
-        var blobStore = ((BlobStoreBlobProvider) blobProvider).store;
-        blobStore.clear();
-    }
+    protected AbstractCloudBlobProviderFeature() {
 
-    protected static void clearBlobStores() {
-        clearBlobStore("test");
-        clearBlobStore("other");
     }
 
     protected static String configureProperty(String key,
@@ -72,13 +61,4 @@ public class AbstractCloudBlobProviderFeature implements RunnerFeature {
         return () -> prefix == null ? null : getUniqueBucketPrefix(prefix);
     }
 
-    @Override
-    public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
-        clearBlobStores();
-    }
-
-    @Override
-    public void beforeSetup(FeaturesRunner runner, FrameworkMethod method, Object test) {
-        clearBlobStores();
-    }
 }

@@ -21,7 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,11 +72,6 @@ public class TestDocumentWrapper {
         String lifecycleState = session.getCurrentLifeCycleState(doc.getRef());
         assertEquals("At first, the document currentlifecycle state is", "project", lifecycleState);
 
-        // The automation chain should be similar to the following:
-        //
-        // session.followTransition(doc.getRef(), "delete");
-        // session.save();
-        //
         // Run the script operation:
         runChain(doc, "followTransitionApprove");
 

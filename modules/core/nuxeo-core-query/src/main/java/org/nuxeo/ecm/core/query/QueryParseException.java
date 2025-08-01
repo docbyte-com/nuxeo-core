@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.core.query;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 

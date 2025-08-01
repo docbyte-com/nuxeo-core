@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.Blob;
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Funsho David
  *
  */
-
 package org.nuxeo.ecm.restapi.test;
 
 import static org.apache.http.HttpStatus.SC_CREATED;
@@ -27,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.api.security.ACL.LOCAL_ACL;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYTHING;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
@@ -43,7 +42,7 @@ import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.restapi.jaxrs.io.RestConstants;
+import org.nuxeo.ecm.restapi.io.RestConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.http.test.handler.VoidHandler;
@@ -100,9 +99,16 @@ public class DocumentAutoVersioningTest {
         // meaning the minor version should increment if the last contributor has changed
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{ " + "     \"entity-type\": \"document\"," + "     \"type\": \"File\","
-                + "     \"name\":\"myFile\"," + "     \"properties\": {" + "         \"dc:title\":\"My title\""
-                + "     }" + "}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "properties": {
+                    "dc:title": "My title"
+                  }
+                }
+                """;
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
                               .entity(data)
                               .executeAndThen(new JsonNodeHandler(SC_CREATED), node -> node.get("uid").asText());
@@ -124,10 +130,18 @@ public class DocumentAutoVersioningTest {
         assertEquals("Administrator", doc.getPropertyValue("dc:lastContributor"));
         assertEquals("0.0", doc.getVersionLabel());
 
-        String payload = "{  " + "         \"entity-type\": \"document\"," + "         \"name\": \"myFile\","
-                + "         \"type\": \"File\"," + "         \"state\": \"project\","
-                + "         \"title\": \"New title\"," + "         \"properties\": {"
-                + "             \"dc:description\":\"myDesc\"" + "         }" + "     }";
+        String payload = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "state": "project",
+                  "title": "New title",
+                  "properties": {
+                    "dc:description": "myDesc"
+                  }
+                }
+                """;
         httpClient.buildPutRequest("/id/" + doc.getId())
                   .credentials("user0", "user0")
                   .entity(payload)
@@ -148,9 +162,16 @@ public class DocumentAutoVersioningTest {
     public void iCanDoTimeBasedVersioning() throws InterruptedException {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{ " + "     \"entity-type\": \"document\"," + "     \"type\": \"File\","
-                + "     \"name\":\"myFile\"," + "     \"properties\": {" + "         \"dc:title\":\"My title\""
-                + "     }" + "}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "properties": {
+                    "dc:title": "My title"
+                  }
+                }
+                """;
 
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
                               .entity(data)
@@ -160,10 +181,18 @@ public class DocumentAutoVersioningTest {
         Thread.sleep(1000);
         transactionalFeature.nextTransaction();
 
-        String payload = "{  " + "         \"entity-type\": \"document\"," + "         \"name\": \"myFile\","
-                + "         \"type\": \"File\"," + "         \"state\": \"project\","
-                + "         \"title\": \"New title\"," + "         \"properties\": {"
-                + "             \"dc:description\":\"myDesc\"" + "         }" + "     }";
+        String payload = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "state": "project",
+                  "title": "New title",
+                  "properties": {
+                    "dc:description": "myDesc"
+                  }
+                }
+                """;
         httpClient.buildPutRequest("/id/" + id).entity(payload).execute(new VoidHandler());
         transactionalFeature.nextTransaction();
 
@@ -176,9 +205,16 @@ public class DocumentAutoVersioningTest {
     public void iCanDoLifeCycleBasedVersioning() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{ " + "     \"entity-type\": \"document\"," + "     \"type\": \"File\","
-                + "     \"name\":\"myFile\"," + "     \"properties\": {" + "         \"dc:title\":\"My title\""
-                + "     }" + "}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "properties": {
+                    "dc:title": "My title"
+                  }
+                }
+                """;
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
                               .entity(data)
                               .executeAndThen(new JsonNodeHandler(SC_CREATED), node -> node.get("uid").asText());
@@ -201,9 +237,16 @@ public class DocumentAutoVersioningTest {
         DocumentModel folder1 = RestServerInit.getFolder(1, session);
         DocumentModel folder2 = RestServerInit.getFolder(2, session);
 
-        String data =
-                "{ " + "     \"entity-type\": \"document\"," + "     \"type\": \"File\"," + "     \"name\":\"myFile\","
-                        + "     \"properties\": {" + "         \"dc:title\":\"My title\"" + "     }" + "}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "myFile",
+                  "properties": {
+                    "dc:title": "My title"
+                  }
+                }
+                """;
         DocumentRef idRef = httpClient.buildPostRequest("/path" + folder1.getPathAsString())
                                       .addHeader(RestConstants.X_VERSIONING_OPTION, "MINOR")
                                       .entity(data)

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service.cmdtesters;
 
 import org.nuxeo.ecm.platform.commandline.executor.service.CommandLineDescriptor;
@@ -29,6 +25,7 @@ import org.nuxeo.ecm.platform.commandline.executor.service.CommandLineDescriptor
  *
  * @author tiry
  */
+@FunctionalInterface
 public interface CommandTester {
 
     CommandTestResult test(CommandLineDescriptor cmdDescriptor);

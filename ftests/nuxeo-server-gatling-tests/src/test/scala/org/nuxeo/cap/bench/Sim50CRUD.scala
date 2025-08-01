@@ -21,11 +21,11 @@ package org.nuxeo.cap.bench
 import io.gatling.core.Predef._
 import io.gatling.http.Predef._
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.FiniteDuration
 
 object ScnCRUD {
 
-  def get = (documents: Iterator[Map[String, String]], duration: Duration, pause: FiniteDuration) => {
+  def get = (documents: Iterator[Map[String, String]], duration: FiniteDuration, pause: FiniteDuration) => {
     scenario("DeleteCreateUpdateReadDocuments").exec(
       during(duration, "counterName") {
         feed(documents)

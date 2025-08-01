@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.nuxeo.adobe.cc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.nuxeo.ecm.platform.picture.api.ImagingDocumentConstants.PICTURE_TYPE_NAME;
-import static org.nuxeo.ecm.restapi.server.jaxrs.QueryObject.ORDERED_PARAMS;
+import static org.nuxeo.ecm.restapi.server.QueryObject.ORDERED_PARAMS;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +28,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -39,13 +39,15 @@ import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClientAndFulltextSearchDisabled;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.ecm.restapi.test.JsonNodeHelper;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.test.RepositoryElasticSearchFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -57,55 +59,48 @@ import com.fasterxml.jackson.databind.JsonNode;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, RepositoryElasticSearchFeature.class, CollectionFeature.class })
+@Features({ //
+        CollectionFeature.class, //
+        CoreSearchFeature.class, //
+        ImagingFeature.class, //
+        RestServerFeature.class })
 @Deploy("org.nuxeo.adobe.cc.nuxeo-adobe-connector-core")
-@Deploy("org.nuxeo.ecm.platform.picture.core")
 @Deploy("org.nuxeo.ecm.platform.oauth")
 @Deploy("org.nuxeo.ecm.platform.restapi.server.search")
-@Deploy("org.nuxeo.ecm.platform.restapi.test:elasticsearch-test-contrib.xml")
 public class TestPageProviders {
 
-    protected String testWorkspacePath;
-
-    protected String testWorkspaceId;
+    protected static final String TEST_WORKSPACE_PATH = "/default-domain/workspaces/test";
 
     @Inject
     protected CoreSession session;
 
     @Inject
-    protected TransactionalFeature tf;
-
-    @Inject
-    protected ElasticSearchAdmin esa;
-
-    @Inject
     protected RestServerFeature restServerFeature;
+
+    @Inject
+    protected TransactionalFeature transactionalFeature;
 
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
             () -> restServerFeature.getRestApiUrl());
 
+    protected String testWorkspaceId;
+
     @Before
     public void before() {
-        esa.initIndexes(true);
-
-        DocumentModel doc = session.createDocumentModel("/default-domain/workspaces", "test", "Workspace");
-        doc = session.createDocument(doc);
-        session.save();
-
-        testWorkspacePath = doc.getPathAsString();
+        DocumentModel doc = session.getDocument(new PathRef(TEST_WORKSPACE_PATH));
         testWorkspaceId = doc.getId();
     }
 
     @Test
     public void testAllImages() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc = session.createDocument(doc);
 
         final DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-all-images", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         });
     }
 
@@ -115,39 +110,40 @@ public class TestPageProviders {
 
         testPageProvider("adobe-connector-browse", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("path").asText()).isEqualTo(testWorkspacePath);
+            assertThat(entries.getFirst().get("path").asText()).isEqualTo(TEST_WORKSPACE_PATH);
         }, rootId);
     }
 
     @Test
     public void testOthers() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc = session.createDocument(doc);
 
         CollectionManager cm = Framework.getService(CollectionManager.class);
-        DocumentModel collection = cm.createCollection(session, "my-collec", "dummy", testWorkspacePath);
+        DocumentModel collection = cm.createCollection(session, "my-collec", "dummy", TEST_WORKSPACE_PATH);
         cm.addToCollection(collection, doc, session);
 
         AtomicReference<String> collectionId = new AtomicReference<>();
         testPageProvider("adobe-connector-other_primary", (entries) -> {
             assertThat(entries).hasSize(1);
-            collectionId.set(entries.get(0).get("uid").asText());
+            collectionId.set(entries.getFirst().get("uid").asText());
         });
 
         DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-other_secondary", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         }, collectionId.get());
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfRepositorySearchClientAndFulltextSearchDisabled.class, cause = "The PP needs fulltext search")
     public void testSearch() {
-        DocumentModel doc = session.createDocumentModel(testWorkspacePath, "foo", PICTURE_TYPE_NAME);
+        DocumentModel doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "foo", PICTURE_TYPE_NAME);
         doc.setPropertyValue("dc:description", "hello");
         session.createDocument(doc);
 
-        doc = session.createDocumentModel(testWorkspacePath, "bar", PICTURE_TYPE_NAME);
+        doc = session.createDocumentModel(TEST_WORKSPACE_PATH, "bar", PICTURE_TYPE_NAME);
         doc.setPropertyValue("dc:description", "world");
         doc = session.createDocument(doc);
 
@@ -158,13 +154,13 @@ public class TestPageProviders {
         DocumentModel finalDoc = doc;
         testPageProvider("adobe-connector-search", (entries) -> {
             assertThat(entries).hasSize(1);
-            assertThat(entries.get(0).get("uid").asText()).isEqualTo(finalDoc.getId());
+            assertThat(entries.getFirst().get("uid").asText()).isEqualTo(finalDoc.getId());
         }, params);
     }
 
     protected void testPageProvider(String ppName, Consumer<List<JsonNode>> consumer, Map<String, String> qarams,
             String... parameters) {
-        tf.nextTransaction();
+        transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/search/pp/" + ppName + "/execute")
                   .addQueryParameter(ORDERED_PARAMS, parameters)

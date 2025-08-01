@@ -20,9 +20,9 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling.service;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.platform.web.common.exceptionhandling.NuxeoExceptionHandler;
 
@@ -30,7 +30,7 @@ public interface ExceptionHandlingService {
 
     NuxeoExceptionHandler getExceptionHandler();
 
-    void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, Throwable t) throws IOException,
-            ServletException;
+    void forwardToErrorPage(HttpServletRequest request, HttpServletResponse response, Throwable t)
+            throws IOException, ServletException;
 
 }

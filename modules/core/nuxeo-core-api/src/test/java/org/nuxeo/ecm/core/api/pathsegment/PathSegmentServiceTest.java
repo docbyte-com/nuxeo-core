@@ -27,7 +27,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -127,6 +127,13 @@ public class PathSegmentServiceTest {
         s = "foo/bar";
         assertEquals("foo-bar", service.generatePathSegment(s));
 
+        // converts @
+        s = "@";
+        assertEquals("_", service.generatePathSegment(s));
+        s = "@foo";
+        assertEquals("_foo", service.generatePathSegment(s));
+        s = "foo@bar";
+        assertEquals("foo@bar", service.generatePathSegment(s));
     }
 
 }

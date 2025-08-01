@@ -51,6 +51,7 @@ import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventCategories;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
@@ -95,35 +96,6 @@ public abstract class AbstractTrashService implements TrashService {
      * We also attempt to remove this when getting a doc out of the trash.
      */
     protected static final Pattern COLLISION_PATTERN = Pattern.compile("(.*)\\.[0-9]{13,}");
-
-    @Override
-    public boolean folderAllowsDelete(DocumentModel folder) {
-        return folder.getCoreSession().hasPermission(folder.getRef(), SecurityConstants.REMOVE_CHILDREN);
-    }
-
-    @Override
-    public boolean checkDeletePermOnParents(List<DocumentModel> docs) {
-        if (docs.isEmpty()) {
-            return false;
-        }
-        CoreSession session = docs.get(0).getCoreSession();
-        for (DocumentModel doc : docs) {
-            if (session.hasPermission(doc.getParentRef(), SecurityConstants.REMOVE_CHILDREN)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean canDelete(List<DocumentModel> docs, NuxeoPrincipal principal, boolean checkProxies) {
-        if (docs.isEmpty()) {
-            return false;
-        }
-        // used to do only check on parent perm
-        TrashInfo info = getInfo(docs, principal, checkProxies, false);
-        return !info.docs.isEmpty();
-    }
 
     @Override
     public boolean canPurgeOrUntrash(List<DocumentModel> docs, NuxeoPrincipal principal) {
@@ -211,8 +183,7 @@ public abstract class AbstractTrashService implements TrashService {
 
     }
 
-    @Override
-    public TrashInfo getTrashInfo(List<DocumentModel> docs, NuxeoPrincipal principal, boolean checkProxies,
+    protected TrashInfo getTrashInfo(List<DocumentModel> docs, NuxeoPrincipal principal, boolean checkProxies,
             boolean checkDeleted) {
         TrashInfo info = getInfo(docs, principal, checkProxies, checkDeleted);
         // Keep only common tree roots (see NXP-1411)
@@ -236,8 +207,7 @@ public abstract class AbstractTrashService implements TrashService {
         return info;
     }
 
-    @Override
-    public DocumentModel getAboveDocument(DocumentModel doc, Set<Path> rootPaths) {
+    protected DocumentModel getAboveDocument(DocumentModel doc, Set<Path> rootPaths) {
         CoreSession session = doc.getCoreSession();
         while (underOneOf(doc.getPath(), rootPaths)) {
             doc = session.getParentDocument(doc.getRef());
@@ -334,9 +304,7 @@ public abstract class AbstractTrashService implements TrashService {
     }
 
     @Override
-    public void untrashDocuments(List<DocumentModel> docs) {
-        undeleteDocuments(docs);
-    }
+    public abstract void untrashDocuments(List<DocumentModel> docs);
 
     @Override
     public boolean isMangledName(String docName) {

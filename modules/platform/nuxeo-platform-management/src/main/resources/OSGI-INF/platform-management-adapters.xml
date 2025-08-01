@@ -4,8 +4,7 @@
   <require>org.nuxeo.runtime.management.ResourcePublisher</require>
   <require>org.nuxeo.ecm.platform.audit.service.NXAuditEventsService</require>
 
-  <extension target="org.nuxeo.runtime.management.ResourcePublisher"
-    point="factories">
+  <extension target="org.nuxeo.runtime.management.ResourcePublisher" point="factories">
 
    <factory name="httpSessionMetric"
       class="org.nuxeo.ecm.platform.management.adapters.HttpSessionMetricFactory" />
@@ -14,7 +13,7 @@
       class="org.nuxeo.ecm.platform.management.adapters.RuntimeInventoryFactory" />
 
     <factory name="auditMetric"
-      class="org.nuxeo.ecm.platform.audit.service.management.AuditEventMetricFactory"/>
+      class="org.nuxeo.audit.service.management.AuditEventMetricFactory"/>
 
   </extension>
 

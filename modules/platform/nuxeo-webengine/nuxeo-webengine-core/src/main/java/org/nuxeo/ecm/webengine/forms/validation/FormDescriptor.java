@@ -69,30 +69,30 @@ public class FormDescriptor {
         }
     }
 
-    static class Field {
-        CompositeValidator validator;
+    protected static class Field {
+        protected CompositeValidator validator;
 
-        String name;
+        protected String name;
 
-        Method m;
+        protected Method m;
 
-        boolean isArray;
+        protected boolean isArray;
 
-        boolean required;
+        protected boolean required;
 
-        boolean notnull;
+        protected boolean notnull;
 
-        String defaultValue;
+        protected String defaultValue;
 
-        TypeConvertor<?> convertor;
+        protected TypeConvertor<?> convertor;
 
-        Field(Method m, String name) throws ReflectiveOperationException {
+        protected Field(Method m, String name) throws ReflectiveOperationException {
             validator = new CompositeValidator();
             // not null
             NotNull nn = m.getAnnotation(NotNull.class);
             if (nn != null) {
                 String dv = nn.value();
-                if (dv.length() > 0) {
+                if (!dv.isEmpty()) {
                     defaultValue = dv;
                 } else {
                     notnull = true;
@@ -141,8 +141,8 @@ public class FormDescriptor {
             this.name = name;
         }
 
-        Object validate(String value) throws ValidationException {
-            if (value == null || value.length() == 0) {
+        protected Object validate(String value) throws ValidationException {
+            if (value == null || value.isEmpty()) {
                 value = null; // "" empty strings are treated as null values
                 if (notnull) {
                     throw new ValidationException();
@@ -160,7 +160,7 @@ public class FormDescriptor {
             return obj;
         }
 
-        Object[] validateArray(String[] values) throws ValidationException {
+        protected Object[] validateArray(String[] values) throws ValidationException {
             List<Object> result = new ArrayList<>();
             for (String value : values) {
                 result.add(validate(value));
@@ -168,7 +168,7 @@ public class FormDescriptor {
             if (convertor != null) {
                 return result.toArray(convertor.newArray(values.length));
             } else {
-                return result.toArray(new String[values.length]);
+                return result.toArray(String[]::new);
             }
         }
     }

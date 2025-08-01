@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,23 @@
  */
 package org.nuxeo.automation.scripting.internals;
 
-import java.util.Arrays;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.automation.OperationDocumentation;
+import org.nuxeo.ecm.automation.OperationType;
+import org.nuxeo.ecm.automation.core.OperationDescriptor;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * @since 7.2
  */
 @XObject("scriptedOperation")
-public class ScriptingOperationDescriptor {
+public class ScriptingOperationDescriptor implements OperationDescriptor {
 
     @XNode("@id")
     protected String id;
@@ -58,12 +63,14 @@ public class ScriptingOperationDescriptor {
     @XNode("script")
     protected String source;
 
-    /**
-     * Information setup at registration according to registering component name.
-     *
-     * @since 11.1
-     */
-    protected String contributingComponent;
+    /** @since 11.1 */
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
+
+    @Override
+    public String getId() {
+        return id;
+    }
 
     public String[] getAliases() {
         return aliases;
@@ -77,13 +84,16 @@ public class ScriptingOperationDescriptor {
         return outputType;
     }
 
-    public String getId() {
-        return id;
-    }
-
     /** @since 2021.17 */
+    @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public boolean replace() {
+        return true;
     }
 
     public String getDescription() {
@@ -98,52 +108,19 @@ public class ScriptingOperationDescriptor {
         return params;
     }
 
-    /**
-     * @since 11.1
-     */
+    /** @since 11.1 */
     public String getContributingComponent() {
-        return contributingComponent;
+        return contributingComponent.getName().getRawName();
     }
 
-    /**
-     * @since 11.1
-     */
-    public void setContributingComponent(String contributingComponent) {
-        this.contributingComponent = contributingComponent;
-    }
-
-    /** @since 2021.17 */
+    /** @since 2025.0 */
     @Override
-    public ScriptingOperationDescriptor clone() {
-        ScriptingOperationDescriptor clone = new ScriptingOperationDescriptor();
-        clone.id = id;
-        clone.enabled = enabled;
-        clone.inputType = inputType;
-        clone.outputType = outputType;
-        clone.description = description;
-        clone.category = category;
-        if (aliases != null) {
-            clone.aliases = Arrays.copyOf(aliases, aliases.length);
-        }
-        if (params != null) {
-            clone.params = Arrays.copyOf(params, params.length);
-        }
-        clone.source = source;
-        clone.contributingComponent = contributingComponent;
-        return clone;
+    public OperationType toType() {
+        return new ScriptingOperationTypeImpl(this);
     }
 
-    /** @since 2021.17 */
-    public void merge(ScriptingOperationDescriptor other) {
-        enabled = other.enabled;
-        inputType = other.inputType;
-        outputType = other.outputType;
-        description = other.description;
-        category = other.category;
-        aliases = other.aliases;
-        params = other.params;
-        source = other.source;
-        contributingComponent = other.contributingComponent;
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this).append("id", id).append("enabled", enabled).toString();
     }
-
 }

@@ -22,6 +22,8 @@ package org.nuxeo.ecm.platform.pdf;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.IOUtils;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.nuxeo.ecm.automation.core.util.BlobList;
@@ -133,35 +135,35 @@ public class PDFMerge {
     public Blob merge(String inFileName, String inTitle, String inSubject, String inAuthor) throws IOException {
         Blob finalBlob;
         switch (blobs.size()) {
-        case 0:
-            finalBlob = null;
-            break;
-        case 1:
-            finalBlob = blobs.get(0);
-            break;
-        default:
-            PDFMergerUtility ut = new PDFMergerUtility();
-            for (Blob b : blobs) {
-                ut.addSource(b.getStream());
-            }
-            File tempFile = File.createTempFile("mergepdf", ".pdf");
-            ut.setDestinationFileName(tempFile.getAbsolutePath());
-            ut.mergeDocuments();
-            if (inTitle != null || inAuthor != null || inSubject != null) {
-                PDDocument finalDoc = PDDocument.load(tempFile);
-                PDFUtils.setInfos(finalDoc, inTitle, inSubject, inAuthor);
-                finalDoc.save(tempFile);
-                finalDoc.close();
-            }
-            finalBlob = new FileBlob(tempFile);
-            Framework.trackFile(tempFile, finalBlob);
-            if (inFileName != null && !inFileName.isEmpty()) {
-                finalBlob.setFilename(inFileName);
-            } else {
-                finalBlob.setFilename(blobs.get(0).getFilename());
-            }
-            finalBlob.setMimeType("application/pdf");
-            break;
+            case 0:
+                finalBlob = null;
+                break;
+            case 1:
+                finalBlob = blobs.get(0);
+                break;
+            default:
+                PDFMergerUtility ut = new PDFMergerUtility();
+                for (Blob b : blobs) {
+                    ut.addSource(b.getFile());
+                }
+                File tempFile = File.createTempFile("mergepdf", ".pdf");
+                ut.setDestinationFileName(tempFile.getAbsolutePath());
+                ut.mergeDocuments(IOUtils.createMemoryOnlyStreamCache());
+                if (inTitle != null || inAuthor != null || inSubject != null) {
+                    try (PDDocument finalDoc = Loader.loadPDF(tempFile)) {
+                        PDFUtils.setInfos(finalDoc, inTitle, inSubject, inAuthor);
+                        finalDoc.save(tempFile);
+                    }
+                }
+                finalBlob = new FileBlob(tempFile);
+                Framework.trackFile(tempFile, finalBlob);
+                if (inFileName != null && !inFileName.isEmpty()) {
+                    finalBlob.setFilename(inFileName);
+                } else {
+                    finalBlob.setFilename(blobs.get(0).getFilename());
+                }
+                finalBlob.setMimeType("application/pdf");
+                break;
         }
         return finalBlob;
     }

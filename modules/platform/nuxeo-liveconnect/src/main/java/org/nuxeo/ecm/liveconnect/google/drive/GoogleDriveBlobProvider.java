@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.ecm.core.api.Blob;
@@ -151,19 +151,19 @@ public class GoogleDriveBlobProvider extends AbstractLiveConnectBlobProvider<Goo
     public URI getURI(ManagedBlob blob, UsageHint usage, HttpServletRequest servletRequest) throws IOException {
         String url = null;
         switch (usage) {
-        case STREAM:
-            url = getStreamUrl(blob);
-            break;
-        case DOWNLOAD:
-            url = getDownloadUrl(blob);
-            break;
-        case VIEW:
-        case EDIT:
-            url = getAlternateUrl(blob);
-            break;
-        case EMBED:
-            url = getEmbedUrl(blob);
-            break;
+            case STREAM:
+                url = getStreamUrl(blob);
+                break;
+            case DOWNLOAD:
+                url = getDownloadUrl(blob);
+                break;
+            case VIEW:
+            case EDIT:
+                url = getAlternateUrl(blob);
+                break;
+            case EMBED:
+                url = getEmbedUrl(blob);
+                break;
         }
         return url == null ? null : asURI(url);
     }
@@ -503,13 +503,13 @@ public class GoogleDriveBlobProvider extends AbstractLiveConnectBlobProvider<Goo
         HttpTransport httpTransport = credential.getTransport();
         JsonFactory jsonFactory = credential.getJsonFactory();
         return new Drive.Builder(httpTransport, jsonFactory, credential) //
-                                                                         .setApplicationName(APPLICATION_NAME) // set
-                                                                                                               // application
-                                                                                                               // name
-                                                                                                               // to
-                                                                                                               // avoid
-                                                                                                               // a WARN
-                                                                         .build();
+                                                                        .setApplicationName(APPLICATION_NAME) // set
+                                                                                                              // application
+                                                                                                              // name
+                                                                                                              // to
+                                                                                                              // avoid
+                                                                                                              // a WARN
+                                                                        .build();
     }
 
     @Override

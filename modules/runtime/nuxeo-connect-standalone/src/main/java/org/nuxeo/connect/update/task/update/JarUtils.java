@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ import org.nuxeo.common.utils.FileMatcher;
 public class JarUtils {
 
     // the r? is for supporting version like: caja-r1234
-    public final static Pattern JAR_NAME = Pattern.compile("(.+)-(r?[0-9]+.*)\\.jar");
+    public final static Pattern JAR_NAME = Pattern.compile("(.*?)-(r?\\d[\\w.\\-]*)\\.jar");
 
     public final static Pattern JAR_WITHOUT_VERSION_NAME = Pattern.compile("(.+)\\.jar");
 

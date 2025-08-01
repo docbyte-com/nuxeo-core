@@ -23,8 +23,8 @@ package org.nuxeo.ecm.platform.mail.action;
 
 import java.util.List;
 
-import javax.mail.Folder;
-import javax.mail.MessagingException;
+import jakarta.mail.Folder;
+import jakarta.mail.MessagingException;
 
 /**
  * @author Alexandre Russel

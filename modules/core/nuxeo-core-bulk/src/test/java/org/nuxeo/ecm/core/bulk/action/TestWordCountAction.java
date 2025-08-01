@@ -36,7 +36,7 @@ import java.time.Duration;
 import java.util.Random;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;

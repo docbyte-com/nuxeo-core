@@ -37,10 +37,6 @@ Maven usage: `mvn clean package [options]`
 
         mvn clean package -pl :nuxeo-server-tomcat
 
- * Run JSF UI WebDriver Functional Tests after build of the needed resources:
-
-        mvn clean verify -pl :nuxeo-jsf-ui-webdriver-tests -am
-
 ### Build with Ant (deprecated)
 
 Ant usage: `ant package`
@@ -52,7 +48,6 @@ Ant usage: `ant package`
 
 ## Modules listing
 
- * nuxeo-functional-tests: Framework for testing Nuxeo distributions
  * nuxeo-launcher: Control Panel and Launcher
  * nuxeo-nxr-server: Server NXR
  * nuxeo-server-tomcat: Nuxeo Server packaged with Tomcat

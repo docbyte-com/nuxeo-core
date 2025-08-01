@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.platform.notification.api;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -31,6 +32,13 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 public interface NotificationManager {
 
     /**
+     * @param name the template name
+     * @return the url associated to the template with the given name
+     * @since 2025.0
+     */
+    URL getTemplateUrl(String name);
+
+    /**
      * Gets the users that subscribed to a notification on a certain document.
      */
     List<String> getSubscribers(String notification, DocumentModel doc);
@@ -42,12 +50,13 @@ public interface NotificationManager {
 
     /**
      * Gets all users and groups that subscribed to a notification on a document This is used in management of
-     * subscritptions.
+     * subscriptions.
      */
     List<String> getUsersSubscribedToNotificationOnDocument(String notification, DocumentModel doc);
 
     /**
-     * Returns the name of the {@link org.nuxeo.mail.MailSender} that will handle notification {@link org.nuxeo.mail.MailMessage}s
+     * Returns the name of the {@link org.nuxeo.mail.MailSender} that will handle notification
+     * {@link org.nuxeo.mail.MailMessage}s
      *
      * @since 2023.4
      */
@@ -86,12 +95,12 @@ public interface NotificationManager {
      * <p>
      * The map should contain at least the userName of the user calling the method stored under the key "author".
      * <p>
-     * infoMap should also contain all the variables that should be used to make-up the body of the notifications
+     * infoMap should also contain all the variables that should be used to make up the body of the notifications
      * message.
      *
      * @param notificationName name of notification
      * @param infoMap data used to compose the notification body
-     * @param userPrincipal recipient used to get the adress(es) to send emails
+     * @param userPrincipal recipient used to get the addresses to send emails
      */
     void sendNotification(String notificationName, Map<String, Object> infoMap, String userPrincipal);
 
@@ -117,6 +126,6 @@ public interface NotificationManager {
      *
      * @since 9.1
      */
-    List<DocumentModel> getSubscribedDocuments(String prefixedPrincipalName, String respositoryName);
+    List<DocumentModel> getSubscribedDocuments(String prefixedPrincipalName, String repositoryName);
 
 }

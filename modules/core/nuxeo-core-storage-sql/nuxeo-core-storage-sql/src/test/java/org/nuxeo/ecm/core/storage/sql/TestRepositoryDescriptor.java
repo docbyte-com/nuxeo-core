@@ -144,43 +144,43 @@ public class TestRepositoryDescriptor {
     @Test
     public void testMerge() throws Exception {
         RepositoryDescriptor desc2 = (RepositoryDescriptor) xmap.load(getResource("test-repository-descriptor2.xml"));
-        desc.merge(desc2);
-        assertEquals(Arrays.asList("file1", "file2", "file3"), desc.sqlInitFiles);
-        assertTrue(desc.getPathOptimizationsEnabled());
-        assertEquals(2, desc.getPathOptimizationsVersion());
+        var merged = desc.merge(desc2);
+        assertEquals(Arrays.asList("file1", "file2", "file3"), merged.sqlInitFiles);
+        assertTrue(merged.getPathOptimizationsEnabled());
+        assertEquals(2, merged.getPathOptimizationsVersion());
 
         // pool
 
-        PoolConfiguration pool = desc.pool;
+        PoolConfiguration pool = merged.pool;
         assertEquals(111, pool.getMinPoolSize());
         assertEquals(222, pool.getMaxPoolSize());
         assertEquals(3, pool.getBlockingTimeoutMillis());
 
         // schema fields
 
-        assertNotNull(desc.schemaFields);
-        assertEquals(4, desc.schemaFields.size());
+        assertNotNull(merged.schemaFields);
+        assertEquals(4, merged.schemaFields.size());
         FieldDescriptor fd;
-        fd = desc.schemaFields.get(0);
+        fd = merged.schemaFields.get(0);
         assertEquals("my:bignote", fd.field);
         assertEquals("other", fd.type);
-        fd = desc.schemaFields.get(1);
+        fd = merged.schemaFields.get(1);
         assertEquals("foo", fd.field);
         assertEquals("xyz", fd.type);
-        fd = desc.schemaFields.get(2);
+        fd = merged.schemaFields.get(2);
         assertEquals("bar", fd.field);
         assertEquals("bartype2", fd.type);
         assertEquals("bartable2", fd.table);
         assertEquals("barcol2", fd.column);
-        fd = desc.schemaFields.get(3);
+        fd = merged.schemaFields.get(3);
         assertEquals("def", fd.field);
         assertEquals("abc", fd.type);
 
         // fulltext indexes
 
-        assertEquals("english", desc.getFulltextAnalyzer());
-        assertEquals("nuxeo", desc.getFulltextCatalog());
-        FulltextDescriptor fulltextDescriptor = desc.getFulltextDescriptor();
+        assertEquals("english", merged.getFulltextAnalyzer());
+        assertEquals("nuxeo", merged.getFulltextCatalog());
+        FulltextDescriptor fulltextDescriptor = merged.getFulltextDescriptor();
         List<FulltextIndexDescriptor> fulltextIndexes = fulltextDescriptor.getFulltextIndexes();
         assertEquals(5, fulltextIndexes.size());
         FulltextIndexDescriptor fti;

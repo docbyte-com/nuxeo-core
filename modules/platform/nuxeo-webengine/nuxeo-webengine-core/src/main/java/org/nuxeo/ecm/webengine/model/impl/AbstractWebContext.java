@@ -38,9 +38,13 @@ import java.util.Map;
 import java.util.MissingResourceException;
 
 import javax.script.ScriptException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,8 +62,6 @@ import org.nuxeo.ecm.platform.rendering.api.RenderingException;
 import org.nuxeo.ecm.platform.web.common.locale.LocaleProvider;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.forms.FormData;
-import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
 import org.nuxeo.ecm.webengine.login.WebEngineFormAuthenticator;
 import org.nuxeo.ecm.webengine.model.AdapterResource;
 import org.nuxeo.ecm.webengine.model.Messages;
@@ -69,6 +71,7 @@ import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
+import org.nuxeo.ecm.webengine.rest.session.SessionFactory;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.security.PermissionService;
 import org.nuxeo.ecm.webengine.session.UserSession;
@@ -88,17 +91,23 @@ public abstract class AbstractWebContext implements WebContext {
 
     private static boolean isRepositoryDisabled = false;
 
-    protected final WebEngine engine;
-
-    private UserSession us;
-
-    protected final LinkedList<File> scriptExecutionStack;
-
     protected final HttpServletRequest request;
 
     protected final HttpServletResponse response;
 
+    protected final HttpHeaders headers;
+
+    protected final UriInfo uriInfo;
+
+    protected final ResourceContext resourceContext;
+
+    protected final WebEngine engine;
+
+    protected final LinkedList<File> scriptExecutionStack;
+
     protected final Map<String, Object> vars;
+
+    protected UserSession us;
 
     protected Resource head;
 
@@ -108,20 +117,31 @@ public abstract class AbstractWebContext implements WebContext {
 
     protected Module module;
 
-    protected FormData form;
-
     protected String basePath;
 
-    private String repoName;
+    protected String repoName;
 
-    protected AbstractWebContext(HttpServletRequest request, HttpServletResponse response) {
-        engine = Framework.getService(WebEngine.class);
-        scriptExecutionStack = new LinkedList<>();
+    protected AbstractWebContext(HttpServletRequest request, HttpServletResponse response, HttpHeaders headers,
+            UriInfo uriInfo, ResourceContext resourceContext) {
+        // init fields
         this.request = request;
         this.response = response;
-        vars = new HashMap<>();
+        this.headers = headers;
+        this.uriInfo = uriInfo;
+        this.resourceContext = resourceContext;
+        this.engine = Framework.getService(WebEngine.class);
+        this.scriptExecutionStack = new LinkedList<>();
+        this.vars = new HashMap<>();
+        // set the context in the request for later use
+        this.request.setAttribute(WebContext.class.getName(), this);
     }
 
+    @Override
+    public Module getModule() {
+        return module;
+    }
+
+    @Override
     public void setModule(Module module) {
         this.module = module;
     }
@@ -157,11 +177,6 @@ public abstract class AbstractWebContext implements WebContext {
     }
 
     @Override
-    public Module getModule() {
-        return module;
-    }
-
-    @Override
     public WebEngine getEngine() {
         return engine;
     }
@@ -193,8 +208,19 @@ public abstract class AbstractWebContext implements WebContext {
         return request;
     }
 
+    @Override
     public HttpServletResponse getResponse() {
         return response;
+    }
+
+    @Override
+    public UriInfo getUriInfo() {
+        return uriInfo;
+    }
+
+    @Override
+    public HttpHeaders getHttpHeaders() {
+        return headers;
     }
 
     @Override
@@ -319,7 +345,7 @@ public abstract class AbstractWebContext implements WebContext {
     }
 
     @Override
-    public Resource newObject(String typeName, Object... args) {
+    public <R extends Resource> R newObject(String typeName, Object... args) {
         ResourceType type = module.getType(typeName);
         if (type == null) {
             throw new WebResourceNotFoundException("No Such Object Type: " + typeName);
@@ -328,9 +354,10 @@ public abstract class AbstractWebContext implements WebContext {
     }
 
     @Override
-    public Resource newObject(ResourceType type, Object... args) {
-        Resource obj = type.newInstance(type.getResourceClass(), this);
+    public <R extends Resource> R newObject(ResourceType type, Object... args) {
+        R obj = type.newInstance();
         try {
+            resourceContext.initResource(obj);
             obj.initialize(this, type, args);
         } finally {
             // we must be sure the object is pushed even if an error occurred
@@ -343,8 +370,8 @@ public abstract class AbstractWebContext implements WebContext {
     }
 
     @Override
-    public AdapterResource newAdapter(Resource ctx, String serviceName, Object... args) {
-        return (AdapterResource) newObject(module.getAdapter(ctx, serviceName), args);
+    public <A extends AdapterResource> A newAdapter(Resource ctx, String serviceName, Object... args) {
+        return newObject(module.getAdapter(ctx, serviceName), args);
     }
 
     @Override
@@ -388,14 +415,6 @@ public abstract class AbstractWebContext implements WebContext {
     public String getCookie(String name, String defaultValue) {
         String value = getCookie(name);
         return value == null ? defaultValue : value;
-    }
-
-    @Override
-    public FormData getForm() {
-        if (form == null) {
-            form = new FormData(request);
-        }
-        return form;
     }
 
     @Override
@@ -544,7 +563,7 @@ public abstract class AbstractWebContext implements WebContext {
 
     @Override
     public ScriptFile getFile(String path) {
-        if (path == null || path.length() == 0) {
+        if (path == null || path.isEmpty()) {
             return null;
         }
         char c = path.charAt(0);
@@ -643,8 +662,7 @@ public abstract class AbstractWebContext implements WebContext {
                 log.debug("Output socket closed: failed to write response", e);
                 return;
             }
-            throw new NuxeoException(
-                    "Failed to render template: " + (script == null ? script : script.getAbsolutePath()), e);
+            throw new NuxeoException("Failed to render template: " + script.getAbsolutePath(), e);
         } finally {
             if (!scriptExecutionStack.isEmpty()) {
                 popScriptFile();

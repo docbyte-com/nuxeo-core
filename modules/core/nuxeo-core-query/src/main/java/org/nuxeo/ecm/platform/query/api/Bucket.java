@@ -25,4 +25,9 @@ public interface Bucket {
     String getKey();
 
     long getDocCount();
+
+    /** @since 2025.0 */
+    default double getValue() {
+        return getDocCount();
+    }
 }

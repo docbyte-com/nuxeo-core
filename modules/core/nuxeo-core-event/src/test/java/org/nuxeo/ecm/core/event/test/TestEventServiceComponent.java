@@ -26,10 +26,9 @@ import static org.junit.Assert.fail;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
@@ -186,38 +185,6 @@ public class TestEventServiceComponent {
         // other listener was never run due to interrupt
         assertEquals(1, DummyPostCommitEventListener.handledCount());
         assertEquals(2, DummyPostCommitEventListener.eventCount());
-    }
-
-    /**
-     * Test that when the event service component is deactivated, the threads of the async event executor are shut down.
-     */
-    @Test
-    @Ignore
-    @Deploy("org.nuxeo.ecm.core.event:test-PostCommitListeners3.xml")
-    public void testAsyncEventExecutorShutdown() throws InterruptedException {
-        // send an async event to make sure the async event executor spawned
-        // some threads
-        // load contrib
-
-        // send event
-        Event test1 = new EventImpl("test1", new EventContextImpl());
-        test1.setIsCommitEvent(true);
-        eventService.fireEvent(test1);
-        txFeature.nextTransaction();
-
-        assertEquals(1, DummyPostCommitEventListener.handledCount());
-
-        // can still fire events
-        Event test2 = new EventImpl("test1", new EventContextImpl());
-        test2.setIsCommitEvent(true);
-        eventService.fireEvent(test2);
-        // now stop service
-        // this is called by EventServiceComponent.deactivate() in real life
-        ((EventServiceImpl) eventService).shutdown(2L * 1000);
-        ((EventServiceImpl) eventService).init();
-        assertEquals(2, DummyPostCommitEventListener.handledCount());
-        Thread.sleep(2L * 1000);
-        assertEquals("Threads not dead", 0, (long) Thread.activeCount() - initialThreadCount);
     }
 
     protected void doTestSyncPostCommit(boolean bulk, boolean error, boolean timeout, int expectedHandled,

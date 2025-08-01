@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
  * Contributors:
  *     Nelson Silva <nsilva@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.preview.io;
 
 import java.io.IOException;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -41,11 +40,11 @@ import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.platform.preview.PreviewCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.preview")
+@Features({ CoreFeature.class, PreviewCoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.preview:test-dummy-blob-provider.xml")
 public class BlobPreviewJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentModelJsonWriter, DocumentModel> {
 
@@ -53,7 +52,7 @@ public class BlobPreviewJsonEnricherTest extends AbstractJsonWriterTest.Local<Do
     protected BlobManager blobManager;
 
     @Inject
-    private CoreSession session;
+    protected CoreSession session;
 
     public BlobPreviewJsonEnricherTest() {
         super(DocumentModelJsonWriter.class, DocumentModel.class);

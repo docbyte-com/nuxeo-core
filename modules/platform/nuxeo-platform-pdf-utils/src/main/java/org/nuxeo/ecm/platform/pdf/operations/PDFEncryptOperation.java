@@ -41,11 +41,11 @@ import org.nuxeo.ecm.platform.pdf.PDFEncryption;
  * @since 8.10
  */
 @Operation(id = PDFEncryptOperation.ID, category = Constants.CAT_CONVERSION, label = "PDF: Encrypt", //
-description = "Encrypts the PDF with the given permissions, returning a copy. Permissions are print, modify, "
-        + "copy, modifyAnnot, fillForms, extractForAccessibility, assemble and printDegraded. Any missing permission "
-        + "is set to false (values are true or false, assemble=true for example). originalOwnerPwd is used if the PDF "
-        + "was originally encrypted. If no keyLength is provided, use 128. If the operation is ran on Document(s), "
-        + "xpath lets you specificy where to get the blob from (default: file:content).")
+        description = "Encrypts the PDF with the given permissions, returning a copy. Permissions are print, modify, "
+                + "copy, modifyAnnot, fillForms, extractForAccessibility, assemble and printDegraded. Any missing permission "
+                + "is set to false (values are true or false, assemble=true for example). originalOwnerPwd is used if the PDF "
+                + "was originally encrypted. If no keyLength is provided, use 128. If the operation is ran on Document(s), "
+                + "xpath lets you specificy where to get the blob from (default: file:content).")
 public class PDFEncryptOperation {
 
     public static final String ID = "PDF.Encrypt";
@@ -76,30 +76,30 @@ public class PDFEncryptOperation {
         for (Entry<String, String> property : properties.entrySet()) {
             boolean value = Boolean.parseBoolean(property.getValue());
             switch (property.getKey().toLowerCase()) {
-            case "print":
-                ap.setCanPrint(value);
-                break;
-            case "modify":
-                ap.setCanModify(value);
-                break;
-            case "copy":
-                ap.setCanExtractContent(value);
-                break;
-            case "modifyannot":
-                ap.setCanModifyAnnotations(value);
-                break;
-            case "fillforms":
-                ap.setCanFillInForm(value);
-                break;
-            case "extractforaccessibility":
-                ap.setCanExtractForAccessibility(value);
-                break;
-            case "assemble":
-                ap.setCanAssembleDocument(value);
-                break;
-            case "printdegraded":
-                ap.setCanPrintDegraded(value);
-                break;
+                case "print":
+                    ap.setCanPrint(value);
+                    break;
+                case "modify":
+                    ap.setCanModify(value);
+                    break;
+                case "copy":
+                    ap.setCanExtractContent(value);
+                    break;
+                case "modifyannot":
+                    ap.setCanModifyAnnotations(value);
+                    break;
+                case "fillforms":
+                    ap.setCanFillInForm(value);
+                    break;
+                case "extractforaccessibility":
+                    ap.setCanExtractForAccessibility(value);
+                    break;
+                case "assemble":
+                    ap.setCanAssembleDocument(value);
+                    break;
+                case "printdegraded":
+                    ap.setCanPrintFaithful(value);
+                    break;
             }
         }
         return ap;

@@ -206,7 +206,7 @@ public class HotReloadTestRule implements TestRule {
         parameters.put("timeoutSecond", Integer.valueOf(110));
         parameters.put("refresh", Boolean.TRUE);
         parameters.put("waitForAudit", Boolean.TRUE);
-        restHelper.operation("Elasticsearch.WaitForIndexing", parameters);
+        restHelper.operation("Search.WaitForIndexing", parameters);
 
         // POST new dev bundles to deploy
         if (!restHelper.post(NUXEO_RELOAD_PATH, body)) {

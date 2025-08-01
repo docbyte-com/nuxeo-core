@@ -21,15 +21,18 @@
 
 package org.nuxeo.ecm.core.rest;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -38,6 +41,7 @@ import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.exceptions.IllegalParameterException;
@@ -67,8 +71,8 @@ public class DocumentObject extends DefaultObject {
     }
 
     @GET
-    public Object doGet() {
-        return getView("index");
+    public Response doGet() {
+        return Response.ok(getView("index")).build();
     }
 
     // simulate a DELETE using GET
@@ -123,28 +127,24 @@ public class DocumentObject extends DefaultObject {
     }
 
     @POST
-    public Response doPost() {
-        String name = ctx.getForm().getString("name");
-        DocumentModel newDoc = DocumentHelper.createDocument(ctx, doc, name);
+    public Response doPost(@FormParam("name") String name, MultivaluedMap<String, String> formParams) {
+        DocumentModel newDoc = DocumentHelper.createDocument(ctx.getCoreSession(), doc, name, formParams);
         String pathSegment = URIUtils.quoteURIPathComponent(newDoc.getName(), true);
         return redirect(getPath() + '/' + pathSegment);
     }
 
     @PUT
-    public Response doPut() {
-        doc = DocumentHelper.updateDocument(ctx, doc);
+    public Response doPut(@FormParam("versioning") @DefaultValue("NONE") VersioningOption versioningOption,
+            MultivaluedMap<String, String> formParams) {
+        doc = DocumentHelper.updateDocument(ctx.getCoreSession(), doc, formParams, versioningOption);
         return redirect(getPath());
     }
 
     @POST
     @Path("@put")
-    public Response getPut() {
-        return doPut();
-    }
-
-    // TODO implement HEAD
-    public Object doHead() {
-        return null; // TODO
+    public Response getPut(@FormParam("versioning") @DefaultValue("NONE") VersioningOption versioningOption,
+            MultivaluedMap<String, String> formParams) {
+        return doPut(versioningOption, formParams);
     }
 
     @Path("{path}")

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,20 +22,20 @@ import java.net.URL;
 
 import org.nuxeo.ecm.core.test.ServletContainerTransactionalFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.ecm.webengine.jaxrs.session.SessionFactory;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
+import org.nuxeo.ecm.webengine.rest.session.SessionFactory;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
 @Deploy("org.nuxeo.ecm.platform.login")
-@Deploy("org.nuxeo.ecm.webengine.jaxrs")
+@Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.base")
-@Deploy("org.nuxeo.ecm.webengine.ui")
 @Deploy("org.nuxeo.ecm.platform.test:test-usermanagerimpl/userservice-config.xml")
 @Deploy("org.nuxeo.ecm.webengine.test:login-anonymous-config.xml")
 @Deploy("org.nuxeo.ecm.webengine.test:runtimeserver-contrib.xml")
-@Features({ PlatformFeature.class, ServletContainerTransactionalFeature.class, WebEngineFeatureCore.class })
+@Features({ PlatformFeature.class, ServletContainerTransactionalFeature.class, WebEngineCoreFeature.class })
 public class WebEngineFeature implements RunnerFeature {
 
     protected URL config;

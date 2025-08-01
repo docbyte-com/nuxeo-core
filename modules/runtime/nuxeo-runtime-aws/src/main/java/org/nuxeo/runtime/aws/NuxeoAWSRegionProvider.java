@@ -18,26 +18,26 @@
  */
 package org.nuxeo.runtime.aws;
 
-import static org.apache.commons.lang3.StringUtils.defaultString;
+import static software.amazon.awssdk.regions.Region.US_EAST_1;
 
 import org.nuxeo.runtime.api.Framework;
 
-import com.amazonaws.SdkClientException;
-import com.amazonaws.regions.AwsRegionProvider;
-import com.amazonaws.regions.DefaultAwsRegionProviderChain;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.AwsRegionProvider;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 
 /**
  * AWS Region Provider that uses Nuxeo configuration, or uses the default AWS chain as a fallback.
  *
  * @since 10.3
  */
-public class NuxeoAWSRegionProvider extends AwsRegionProvider {
+public class NuxeoAWSRegionProvider implements AwsRegionProvider {
 
     protected static final AwsRegionProvider INSTANCE = new NuxeoAWSRegionProvider();
 
     protected static final AwsRegionProvider DEFAULT = new DefaultAwsRegionProviderChain();
 
-    protected static final String DEFAULT_REGION = "us-east-1";
+    protected static final Region DEFAULT_REGION = US_EAST_1;
 
     protected final String id;
 
@@ -66,22 +66,19 @@ public class NuxeoAWSRegionProvider extends AwsRegionProvider {
     }
 
     @Override
-    public String getRegion() {
+    public Region getRegion() {
         AWSConfigurationService service = Framework.getService(AWSConfigurationService.class);
         if (service != null) {
-            String region = service.getAWSRegion(id);
+            Region region = service.getAwsRegion(id);
             if (region != null) {
                 return region;
             }
         }
-        String region;
-        try {
-            region = DEFAULT.getRegion();
-        } catch (SdkClientException e) {
-            // the DefaultAwsRegionProviderChain throws when there's no provider instead of defaulting to null
-            region = null;
+        Region region = DEFAULT.getRegion();
+        if (region != null) {
+            return region;
         }
-        return defaultString(region, DEFAULT_REGION);
+        return DEFAULT_REGION;
     }
 
 }

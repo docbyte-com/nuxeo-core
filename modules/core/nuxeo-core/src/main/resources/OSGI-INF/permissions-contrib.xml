@@ -50,11 +50,7 @@
     <permission name="Unlock" />
 
     <permission name="Remove">
-      <documentation>
-        NXP-10929: necessary to follow the "delete" transition when Trash is enabled: include WriteLifeCycle
-      </documentation>
       <include>RemoveChildren</include>
-      <include>WriteLifeCycle</include>
     </permission>
 
     <permission name="ReadRemove">

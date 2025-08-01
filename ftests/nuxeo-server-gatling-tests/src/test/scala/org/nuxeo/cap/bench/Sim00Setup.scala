@@ -33,7 +33,7 @@ object ScnSetup {
       feed(Feeders.admins)
         .exec(NuxeoRest.createGroupIfNotExists(Constants.GAT_GROUP_NAME)).exitHereIfFailed
         .exec(NuxeoRest.createDocumentIfNotExistsAsAdmin(Constants.ROOT_WORKSPACE_PATH, Constants.GAT_WS_NAME, "Workspace")).exitHereIfFailed
-        .doIf(session => session("status").as[Integer].equals(201)) {
+        .doIf(session => session("status").as[Int].equals(201)) {
           exec(NuxeoRest.grantReadWritePermission(Constants.GAT_WS_PATH, Constants.GAT_GROUP_NAME)).exitHereIfFailed
         }
         .exec(NuxeoRest.createDocumentIfNotExistsAsAdmin(Constants.GAT_WS_PATH, Constants.GAT_FOLDER_NAME, "Folder")).exitHereIfFailed
@@ -55,8 +55,8 @@ class Sim00Setup extends Simulation {
     .disableWarmUp
     .acceptEncodingHeader("gzip, deflate")
     .connectionHeader("keep-alive")
-  val userCount = Using(Source.fromFile(GatlingFiles.resourcesDirectory(configuration) + "/data/users.csv")) {
-    reader => reader.getLines.size - 1
+  val userCount = Using(Source.fromURL(getClass.getResource("/data/users.csv"))) {
+    reader => reader.getLines().size - 1
   }
   val scn = ScnSetup.get(userCount.get, Parameters.getPause())
   setUp(scn.inject(atOnceUsers(1))).protocols(httpProtocol).exponentialPauses

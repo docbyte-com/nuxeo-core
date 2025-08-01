@@ -32,9 +32,8 @@ import org.nuxeo.ecm.automation.core.annotations.Operation;
 import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.operations.services.DocumentPageProviderOperation;
-import org.nuxeo.ecm.automation.core.util.PageProviderHelper;
 import org.nuxeo.ecm.automation.core.util.StringList;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.collections.api.CollectionConstants;
 
 /**

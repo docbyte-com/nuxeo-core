@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.restapi.test.provider.searchService.test">
+
+  <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
+
+    <searchServicePageProvider name="aggregates_2">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pageSize>20</pageSize>
+      <pattern>SELECT * FROM Document</pattern>
+      <aggregates>
+        <aggregate id="source" parameter="dc:source" type="terms">
+          <field name="source_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="coverage" parameter="dc:coverage" type="terms">
+          <field name="coverage_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="nature" parameter="dc:nature" type="terms">
+          <field name="nature_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+      </aggregates>
+    </searchServicePageProvider>
+
+    <searchServicePageProvider name="aggregates_3">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pageSize>20</pageSize>
+      <pattern>SELECT * FROM Document WHERE ecm:isVersion = 0</pattern>
+      <aggregates>
+        <aggregate id="subjects" parameter="dc:subjects" type="terms">
+          <field name="subjects_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="coverage" parameter="dc:coverage" type="terms">
+          <field name="coverage_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="primaryType" parameter="ecm:primaryType" type="terms">
+          <field name="system_primaryType_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="isVersion" parameter="ecm:isVersion" type="terms">
+          <field name="system_isVersion_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="mixinType" parameter="ecm:mixinType" type="terms">
+          <field name="system_mixinType_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="level1" type="terms" parameter="ecm:path@level1">
+          <field name="system_level1_agg" schema="advanced_search" />
+        </aggregate>
+      </aggregates>
+    </searchServicePageProvider>
+
+    <searchServicePageProvider name="invalid_system_prop_aggregate">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pageSize>20</pageSize>
+      <pattern>SELECT * FROM Document</pattern>
+      <aggregates>
+        <aggregate id="path" parameter="ecm:path" type="terms">
+          <field name="system_path_agg" schema="advanced_search" />
+        </aggregate>
+      </aggregates>
+    </searchServicePageProvider>
+
+    <searchServicePageProvider name="aggregates_4">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pageSize>20</pageSize>
+      <pattern>SELECT * FROM Document WHERE dc:coverage = 'europe/Spain'</pattern>
+      <aggregates>
+        <aggregate id="cardinality_title" parameter="dc:title" type="cardinality">
+          <field name="cardinality_title_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="cardinality_description" parameter="dc:description" type="cardinality">
+          <field name="cardinality_description_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="count_title" parameter="dc:title" type="count">
+          <field name="count_title_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="count_desc" parameter="dc:description" type="count">
+          <field name="count_desc_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="missing_title" parameter="dc:title" type="missing">
+          <field name="missing_title_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="missing_description" parameter="dc:description" type="missing">
+          <field name="missing_description_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="missing_content_length" parameter="file:content/length" type="missing">
+          <field name="missing_content_length_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="sum" parameter="file:content/length" type="sum">
+          <field name="sum_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="avg" parameter="file:content/length" type="avg">
+          <field name="avg_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="min" parameter="uid:minor_version" type="min">
+          <field name="min_agg" schema="advanced_search" />
+        </aggregate>
+        <aggregate id="max" parameter="uid:major_version" type="max">
+          <field name="max_agg" schema="advanced_search" />
+        </aggregate>
+      </aggregates>
+    </searchServicePageProvider>
+
+  </extension>
+
+</component>

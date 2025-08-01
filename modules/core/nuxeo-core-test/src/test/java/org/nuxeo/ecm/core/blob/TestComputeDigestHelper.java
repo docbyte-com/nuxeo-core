@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ package org.nuxeo.ecm.core.blob;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_NEW_DIGEST;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_NEW_KEY;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.BLOB_DIGEST_UPDATED_OLD_DIGEST;
@@ -33,7 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,9 +42,11 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -62,7 +63,11 @@ public class TestComputeDigestHelper {
 
     protected static final String FOO_MD5 = "acbd18db4cc2f85cedef654fccc4a4d8";
 
+    protected static final String FOO_KEY = "test:" + FOO_MD5;
+
     protected static final String BAR_MD5 = "37b51d194a7513e45b56f6524f2d51f2";
+
+    protected static final String BAR_KEY = "test:" + BAR_MD5;
 
     protected static final String FOO_SHA256 = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae";
 
@@ -88,9 +93,8 @@ public class TestComputeDigestHelper {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testReplaceDigest() {
-        assumeTrue("Blob digest replacement only on DBS", coreFeature.getStorageConfiguration().isDBS());
-
         DocumentModel doc = session.createDocumentModel("/", "doc1", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));
         doc = session.createDocument(doc);
@@ -106,14 +110,13 @@ public class TestComputeDigestHelper {
 
         // check the blob is new
         ManagedBlob blob = (ManagedBlob) doc.getPropertyValue("file:content");
-        assertEquals(BAR_MD5, blob.getKey());
+        assertEquals(BAR_KEY, blob.getKey());
         assertEquals(BAR_MD5, blob.getDigest());
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Blob digest replacement only on DBS")
     public void testCoreSessionReplaceBlobDigest() {
-        assumeTrue("Blob digest replacement only on DBS", coreFeature.getStorageConfiguration().isDBS());
-
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
         doc1.setPropertyValue("file:content", (Serializable) Blobs.createBlob(FOO));
         doc1 = session.createDocument(doc1);
@@ -125,16 +128,16 @@ public class TestComputeDigestHelper {
         try (CapturingEventListener listener = new CapturingEventListener(BLOB_DIGEST_UPDATED)) {
 
             // make doc1 point to doc2's blob
-            String oldDigest = session.replaceBlobDigest(doc1.getRef(), FOO_MD5, BAR_MD5, BAR_MD5);
+            String oldDigest = session.replaceBlobDigest(doc1.getRef(), FOO_KEY, BAR_KEY, BAR_MD5);
             assertEquals(FOO_MD5, oldDigest);
 
             // check event
             List<Event> events = listener.getCapturedEvents();
             assertEquals(1, events.size());
-            Map<String, Serializable> properties = events.get(0).getContext().getProperties();
-            assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_KEY));
+            Map<String, Serializable> properties = events.getFirst().getContext().getProperties();
+            assertEquals(FOO_KEY, properties.get(BLOB_DIGEST_UPDATED_OLD_KEY));
             assertEquals(FOO_MD5, properties.get(BLOB_DIGEST_UPDATED_OLD_DIGEST));
-            assertEquals(BAR_MD5, properties.get(BLOB_DIGEST_UPDATED_NEW_KEY));
+            assertEquals(BAR_KEY, properties.get(BLOB_DIGEST_UPDATED_NEW_KEY));
             assertEquals(BAR_MD5, properties.get(BLOB_DIGEST_UPDATED_NEW_DIGEST));
         }
         session.save();
@@ -142,7 +145,7 @@ public class TestComputeDigestHelper {
 
         // check the blob is new
         ManagedBlob blob = (ManagedBlob) doc1.getPropertyValue("file:content");
-        assertEquals(BAR_MD5, blob.getKey());
+        assertEquals(BAR_KEY, blob.getKey());
         assertEquals(BAR_MD5, blob.getDigest());
     }
 

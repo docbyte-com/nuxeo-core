@@ -36,7 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -297,12 +297,12 @@ public class AuthorizationRequest extends OAuth2Request {
             return false;
         }
         switch (codeChallengeMethod) {
-        case CODE_CHALLENGE_METHOD_S256:
-            return codeChallenge.equals(Base64.encodeBase64URLSafeString(DigestUtils.sha256(codeVerifier)));
-        case CODE_CHALLENGE_METHOD_PLAIN:
-            return codeChallenge.equals(codeVerifier);
-        default:
-            return false;
+            case CODE_CHALLENGE_METHOD_S256:
+                return codeChallenge.equals(Base64.encodeBase64URLSafeString(DigestUtils.sha256(codeVerifier)));
+            case CODE_CHALLENGE_METHOD_PLAIN:
+                return codeChallenge.equals(codeVerifier);
+            default:
+                return false;
         }
     }
 

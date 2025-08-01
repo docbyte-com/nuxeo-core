@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.test.defaultContrib">
+
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="extendedInfo">
+     <extendedInfo key="title" expression="${source.dublincore.title}" />
+     <extendedInfo key="user" expression="${principal.name}" />
+  </extension>
+
+</component>

@@ -158,15 +158,6 @@ public interface CoreSession {
     String USER_CHANGE = "userChange";
 
     /**
-     * Does nothing.
-     *
-     * @since 5.9.3
-     * @deprecated since 10.1
-     */
-    @Deprecated
-    void close();
-
-    /**
      * Gets the document type object given its type name.
      *
      * @param type the document type name
@@ -909,10 +900,10 @@ public interface CoreSession {
     DocumentModel getWorkingCopy(DocumentRef docRef);
 
     /**
-     * Removes orphan versions when the live document doesn't exist and there is no proxy pointing to this document.
-     * A version stays referenced, and therefore is not removed, if any proxy points to a version in the version history of
-     * any live document, or in the case of tree snapshot if there is a snapshot containing a version in the version history
-     * of any live document.
+     * Removes orphan versions when the live document doesn't exist and there is no proxy pointing to this document. A
+     * version stays referenced, and therefore is not removed, if any proxy points to a version in the version history
+     * of any live document, or in the case of tree snapshot if there is a snapshot containing a version in the version
+     * history of any live document.
      *
      * @since 2021.44
      * @param docRef of the live document

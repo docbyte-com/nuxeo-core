@@ -20,7 +20,7 @@
 
 package org.nuxeo.wopi.exception;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 /**
  * @since 10.3

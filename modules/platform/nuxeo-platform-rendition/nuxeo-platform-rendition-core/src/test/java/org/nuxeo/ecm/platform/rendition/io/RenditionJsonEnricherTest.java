@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,12 @@
  * Contributors:
  *     Gabriel Barata
  */
-
 package org.nuxeo.ecm.platform.rendition.io;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -33,8 +35,6 @@ import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-
-import com.google.inject.Inject;
 
 @Features(AutomationCoreFeature.class)
 @Deploy("org.nuxeo.ecm.platform.rendition.core")
@@ -64,7 +64,7 @@ public class RenditionJsonEnricherTest extends AbstractJsonWriterTest.Local<Docu
         json = json.has("contextParameters").isObject();
         json.properties(1);
         json = json.has("renditions").isArray();
-        assertTrue(json.getNode().size() > 0);
+        assertFalse(json.getNode().isEmpty());
         json = json.get(0).has("url").isText();
         assertTrue(json.getNode().asText().contains(file.getRepositoryName()));
     }

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.directory.test.sql">
+
+  <require>org.nuxeo.runtime.datasource.test</require>
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/nxsqldirectory" global="jdbc/${nuxeo.test.sql.database}"/>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.directory.sql.SQLDirectoryFactory" point="directories">
+    <directory name="template-directory" template="true">
+      <cacheTimeout>3600</cacheTimeout>
+      <cacheMaxSize>1000</cacheMaxSize>
+      <dataSource>java:/nxsqldirectory</dataSource>
+      <autoincrementIdField>false</autoincrementIdField>
+      <createTablePolicy>on_missing_columns</createTablePolicy>
+    </directory>
+
+    <directory name="template-user" template="true" extends="template-directory">
+      <table>users</table>
+      <computeMultiTenantId>false</computeMultiTenantId>
+    </directory>
+
+    <directory name="template-group" template="true" extends="template-directory">
+      <table>groups</table>
+    </directory>
+  </extension>
+
+</component>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
@@ -24,7 +23,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,14 +33,12 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationParameters;
-import org.nuxeo.ecm.automation.core.operations.services.DocumentPageProviderOperation;
 import org.nuxeo.ecm.automation.core.operations.services.PaginableRecordSetImpl;
 import org.nuxeo.ecm.automation.core.operations.services.ResultSetPageProviderOperation;
 import org.nuxeo.ecm.automation.core.util.Properties;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -49,19 +46,16 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core:test-qf-providers.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class QueryAndFetchOperationTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected DocumentModel ws1;
 
@@ -106,7 +100,7 @@ public class QueryAndFetchOperationTest {
         OperationParameters oparams = new OperationParameters(ResultSetPageProviderOperation.ID, params);
         chain.add(oparams);
 
-        PaginableRecordSetImpl result = (PaginableRecordSetImpl) service.run(ctx, chain);
+        var result = (PaginableRecordSetImpl) service.run(ctx, chain);
 
         // test page size
         assertEquals(2, result.getPageSize());
@@ -116,8 +110,6 @@ public class QueryAndFetchOperationTest {
         // test comlumn
         assertEquals("WS1", result.get(0).get("dc:title"));
         assertEquals(ws1.getId(), result.get(0).get("ecm:uuid"));
-
-        providerName = "simpleProviderTest3";
 
     }
 
@@ -134,8 +126,7 @@ public class QueryAndFetchOperationTest {
         Properties namedProperties = new Properties(namedParameters);
         params.put("namedParameters", namedProperties);
 
-        PaginableRecordSetImpl result = (PaginableRecordSetImpl) service.run(ctx, ResultSetPageProviderOperation.ID,
-                params);
+        var result = (PaginableRecordSetImpl) service.run(ctx, ResultSetPageProviderOperation.ID, params);
 
         // test page size
         assertEquals(2, result.getPageSize());
@@ -161,8 +152,7 @@ public class QueryAndFetchOperationTest {
         Properties namedProperties = new Properties(namedParameters);
         params.put("namedParameters", namedProperties);
 
-        PaginableRecordSetImpl result = (PaginableRecordSetImpl) service.run(ctx, ResultSetPageProviderOperation.ID,
-                params);
+        var result = (PaginableRecordSetImpl) service.run(ctx, ResultSetPageProviderOperation.ID, params);
 
         // test page size
         assertEquals(2, result.getPageSize());
@@ -172,26 +162,6 @@ public class QueryAndFetchOperationTest {
         // test column
         assertEquals("WS1", result.get(0).get("dc:title"));
         assertEquals(ws1.getId(), result.get(0).get("ecm:uuid"));
-
-    }
-
-    // @Test
-    public void XXXtestDirectNXQL() throws Exception {
-
-        Map<String, Object> params = new HashMap<>();
-
-        params.put("query", "select * from Document");
-        params.put("pageSize", 2);
-
-        OperationChain chain = new OperationChain("fakeChain");
-        OperationParameters oparams = new OperationParameters(DocumentPageProviderOperation.ID, params);
-        chain.add(oparams);
-
-        PaginableDocumentModelListImpl result = (PaginableDocumentModelListImpl) service.run(ctx, chain);
-
-        // test page size
-        assertEquals(2, result.getPageSize());
-        assertEquals(2, result.getNumberOfPages());
 
     }
 }

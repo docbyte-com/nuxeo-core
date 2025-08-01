@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-binarymanager-cloud</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -26,12 +26,12 @@
       <artifactId>nuxeo-runtime-aws</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
-      <artifactId>nuxeo-core-io</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-management</artifactId>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
-      <artifactId>nuxeo-automation-server</artifactId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-io</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
@@ -42,24 +42,40 @@
       <artifactId>commons-lang3</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-core</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-s3</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>cloudfront</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-cloudfront</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>s3-transfer-manager</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk-sts</artifactId>
+      <groupId>software.amazon.awssdk.crt</groupId>
+      <artifactId>aws-crt</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>kms</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>apache-client</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>sts</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.encryption.s3</groupId>
+      <artifactId>amazon-s3-encryption-client-java</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -92,12 +108,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-management</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
-      <artifactId>nuxeo-automation-test</artifactId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-test</artifactId>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
     <dependency>

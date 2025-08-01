@@ -111,20 +111,19 @@ public class PDFPageExtractor {
      * @return FileBlob
      */
     public Blob extract(int inStartPage, int inEndPage, String inFileName, String inTitle, String inSubject,
-                        String inAuthor) throws NuxeoException {
+            String inAuthor) throws NuxeoException {
         Blob result;
-        PDDocument extracted;
         try (PDDocument pdfDoc = PDFUtils.load(pdfBlob, password)) {
             PageExtractor pe = new PageExtractor(pdfDoc, inStartPage, inEndPage);
-            extracted = pe.extract();
-            PDFUtils.setInfos(extracted, inTitle, inSubject, inAuthor);
-            result = PDFUtils.saveInTempFile(extracted);
-            result.setMimeType("application/pdf");
-            if (StringUtils.isBlank(inFileName)) {
-                inFileName = getFileName(pdfBlob) + "-" + inStartPage + "-" + inEndPage + ".pdf";
+            try (PDDocument extracted = pe.extract()) {
+                PDFUtils.setInfos(extracted, inTitle, inSubject, inAuthor);
+                result = PDFUtils.saveInTempFile(extracted);
+                result.setMimeType("application/pdf");
+                if (StringUtils.isBlank(inFileName)) {
+                    inFileName = getFileName(pdfBlob) + "-" + inStartPage + "-" + inEndPage + ".pdf";
+                }
+                result.setFilename(inFileName);
             }
-            result.setFilename(inFileName);
-            extracted.close();
         } catch (IOException e) {
             throw new NuxeoException("Failed to extract the pages", e);
         }
@@ -144,7 +143,8 @@ public class PDFPageExtractor {
             // Convert each page to PNG.
             PDFRenderer pdfRenderer = new PDFRenderer(pdfDoc);
             int pageno = 0;
-            for (PDPage page : pdfDoc.getDocumentCatalog().getPages()) {
+            for (@SuppressWarnings("unused")
+            PDPage page : pdfDoc.getDocumentCatalog().getPages()) {
                 pageno++;
                 resultFileName = inFileName + "-" + pageno;
                 BufferedImage bim = pdfRenderer.renderImageWithDPI(pageno - 1, 300, ImageType.RGB);
@@ -159,7 +159,6 @@ public class PDFPageExtractor {
                 results.add(result);
                 Framework.trackFile(resultFile, result);
             }
-            pdfDoc.close();
         } catch (IOException e) {
             throw new NuxeoException("Failed to extract the pages", e);
         }

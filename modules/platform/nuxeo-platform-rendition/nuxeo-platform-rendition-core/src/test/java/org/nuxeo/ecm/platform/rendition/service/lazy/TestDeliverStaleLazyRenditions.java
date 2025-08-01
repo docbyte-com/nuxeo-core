@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.platform.rendition.lazy.AbstractLazyCachableRenditio
 import java.util.GregorianCalendar;
 import java.util.stream.IntStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,11 @@ package org.nuxeo.runtime.stream.tests;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.runtime.stream.StreamServiceImpl.STREAM_PROCESSING_ENABLED;
 
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,23 +33,24 @@ import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.StreamManager;
 import org.nuxeo.lib.stream.log.LogManager;
 import org.nuxeo.lib.stream.log.Name;
-import org.nuxeo.runtime.stream.DisableStreamProcessingFeature;
 import org.nuxeo.runtime.stream.RuntimeStreamFeature;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @RunWith(FeaturesRunner.class)
-@Features({ DisableStreamProcessingFeature.class, RuntimeStreamFeature.class })
+@Features(RuntimeStreamFeature.class)
 @Deploy("org.nuxeo.runtime.stream:test-stream-contrib.xml")
+@WithFrameworkProperty(name = STREAM_PROCESSING_ENABLED, value = "false")
 public class TestStreamServiceDisabledProcessing {
 
     @Inject
     public StreamService service;
 
     @Test
-    public void testStreamProcessor() throws Exception {
+    public void testStreamProcessor() {
         @SuppressWarnings("resource")
         LogManager manager = service.getLogManager();
 

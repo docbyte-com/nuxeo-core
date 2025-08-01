@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.core;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -33,6 +34,13 @@ import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.BEFORE_DOC_UPDATE;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.INCREMENT_BEFORE_UPDATE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYTHING;
 import static org.nuxeo.ecm.core.model.Session.PROP_RETENTION_STRICT_MODE_ENABLED;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEXES_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_COMPLEX_SCHEMA;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DATE_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_INTEGER_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_SCALAR_SCHEMA;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRING_PROP;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -59,7 +67,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -129,15 +137,16 @@ import org.nuxeo.ecm.core.schema.SchemaManagerImpl;
 import org.nuxeo.ecm.core.schema.types.Schema;
 import org.nuxeo.ecm.core.security.RetentionExpiredAction.RetentionExpiredComputation;
 import org.nuxeo.ecm.core.security.RetentionExpiredFinderListener;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfDBSMongoDBRepository;
 import org.nuxeo.ecm.core.storage.sql.listeners.DummyBeforeModificationListener;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule.IgnoreWindows;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -145,7 +154,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/disable-schedulers.xml")
@@ -267,14 +275,14 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testBasics() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel child = session.createDocumentModel("/", "domain", "MyDocType");
+        DocumentModel child = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         child = session.createDocument(child);
         session.save();
 
-        child.setProperty("dublincore", "title", "The title");
+        child.setProperty(COMMON_SCALAR_SCHEMA, "string", "Some String");
         // use local tz
         Calendar cal = new GregorianCalendar(2008, Calendar.JULY, 14, 12, 34, 56);
-        child.setProperty("dublincore", "modified", cal);
+        child.setProperty(COMMON_SCALAR_SCHEMA, "date", cal);
         session.saveDocument(child);
         session.save();
 
@@ -283,12 +291,12 @@ public class TestSQLRepositoryAPI {
         // root = session.getRootDocument();
         child = session.getChild(root.getRef(), "domain");
 
-        String title = (String) child.getProperty("dublincore", "title");
-        assertEquals("The title", title);
-        String description = (String) child.getProperty("dublincore", "description");
-        assertNull(description);
-        Calendar modified = (Calendar) child.getProperty("dublincore", "modified");
-        assertEquals(cal, modified);
+        String string = (String) child.getProperty(COMMON_SCALAR_SCHEMA, "string");
+        assertEquals("Some String", string);
+        String integer = (String) child.getProperty(COMMON_SCALAR_SCHEMA, "integer");
+        assertNull(integer);
+        Calendar date = (Calendar) child.getProperty(COMMON_SCALAR_SCHEMA, "date");
+        assertEquals(cal, date);
     }
 
     /*
@@ -299,10 +307,10 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
 
         // create the parent doc under the root
-        DocumentModel parent = session.newDocumentModel(new PathRef("/"), "domain", "MyDocType");
-        Calendar parentModifTime = GregorianCalendar.getInstance();
-        parent.setPropertyValue("dc:title", "Title of parent");
-        parent.setPropertyValue("dc:modified", parentModifTime);
+        DocumentModel parent = session.newDocumentModel(new PathRef("/"), "domain", COMMON_DOC_TYPE);
+        Calendar cal = GregorianCalendar.getInstance();
+        parent.setPropertyValue(COMMON_STRING_PROP, "String of parent");
+        parent.setPropertyValue(COMMON_DATE_PROP, cal);
         parent = session.createDocument(parent);
 
         // create the child doc under the parent
@@ -319,9 +327,9 @@ public class TestSQLRepositoryAPI {
         reopenSession();
 
         assertEquals(root.getRef(), parent.getParentRef());
-        assertEquals("Title of parent", parent.getPropertyValue("dc:title"));
-        assertNull(parent.getPropertyValue("dc:description"));
-        assertEquals(parentModifTime, parent.getPropertyValue("dc:modified"));
+        assertEquals("String of parent", parent.getPropertyValue(COMMON_STRING_PROP));
+        assertNull(parent.getPropertyValue(COMMON_INTEGER_PROP));
+        assertEquals(cal, parent.getPropertyValue(COMMON_DATE_PROP));
 
         assertEquals(parent.getRef(), child.getParentRef());
         assertEquals("Title of child", child.getPropertyValue("dc:title"));
@@ -338,23 +346,21 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testLists() {
-        DocumentModel child = session.createDocumentModel("/", "domain", "MyDocType");
+        DocumentModel child = session.createDocumentModel("/", "domain", COMMON_DOC_TYPE);
         child = session.createDocument(child);
         session.save();
 
         // simple list as array
-        child.setProperty("dublincore", "subjects", new String[] { "a", "b" });
-        // simple list as List
-        child.setProperty("testList", "simplelist", new ArrayList<>(Arrays.asList("c", "d")));
+        child.setProperty(COMMON_SCALAR_SCHEMA, "arrayString", new String[] { "a", "b" });
         // simple list as non-serializable array
-        child.setProperty("testList", "strings", new Object[] { "e", "f" });
+        child.setProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString", new Object[] { "e", "f" });
         // complex list as List
-        child.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("c", "d")));
+        child.setProperty(COMMON_COMPLEX_SCHEMA, "complex/strings", List.of("c", "d"));
         session.saveDocument(child);
         session.save();
 
         child = session.getDocument(child.getRef());
-        Object s = child.getProperty("testList", "strings");
+        Object s = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString");
         assertTrue(s.getClass().isArray());
         // Objet[] has been normalized to String[] when re-fetched from mapper cache
         assertEquals(String.class, s.getClass().getComponentType());
@@ -364,25 +370,22 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
         child = session.getChild(root.getRef(), "domain");
 
-        Object subjects = child.getProperty("dublincore", "subjects");
-        assertTrue(subjects instanceof String[]);
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) subjects));
-        Object simples = child.getProperty("testList", "simplelist");
-        assertTrue(simples instanceof String[]);
-        assertEquals(Arrays.asList("c", "d"), Arrays.asList((String[]) simples));
-        Object strings = child.getProperty("testList", "strings");
+        Object arrayString = child.getProperty(COMMON_SCALAR_SCHEMA, "arrayString");
+        assertTrue(arrayString instanceof String[]);
+        assertEquals(List.of("a", "b"), List.of((String[]) arrayString));
+        Object strings = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/arrayString");
         assertTrue(strings.getClass().isArray());
         // Objet[] has been normalized to String[] when re-read from database
         assertEquals(String.class, strings.getClass().getComponentType());
-        assertEquals(Arrays.asList("e", "f"), Arrays.asList((Serializable[]) strings));
-        Object participants = child.getProperty("testList", "participants");
-        assertTrue(participants instanceof List);
-        assertEquals(Arrays.asList("c", "d"), participants);
+        assertEquals(List.of("e", "f"), List.of((Serializable[]) strings));
+        Object complexStrings = child.getProperty(COMMON_COMPLEX_SCHEMA, "complex/strings");
+        assertTrue(complexStrings instanceof List);
+        assertEquals(List.of("c", "d"), complexStrings);
     }
 
     @Test
     public void testPathWithExtraSlash() {
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         DocumentModelList children = session.getChildren(new PathRef("/"));
@@ -522,17 +525,17 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testMarkDirty() {
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
 
-        doc.setProperty("dublincore", "title", "title1");
-        doc.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("a", "b")));
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "string1");
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "strings", List.of("a", "b"));
         session.saveDocument(doc);
         session.save();
 
-        doc.setProperty("dublincore", "title", "title2");
-        doc.setProperty("testList", "participants", new ArrayList<>(Arrays.asList("c", "d")));
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "string2");
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "strings", List.of("c", "d"));
         session.saveDocument(doc);
         session.save();
 
@@ -540,10 +543,10 @@ public class TestSQLRepositoryAPI {
         reopenSession();
         // root = session.getRootDocument();
         doc = session.getDocument(new PathRef("/doc"));
-        String title = (String) doc.getProperty("dublincore", "title");
-        assertEquals("title2", title);
-        Object participants = doc.getProperty("testList", "participants");
-        assertEquals(Arrays.asList("c", "d"), participants);
+        String string = (String) doc.getProperty(COMMON_SCALAR_SCHEMA, "string");
+        assertEquals("string2", string);
+        Object strings = doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
+        assertEquals(List.of("c", "d"), strings);
     }
 
     @Test
@@ -1030,7 +1033,7 @@ public class TestSQLRepositoryAPI {
         for (DocumentModel doc : session.getChildrenIterator(new PathRef("/"))) {
             names.add(doc.getName());
         }
-        assertEquals(new HashSet<>(Arrays.asList("doc1", "doc2", "doc3")), names);
+        assertEquals(new HashSet<>(List.of("doc1", "doc2", "doc3")), names);
 
         // bob doesn't see doc2
         CoreSession bobSession = openSessionAs("bob");
@@ -1039,7 +1042,7 @@ public class TestSQLRepositoryAPI {
             names.add(doc.getName());
         }
         // doc2 is not in the returned set
-        assertEquals(new HashSet<>(Arrays.asList("doc1", "doc3")), names);
+        assertEquals(new HashSet<>(List.of("doc1", "doc3")), names);
     }
 
     /**
@@ -1131,7 +1134,7 @@ public class TestSQLRepositoryAPI {
         assertNotNull(returnedDocument.getSchemas());
 
         // TODO NXP-2514: should it contain 3 or 1 schemas? not sure about that.
-        List<String> schemas = Arrays.asList(returnedDocument.getSchemas());
+        List<String> schemas = List.of(returnedDocument.getSchemas());
         assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1150,7 +1153,7 @@ public class TestSQLRepositoryAPI {
         assertNotNull(returnedDocument.getType());
         assertNotNull(returnedDocument.getSchemas());
 
-        schemas = Arrays.asList(returnedDocument.getSchemas());
+        schemas = List.of(returnedDocument.getSchemas());
         assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1399,8 +1402,8 @@ public class TestSQLRepositoryAPI {
         DocumentModelList docs = session.query("select * from Document");
         System.out.println("List all documents");
         for (DocumentModel doc : docs) {
-            System.out.println(String.format("- type: %s, proxy: %s, version: %s %s", doc.getType(), doc.isProxy(),
-                    doc.isVersion(), doc));
+            System.out.printf("- type: %s, proxy: %s, version: %s %s%n", doc.getType(), doc.isProxy(), doc.isVersion(),
+                    doc);
         }
     }
 
@@ -1557,7 +1560,7 @@ public class TestSQLRepositoryAPI {
         doc = session.createDocument(doc);
         DocumentModel proxy1 = session.createProxy(doc.getRef(), folder.getRef());
         DocumentModel proxy2 = session.createProxy(doc.getRef(), folder.getRef());
-        List<DocumentRef> proxies = Arrays.asList(proxy1.getRef(), proxy2.getRef());
+        List<DocumentRef> proxies = List.of(proxy1.getRef(), proxy2.getRef());
         session.save();
         nextTransaction();
 
@@ -1634,7 +1637,7 @@ public class TestSQLRepositoryAPI {
         DocumentModelList list = session.query("SELECT name FROM File");
         assertEquals(1, list.size());
         DocumentModel docModel = list.get(0);
-        List<String> schemas = Arrays.asList(docModel.getSchemas());
+        List<String> schemas = List.of(docModel.getSchemas());
         // TODO NXP-2514: is it 3 or 4? (should "uid" be in the list or not?)
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
@@ -1646,7 +1649,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT content/filename FROM File");
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1658,7 +1661,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM File");
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("file"));
@@ -1669,7 +1672,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM HiddenFile", facetFilter);
         assertEquals(1, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("dublincore"));
 
@@ -1677,7 +1680,7 @@ public class TestSQLRepositoryAPI {
         list = session.query("SELECT * FROM Document");
         assertEquals(3, list.size());
         docModel = list.get(0);
-        schemas = Arrays.asList(docModel.getSchemas());
+        schemas = List.of(docModel.getSchemas());
         // assertEquals(3, schemas.size());
         assertTrue(schemas.contains("common"));
         assertTrue(schemas.contains("dublincore"));
@@ -2157,7 +2160,7 @@ public class TestSQLRepositoryAPI {
         DocumentModel child1 = session.createDocumentModel("/", "file1", "File");
         DocumentModel child2 = session.createDocumentModel("/", "fold1", "Folder");
         DocumentModel child3 = session.createDocumentModel("/", "ws1", "Workspace");
-        List<DocumentModel> returnedChildFiles = createChildDocuments(Arrays.asList(child1, child2, child3));
+        List<DocumentModel> returnedChildFiles = createChildDocuments(List.of(child1, child2, child3));
         assertFalse(returnedChildFiles.get(0).isFolder());
         assertTrue(returnedChildFiles.get(1).isFolder());
         assertTrue(returnedChildFiles.get(2).isFolder());
@@ -2173,7 +2176,7 @@ public class TestSQLRepositoryAPI {
         // facet not yet present
         assertFalse(doc.hasFacet("Aged"));
         assertFalse(doc.hasFacet(FacetNames.HIDDEN_IN_NAVIGATION));
-        Set<String> baseFacets = new HashSet<>(Arrays.asList(FacetNames.DOWNLOADABLE, FacetNames.VERSIONABLE,
+        Set<String> baseFacets = new HashSet<>(List.of(FacetNames.DOWNLOADABLE, FacetNames.VERSIONABLE,
                 FacetNames.PUBLISHABLE, FacetNames.COMMENTABLE, FacetNames.HAS_RELATED_TEXT));
         assertEquals(baseFacets, doc.getFacets());
         try {
@@ -2550,16 +2553,14 @@ public class TestSQLRepositoryAPI {
         assertEquals("project", session.getCurrentLifeCycleState(childFile.getRef()));
 
         Collection<String> allowedStateTransitions = session.getAllowedStateTransitions(childFile.getRef());
-        assertEquals(3, allowedStateTransitions.size());
+        assertEquals(2, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("approve"));
         assertTrue(allowedStateTransitions.contains("obsolete"));
-        assertTrue(allowedStateTransitions.contains("delete"));
 
         assertTrue(session.followTransition(childFile.getRef(), "approve"));
         assertEquals("approved", session.getCurrentLifeCycleState(childFile.getRef()));
         allowedStateTransitions = session.getAllowedStateTransitions(childFile.getRef());
-        assertEquals(2, allowedStateTransitions.size());
-        assertTrue(allowedStateTransitions.contains("delete"));
+        assertEquals(1, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("backToProject"));
 
         session.reinitLifeCycleState(childFile.getRef());
@@ -2600,16 +2601,14 @@ public class TestSQLRepositoryAPI {
         assertEquals("project", childFile.getCurrentLifeCycleState());
 
         Collection<String> allowedStateTransitions = childFile.getAllowedStateTransitions();
-        assertEquals(3, allowedStateTransitions.size());
+        assertEquals(2, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("approve"));
         assertTrue(allowedStateTransitions.contains("obsolete"));
-        assertTrue(allowedStateTransitions.contains("delete"));
 
         assertTrue(childFile.followTransition("obsolete"));
         assertEquals("obsolete", childFile.getCurrentLifeCycleState());
         allowedStateTransitions = childFile.getAllowedStateTransitions();
-        assertEquals(2, allowedStateTransitions.size());
-        assertTrue(allowedStateTransitions.contains("delete"));
+        assertEquals(1, allowedStateTransitions.size());
         assertTrue(allowedStateTransitions.contains("backToProject"));
     }
 
@@ -2911,7 +2910,7 @@ public class TestSQLRepositoryAPI {
         str = (String[]) childFile.getProperty("dublincore", "participants");
 
         assertNotNull(str);
-        List<String> list = Arrays.asList(str);
+        List<String> list = List.of(str);
         assertTrue(list.contains("a"));
         assertTrue(list.contains("b"));
         assertTrue(list.contains("c"));
@@ -2928,7 +2927,7 @@ public class TestSQLRepositoryAPI {
         str = (String[]) childFile.getProperty("dublincore", "participants");
 
         assertNotNull(str);
-        list = Arrays.asList(str);
+        list = List.of(str);
         assertTrue(list.contains("a"));
         assertTrue(list.contains("b"));
     }
@@ -2966,7 +2965,7 @@ public class TestSQLRepositoryAPI {
         assertEquals(length, blob.getLength());
         assertEquals("UTF8", blob.getEncoding());
         assertEquals("java/class", blob.getMimeType());
-        assertTrue(Arrays.equals(content, blob.getByteArray()));
+        assertArrayEquals(content, blob.getByteArray());
 
         // blob from a stream, with no known length
         URL url = getClass().getClassLoader().getResource("META-INF/MANIFEST.MF");
@@ -3137,11 +3136,7 @@ public class TestSQLRepositoryAPI {
         assertEquals("File", docModel.getType());
 
         // bad type should fail
-        try {
-            session.createDocumentModel("NotAValidTypeName");
-            fail();
-        } catch (IllegalArgumentException e) {
-        }
+        assertThrows(IllegalArgumentException.class, () -> session.createDocumentModel("NotAValidTypeName"));
 
         // same as previously with path info
         docModel = session.createDocumentModel("/path/to/parent", "some-id", "File");
@@ -3182,7 +3177,7 @@ public class TestSQLRepositoryAPI {
 
         assertEquals("t", copy.getProperty("dublincore", "title"));
         assertEquals("d", copy.getProperty("dublincore", "description"));
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) copy.getProperty("dublincore", "subjects")));
+        assertEquals(List.of("a", "b"), List.of((String[]) copy.getProperty("dublincore", "subjects")));
         Object fileso = copy.getProperty("files", "files");
         assertNotNull(fileso);
         List<Map<String, Object>> newfiles = (List<Map<String, Object>>) fileso;
@@ -3229,7 +3224,7 @@ public class TestSQLRepositoryAPI {
 
         assertEquals("t", copy.getProperty("dublincore", "title"));
         assertEquals("d", copy.getProperty("dublincore", "description"));
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList((String[]) copy.getProperty("dublincore", "subjects")));
+        assertEquals(List.of("a", "b"), List.of((String[]) copy.getProperty("dublincore", "subjects")));
     }
 
     @Test
@@ -3263,11 +3258,11 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testPropertyModel() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "theDoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "theDoc", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        Property p = doc.getPropertyObject("myschema", "long");
+        Property p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
 
         assertTrue(p.isPhantom());
         assertNull(p.getValue());
@@ -3275,7 +3270,7 @@ public class TestSQLRepositoryAPI {
         assertEquals(Long.valueOf(12), p.getValue());
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         assertFalse(p.isPhantom());
         assertEquals(Long.valueOf(12), p.getValue());
         p.setValue(null);
@@ -3284,7 +3279,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         // assertTrue(p.isPhantom());
         assertNull(p.getValue());
         p.setValue(Long.valueOf(13));
@@ -3294,7 +3289,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.saveDocument(doc);
 
-        p = doc.getPropertyObject("myschema", "long");
+        p = doc.getPropertyObject(COMMON_SCALAR_SCHEMA, "long");
         // assertTrue(p.isPhantom()); not applicable to SQL
         assertNull(p.getValue());
     }
@@ -3343,7 +3338,7 @@ public class TestSQLRepositoryAPI {
         // check in a non-ordered folder
         DocumentModel parent2 = session.createDocumentModel("/", "folder", "Folder");
         session.createDocument(parent2);
-        DocumentModel doc3 = session.createDocumentModel("/folder", "doc3", "MyDocType");
+        DocumentModel doc3 = session.createDocumentModel("/folder", "doc3", COMMON_DOC_TYPE);
         doc3 = session.createDocument(doc3);
         session.save();
         doc3 = session.getDocument(doc3.getRef());
@@ -3370,6 +3365,48 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
+    public void testOrderingAfterMove() {
+        DocumentModel folder = session.createDocumentModel("/", "folder", "Folder");
+        folder = session.createDocument(folder);
+        DocumentModel doc1 = session.createDocumentModel("/folder", "doc1", "File");
+        doc1 = session.createDocument(doc1);
+
+        DocumentModel orderedFolder1 = session.createDocumentModel("/", "orderedFolder1", "OrderedFolder");
+        orderedFolder1 = session.createDocument(orderedFolder1);
+        DocumentModel doc2 = session.createDocumentModel("/orderedFolder1", "doc2", "File");
+        session.createDocument(doc2);
+
+        DocumentModel orderedFolder2 = session.createDocumentModel("/", "orderedFolder2", "OrderedFolder");
+        orderedFolder2 = session.createDocument(orderedFolder2);
+        DocumentModel doc3 = session.createDocumentModel("/orderedFolder2", "doc3", "File");
+        session.createDocument(doc3);
+
+        // move doc1 from an unordered folder to an ordered folder, should be positioned last
+        session.move(doc1.getRef(), orderedFolder1.getRef(), null);
+
+        DocumentModelList children = session.getChildren(folder.getRef());
+        assertTrue(children.isEmpty());
+
+        children = session.getChildren(orderedFolder1.getRef());
+        assertEquals(2, children.size());
+        assertEquals("doc2", children.get(0).getName());
+        assertEquals("doc1", children.get(1).getName());
+
+        // move doc2 and doc1 from an ordered folder to an ordered folder, should be positioned last
+        session.move(doc2.getRef(), orderedFolder2.getRef(), null);
+        session.move(doc1.getRef(), orderedFolder2.getRef(), null);
+
+        children = session.getChildren(orderedFolder1.getRef());
+        assertTrue(children.isEmpty());
+
+        children = session.getChildren(orderedFolder2.getRef());
+        assertEquals(3, children.size());
+        assertEquals("doc3", children.get(0).getName());
+        assertEquals("doc2", children.get(1).getName());
+        assertEquals("doc1", children.get(2).getName());
+    }
+
+    @Test
     public void testPropertyXPath() {
         DocumentModel root = session.getRootDocument();
         DocumentModel parent = session.createDocumentModel(root.getPathAsString(), "theParent", "OrderedFolder");
@@ -3387,11 +3424,11 @@ public class TestSQLRepositoryAPI {
     @Test
     public void testComplexList() {
         DocumentModel root = session.getRootDocument();
-        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        List list = (List) doc.getProperty("testList", "attachments");
+        List list = (List) doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
@@ -3403,6 +3440,7 @@ public class TestSQLRepositoryAPI {
 
         doc = session.createDocument(doc);
 
+        @SuppressWarnings("deprecation")
         DataModel dm = doc.getDataModel("book");
         dm.setValue("title", "my title");
         assertEquals("my title", dm.getValue("title"));
@@ -3426,11 +3464,11 @@ public class TestSQLRepositoryAPI {
 
         // list test
 
-        doc = session.createDocumentModel(root.getPathAsString(), "mydoc2", "MyDocType");
+        doc = session.createDocumentModel(root.getPathAsString(), "mydoc2", COMMON_DOC_TYPE);
 
         doc = session.createDocument(doc);
 
-        List<?> list = (List<?>) doc.getProperty("testList", "attachments");
+        List<?> list = (List<?>) doc.getProperty(COMMON_SCALAR_SCHEMA, "strings");
         assertNotNull(list);
         assertTrue(list.isEmpty());
     }
@@ -3440,7 +3478,7 @@ public class TestSQLRepositoryAPI {
         DocumentModel root = session.getRootDocument();
         DocumentModel doc = session.createDocumentModel(root.getPathAsString(), "mydoc", "Book");
         doc = session.createDocument(doc);
-        DocumentModel doc2 = session.createDocumentModel(root.getPathAsString(), "mydoc2", "MyDocType");
+        DocumentModel doc2 = session.createDocumentModel(root.getPathAsString(), "mydoc2", COMMON_DOC_TYPE);
         doc2 = session.createDocument(doc2);
         List<DocumentRef> childrenRefs = session.getChildrenRefs(root.getRef(), null);
         assertEquals(2, childrenRefs.size());
@@ -3503,13 +3541,13 @@ public class TestSQLRepositoryAPI {
         doc = session.saveDocument(doc);
 
         blob = (Blob) doc.getPropertyObject("file", "content").getValue();
-        assertTrue(Arrays.equals(bytes, blob.getByteArray()));
+        assertArrayEquals(bytes, blob.getByteArray());
 
         // reset not implemented (not needed) for StorageBlob's Binary
         // XXX blob.getStream().reset();
 
         blob = (Blob) doc.getPropertyObject("file", "content").getValue();
-        assertTrue(Arrays.equals(bytes, blob.getByteArray()));
+        assertArrayEquals(bytes, blob.getByteArray());
     }
 
     @Test
@@ -3618,6 +3656,7 @@ public class TestSQLRepositoryAPI {
         docModel = session.createDocument(docModel);
         DocumentModel proxyModel = session.createProxy(docModel.getRef(), root.getRef());
 
+        @SuppressWarnings("rawtypes")
         Session internalSession = ((AbstractSession) session).getSession();
         // Remove atomically proxy target
         internalSession.removeDocument(docModel.getId());
@@ -3821,7 +3860,7 @@ public class TestSQLRepositoryAPI {
             actual.put(uuid.toString(), info); // toString() for sequence ids
         }
         res.close();
-        assertEquals(Collections.singletonMap(proxy.getId(), "proxyinfo"), actual);
+        assertEquals(Map.of(proxy.getId(), "proxyinfo"), actual);
 
         // test that the copy has the extra schema values
         session.copy(folder.getRef(), root.getRef(), "folderCopy");
@@ -3911,7 +3950,7 @@ public class TestSQLRepositoryAPI {
         ver.setProperty("dublincore", "title", "Ver title");
         Calendar mod = new GregorianCalendar(2008, Calendar.JULY, 14, 12, 34, 56);
         ver.setProperty("dublincore", "modified", mod);
-        session.importDocuments(Collections.singletonList(ver));
+        session.importDocuments(List.of(ver));
         session.save();
 
         reopenSession();
@@ -3942,7 +3981,7 @@ public class TestSQLRepositoryAPI {
                 null, false, null, null, null);
         proxy.putContextData(CoreSession.IMPORT_PROXY_TARGET_ID, vid);
         proxy.putContextData(CoreSession.IMPORT_PROXY_VERSIONABLE_ID, id);
-        session.importDocuments(Collections.singletonList(proxy));
+        session.importDocuments(List.of(proxy));
         session.save();
 
         reopenSession();
@@ -3971,7 +4010,7 @@ public class TestSQLRepositoryAPI {
         doc.putContextData(CoreSession.IMPORT_VERSION_MAJOR, Long.valueOf(8));
         doc.putContextData(CoreSession.IMPORT_VERSION_MINOR, Long.valueOf(1));
         doc.setProperty("dublincore", "title", "Live title");
-        session.importDocuments(Collections.singletonList(doc));
+        session.importDocuments(List.of(doc));
         session.save();
 
         reopenSession();
@@ -4006,7 +4045,7 @@ public class TestSQLRepositoryAPI {
                 null, null, false, null, null, null);
         try {
             // VCS fails in importDocuments because its cache know the id alreay exists
-            session.importDocuments(Collections.singletonList(doc2));
+            session.importDocuments(List.of(doc2));
             session.save();
             fail();
         } catch (ConcurrentUpdateException e) {
@@ -4139,7 +4178,7 @@ public class TestSQLRepositoryAPI {
                                                         event.getName()))
                                                 .map(TestSQLRepositoryAPI::getDetailedEventName)
                                                 .collect(Collectors.toList());
-        assertEquals(Arrays.asList(expectedEventNames), actualEventNames);
+        assertEquals(List.of(expectedEventNames), actualEventNames);
     }
 
     public static String getDetailedEventName(Event event) {
@@ -4238,14 +4277,14 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testPlacelessDocument() {
-        DocumentModel doc = session.createDocumentModel(null, "mydoc", "MyDocType");
-        doc.setProperty("dublincore", "title", "The title");
+        DocumentModel doc = session.createDocumentModel(null, "mydoc", COMMON_DOC_TYPE);
+        doc.setProperty(COMMON_SCALAR_SCHEMA, "string", "The String");
         doc = session.createDocument(doc);
         assertNull(doc.getParentRef()); // placeless
         session.save();
 
-        DocumentModel doc2 = session.createDocumentModel(null, "other", "MyDocType");
-        doc2.setProperty("dublincore", "title", "Other");
+        DocumentModel doc2 = session.createDocumentModel(null, "other", COMMON_DOC_TYPE);
+        doc2.setProperty(COMMON_SCALAR_SCHEMA, "string", "Other");
         doc2 = session.createDocument(doc2);
         assertNull(doc2.getParentRef()); // placeless
         session.save();
@@ -4255,8 +4294,8 @@ public class TestSQLRepositoryAPI {
         doc = session.getDocument(new IdRef(doc.getId()));
         assertNull(doc.getParentRef());
 
-        assertEquals("The title", doc.getProperty("dublincore", "title"));
-        assertNull(doc.getProperty("dublincore", "description"));
+        assertEquals("The String", doc.getProperty(COMMON_SCALAR_SCHEMA, "string"));
+        assertNull(doc.getProperty(COMMON_SCALAR_SCHEMA, "integer"));
 
         doc2 = session.getDocument(new IdRef(doc2.getId()));
         assertNull(doc2.getParentRef());
@@ -4348,8 +4387,10 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testObsoleteType() {
+        var schemaManagerImpl = (SchemaManagerImpl) schemaManager;
+
         DocumentRef rootRef = session.getRootDocument().getRef();
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         DocumentRef docRef = new IdRef(doc.getId());
         session.save();
@@ -4357,27 +4398,26 @@ public class TestSQLRepositoryAPI {
         assertNotNull(session.getDocument(docRef));
         assertNotNull(session.getChild(rootRef, "doc"));
 
-        // remove MyDocType from known types
-        DocumentTypeDescriptor dtd = ((SchemaManagerImpl) schemaManager).getDocumentTypeDescriptor("MyDocType");
-        ((SchemaManagerImpl) schemaManager).unregisterDocumentType(dtd);
+        // remove ~CommonDocument from known types
+        DocumentTypeDescriptor dtd = schemaManagerImpl.getDocumentTypeDescriptor(COMMON_DOC_TYPE);
+        schemaManagerImpl.unregisterDocumentType(dtd);
 
-        reopenSession();
-        if (!isDBS()) {
-            // DBS does not do obsolete type check on hasChildren() due to cost
-            assertFalse(session.hasChildren(rootRef));
-        }
-        assertEquals(0, session.getChildren(rootRef).size());
         try {
-            session.getDocument(docRef);
-            fail("shouldn't be able to get doc with obsolete type");
-        } catch (DocumentNotFoundException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: MyDocType"));
-        }
-        try {
-            session.getChild(rootRef, "doc");
-            fail("shouldn't be able to get doc with obsolete type");
-        } catch (DocumentNotFoundException e) {
-            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: MyDocType"));
+            reopenSession();
+            if (!isDBS()) {
+                // DBS does not do obsolete type check on hasChildren() due to cost
+                assertFalse(session.hasChildren(rootRef));
+            }
+            assertEquals(0, session.getChildren(rootRef).size());
+            var e = assertThrows("shouldn't be able to get doc with obsolete type", DocumentNotFoundException.class,
+                    () -> session.getDocument(docRef));
+            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: CommonDocument"));
+
+            e = assertThrows("shouldn't be able to get doc with obsolete type", DocumentNotFoundException.class,
+                    () -> session.getChild(rootRef, "doc"));
+            assertTrue(e.getMessage(), e.getMessage().contains("Unknown document type: CommonDocument"));
+        } finally {
+            schemaManagerImpl.registerDocumentType(dtd);
         }
     }
 
@@ -4536,14 +4576,14 @@ public class TestSQLRepositoryAPI {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB repository has incremental GC")
     public void testBinaryGC() throws InterruptedException {
-        assumeTrue("DBS repository has incremental GC", !coreFeature.getStorageConfiguration().isDBS());
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
         runBinariesGC(true, false);
 
         // store some binaries
-        for (String str : Arrays.asList("ABC", "DEF", "GHI", "JKL")) {
+        for (String str : List.of("ABC", "DEF", "GHI", "JKL")) {
             addBinary(str, str);
             addBinary(str, str + "2");
         }
@@ -4622,21 +4662,21 @@ public class TestSQLRepositoryAPI {
 
     /** Test that stores blobs in attachments (complex list). */
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = IgnoreWindows.class, cause = "Not enough time granularity")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "Not enough time granularity")
     public void testBinaryGC2() throws InterruptedException {
         // GC binaries from previous tests
         Thread.sleep(3 * 1000);
         runBinariesGC(true, false);
 
         DocumentModel doc = session.createDocumentModel("/", "file", "File");
-        Map<String, Object> abc = Collections.singletonMap("file", Blobs.createBlob("ABC"));
-        Map<String, Object> def = Collections.singletonMap("file", Blobs.createBlob("DEF"));
-        Map<String, Object> ghi = Collections.singletonMap("file", Blobs.createBlob("GHI"));
-        doc.setPropertyValue("files", (Serializable) Arrays.asList(abc, def, ghi));
+        Map<String, Object> abc = Map.of("file", Blobs.createBlob("ABC"));
+        Map<String, Object> def = Map.of("file", Blobs.createBlob("DEF"));
+        Map<String, Object> ghi = Map.of("file", Blobs.createBlob("GHI"));
+        doc.setPropertyValue("files", (Serializable) List.of(abc, def, ghi));
         doc = session.createDocument(doc);
         session.save();
         // remove GHI
-        doc.setPropertyValue("files", (Serializable) Arrays.asList(abc, def));
+        doc.setPropertyValue("files", (Serializable) List.of(abc, def));
         session.saveDocument(doc);
         session.save();
         nextTransaction();
@@ -5090,7 +5130,7 @@ public class TestSQLRepositoryAPI {
             }
         }
         DummyRetentionExpiredComputation computation = new DummyRetentionExpiredComputation();
-        assertTrue(computation.wentThrough(Arrays.asList("foo", doc.getId())));
+        assertTrue(computation.wentThrough(List.of("foo", doc.getId())));
 
         // valid doc has no retention anymore and can be deleted
         doc = session.getDocument(doc.getRef());
@@ -5113,6 +5153,7 @@ public class TestSQLRepositoryAPI {
         twoSeconds.add(Calendar.SECOND, 2);
         session.setRetainUntil(doc.getRef(), twoSeconds, null);
         session.save();
+        nextTransaction();
 
         checkUndeletable(folder, doc);
 
@@ -5300,7 +5341,7 @@ public class TestSQLRepositoryAPI {
         String token = doc.getChangeToken();
 
         // change the doc by changing a list
-        doc.setPropertyValue("dc:subjects", (Serializable) Arrays.asList("foo", "bar"));
+        doc.setPropertyValue("dc:subjects", (Serializable) List.of("foo", "bar"));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5328,7 +5369,7 @@ public class TestSQLRepositoryAPI {
 
         // change the doc by creating a complex property list
         doc.setPropertyValue("relatedtext:relatedtextresources",
-                (Serializable) Collections.singletonList(Collections.singletonMap("relatedtextid", "123")));
+                (Serializable) List.of(Map.of("relatedtextid", "123")));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5339,7 +5380,7 @@ public class TestSQLRepositoryAPI {
 
         // change the doc by updating a complex property list
         doc.setPropertyValue("relatedtext:relatedtextresources",
-                (Serializable) Collections.singletonList(Collections.singletonMap("relatedtextid", "456")));
+                (Serializable) List.of(Map.of("relatedtextid", "456")));
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5349,7 +5390,7 @@ public class TestSQLRepositoryAPI {
         assertNotEquals(token2, token3);
 
         // change the doc by removing a complex property list
-        doc.setPropertyValue("relatedtext:relatedtextresources", (Serializable) Collections.emptyList());
+        doc.setPropertyValue("relatedtext:relatedtextresources", (Serializable) List.of());
         maybeUpdateChangeToken(doc);
         doc = session.saveDocument(doc);
         session.save();
@@ -5659,9 +5700,9 @@ public class TestSQLRepositoryAPI {
 
     @Test
     public void testConcurrentArrayUpdateAndRemove() {
-        DocumentModel doc = session.createDocumentModel("/", "document", "MyDocType2");
-        doc.setPropertyValue("cpxl:complexList",
-                (Serializable) List.of(Map.of("foo", "value-foo", "bar", "value-bar")));
+        DocumentModel doc = session.createDocumentModel("/", "document", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_COMPLEXES_PROP,
+                (Serializable) List.of(Map.of("string", "value-string", "strings", List.of("value-bar"))));
         doc = session.createDocument(doc);
         DocumentRef docRef = doc.getRef();
         nextTransaction();
@@ -5675,7 +5716,7 @@ public class TestSQLRepositoryAPI {
                 DocumentModel document = session.getDocument(docRef);
                 // sync the two threads
                 barrier.await(5, TimeUnit.SECONDS);
-                document.setPropertyValue("cpxl:complexList", (Serializable) List.of());
+                document.setPropertyValue(COMMON_COMPLEXES_PROP, (Serializable) List.of());
                 // the removal should occur before the update
                 session.saveDocument(document);
                 session.save();
@@ -5686,7 +5727,7 @@ public class TestSQLRepositoryAPI {
                 DocumentModel document = session.getDocument(docRef);
                 // sync the two threads
                 barrier.await(5, TimeUnit.SECONDS);
-                document.setPropertyValue("cpxl:complexList/0/foo", "updated");
+                document.setPropertyValue("tcc:complexes/0/string", "updated");
                 // the update should occur after the removal
                 barrier.await(5, TimeUnit.SECONDS);
                 session.saveDocument(document);
@@ -5713,7 +5754,7 @@ public class TestSQLRepositoryAPI {
             // the update to the complex element will just fail to do anything
             // as the element is now gone
             doc.refresh();
-            assertEquals(List.of(), doc.getPropertyValue("cpxl:complexList"));
+            assertEquals(List.of(), doc.getPropertyValue(COMMON_COMPLEXES_PROP));
         }
     }
 

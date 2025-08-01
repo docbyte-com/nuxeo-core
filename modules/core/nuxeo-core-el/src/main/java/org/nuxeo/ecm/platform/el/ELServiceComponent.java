@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.el;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.el.ELContext;
+import jakarta.el.ELContext;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

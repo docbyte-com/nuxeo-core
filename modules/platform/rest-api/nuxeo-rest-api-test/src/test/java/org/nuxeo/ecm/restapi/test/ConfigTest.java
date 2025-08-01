@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,9 +59,6 @@ public class ConfigTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
 
-    /**
-     * @since 8.10
-     */
     @Test
     public void itCanRetrieveSchemaDefinitionWithoutFieldConstraints() {
         // When I call the Rest schema endpoint
@@ -75,9 +72,6 @@ public class ConfigTest {
         });
     }
 
-    /**
-     * @since 8.10
-     */
     @Test
     public void itCanRetrieveSchemaDefinitionWithFieldConstraints() {
         // When I call the Rest schema endpoint with fetch.schema=fields
@@ -126,27 +120,18 @@ public class ConfigTest {
         return natureConstraint;
     }
 
-    /**
-     * @since 8.10
-     */
     @Test
     public void itCanRetrieveAllSchemas() {
         httpClient.buildGetRequest("/schema")
                   .executeAndConsume(new JsonNodeHandler(), node -> assertTrue(node.isArray()));
     }
 
-    /**
-     * @since 8.10
-     */
     @Test
     public void itCanRetrieveAllFacets() {
         httpClient.buildGetRequest("/facet")
                   .executeAndConsume(new JsonNodeHandler(), node -> assertTrue(node.isArray()));
     }
 
-    /**
-     * @since 8.10
-     */
     @Test
     public void itCanRetrieveAllDocTypes() {
         httpClient.buildGetRequest("/docType").executeAndConsume(new JsonNodeHandler(), node -> {

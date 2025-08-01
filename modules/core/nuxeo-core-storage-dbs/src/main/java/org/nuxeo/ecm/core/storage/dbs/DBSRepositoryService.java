@@ -23,9 +23,7 @@ import org.nuxeo.ecm.core.api.repository.Repository;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.core.repository.RepositoryFactory;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.SimpleContributionRegistry;
 
 /**
  * Service holding the configuration for DBS repositories.
@@ -34,58 +32,17 @@ import org.nuxeo.runtime.model.SimpleContributionRegistry;
  */
 public class DBSRepositoryService extends DefaultComponent {
 
-    protected DBSRepositoryDescriptorRegistry registry = new DBSRepositoryDescriptorRegistry();
-
-    protected static class DBSRepositoryDescriptorRegistry extends SimpleContributionRegistry<DBSRepositoryDescriptor> {
-
-        @Override
-        public String getContributionId(DBSRepositoryDescriptor contrib) {
-            return contrib.name;
-        }
-
-        @Override
-        public DBSRepositoryDescriptor clone(DBSRepositoryDescriptor orig) {
-            return orig.clone();
-        }
-
-        @Override
-        public void merge(DBSRepositoryDescriptor src, DBSRepositoryDescriptor dst) {
-            dst.merge(src);
-        }
-
-        @Override
-        public boolean isSupportingMerge() {
-            return true;
-        }
-
-        public void clear() {
-            currentContribs.clear();
-        }
-
-        public DBSRepositoryDescriptor getRepositoryDescriptor(String id) {
-            return getCurrentContribution(id);
-        }
-    }
-
-    @Override
-    public void activate(ComponentContext context) {
-        registry.clear();
-    }
-
-    @Override
-    public void deactivate(ComponentContext context) {
-        registry.clear();
-    }
+    protected static final String XP_REPOSITORY = "repository";
 
     public void addContribution(DBSRepositoryDescriptor descriptor,
             Class<? extends DBSRepositoryFactory> factoryClass) {
-        registry.addContribution(descriptor);
+        register(XP_REPOSITORY, descriptor);
         updateRegistration(descriptor.name, factoryClass);
     }
 
     public void removeContribution(DBSRepositoryDescriptor descriptor,
             Class<? extends DBSRepositoryFactory> factoryClass) {
-        registry.removeContribution(descriptor);
+        unregister(XP_REPOSITORY, descriptor);
         updateRegistration(descriptor.name, factoryClass);
     }
 
@@ -94,7 +51,7 @@ public class DBSRepositoryService extends DefaultComponent {
      */
     protected void updateRegistration(String repositoryName, Class<? extends DBSRepositoryFactory> factoryClass) {
         RepositoryManager repositoryManager = Framework.getService(RepositoryManager.class);
-        DBSRepositoryDescriptor descriptor = registry.getRepositoryDescriptor(repositoryName);
+        DBSRepositoryDescriptor descriptor = getDescriptor(XP_REPOSITORY, repositoryName);
         if (descriptor == null) {
             // last contribution removed
             repositoryManager.removeRepository(repositoryName);
@@ -116,8 +73,8 @@ public class DBSRepositoryService extends DefaultComponent {
         repositoryManager.addRepository(repository);
     }
 
-    public DBSRepositoryDescriptor getRepositoryDescriptor(String name) {
-        return registry.getRepositoryDescriptor(name);
+    protected DBSRepositoryDescriptor getRepositoryDescriptor(String name) {
+        return getDescriptor(XP_REPOSITORY, name);
     }
 
 }

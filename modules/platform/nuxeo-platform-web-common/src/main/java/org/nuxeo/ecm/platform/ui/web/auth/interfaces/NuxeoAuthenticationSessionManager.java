@@ -19,8 +19,8 @@
 
 package org.nuxeo.ecm.platform.ui.web.auth.interfaces;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpSession;
 
 import org.nuxeo.ecm.platform.ui.web.auth.CachableUserIdentificationInfo;
 

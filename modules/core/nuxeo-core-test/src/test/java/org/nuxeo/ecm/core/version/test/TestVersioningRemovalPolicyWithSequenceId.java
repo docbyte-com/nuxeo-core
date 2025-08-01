@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,17 @@
  */
 package org.nuxeo.ecm.core.version.test;
 
-import static org.nuxeo.ecm.core.storage.sql.DatabaseHelper.ID_TYPE_PROPERTY;
-
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfNotVCSRepository;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 2021.15
  */
 // NXP-30681
-@WithFrameworkProperty(name = ID_TYPE_PROPERTY, value = "sequence")
+// TODO improve WithFrameworkProperty to support SystemProperties class
+@WithFrameworkProperty(name = "nuxeo.test.vcs.idtype", value = "sequence")
+@ConditionalIgnore(condition = IgnoreIfNotVCSRepository.class, cause = "TestVersioningRemovalPolicy already tests non VCS repositories")
 public class TestVersioningRemovalPolicyWithSequenceId extends TestVersioningRemovalPolicy {
 
 }

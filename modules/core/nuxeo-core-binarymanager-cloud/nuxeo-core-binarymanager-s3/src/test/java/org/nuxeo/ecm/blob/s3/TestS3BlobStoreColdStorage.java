@@ -30,7 +30,7 @@ import static org.junit.Assert.fail;
 import java.io.IOException;
 import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ import org.nuxeo.runtime.test.runner.TransactionalConfig;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
 /**
  * @since 2021.19
@@ -74,7 +74,7 @@ public class TestS3BlobStoreColdStorage {
     protected BlobStore bs;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() {
         bp = blobManager.getBlobProvider("test");
         bs = ((BlobStoreBlobProvider) bp).store;
     }
@@ -119,7 +119,7 @@ public class TestS3BlobStoreColdStorage {
         // check it is sent to cold storage
         BlobStatus status = getBlobStatus(blobInfo);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(StorageClass.GLACIER.toString(), status.getStorageClass());
         assertFalse(status.isOngoingRestore());
 
         // Re-upload the blob
@@ -151,7 +151,7 @@ public class TestS3BlobStoreColdStorage {
         // Check it is sent to cold storage
         BlobStatus status = getBlobStatus(blobInfo);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(StorageClass.GLACIER.toString(), status.getStorageClass());
         assertFalse(status.isOngoingRestore());
 
         // Copy the blob to destination another time
@@ -201,7 +201,7 @@ public class TestS3BlobStoreColdStorage {
         });
         status = getBlobStatus(blobInfo);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(StorageClass.GLACIER.toString(), status.getStorageClass());
         assertFalse(status.isOngoingRestore());
 
         // Restore from cold storage
@@ -212,14 +212,14 @@ public class TestS3BlobStoreColdStorage {
         // check blob status before transaction is committed
         status = getBlobStatus(blobInfo);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(StorageClass.GLACIER.toString(), status.getStorageClass());
         assertFalse(status.isOngoingRestore());
 
         // commit transaction and check status
         TransactionHelper.commitOrRollbackTransaction();
         status = getBlobStatus(blobInfo);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(StorageClass.GLACIER.toString(), status.getStorageClass());
         assertTrue(status.isOngoingRestore());
     }
 

@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.mock" version="1.0">
+
+  <implementation class="org.nuxeo.ecm.core.search.client.mock.MockSearchClientFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.ecm.core.search.client.mock.MockSearchClientFactory" />
+  </service>
+
+  <extension-point name="searchClient">
+    <object class="org.nuxeo.ecm.core.search.client.mock.MockSearchClientDescriptor" />
+  </extension-point>
+
+</component>

@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.runtime</groupId>
@@ -29,6 +29,8 @@
     <module>nuxeo-runtime-metrics</module>
     <module>nuxeo-runtime-migration</module>
     <module>nuxeo-runtime-mongodb</module>
+    <module>nuxeo-runtime-opensearch1</module>
+    <module>nuxeo-runtime-opensearch1-embed</module>
     <module>nuxeo-runtime-osgi</module>
     <module>nuxeo-runtime-pubsub</module>
     <module>nuxeo-runtime-reload</module>

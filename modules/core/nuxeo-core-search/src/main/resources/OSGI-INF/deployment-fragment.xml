@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<fragment version="1">
+
+  <extension target="web#SERVLET">
+
+    <filter>
+      <display-name>SearchFilter</display-name>
+      <filter-name>SearchFilter</filter-name>
+      <filter-class>org.nuxeo.ecm.core.search.SearchFilter</filter-class>
+    </filter>
+    <filter-mapping>
+      <filter-name>SearchFilter</filter-name>
+      <url-pattern>/site/*</url-pattern>
+      <url-pattern>/api/*</url-pattern>
+      <dispatcher>REQUEST</dispatcher>
+      <dispatcher>FORWARD</dispatcher>
+    </filter-mapping>
+
+  </extension>
+
+</fragment>

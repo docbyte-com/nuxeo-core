@@ -31,7 +31,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.assertj.core.api.Assertions;

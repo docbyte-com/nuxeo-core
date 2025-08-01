@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,19 +23,20 @@ import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLConfiguration.ENTITY_ID;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringWriter;
+import java.io.OutputStream;
 import java.net.URI;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 import java.util.function.Function;
 import java.util.zip.Inflater;
 import java.util.zip.InflaterInputStream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -43,51 +44,60 @@ import javax.xml.transform.stream.StreamResult;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.utils.URLEncodedUtils;
-import org.junit.runners.model.FrameworkMethod;
-import org.nuxeo.directory.test.DirectoryFeature;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
-import org.nuxeo.ecm.core.test.annotations.Granularity;
-import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.test.UserManagerFeature;
+import org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.RuntimeHarness;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
+import org.opensaml.core.xml.config.XMLObjectProviderRegistrySupport;
+import org.opensaml.core.xml.io.Marshaller;
+import org.opensaml.core.xml.io.MarshallingException;
 import org.opensaml.saml.common.SAMLObject;
+import org.w3c.dom.Node;
 
 import com.google.inject.Binder;
 
-import net.shibboleth.utilities.java.support.codec.Base64Support;
-import net.shibboleth.utilities.java.support.codec.DecodingException;
-import net.shibboleth.utilities.java.support.codec.EncodingException;
+import net.shibboleth.shared.codec.Base64Support;
+import net.shibboleth.shared.codec.DecodingException;
+import net.shibboleth.shared.codec.EncodingException;
 
 /**
  * @since 2023.0
  */
-@Features({ CoreFeature.class, DirectoryFeature.class, UserManagerFeature.class })
-@RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.login.saml2")
+@Deploy("org.nuxeo.ecm.platform.web.common")
+@Features(UserManagerFeature.class)
 @WithFrameworkProperty(name = ENTITY_ID, value = "http://localhost:8080/login")
 public class SAMLFeature implements RunnerFeature {
 
     public static final String ALGORITHM_SIGNATURE_RSA_SHA256 = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256";
 
-    protected SAMLAuthenticationProvider samlAuthenticationProvider;
-
     @Override
-    public void configure(FeaturesRunner runner, Binder binder) {
-        binder.bind(SAMLAuthenticationProvider.class).toProvider(() -> samlAuthenticationProvider);
+    public void start(FeaturesRunner runner) throws Exception {
+        // compute metadata file path
+        String metadata;
+        if (runner.getFeature(IdpKeyStoreFeature.class) != null) {
+            metadata = getClass().getResource("/idp-meta-with-certificate.xml").toURI().getPath();
+        } else {
+            metadata = getClass().getResource("/idp-meta.xml").toURI().getPath();
+        }
+        Framework.getProperties().put("nuxeo.test.saml.authenticator.metadata", metadata);
+        // deploy saml authenticator contrib
+        RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
+        harness.deployContrib("org.nuxeo.ecm.platform.login.saml2.test",
+                "OSGI-INF/saml-authenticator-test-contrib.xml");
     }
 
     @Override
-    public void beforeSetup(FeaturesRunner runner, FrameworkMethod method, Object test) throws Exception {
-        String metadata = getClass().getResource("/idp-meta.xml").toURI().getPath();
-        Map<String, String> params = Map.of("metadata", metadata);
-
-        samlAuthenticationProvider = new SAMLAuthenticationProvider();
-        samlAuthenticationProvider.initPlugin(params);
+    public void configure(FeaturesRunner runner, Binder binder) {
+        binder.bind(SAMLAuthenticationProvider.class)
+              .toProvider(() -> (SAMLAuthenticationProvider) Framework.getService(PluggableAuthenticationService.class)
+                                                                      .getPlugin("SAML_AUTH"));
     }
 
     public static <O extends SAMLObject> void assertSAMLMessage(ExpectedSAMLMessage<O> expectedMessage,
@@ -122,9 +132,26 @@ public class SAMLFeature implements RunnerFeature {
     }
 
     public static String formatXML(String xml) {
-        try (var is = IOUtils.toInputStream(xml, UTF_8)) {
+        try (var is = IOUtils.toInputStream(xml, UTF_8); var out = new ByteArrayOutputStream()) {
             var document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(is);
+            formatXML(document, out);
+            return out.toString();
+        } catch (Exception e) {
+            throw new AssertionError("Error occurs when pretty-printing xml:\n" + xml, e);
+        }
+    }
 
+    public static void formatXML(SAMLObject object, OutputStream out) {
+        try {
+            Marshaller marshaller = XMLObjectProviderRegistrySupport.getMarshallerFactory().getMarshaller(object);
+            formatXML(marshaller.marshall(object), out);
+        } catch (MarshallingException e) {
+            throw new AssertionError("Error occurs when marshalling object: " + object, e);
+        }
+    }
+
+    public static void formatXML(Node node, OutputStream out) {
+        try {
             var transformerFactory = TransformerFactory.newInstance();
             var transformer = transformerFactory.newTransformer();
             transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
@@ -132,11 +159,9 @@ public class SAMLFeature implements RunnerFeature {
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
 
-            var out = new StringWriter();
-            transformer.transform(new DOMSource(document), new StreamResult(out));
-            return out.toString();
-        } catch (Exception e) {
-            throw new AssertionError("Error occurs when pretty-printing xml:\n" + xml, e);
+            transformer.transform(new DOMSource(node), new StreamResult(out));
+        } catch (TransformerException e) {
+            throw new AssertionError("Error occurs when formatting node: " + node, e);
         }
     }
 

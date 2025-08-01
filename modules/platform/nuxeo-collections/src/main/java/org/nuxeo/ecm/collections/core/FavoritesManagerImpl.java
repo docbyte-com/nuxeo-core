@@ -49,12 +49,6 @@ public class FavoritesManagerImpl extends DefaultComponent implements FavoritesM
     }
 
     @Override
-    @Deprecated
-    public DocumentModel getFavorites(final DocumentModel context, final CoreSession session) {
-        return getFavorites(session);
-    }
-
-    @Override
     public DocumentModel getFavorites(final CoreSession session) {
         return Framework.getService(CollectionLocationService.class).getUserFavorites(session);
     }

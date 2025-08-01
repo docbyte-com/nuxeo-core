@@ -173,21 +173,7 @@ String logoUrl = LoginScreenHelper.getValueWithDefault(screenConfig.getLogoUrl()
   </form>
 </div>
 
-<script type="text/javascript">
-  var submitted = false;
-  var oauth2Form = document.getElementById("oauth2Form");
-  oauth2Form.onsubmit = function(evt) {
-    if (submitted) {
-      evt.preventDefault();
-    } else {
-      [].slice.call(oauth2Form.getElementsByTagName("button")).forEach(function(elt) {
-        elt.classList.add("disabled");
-      });
-      submitted = true;
-    }
-    return true;
-  };
-</script>
+<script type="text/javascript" src="<%=context%>/scripts/oauth2Grant.js"></script>
 
 </body>
 </html>

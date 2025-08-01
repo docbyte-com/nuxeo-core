@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.concurrent.CyclicBarrier;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -67,6 +67,7 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
@@ -80,6 +81,9 @@ public class TestSQLRepositoryVersioning {
     protected CoreFeature coreFeature;
 
     @Inject
+    protected TransactionalFeature txFeature;
+
+    @Inject
     protected CoreSession session;
 
     protected CoreSession openSessionAs(String username) {
@@ -91,18 +95,6 @@ public class TestSQLRepositoryVersioning {
      */
     protected void maybeSleepToNextSecond() {
         coreFeature.getStorageConfiguration().maybeSleepToNextSecond();
-    }
-
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     @Test
@@ -347,7 +339,7 @@ public class TestSQLRepositoryVersioning {
         assertNotNull(newDoc.getRef());
         assertEquals("desc 1", newDoc.getProperty("dublincore", "description"));
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         maybeSleepToNextSecond();
         DocumentModel restoredDoc = session.restoreToVersion(docRef, v1Ref);
 
@@ -355,7 +347,7 @@ public class TestSQLRepositoryVersioning {
         assertNotNull(restoredDoc.getRef());
         assertNull(restoredDoc.getProperty("dublincore", "description"));
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         maybeSleepToNextSecond();
         restoredDoc = session.restoreToVersion(docRef, v2Ref);
 
@@ -376,7 +368,7 @@ public class TestSQLRepositoryVersioning {
         session.saveDocument(doc);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         // we need 2 threads to get 2 different sessions that send each other invalidations
         final CyclicBarrier barrier = new CyclicBarrier(2);
@@ -393,7 +385,7 @@ public class TestSQLRepositoryVersioning {
                 DocumentModel restored = session.restoreToVersion(docRef, v1);
                 assertEquals("t1", restored.getPropertyValue("dc:title"));
                 session.save();
-                nextTransaction();
+                txFeature.nextTransaction();
                 // 3. sync
                 barrier.await(30, TimeUnit.SECONDS); // (throws on timeout)
                 // 4. wait
@@ -418,7 +410,7 @@ public class TestSQLRepositoryVersioning {
                 // 3. sync
                 barrier.await(30, TimeUnit.SECONDS); // (throws on timeout)
                 // 4. next tx to get invalidations and check
-                nextTransaction();
+                txFeature.nextTransaction();
                 DocumentModel restored = session.getDocument(docRef);
                 assertEquals("t1", restored.getPropertyValue("dc:title"));
             } catch (InterruptedException t) {
@@ -470,7 +462,7 @@ public class TestSQLRepositoryVersioning {
         assertEquals("desc 1", newDoc.getProperty("dublincore", "description"));
 
         // restore, no snapshot as already pristine
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         maybeSleepToNextSecond();
         DocumentModel restoredDoc = session.restoreToVersion(childFile.getRef(), v1Ref);
 
@@ -551,7 +543,7 @@ public class TestSQLRepositoryVersioning {
         session.save();
 
         Collection<String> transitions = proxy.getAllowedStateTransitions();
-        assertEquals(3, transitions.size());
+        assertEquals(2, transitions.size());
 
         assertTrue(proxy.getAllowedStateTransitions().contains("obsolete"));
         assertTrue(proxy.followTransition("obsolete"));
@@ -936,7 +928,7 @@ public class TestSQLRepositoryVersioning {
         session.checkOut(co);
         maybeSleepToNextSecond();
         session.checkIn(co, VersioningOption.MAJOR, "second check-in");
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         maybeSleepToNextSecond();
         session.restoreToVersion(co, ci1);
 

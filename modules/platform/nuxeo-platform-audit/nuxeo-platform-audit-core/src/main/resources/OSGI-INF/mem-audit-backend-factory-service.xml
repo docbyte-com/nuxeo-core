@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.mem.MemAuditBackendFactory">
+
+  <implementation class="org.nuxeo.audit.mem.MemAuditBackendFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.audit.mem.MemAuditBackendFactory" />
+  </service>
+
+</component>

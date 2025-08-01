@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  *
  * @since 11.3
  */
-
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core")
@@ -45,7 +44,7 @@ public class TestInvalidContributions {
     protected void checkStartupError(String message) {
         List<String> errors = Framework.getRuntime().getMessageHandler().getMessages(Level.ERROR);
         assertEquals(1, errors.size());
-        assertEquals(message, errors.get(0));
+        assertEquals(message, errors.getFirst());
     }
 
     @Test
@@ -54,7 +53,7 @@ public class TestInvalidContributions {
         checkStartupError(
                 "Failed to register extension to: service:org.nuxeo.ecm.core.operation.OperationServiceComponent, "
                         + "xpoint: operations in component: service:org.nuxeo.automation.rest.test.faultyOperationContrib "
-                        + "(java.lang.IllegalArgumentException: Invalid operation class: class org.nuxeo.ecm.automation.core.AutomationComponent. "
+                        + "(java.lang.IllegalArgumentException: Invalid operation class: org.nuxeo.ecm.automation.core.AutomationComponent. "
                         + "No @Operation annotation found on class.)");
     }
 
@@ -64,8 +63,8 @@ public class TestInvalidContributions {
         checkStartupError(
                 "Failed to register extension to: service:org.nuxeo.ecm.core.operation.OperationServiceComponent, "
                         + "xpoint: operations in component: service:org.nuxeo.automation.rest.test.faultyOperationContrib "
-                        + "(java.lang.IllegalArgumentException: Invalid operation class 'org.nuxeo.ecm.automation.test.helpers.NonExistingOperation': "
-                        + "class not found.)");
+                        + "(java.lang.IllegalArgumentException: Invalid operation class: org.nuxeo.ecm.automation.test.helpers.NonExistingOperation. "
+                        + "Class is not found.)");
     }
 
     @Test

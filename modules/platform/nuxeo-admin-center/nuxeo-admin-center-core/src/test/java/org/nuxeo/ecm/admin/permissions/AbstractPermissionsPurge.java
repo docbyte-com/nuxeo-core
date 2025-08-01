@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Thomas Roger
  *     Arnaud Kervern
  */
-
 package org.nuxeo.ecm.admin.permissions;
 
 import static org.junit.Assert.assertEquals;
@@ -26,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -34,16 +33,16 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 /**
  * @since 9.1
  */
-@Features({ TransientStoreFeature.class, PlatformFeature.class })
+@Features({ PlatformFeature.class, TransientStoreFeature.class })
 @Deploy("org.nuxeo.admin.center:OSGI-INF/core-types-contrib.xml")
 @Deploy("org.nuxeo.admin.center:OSGI-INF/pageproviders-contrib.xml")
 public abstract class AbstractPermissionsPurge {

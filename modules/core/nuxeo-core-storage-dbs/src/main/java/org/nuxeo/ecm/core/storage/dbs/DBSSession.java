@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.storage.dbs;
 import static java.lang.Boolean.TRUE;
 import static org.nuxeo.ecm.core.action.DeletionAction.ACTION_NAME;
 import static org.nuxeo.ecm.core.api.AbstractSession.DISABLED_ISLATESTVERSION_PROPERTY;
+import static org.nuxeo.ecm.core.api.AbstractSession.isFulltextValueABlobKey;
 import static org.nuxeo.ecm.core.api.CoreSession.BINARY_FULLTEXT_MAIN_KEY;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.FACETED_TAG;
@@ -287,7 +288,7 @@ public class DBSSession extends BaseSession {
         String[] names = path.split("/", -1);
         for (int i = 1; i < names.length; i++) {
             String name = names[i];
-            if (name.length() == 0) {
+            if (name.isEmpty()) {
                 throw new DocumentNotFoundException("Path with empty component: " + path);
             }
             docState = transaction.getChildState(parentId, name);
@@ -326,7 +327,7 @@ public class DBSSession extends BaseSession {
         String[] names = path.split("/", -1);
         for (int i = 1; i < names.length; i++) {
             String name = names[i];
-            if (name.length() == 0) {
+            if (name.isEmpty()) {
                 throw new DocumentNotFoundException("Path with empty component: " + path);
             }
             // TODO XXX add getChildId method
@@ -629,10 +630,9 @@ public class DBSSession extends BaseSession {
         List<DBSDocumentState> docStates = transaction.getKeyValuedStates(KEY_VERSION_SERIES_ID, versionSeriesId,
                 KEY_IS_VERSION, TRUE);
         docStates.sort(VERSION_CREATED_COMPARATOR);
-        Collections.reverse(docStates);
         boolean isLatest = true;
         boolean isLatestMajor = true;
-        for (DBSDocumentState docState : docStates) {
+        for (DBSDocumentState docState : docStates.reversed()) {
             // isLatestVersion
             docState.put(KEY_IS_LATEST_VERSION, isLatest ? TRUE : null);
             isLatest = false;
@@ -821,7 +821,9 @@ public class DBSSession extends BaseSession {
         return name;
     }
 
-    /** Checks that we don't move/copy under ourselves. */
+    /**
+     * Checks that we don't move/copy under ourselves.
+     */
     protected void checkNotUnder(String parentId, String id, String op) {
         // TODO use ancestors
         String pid = parentId;
@@ -879,7 +881,6 @@ public class DBSSession extends BaseSession {
             }
         }
         ancestorIdsList.add(parentId);
-        Object[] ancestorIds = ancestorIdsList.toArray(Object[]::new);
 
         if (ancestorIdsList.contains(sourceId)) {
             throw new DocumentExistsException("Cannot move a node under itself: " + parentId + " is under " + sourceId);
@@ -888,6 +889,10 @@ public class DBSSession extends BaseSession {
         // do the move
         sourceState.put(KEY_NAME, name);
         sourceState.put(KEY_PARENT_ID, parentId);
+
+        // pos fixup
+        Long pos = getNextPos(parentId);
+        sourceState.put(KEY_POS, pos);
 
         // materialize ancestors and read ACL, async if needed.
         transaction.updateTreeReadAcls(sourceId);
@@ -1457,7 +1462,7 @@ public class DBSSession extends BaseSession {
     public Map<String, String> getBinaryFulltext(String id) {
         State state = transaction.getStateForRead(id);
         String fulltext = (String) state.get(KEY_FULLTEXT_BINARY);
-        if (fulltextStoredInBlob && fulltext != null) {
+        if (isFulltextStoredInBlob() && isFulltextValueABlobKey(fulltext)) {
             DBSDocument doc = getDocument(id);
             if (doc == null) {
                 // could not find doc (shouldn't happen)
@@ -1668,7 +1673,9 @@ public class DBSSession extends BaseSession {
         return projections;
     }
 
-    /** Does an ORDER BY clause include ecm:path */
+    /**
+     * Does an ORDER BY clause include ecm:path
+     */
     protected boolean isOrderByPath(OrderByClause orderByClause) {
         if (orderByClause == null) {
             return false;

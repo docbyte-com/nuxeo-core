@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,12 +29,6 @@ public interface FavoritesManager {
     void addToFavorites(final DocumentModel document, final CoreSession session);
 
     boolean canAddToFavorites(final DocumentModel document);
-
-    /**
-     * @deprecated since 10.3 use {@link #getFavorites(CoreSession)} instead
-     */
-    @Deprecated
-    DocumentModel getFavorites(final DocumentModel context, final CoreSession session);
 
     DocumentModel getFavorites(final CoreSession session);
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@
 package org.nuxeo.ecm.automation.core.operations.services;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -31,19 +32,18 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Operation(id = AuditLog.ID, category = Constants.CAT_SERVICES, label = "Log Event In Audit", description = "Log events into audit for each of the input document. The operation accept as input one ore more documents that are returned back as the output.", aliases = { "Audit.Log" })
+@Operation(id = AuditLog.ID, category = Constants.CAT_SERVICES, label = "Log Event In Audit", description = "Log events into audit for each of the input document. The operation accept as input one ore more documents that are returned back as the output.", aliases = {
+        "Audit.Log" })
 public class AuditLog {
 
     public static final String ID = "Audit.LogEvent";
 
     @Context
-    protected AuditLogger logger;
+    protected AuditBackend backend;
 
     @Context
     protected OperationContext ctx;
@@ -61,7 +61,7 @@ public class AuditLog {
     public DocumentModel run(DocumentModel doc) {
         String uname = ctx.getPrincipal().getActingUser();
         LogEntry entry = newEntry(doc, uname, new Date());
-        logger.addLogEntries(Collections.singletonList(entry));
+        backend.addLogEntries(List.of(entry));
         return doc;
     }
 
@@ -73,23 +73,21 @@ public class AuditLog {
         for (DocumentModel doc : docs) {
             entries.add(newEntry(doc, uname, date));
         }
-        logger.addLogEntries(entries);
+        backend.addLogEntries(entries);
         return docs;
     }
 
     protected LogEntry newEntry(DocumentModel doc, String principal, Date date) {
-        LogEntry entry = logger.newLogEntry();
-        entry.setEventId(event);
-        entry.setEventDate(new Date());
-        entry.setCategory(category);
-        entry.setDocUUID(doc.getId());
-        entry.setDocPath(doc.getPathAsString());
-        entry.setComment(comment);
-        entry.setPrincipalName(principal);
-        entry.setDocType(doc.getType());
-        entry.setRepositoryId(doc.getRepositoryName());
-        entry.setDocLifeCycle(doc.getCurrentLifeCycleState());
-        return entry;
+        return LogEntry.builder(event, date)
+                       .category(category)
+                       .comment(comment)
+                       .docLifeCycle(doc.getCurrentLifeCycleState())
+                       .docPath(doc.getPathAsString())
+                       .docType(doc.getType())
+                       .docUUID(doc.getId())
+                       .principalName(principal)
+                       .repositoryId(doc.getRepositoryName())
+                       .build();
     }
 
 }

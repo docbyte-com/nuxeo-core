@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-
 package org.nuxeo.ecm.restapi.test;
 
 import static java.util.stream.Collectors.toList;
@@ -25,8 +24,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -48,7 +47,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 11.5
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, CollectionFeature.class })
+@Features({ CollectionFeature.class, RestServerFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.convert")

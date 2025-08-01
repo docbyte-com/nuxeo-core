@@ -38,18 +38,18 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.utils.ExceptionUtils;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.core.event.EventServiceComponent;
 import org.nuxeo.ecm.core.work.WorkQueuing.Listener;
 import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.Work.State;
@@ -68,6 +68,7 @@ import org.nuxeo.runtime.metrics.NuxeoMetricSet;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.services.config.ConfigurationService;
@@ -370,7 +371,7 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
 
     @Override
     public int getApplicationStartedOrder() {
-        return EventServiceComponent.APPLICATION_STARTED_ORDER - 1;
+        return ComponentStartOrders.EVENT - 1;
     }
 
     @Override
@@ -520,26 +521,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         return true;
     }
 
-    /**
-     * @deprecated since 10.2 because unused
-     */
-    @Deprecated
-    protected long remainingMillis(long t0, long delay) {
-        long d = System.currentTimeMillis() - t0;
-        if (d > delay) {
-            return 0;
-        }
-        return delay - d;
-    }
-
-    /**
-     * @deprecated since 10.2 because unused
-     */
-    @Deprecated
-    protected synchronized void removeExecutor(String queueId) {
-        executors.remove(queueId);
-    }
-
     @Override
     public boolean shutdown(long timeout, TimeUnit unit) throws InterruptedException {
         shutdownInProgress = true;
@@ -683,19 +664,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         }
 
         /**
-         * Executes the given task sometime in the future.
-         *
-         * @param work the work to execute
-         * @see #execute(Runnable)
-         * @deprecated since 10.2 because unused
-         */
-        @Deprecated
-        public void execute(Work work) {
-            scheduledCount.inc();
-            submit(work);
-        }
-
-        /**
          * go through the queue instead of using super.execute which may skip the queue and hand off to a thread
          * directly
          */
@@ -805,23 +773,23 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         work.setWorkInstanceState(State.SCHEDULED);
         WorkSchedulePath.newInstance(work);
         switch (scheduling) {
-        case ENQUEUE:
-            break;
-        case CANCEL_SCHEDULED:
-            getExecutor(queueId).removeScheduled(workId);
-            WorkStateHelper.setCanceled(work.getId());
-            break;
-        case IF_NOT_SCHEDULED:
-        case IF_NOT_RUNNING_OR_SCHEDULED:
-            // TODO disabled for now because hasWorkInState uses isScheduled
-            // which is buggy
-            boolean disabled = Boolean.TRUE.booleanValue();
-            if (!disabled && hasWorkInState(workId, scheduling.state)) {
-                log.debug("Canceling schedule because found: {}", scheduling);
-                return;
+            case ENQUEUE:
+                break;
+            case CANCEL_SCHEDULED:
+                getExecutor(queueId).removeScheduled(workId);
+                WorkStateHelper.setCanceled(work.getId());
+                break;
+            case IF_NOT_SCHEDULED:
+            case IF_NOT_RUNNING_OR_SCHEDULED:
+                // TODO disabled for now because hasWorkInState uses isScheduled
+                // which is buggy
+                boolean disabled = Boolean.TRUE.booleanValue();
+                if (!disabled && hasWorkInState(workId, scheduling.state)) {
+                    log.debug("Canceling schedule because found: {}", scheduling);
+                    return;
 
-            }
-            break;
+                }
+                break;
 
         }
         if (work.isGroupJoin()) {
@@ -875,11 +843,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
         }
     }
 
-    @Override
-    public Work find(String workId, State state) {
-        return queuing.find(workId, state);
-    }
-
     /**
      * @param state SCHEDULED, RUNNING or null for both
      */
@@ -890,17 +853,6 @@ public class WorkManagerImpl extends DefaultComponent implements WorkManager {
     @Override
     public State getWorkState(String workId) {
         return queuing.getWorkState(workId);
-    }
-
-    @Override
-    public List<Work> listWork(String queueId, State state) {
-        // don't return scheduled after commit
-        return queuing.listWork(queueId, state);
-    }
-
-    @Override
-    public List<String> listWorkIds(String queueId, State state) {
-        return queuing.listWorkIds(queueId, state);
     }
 
     @Override

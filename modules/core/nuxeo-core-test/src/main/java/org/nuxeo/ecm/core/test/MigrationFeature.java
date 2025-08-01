@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,11 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.junit.runners.model.FrameworkMethod;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
@@ -43,8 +44,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  *
  * @since 10.2
  */
-@Deploy("org.nuxeo.runtime.kv")
-@Deploy("org.nuxeo.runtime.migration")
+@Features(org.nuxeo.runtime.migration.MigrationFeature.class)
 public class MigrationFeature implements RunnerFeature {
 
     protected static final String[] KEYS = { STEP, START_TIME, PING_TIME, PROGRESS_MESSAGE, PROGRESS_NUM,
@@ -53,7 +53,7 @@ public class MigrationFeature implements RunnerFeature {
     protected final Set<String> migrationIds = new HashSet<>();
 
     @Override
-    public void afterTeardown(FeaturesRunner runner) {
+    public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
         KeyValueStore kv = getKeyValueStore();
         // clear the changed migration states
         migrationIds.stream() //

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,25 +12,36 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
  */
-
 package org.nuxeo.ecm.platform.ec.notification.service;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.ec.notification.NotificationListenerHook;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 5.5
  */
 @XObject("hookListener")
-public class NotificationListenerHookDescriptor {
+public class NotificationListenerHookDescriptor implements Descriptor {
 
     @XNode("@name")
-    public String name;
+    protected String name;
 
     @XNode("@class")
-    public Class<? extends NotificationListenerHook> hookListener;
+    protected Class<? extends NotificationListenerHook> hookListener;
 
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Class<? extends NotificationListenerHook> getHookListener() {
+        return hookListener;
+    }
 }

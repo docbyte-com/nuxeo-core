@@ -18,10 +18,6 @@
  */
 package org.nuxeo.elasticsearch.status;
 
-import java.util.List;
-
-import org.opensearch.cluster.health.ClusterHealthStatus;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.api.Probe;
@@ -36,32 +32,10 @@ public class ElasticSearchStatusProbe implements Probe {
 
     @Override
     public ProbeStatus run() {
-        String[] indices = getIndexNames();
-        try {
-            ClusterHealthStatus clusterStatus = Framework.getService(ElasticSearchAdmin.class)
-                                                         .getClient()
-                                                         .getHealthStatus(indices);
-            switch (clusterStatus) {
-            case GREEN:
-            case YELLOW:
-                return ProbeStatus.newSuccess(clusterStatus.toString());
-            default:
-                return ProbeStatus.newFailure(clusterStatus.toString());
-            }
-        } catch (NuxeoException e) {
-            return ProbeStatus.newError(e);
+        if (Framework.getService(ElasticSearchAdmin.class).getClient().isReady()) {
+            return ProbeStatus.newSuccess("ElasticSearch is ready");
+        } else {
+            return ProbeStatus.newFailure("ElasticSearch is not ready");
         }
     }
-
-    protected String[] getIndexNames() {
-        ElasticSearchAdmin esa = Framework.getService(ElasticSearchAdmin.class);
-        List<String> repositoryNames = Framework.getService(ElasticSearchAdmin.class).getRepositoryNames();
-        String indices[] = new String[repositoryNames.size()];
-        int i = 0;
-        for (String repo : repositoryNames) {
-            indices[i++] = esa.getIndexNameForRepository(repo);
-        }
-        return indices;
-    }
-
 }

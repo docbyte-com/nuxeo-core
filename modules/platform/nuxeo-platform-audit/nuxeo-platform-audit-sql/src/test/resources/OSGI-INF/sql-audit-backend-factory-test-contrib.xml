@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.sql.backend.test">
+
+  <require>org.nuxeo.runtime.datasource.test</require>
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/nxaudit-logs" global="jdbc/${nuxeo.test.sql.database}"/>
+  </extension>
+
+  <!-- re-enable page provider tracking for tests, cf TestAuditPageProviderTracking -->
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
+    <event name="search" enabled="true" />
+  </extension>
+
+</component>

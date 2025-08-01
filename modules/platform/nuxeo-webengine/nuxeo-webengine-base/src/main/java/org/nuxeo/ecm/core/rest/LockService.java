@@ -23,9 +23,9 @@ package org.nuxeo.ecm.core.rest;
 
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.Lock;
@@ -49,7 +49,7 @@ import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
 public class LockService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public String doGet() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             Lock lock = ctx.getCoreSession().getLockInfo(doc.getRef());
@@ -61,7 +61,7 @@ public class LockService extends DefaultAdapter {
     }
 
     @DELETE
-    public Object removeLock() {
+    public Void removeLock() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             ctx.getCoreSession().removeLock(doc.getRef());
@@ -74,7 +74,7 @@ public class LockService extends DefaultAdapter {
     }
 
     @POST
-    public Object doPost() {
+    public Void doPost() {
         try {
             DocumentModel doc = getTarget().getAdapter(DocumentModel.class);
             ctx.getCoreSession().setLock(doc.getRef());

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.mail.MessagingException;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.mail.MessagingException;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.text.StringEscapeUtils;
@@ -73,8 +73,6 @@ import freemarker.template.Template;
 import freemarker.template.TemplateException;
 
 /**
- * Save the session - TODO remove this?
- *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @Operation(id = SendMail.ID, category = Constants.CAT_NOTIFICATION, label = "Send E-Mail", description = "Send an email using the input document to the specified recipients. You can use the HTML parameter to specify whether you message is in HTML format or in plain text. Also you can attach any blob on the current document to the message by using the comma separated list of xpath expressions 'files'. If you xpath points to a blob list all blobs in the list will be attached. Return back the input document(s). If rollbackOnError is true, the whole chain will be rollbacked if an error occurs while trying to send the email (for instance if no SMTP server is configured), else a simple warning will be logged and the chain will continue.", aliases = {
@@ -242,6 +240,7 @@ public class SendMail {
      * @deprecated since 2023.4 unused. {@link #send(DocumentModel)} now uses a {@link MailMessage.Builder}
      */
     @Deprecated(since = "2023.4")
+    @SuppressWarnings("unchecked")
     protected void addMailBoxInfo(Mailer.Message msg, Map<String, Object> map) throws MessagingException {
         addMailBoxInfoInMessageHeader(msg, AS.FROM, (List<MailBox>) map.get("fromResolved"));
         addMailBoxInfoInMessageHeader(msg, AS.TO, (List<MailBox>) map.get("toResolved"));
@@ -294,20 +293,17 @@ public class SendMail {
         for (String xpath : blobXpath) {
             try {
                 Property p = doc.getProperty(xpath);
-                if (p instanceof BlobProperty) {
-                    getBlob(p.getValue(), blobs);
-                } else if (p instanceof ListProperty) {
-                    for (Property pp : p) {
-                        getBlob(pp.getValue(), blobs);
+                switch (p) {
+                    case BlobProperty blobProperty -> getBlob(blobProperty.getValue(), blobs);
+                    case ListProperty listProperty -> listProperty.forEach(prop -> getBlob(prop.getValue(), blobs));
+                    case MapProperty mapProperty ->
+                        mapProperty.values().forEach(prop -> getBlob(prop.getValue(), blobs));
+                    case null -> {
                     }
-                } else if (p instanceof MapProperty) {
-                    for (Property sp : ((MapProperty) p).values()) {
-                        getBlob(sp.getValue(), blobs);
-                    }
-                } else {
-                    Object o = p.getValue();
-                    if (o instanceof Blob) {
-                        blobs.add((Blob) o);
+                    default -> {
+                        if (p.getValue() instanceof Blob blob) {
+                            blobs.add(blob);
+                        }
                     }
                 }
             } catch (PropertyException pe) {

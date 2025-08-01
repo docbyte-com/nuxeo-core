@@ -20,13 +20,6 @@
         <type>Note</type>
         <type>SnapshotableFolder</type>
       </subtypes>
-      <layouts mode="any">
-        <layout>heading</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
     </type>
 
     <type id="Workspace" coretype="Workspace">

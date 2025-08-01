@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.sql.PageProviderService.testContrib">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>org.nuxeo.ecm.platform.audit.PageProviderservice.testContrib</alias>
+
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService"
+    point="providers">
+
+    <genericPageProvider name="GetAllEntries" class="org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider">
+      <pattern>
+        from LogEntry log
+      </pattern>
+      <sort column="log.id" ascending="true" />
+      <pageSize>2</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="GetAllEntriesInCategory" class="org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider">
+      <pattern>
+        from LogEntry log  where log.category = ?
+      </pattern>
+      <sort column="log.id" ascending="true" />
+      <pageSize>2</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="GetAllEntriesForDocumentInCategory" class="org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider">
+      <searchDocumentType>File</searchDocumentType>
+      <whereClause>
+        <fixedPart>
+          log.docUUID = ?
+        </fixedPart>
+        <predicate parameter="log.category" operator="=">
+          <field schema="dublincore" name="title" />
+        </predicate>
+      </whereClause>
+      <sort column="log.id" ascending="true" />
+      <pageSize>2</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="GetAllEntriesForDocumentInCategories" class="org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider">
+      <searchDocumentType>File</searchDocumentType>
+      <whereClause>
+        <fixedPart>
+          log.docUUID = ?
+        </fixedPart>
+        <predicate parameter="log.category" operator="IN">
+          <field schema="dublincore" name="subjects" />
+        </predicate>
+      </whereClause>
+      <sort column="log.id" ascending="true" />
+      <pageSize>2</pageSize>
+    </genericPageProvider>
+
+    <genericPageProvider name="GetAllEntriesBetween2Dates" class="org.nuxeo.audit.sql.pageprovider.SQLAuditPageProvider">
+      <searchDocumentType>File</searchDocumentType>
+      <whereClause>
+        <fixedPart>
+          log.docUUID = ?
+        </fixedPart>
+        <predicate parameter="log.eventDate" operator="BETWEEN">
+          <field schema="dublincore" name="issued" />
+          <field schema="dublincore" name="valid" />
+        </predicate>
+      </whereClause>
+      <sort column="log.id" ascending="true" />
+      <pageSize>10</pageSize>
+    </genericPageProvider>
+
+  </extension>
+
+</component>

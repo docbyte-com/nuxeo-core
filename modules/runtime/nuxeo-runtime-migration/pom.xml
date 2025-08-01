@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-runtime-migration</artifactId>
@@ -35,6 +35,11 @@
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-cluster</artifactId>
+      <type>test-jar</type>
     </dependency>
     <dependency>
       <groupId>org.awaitility</groupId>

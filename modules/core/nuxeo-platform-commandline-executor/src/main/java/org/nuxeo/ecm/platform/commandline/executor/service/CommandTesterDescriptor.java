@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,13 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.commandline.executor.service.cmdtesters.CommandTester;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for a new contributed {@link CommandTester}.
@@ -32,13 +29,18 @@ import org.nuxeo.ecm.platform.commandline.executor.service.cmdtesters.CommandTes
  * @author tiry
  */
 @XObject("commandTester")
-public class CommandTesterDescriptor {
+public class CommandTesterDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
 
     @XNode("@class")
     protected Class<CommandTester> className;
+
+    @Override
+    public String getId() {
+        return getName();
+    }
 
     public String getName() {
         if (name == null) {
@@ -50,5 +52,4 @@ public class CommandTesterDescriptor {
     public Class<CommandTester> getTesterClass() {
         return className;
     }
-
 }

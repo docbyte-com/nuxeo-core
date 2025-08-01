@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-runtime-stream</artifactId>
@@ -11,6 +11,10 @@
   <description>Nuxeo Stream integration with Nuxeo Platform.</description>
 
   <dependencies>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
+      <artifactId>nuxeo-runtime-log4j</artifactId>
+    </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
       <artifactId>nuxeo-stream</artifactId>
@@ -64,20 +68,14 @@
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- For confluent schema registry client -->
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-lang3</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

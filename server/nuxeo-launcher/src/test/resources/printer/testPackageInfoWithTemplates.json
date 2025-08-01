@@ -1,0 +1,17 @@
+{
+  "packages": {
+    "package": [
+      {
+        "supportsHotReload": "false",
+        "templates": "template-1"
+      },
+      {
+        "supportsHotReload": "false",
+        "templates": [
+          "template-1",
+          "template-2"
+        ]
+      }
+    ]
+  }
+}

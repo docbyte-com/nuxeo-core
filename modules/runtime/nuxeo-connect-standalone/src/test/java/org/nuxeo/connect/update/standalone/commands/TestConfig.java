@@ -34,7 +34,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.logging.log4j.LogManager;

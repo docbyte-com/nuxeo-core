@@ -27,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.security.MessageDigest;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;

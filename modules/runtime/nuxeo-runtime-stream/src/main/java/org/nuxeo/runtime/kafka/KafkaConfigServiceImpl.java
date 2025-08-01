@@ -27,6 +27,7 @@ import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.nuxeo.lib.stream.log.kafka.KafkaUtils;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Descriptor;
 
@@ -34,7 +35,11 @@ public class KafkaConfigServiceImpl extends DefaultComponent implements KafkaCon
 
     public static final String XP_KAFKA_CONFIG = "kafkaConfig";
 
-    public static final int APPLICATION_STARTED_ORDER = -600;
+    /**
+     * @deprecated since 2025.0, use {@link ComponentStartOrders#KAFKA} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final int APPLICATION_STARTED_ORDER = ComponentStartOrders.KAFKA;
 
     protected static final String DEFAULT_BOOTSTRAP_SERVERS = "DEFAULT_TEST";
 
@@ -43,7 +48,7 @@ public class KafkaConfigServiceImpl extends DefaultComponent implements KafkaCon
     @Override
     public int getApplicationStartedOrder() {
         // since there is no dependencies, let's start before main nuxeo core services
-        return APPLICATION_STARTED_ORDER;
+        return ComponentStartOrders.KAFKA;
     }
 
     @Override
@@ -51,7 +56,7 @@ public class KafkaConfigServiceImpl extends DefaultComponent implements KafkaCon
         super.start(context);
         for (String name : listConfigNames()) {
             KafkaConfigDescriptor config = getDescriptor(name);
-            if(config.copy != null) {
+            if (config.copy != null) {
                 config.init(getDescriptor(config.copy));
             }
         }
@@ -59,9 +64,7 @@ public class KafkaConfigServiceImpl extends DefaultComponent implements KafkaCon
 
     @Override
     public Set<String> listConfigNames() {
-        return getDescriptors(XP_KAFKA_CONFIG).stream()
-                                              .map(Descriptor::getId)
-                                              .collect(Collectors.toSet());
+        return getDescriptors(XP_KAFKA_CONFIG).stream().map(Descriptor::getId).collect(Collectors.toSet());
     }
 
     @Override

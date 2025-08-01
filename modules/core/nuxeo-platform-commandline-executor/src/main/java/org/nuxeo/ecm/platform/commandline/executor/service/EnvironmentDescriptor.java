@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,11 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +28,10 @@ import org.nuxeo.common.Environment;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject(value = "environment")
-public class EnvironmentDescriptor {
+public class EnvironmentDescriptor implements Descriptor {
 
     /**
      * If {@code name} is null, then the environment is global.<br>
@@ -46,6 +48,18 @@ public class EnvironmentDescriptor {
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
     private Map<String, String> parameters = new HashMap<>();
 
+    @Override
+    public String getId() {
+        return defaultIfEmpty(name, null);
+    }
+
+    /**
+     * @since 7.4
+     */
+    public String getName() {
+        return name;
+    }
+
     public String getWorkingDirectory() {
         if (workingDirectory == null) {
             workingDirectory = Environment.getDefault().getTemp().getPath();
@@ -56,16 +70,6 @@ public class EnvironmentDescriptor {
         return workingDirectory;
     }
 
-    public EnvironmentDescriptor merge(EnvironmentDescriptor other) {
-        if (other != null) {
-            if (other.workingDirectory != null) {
-                workingDirectory = other.workingDirectory;
-            }
-            getParameters().putAll(other.getParameters());
-        }
-        return this;
-    }
-
     /**
      * @since 7.4
      */
@@ -73,11 +77,26 @@ public class EnvironmentDescriptor {
         return parameters;
     }
 
-    /**
-     * @since 7.4
-     */
-    public String getName() {
-        return name;
+    protected EnvironmentDescriptor withName(String name) {
+        var descriptor = new EnvironmentDescriptor();
+        descriptor.name = name;
+        descriptor.workingDirectory = workingDirectory;
+        descriptor.parameters = new HashMap<>(parameters);
+        return descriptor;
     }
 
+    @Override
+    public EnvironmentDescriptor merge(Descriptor o) {
+        if (o == null) {
+            return this;
+        }
+        var other = (EnvironmentDescriptor) o;
+        var merged = new EnvironmentDescriptor();
+        // special case, as we reduce a list in the component with an identity that doesn't have a name
+        merged.name = defaultIfNull(other.name, name);
+        merged.workingDirectory = defaultIfNull(other.workingDirectory, workingDirectory);
+        merged.parameters = new HashMap<>(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
+    }
 }

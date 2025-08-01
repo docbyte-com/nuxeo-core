@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.platform.routing.core.impl;
 
+import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.ROUTE_NODE_DOCUMENT_TYPE;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,8 +45,6 @@ import org.nuxeo.ecm.platform.routing.api.exception.DocumentRouteException;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode.State;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode.Transition;
 import org.nuxeo.runtime.api.Framework;
-
-import static org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants.ROUTE_NODE_DOCUMENT_TYPE;
 
 /**
  * @since 5.6
@@ -168,11 +167,10 @@ public class GraphRouteImpl extends DocumentRouteImpl implements GraphRoute {
             }
         }
 
-        // reverse the post-order to find the topological ordering
-        Collections.reverse(postOrder);
         Map<String, Integer> ordering = new HashMap<>();
         int i = 1;
-        for (String nodeId : postOrder) {
+        // reverse the post-order to find the topological ordering
+        for (String nodeId : postOrder.reversed()) {
             ordering.put(nodeId, Integer.valueOf(i++));
         }
 

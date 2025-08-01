@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,14 @@ package org.nuxeo.ecm.platform.rendition.service;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -58,9 +59,11 @@ import org.nuxeo.ecm.platform.rendition.operation.GetRendition;
 import org.nuxeo.ecm.platform.rendition.operation.PublishRendition;
 import org.nuxeo.ecm.platform.rendition.operation.UnpublishAll;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
@@ -69,11 +72,14 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features(RenditionFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+@ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
 public class TestRenditionOperation {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature transactionalFeature;
 
     @Inject
     protected CoreSession session;
@@ -146,7 +152,7 @@ public class TestRenditionOperation {
         List<DocumentModel> retrievedPublished = session.query(String.format(
                 "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
         assertEquals(1, retrievedPublished.size());
-        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
+        assertEquals(publishedRendition.getId(), retrievedPublished.getFirst().getId());
     }
 
     /**
@@ -174,24 +180,26 @@ public class TestRenditionOperation {
         List<DocumentModel> retrievedPublished = session.query(String.format(
                 "SELECT * FROM Document WHERE ecm:isProxy = 1 AND rend:sourceVersionableId = '%s'", file.getId()));
         assertEquals(1, retrievedPublished.size());
-        assertEquals(publishedRendition.getId(), retrievedPublished.get(0).getId());
+        assertEquals(publishedRendition.getId(), retrievedPublished.getFirst().getId());
     }
 
     /**
      * @since 10.3
      */
     @Test
-    public void shouldPublishMutlipleDocument() throws OperationException {
+    public void shouldPublishMultipleDocument() throws OperationException {
         DocumentModel file1 = createDummyFile();
         DocumentModel file2 = createDummyFile();
         DocumentModel section = session.createDocumentModel("/", "section", "Section");
         section = session.createDocument(section);
+        transactionalFeature.nextTransaction();
 
         ctx.setInput(new String[] { file1.getId(), file2.getId() });
         Map<String, Object> params = new HashMap<>();
         params.put("target", section);
         params.put("defaultRendition", true);
-        DocumentModelList publishedRenditions = (DocumentModelList) automationService.run(ctx, PublishRendition.ID, params);
+        DocumentModelList publishedRenditions = (DocumentModelList) automationService.run(ctx, PublishRendition.ID,
+                params);
         assertNotNull(publishedRenditions);
         assertEquals(2, publishedRenditions.size());
     }
@@ -247,13 +255,13 @@ public class TestRenditionOperation {
         return session.createDocument(file);
     }
 
-    @Test(expected = NuxeoException.class)
+    @Test
     public void shouldThroughTraceExceptionForNonExistingRendition() throws OperationException {
         DocumentModel file = createDummyFile();
 
         ctx.setInput(file);
         Map<String, Object> params = new HashMap<>();
         params.put("renditionName", "nonExistingRendition");
-        automationService.run(ctx, GetRendition.ID, params);
+        assertThrows(NuxeoException.class, () -> automationService.run(ctx, GetRendition.ID, params));
     }
 }

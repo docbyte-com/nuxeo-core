@@ -24,6 +24,7 @@ import java.util.Map;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap Descriptor for contributing a new {@link EventBundleDispatcher}
@@ -31,7 +32,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 8.4
  */
 @XObject("eventDispatcher")
-public class EventDispatcherDescriptor {
+public class EventDispatcherDescriptor implements Descriptor {
 
     public EventDispatcherDescriptor() {
     }
@@ -46,6 +47,11 @@ public class EventDispatcherDescriptor {
 
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
     Map<String, String> parameters = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public String getName() {
         return name == null ? clazz.getName() : name;

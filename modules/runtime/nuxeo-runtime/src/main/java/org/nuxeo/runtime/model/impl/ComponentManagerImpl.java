@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -83,7 +83,7 @@ public class ComponentManagerImpl implements ComponentManager {
      *
      * @since 9.2
      */
-    private Listeners listeners;
+    private final Listeners listeners;
 
     private final ConcurrentMap<String, RegistrationInfo> services;
 
@@ -646,8 +646,7 @@ public class ComponentManagerImpl implements ComponentManager {
         watch.start();
         listeners.beforeDeactivation();
         Collection<RegistrationInfo> resolved = registry.getResolvedRegistrationInfo();
-        List<RegistrationInfo> reverseResolved = new ArrayList<>(resolved);
-        Collections.reverse(reverseResolved);
+        List<RegistrationInfo> reverseResolved = new ArrayList<>(resolved).reversed();
         for (RegistrationInfo ri : reverseResolved) {
             if (ri.isActivated()) {
                 watch.start(ri.getName().getName());
@@ -849,7 +848,7 @@ public class ComponentManagerImpl implements ComponentManager {
     @Override
     public void stop(int timeoutInSeconds) {
         try {
-            runWihtinTimeout(timeoutInSeconds, TimeUnit.SECONDS, "Timed out on stop, blocking", this::stop);
+            runWithinTimeout(timeoutInSeconds, TimeUnit.SECONDS, "Timed out on stop, blocking", this::stop);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while stopping components", e);
@@ -871,7 +870,7 @@ public class ComponentManagerImpl implements ComponentManager {
     @Override
     public void standby(int timeoutInSeconds) {
         try {
-            runWihtinTimeout(timeoutInSeconds, TimeUnit.SECONDS, "Timed out on standby, blocking", this::standby);
+            runWithinTimeout(timeoutInSeconds, TimeUnit.SECONDS, "Timed out on standby, blocking", this::standby);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Interrupted while standbying components", e);
@@ -1103,11 +1102,11 @@ public class ComponentManagerImpl implements ComponentManager {
     /**
      * Log a warning message if the timeout is reached while executing the given runnable.
      */
-    protected static void runWihtinTimeout(long timeout, TimeUnit unit, String warn, Runnable runnable)
+    protected static void runWithinTimeout(long timeout, TimeUnit unit, String warn, Runnable runnable)
             throws InterruptedException {
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
-            Future<?> future = executor.submit(runnable::run);
+            Future<?> future = executor.submit(runnable);
             executor.shutdown();
             try {
                 try {

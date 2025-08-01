@@ -28,12 +28,11 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.impl.blob.AsyncBlob;
 import org.nuxeo.ecm.core.blob.ByteRange;
 
 /**
@@ -48,11 +47,6 @@ public interface DownloadService {
     String NXFILE = "nxfile";
 
     String NXDOWNLOADINFO = "nxdownloadinfo";
-
-    /**
-     * @since 9.3
-     */
-    String NXBLOBSTATUS = "nxblobstatus";
 
     String NXBIGBLOB = "nxbigblob";
 
@@ -443,18 +437,6 @@ public interface DownloadService {
      * @since 9.1
      */
     void handleDownload(HttpServletRequest req, HttpServletResponse resp, String baseUrl, String path)
-            throws IOException;
-
-    /**
-     * Triggers a {@link AsyncBlob} download which gives information about an asynchronous blob.
-     *
-     * @param storeKey the stored blobs key
-     * @param reason the download reason
-     * @since 9.3
-     * @deprecated since 10.3, use the @async operation adapter instead.
-     */
-    @Deprecated
-    void downloadBlobStatus(HttpServletRequest request, HttpServletResponse response, String storeKey, String reason)
             throws IOException;
 
     /**

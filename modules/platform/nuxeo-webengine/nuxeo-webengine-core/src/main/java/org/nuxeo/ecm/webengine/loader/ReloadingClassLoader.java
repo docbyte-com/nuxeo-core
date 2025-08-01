@@ -29,14 +29,11 @@ import org.nuxeo.ecm.webengine.loader.store.ResourceStoreClassLoader;
  */
 public class ReloadingClassLoader extends ClassLoader {
 
-    private final ClassLoader parent;
-
     private volatile ResourceStoreClassLoader delegate;
 
     public ReloadingClassLoader(final ClassLoader pParent) {
         super(pParent);
-        parent = pParent;
-        delegate = new ResourceStoreClassLoader(parent);
+        delegate = new ResourceStoreClassLoader(pParent);
     }
 
     public void addResourceStore(final ResourceStore store) {

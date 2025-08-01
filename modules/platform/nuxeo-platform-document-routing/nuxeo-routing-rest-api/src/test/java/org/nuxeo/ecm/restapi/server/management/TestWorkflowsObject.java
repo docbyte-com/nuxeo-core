@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Guillaume Renard
  */
-
 package org.nuxeo.ecm.restapi.server.management;
 
 import static org.junit.Assert.assertEquals;
@@ -29,22 +28,21 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 import org.nuxeo.ecm.platform.routing.test.WorkflowFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -52,8 +50,10 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 /**
  * @since 2023
  */
-@Features({ AutomationFeature.class, WorkflowFeature.class, AuditFeature.class })
+@Features(WorkflowFeature.class)
 @Deploy("org.nuxeo.ecm.platform.restapi.server.routing")
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class TestWorkflowsObject extends ManagementBaseTest {
 
     @Inject
@@ -105,7 +105,7 @@ public class TestWorkflowsObject extends ManagementBaseTest {
                     DocumentModel task = session.createDocumentModel("/", i + "dummyTask" + j + "-" + k,
                             TASK_TYPE_NAME);
                     task.setPropertyValue(TASK_PROCESS_ID_PROPERTY_NAME, route.getId());
-                    task = session.createDocument(task);
+                    session.createDocument(task);
                 }
             }
         }

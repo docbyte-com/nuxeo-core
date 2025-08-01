@@ -20,6 +20,7 @@
 package org.nuxeo.ecm.platform.pdf;
 
 import java.awt.geom.Rectangle2D;
+import java.io.Closeable;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +55,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  *
  * @since 8.10
  */
-public class PDFLinks {
+public class PDFLinks implements Closeable {
 
     private Blob pdfBlob;
 
@@ -78,6 +79,7 @@ public class PDFLinks {
      * To avoid opening/parsing several times the same document, we don't close it after a get...Link() call. It is
      * important that the caller explcitly closes it.
      */
+    @Override
     public void close() {
         PDFUtils.closeSilently(pdfDoc);
         pdfDoc = null;
@@ -91,6 +93,8 @@ public class PDFLinks {
     /**
      * Here, we not only open and load the PDF, we also prepare regions to get the text behind the annotation
      * rectangles.
+     * <p>
+     * Note that the loaded {@code PDDocument} is not closed, it is the caller's responsibility to do it.
      */
     private void loadAndPreflightPdf() throws NuxeoException {
         if (pdfDoc != null) {
@@ -109,8 +113,10 @@ public class PDFLinks {
                     PDAnnotationLink link = (PDAnnotationLink) annot;
                     PDRectangle rect = link.getRectangle();
                     // need to reposition link rectangle to match text space
-                    float x = rect.getLowerLeftX(), y = rect.getUpperRightY();
-                    float width = rect.getWidth(), height = rect.getHeight();
+                    float x = rect.getLowerLeftX();
+                    float y = rect.getUpperRightY();
+                    float width = rect.getWidth();
+                    float height = rect.getHeight();
                     int rotation = page.getRotation();
                     if (rotation == 0) {
                         PDRectangle pageSize = page.getMediaBox();
@@ -181,21 +187,21 @@ public class PDFLinks {
                 String urlText = stripper.getTextForRegion(String.valueOf(annotations.indexOf(annot)));
                 String urlValue = null;
                 switch (inSubType) {
-                case PDActionRemoteGoTo.SUB_TYPE:
-                    goTo = (PDActionRemoteGoTo) action;
-                    fspec = goTo.getFile();
-                    urlValue = fspec.getFile();
-                    break;
-                case PDActionLaunch.SUB_TYPE:
-                    launch = (PDActionLaunch) action;
-                    fspec = launch.getFile();
-                    urlValue = fspec.getFile();
-                    break;
-                case PDActionURI.SUB_TYPE:
-                    uri = (PDActionURI) action;
-                    urlValue = uri.getURI();
-                    break;
-                // others...
+                    case PDActionRemoteGoTo.SUB_TYPE:
+                        goTo = (PDActionRemoteGoTo) action;
+                        fspec = goTo.getFile();
+                        urlValue = fspec.getFile();
+                        break;
+                    case PDActionLaunch.SUB_TYPE:
+                        launch = (PDActionLaunch) action;
+                        fspec = launch.getFile();
+                        urlValue = fspec.getFile();
+                        break;
+                    case PDActionURI.SUB_TYPE:
+                        uri = (PDActionURI) action;
+                        urlValue = uri.getURI();
+                        break;
+                    // others...
                 }
                 if (StringUtils.isNotBlank(urlValue)) {
                     li.add(new LinkInfo(pageno, inSubType, urlText, urlValue));

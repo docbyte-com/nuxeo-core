@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -45,14 +44,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.AutomationService;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessCreateOperation;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessFetchOperation;
 import org.nuxeo.ecm.automation.core.operations.business.BusinessUpdateOperation;
@@ -86,7 +84,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.web.common.ServletHelper;
 import org.nuxeo.runtime.api.Framework;
@@ -104,27 +101,25 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @RunWith(FeaturesRunner.class)
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.notification:OSGI-INF/NotificationService.xml")
 @Deploy("org.nuxeo.ecm.automation.test")
 @Deploy("org.nuxeo.ecm.automation.test:test-bindings.xml")
 @Deploy("org.nuxeo.ecm.automation.test:test-mvalues.xml")
 @Deploy("org.nuxeo.ecm.automation.test:operation-contrib.xml")
-@Features({ EmbeddedAutomationServerFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, EmbeddedAutomationServerFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
 
     protected static String[] attachments = { "att1", "att2", "att3" };
 
     @Inject
-    UserManager userManager;
+    protected UserManager userManager;
 
     @Inject
     private TransactionalFeature txFeature;
 
     @BeforeClass
-    public static void setupCodecs() throws Exception {
+    public static void setupCodecs() {
         Framework.getService(ObjectCodecService.class).addCodec(new MyObjectCodec());
-        Framework.getService(AutomationService.class).putOperation(MyObjectOperation.class);
         // Fire application start on AutomationServer component forcing to load
         // correctly Document Adapter Codec in Test scope (to take into account
         // of document adapters contributed into test) -> see execution order
@@ -161,11 +156,6 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
                .set("name", "testDoc")
                .set("properties", session.propertyMapToString(creationProps))
                .execute();
-    }
-
-    @BeforeClass
-    public static void addDataCapsuleOperation() throws OperationException {
-        Framework.getService(AutomationService.class).putOperation(TestDataCapsule.class);
     }
 
     @Test
@@ -205,7 +195,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
 
         assertNotNull(docs);
         assertEquals(1, docs.size());
-        checkHasCorrectMultiValues(docs.get(0));
+        checkHasCorrectMultiValues(docs.getFirst());
     }
 
     private void checkHasCorrectMultiValues(JsonNode note) {
@@ -544,8 +534,8 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
     public void testRawJSONDatastructuresAsParameters() throws Exception {
         ObjectMapper mapper = new ObjectMapper();
 
-        POJOObject obj1 = new POJOObject("[obj1 text]", Arrays.asList("1", "2"));
-        POJOObject obj2 = new POJOObject("[obj2 text]", Arrays.asList("2", "3"));
+        POJOObject obj1 = new POJOObject("[obj1 text]", List.of("1", "2"));
+        POJOObject obj2 = new POJOObject("[obj2 text]", List.of("2", "3"));
 
         String obj1JSON = mapper.writeValueAsString(obj1);
         String obj2JSON = mapper.writeValueAsString(obj2);
@@ -556,8 +546,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         Map<String, Object> map2 = mapper.readValue(obj2JSON, Map.class);
 
         // Expected result when passing obj1 and obj2 as input to the
-        POJOObject expectedObj12 = new POJOObject("Merged texts: [obj1 text][obj2 text]",
-                Arrays.asList("1", "2", "2", "3"));
+        POJOObject expectedObj12 = new POJOObject("Merged texts: [obj1 text][obj2 text]", List.of("1", "2", "2", "3"));
 
         // The pojo and the map parameters can be passed as java objects
         // directly in the client call, the generic Jackson-based parser /
@@ -578,7 +567,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         assertEquals(expectedObj12, returnedObj12);
 
         // Check scalar parameters can be passed as argument
-        POJOObject expectedObj1AndDouble = new POJOObject("Merged texts: [obj1 text]", Arrays.asList("1", "2", "3.0"));
+        POJOObject expectedObj1AndDouble = new POJOObject("Merged texts: [obj1 text]", List.of("1", "2", "3.0"));
         POJOObject returnedObj1AndDouble = session.newRequest(NestedJSONOperation.ID) //
                                                   .set("pojo", map1)
                                                   .set("doubleParam", 3.0)
@@ -591,9 +580,9 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         // It is possible to pass arbitrary Java objects as the input as
         // long as the JSON representation is a valid representation for the
         // expected input type of the operation
-        POJOObject expectedListObj = new POJOObject("Merged texts: ", Arrays.asList("a", "b", "c"));
+        POJOObject expectedListObj = new POJOObject("Merged texts: ", List.of("a", "b", "c"));
         POJOObject returnedListObj = session.newRequest(NestedJSONOperation.ID) //
-                                            .setInput(Arrays.asList("a", "b", "c"))
+                                            .setInput(List.of("a", "b", "c"))
                                             .executeReturningEntity(POJOObject.class);
         assertEquals(expectedListObj, returnedListObj);
 
@@ -601,7 +590,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         // negotiation: note, as no special codec has been rejustered for
         // POJOObject, the operation must be able to consume Map instances with
         // the same inner structure as the POJOObject class.
-        POJOObject pojoInput = new POJOObject("input pojo", Arrays.asList("a", "b", "c"));
+        POJOObject pojoInput = new POJOObject("input pojo", List.of("a", "b", "c"));
         returnedListObj = session.newRequest(NestedJSONOperation.ID) //
                                  .setInput(pojoInput)
                                  .executeReturningEntity(POJOObject.class);
@@ -626,7 +615,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         list.add(new SimplePojo("test3"));
         List<List<SimplePojo>> listList = new ArrayList<>();
         listList.add(list);
-        SimplePojo[] simplePojos = list.toArray(new SimplePojo[list.size()]);
+        SimplePojo[] simplePojos = list.toArray(SimplePojo[]::new);
         String type = SimplePojoObjectCodec.TYPE;
         SimplePojo result1;
         result1 = session.newRequest(JSONOperationWithArrays.ID)
@@ -793,7 +782,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
         GregorianCalendar end = new GregorianCalendar(2015, Calendar.JULY, 14, 12, 34, 56);
         String error = session.newRequest(AddPermission.ID)
                               .setInput("doc:/")
-                              .set("username", username)
+                              .set("users", username)
                               .set("permission", "Write")
                               .set("begin", begin)
                               .set("end", end)
@@ -819,7 +808,7 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
             GregorianCalendar end = new GregorianCalendar(2015, Calendar.JULY, 14, 12, 34, 56);
             session.newRequest(AddPermission.ID)
                    .setInput("doc:/")
-                   .set("username", username)
+                   .set("users", username)
                    .set("permission", "Write")
                    .set("begin", begin)
                    .set("end", end)

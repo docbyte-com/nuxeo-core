@@ -94,6 +94,7 @@ FOR /F "usebackq eol=# tokens=1,* delims==" %%A in ("%NUXEO_CONF%") do (
     REM ***** Expand local string and replace $JAVA_OPTS with %LOCAL_JAVA_OPTS% *****
     set LOCAL_JAVA_OPTS=!LOCAL_JAVA_OPTS!!__JAVA_OPTS:$JAVA_OPTS=%LOCAL_JAVA_OPTS%!
   )
+  if "%%A" == "launcher.log4j2.file" set LOCAL_NUXEO_LAUNCHER_LOG4J2=%%B
 )
 ( ENDLOCAL
   REM ***** Save local variables to global/system variables *****
@@ -101,6 +102,7 @@ FOR /F "usebackq eol=# tokens=1,* delims==" %%A in ("%NUXEO_CONF%") do (
   set "JAVA_OPTS=%LOCAL_JAVA_OPTS%"
   set "NUXEO_LOG_DIR=%LOCAL_NUXEO_LOG_DIR%"
   set "NUXEO_TMP_DIR=%LOCAL_NUXEO_TMP_DIR%"
+  set "NUXEO_LAUNCHER_LOG4J2=%LOCAL_NUXEO_LAUNCHER_LOG4J2%"
 )
 goto NUXEO_CONF_READ
 :NODELAYEDEXPANSION
@@ -111,6 +113,9 @@ FOR /F "usebackq eol=# tokens=1,* delims==" %%A in ("%NUXEO_CONF%") do (
   if "%%A" == "nuxeo.tmp.dir" set NUXEO_TMP_DIR=%%B
 )
 :NUXEO_CONF_READ
+
+REM Log4j2 configuration
+if "%NUXEO_LAUNCHER_LOG4J2%" == "" set NUXEO_LAUNCHER_LOG4J2=%NUXEO_HOME%\lib\log4j2-launcher.xml
 
 REM ***** Check log directory *****
 if "%NUXEO_LOG_DIR%" == "" set NUXEO_LOG_DIR=%NUXEO_HOME%\log
@@ -241,10 +246,10 @@ set LOGTIME=%LOGTIME:,=%
 set TMPLAUNCHER=%NUXEO_TMP_DIR%\nuxeo-launcher-%RANDOM%.jar
 if exist "%TMPLAUNCHER%" GOTO GETTMPLAUNCHER
 COPY /V "%NUXEO_LAUNCHER%" "%TMPLAUNCHER%"
-echo [%DATE%] Launcher command: "%JAVA%" -Dlauncher.java.opts="%JAVA_OPTS%" -Dnuxeo.home="%NUXEO_HOME%" -Dnuxeo.conf="%NUXEO_CONF%" -Dnuxeo.log.dir="%NUXEO_LOG_DIR%" -Dlog.id="-%LOGTIME%" -jar "%TMPLAUNCHER%" %1 %2 %3 %4 %5 %6 %7 %8 %9 >> "%NUXEO_LOG_DIR%\nuxeoctl.log"
+echo [%DATE%] Launcher command: "%JAVA%" -Dlog4j2.configurationFile="%NUXEO_LAUNCHER_LOG4J2%" -Dlauncher.java.opts="%JAVA_OPTS%" -Dnuxeo.home="%NUXEO_HOME%" -Dnuxeo.conf="%NUXEO_CONF%" -Dnuxeo.log.dir="%NUXEO_LOG_DIR%" -Dlog.id="-%LOGTIME%" -jar "%TMPLAUNCHER%" %1 %2 %3 %4 %5 %6 %7 %8 %9 >> "%NUXEO_LOG_DIR%\nuxeoctl.log"
 echo on
 
-"%JAVA%" %LAUNCHER_DEBUG% "-Xbootclasspath/a:%JAVA_TOOLS%" -Dlauncher.java.opts="%JAVA_OPTS%" -Dnuxeo.home="%NUXEO_HOME%" -Dnuxeo.conf="%NUXEO_CONF%" -Dnuxeo.log.dir="%NUXEO_LOG_DIR%" -Dlog.id="-%LOGTIME%" -jar "%TMPLAUNCHER%" %1 %2 %3 %4 %5 %6 %7 %8 %9
+"%JAVA%" %LAUNCHER_DEBUG% "-Xbootclasspath/a:%JAVA_TOOLS%" -Dlog4j2.configurationFile="%NUXEO_LAUNCHER_LOG4J2%" -Dlauncher.java.opts="%JAVA_OPTS%" -Dnuxeo.home="%NUXEO_HOME%" -Dnuxeo.conf="%NUXEO_CONF%" -Dnuxeo.log.dir="%NUXEO_LOG_DIR%" -Dlog.id="-%LOGTIME%" -jar "%TMPLAUNCHER%" %1 %2 %3 %4 %5 %6 %7 %8 %9
 @set exitcode=%ERRORLEVEL%
 @echo off
 del /F /Q "%TMPLAUNCHER%"

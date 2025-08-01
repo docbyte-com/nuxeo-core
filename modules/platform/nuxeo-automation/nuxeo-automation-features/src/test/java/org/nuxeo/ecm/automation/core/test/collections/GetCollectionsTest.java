@@ -24,13 +24,13 @@ import static org.junit.Assert.assertNotNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.core.operations.collections.GetCollectionsOperation;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.collections.api.CollectionManager;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;

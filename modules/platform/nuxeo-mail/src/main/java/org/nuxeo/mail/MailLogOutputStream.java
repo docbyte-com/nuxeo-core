@@ -24,13 +24,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- * {@link java.io.OutputStream} used within a {@link javax.mail.Session} to print debug logs.
+ * {@link java.io.OutputStream} used within a {@link jakarta.mail.Session} to print debug logs.
  *
  * @since 11.1
  */
 public class MailLogOutputStream extends LogOutputStream {
 
-    private static final Logger log = LogManager.getLogger("javax.mail.Session");
+    private static final Logger log = LogManager.getLogger("jakarta.mail.Session");
 
     @Override
     protected void processLine(String line, int logLevel) {

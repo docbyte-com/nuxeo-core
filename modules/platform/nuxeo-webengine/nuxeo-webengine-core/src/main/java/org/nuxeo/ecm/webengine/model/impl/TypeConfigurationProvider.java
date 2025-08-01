@@ -94,7 +94,7 @@ public class TypeConfigurationProvider {
         if (registries.isEmpty()) {
             return;
         }
-        for (TypeRegistry reg : registries.toArray(new TypeRegistry[registries.size()])) {
+        for (TypeRegistry reg : registries.toArray(TypeRegistry[]::new)) {
             reg.registerAdapter(ad);
         }
     }
@@ -103,7 +103,7 @@ public class TypeConfigurationProvider {
         if (registries.isEmpty()) {
             return;
         }
-        for (TypeRegistry reg : registries.toArray(new TypeRegistry[registries.size()])) {
+        for (TypeRegistry reg : registries.toArray(TypeRegistry[]::new)) {
             reg.unregisterAdapter(ad);
         }
     }
@@ -112,7 +112,7 @@ public class TypeConfigurationProvider {
         if (registries.isEmpty()) {
             return;
         }
-        for (TypeRegistry listener : registries.toArray(new TypeRegistry[registries.size()])) {
+        for (TypeRegistry listener : registries.toArray(TypeRegistry[]::new)) {
             listener.registerType(td);
         }
     }
@@ -121,7 +121,7 @@ public class TypeConfigurationProvider {
         if (registries.isEmpty()) {
             return;
         }
-        for (TypeRegistry listener : registries.toArray(new TypeRegistry[registries.size()])) {
+        for (TypeRegistry listener : registries.toArray(TypeRegistry[]::new)) {
             listener.unregisterType(td);
         }
     }

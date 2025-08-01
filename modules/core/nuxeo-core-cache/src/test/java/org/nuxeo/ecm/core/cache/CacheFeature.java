@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     mhilaire
- *
  */
-
 package org.nuxeo.ecm.core.cache;
 
 import org.junit.Assert;
@@ -32,11 +30,17 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 import com.google.inject.Binder;
 import com.google.inject.name.Names;
 
-@Deploy("org.nuxeo.ecm.core.cache")
+@Deploy("org.nuxeo.runtime.pubsub") // needed if clustering is enabled
+// deploy partially the bundle because we have features for cache and transient store
+// also because transient store requires more components than cache
+@Deploy("org.nuxeo.ecm.core.cache:OSGI-INF/CacheService.xml")
+@Deploy("org.nuxeo.ecm.core.cache.test:inmemory-cache-config.xml")
 @Features(ClusterFeature.class)
 public class CacheFeature implements RunnerFeature {
 
     public static final String DEFAULT_TEST_CACHE_NAME = "default-test-cache";
+
+    public static final String MAXSIZE_TEST_CACHE_NAME = "maxsize-test-cache";
 
     public static final String KEY = "key1";
 
@@ -45,11 +49,13 @@ public class CacheFeature implements RunnerFeature {
     @Override
     public void configure(final FeaturesRunner runner, Binder binder) {
         bindCache(binder, DEFAULT_TEST_CACHE_NAME);
+        bindCache(binder, MAXSIZE_TEST_CACHE_NAME);
     }
 
     protected void bindCache(Binder binder, final String name) {
-        binder.bind(Cache.class).annotatedWith(Names.named(name)).toProvider(
-                () -> Framework.getService(CacheService.class).getCache(name));
+        binder.bind(Cache.class)
+              .annotatedWith(Names.named(name))
+              .toProvider(() -> Framework.getService(CacheService.class).getCache(name));
     }
 
     @Override
@@ -61,6 +67,7 @@ public class CacheFeature implements RunnerFeature {
     @Override
     public void afterTeardown(FeaturesRunner runner, FrameworkMethod method, Object test) {
         clearCache(DEFAULT_TEST_CACHE_NAME);
+        clearCache(MAXSIZE_TEST_CACHE_NAME);
     }
 
     protected void clearCache(String name) {

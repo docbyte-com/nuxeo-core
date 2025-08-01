@@ -10,19 +10,6 @@
       <bigIcon>/icons/audio_100.png</bigIcon>
       <category>SimpleDocument</category>
       <description>Audio.description</description>
-      <layouts mode="any">
-        <layout>heading</layout>
-        <layout>audio_file</layout>
-      </layouts>
-      <layouts mode="edit">
-        <layout>heading</layout>
-        <layout>audio_file</layout>
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="drive">
-        <layout>heading</layout>
-        <layout>dublincore</layout>
-      </layouts>
     </type>
 
   </extension>

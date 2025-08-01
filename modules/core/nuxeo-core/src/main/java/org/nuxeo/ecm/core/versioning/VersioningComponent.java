@@ -19,14 +19,15 @@
  */
 package org.nuxeo.ecm.core.versioning;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -36,14 +37,12 @@ import org.nuxeo.ecm.core.model.Document;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.SimpleContributionRegistry;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Versioning service component and implementation.
  */
 public class VersioningComponent extends DefaultComponent implements VersioningService {
-
-    private static final Logger log = LogManager.getLogger(VersioningComponent.class);
 
     public static final String VERSIONING_SERVICE_XP = "versioningService";
 
@@ -55,58 +54,6 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
 
     protected static final StandardVersioningService STANDARD_VERSIONING_SERVICE = new StandardVersioningService();
 
-    protected Map<VersioningServiceDescriptor, VersioningService> versioningServices = new LinkedHashMap<>();
-
-    protected VersioningPolicyRegistry versioningPoliciesRegistry = new VersioningPolicyRegistry();
-
-    protected VersioningFilterRegistry versioningFiltersRegistry = new VersioningFilterRegistry();
-
-    protected VersioningRestrictionRegistry versioningRestrictionsRegistry = new VersioningRestrictionRegistry();
-
-    protected static class VersioningPolicyRegistry extends SimpleContributionRegistry<VersioningPolicyDescriptor> {
-
-        @Override
-        public String getContributionId(VersioningPolicyDescriptor contrib) {
-            return contrib.getId();
-        }
-
-        public Map<String, VersioningPolicyDescriptor> getVersioningPolicyDescriptors() {
-            return currentContribs.entrySet()
-                                  .stream()
-                                  .sorted(Map.Entry.comparingByValue())
-                                  .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1,
-                                          LinkedHashMap::new));
-        }
-
-    }
-
-    protected static class VersioningFilterRegistry extends SimpleContributionRegistry<VersioningFilterDescriptor> {
-
-        @Override
-        public String getContributionId(VersioningFilterDescriptor contrib) {
-            return contrib.getId();
-        }
-
-        public Map<String, VersioningFilterDescriptor> getVersioningFilterDescriptors() {
-            return currentContribs;
-        }
-
-    }
-
-    protected static class VersioningRestrictionRegistry
-            extends SimpleContributionRegistry<VersioningRestrictionDescriptor> {
-
-        @Override
-        public String getContributionId(VersioningRestrictionDescriptor contrib) {
-            return contrib.getType();
-        }
-
-        public Map<String, VersioningRestrictionDescriptor> getVersioningRestrictionDescriptors() {
-            return currentContribs;
-        }
-
-    }
-
     // public for tests
     public VersioningService service = null;
 
@@ -114,24 +61,21 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         this.context = context;
         this.service = STANDARD_VERSIONING_SERVICE;
     }
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         this.context = null;
         this.service = null;
     }
 
     @Override
     public void registerContribution(Object contrib, String point, ComponentInstance contributor) {
-        switch (point) {
-        case VERSIONING_SERVICE_XP:
-            registerVersioningService((VersioningServiceDescriptor) contrib);
-            break;
-        case VERSIONING_POLICY_XP:
-            var policy = (VersioningPolicyDescriptor) contrib;
+        if (contrib instanceof VersioningPolicyDescriptor policy) {
             String componentName = contributor.getName().getName();
             if (policy.getOrder() <= 10 && !componentName.startsWith("org.nuxeo")) {
                 throw new NuxeoException(
@@ -139,120 +83,60 @@ public class VersioningComponent extends DefaultComponent implements VersioningS
                                 + "please correct your policy with id: " + policy.getId() + " in component: "
                                 + componentName);
             }
-            registerVersioningPolicy(policy);
-            break;
-        case VERSIONING_FILTER_XP:
-            registerVersioningFilter((VersioningFilterDescriptor) contrib);
-            break;
-        case VERSIONING_RESTRICTION_XP:
-            registerVersioningRestriction((VersioningRestrictionDescriptor) contrib);
-            break;
-        default:
-            throw new RuntimeException("Unknown extension point: " + point);
         }
+        super.registerContribution(contrib, point, contributor);
     }
 
     @Override
-    public void unregisterContribution(Object contrib, String point, ComponentInstance contributor) {
-        switch (point) {
-        case VERSIONING_SERVICE_XP:
-            unregisterVersioningService((VersioningServiceDescriptor) contrib);
-            break;
-        case VERSIONING_POLICY_XP:
-            unregisterVersioningPolicy((VersioningPolicyDescriptor) contrib);
-            break;
-        case VERSIONING_FILTER_XP:
-            unregisterVersioningFilter((VersioningFilterDescriptor) contrib);
-            break;
-        case VERSIONING_RESTRICTION_XP:
-            unregisterVersioningRestriction((VersioningRestrictionDescriptor) contrib);
-            break;
-        default:
-            break;
-        }
-    }
-
-    protected void registerVersioningService(VersioningServiceDescriptor contrib) {
-        String klass = contrib.className;
-        try {
-            VersioningService vs = (VersioningService) context.getRuntimeContext()
-                                                              .loadClass(klass)
-                                                              .getDeclaredConstructor()
-                                                              .newInstance();
-            versioningServices.put(contrib, vs);
-        } catch (ReflectiveOperationException e) {
-            throw new RuntimeException("Failed to instantiate: " + klass, e);
-        }
-        log.info("Registered versioning service: {}", klass);
+    public void start(ComponentContext context) {
+        super.start(context);
         recompute();
     }
 
-    protected void unregisterVersioningService(VersioningServiceDescriptor contrib) {
-        versioningServices.remove(contrib);
-        log.info("Unregistered versioning service: {}", contrib.className);
-        recompute();
-    }
-
-    protected void registerVersioningPolicy(VersioningPolicyDescriptor contrib) {
-        versioningPoliciesRegistry.addContribution(contrib);
-        log.info("Registered versioning policy: {}", contrib::getId);
-        recompute();
-    }
-
-    protected void unregisterVersioningPolicy(VersioningPolicyDescriptor contrib) {
-        versioningPoliciesRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning policy: {}", contrib::getId);
-        recompute();
-    }
-
-    protected void registerVersioningFilter(VersioningFilterDescriptor contrib) {
-        versioningFiltersRegistry.addContribution(contrib);
-        log.info("Registered versioning filter: {}", contrib::getId);
-        recompute();
-    }
-
-    protected void unregisterVersioningFilter(VersioningFilterDescriptor contrib) {
-        versioningFiltersRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning filter: {}", contrib::getId);
-        recompute();
-    }
-
-    protected void registerVersioningRestriction(VersioningRestrictionDescriptor contrib) {
-        versioningRestrictionsRegistry.addContribution(contrib);
-        log.info("Registered versioning restriction: {}", contrib::getType);
-        recompute();
-    }
-
-    protected void unregisterVersioningRestriction(VersioningRestrictionDescriptor contrib) {
-        versioningRestrictionsRegistry.removeContribution(contrib);
-        log.info("Unregistered versioning restriction: {}", contrib::getType);
+    @Override
+    public void stop(ComponentContext context) throws InterruptedException {
+        super.stop(context);
         recompute();
     }
 
     protected void recompute() {
-        VersioningService versioningService = STANDARD_VERSIONING_SERVICE;
-        for (VersioningService vs : versioningServices.values()) {
-            versioningService = vs;
-        }
-        if (versioningService instanceof ExtendableVersioningService) {
-            ExtendableVersioningService evs = (ExtendableVersioningService) versioningService;
-            evs.setVersioningPolicies(getVersioningPolicies());
-            evs.setVersioningFilters(getVersioningFilters());
-            evs.setVersioningRestrictions(getVersioningRestrictions());
+        var versioningService = defaultIfNull(instanciateVersioningService(), STANDARD_VERSIONING_SERVICE);
+        if (versioningService instanceof ExtendableVersioningService evs) {
+            evs.setVersioningPolicies(getSortedMappedDescriptors(VERSIONING_POLICY_XP));
+            evs.setVersioningFilters(getMappedDescriptors(getDescriptors(VERSIONING_FILTER_XP)));
+            evs.setVersioningRestrictions(getMappedDescriptors(getDescriptors(VERSIONING_RESTRICTION_XP)));
         }
         this.service = versioningService;
     }
 
-    protected Map<String, VersioningPolicyDescriptor> getVersioningPolicies() {
-        return versioningPoliciesRegistry.getVersioningPolicyDescriptors();
+    protected VersioningService instanciateVersioningService() {
+        VersioningServiceDescriptor descriptor = this.<VersioningServiceDescriptor> getDescriptor(VERSIONING_SERVICE_XP,
+                Descriptor.UNIQUE_DESCRIPTOR_ID);
+        if (descriptor == null) {
+            return null;
+        }
+        String klass = descriptor.className;
+        try {
+            return (VersioningService) context.getRuntimeContext()
+                                              .loadClass(klass)
+                                              .getDeclaredConstructor()
+                                              .newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Failed to instantiate: " + klass, e);
+        }
     }
 
-    protected Map<String, VersioningFilterDescriptor> getVersioningFilters() {
-        return versioningFiltersRegistry.getVersioningFilterDescriptors();
+    protected <T extends Descriptor & Comparable<T>> LinkedHashMap<String, T> getSortedMappedDescriptors(String xp) {
+        return this.<T> getMappedDescriptors(getDescriptors(xp))
+                   .entrySet()
+                   .stream()
+                   .sorted(Map.Entry.comparingByValue())
+                   .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1,
+                           LinkedHashMap::new));
     }
 
-    protected Map<String, VersioningRestrictionDescriptor> getVersioningRestrictions() {
-        return versioningRestrictionsRegistry.getVersioningRestrictionDescriptors();
+    protected <T extends Descriptor> Map<String, T> getMappedDescriptors(List<T> descriptors) {
+        return descriptors.stream().collect(Collectors.toMap(Descriptor::getId, Function.identity()));
     }
 
     @Override

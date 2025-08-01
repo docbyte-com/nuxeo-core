@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,13 @@
  * Contributors:
  *     Anahide Tchertchian
  */
-
 package org.nuxeo.ecm.platform.query.api;
 
 import java.util.List;
 import java.util.Map;
 
 import org.nuxeo.ecm.core.api.SortInfo;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Page provider descriptor interface handling all attributes common to a {@link PageProvider} generation.
@@ -30,7 +30,13 @@ import org.nuxeo.ecm.core.api.SortInfo;
  * @author Anahide Tchertchian
  * @since 5.4
  */
-public interface PageProviderDefinition {
+public interface PageProviderDefinition extends Descriptor {
+
+    /** @since 2025.0 */
+    @Override
+    default String getId() {
+        return getName();
+    }
 
     String getName();
 
@@ -108,4 +114,10 @@ public interface PageProviderDefinition {
      */
     List<QuickFilter> getQuickFilters();
 
+    /**
+     * @since 2025.0
+     */
+    default PageProviderDefinitionBuilder builder() {
+        return new PageProviderDefinitionBuilder(this);
+    }
 }

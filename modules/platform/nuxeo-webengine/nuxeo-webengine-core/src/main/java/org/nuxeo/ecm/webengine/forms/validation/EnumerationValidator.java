@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.webengine.forms.validation;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -33,16 +34,12 @@ public class EnumerationValidator implements FieldValidator {
     public EnumerationValidator(String expr) {
         values = new HashSet<>();
         String[] vals = StringUtils.split(expr, ',', true);
-        for (String v : vals) {
-            values.add(v);
-        }
+        values.addAll(Arrays.asList(vals));
     }
 
     public EnumerationValidator(String[] values) {
         this.values = new HashSet<>();
-        for (String v : values) {
-            this.values.add(v);
-        }
+        this.values.addAll(Arrays.asList(values));
     }
 
     @Override

@@ -23,13 +23,14 @@ package org.nuxeo.ecm.core.rest;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.VersionModel;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
@@ -50,7 +51,7 @@ import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
 public class VersionService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         return getTarget().getView("versions");
     }
 
@@ -82,7 +83,7 @@ public class VersionService extends DefaultAdapter {
     }
 
     @POST
-    public Object doPost() {
+    public Void doPost() {
         return null;
     }
 

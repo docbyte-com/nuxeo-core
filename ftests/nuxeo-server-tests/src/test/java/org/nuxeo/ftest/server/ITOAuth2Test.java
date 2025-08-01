@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,10 @@ import static org.nuxeo.ecm.platform.oauth2.OAuth2Error.ACCESS_DENIED;
 import static org.nuxeo.ecm.platform.oauth2.clients.OAuth2ClientService.OAUTH2CLIENT_DIRECTORY_NAME;
 import static org.nuxeo.ecm.platform.oauth2.request.AuthorizationRequest.MISSING_REQUIRED_FIELD_MESSAGE;
 import static org.nuxeo.ecm.platform.oauth2.tokens.OAuth2TokenStore.DIRECTORY_NAME;
+import static org.nuxeo.ftest.server.OAuth2ErrorPage.getErrorPage;
+import static org.nuxeo.ftest.server.OAuth2GrantPage.getDefaultGrantPage;
+import static org.nuxeo.ftest.server.OAuth2GrantPage.getEmptyGrantPage;
+import static org.nuxeo.ftest.server.OAuth2GrantPage.getOAuth2GrantPageBuilder;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -49,33 +53,30 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.MethodRule;
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.platform.oauth2.NuxeoOAuth2Servlet;
-import org.nuxeo.functionaltests.AbstractTest;
+import org.nuxeo.functionaltests.LogTestWatchman;
 import org.nuxeo.functionaltests.RestTestRule;
-import org.nuxeo.functionaltests.pages.LoginPage;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+
+import net.htmlparser.jericho.Source;
 
 /**
  * Tests the OAuth2 authorization flow handled by the {@link NuxeoOAuth2Servlet}.
  *
  * @since 9.2
  */
-public class ITOAuth2Test extends AbstractTest {
+public class ITOAuth2Test {
 
-    public static class OAuth2Token {
-
-        public final String accessToken;
-
-        public final String refreshToken;
-
-        public OAuth2Token(String accessToken, String refreshToken) {
-            this.accessToken = accessToken;
-            this.refreshToken = refreshToken;
-        }
+    public record OAuth2Token(String accessToken, String refreshToken) {
     }
+
+    public static final String TEST_USERNAME = "jdoe";
+
+    public static final String TEST_PASSWORD = "test";
 
     public static final String DOC_PATH = "/api/v1/path/";
 
@@ -85,10 +86,28 @@ public class ITOAuth2Test extends AbstractTest {
 
     public static final String ATOM_CMIS10_PATH = "/atom/cmis10";
 
-    protected static String oauth2ClientDirectoryEntryId;
+    protected String oauth2ClientDirectoryEntryId;
 
     @Rule
-    public final HttpClientTestRule httpClient = HttpClientTestRule.builder().build();
+    public final HttpClientTestRule unauthenticatedClient = HttpClientTestRule.builder().build();
+
+    @Rule
+    public final HttpClientTestRule testUserClient = HttpClientTestRule.builder()
+                                                                       .credentials(TEST_USERNAME, TEST_PASSWORD)
+                                                                       .build();
+
+    @Rule
+    public final HttpClientTestRule testUserLocationClient = HttpClientTestRule.builder()
+                                                                               .credentials(TEST_USERNAME,
+                                                                                       TEST_PASSWORD)
+                                                                               .redirectsEnabled(false)
+                                                                               .build();
+
+    @Rule
+    public final HttpClientTestRule adminClient = HttpClientTestRule.builder().adminCredentials().build();
+
+    @Rule
+    public MethodRule watchman = new LogTestWatchman();
 
     @Rule
     public final RestTestRule restHelper = new RestTestRule();
@@ -107,52 +126,48 @@ public class ITOAuth2Test extends AbstractTest {
     @After
     public void after() {
         restHelper.deleteDirectoryEntries(DIRECTORY_NAME);
-        logoutSimply();
     }
 
     @Test
     public void testAuthorizationErrors() {
-        LoginPage loginPage = getLoginPage();
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
-
         // No client_id parameter
-        OAuth2ErrorPage errorPage = getOAuth2ErrorPage("/oauth2/authorize");
-        assertTrue(driver.getTitle().endsWith("400"));
-        errorPage.checkTitle("Bad Request");
+        OAuth2ErrorPage errorPage = getErrorPage(testUserClient, "/oauth2/authorize");
+        errorPage.checkTitle("400");
+        errorPage.checkH1("Bad Request");
         errorPage.checkDescription(String.format(MISSING_REQUIRED_FIELD_MESSAGE, CLIENT_ID_PARAM));
 
         // No response_type parameter
-        errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=test-client");
+        errorPage = getErrorPage(testUserClient, "/oauth2/authorize?client_id=test-client");
         errorPage.checkDescription(String.format(MISSING_REQUIRED_FIELD_MESSAGE, RESPONSE_TYPE_PARAM));
 
         // Invalid response_type parameter
-        errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=test-client&response_type=unknown");
+        errorPage = getErrorPage(testUserClient, "/oauth2/authorize?client_id=test-client&response_type=unknown");
         errorPage.checkDescription(String.format("Unknown %s: got \"unknown\", expecting \"%s\".", RESPONSE_TYPE_PARAM,
                 CODE_RESPONSE_TYPE));
 
         // Invalid client_id parameter
-        errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=unknown&response_type=code");
+        errorPage = getErrorPage(testUserClient, "/oauth2/authorize?client_id=unknown&response_type=code");
         errorPage.checkDescription(String.format("Invalid %s: unknown.", CLIENT_ID_PARAM));
 
         // Invalid redirect_uri parameter
-        errorPage = getOAuth2ErrorPage(
+        errorPage = getErrorPage(testUserClient,
                 "/oauth2/authorize?client_id=test-client&response_type=code&redirect_uri=unknown");
         errorPage.checkDescription(String.format(
                 "Invalid %s parameter: unknown. It must exactly match one of the redirect URIs configured for the app.",
                 REDIRECT_URI_PARAM));
 
         // Invalid PKCE parameters
-        errorPage = getOAuth2ErrorPage(
+        errorPage = getErrorPage(testUserClient,
                 "/oauth2/authorize?client_id=test-client&response_type=code&code_challenge=myCodeChallenge");
         errorPage.checkDescription(
                 String.format("Invalid PKCE parameters: either both %s and %s parameters must be sent or none of them.",
                         CODE_CHALLENGE_PARAM, CODE_CHALLENGE_METHOD_PARAM));
-        errorPage = getOAuth2ErrorPage(
+        errorPage = getErrorPage(testUserClient,
                 "/oauth2/authorize?client_id=test-client&response_type=code&code_challenge_method=S256");
         errorPage.checkDescription(
                 String.format("Invalid PKCE parameters: either both %s and %s parameters must be sent or none of them.",
                         CODE_CHALLENGE_PARAM, CODE_CHALLENGE_METHOD_PARAM));
-        errorPage = getOAuth2ErrorPage(
+        errorPage = getErrorPage(testUserClient,
                 "/oauth2/authorize?client_id=test-client&response_type=code&code_challenge=myCodeChallenge&code_challenge_method=unknown");
         errorPage.checkDescription(String.format(
                 "Invalid %s parameter: transform algorithm unknown not supported. The server only supports %s.",
@@ -165,15 +180,14 @@ public class ITOAuth2Test extends AbstractTest {
         properties.put("clientId", "test-client");
         properties.put("redirectURIs", "http://localhost:8080/core/home.html");
         restHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
-        errorPage = getOAuth2ErrorPage("/oauth2/authorize?client_id=test-client&response_type=code");
+        errorPage = getErrorPage(testUserClient, "/oauth2/authorize?client_id=test-client&response_type=code");
         errorPage.checkDescription("More than one client registered for the 'test-client' id");
     }
 
     @Test
     public void testOAuth2GrantPage() {
         // The grant page is behind the authentication filter
-        LoginPage loginPage = get(NUXEO_URL + "/oauth2Grant.jsp", LoginPage.class);
-        OAuth2GrantPage grantPage = loginPage.login(TEST_USERNAME, TEST_PASSWORD, OAuth2GrantPage.class);
+        OAuth2GrantPage grantPage = getEmptyGrantPage(testUserClient);
         // When called directly without going through the /oauth2/authorize endpoint the input fields are empty
         grantPage.checkClientName("null");
         grantPage.checkFieldCount(2);
@@ -182,7 +196,7 @@ public class ITOAuth2Test extends AbstractTest {
 
         // Get the grant page by going through the /oauth2/authorize endpoint
         // First send only the required parameters
-        getOAuth2GrantPageBuilder().build();
+        getDefaultGrantPage(testUserClient);
 
         // Then send extra parameters
         Map<String, String> extraParameters = new HashMap<>();
@@ -190,55 +204,52 @@ public class ITOAuth2Test extends AbstractTest {
         extraParameters.put("state", "1234");
         extraParameters.put("code_challenge", "myCodeChallenge");
         extraParameters.put("code_challenge_method", "plain");
-        getOAuth2GrantPageBuilder().setExtraParameters(extraParameters).build();
+        getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
     }
 
     @Test
     public void testAuthorizationSubmitErrors() {
-        LoginPage loginPage = getLoginPage();
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
-
         // Call a GET request on /oauth2/authorize_submit
-        OAuth2ErrorPage errorPage = get(NUXEO_URL + "/oauth2/authorize_submit", OAuth2ErrorPage.class);
+        OAuth2ErrorPage errorPage = getErrorPage(testUserClient, "/oauth2/authorize_submit");
         errorPage.checkDescription(
                 String.format("The /oauth2/%s endpoint only accepts POST requests.", ENDPOINT_AUTH_SUBMIT));
 
         // Simulate an empty client_id parameter
-        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder().build();
-        grantPage.setFieldValue("client_id", "");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        OAuth2GrantPage grantPage = getDefaultGrantPage(testUserClient);
+        grantPage.setClientId("");
+        Source result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format(MISSING_REQUIRED_FIELD_MESSAGE, CLIENT_ID_PARAM));
 
         // Simulate an empty response_type parameter
-        grantPage = getOAuth2GrantPageBuilder().build();
-        grantPage.setFieldValue("response_type", "");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getDefaultGrantPage(testUserClient);
+        grantPage.setResponseType("");
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format(MISSING_REQUIRED_FIELD_MESSAGE, RESPONSE_TYPE_PARAM));
 
         // Simulate an invalid response_type parameter
-        grantPage = getOAuth2GrantPageBuilder().build();
-        grantPage.setFieldValue("response_type", "unknown");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getDefaultGrantPage(testUserClient);
+        grantPage.setResponseType("unknown");
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format("Unknown %s: got \"unknown\", expecting \"%s\".", RESPONSE_TYPE_PARAM,
                 CODE_RESPONSE_TYPE));
 
         // Simulate an invalid client_id parameter
-        grantPage = getOAuth2GrantPageBuilder().build();
-        grantPage.setFieldValue("client_id", "unknown");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getDefaultGrantPage(testUserClient);
+        grantPage.setClientId("unknown");
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format("Invalid %s: unknown.", CLIENT_ID_PARAM));
 
         // Simulate an invalid redirect_uri parameter
         Map<String, String> extraParameters = new HashMap<>();
         extraParameters.put("redirect_uri", "http://localhost:8080/core/home.html");
-        grantPage = getOAuth2GrantPageBuilder().setExtraParameters(extraParameters).build();
-        grantPage.setFieldValue("redirect_uri", "unknown");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
+        grantPage.setRedirectURI("unknown");
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format(
                 "Invalid %s parameter: unknown. It must exactly match one of the redirect URIs configured for the app.",
                 REDIRECT_URI_PARAM));
@@ -246,26 +257,26 @@ public class ITOAuth2Test extends AbstractTest {
         // Simulate invalid PKCE parameters
         extraParameters.put("code_challenge", "myCodeChallenge");
         extraParameters.put("code_challenge_method", "S256");
-        grantPage = getOAuth2GrantPageBuilder().setExtraParameters(extraParameters).build();
-        grantPage.removeField("code_challenge_method");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
+        grantPage.setCodeChallengeMethod(null);
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(
                 String.format("Invalid PKCE parameters: either both %s and %s parameters must be sent or none of them.",
                         CODE_CHALLENGE_PARAM, CODE_CHALLENGE_METHOD_PARAM));
 
-        grantPage = getOAuth2GrantPageBuilder().setExtraParameters(extraParameters).build();
-        grantPage.removeField("code_challenge");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
+        grantPage.setCodeChallenge(null);
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(
                 String.format("Invalid PKCE parameters: either both %s and %s parameters must be sent or none of them.",
                         CODE_CHALLENGE_PARAM, CODE_CHALLENGE_METHOD_PARAM));
 
-        grantPage = getOAuth2GrantPageBuilder().setExtraParameters(extraParameters).build();
-        grantPage.setFieldValue("code_challenge_method", "unknown");
-        grantPage.grant();
-        errorPage = asPage(OAuth2ErrorPage.class);
+        grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
+        grantPage.setCodeChallengeMethod("unknown");
+        result = grantPage.grant();
+        errorPage = new OAuth2ErrorPage(result);
         errorPage.checkDescription(String.format(
                 "Invalid %s parameter: transform algorithm unknown not supported. The server only supports %s.",
                 CODE_CHALLENGE_METHOD_PARAM, CODE_CHALLENGE_METHODS_SUPPORTED));
@@ -273,32 +284,28 @@ public class ITOAuth2Test extends AbstractTest {
 
     @Test
     public void testAuthorizationDenied() {
-        LoginPage loginPage = getLoginPage();
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
-
-        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder().setExtraParameters(
-                Collections.singletonMap("state", "1234")).build();
-        grantPage.deny();
-        String currentURL = driver.getCurrentUrl();
-        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(currentURL));
+        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(Map.of("state", "1234"))
+                                                                             .build();
+        grantPage.setHttpClient(testUserLocationClient);
+        String location = grantPage.getDenyLocation();
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
         Map<String, String> expectedParameters = new HashMap<>();
         expectedParameters.put(ERROR_PARAM, ACCESS_DENIED);
         expectedParameters.put(ERROR_DESCRIPTION_PARAM, "Access denied by the user");
         expectedParameters.put(STATE_PARAM, "1234");
-        assertEquals(expectedParameters, URIUtils.getRequestParameters(currentURL));
+        assertEquals(expectedParameters, URIUtils.getRequestParameters(location));
     }
 
     @Test
     public void testAuthorizationGranted() {
-        LoginPage loginPage = getLoginPage();
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
-
-        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder().setExtraParameters(
-                Collections.singletonMap("state", "1234")).build();
-        grantPage.grant();
-        String currentURL = driver.getCurrentUrl();
-        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(currentURL));
-        Map<String, String> parameters = URIUtils.getRequestParameters(currentURL);
+        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder(testUserClient)
+                                                                             .extraParameters(Collections.singletonMap(
+                                                                                     "state", "1234"))
+                                                                             .build();
+        grantPage.setHttpClient(testUserLocationClient);
+        String location = grantPage.getGrantLocation();
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
+        Map<String, String> parameters = URIUtils.getRequestParameters(location);
         assertEquals(2, parameters.size());
         assertEquals("1234", parameters.get(STATE_PARAM));
         assertTrue(parameters.containsKey(AUTHORIZATION_CODE_PARAM));
@@ -306,8 +313,7 @@ public class ITOAuth2Test extends AbstractTest {
 
     @Test
     public void testAuthorizationOnRestAPI() {
-        OAuth2Token token = getOAuth2Token("Administrator", "Administrator");
-        logoutSimply();
+        OAuth2Token token = getOAuth2Token(adminClient);
 
         checkAuthorizationWithValidAccessToken(DOC_PATH, token.accessToken);
 
@@ -321,7 +327,7 @@ public class ITOAuth2Test extends AbstractTest {
 
     @Test
     public void testAuthorizationOnCMIS() {
-        OAuth2Token token = getOAuth2Token("Administrator", "Administrator");
+        OAuth2Token token = getOAuth2Token(adminClient);
 
         checkAuthorizationWithValidAccessToken(JSON_CMIS_PATH, token.accessToken);
         checkAuthorizationWithValidAccessToken(ATOM_CMIS_PATH, token.accessToken);
@@ -342,7 +348,7 @@ public class ITOAuth2Test extends AbstractTest {
     @Test
     public void testTokenGetRequest() {
         // Call a GET request on /oauth2/token
-        OAuth2ErrorPage errorPage = get(NUXEO_URL + "/oauth2/token", OAuth2ErrorPage.class);
+        OAuth2ErrorPage errorPage = getErrorPage(unauthenticatedClient, "/oauth2/token");
         errorPage.checkDescription(
                 String.format("The /oauth2/%s endpoint only accepts POST requests.", ENDPOINT_TOKEN));
     }
@@ -350,18 +356,14 @@ public class ITOAuth2Test extends AbstractTest {
     @Test
     public void testAuthorizationWithExistingToken() {
         // Get an OAuth2 token
-        OAuth2Token initialToken = getOAuth2Token(TEST_USERNAME, TEST_PASSWORD);
-        logoutSimply();
+        OAuth2Token initialToken = getOAuth2Token(testUserClient);
 
         // Ask for authorization
-        String url = NUXEO_URL + "/oauth2/authorize?client_id=test-client&response_type=code";
-        LoginPage loginPage = get(url, LoginPage.class);
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
+        String location = getLocation("/oauth2/authorize?client_id=test-client&response_type=code");
 
         // Expecting to be redirected to the client's redirect_uri with a code parameter, bypassing the grant page
-        String currentURL = driver.getCurrentUrl();
-        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(currentURL));
-        Map<String, String> queryParameters = URIUtils.getRequestParameters(currentURL);
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
+        Map<String, String> queryParameters = URIUtils.getRequestParameters(location);
         assertEquals(1, queryParameters.size());
         String code = queryParameters.get("code");
         assertNotNull(code);
@@ -381,14 +383,11 @@ public class ITOAuth2Test extends AbstractTest {
         setAutoGrant(true);
 
         // Ask for authorization
-        String url = NUXEO_URL + "/oauth2/authorize?client_id=test-client&response_type=code";
-        LoginPage loginPage = get(url, LoginPage.class);
-        loginPage.login(TEST_USERNAME, TEST_PASSWORD);
+        String location = getLocation("/oauth2/authorize?client_id=test-client&response_type=code");
 
         // Expecting to be redirected to the client's redirect_uri with a code parameter, bypassing the grant page
-        String currentURL = driver.getCurrentUrl();
-        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(currentURL));
-        Map<String, String> queryParameters = URIUtils.getRequestParameters(currentURL);
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
+        Map<String, String> queryParameters = URIUtils.getRequestParameters(location);
         assertEquals(1, queryParameters.size());
         String code = queryParameters.get("code");
         assertNotNull(code);
@@ -397,19 +396,20 @@ public class ITOAuth2Test extends AbstractTest {
         setAutoGrant(false);
     }
 
+    protected String getLocation(String path) {
+        return testUserLocationClient.buildGetRequest(path)
+                                     .executeAndThen(response -> response.getLocation().toString());
+    }
+
     protected void setAutoGrant(boolean autoGrant) {
         restHelper.updateDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, oauth2ClientDirectoryEntryId,
                 Collections.singletonMap("autoGrant", autoGrant));
     }
 
-    protected OAuth2Token getOAuth2Token(String username, String password) {
-        LoginPage loginPage = getLoginPage();
-        loginPage.login(username, password);
-
-        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder().build();
-        grantPage.grant();
-        String currentURL = driver.getCurrentUrl();
-        Map<String, String> parameters = URIUtils.getRequestParameters(currentURL);
+    protected OAuth2Token getOAuth2Token(HttpClientTestRule client) {
+        OAuth2GrantPage grantPage = getOAuth2GrantPageBuilder(client).build();
+        String location = grantPage.getGrantLocation();
+        Map<String, String> parameters = URIUtils.getRequestParameters(location);
         String code = parameters.get(AUTHORIZATION_CODE_PARAM);
 
         Map<String, String> params = new HashMap<>();
@@ -420,11 +420,11 @@ public class ITOAuth2Test extends AbstractTest {
     }
 
     protected OAuth2Token getOAuth2Token(Map<String, String> params) {
-        return httpClient.buildPostRequest("/oauth2/" + ENDPOINT_TOKEN)
-                         .entity(params)
-                         .executeAndThen(new JsonNodeHandler(),
-                                 node -> new OAuth2Token(node.get("access_token").textValue(),
-                                         node.get("refresh_token").textValue()));
+        return unauthenticatedClient.buildPostRequest("/oauth2/" + ENDPOINT_TOKEN)
+                                    .entity(params)
+                                    .executeAndThen(new JsonNodeHandler(),
+                                            node -> new OAuth2Token(node.get("access_token").textValue(),
+                                                    node.get("refresh_token").textValue()));
     }
 
     protected OAuth2Token refreshOAuth2Token(String refreshToken) {
@@ -436,69 +436,30 @@ public class ITOAuth2Test extends AbstractTest {
     }
 
     protected void checkAuthorizationWithValidAccessToken(String path, String accessToken) {
-        httpClient.buildGetRequest(path)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
+        unauthenticatedClient.buildGetRequest(path)
+                             .executeAndConsume(new HttpStatusCodeHandler(),
+                                     status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
 
-        httpClient.buildGetRequest(path)
-                  .addQueryParameter("access_token", accessToken)
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        unauthenticatedClient.buildGetRequest(path)
+                             .addQueryParameter("access_token", accessToken)
+                             .executeAndConsume(new HttpStatusCodeHandler(),
+                                     status -> assertEquals(SC_OK, status.intValue()));
 
-        httpClient.buildGetRequest(path)
-                  .addHeader("Authorization", "Bearer " + accessToken)
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        unauthenticatedClient.buildGetRequest(path)
+                             .addHeader("Authorization", "Bearer " + accessToken)
+                             .executeAndConsume(new HttpStatusCodeHandler(),
+                                     status -> assertEquals(SC_OK, status.intValue()));
     }
 
     protected void checkAuthorizationWithInvalidAccessToken(String path, String accessToken) {
-        httpClient.buildGetRequest(path)
-                  .addQueryParameter("access_token", accessToken)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
-        httpClient.buildGetRequest(path)
-                  .addHeader("Authorization", "Bearer " + accessToken)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
-    }
-
-    protected OAuth2ErrorPage getOAuth2ErrorPage(String resource) {
-        return get(NUXEO_URL + resource, OAuth2ErrorPage.class);
-    }
-
-    protected OAuth2GrantPageBuilder getOAuth2GrantPageBuilder() {
-        return new OAuth2GrantPageBuilder();
-    }
-
-    public static class OAuth2GrantPageBuilder {
-
-        protected Map<String, String> extraParameters;
-
-        protected OAuth2GrantPageBuilder() {
-        }
-
-        public OAuth2GrantPageBuilder setExtraParameters(final Map<String, String> extraParameters) {
-            this.extraParameters = extraParameters;
-            return this;
-        }
-
-        public OAuth2GrantPage build() {
-            OAuth2GrantPage grantPage;
-            String url = NUXEO_URL + "/oauth2/authorize?client_id=test-client&response_type=code";
-            if (extraParameters != null) {
-                url = URIUtils.addParametersToURIQuery(url, extraParameters);
-            }
-            grantPage = get(url, OAuth2GrantPage.class);
-            grantPage.checkClientName("Test Client");
-            grantPage.checkResponseType("code");
-            grantPage.checkClientId("test-client");
-            int fieldCount = 2;
-            if (extraParameters != null) {
-                extraParameters.forEach(grantPage::checkExtraParameter);
-                fieldCount += extraParameters.size();
-            }
-            grantPage.checkFieldCount(fieldCount);
-            return grantPage;
-        }
-
+        unauthenticatedClient.buildGetRequest(path)
+                             .addQueryParameter("access_token", accessToken)
+                             .executeAndConsume(new HttpStatusCodeHandler(),
+                                     status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
+        unauthenticatedClient.buildGetRequest(path)
+                             .addHeader("Authorization", "Bearer " + accessToken)
+                             .executeAndConsume(new HttpStatusCodeHandler(),
+                                     status -> assertEquals(SC_UNAUTHORIZED, status.intValue()));
     }
 
 }

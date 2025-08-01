@@ -20,7 +20,7 @@ package org.nuxeo.elasticsearch.config;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
-import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
+import org.nuxeo.ecm.core.search.index.IndexingJsonWriter;
 
 /**
  * @since 7.2
@@ -29,9 +29,9 @@ import org.nuxeo.elasticsearch.io.JsonESDocumentWriter;
 public class ElasticSearchDocWriterDescriptor {
 
     @XNode("@class")
-    protected Class<JsonESDocumentWriter> klass;
+    protected Class<IndexingJsonWriter> klass;
 
-    public Class<JsonESDocumentWriter> getKlass() {
+    public Class<IndexingJsonWriter> getKlass() {
         return klass;
     }
 }

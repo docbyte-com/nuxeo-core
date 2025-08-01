@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,22 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -49,10 +49,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.platform.usermanager")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 public class TestSuggestUserEntries {
 
@@ -175,7 +173,7 @@ public class TestSuggestUserEntries {
             user.setPropertyValue("user:lastName", "Smith");
             user.setPropertyValue("user:email", "user" + i + "@example.com");
             if ((i % 2) == 0) { // one in two belongs to devs
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("devs"));
+                user.setPropertyValue("user:groups", (Serializable) List.of("devs"));
             }
             userManager.createUser(user);
         }
@@ -281,30 +279,30 @@ public class TestSuggestUserEntries {
         // create group 'a'
         DocumentModel a = userManager.getBareGroupModel();
         a.setPropertyValue("group:groupname", "a");
-        a.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("b", "c"));
+        a.setPropertyValue("group:subGroups", (Serializable) List.of("b", "c"));
 
         userManager.createGroup(a);
 
         // create group 'b'
         DocumentModel b = userManager.getBareGroupModel();
         b.setPropertyValue("group:groupname", "b");
-        b.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("a"));
-        b.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("c", "a"));
+        b.setPropertyValue("group:parentGroups", (Serializable) List.of("a"));
+        b.setPropertyValue("group:subGroups", (Serializable) List.of("c", "a"));
 
         userManager.createGroup(b);
 
         // create group 'c'
         DocumentModel c = userManager.getBareGroupModel();
         c.setPropertyValue("group:groupname", "c");
-        c.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("b", "a"));
-        c.setPropertyValue("group:subGroups", (Serializable) Arrays.asList("d"));
+        c.setPropertyValue("group:parentGroups", (Serializable) List.of("b", "a"));
+        c.setPropertyValue("group:subGroups", (Serializable) List.of("d"));
 
         userManager.createGroup(c);
 
         // create group 'd'
         DocumentModel d = userManager.getBareGroupModel();
         d.setPropertyValue("group:groupname", "d");
-        d.setPropertyValue("group:parentGroups", (Serializable) Arrays.asList("c"));
+        d.setPropertyValue("group:parentGroups", (Serializable) List.of("c"));
 
         userManager.createGroup(d);
 
@@ -316,13 +314,13 @@ public class TestSuggestUserEntries {
             user.setPropertyValue("user:lastName", "Smith");
             user.setPropertyValue("user:email", "user" + i + "@example.com");
             if (i % 4 == 0) {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("a"));
+                user.setPropertyValue("user:groups", (Serializable) List.of("a"));
             } else if (i % 4 == 1) {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("b"));
+                user.setPropertyValue("user:groups", (Serializable) List.of("b"));
             } else if (i % 4 == 2) {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("c"));
+                user.setPropertyValue("user:groups", (Serializable) List.of("c"));
             } else {
-                user.setPropertyValue("user:groups", (Serializable) Arrays.asList("d"));
+                user.setPropertyValue("user:groups", (Serializable) List.of("d"));
             }
             userManager.createUser(user);
         }

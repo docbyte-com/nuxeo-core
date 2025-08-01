@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,9 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
-import static org.junit.Assume.assumeTrue;
-
-import org.junit.Before;
 import org.junit.Test;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfDBSRepository;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -29,12 +28,8 @@ import org.nuxeo.runtime.test.runner.Deploy;
  * <p>
  * Uses the QueryMaker that does CMISQL -> SQL, which allows JOINs.
  */
+@ConditionalIgnore(condition = IgnoreIfDBSRepository.class, cause = "DBS does not support JOINs")
 public class TestCmisBindingJoins extends TestCmisBinding {
-
-    @Before
-    public void checkNotDBS() throws Exception {
-        assumeTrue("DBS does not support JOINs", !coreFeature.getStorageConfiguration().isDBS());
-    }
 
     @Override
     protected boolean supportsJoins() {

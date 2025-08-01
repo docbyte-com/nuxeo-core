@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,7 +79,6 @@ public class RenderingContextImpl implements RenderingContext {
         return baseUrl;
     }
 
-    @SuppressWarnings("resource") // wrapped session will be closed when the wrapper is closed
     @Override
     public SessionWrapper getSession(DocumentModel document) {
         if (document != null) {
@@ -202,7 +201,7 @@ public class RenderingContextImpl implements RenderingContext {
         List<Object> values = parameters.get(realName);
         if (CollectionUtils.isNotEmpty(values)) {
             @SuppressWarnings("unchecked")
-            T value = (T) values.get(0);
+            T value = (T) values.getFirst();
             return value;
         }
         if (WRAPPED_CONTEXT.equalsIgnoreCase(realName)) {
@@ -215,18 +214,11 @@ public class RenderingContextImpl implements RenderingContext {
     @Override
     public boolean getBooleanParameter(String name) {
         Object result = getParameter(name);
-        if (result == null) {
-            return false;
-        } else if (result instanceof Boolean) {
-            return (Boolean) result;
-        } else if (result instanceof String) {
-            try {
-                return Boolean.parseBoolean((String) result);
-            } catch (Exception e) {
-                return false;
-            }
-        }
-        return false;
+        return switch (result) {
+            case Boolean bool -> bool;
+            case String string -> Boolean.parseBoolean(string);
+            case null, default -> false;
+        };
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
@@ -336,7 +328,7 @@ public class RenderingContextImpl implements RenderingContext {
 
     public static final class RenderingContextBuilder {
 
-        private RenderingContextImpl ctx;
+        protected final RenderingContextImpl ctx;
 
         RenderingContextBuilder() {
             ctx = new RenderingContextImpl();

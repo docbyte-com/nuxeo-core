@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.script.Invocable;
 import javax.script.ScriptContext;
@@ -55,14 +57,18 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.UnrestrictedSessionRunner;
 import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.platform.actions.ActionContext;
+import org.nuxeo.ecm.platform.actions.ELActionContext;
+import org.nuxeo.ecm.platform.actions.ejb.ActionManager;
 import org.nuxeo.ecm.platform.query.nxql.NXQLQueryBuilder;
 import org.nuxeo.ecm.platform.rendition.Constants;
 import org.nuxeo.ecm.platform.rendition.Rendition;
+import org.nuxeo.ecm.platform.rendition.extension.DefaultAutomationRenditionProvider;
 import org.nuxeo.ecm.platform.rendition.impl.LazyRendition;
 import org.nuxeo.ecm.platform.rendition.impl.LiveRendition;
 import org.nuxeo.ecm.platform.rendition.impl.StoredRendition;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -87,14 +93,11 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
 
     private static final Logger log = LogManager.getLogger(RenditionServiceImpl.class);
 
-    /**
-     * @since 7.3.
-     */
-    protected RenditionDefinitionRegistry renditionDefinitionRegistry;
+    protected Map<String, RenditionDefinition> renditionDefinitions;
 
-    protected RenditionDefinitionProviderRegistry renditionDefinitionProviderRegistry;
+    protected Map<String, RenditionDefinitionProviderDescriptor> renditionDefinitionProviders;
 
-    protected List<DefaultRenditionDescriptor> defaultRenditionDescriptors = new ArrayList<>();
+    protected List<DefaultRenditionDescriptor> defaultRenditionDescriptors;
 
     protected static final StoredRenditionManager DEFAULT_STORED_RENDITION_MANAGER = new DefaultStoredRenditionManager();
 
@@ -118,60 +121,108 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
     }
 
     @Override
-    public void activate(ComponentContext context) {
-        renditionDefinitionRegistry = new RenditionDefinitionRegistry();
-        renditionDefinitionProviderRegistry = new RenditionDefinitionProviderRegistry();
-        super.activate(context);
+    public void start(ComponentContext context) {
+        renditionDefinitions = this.<RenditionDefinition> getDescriptors(RENDITION_DEFINITIONS_EP)
+                                   .stream()
+                                   .filter(RenditionDefinition::isEnabled)
+                                   .collect(Collectors.toMap(RenditionDefinition::getName, Function.identity()));
+        renditionDefinitionProviders = this.<RenditionDefinitionProviderDescriptor> getDescriptors(
+                RENDITON_DEFINION_PROVIDERS_EP)
+                                           .stream()
+                                           .filter(RenditionDefinitionProviderDescriptor::isEnabled)
+                                           .collect(Collectors.toMap(RenditionDefinitionProviderDescriptor::getName,
+                                                   Function.identity()));
+        defaultRenditionDescriptors = getDescriptors(DEFAULT_RENDITION_EP);
+        storedRenditionManagerDescriptors = new LinkedList<>(getDescriptors(STORED_RENDITION_MANAGERS_EP));
+
+        renditionDefinitions.values().forEach(this::setupProvider);
+    }
+
+    protected void setupProvider(RenditionDefinition definition) {
+        if (definition.getProviderClass() == null) {
+            definition.setProvider(new DefaultAutomationRenditionProvider());
+        } else {
+            try {
+                var provider = definition.getProviderClass().getDeclaredConstructor().newInstance();
+                definition.setProvider(provider);
+            } catch (Exception e) {
+                log.error("Unable to create RenditionProvider", e);
+            }
+        }
     }
 
     @Override
-    public void deactivate(ComponentContext context) {
-        renditionDefinitionRegistry = null;
-        renditionDefinitionProviderRegistry = null;
-        super.deactivate(context);
-    }
-
-    /**
-     * Shoudn't be used since it doesn't take into account the rendition definitions made available for a given document
-     * by the contributed {@link RenditionDefinitionProvider}s.
-     *
-     * @deprecated since 10.10, use {@link #getAvailableRenditionDefinition(DocumentModel, String)} instead
-     */
-    @Deprecated(since = "10.10")
-    public RenditionDefinition getRenditionDefinition(String name) {
-        return renditionDefinitionRegistry.getRenditionDefinition(name);
+    public void stop(ComponentContext context) {
+        renditionDefinitions = null;
+        renditionDefinitionProviders = null;
+        defaultRenditionDescriptors = null;
+        storedRenditionManagerDescriptors = null;
     }
 
     @Override
     public List<RenditionDefinition> getDeclaredRenditionDefinitions() {
-        return new ArrayList<>(renditionDefinitionRegistry.descriptors.values());
+        return new ArrayList<>(renditionDefinitions.values());
     }
 
     @Override
     public List<RenditionDefinition> getAvailableRenditionDefinitions(DocumentModel doc) {
 
         List<RenditionDefinition> defs = new ArrayList<>();
-        defs.addAll(renditionDefinitionRegistry.getRenditionDefinitions(doc));
-        defs.addAll(renditionDefinitionProviderRegistry.getRenditionDefinitions(doc));
+        defs.addAll(getRenditionDefinitionsFromDefinition(doc));
+        defs.addAll(getRenditionDefinitionsFromProvider(doc));
 
         // XXX what about "lost renditions" ?
         return defs;
+    }
+
+    protected List<RenditionDefinition> getRenditionDefinitionsFromDefinition(DocumentModel doc) {
+        List<RenditionDefinition> renditionDefinitions = new ArrayList<>();
+        for (var descriptor : this.renditionDefinitions.values()) {
+            if (canUseRenditionDefinition(descriptor, doc) && descriptor.getProvider().isAvailable(doc, descriptor)) {
+                renditionDefinitions.add(descriptor);
+            }
+        }
+        return renditionDefinitions;
+    }
+
+    protected boolean canUseRenditionDefinition(RenditionDefinition renditionDefinition, DocumentModel doc) {
+        var actionService = Framework.getService(ActionManager.class);
+        return actionService.checkFilters(renditionDefinition.getFilterIds(), createActionContext(doc));
+    }
+
+    protected List<RenditionDefinition> getRenditionDefinitionsFromProvider(DocumentModel doc) {
+        List<RenditionDefinition> renditionDefinitions = new ArrayList<>();
+        for (var descriptor : this.renditionDefinitionProviders.values()) {
+            if (canUseRenditionDefinitionProvider(descriptor, doc)) {
+                RenditionDefinitionProvider provider = descriptor.getProvider();
+                renditionDefinitions.addAll(provider.getRenditionDefinitions(doc));
+            }
+        }
+        return renditionDefinitions;
+    }
+
+    protected boolean canUseRenditionDefinitionProvider(
+            RenditionDefinitionProviderDescriptor renditionDefinitionProviderDescriptor, DocumentModel doc) {
+        ActionManager actionService = Framework.getService(ActionManager.class);
+        return actionService.checkFilters(renditionDefinitionProviderDescriptor.getFilterIds(),
+                createActionContext(doc));
+    }
+
+    protected ActionContext createActionContext(DocumentModel doc) {
+        var actionContext = new ELActionContext();
+        actionContext.setCurrentDocument(doc);
+        CoreSession coreSession = doc.getCoreSession();
+        actionContext.setDocumentManager(coreSession);
+        if (coreSession != null) {
+            actionContext.setCurrentPrincipal(coreSession.getPrincipal());
+        }
+        return actionContext;
     }
 
     @Override
     public DocumentRef storeRendition(DocumentModel source, String renditionDefinitionName) {
         Rendition rendition = getRendition(source, renditionDefinitionName, true);
         return rendition == null ? null : rendition.getHostDocument().getRef();
-    }
-
-    /**
-     * @since 8.1
-     * @deprecated since 10.10, use {@link #storeRendition(DocumentModel, Rendition, RenditionDefinition)} instead
-     */
-    @Deprecated(since = "10.10")
-    protected StoredRendition storeRendition(DocumentModel sourceDocument, Rendition rendition) {
-        RenditionDefinition renditionDefinition = getAvailableRenditionDefinition(sourceDocument, rendition.getName());
-        return storeRendition(sourceDocument, rendition, renditionDefinition);
     }
 
     /**
@@ -188,7 +239,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             log.debug("No rendition blobs for source document {}.", sourceDocument);
             return null;
         }
-        Blob renderedBlob = renderedBlobs.get(0);
+        Blob renderedBlob = renderedBlobs.getFirst();
         String mimeType = renderedBlob.getMimeType();
         if (mimeType != null
                 && (mimeType.contains(LazyRendition.ERROR_MARKER) || mimeType.contains(LazyRendition.STALE_MARKER))) {
@@ -225,50 +276,6 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             }
         }
         return null;
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (RENDITION_DEFINITIONS_EP.equals(extensionPoint)) {
-            RenditionDefinition renditionDefinition = (RenditionDefinition) contribution;
-            renditionDefinitionRegistry.addContribution(renditionDefinition);
-        } else if (RENDITON_DEFINION_PROVIDERS_EP.equals(extensionPoint)) {
-            renditionDefinitionProviderRegistry.addContribution((RenditionDefinitionProviderDescriptor) contribution);
-        } else if (STORED_RENDITION_MANAGERS_EP.equals(extensionPoint)) {
-            storedRenditionManagerDescriptors.add(((StoredRenditionManagerDescriptor) contribution));
-        } else if (DEFAULT_RENDITION_EP.equals(extensionPoint)) {
-            // Save contribution
-            defaultRenditionDescriptors.add((DefaultRenditionDescriptor) contribution);
-        }
-    }
-
-    protected RenditionDefinition mergeRenditions(RenditionDefinition oldRenditionDefinition,
-            RenditionDefinition newRenditionDefinition) {
-        String label = newRenditionDefinition.getLabel();
-        if (label != null) {
-            oldRenditionDefinition.label = label;
-        }
-
-        String operationChain = newRenditionDefinition.getOperationChain();
-        if (operationChain != null) {
-            oldRenditionDefinition.operationChain = operationChain;
-        }
-
-        return oldRenditionDefinition;
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (RENDITION_DEFINITIONS_EP.equals(extensionPoint)) {
-            renditionDefinitionRegistry.removeContribution((RenditionDefinition) contribution);
-        } else if (RENDITON_DEFINION_PROVIDERS_EP.equals(extensionPoint)) {
-            renditionDefinitionProviderRegistry.removeContribution(
-                    (RenditionDefinitionProviderDescriptor) contribution);
-        } else if (STORED_RENDITION_MANAGERS_EP.equals(extensionPoint)) {
-            storedRenditionManagerDescriptors.remove((contribution));
-        } else if (DEFAULT_RENDITION_EP.equals(extensionPoint)) {
-            defaultRenditionDescriptors.remove(contribution);
-        }
     }
 
     @Override
@@ -332,16 +339,16 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
 
     @Override
     public RenditionDefinition getAvailableRenditionDefinition(DocumentModel doc, String renditionName) {
-        RenditionDefinition renditionDefinition = renditionDefinitionRegistry.getRenditionDefinition(renditionName);
+        RenditionDefinition renditionDefinition = getRenditionDefinitionFromDefinition(renditionName);
         if (renditionDefinition == null) {
-            renditionDefinition = renditionDefinitionProviderRegistry.getRenditionDefinition(renditionName, doc);
+            renditionDefinition = getRenditionDefinitionFromProvider(renditionName, doc);
             if (renditionDefinition == null) {
                 String message = "The rendition definition '%s' is not registered";
                 throw new NuxeoException(String.format(message, renditionName));
             }
         } else {
             // we have a rendition definition but we must check that it can be used for this doc
-            if (!renditionDefinitionRegistry.canUseRenditionDefinition(renditionDefinition, doc)) {
+            if (!canUseRenditionDefinition(renditionDefinition, doc)) {
                 throw new NuxeoException("Rendition " + renditionName + " cannot be used for this doc " + doc.getId());
             }
         }
@@ -354,6 +361,30 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
                     String.format("Rendition %s not available for this doc %s", renditionName, doc.getPathAsString()));
         }
         return renditionDefinition;
+    }
+
+    protected RenditionDefinition getRenditionDefinitionFromDefinition(String name) {
+        var renditionDefinition = renditionDefinitions.get(name);
+        if (renditionDefinition == null) {
+            // could be the CMIS name
+            for (var rd : renditionDefinitions.values()) {
+                if (name.equals(rd.getCmisName())) {
+                    renditionDefinition = rd;
+                    break;
+                }
+            }
+        }
+        return renditionDefinition;
+    }
+
+    protected RenditionDefinition getRenditionDefinitionFromProvider(String name, DocumentModel doc) {
+        List<RenditionDefinition> renditionDefinitions = getRenditionDefinitionsFromProvider(doc);
+        for (var renditionDefinition : renditionDefinitions) {
+            if (renditionDefinition.getName().equals(name)) {
+                return renditionDefinition;
+            }
+        }
+        return null;
     }
 
     @Override
@@ -386,7 +417,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
         cleaner.runUnrestricted();
     }
 
-    private final class StoredRenditionsCleaner extends UnrestrictedSessionRunner {
+    private static final class StoredRenditionsCleaner extends UnrestrictedSessionRunner {
 
         private static final int BATCH_SIZE = 100;
 
@@ -431,8 +462,7 @@ public class RenditionServiceImpl extends DefaultComponent implements RenditionS
             int processedSourceIds = 0;
             while (processedSourceIds < liveDocumentRefs.size()) {
                 // compute the batch of source ids to check for existence
-                int limit = processedSourceIds + BATCH_SIZE > liveDocumentRefs.size() ? liveDocumentRefs.size()
-                        : processedSourceIds + BATCH_SIZE;
+                int limit = Math.min(processedSourceIds + BATCH_SIZE, liveDocumentRefs.size());
                 List<String> batchSourceIds = liveDocumentRefs.subList(processedSourceIds, limit);
 
                 // retrieve still existing documents

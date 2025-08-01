@@ -49,8 +49,6 @@ public interface CommentManager {
      * @since 10.3
      */
     enum Feature {
-        /** Comments are linked with the parent id property. */
-        COMMENTS_LINKED_WITH_PROPERTY,
         /** Comments are special children of commented document. */
         COMMENTS_ARE_SPECIAL_CHILDREN,
     }
@@ -76,40 +74,6 @@ public interface CommentManager {
     List<DocumentModel> getComments(CoreSession session, DocumentModel docModel);
 
     /**
-     * Get comments of a document.
-     *
-     * @param docModel the document model
-     * @param parent the parent document model
-     * @return the list of comments
-     * @deprecated since 10.3, use {@link #getComments(DocumentModel)} instead.
-     */
-    @Deprecated(since = "10.3", forRemoval = true)
-    List<DocumentModel> getComments(DocumentModel docModel, DocumentModel parent);
-
-    /**
-     * Creates a comment.
-     *
-     * @param docModel the document to comment
-     * @param comment the comment content
-     * @deprecated CommentManager cannot find the author if invoked remotely so one should use
-     *             {@link #createComment(DocumentModel, String, String)}
-     */
-    @Deprecated
-    DocumentModel createComment(DocumentModel docModel, String comment);
-
-    /**
-     * Creates a comment document model, filling its properties with given info and linking it to given document.
-     *
-     * @param docModel the document to comment
-     * @param comment the comment content
-     * @param author the comment author
-     * @return the comment document model.
-     * @deprecated since 10.3, use {@link #createComment(CoreSession, Comment)} instead.
-     */
-    @Deprecated(since = "10.3", forRemoval = true)
-    DocumentModel createComment(DocumentModel docModel, String comment, String author);
-
-    /**
      * Creates a comment document model, filling its properties with given info and linking it to given document.
      *
      * @param docModel the document to comment
@@ -119,38 +83,6 @@ public interface CommentManager {
      *             comment.
      */
     DocumentModel createComment(DocumentModel docModel, DocumentModel comment);
-
-    /**
-     * Creates a comment document model, filling its properties with given info and linking it to given document.
-     *
-     * @param docModel the document to comment
-     * @param parent the comment parent document model
-     * @param child the comment child document model
-     * @return the created comment document model.
-     * @deprecated since 10.3, use {@link #createComment(CoreSession, Comment)} instead.
-     */
-    @Deprecated(since = "10.3", forRemoval = true)
-    DocumentModel createComment(DocumentModel docModel, DocumentModel parent, DocumentModel child);
-
-    /**
-     * Deletes a comment.
-     *
-     * @param docModel the comment document model
-     * @param comment the comment
-     * @deprecated since 10.3, use {@link #deleteComment(CoreSession, String)} instead.
-     */
-    @Deprecated(since = "10.3", forRemoval = true)
-    void deleteComment(DocumentModel docModel, DocumentModel comment);
-
-    /**
-     * Gets documents in relation with a particular comment.
-     *
-     * @param comment the comment
-     * @return the list of documents
-     * @deprecated since 10.3, only used with deprecated implementation, no replacement.
-     */
-    @Deprecated(since = "10.3", forRemoval = true)
-    List<DocumentModel> getDocumentsForComment(DocumentModel comment);
 
     /**
      * Gets thread in relation with a given comment (post or comment).

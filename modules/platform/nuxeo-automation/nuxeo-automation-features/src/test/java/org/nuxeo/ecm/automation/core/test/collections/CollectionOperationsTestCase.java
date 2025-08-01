@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ package org.nuxeo.ecm.automation.core.test.collections;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -29,11 +29,11 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.collections.api.CollectionConstants;
 import org.nuxeo.ecm.collections.core.test.CollectionFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -41,9 +41,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.9.4
  */
 @RunWith(FeaturesRunner.class)
-@Features(CollectionFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, CollectionFeature.class })
 public abstract class CollectionOperationsTestCase {
 
     protected static final String TEST_FILE_NAME = "testFile";
@@ -58,12 +56,12 @@ public abstract class CollectionOperationsTestCase {
     protected DocumentModel testWorkspace;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
-    OperationChain chain;
+    protected OperationChain chain;
 
     protected OperationContext ctx;
 
@@ -83,8 +81,8 @@ public abstract class CollectionOperationsTestCase {
         testWorkspace = session.createDocument(testWorkspace);
         List<DocumentModel> result = new ArrayList<>();
         for (int i = 1; i <= nbFile; i++) {
-            DocumentModel testFile = session.createDocumentModel(testWorkspace.getPath().toString(),
-                    TEST_FILE_NAME + i, "File");
+            DocumentModel testFile = session.createDocumentModel(testWorkspace.getPath().toString(), TEST_FILE_NAME + i,
+                    "File");
             testFile = session.createDocument(testFile);
             result.add(testFile);
         }

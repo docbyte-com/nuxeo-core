@@ -19,13 +19,12 @@
  */
 package org.nuxeo.ecm.core.api.impl.blob;
 
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.net.URL;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,9 +70,9 @@ public class URLBlob extends AbstractBlob implements Serializable {
                 if (this.length == null) {
                     // Content-Length from URL connection is not reliable
                     try (InputStream in = getStream()) {
-                        this.length = in.transferTo(NULL_OUTPUT_STREAM);
+                        this.length = in.transferTo(NullOutputStream.INSTANCE);
                     } catch (IOException e) {
-                        log.error("Cannot get blob length for url: " + url, e);
+                        log.error("Cannot get blob length for url: {}", url, e);
                         this.length = -1L;
                     }
                 }

@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.core.opencmis.bindings;
 
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
+import jakarta.servlet.ServletContextEvent;
+import jakarta.servlet.ServletContextListener;
 
 import org.apache.chemistry.opencmis.commons.server.CmisServiceFactory;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
@@ -66,8 +66,9 @@ public class NuxeoCmisContextListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
-        CmisServiceFactory factory = (CmisServiceFactory) sce.getServletContext().getAttribute(
-                CmisRepositoryContextListener.SERVICES_FACTORY);
+        CmisServiceFactory factory = (CmisServiceFactory) sce.getServletContext()
+                                                             .getAttribute(
+                                                                     CmisRepositoryContextListener.SERVICES_FACTORY);
         if (factory != null) {
             factory.destroy();
         }

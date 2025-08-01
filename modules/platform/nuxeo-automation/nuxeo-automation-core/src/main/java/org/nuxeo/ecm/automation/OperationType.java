@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package org.nuxeo.ecm.automation;
 import java.util.List;
 import java.util.Map;
 
-import org.nuxeo.ecm.automation.core.impl.ChainTypeImpl;
 import org.nuxeo.ecm.automation.core.impl.InvokableMethod;
 
 /**
@@ -40,6 +39,12 @@ public interface OperationType {
      */
     String[] getAliases();
 
+    /** @since 2021.17 */
+    boolean isEnabled();
+
+    /**
+     * @return the type of the current object
+     */
     Class<?> getType();
 
     /**
@@ -52,13 +57,6 @@ public interface OperationType {
     default String getInputType() {
         return null;
     }
-
-    Object newInstance(OperationContext ctx, Map<String, Object> args) throws OperationException;
-
-    /**
-     * Gets the service that registered that type.
-     */
-    AutomationService getService();
 
     OperationDocumentation getDocumentation() throws OperationException;
 
@@ -74,24 +72,5 @@ public interface OperationType {
      */
     List<InvokableMethod> getMethods();
 
-    @Override
-    int hashCode();
-
-    @Override
-    boolean equals(Object obj);
-
-    static OperationType typeof(OperationChain chain, boolean replace) {
-        return ChainTypeImpl.typeof(chain, replace);
-    }
-
-    /** @since 2021.17 */
-    boolean isEnabled();
-
-    /** @since 2021.17 */
-    OperationType clone();
-
-    /** @since 2021.17 */
-    void merge(OperationType other);
-
-
+    Object newInstance(OperationContext ctx, Map<String, Object> args) throws OperationException;
 }

@@ -19,11 +19,11 @@
 
 package org.nuxeo.ecm.platform.shibboleth.service;
 
-import com.google.common.collect.BiMap;
-
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+
+import com.google.common.collect.BiMap;
 
 public interface ShibbolethAuthenticationService {
 

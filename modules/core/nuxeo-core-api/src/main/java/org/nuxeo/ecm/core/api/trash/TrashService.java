@@ -221,26 +221,4 @@ public interface TrashService {
      */
     String unmangleName(DocumentModel doc);
 
-    /**
-     * Features of the implementation of the service.
-     *
-     * @see TrashService#hasFeature
-     * @since 10.1
-     */
-    enum Feature {
-        /** Trashed state is deduced from lifeCycle. */
-        TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE,
-        /** Trashed state currently in migration. */
-        TRASHED_STATE_IN_MIGRATION,
-        /** Trashed state is a dedicated property. */
-        TRASHED_STATE_IS_DEDICATED_PROPERTY,
-    }
-
-    /**
-     * Checks if a feature is available.
-     *
-     * @since 10.1
-     */
-    boolean hasFeature(Feature feature);
-
 }

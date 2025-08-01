@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,12 @@
  * Contributors:
  *     Thomas Roger <troger@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.content.template.service;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor of a registered {@link PostContentCreationHandler}.
@@ -29,20 +30,25 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 5.5
  */
 @XObject("postContentCreationHandler")
-public class PostContentCreationHandlerDescriptor implements Cloneable,
-        Comparable<PostContentCreationHandlerDescriptor> {
+public class PostContentCreationHandlerDescriptor
+        implements Descriptor, Comparable<PostContentCreationHandlerDescriptor> {
 
     @XNode("@name")
-    private String name;
+    protected String name;
 
     @XNode("@class")
-    private Class<PostContentCreationHandler> clazz;
+    protected Class<PostContentCreationHandler> clazz;
 
     @XNode("@order")
-    private int order = 0;
+    protected int order = 0;
 
     @XNode("@enabled")
-    private boolean enabled = true;
+    protected boolean enabled = true;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -76,12 +82,15 @@ public class PostContentCreationHandlerDescriptor implements Cloneable,
         this.enabled = enabled;
     }
 
-    /*
-     * Override the Object.clone to make it public
-     */
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public Descriptor merge(Descriptor o) {
+        var other = (PostContentCreationHandlerDescriptor) o;
+        var merged = new PostContentCreationHandlerDescriptor();
+        merged.name = name; // we merge based on name, so no need for merging it
+        merged.clazz = ObjectUtils.defaultIfNull(other.clazz, clazz);
+        merged.order = other.order > 0 ? other.order : order;
+        merged.enabled = other.enabled;
+        return merged;
     }
 
     @Override

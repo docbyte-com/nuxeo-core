@@ -3,10 +3,9 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm</groupId>
     <artifactId>nuxeo-drive-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
-  <groupId>cloud.docbyte.nuxeo.ecm</groupId>
   <artifactId>nuxeo-drive-core-dependencies</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Drive Core Dependencies</name>
@@ -24,10 +23,6 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm</groupId>
       <artifactId>nuxeo-drive-elasticsearch</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm</groupId>
-      <artifactId>nuxeo-drive-mongodb</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm</groupId>

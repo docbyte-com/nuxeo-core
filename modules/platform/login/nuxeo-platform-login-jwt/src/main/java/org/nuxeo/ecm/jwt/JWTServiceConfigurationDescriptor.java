@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,11 @@
  */
 package org.nuxeo.ecm.jwt;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for the {@link JWTService}.
@@ -27,7 +30,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 10.3
  */
 @XObject(value = "configuration")
-public class JWTServiceConfigurationDescriptor {
+public class JWTServiceConfigurationDescriptor implements Descriptor {
 
     public static final int DEFAULT_DEFAULT_TTL = 60 * 60; // 1h
 
@@ -37,32 +40,25 @@ public class JWTServiceConfigurationDescriptor {
     @XNode("defaultTTL")
     public Integer defaultTTL;
 
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
+
     public String getSecret() {
         return secret;
     }
 
     public int getDefaultTTL() {
-        return defaultTTL == null ? DEFAULT_DEFAULT_TTL : defaultTTL.intValue();
+        return defaultIfNull(defaultTTL, DEFAULT_DEFAULT_TTL);
     }
 
-    /** Empty constructor, to get defaults. */
-    public JWTServiceConfigurationDescriptor() {
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (JWTServiceConfigurationDescriptor) o;
+        var merged = new JWTServiceConfigurationDescriptor();
+        merged.secret = defaultIfNull(other.secret, secret);
+        merged.defaultTTL = defaultIfNull(other.defaultTTL, defaultTTL);
+        return merged;
     }
-
-    /** Copy constructor. */
-    public JWTServiceConfigurationDescriptor(JWTServiceConfigurationDescriptor other) {
-        this.secret = other.secret;
-        this.defaultTTL = other.defaultTTL;
-    }
-
-    /** Merge method. */
-    public void merge(JWTServiceConfigurationDescriptor other) {
-        if (other.secret != null) {
-            secret = other.secret;
-        }
-        if (other.defaultTTL != null) {
-            defaultTTL = other.defaultTTL;
-        }
-    }
-
 }

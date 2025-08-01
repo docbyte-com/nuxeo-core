@@ -129,7 +129,7 @@ Here is an example on how to launch a bulk command and get status:
 
 ```bash
 ## Run a bulk action
-curl -s -X POST 'http://localhost:8080/core/site/automation/Bulk.RunAction' -u Administrator:Administrator -H 'content-type: application/json+nxrequest' -d '{
+curl -s -X POST 'http://localhost:8080/core/site/automation/Bulk.RunAction' -u Administrator:Administrator -H 'content-type: application/json' -d '{
   "context": {},
   "params": {
     "action": "csvExport",
@@ -158,7 +158,7 @@ curl -s -X GET "http://localhost:8080/core/api/v1/bulk/$commandId"  -u Administr
 
 ## Wait for the completion of the command, this is only for testing purpose
 ## a normal client should poll the status regularly instead of using this call:
-curl -X POST 'http://localhost:8080/core/site/automation/Bulk.WaitForAction' -u Administrator:Administrator -H 'content-type: application/json+nxrequest' -d $'{
+curl -X POST 'http://localhost:8080/core/site/automation/Bulk.WaitForAction' -u Administrator:Administrator -H 'content-type: application/json' -d $'{
   "context": {},
   "params": {
     "commandId": "'"$commandId"'",

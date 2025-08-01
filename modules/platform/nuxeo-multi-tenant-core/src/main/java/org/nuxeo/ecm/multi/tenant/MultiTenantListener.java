@@ -19,10 +19,6 @@
 
 package org.nuxeo.ecm.multi.tenant;
 
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETE_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSITION_EVENT;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.UNDELETE_TRANSITION;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED_BY_COPY;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_REMOVED;
@@ -64,24 +60,17 @@ public class MultiTenantListener implements EventListener {
 
         String eventName = event.getName();
         switch (eventName) {
-        case DOCUMENT_CREATED:
-        case DOCUMENT_CREATED_BY_COPY:
-        case DOCUMENT_UNTRASHED:
-            multiTenantService.enableTenantIsolationFor(session, doc);
-            break;
-        case DOCUMENT_REMOVED:
-        case DOCUMENT_TRASHED:
-            multiTenantService.disableTenantIsolationFor(session, doc);
-            break;
-        case TRANSITION_EVENT:
-            // backward compatibility with previous trashed state
-            String transition = (String) ctx.getProperty(TRANSTION_EVENT_OPTION_TRANSITION);
-            if (DELETE_TRANSITION.equals(transition)) {
-                multiTenantService.disableTenantIsolationFor(session, doc);
-            } else if (UNDELETE_TRANSITION.equals(transition)) {
+            case DOCUMENT_CREATED:
+            case DOCUMENT_CREATED_BY_COPY:
+            case DOCUMENT_UNTRASHED:
                 multiTenantService.enableTenantIsolationFor(session, doc);
-            }
-            break;
+                break;
+            case DOCUMENT_REMOVED:
+            case DOCUMENT_TRASHED:
+                multiTenantService.disableTenantIsolationFor(session, doc);
+                break;
+            default:
+                break;
         }
         session.save();
     }

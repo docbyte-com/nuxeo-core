@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.opensearch1.contrib">
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="client">
+    <client id="search/default">
+<#if "${(nuxeo.opensearch1.embed.enabled)!}" == "true" && "${nuxeo.search.client.default.opensearch1.client.server}" == "">
+      <embedServer>${nuxeo.opensearch1.embed.name}</embedServer>
+<#else>
+      <server>${nuxeo.search.client.default.opensearch1.client.server}</server>
+</#if>
+      <connectionTimeout>${nuxeo.search.client.default.opensearch1.client.connectionTimeout}</connectionTimeout>
+      <socketTimeout>${nuxeo.search.client.default.opensearch1.client.socketTimeout}</socketTimeout>
+      <sslCertificateVerification>${nuxeo.search.client.default.opensearch1.client.sslCertificateVerification}</sslCertificateVerification>
+<#if (nuxeo.search.client.default.opensearch1.client.username)?has_content>
+      <username>${nuxeo.search.client.default.opensearch1.client.username}</username>
+      <password>${nuxeo.search.client.default.opensearch1.client.password}</password>
+</#if>
+<#if (nuxeo.search.client.default.opensearch1.client.trustStore.type)?has_content>
+      <trustStore type="${nuxeo.search.client.default.opensearch1.client.trustStore.type}">
+        <path>${nuxeo.search.client.default.opensearch1.client.trustStore.path}</path>
+        <password>${nuxeo.search.client.default.opensearch1.client.trustStore.password}</password>
+      </trustStore>
+</#if>
+<#if (nuxeo.search.client.default.opensearch1.client.keyStore.type)?has_content>
+      <keyStore type="${nuxeo.search.client.default.opensearch1.client.keyStore.type}">
+        <path>${nuxeo.search.client.default.opensearch1.client.keyStore.path}</path>
+        <password>${nuxeo.search.client.default.opensearch1.client.keyStore.password}</password>
+      </keyStore>
+</#if>
+    </client>
+  </extension>
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="${nuxeo.search.client.default.opensearch1.index.name}">
+      <client id="search/default" />
+      <mapping file="opensearch1-doc-mapping.json" />
+      <settings file="opensearch1-doc-settings.json" />
+    </index>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search.client.opensearch1" point="searchClient">
+    <searchClient name="opensearch" clientId="search/default">
+      <searchIndex name="enhanced" technicalName="${nuxeo.search.client.default.opensearch1.index.name}" />
+    </searchClient>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.search" point="searchIndex">
+    <searchIndex name="enhanced" searchClient="opensearch" repository="default" default="${(nuxeo.search.client.default.name == 'opensearch')?c}"
+                 writerClass="org.nuxeo.ecm.core.search.index.DefaultIndexingJsonWriter" />
+  </extension>
+
+</component>

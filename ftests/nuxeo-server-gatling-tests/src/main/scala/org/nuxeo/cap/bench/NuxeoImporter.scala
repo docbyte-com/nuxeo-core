@@ -36,7 +36,7 @@ object NuxeoImporter {
       .queryParam("nbNodes", nbNodes)
       .queryParam("transactionTimeout", "3600")
       .headers(Headers.base)
-      .basicAuth("${adminId}", "${adminPassword}")
+      .basicAuth("#{adminId}", "#{adminPassword}")
   }
 
   def waitForAsyncJobs() = {
@@ -44,6 +44,6 @@ object NuxeoImporter {
       .get(API_PATH + "/waitForAsyncJobs")
       .queryParam("timeoutInSeconds", "3600")
       .headers(Headers.base)
-      .basicAuth("${adminId}", "${adminPassword}")
+      .basicAuth("#{adminId}", "#{adminPassword}")
   }
 }

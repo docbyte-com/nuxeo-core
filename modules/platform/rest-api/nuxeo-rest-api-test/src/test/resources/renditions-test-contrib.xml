@@ -4,7 +4,7 @@
   <require>org.nuxeo.ecm.platform.rendition.contrib</require>
 
   <extension target="org.nuxeo.ecm.core.operation.OperationServiceComponent" point="operations">
-    <operation class="org.nuxeo.ecm.restapi.test.DummyDocToTxt" />
+    <operation class="org.nuxeo.ecm.restapi.test.DummyDocToTxt" replace="true"/>
   </extension>
 
   <extension point="chains" target="org.nuxeo.ecm.core.operation.OperationServiceComponent">

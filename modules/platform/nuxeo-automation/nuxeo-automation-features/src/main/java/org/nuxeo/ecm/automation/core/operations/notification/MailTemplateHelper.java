@@ -27,6 +27,7 @@ import org.nuxeo.ecm.core.api.impl.DocumentLocationImpl;
 import org.nuxeo.ecm.platform.ec.notification.NotificationEventListener;
 import org.nuxeo.ecm.platform.ec.notification.service.NotificationService;
 import org.nuxeo.ecm.platform.ec.notification.service.NotificationServiceHelper;
+import org.nuxeo.ecm.platform.notification.api.NotificationManager;
 import org.nuxeo.ecm.platform.url.DocumentViewImpl;
 import org.nuxeo.ecm.platform.url.api.DocumentView;
 import org.nuxeo.ecm.platform.url.api.DocumentViewCodecManager;
@@ -66,7 +67,7 @@ public class MailTemplateHelper {
     }
 
     public static URL getTemplate(String name) {
-        return NotificationService.getTemplateURL(name);
+        return Framework.getService(NotificationManager.class).getTemplateUrl(name);
     }
 
 }

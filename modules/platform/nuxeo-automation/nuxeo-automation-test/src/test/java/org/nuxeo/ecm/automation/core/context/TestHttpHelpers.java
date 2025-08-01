@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.automation.core.context;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -27,8 +26,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.automation.test.repository.AutomationRepositoryInit;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -53,7 +52,7 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
  * @since 7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ WebEngineFeature.class, AutomationServerFeature.class })
+@Features({ AutomationFeature.class, WebEngineFeature.class })
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.automation.test.test:test-servletcontainer-contrib.xml")
@@ -61,10 +60,10 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 public class TestHttpHelpers {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Inject
     protected ServletContainerFeature servletContainerFeature;
@@ -122,7 +121,7 @@ public class TestHttpHelpers {
     }
 
     @Test
-    public void canUseHttpHelperGETBlob() throws OperationException, IOException {
+    public void canUseHttpHelperGETBlob() throws OperationException {
         Map<String, Object> params = new HashMap<>();
         params.put("script", "Context.result = HTTP.call(\"Administrator\",\"Administrator\",\"GET\", \"" + getBaseURL()
                 + "/dummy/blob\");");

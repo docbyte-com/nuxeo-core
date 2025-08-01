@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,14 +21,12 @@ package org.nuxeo.ecm.blob.s3;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assume.assumeTrue;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,13 +35,16 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
-import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * @since 2023
@@ -51,20 +52,18 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, S3BlobProviderFeature.class })
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/disable-schedulers.xml")
+@BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
+@ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
 public class TestS3DocumentBlobGC {
 
     @Inject
-    protected CoreFeature coreFeature;
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
 
-    @Inject
-    protected DocumentBlobManager documentBlobManager;
-
     @Test
-    public void testDocumentBlobDelete() throws IOException {
-        assumeTrue("MongoDB feature only", !coreFeature.getStorageConfiguration().isVCS());
+    public void testDocumentBlobDelete() {
         final String CONTENT = "hello world";
         // Create 2 docs referencing the same main blob as main content
         // and misc attachements
@@ -90,7 +89,7 @@ public class TestS3DocumentBlobGC {
         assertEquals(attachement12.getKey(), attachement21.getKey());
 
         session.removeDocument(doc1.getRef());
-        coreFeature.waitForAsyncCompletion();
+        txFeature.nextTransaction();
         BlobProvider blobProvider = Framework.getService(BlobManager.class).getBlobProvider(blob1.getProviderId());
         assertNull(blobProvider.getFile(attachement11));
         assertNotNull(blobProvider.getFile(blob1));
@@ -102,7 +101,7 @@ public class TestS3DocumentBlobGC {
         assertNotNull(blobProvider.getFile(attachement22));
 
         session.removeDocument(doc2.getRef());
-        coreFeature.waitForAsyncCompletion();
+        txFeature.nextTransaction();
 
         // Assert blobs does not exist anymore
         assertNull(blobProvider.getFile(blob1));

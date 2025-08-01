@@ -3,7 +3,7 @@
   <require>org.nuxeo.ecm.plateform.task.type</require>
 
   <extension target="org.nuxeo.ecm.core.schema.TypeService" point="schema">
-    <schema name="test" prefix="test" override="true" src="testRoute/test.xsd"/>
+    <schema name="test" prefix="test" override="true" src="testRoute/var_test_Wf.xsd"/>
     <schema name="var_test_Wf-20190702123835056-start-node" prefix="var_test_Wf-20190702123835056-start-node" override="true" src="testRoute/var_test_Wf-20190702123835056-start-node.xsd"/>
     <schema name="var_test_Wf-20190702123835062-stop-node" prefix="var_test_Wf-20190702123835062-stop-node" override="true" src="testRoute/var_test_Wf-20190702123835062-stop-node.xsd"/>
     <schema name="var_test_Wf-20190702123904532-stop-node" prefix="var_test_Wf-20190702123904532-stop-node" override="true" src="testRoute/var_test_Wf-20190702123904532-stop-node.xsd"/>

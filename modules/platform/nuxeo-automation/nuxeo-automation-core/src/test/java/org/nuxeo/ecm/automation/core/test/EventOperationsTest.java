@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -167,22 +167,6 @@ public class EventOperationsTest {
     }
 
     @Test
-    public void testDynamicHandlerRegistring() {
-        EventHandler handler = new EventHandler("documentCreated", "changeSource");
-        handler.setCondition("Document.getProperty(\"dc:description\") == \"/src/myfile\"");
-        registry.putEventHandler(handler);
-        DocumentModel doc = session.createDocumentModel("/src", "myfile", "File");
-        doc.setPropertyValue("dc:description", doc.getPathAsString());
-        doc = session.createDocument(doc);
-        session.save();
-
-        nextTransaction();
-
-        doc = session.getDocument(doc.getRef());
-        assertEquals("New source", doc.getPropertyValue("dc:source"));
-    }
-
-    @Test
     public void testChainIDCollision() throws Exception {
         assertPresent("aboutToCreate", "testOp", false);
         assertPresent("documentCreated", "testOp", false);
@@ -205,7 +189,7 @@ public class EventOperationsTest {
     public void testDisableEventHandler() throws Exception {
         List<EventHandler> eventHandlers = registry.getEventHandlers("aboutToCreate");
         assertEquals(1, eventHandlers.size());
-        assertTrue(eventHandlers.get(0).isEnabled());
+        assertTrue(eventHandlers.getFirst().isEnabled());
         hotDeployer.deploy("org.nuxeo.ecm.automation.core.tests:test-enc-disable.xml");
         eventHandlers = registry.getEventHandlers("aboutToCreate");
         assertNull(eventHandlers);

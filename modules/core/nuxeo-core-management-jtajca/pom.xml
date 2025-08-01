@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-core-management-jtajca</artifactId>
@@ -12,8 +12,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-beanutils</groupId>
@@ -22,10 +22,6 @@
     <dependency>
       <groupId>io.dropwizard.metrics5</groupId>
       <artifactId>metrics-core</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>javax.inject</groupId>
-      <artifactId>javax.inject</artifactId>
     </dependency>
     <dependency>
       <groupId>org.javasimon</groupId>
@@ -71,6 +67,12 @@
     <dependency>
       <groupId>com.datadoghq</groupId>
       <artifactId>dd-trace-api</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+      <scope>test</scope>
     </dependency>
 
     <dependency>

@@ -5,5 +5,6 @@
     <scroll type="document" name="repository" default="true" class="org.nuxeo.ecm.core.scroll.RepositoryScroll" />
     <scroll type="static" name="list" class="org.nuxeo.ecm.core.scroll.StaticScroll" />
     <scroll type="empty" name="list" class="org.nuxeo.ecm.core.scroll.EmptyScroll" />
+    <scroll type="generic" name="generateUid" class="org.nuxeo.ecm.core.scroll.GenerateUidScroll" />
   </extension>
 </component>

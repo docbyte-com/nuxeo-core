@@ -21,7 +21,7 @@ package org.nuxeo.ecm.core.io.download;
 import java.io.IOException;
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.blob.BlobManager;
@@ -30,8 +30,7 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author Remi Cattiau
- * @since 8.3
- * Use the BlobManager getURI method for redirect
+ * @since 8.3 Use the BlobManager getURI method for redirect
  */
 public class DefaultRedirectResolver implements RedirectResolver {
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.directory.ldap;
 
 import java.io.Serializable;
@@ -192,7 +191,7 @@ public class LDAPFilterBuilder {
 
     protected void walkMulti(String op, List<? extends Operand> values) {
         if (values.size() == 1) {
-            walkOperand(values.get(0));
+            walkOperand(values.getFirst());
         } else {
             filter.append('(');
             filter.append(op);
@@ -319,22 +318,22 @@ public class LDAPFilterBuilder {
                 param.append(c);
             } else {
                 switch (c) {
-                case '%':
-                    if (param.length() != 0) {
-                        addFilterParam(param.toString());
-                        param.setLength(0);
-                    }
-                    filter.append('*');
-                    break;
-                case '_': // interpret it as an escaped _, not a wildcard
-                    param.append(c);
-                    break;
-                case '\\':
-                    escapeNext = true;
-                    break;
-                default:
-                    param.append(c);
-                    break;
+                    case '%':
+                        if (!param.isEmpty()) {
+                            addFilterParam(param.toString());
+                            param.setLength(0);
+                        }
+                        filter.append('*');
+                        break;
+                    case '_': // interpret it as an escaped _, not a wildcard
+                        param.append(c);
+                        break;
+                    case '\\':
+                        escapeNext = true;
+                        break;
+                    default:
+                        param.append(c);
+                        break;
                 }
             }
             escape = escapeNext;
@@ -342,42 +341,32 @@ public class LDAPFilterBuilder {
         if (escape) {
             throw new QueryParseException("Invalid LIKE parameter ending with escape character");
         }
-        if (param.length() != 0) {
+        if (!param.isEmpty()) {
             addFilterParam(param.toString());
         }
     }
 
     public void walkOperand(Operand operand) {
-        if (operand instanceof Literal) {
-            walkLiteral(operand);
-        } else if (operand instanceof Function) {
-            walkFunction((Function) operand);
-        } else if (operand instanceof Expression) {
-            walkExpression((Expression) operand);
-        } else if (operand instanceof Reference) {
-            walkReference(operand);
-        } else {
-            throw new QueryParseException("Unknown operand: " + operand);
+        switch (operand) {
+            case Literal literal -> walkLiteral(literal);
+            case Function function -> walkFunction(function);
+            case Expression expression -> walkExpression(expression);
+            case Reference reference -> walkReference(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + operand);
         }
     }
 
     public void walkLiteral(Operand operand) {
-        if (!(operand instanceof Literal)) {
+        if (!(operand instanceof Literal lit)) {
             throw new QueryParseException("Requires literal instead of: " + operand);
         }
-        Literal lit = (Literal) operand;
-        if (lit instanceof BooleanLiteral) {
-            walkBooleanLiteral((BooleanLiteral) lit);
-        } else if (lit instanceof DateLiteral) {
-            walkDateLiteral((DateLiteral) lit);
-        } else if (lit instanceof DoubleLiteral) {
-            walkDoubleLiteral((DoubleLiteral) lit);
-        } else if (lit instanceof IntegerLiteral) {
-            walkIntegerLiteral((IntegerLiteral) lit);
-        } else if (lit instanceof StringLiteral) {
-            walkStringLiteral((StringLiteral) lit);
-        } else {
-            throw new QueryParseException("Unknown literal: " + lit);
+        switch (lit) {
+            case BooleanLiteral booleanLiteral -> walkBooleanLiteral(booleanLiteral);
+            case DateLiteral dateLiteral -> walkDateLiteral(dateLiteral);
+            case DoubleLiteral doubleLiteral -> walkDoubleLiteral(doubleLiteral);
+            case IntegerLiteral integerLiteral -> walkIntegerLiteral(integerLiteral);
+            case StringLiteral stringLiteral -> walkStringLiteral(stringLiteral);
+            default -> throw new QueryParseException("Unknown literal: " + lit);
         }
     }
 

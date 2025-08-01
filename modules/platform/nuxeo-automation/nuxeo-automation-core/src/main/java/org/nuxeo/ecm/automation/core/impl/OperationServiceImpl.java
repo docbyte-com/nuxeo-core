@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@
  */
 package org.nuxeo.ecm.automation.core.impl;
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -43,9 +43,9 @@ import org.nuxeo.ecm.automation.OperationNotFoundException;
 import org.nuxeo.ecm.automation.OperationParameters;
 import org.nuxeo.ecm.automation.OperationType;
 import org.nuxeo.ecm.automation.TypeAdapter;
+import org.nuxeo.ecm.automation.core.OperationChainContribution;
 import org.nuxeo.ecm.automation.core.exception.CatchChainException;
-import org.nuxeo.ecm.automation.core.exception.ChainExceptionRegistry;
-import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
+import org.nuxeo.ecm.automation.core.exception.ChainExceptionFilter;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -65,24 +65,22 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
 
     public static final String EXPORT_ALIASES_CONFIGURATION_PARAM = "nuxeo.automation.export.aliases";
 
-    protected final OperationTypeRegistry operations;
+    protected final Map<String, OperationType> operations;
 
-    protected final ChainExceptionRegistry chainExceptionRegistry;
+    protected final Map<String, ChainException> chainExceptions;
 
-    protected final AutomationFilterRegistry automationFilterRegistry;
+    protected final Map<String, ChainExceptionFilter> filters;
+
+    protected final AdapterKeyedRegistry adapters;
 
     protected final OperationChainCompiler compiler = new OperationChainCompiler(this);
 
-    /**
-     * Adapter registry.
-     */
-    protected AdapterKeyedRegistry adapters;
-
-    public OperationServiceImpl() {
-        operations = new OperationTypeRegistry();
-        adapters = new AdapterKeyedRegistry();
-        chainExceptionRegistry = new ChainExceptionRegistry();
-        automationFilterRegistry = new AutomationFilterRegistry();
+    public OperationServiceImpl(Map<String, OperationType> operations, Map<String, ChainException> chainExceptions,
+            Map<String, ChainExceptionFilter> filters, Map<TypeAdapterKey, ? extends TypeAdapter> adapters) {
+        this.operations = operations;
+        this.chainExceptions = chainExceptions;
+        this.filters = filters;
+        this.adapters = new AdapterKeyedRegistry(adapters);
     }
 
     @Override
@@ -93,7 +91,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     @Override
     @SuppressWarnings("unchecked")
     public Object run(OperationContext ctx, String operationId, Map<String, ?> args) throws OperationException {
-        OperationType op = operations.lookup().get(operationId);
+        OperationType op = operations.get(operationId);
         if (op == null) {
             throw new IllegalArgumentException("No such operation " + operationId);
         }
@@ -245,58 +243,13 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     }
 
     @Override
-    public void putOperation(Class<?> type) throws OperationException {
-        OperationTypeImpl op = new OperationTypeImpl(this, type);
-        putOperation(op, false);
-    }
-
-    @Override
-    public void putOperation(Class<?> type, boolean replace) throws OperationException {
-        putOperation(type, replace, null);
-    }
-
-    @Override
-    public void putOperation(Class<?> type, boolean replace, String contributingComponent) throws OperationException {
-        OperationTypeImpl op = new OperationTypeImpl(this, type, contributingComponent);
-        putOperation(op, replace);
-    }
-
-    @Override
-    public void putOperation(Class<?> type, boolean replace, String contributingComponent,
-            List<WidgetDefinition> widgetDefinitionList) throws OperationException {
-        OperationTypeImpl op = new OperationTypeImpl(this, type, contributingComponent, widgetDefinitionList);
-        putOperation(op, replace);
-    }
-
-    @Override
-    public void putOperation(OperationType op, boolean replace) throws OperationException {
-        operations.addContribution(op, replace);
-    }
-
-    @Override
-    public void removeOperation(Class<?> key) {
-        OperationType type = operations.getOperationType(key);
-        if (type == null) {
-            log.warn("Cannot remove operation, no such operation {}", key);
-            return;
-        }
-        removeOperation(type);
-    }
-
-    @Override
-    public void removeOperation(OperationType type) {
-        operations.removeContribution(type, true);
-    }
-
-    @Override
     public OperationType[] getOperations() {
-        HashSet<OperationType> values = new HashSet<>(operations.lookup().values());
-        return values.toArray(OperationType[]::new);
+        return new HashSet<>(operations.values()).toArray(OperationType[]::new);
     }
 
     @Override
     public OperationType getOperation(String id) throws OperationNotFoundException {
-        OperationType op = operations.lookup().get(id);
+        OperationType op = operations.get(id);
         if (op == null) {
             throw new OperationNotFoundException("No operation was bound on ID: " + id);
         }
@@ -310,28 +263,19 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      */
     @Override
     public boolean hasOperation(String id) {
-        OperationType op = operations.lookup().get(id);
+        OperationType op = operations.get(id);
         return op != null;
     }
 
     @Override
     public CompiledChain compileChain(Class<?> inputType, OperationParameters... ops) throws OperationException {
-        return compileChain(inputType, new OperationChain("", Arrays.asList(ops)));
+        return compileChain(inputType, new OperationChain("", List.of(ops)));
     }
 
     @Override
     public CompiledChain compileChain(Class<?> inputType, OperationChain chain) throws OperationException {
-        return compiler.compile(ChainTypeImpl.typeof(chain, false), inputType);
-    }
-
-    @Override
-    public void putTypeAdapter(Class<?> accept, Class<?> produce, TypeAdapter adapter) {
-        adapters.put(new TypeAdapterKey(accept, produce), adapter);
-    }
-
-    @Override
-    public void removeTypeAdapter(Class<?> accept, Class<?> produce) {
-        adapters.remove(new TypeAdapterKey(accept, produce));
+        var chainType = new ChainTypeImpl(chain, OperationChainContribution.contribOf(chain, false), null);
+        return compiler.compile(chainType, inputType);
     }
 
     @Override
@@ -388,10 +332,9 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
     @Override
     public List<OperationDocumentation> getDocumentation() throws OperationException {
         List<OperationDocumentation> result = new ArrayList<>();
-        HashSet<OperationType> ops = new HashSet<>(operations.lookup().values());
         ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
         boolean exportAliases = configurationService.isBooleanTrue(EXPORT_ALIASES_CONFIGURATION_PARAM);
-        for (OperationType ot : ops.toArray(OperationType[]::new)) {
+        for (OperationType ot : new HashSet<>(operations.values())) {
             try {
                 OperationDocumentation documentation = ot.getDocumentation();
                 result.add(documentation);
@@ -399,7 +342,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
                 // we may want to add an operation documentation for each alias to be backward compatible with old
                 // automation clients
                 String[] aliases = ot.getAliases();
-                if (exportAliases && aliases != null && aliases.length > 0) {
+                if (exportAliases && isNotEmpty(aliases)) {
                     for (String alias : aliases) {
                         result.add(OperationDocumentation.copyForAlias(documentation, alias));
                     }
@@ -437,25 +380,8 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      * @since 5.7.3
      */
     @Override
-    public void putChainException(ChainException exceptionChain) {
-        chainExceptionRegistry.addContribution(exceptionChain);
-    }
-
-    /**
-     * @since 5.7.3
-     */
-    @Override
-    public void removeExceptionChain(ChainException exceptionChain) {
-        chainExceptionRegistry.removeContribution(exceptionChain);
-    }
-
-    /**
-     * @since 5.7.3
-     */
-    @Override
     public ChainException[] getChainExceptions() {
-        Collection<ChainException> chainExceptions = chainExceptionRegistry.lookup().values();
-        return chainExceptions.toArray(ChainException[]::new);
+        return chainExceptions.values().toArray(ChainException[]::new);
     }
 
     /**
@@ -463,7 +389,11 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      */
     @Override
     public ChainException getChainException(String onChainId) {
-        return chainExceptionRegistry.getChainException(onChainId);
+        return chainExceptions.values()
+                              .stream()
+                              .filter(chainException -> onChainId.equals(chainException.getOnChainId()))
+                              .findFirst()
+                              .orElse(null);
     }
 
     /**
@@ -471,23 +401,9 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      */
     @Override
     public boolean hasChainException(String onChainId) {
-        return chainExceptionRegistry.getChainException(onChainId) != null;
-    }
-
-    /**
-     * @since 5.7.3
-     */
-    @Override
-    public void putAutomationFilter(AutomationFilter automationFilter) {
-        automationFilterRegistry.addContribution(automationFilter);
-    }
-
-    /**
-     * @since 5.7.3
-     */
-    @Override
-    public void removeAutomationFilter(AutomationFilter automationFilter) {
-        automationFilterRegistry.removeContribution(automationFilter);
+        return chainExceptions.values()
+                              .stream()
+                              .anyMatch(chainException -> onChainId.equals(chainException.getOnChainId()));
     }
 
     /**
@@ -495,7 +411,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      */
     @Override
     public AutomationFilter getAutomationFilter(String id) {
-        return automationFilterRegistry.getAutomationFilter(id);
+        return filters.get(id);
     }
 
     /**
@@ -503,8 +419,7 @@ public class OperationServiceImpl implements AutomationService, AutomationAdmin 
      */
     @Override
     public AutomationFilter[] getAutomationFilters() {
-        Collection<AutomationFilter> automationFilters = automationFilterRegistry.lookup().values();
-        return automationFilters.toArray(AutomationFilter[]::new);
+        return filters.values().toArray(AutomationFilter[]::new);
     }
 
 }

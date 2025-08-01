@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.core.io.marshallers.json;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,7 +50,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  *   ]
  * }
  * </pre>
- *
  * <p>
  * This reader delegates the unmarshalling of entries to the {@link MarshallerRegistry}. A Json {@link Reader}
  * compatible with the required type and the json format must be registered.

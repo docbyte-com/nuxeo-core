@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,48 +12,50 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Contributors:
  */
 package org.nuxeo.ecm.core.opencmis.bindings;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Nuxeo CmisServiceFactory Descriptor.
  */
 @XObject(value = "factory")
-public class NuxeoCmisServiceFactoryDescriptor {
+public class NuxeoCmisServiceFactoryDescriptor implements Descriptor {
 
     @XNode("@class")
-    public Class<? extends NuxeoCmisServiceFactory> factoryClass;
+    protected Class<? extends NuxeoCmisServiceFactory> factoryClass;
+
+    @XNodeMap(value = "parameter", key = "@name", type = HashMap.class, componentType = String.class)
+    protected Map<String, String> factoryParameters = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public Class<? extends NuxeoCmisServiceFactory> getFactoryClass() {
         return factoryClass == null ? NuxeoCmisServiceFactory.class : factoryClass;
     }
 
-    @XNodeMap(value = "parameter", key = "@name", type = HashMap.class, componentType = String.class)
-    public Map<String, String> factoryParameters = new HashMap<>();
-
-    public NuxeoCmisServiceFactoryDescriptor() {
+    public Map<String, String> getFactoryParameters() {
+        return factoryParameters;
     }
 
-    /** Copy constructor. */
-    public NuxeoCmisServiceFactoryDescriptor(NuxeoCmisServiceFactoryDescriptor other) {
-        factoryClass = other.factoryClass;
-        factoryParameters = new HashMap<>(other.factoryParameters);
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (NuxeoCmisServiceFactoryDescriptor) o;
+        var merged = new NuxeoCmisServiceFactoryDescriptor();
+        merged.factoryClass = ObjectUtils.defaultIfNull(other.factoryClass, factoryClass);
+        merged.factoryParameters.putAll(factoryParameters);
+        merged.factoryParameters.putAll(other.factoryParameters);
+        return merged;
     }
-
-    public void merge(NuxeoCmisServiceFactoryDescriptor other) {
-        if (other.factoryClass != null) {
-            factoryClass = other.factoryClass;
-        }
-        factoryParameters.putAll(other.factoryParameters);
-    }
-
 }

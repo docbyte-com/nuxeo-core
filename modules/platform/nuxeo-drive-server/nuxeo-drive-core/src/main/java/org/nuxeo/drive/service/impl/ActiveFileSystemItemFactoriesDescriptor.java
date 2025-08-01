@@ -21,11 +21,16 @@ package org.nuxeo.drive.service.impl;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.SerializationUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.drive.service.FileSystemItemAdapterService;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for the {@code activeFileSystemItemFactories} contributions to the
@@ -34,7 +39,9 @@ import org.nuxeo.drive.service.FileSystemItemAdapterService;
  * @author Antoine Taillefer
  */
 @XObject("activeFileSystemItemFactories")
-public class ActiveFileSystemItemFactoriesDescriptor implements Serializable {
+public class ActiveFileSystemItemFactoriesDescriptor implements Serializable, Descriptor {
+
+    private static final Logger log = LogManager.getLogger(ActiveFileSystemItemFactoriesDescriptor.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -42,13 +49,21 @@ public class ActiveFileSystemItemFactoriesDescriptor implements Serializable {
     protected boolean merge = false;
 
     @XNodeList(value = "factories/factory", type = ArrayList.class, componentType = ActiveFileSystemItemFactoryDescriptor.class)
-    protected List<ActiveFileSystemItemFactoryDescriptor> factories; // NOSONAR, serialization is actually performed by
-                                                                     // SerializationUtils#clone during merge/clone
+    protected List<ActiveFileSystemItemFactoryDescriptor> factories;
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public boolean isMerge() {
         return merge;
     }
 
+    /**
+     * @deprecated since 2025.0 unused
+     */
+    @Deprecated(since = "2025.0")
     public void setMerge(boolean merge) {
         this.merge = merge;
     }
@@ -74,4 +89,36 @@ public class ActiveFileSystemItemFactoriesDescriptor implements Serializable {
         return sb.toString();
     }
 
+    @Override
+    public ActiveFileSystemItemFactoriesDescriptor merge(Descriptor o) {
+        var other = (ActiveFileSystemItemFactoriesDescriptor) o;
+        var merged = new ActiveFileSystemItemFactoriesDescriptor();
+        merged.merge = other.merge;
+        merged.factories = factories.stream().map(SerializationUtils::clone).collect(Collectors.toList());
+        if (other.isMerge()) {
+            // Merge active factories
+            for (ActiveFileSystemItemFactoryDescriptor factory : other.getFactories()) {
+                var existing = merged.factories.stream().filter(f -> f.getName().equals(factory.getName())).toList();
+                if (!existing.isEmpty() && !factory.isEnabled()) {
+                    log.trace("Removing factory {} from active factories.", factory::getName);
+                    existing.getFirst().setEnabled(factory.isEnabled());
+                }
+                if (existing.isEmpty() && factory.isEnabled()) {
+                    log.trace("Adding factory {} to active factories.", factory::getName);
+                    merged.factories.add(SerializationUtils.clone(factory));
+                }
+            }
+        } else {
+            // No merge, reset active factories
+            log.trace("Clearing active factories as contribution {} doesn't merge.", other);
+            merged.factories.clear();
+            for (ActiveFileSystemItemFactoryDescriptor factory : other.getFactories()) {
+                if (factory.isEnabled()) {
+                    log.trace("Adding factory {} to active factories.", factory::getName);
+                    merged.factories.add(SerializationUtils.clone(factory));
+                }
+            }
+        }
+        return merged;
+    }
 }

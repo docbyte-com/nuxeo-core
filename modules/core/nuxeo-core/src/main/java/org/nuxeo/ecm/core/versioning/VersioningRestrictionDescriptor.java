@@ -26,6 +26,7 @@ import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor to contribute new restrictions in versioning system.
@@ -36,13 +37,18 @@ import org.nuxeo.ecm.core.api.VersioningOption;
  * @since 9.1
  */
 @XObject("restriction")
-public class VersioningRestrictionDescriptor {
+public class VersioningRestrictionDescriptor implements Descriptor {
 
     @XNode("@type")
     protected String type;
 
     @XNodeMap(value = "options", key = "@lifeCycleState", type = HashMap.class, componentType = VersioningRestrictionOptionsDescriptor.class)
     protected Map<String, VersioningRestrictionOptionsDescriptor> options = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return type;
+    }
 
     public String getType() {
         return type;
@@ -51,12 +57,4 @@ public class VersioningRestrictionDescriptor {
     public VersioningRestrictionOptionsDescriptor getRestrictionOption(String key) {
         return options.get(key);
     }
-
-    public void merge(VersioningRestrictionDescriptor other) {
-        if (other.type != null) {
-            type = other.type;
-        }
-        options.putAll(other.options); // always merge options
-    }
-
 }

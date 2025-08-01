@@ -5,7 +5,6 @@
       <subsystem name="ejb3"/>
       <subsystem name="webservices" />
       <subsystem name="jsf" />
-      <subsystem name="jaxrs" />
       <subsystem name="weld" />
       <subsystem name="pojo" />
       <subsystem name="remoting" />
@@ -27,7 +26,6 @@
       <module name="org.jboss.logmanager" />
       <module name="org.slf4j" />
       <module name="org.slf4j.impl" />
-      <module name="javax.servlet.api"/>
       <module name="javax.jws.api"/>
       <module name="javax.xml.soap.api"/>
       <module name="io.undertow.jsp"/>

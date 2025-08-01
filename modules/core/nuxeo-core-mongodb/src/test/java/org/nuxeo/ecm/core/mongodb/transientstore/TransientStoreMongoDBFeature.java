@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
  */
 package org.nuxeo.ecm.core.mongodb.transientstore;
 
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.mongodb.MongoDBFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 /**
  * @since 2021.30

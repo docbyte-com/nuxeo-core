@@ -23,7 +23,7 @@ package org.nuxeo.ecm.core.rest;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
+import jakarta.ws.rs.GET;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
@@ -42,12 +42,14 @@ import org.nuxeo.runtime.api.Framework;
  * </ul>
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
+ * @deprecated since 2025.0, doesn't seem to be used
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 @WebAdapter(name = "audits", type = "AuditService", targetType = "Document")
 public class AuditService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public View doGet() {
         return new View(getTarget(), "audits").resolve();
     }
 

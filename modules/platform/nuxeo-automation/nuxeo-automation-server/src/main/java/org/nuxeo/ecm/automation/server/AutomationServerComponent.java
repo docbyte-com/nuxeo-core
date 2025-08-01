@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,9 @@ import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -94,16 +94,6 @@ public class AutomationServerComponent extends DefaultComponent implements Autom
     }
 
     @Override
-    public synchronized void addBinding(RestBinding binding) {
-        register(XP_BINDINGS, binding);
-    }
-
-    @Override
-    public synchronized RestBinding removeBinding(RestBinding binding) {
-        return unregister(XP_BINDINGS, binding) ? binding : null;
-    }
-
-    @Override
     public boolean accept(String name, boolean isChain, HttpServletRequest req) {
         if (isChain) {
             name = Constants.CHAIN_ID_PREFIX + name;
@@ -119,8 +109,7 @@ public class AutomationServerComponent extends DefaultComponent implements Autom
             Principal principal = req.getUserPrincipal();
 
             if (binding.isAdministrator || binding.hasGroups()) {
-                if (principal instanceof NuxeoPrincipal) {
-                    NuxeoPrincipal np = (NuxeoPrincipal) principal;
+                if (principal instanceof NuxeoPrincipal np) {
                     if (binding.isAdministrator && np.isAdministrator()) {
                         return true;
                     }
