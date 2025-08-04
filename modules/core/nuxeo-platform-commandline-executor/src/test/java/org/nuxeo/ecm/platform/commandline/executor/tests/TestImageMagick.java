@@ -84,6 +84,11 @@ public class TestImageMagick {
 
         ExecResult result = cles.execCommand("identify", params);
 
+        System.out.println("Raw image identify result: " + String.join("\n", result.getOutput()));
+        System.out.println("Result code: " + result.getReturnCode());
+        System.out.println("Result command: " + result.getCommandLine());
+        System.out.println("Result error: " + result.getError());
+
         assertTrue(result.isSuccessful());
         assertEquals(0, result.getReturnCode());
 
