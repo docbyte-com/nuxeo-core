@@ -4,7 +4,7 @@ DIR=`pwd`
 
 yum install -y ghostscript
 yum install -y \
-  ImageMagick \
+  ImageMagick7 \
   libwpd-tools \
   perl \
   perl-Archive-Zip \
@@ -16,6 +16,7 @@ yum install -y \
   xz \
   google-noto-cjk-fonts
 
+identify -version
 
 export LIBREOFFICE_VERSION=7.5.8
 
