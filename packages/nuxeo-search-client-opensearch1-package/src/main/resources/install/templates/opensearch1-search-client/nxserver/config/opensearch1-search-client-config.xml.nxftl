@@ -27,6 +27,12 @@
         <password>${nuxeo.search.client.default.opensearch1.client.keyStore.password}</password>
       </keyStore>
 </#if>
+<#if (elasticsearch.restClient.authenticationType)?has_content>
+      <authenticationType>${elasticsearch.restClient.authenticationType}<authenticationType/>
+</#if>
+<#if (elasticsearch.restClient.region)?has_content>
+      <region>${elasticsearch.restClient.region}<region/>
+</#if>
     </client>
   </extension>
 

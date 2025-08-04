@@ -29,6 +29,7 @@ import java.io.File;
 
 import jakarta.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.AbstractSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -48,6 +49,7 @@ import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
+@Ignore("Disable as depends on OpenSearch local instance")
 @Features(FulltextStoredInBlobFeature.class)
 public class TestSearchFulltextStoredInBlob extends TestSearchFulltextEnabled {
 
