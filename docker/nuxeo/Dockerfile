@@ -8,7 +8,7 @@ ARG ROCKY_LINUX_VERSION=9.2
 
 # ------------------------------------------------------------------------
 # Build stage
-FROM azul/zulu-openjdk:17 as builder
+FROM azul/zulu-openjdk:21 as builder
 ARG BUILD_DIR
 
 RUN echo $BASE_IMAGE
