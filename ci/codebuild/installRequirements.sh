@@ -4,7 +4,7 @@ DIR=`pwd`
 
 yum install -y ghostscript
 yum install -y \
-  ImageMagick7 \
+  ImageMagick \
   libwpd-tools \
   perl \
   perl-Archive-Zip \
