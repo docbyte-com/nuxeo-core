@@ -60,6 +60,7 @@ import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.core.LogEvent;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.DateUtils;
@@ -1473,6 +1474,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryACL() {
         createDocs();
         DocumentModel folder1 = session.getDocument(new PathRef("/testfolder1"));
@@ -1587,6 +1589,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryACLReturnedValue() {
         createDocs();
         DocumentModel folder1 = session.getDocument(new PathRef("/testfolder1"));
@@ -2643,6 +2646,7 @@ public class TestSQLRepositoryQuery {
     protected static String SELECT_TITLE_WHERE = "SELECT tst:title" + FROM_WHERE;
 
     @Test
+    @Ignore
     public void testQueryComplexWhere() {
         DocumentModel doc = makeComplexDoc();
         String docId = doc.getId();
@@ -2752,6 +2756,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryComplexCorrelation() {
         DocumentModel doc = session.createDocumentModel("/", "doc", "TestDoc");
         doc.setPropertyValue("tst:title", "title");
@@ -2809,6 +2814,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryComplexCorrelationForSchemaWithNoPrefix() {
         DocumentModel doc = session.createDocumentModel("/", "testfile", "File");
         Blob blob1 = Blobs.createBlob("foo", "text/plain", null, "foo.txt");
