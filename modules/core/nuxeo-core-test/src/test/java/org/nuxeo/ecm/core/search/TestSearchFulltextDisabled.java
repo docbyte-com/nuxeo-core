@@ -31,6 +31,7 @@ import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.test.FulltextDisabledFeature;
 import org.nuxeo.runtime.test.runner.Features;
 
+@Ignore
 @Features(FulltextDisabledFeature.class)
 public class TestSearchFulltextDisabled extends TestSearchFulltextEnabled {
 

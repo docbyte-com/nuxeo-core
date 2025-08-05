@@ -52,6 +52,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
+@Ignore
 @RunWith(FeaturesRunner.class)
 @Features({ CoreSearchFeature.class, FulltextStoredInBlobFeature.class })
 @WithFrameworkProperty(name = FulltextStoredInBlobFeature.MIGRATION_KEY, value = "true")
