@@ -78,7 +78,7 @@ public class TestNuxeoCorsCsrfFilterMethods {
     @Test
     public void testSourceURIReferer() {
         var request = MockHttpServletRequest.init()
-                                            .whenGetHeaderThenReturn(REFERER, "http://example.com:8080/nuxeo")
+                                            .whenGetHeaderThenReturn(REFERER, "http://example.com:8080/core")
                                             .mock();
         assertEquals("http://example.com:8080/core", filter.getSourceURI(request).toASCIIString());
     }
@@ -94,9 +94,9 @@ public class TestNuxeoCorsCsrfFilterMethods {
     public void testTargetURINuxeoVirtualHostHeader() {
         var request = MockHttpServletRequest.init()
                                             .whenGetHeaderThenReturn(NUXEO_VIRTUAL_HOST,
-                                                    "http://example.com:8080/nuxeo/")
+                                                    "http://example.com:8080/core/")
                                             .mock();
-        when(request.getHeader(eq(NUXEO_VIRTUAL_HOST))).thenReturn("http://example.com:8080/nuxeo/");
+        when(request.getHeader(eq(NUXEO_VIRTUAL_HOST))).thenReturn("http://example.com:8080/core/");
         assertEquals("http://example.com:8080/core/", filter.getTargetURI(request).toASCIIString());
     }
 
