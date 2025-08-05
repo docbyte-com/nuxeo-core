@@ -27,6 +27,7 @@ import java.time.Duration;
 
 import jakarta.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.AbstractSession;

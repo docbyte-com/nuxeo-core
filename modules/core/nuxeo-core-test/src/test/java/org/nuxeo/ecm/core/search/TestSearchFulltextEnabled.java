@@ -63,8 +63,6 @@ public class TestSearchFulltextEnabled {
 
     @Before
     public void checkSupportsFulltextSearchIfRepositoryClient() {
-        boolean supportsFulltextSearch = coreFeature.getStorageConfiguration().supportsFulltextSearch();
-        boolean hasRepositoryClient = coreSearchFeature.hasRepositoryClient();
         assumeTrue("fulltext search not supported", !coreSearchFeature.hasRepositoryClient()
                 || coreFeature.getStorageConfiguration().supportsFulltextSearch());
     }
