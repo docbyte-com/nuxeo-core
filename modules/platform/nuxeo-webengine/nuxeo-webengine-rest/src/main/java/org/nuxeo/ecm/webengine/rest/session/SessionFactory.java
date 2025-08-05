@@ -22,12 +22,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 
 import org.nuxeo.ecm.core.api.CoreSession;
-import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.repository.RepositoryManager;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.ecm.webengine.rest.session.impl.PerRequestCoreProvider;
+import org.nuxeo.runtime.api.Framework;
+
+import java.security.Principal;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -63,8 +65,8 @@ public class SessionFactory {
 
         if (v == null) {
             Principal p = request.getUserPrincipal();
-            if (p != null && p instanceof NuxeoPrincipal) {
-                v = ((NuxeoPrincipal) p).getTenantId();
+            if (p instanceof NuxeoPrincipal principal) {
+                v = principal.getTenantId();
             }
         }
         RepositoryManager m = Framework.getService(RepositoryManager.class);
