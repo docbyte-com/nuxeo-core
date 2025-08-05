@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,6 +79,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -243,9 +244,10 @@ public class NuxeoLauncher {
 
     private static final String OPTION_ENCRYPT_ARG_NAME = "algorithm";
 
-    private static final String OPTION_ENCRYPT_DESC = String.format("Activate key value symmetric encryption.\n"
-            + "The algorithm can be configured: <%s> is a cipher transformation of the form: \"algorithm/mode/padding\" or \"algorithm\".\n"
-            + "Default value is \"%s\" (Advanced Encryption Standard, Electronic Cookbook Mode, PKCS5-style padding).",
+    private static final String OPTION_ENCRYPT_DESC = """
+            Activate key value symmetric encryption.
+            The algorithm can be configured: <%s> is a cipher transformation of the form: "algorithm/mode/padding" or "algorithm".
+            Default value is "%s" (Advanced Encryption Standard, Electronic Cookbook Mode, PKCS5-style padding).""".formatted(
             OPTION_ENCRYPT, Crypto.DEFAULT_ALGO);
 
     /** @since 7.4 */
@@ -253,18 +255,20 @@ public class NuxeoLauncher {
 
     private static final String OPTION_SET_ARG_NAME = "template";
 
-    private static final String OPTION_SET_DESC = String.format("Set the value for a given key.\n"
-            + "The value is stored in {{%s}} by default unless a template name is provided; "
-            + "if so, it is then stored in the template's {{%s}} file or {{nuxeo.NUXEO_ENVIRONMENT}} if later is defined in environment.\n"
-            + "If the value is empty (''), then the property is unset.\n"
-            + "This option is implicit if no '--get' or '--get-regexp' option is used and there are exactly two parameters (key value).",
+    private static final String OPTION_SET_DESC = """
+            Set the value for a given key.
+            The value is stored in {{%s}} by default unless a template name is provided; \
+            if so, it is then stored in the template's {{%s}} file or {{nuxeo.NUXEO_ENVIRONMENT}} if later is defined in environment.
+            If the value is empty (''), then the property is unset.
+            This option is implicit if no '--get' or '--get-regexp' option is used and there are exactly two parameters (key value).""".formatted(
             FILE_NUXEO_CONF, FILE_NUXEO_DEFAULTS);
 
     /** @since 7.4 */
     protected static final String OPTION_GET = "get";
 
-    private static final String OPTION_GET_DESC = "Get the value for a given key. Returns error code 6 if the key was not found.\n"
-            + "This option is implicit if '--set' option is not used and there are more or less than two parameters.";
+    private static final String OPTION_GET_DESC = """
+            Get the value for a given key. Returns error code 6 if the key was not found.
+            This option is implicit if '--set' option is not used and there are more or less than two parameters.""";
 
     /** @since 7.4 */
     protected static final String OPTION_GET_REGEXP = "get-regexp";
@@ -553,7 +557,7 @@ public class NuxeoLauncher {
      * @since 7.4
      */
     public boolean commandIs(String aCommand) {
-        return StringUtils.equalsIgnoreCase(command, aCommand);
+        return Strings.CI.equals(command, aCommand);
     }
 
     private boolean useGui = false;
@@ -763,9 +767,9 @@ public class NuxeoLauncher {
     protected static Options initParserOptions() {
         Options options = new Options();
         // help option
-        options.addOption(Option.builder("h").longOpt(OPTION_HELP).desc(OPTION_HELP_DESC).build());
+        options.addOption(Option.builder("h").longOpt(OPTION_HELP).desc(OPTION_HELP_DESC).get());
         // Quiet option
-        options.addOption(Option.builder("q").longOpt(OPTION_QUIET).desc(OPTION_QUIET_DESC).build());
+        options.addOption(Option.builder("q").longOpt(OPTION_QUIET).desc(OPTION_QUIET_DESC).get());
         { // Debug options (mutually exclusive)
             OptionGroup debugOptions = new OptionGroup();
             // Debug option
@@ -776,7 +780,7 @@ public class NuxeoLauncher {
                                          .argName(OPTION_DEBUG_CATEGORY_ARG_NAME)
                                          .optionalArg(true)
                                          .valueSeparator(',')
-                                         .build());
+                                         .get());
             // Debug category option
             debugOptions.addOption(Option.builder(OPTION_DEBUG_CATEGORY)
                                          .desc(OPTION_DEBUG_CATEGORY_DESC)
@@ -784,7 +788,7 @@ public class NuxeoLauncher {
                                          .argName(OPTION_DEBUG_CATEGORY_ARG_NAME)
                                          .optionalArg(true)
                                          .valueSeparator(',')
-                                         .build());
+                                         .get());
             options.addOptionGroup(debugOptions);
         }
         // For help output purpose only: that option is managed and
@@ -792,58 +796,54 @@ public class NuxeoLauncher {
         options.addOption(Option.builder()
                                 .longOpt("debug-launcher")
                                 .desc("Linux-only. Activate Java debugging mode on the Launcher.")
-                                .build());
+                                .get());
         // Instance CLID option
-        options.addOption(Option.builder().longOpt(OPTION_CLID).desc(OPTION_CLID_DESC).hasArg().build());
+        options.addOption(Option.builder().longOpt(OPTION_CLID).desc(OPTION_CLID_DESC).hasArg().get());
         // Register offline option
-        options.addOption(Option.builder().longOpt(OPTION_OFFLINE).desc(OPTION_OFFLINE_DESC).build());
+        options.addOption(Option.builder().longOpt(OPTION_OFFLINE).desc(OPTION_OFFLINE_DESC).get());
         // Register renew option
-        options.addOption(Option.builder().longOpt(OPTION_RENEW).desc(OPTION_RENEW_DESC).build());
+        options.addOption(Option.builder().longOpt(OPTION_RENEW).desc(OPTION_RENEW_DESC).get());
         { // Output options (mutually exclusive)
             OptionGroup outputOptions = new OptionGroup();
             // XML option
-            outputOptions.addOption(Option.builder().longOpt(OPTION_XML).desc(OPTION_XML_DESC).build());
+            outputOptions.addOption(Option.builder().longOpt(OPTION_XML).desc(OPTION_XML_DESC).get());
             // JSON option
-            outputOptions.addOption(Option.builder().longOpt(OPTION_JSON).desc(OPTION_JSON_DESC).build());
+            outputOptions.addOption(Option.builder().longOpt(OPTION_JSON).desc(OPTION_JSON_DESC).get());
             options.addOptionGroup(outputOptions);
         }
         // GUI option
-        options.addOption(Option.builder()
-                                .longOpt(OPTION_GUI)
-                                .desc(OPTION_GUI_DESC)
-                                .hasArg()
-                                .argName("true|false|yes|no")
-                                .build());
+        options.addOption(
+                Option.builder().longOpt(OPTION_GUI).desc(OPTION_GUI_DESC).hasArg().argName("true|false|yes|no").get());
         // Package management option
-        options.addOption(Option.builder().longOpt(OPTION_NODEPS).desc(OPTION_NODEPS_DESC).build());
+        options.addOption(Option.builder().longOpt(OPTION_NODEPS).desc(OPTION_NODEPS_DESC).get());
         // Relax on target platform option
         options.addOption(Option.builder()
                                 .longOpt(OPTION_RELAX)
                                 .desc(OPTION_RELAX_DESC)
                                 .hasArg()
                                 .argName("true|false|yes|no|ask")
-                                .build());
+                                .get());
         // Accept option
         options.addOption(Option.builder()
                                 .longOpt(OPTION_ACCEPT)
                                 .desc(OPTION_ACCEPT_DESC)
                                 .hasArg()
                                 .argName("true|false|yes|no|ask")
-                                .build());
+                                .get());
         // Allow SNAPSHOT option
-        options.addOption(Option.builder("s").longOpt(OPTION_SNAPSHOT).desc(OPTION_SNAPSHOT_DESC).build());
+        options.addOption(Option.builder("s").longOpt(OPTION_SNAPSHOT).desc(OPTION_SNAPSHOT_DESC).get());
         // Force option
-        options.addOption(Option.builder("f").longOpt(OPTION_FORCE).desc(OPTION_FORCE_DESC).build());
+        options.addOption(Option.builder("f").longOpt(OPTION_FORCE).desc(OPTION_FORCE_DESC).get());
         // Strict option
-        options.addOption(Option.builder().longOpt(OPTION_STRICT).desc(OPTION_STRICT_DESC).build());
+        options.addOption(Option.builder().longOpt(OPTION_STRICT).desc(OPTION_STRICT_DESC).get());
         // lenient option
-        options.addOption(Option.builder().longOpt(OPTION_LENIENT).desc(OPTION_LENIENT_DESC).build());
+        options.addOption(Option.builder().longOpt(OPTION_LENIENT).desc(OPTION_LENIENT_DESC).get());
 
         // Ignore missing option
-        options.addOption(Option.builder("im").longOpt(OPTION_IGNORE_MISSING).desc(OPTION_IGNORE_MISSING_DESC).build());
+        options.addOption(Option.builder("im").longOpt(OPTION_IGNORE_MISSING).desc(OPTION_IGNORE_MISSING_DESC).get());
         // Hide deprecation warnings option
         options.addOption(
-                Option.builder("hdw").longOpt(OPTION_HIDE_DEPRECATION).desc(OPTION_HIDE_DEPRECATION_DESC).build());
+                Option.builder("hdw").longOpt(OPTION_HIDE_DEPRECATION).desc(OPTION_HIDE_DEPRECATION_DESC).get());
         // Encrypt option
         options.addOption(Option.builder()
                                 .longOpt(OPTION_ENCRYPT)
@@ -851,7 +851,7 @@ public class NuxeoLauncher {
                                 .hasArg()
                                 .argName(OPTION_ENCRYPT_ARG_NAME)
                                 .optionalArg(true)
-                                .build());
+                                .get());
         // Output options
         options.addOption(Option.builder()
                                 .longOpt(OPTION_GZIP_OUTPUT)
@@ -859,21 +859,21 @@ public class NuxeoLauncher {
                                 .hasArg()
                                 .argName("true|false")
                                 .optionalArg(true)
-                                .build());
+                                .get());
         options.addOption(Option.builder()
                                 .longOpt(OPTION_PRETTY_PRINT)
                                 .desc(OPTION_PRETTY_PRINT_DESC)
                                 .hasArg()
                                 .argName("true|false")
                                 .optionalArg(true)
-                                .build());
+                                .get());
         options.addOption(Option.builder()
                                 .longOpt(OPTION_OUTPUT)
                                 .desc(OPTION_OUTPUT_DESC)
                                 .hasArg()
                                 .argName("file")
                                 .optionalArg(true)
-                                .build());
+                                .get());
         { // Config options (mutually exclusive)
             OptionGroup configOptions = new OptionGroup();
             // Set option
@@ -883,9 +883,9 @@ public class NuxeoLauncher {
                                           .hasArg()
                                           .argName(OPTION_SET_ARG_NAME)
                                           .optionalArg(true)
-                                          .build());
-            configOptions.addOption(Option.builder().longOpt(OPTION_GET).desc(OPTION_GET_DESC).build());
-            configOptions.addOption(Option.builder().longOpt(OPTION_GET_REGEXP).desc(OPTION_GET_REGEXP_DESC).build());
+                                          .get());
+            configOptions.addOption(Option.builder().longOpt(OPTION_GET).desc(OPTION_GET_DESC).get());
+            configOptions.addOption(Option.builder().longOpt(OPTION_GET_REGEXP).desc(OPTION_GET_REGEXP_DESC).get());
             options.addOptionGroup(configOptions);
         }
         return options;
