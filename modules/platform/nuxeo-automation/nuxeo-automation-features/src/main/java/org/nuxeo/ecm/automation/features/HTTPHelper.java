@@ -187,7 +187,7 @@ public class HTTPHelper implements ContextHelper {
         if (options != null) {
             Map<String, String> headers = new HashMap<>();
 
-            Map<String, String> authorization = (Map<String, String>) options.get("cloud/docbyte/aws/auth");
+            Map<String, String> authorization = (Map<String, String>) options.get("auth");
             if (authorization != null) {
                 String method = authorization.get("method");
                 if (method.equals("basic")) {

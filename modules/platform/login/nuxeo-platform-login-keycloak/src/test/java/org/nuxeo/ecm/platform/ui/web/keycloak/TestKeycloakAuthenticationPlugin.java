@@ -174,7 +174,7 @@ public class TestKeycloakAuthenticationPlugin {
         Mockito.verify(responseMock).setStatus(302);
         Mockito.verify(responseMock)
                .setHeader(matches("Location"),
-                       startsWith(KEYCLOAK_URL + "cloud/docbyte/aws/auth" + "response_type=code&" + "client_id=customer-portal&"
+                       startsWith(KEYCLOAK_URL + "auth?" + "response_type=code&" + "client_id=customer-portal&"
                                + "redirect_uri=https%3A%2F%2Fexample.com%2Ffoo%2Fpath%2Fto%2Fresource"));
     }
 
