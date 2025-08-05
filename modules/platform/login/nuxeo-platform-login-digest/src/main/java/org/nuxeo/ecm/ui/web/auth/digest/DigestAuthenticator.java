@@ -192,7 +192,7 @@ public class DigestAuthenticator implements NuxeoAuthenticationPlugin {
         String digest;
         if (qop == null) {
             digest = ha1 + ":" + nonce + ":" + ha2;
-        } else if ("cloud/docbyte/aws/auth".equals(qop)) {
+        } else if ("auth".equals(qop)) {
             digest = ha1 + ":" + nonce + ":" + nc + ":" + cnonce + ":" + qop + ":" + ha2;
         } else {
             throw new IllegalArgumentException("This method does not support a qop: '" + qop + "'");

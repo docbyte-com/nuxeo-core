@@ -117,7 +117,7 @@ public class TestDigestAuthenticator {
         String uri = "/core/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
         String cnonce = "d30fb25c5345b787bccd677d1cb93bd6";
         String nc = "00000001";
-        String qpop = "cloud/docbyte/aws/auth";
+        String qpop = "auth";
         String response;
         if (corrupted) {
             response = "0000dead0000";
