@@ -7,6 +7,7 @@ yum install -y \
   ImageMagick \
   libwpd-tools \
   perl \
+  perl-Image-ExifTool \
   perl-Archive-Zip \
   poppler-utils \
   tar \
