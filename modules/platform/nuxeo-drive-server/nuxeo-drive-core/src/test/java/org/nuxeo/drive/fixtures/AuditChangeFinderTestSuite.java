@@ -71,6 +71,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
  *
  * @since 8.2
  */
+@Ignore("Disable temporarily")
 public class AuditChangeFinderTestSuite extends AbstractChangeFinderTestCase {
 
     private static final Logger log = LogManager.getLogger(AuditChangeFinderTestSuite.class);

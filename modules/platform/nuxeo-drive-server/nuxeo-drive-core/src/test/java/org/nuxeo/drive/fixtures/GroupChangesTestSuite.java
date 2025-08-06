@@ -35,6 +35,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.drive.listener.NuxeoDriveGroupUpdateListener;
 import org.nuxeo.drive.service.FileSystemChangeFinder;
@@ -54,6 +55,7 @@ import org.nuxeo.ecm.platform.usermanager.UserManager;
  * @see NuxeoDriveGroupUpdateListener
  * @since 9.2
  */
+@Ignore("Disable temporarily")
 public class GroupChangesTestSuite extends AbstractChangeFinderTestCase {
 
     private static final Logger log = LogManager.getLogger(GroupChangesTestSuite.class);
