@@ -19,13 +19,10 @@
 package org.nuxeo.ecm.platform.auth.saml.processor;
 
 import java.io.File;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
@@ -97,13 +94,7 @@ import net.shibboleth.shared.resolver.ResolverException;
  */
 public class SAMLProcessorFactory {
 
-    protected static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";
-
-    protected static final String DIGEST_ALGORITHM = "DigestAlgorithm";
-
-    protected static final String SIGNATURE_MANDATORY = "signatureMandatory";
-
-    protected final boolean signatureMandatory;
+    protected final SAMLConfiguration configuration;
 
     /**
      * Message handlers that run on a SAML inbound message, ie: message from IDP.
@@ -120,19 +111,30 @@ public class SAMLProcessorFactory {
      */
     protected final MessageHandler outboundHandlerChain;
 
+    /**
+     * @deprecated since 2025.7, use {@link SAMLProcessorFactory#SAMLProcessorFactory(SAMLConfiguration)} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
     public SAMLProcessorFactory(Map<String, String> parameters) {
-        this.signatureMandatory = Boolean.parseBoolean(parameters.getOrDefault(SIGNATURE_MANDATORY, "true"));
+        this(new SAMLConfiguration(parameters));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    public SAMLProcessorFactory(SAMLConfiguration configuration) {
+        this.configuration = configuration;
         try {
-            var idpMetadataResolver = instantiateIdpMetadataResolver(parameters);
-            var signingConfiguration = instantiateSigningConfiguration(parameters);
+            var idpMetadataResolver = instantiateIdpMetadataResolver(configuration);
+            var signingConfiguration = instantiateSigningConfiguration(configuration);
             var validationConfiguration = instantiateValidationConfiguration(idpMetadataResolver);
             var decryptionConfiguration = instantiateDecryptionConfiguration();
 
             var inboundHandlers = new ArrayList<MessageHandler>();
-            inboundHandlers.add(buildEntityIdHandler(SAMLConfiguration.getEntityId(), SAMLSelfEntityContext.class));
+            inboundHandlers.add(buildEntityIdHandler(configuration.getSPEntityId(), SAMLSelfEntityContext.class));
             inboundHandlers.add(buildSAMLProtocolAndRoleHandler(IDPSSODescriptor.DEFAULT_ELEMENT_NAME));
             inboundHandlers.add(buildSAMLMetadataLookupHandler(idpMetadataResolver));
-            inboundHandlers.add(buildMessageLifetimeSecurityHandler());
+            inboundHandlers.add(buildMessageLifetimeSecurityHandler(configuration));
             inboundHandlers.add(buildCheckExpectedIssuer());
             inboundHandlers.add(buildCheckResponseStatus());
             inboundHandlers.add(buildPopulateSignatureValidationParametersHandler(validationConfiguration));
@@ -155,7 +157,7 @@ public class SAMLProcessorFactory {
             outboundHandlers.add(buildSAMLOutboundProtocolMessageSigningHandler());
             outboundHandlerChain = toHandlerChain(outboundHandlers);
         } catch (ComponentInitializationException e) {
-            throw new NuxeoException("Unable to init SAML plugin with parameters: " + parameters);
+            throw new NuxeoException("Unable to init SAML plugin with configuration: " + configuration, e);
         }
     }
 
@@ -163,16 +165,16 @@ public class SAMLProcessorFactory {
         return Stream.of(SAMLInboundBinding.values())
                      .filter(b -> b.accept(request))
                      .findFirst()
-                     .map(b -> new InboundProcessor(b, inboundHandlerChain, signatureMandatory));
+                     .map(b -> new InboundProcessor(b, inboundHandlerChain, configuration));
     }
 
     public SAMLProcessor retrieveOutboundProcessor(String profileId) {
         // @formatter:off old eclipse version doesn't properly format enhanced switch
         return switch (profileId) {
             case SLOOutboundProcessor.PROFILE_URI -> new SLOOutboundProcessor(initInboundForOutboundHandlerChain,
-                    outboundHandlerChain, SAMLOutboundBinding.HTTP_REDIRECT);
+                    outboundHandlerChain, SAMLOutboundBinding.HTTP_REDIRECT, configuration);
             case WebSSOOutboundProcessor.PROFILE_URI -> new WebSSOOutboundProcessor(initInboundForOutboundHandlerChain,
-                    outboundHandlerChain, SAMLOutboundBinding.HTTP_REDIRECT);
+                    outboundHandlerChain, SAMLOutboundBinding.HTTP_REDIRECT, configuration);
             default -> null;
         };
         // @formatter:on
@@ -186,19 +188,18 @@ public class SAMLProcessorFactory {
         return handler;
     }
 
-    protected MetadataResolver instantiateIdpMetadataResolver(Map<String, String> parameters)
+    protected MetadataResolver instantiateIdpMetadataResolver(SAMLConfiguration configuration)
             throws ComponentInitializationException {
         try {
             AbstractMetadataResolver metadataResolver;
 
-            String metadataUrl = parameters.get("metadata");
+            String metadataUrl = configuration.getIdPMetadataUri();
             if (metadataUrl == null) {
-                throw new ResolverException("No metadata URI set for provider: " + parameters.getOrDefault("name", ""));
+                throw new ResolverException("No metadata URI configured");
             }
 
             if (metadataUrl.startsWith("http:") || metadataUrl.startsWith("https:")) {
-                int requestTimeout = Integer.parseInt(parameters.getOrDefault("timeout", "5"));
-                var timeout = Timeout.ofSeconds(requestTimeout);
+                var timeout = Timeout.of(configuration.getIdPMetadataTimeout());
                 var connectionManager = //
                         PoolingHttpClientConnectionManagerBuilder.create()
                                                                  .setDefaultConnectionConfig(
@@ -222,21 +223,17 @@ public class SAMLProcessorFactory {
         }
     }
 
-    protected SignatureSigningConfiguration instantiateSigningConfiguration(Map<String, String> parameters) {
+    protected SignatureSigningConfiguration instantiateSigningConfiguration(SAMLConfiguration configuration) {
         if (Framework.getService(KeyManager.class).getSigningCredential() == null) {
             return null;
         } else {
             var signingConfiguration = DefaultSecurityConfigurationBootstrap.buildDefaultSignatureSigningConfiguration();
             signingConfiguration.setSigningCredentials(
                     List.of(Framework.getService(KeyManager.class).getSigningCredential()));
-            if (parameters.containsKey(DIGEST_ALGORITHM)) {
-                signingConfiguration.setSignatureReferenceDigestMethods(List.of(parameters.get(DIGEST_ALGORITHM)));
-            }
-            var algorithms = parameters.entrySet()
-                                       .stream()
-                                       .filter(e -> e.getKey().startsWith(SIGNATURE_ALGORITHM))
-                                       .map(Entry::getValue)
-                                       .collect(Collectors.toList());
+            configuration.getSPDigestAlgorithm()
+                         .ifPresent(algorithm -> signingConfiguration.setSignatureReferenceDigestMethods(
+                                 List.of(algorithm)));
+            var algorithms = configuration.getSPSignatureAlgorithms();
             if (!algorithms.isEmpty()) {
                 signingConfiguration.setSignatureAlgorithms(algorithms);
             }
@@ -317,9 +314,10 @@ public class SAMLProcessorFactory {
         return metadataLookupHandler;
     }
 
-    protected MessageHandler buildMessageLifetimeSecurityHandler() throws ComponentInitializationException {
+    protected MessageHandler buildMessageLifetimeSecurityHandler(SAMLConfiguration configuration)
+            throws ComponentInitializationException {
         var lifetimeHandler = new MessageLifetimeSecurityHandler();
-        lifetimeHandler.setClockSkew(Duration.ofMillis(SAMLConfiguration.getSkewTimeMillis()));
+        lifetimeHandler.setClockSkew(configuration.getSPSkewTime());
         lifetimeHandler.initialize();
         return lifetimeHandler;
     }

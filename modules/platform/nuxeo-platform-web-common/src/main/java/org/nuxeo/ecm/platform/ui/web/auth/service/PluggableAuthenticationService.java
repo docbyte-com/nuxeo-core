@@ -20,6 +20,8 @@ package org.nuxeo.ecm.platform.ui.web.auth.service;
 
 import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -197,6 +199,14 @@ public class PluggableAuthenticationService extends DefaultComponent {
             }
         }
         return null;
+    }
+
+    /**
+     * @return all plugins contributed to the authenticators extension point
+     * @since 2025.7
+     */
+    public Collection<NuxeoAuthenticationPlugin> getAuthenticatorPlugins() {
+        return Collections.unmodifiableCollection(authenticators.values());
     }
 
     public List<NuxeoAuthenticationPlugin> getPluginChain() {
