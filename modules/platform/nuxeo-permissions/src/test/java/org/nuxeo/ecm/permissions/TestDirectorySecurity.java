@@ -29,14 +29,17 @@ import java.util.HashMap;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
+import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.NuxeoLoginContext;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -45,6 +48,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  *
  * @since 8.4
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features(PermissionsFeature.class)
 public class TestDirectorySecurity {

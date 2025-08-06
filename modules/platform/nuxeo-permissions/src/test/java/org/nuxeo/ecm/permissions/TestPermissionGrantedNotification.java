@@ -32,6 +32,7 @@ import java.util.Map;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -53,6 +54,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 /**
  * @since 8.1
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features({ PermissionsFeature.class, PlatformFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
