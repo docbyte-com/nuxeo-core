@@ -14,6 +14,7 @@ yum install -y \
   wget \
   gzip \
   xz \
+  aspell \
   google-noto-cjk-fonts
 
 identify -version
