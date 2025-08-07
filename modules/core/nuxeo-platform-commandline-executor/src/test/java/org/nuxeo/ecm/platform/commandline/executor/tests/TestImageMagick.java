@@ -76,7 +76,7 @@ public class TestImageMagick {
      * @since 2023
      */
     @Test
-    //@Ignore("Failing test due to ImageMagick version")
+    @Ignore("Failing test due to ImageMagick version")
     public void testRawImageFormat() throws CommandNotAvailable {
         File img = FileUtils.getResourceFileFromContext("Canon.crw");
 
