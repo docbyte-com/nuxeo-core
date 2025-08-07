@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,7 +99,7 @@ public class SAMLAuthenticationProvider
 
         // Initialize the User Resolver
         String userResolverClassname = parameters.get("userResolverClass");
-        Class<? extends UserResolver> userResolverClass = null;
+        Class<? extends UserResolver> userResolverClass;
         if (isBlank(userResolverClassname)) {
             UserMapperService ums = Framework.getService(UserMapperService.class);
             if (ums != null) {

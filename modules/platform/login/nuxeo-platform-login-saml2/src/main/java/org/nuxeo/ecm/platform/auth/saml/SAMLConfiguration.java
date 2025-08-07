@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import static java.util.stream.Collectors.toSet;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLUtils.buildSAMLObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
@@ -46,7 +45,6 @@ import org.opensaml.security.SecurityException;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.UsageType;
 import org.opensaml.xmlsec.config.impl.DefaultSecurityConfigurationBootstrap;
-import org.opensaml.xmlsec.keyinfo.KeyInfoGenerator;
 import org.opensaml.xmlsec.signature.KeyInfo;
 
 /**
@@ -72,7 +70,7 @@ public class SAMLConfiguration {
 
     public static final String DEFAULT_LOGIN_BINDINGS = "HTTP-Redirect,HTTP-POST";
 
-    public static final Collection<String> nameID = Arrays.asList(NameIDType.EMAIL, NameIDType.TRANSIENT,
+    public static final Collection<String> nameID = List.of(NameIDType.EMAIL, NameIDType.TRANSIENT,
             NameIDType.PERSISTENT, NameIDType.UNSPECIFIED, NameIDType.X509_SUBJECT);
 
     private SAMLConfiguration() {
@@ -201,14 +199,14 @@ public class SAMLConfiguration {
 
     private static KeyInfo generateKeyInfoForCredential(Credential credential) {
         try {
-            KeyInfoGenerator keyInfoGenerator = DefaultSecurityConfigurationBootstrap.buildBasicKeyInfoGeneratorManager()
-                                                                                     .getDefaultManager()
-                                                                                     .getFactory(credential)
-                                                                                     .newInstance();
-            return keyInfoGenerator.generate(credential);
+            return DefaultSecurityConfigurationBootstrap.buildBasicKeyInfoGeneratorManager()
+                                                        .getDefaultManager()
+                                                        .getFactory(credential)
+                                                        .newInstance()
+                                                        .generate(credential);
         } catch (SecurityException e) {
             log.error("Failed to  generate key info.");
+            return null;
         }
-        return null;
     }
 }

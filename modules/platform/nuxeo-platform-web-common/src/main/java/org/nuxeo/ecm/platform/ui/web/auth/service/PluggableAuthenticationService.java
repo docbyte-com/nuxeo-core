@@ -21,7 +21,6 @@ package org.nuxeo.ecm.platform.ui.web.auth.service;
 import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -219,8 +218,12 @@ public class PluggableAuthenticationService extends DefaultComponent {
     public void invalidateSession(ServletRequest request) {
         boolean done = false;
         if (!sessionManagers.isEmpty()) {
-            Iterator<NuxeoAuthenticationSessionManager> it = sessionManagers.values().iterator();
-            while (it.hasNext() && !(done = it.next().invalidateSession(request))) {
+            for (var sessionManager : sessionManagers.values()) {
+                // stop on first manager succeeding to invalidate the session
+                if (sessionManager.invalidateSession(request)) {
+                    done = true;
+                    break;
+                }
             }
         }
         if (!done) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -232,7 +232,6 @@ public class SAMLProcessorFactory {
             if (parameters.containsKey(DIGEST_ALGORITHM)) {
                 signingConfiguration.setSignatureReferenceDigestMethods(List.of(parameters.get(DIGEST_ALGORITHM)));
             }
-            // TODO handle algo not known to the library?
             var algorithms = parameters.entrySet()
                                        .stream()
                                        .filter(e -> e.getKey().startsWith(SIGNATURE_ALGORITHM))
@@ -297,7 +296,7 @@ public class SAMLProcessorFactory {
             Class<C> contextClass) throws ComponentInitializationException {
         var entityIdHandler = new FunctionMessageHandler();
         entityIdHandler.setFunction(context -> {
-            var peerEntityContext = context.getSubcontext(contextClass, true);
+            var peerEntityContext = context.ensureSubcontext(contextClass);
             if (peerEntityContext.getEntityId() == null) {
                 peerEntityContext.setEntityId(entityId);
             }

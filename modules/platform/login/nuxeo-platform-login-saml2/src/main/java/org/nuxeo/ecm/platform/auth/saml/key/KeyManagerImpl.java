@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.platform.auth.saml.key;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -31,9 +33,9 @@ import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
 
+import jakarta.annotation.Nonnull;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.opensaml.core.criterion.EntityIdCriterion;
@@ -135,7 +137,7 @@ public class KeyManagerImpl extends DefaultComponent implements KeyManager {
 
     @Override
     public X509Certificate getCertificate(String alias) {
-        if (alias == null || alias.length() == 0) {
+        if (isBlank(alias)) {
             return null;
         }
         try {
@@ -170,7 +172,7 @@ public class KeyManagerImpl extends DefaultComponent implements KeyManager {
         return getCredential(config.getTlsKey());
     }
 
-    @NotNull
+    @Nonnull
     @Override
     public Iterable<Credential> resolve(CriteriaSet criteria) throws ResolverException {
         return credentialResolver.resolve(criteria);

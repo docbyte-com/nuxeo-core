@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,8 @@ public class WebSSOOutboundProcessor extends AbstractSAMLProcessor {
     }
 
     protected AuthnRequest buildAuthnRequest(MessageContext ctx) {
-        var endpoint = ctx.getSubcontext(SAMLPeerEntityContext.class)
-                          .getSubcontext(SAMLEndpointContext.class)
+        var endpoint = ctx.ensureSubcontext(SAMLPeerEntityContext.class)
+                          .ensureSubcontext(SAMLEndpointContext.class)
                           .getEndpoint();
         var request = HttpServletRequestResponseContext.getRequest();
 

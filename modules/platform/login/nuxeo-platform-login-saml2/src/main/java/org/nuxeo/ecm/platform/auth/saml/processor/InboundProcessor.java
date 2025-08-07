@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,7 @@ public class InboundProcessor extends AbstractSAMLProcessor {
         );
     }
 
+    @SuppressWarnings("DataFlowIssue") // lot of @Nullable annotation on library objects
     protected ValidateAssertions newValidateAssertionsAction() {
         var validateAssertions = new ValidateAssertions();
         validateAssertions.setHttpServletRequestSupplier(HttpServletRequestResponseContext::getRequest);
