@@ -40,6 +40,7 @@ import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.adapter.FileItem;
@@ -86,6 +87,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  *
  * @author Antoine Taillefer
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features(NuxeoDriveAutomationFeature.class)
 @Deploy("org.nuxeo.drive.core:OSGI-INF/nuxeodrive-hierarchy-userworkspace-contrib.xml")

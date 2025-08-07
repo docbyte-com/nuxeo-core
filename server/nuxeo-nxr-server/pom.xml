@@ -66,7 +66,7 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.lib.novemberain</groupId>
+      <groupId>org.nuxeo.lib.novemberain</groupId>
       <artifactId>quartz-mongodb</artifactId>
       <scope>compile</scope>
     </dependency>
