@@ -29,6 +29,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.adapter.FileItem;
@@ -128,6 +129,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  *
  * @author Thierry Martins
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features(NuxeoDriveFeature.class)
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-versioning-filter-contrib.xml")

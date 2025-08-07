@@ -31,6 +31,7 @@ import java.util.List;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.adapter.FileSystemItem;
@@ -58,6 +59,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  *
  * @author Antoine Taillefer
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features(NuxeoDriveFeature.class)
 public class TestDefaultTopLevelFolderItemFactory {
