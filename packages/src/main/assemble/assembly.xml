@@ -39,7 +39,7 @@
           <artifact groupId="cloud.docbyte.nuxeo.build*" />
           <artifact groupId="org.nuxeo.lib*" />
           <artifact groupId="cloud.docbyte.nuxeo.lib*" />
-          <artifact groupId="cloud.docbyte.nuxeo.packages*" />
+          <artifact groupId="oeg.nuxeo.packages*" />
           <artifact groupId="cloud.docbyte.nuxeo.packages*" />
           <artifact scope="test" />
           <artifact scope="provided" />
