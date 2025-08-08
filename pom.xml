@@ -4524,7 +4524,7 @@
           <version>2.44.4</version>
           <dependencies>
             <dependency>
-              <groupId>cloud.docbyte.nuxeo</groupId>
+              <groupId>org.nuxeo</groupId>
               <artifactId>nuxeo-build-tools</artifactId>
               <version>3</version>
             </dependency>
