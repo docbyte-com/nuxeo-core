@@ -71,7 +71,7 @@ RUN dnf -y update \
   && dnf -y --setopt=skip_missing_names_on_install=False install \
     epel-release \
     # Install java first to provide it for depend packages (such as libreoffice)
-    zulu17-jdk \
+    zulu21-jdk \
     # Find is not included in the base rockylinux image
     findutils \
     ghostscript \
