@@ -17,8 +17,12 @@ config:
     plugins:
       security:
         disabled: true
-labels:
-  {{ tpl (readFile "labels.yaml.gotmpl") . | nindent 2 }}
+labels: {{- toYaml .Values.global.labels | nindent 2 }}
   dev.nuxeo.com/app: opensearch
+  dev.nuxeo.com/resource: pod
+service:
+  labels: {{- toYaml .Values.global.labels | nindent 4 }}
+    dev.nuxeo.com/app: opensearch
+    dev.nuxeo.com/resource: service
 maxUnavailable: 0
-{{ readFile "values-tolerations-nodeselector.yaml" }}
+{{- toYaml .Values.global.selectors | nindent 0 }}

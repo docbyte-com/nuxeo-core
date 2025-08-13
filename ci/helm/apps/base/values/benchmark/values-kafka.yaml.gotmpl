@@ -11,8 +11,6 @@ controller:
       memory: "8Gi"
     limits:
       memory: "8Gi"
-  podLabels:
-    dev.nuxeo.com/usage: benchmark
   podAnnotations:
     ad.datadoghq.com/tags: '{"service":"{{ env "SERVICE_TAG" | default "benchmark-local" }}"}'
   affinity:
@@ -27,4 +25,3 @@ controller:
             - opensearch
             - mongodb
         topologyKey: "kubernetes.io/hostname"
-{{ readFile "values-tolerations-nodeselector.yaml" | indent 2 }}
