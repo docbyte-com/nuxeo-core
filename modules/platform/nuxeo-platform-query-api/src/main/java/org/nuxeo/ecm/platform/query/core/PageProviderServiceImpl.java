@@ -297,6 +297,11 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
         return Set.copyOf(providers.keySet());
     }
 
+    @Override
+    public void registerPageProviderDefinition(PageProviderDefinition desc) {
+        providers.put(desc.getName(), desc);
+    }
+
     record PageProviderReplacerWithName(String replacedName, Class<? extends PageProvider<?>> providerClass) {
     }
 }

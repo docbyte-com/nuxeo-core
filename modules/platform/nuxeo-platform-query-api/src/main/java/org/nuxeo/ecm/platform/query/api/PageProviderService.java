@@ -201,4 +201,7 @@ public interface PageProviderService extends Serializable {
      */
     Set<String> getPageProviderDefinitionNames();
 
+    // Registration is required by cloud.docbyte.archiver.search.configuration.SearchConfigurationService
+    void registerPageProviderDefinition(PageProviderDefinition desc);
+
 }
