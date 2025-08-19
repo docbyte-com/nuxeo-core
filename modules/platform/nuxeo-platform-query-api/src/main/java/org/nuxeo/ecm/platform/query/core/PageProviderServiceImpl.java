@@ -299,6 +299,10 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     @Override
     public void registerPageProviderDefinition(PageProviderDefinition desc) {
+        // Initialize the providers map in case no default page provider is configured.
+        if (providers == null) {
+            providers = new HashMap<>();
+        }
         providers.put(desc.getName(), desc);
     }
 
