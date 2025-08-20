@@ -18,12 +18,15 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
+import static software.amazon.awssdk.services.s3.model.StorageClass.STANDARD;
+
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Objects;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -281,11 +284,8 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             HeadObjectResponse response = config.amazonS3.headObject(headObjectRequest);
             BlobStatus blobStatus = new BlobStatus();
             // storage class is null for STANDARD
-            String storageClass = response.storageClassAsString();
-            blobStatus.withStorageClass(storageClass);
-            if (StorageClass.STANDARD.toString().equals(storageClass)) {
-                blobStatus.withStorageClass(null);
-            }
+            StorageClass storageClass = Objects.requireNonNullElse(response.storageClass(), STANDARD);
+            blobStatus.withStorageClass(storageClass.toString());
             // the object storage class can be Standard or Glacier.
             // the Glacier Storage class can have one of these 3 states:
             // x-amz-restore absent
@@ -294,7 +294,8 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
             String restore = response.restore();
             boolean ongoingRestore = S3Utils.isOnGoingRestore(restore);
             Instant downloadableUntil = S3Utils.getRestoreExpiryDate(restore);
-            boolean downloadable = storageClass == null || downloadableUntil != null;
+            boolean downloadable = S3BlobStoreConfiguration.SUPPORTED_STORAGE_CLASS.contains(storageClass)
+                    || downloadableUntil != null;
             blobStatus.withDownloadable(downloadable)
                       .withDownloadableUntil(downloadableUntil)
                       .withOngoingRestore(ongoingRestore);

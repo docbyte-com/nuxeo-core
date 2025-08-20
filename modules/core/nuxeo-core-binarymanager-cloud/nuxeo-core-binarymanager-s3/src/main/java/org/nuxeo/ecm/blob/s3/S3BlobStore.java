@@ -20,11 +20,13 @@ package org.nuxeo.ecm.blob.s3;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
+import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.SUPPORTED_STORAGE_CLASS;
 import static org.nuxeo.ecm.blob.s3.S3Utils.sanitizeETag;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.OFF;
 import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.ON;
+import static software.amazon.awssdk.services.s3.model.StorageClass.STANDARD;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +39,7 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletionException;
 
 import org.apache.commons.io.output.NullOutputStream;
@@ -290,6 +293,7 @@ public class S3BlobStore extends AbstractBlobStore {
                 }
             }
             setMetadata(b, blobContext);
+            b.storageClass(config.storageClass);
         }).addTransferListener(LoggingTransferListener.create()).source(file);
         logTrace(fileTraceSource, "->", null, "write " + Files.size(file) + " bytes");
         logTrace("hnote right: " + bucketKey);
@@ -359,8 +363,10 @@ public class S3BlobStore extends AbstractBlobStore {
                                                                .key(bucketKey)
                                                                .build();
         try {
-            String storageClass = amazonS3.headObject(headObjectRequest).storageClassAsString();
-            return storageClass == null; // null is the standard storage class for s3
+            var response = amazonS3.headObject(headObjectRequest);
+            // storage class is null for STANDARD
+            var storageClass = Objects.requireNonNullElse(response.storageClass(), STANDARD);
+            return SUPPORTED_STORAGE_CLASS.contains(storageClass);
         } catch (SdkException e) {
             if (isMissingKey(e)) {
                 return false;
@@ -631,7 +637,8 @@ public class S3BlobStore extends AbstractBlobStore {
              .sourceKey(srcs3Key.bucketKey())
              .sourceVersionId(srcs3Key.versionId())
              .destinationBucket(destinationConfig.bucketName)
-             .destinationKey(destinationKey);
+             .destinationKey(destinationKey)
+             .storageClass(config.storageClass);
             if (destinationConfig.useServerSideEncryption) {
                 // server-side encryption
                 if (isNotBlank(destinationConfig.serverSideKMSKeyID)) {
@@ -738,7 +745,7 @@ public class S3BlobStore extends AbstractBlobStore {
             }
             if (blobUpdateContext.coldStorageClass != null) {
                 StorageClass storageClass = blobUpdateContext.coldStorageClass.inColdStorage ? StorageClass.GLACIER
-                        : StorageClass.STANDARD;
+                        : config.storageClass;
                 logTrace("->", "updateStorageClass");
                 logTrace("hnote right: " + s3Key);
                 logTrace("rnote right: " + storageClass);

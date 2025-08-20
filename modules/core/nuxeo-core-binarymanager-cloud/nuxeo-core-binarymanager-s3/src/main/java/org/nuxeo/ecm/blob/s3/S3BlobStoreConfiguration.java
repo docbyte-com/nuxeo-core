@@ -41,6 +41,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.Certificate;
 import java.time.Duration;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -78,6 +79,7 @@ import software.amazon.awssdk.services.s3.model.ObjectLockEnabled;
 import software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode;
 import software.amazon.awssdk.services.s3.model.ObjectLockRule;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.StorageClass;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 import software.amazon.encryption.s3.S3AsyncEncryptionClient;
@@ -282,6 +284,13 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     public static final ObjectLockRetentionMode DEFAULT_RETENTION_MODE = ObjectLockRetentionMode.GOVERNANCE;
 
+    /** @since 2025.8 */
+    public static final String STORAGE_CLASS_PROPERTY = "storageClass";
+
+    /** @since 2025.8 */
+    public static final List<StorageClass> SUPPORTED_STORAGE_CLASS = List.of(StorageClass.STANDARD,
+            StorageClass.INTELLIGENT_TIERING);
+
     public final CloudFrontConfiguration cloudFront;
 
     public S3Client amazonS3;
@@ -310,6 +319,13 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      */
     @Deprecated(since = "2025.8", forRemoval = true)
     public final boolean s3RetentionEnabled;
+
+    /**
+     * The default storage class in s3.
+     *
+     * @since 2025.8
+     */
+    public final StorageClass storageClass;
 
     /**
      * The retention mode to use when setting the retention on an object.
@@ -426,6 +442,16 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         // For compat
         s3RetentionEnabled = retentionEnabled;
 
+        var storageClassProperty = getProperty(STORAGE_CLASS_PROPERTY);
+        if (isNotBlank(storageClassProperty)) {
+            storageClass = StorageClass.fromValue(storageClassProperty.toUpperCase());
+            if (!SUPPORTED_STORAGE_CLASS.contains(storageClass)) {
+                throw new IllegalArgumentException("Unsupported S3 Storage Class: %s".formatted(storageClassProperty));
+            }
+        } else {
+            storageClass = StorageClass.STANDARD;
+        }
+        log.info("Object will be stored with S3 {} storage class", storageClass);
         transferManager = createTransferManager();
     }
 
