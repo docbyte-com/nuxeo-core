@@ -35,7 +35,7 @@ curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-stat
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
 curl -f -L https://exiftool.org/Image-ExifTool-13.34.tar.gz | tar -C /opt -xzv
-cd /opt/Image-ExifTool-13.33/
+cd /opt/Image-ExifTool-13.34/
 
 perl Makefile.PL
 sudo make install
