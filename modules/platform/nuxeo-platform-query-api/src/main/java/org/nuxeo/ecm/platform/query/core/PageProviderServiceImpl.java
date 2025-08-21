@@ -56,7 +56,7 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
     // @since 6.0
     public static final String REPLACER_EP = "replacers";
 
-    protected Map<String, PageProviderDefinition> providers;
+    protected Map<String, PageProviderDefinition> providers = new HashMap<>();
 
     protected Map<String, Class<? extends PageProvider<?>>> replacers;
 
@@ -266,10 +266,13 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     @Override
     public void start(ComponentContext context) {
-        providers = this.<PageProviderDefinition> getDescriptors(PROVIDER_EP)
+        Map<String, PageProviderDefinition> providersMap = this.<PageProviderDefinition> getDescriptors(PROVIDER_EP)
                         .stream()
                         .filter(PageProviderDefinition::isEnabled)
                         .collect(Collectors.toMap(PageProviderDefinition::getName, Function.identity()));
+
+        providers.putAll(providersMap);
+
         replacers = this.<PageProviderClassReplacerDescriptor> getDescriptors(REPLACER_EP)
                         .stream()
                         .filter(PageProviderClassReplacerDescriptor::isEnabled)
@@ -299,10 +302,6 @@ public class PageProviderServiceImpl extends DefaultComponent implements PagePro
 
     @Override
     public void registerPageProviderDefinition(PageProviderDefinition desc) {
-        // Initialize the providers map in case no default page provider is configured.
-        if (providers == null) {
-            providers = new HashMap<>();
-        }
         providers.put(desc.getName(), desc);
     }
 
