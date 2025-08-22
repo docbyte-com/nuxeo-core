@@ -149,7 +149,7 @@ public class IndexingDomainEventProducer extends DomainEventProducer {
                     maxOffsets);
             try {
                 if (streamManager.waitFor(stream, Name.ofUrn(SYNC_COMPUTATION_NAME), offset, Duration.ofSeconds(10))) {
-                    log.info("completed in {} ms", () -> ignored.stop() / 1000000);
+                    log.debug("completed");
                 } else {
                     log.warn("Time out on waiting for indexer sync consumer, continuing");
                 }
