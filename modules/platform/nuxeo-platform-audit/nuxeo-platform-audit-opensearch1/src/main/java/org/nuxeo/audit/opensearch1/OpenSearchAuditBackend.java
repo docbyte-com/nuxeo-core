@@ -156,19 +156,23 @@ public class OpenSearchAuditBackend extends AbstractAuditBackend {
             request.scroll(keepAlive);
             // the size here is the size of each scrolls
             source.size(100);
+            SearchResponse searchResponse = null;
+            try {
+                // run request
+                searchResponse = runRequest(request);
 
-            // run request
-            SearchResponse searchResponse = runRequest(request);
-
-            // Build log entries
-            logEntries = buildLogEntries(searchResponse);
-            // Scroll on next results
-            for (; //
-                    searchResponse.getHits().getHits().length > 0
-                            && logEntries.size() < searchResponse.getHits().getTotalHits().value; //
-                    searchResponse = runNextScroll(searchResponse.getScrollId(), keepAlive)) {
                 // Build log entries
-                logEntries.addAll(buildLogEntries(searchResponse));
+                logEntries = buildLogEntries(searchResponse);
+                // Scroll on next results
+                for (; //
+                        searchResponse.getHits().getHits().length > 0
+                                && logEntries.size() < searchResponse.getHits().getTotalHits().value; //
+                        searchResponse = runNextScroll(searchResponse.getScrollId(), keepAlive)) {
+                    // Build log entries
+                    logEntries.addAll(buildLogEntries(searchResponse));
+                }
+            } finally {
+                clearScrollContext(searchResponse);
             }
         } else {
             // return a page -> use a regular search
@@ -182,6 +186,14 @@ public class OpenSearchAuditBackend extends AbstractAuditBackend {
         }
 
         return logEntries;
+    }
+
+    protected void clearScrollContext(SearchResponse response) {
+        if (response != null && response.getScrollId() != null) {
+            ClearScrollRequest closeScrollRequest = new ClearScrollRequest();
+            closeScrollRequest.addScrollId(response.getScrollId());
+            client.clearScroll(closeScrollRequest);
+        }
     }
 
     protected SearchSourceBuilder createSearchRequestSource(MultiExpression predicate, OrderByList orders) {
