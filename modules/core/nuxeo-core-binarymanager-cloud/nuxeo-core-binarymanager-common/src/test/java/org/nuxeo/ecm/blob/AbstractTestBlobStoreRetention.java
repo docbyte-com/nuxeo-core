@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,19 @@
  * limitations under the License.
  *
  * Contributors:
- *     Guillaume RENARD
+ *     Guillaume Renard
  */
-package org.nuxeo.ecm.blob.s3;
+package org.nuxeo.ecm.blob;
 
 import static java.util.Calendar.MILLISECOND;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.awaitility.Awaitility.await;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.api.CoreSession.RETAIN_UNTIL_INDETERMINATE;
-import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
-import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.OFF;
-import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.ON;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.Calendar;
@@ -43,31 +40,20 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.BlacklistComponent;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
-import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.GetObjectLegalHoldResponse;
-import software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus;
-
 /**
- * Requires S3 Object Lock enabled.
- *
- * @since 2025.0
+ * @since 2025.8
  */
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, S3BlobProviderFeature.class })
-@Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-blob-provider-s3-record.xml")
+@Features(CoreFeature.class)
 @BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
-public class TestS3BlobStoreRecordRetainIndeterminate {
+public abstract class AbstractTestBlobStoreRetention<T extends CloudBlobStoreConfiguration, S extends CloudBlobKey<T>> {
 
     @Inject
     protected CoreSession session;
@@ -77,24 +63,23 @@ public class TestS3BlobStoreRecordRetainIndeterminate {
 
     protected DocumentModel doc;
 
-    protected String bucketKey;
+    protected abstract void assertObjectHasLegalHold();
 
-    protected String versionId;
+    protected abstract void assertObjectHasNotLegalHold();
 
-    protected String bucketName;
+    protected abstract void assertRetention(Instant retainUntil);
 
-    protected S3Client amazonS3;
+    protected abstract T getConfig();
 
-    protected void assertObjectLegalHold(ObjectLockLegalHoldStatus expectedStatus) {
-        GetObjectLegalHoldResponse response = amazonS3.getObjectLegalHold(
-                b -> b.bucket(bucketName).key(bucketKey).versionId(versionId));
-        assertEquals(expectedStatus, response.legalHold().status());
-    }
+    protected abstract S getCloudKey();
+
+    protected abstract boolean isRetentionExpired() throws IOException;
+
+    protected abstract void removeLegalHold() throws IOException;
 
     @Before
     public void setUp() {
-        S3BlobProvider blobProvider = (S3BlobProvider) Framework.getService(BlobManager.class).getBlobProvider("test");
-        assumeTrue("Cannot run test without s3 object lock enabled", blobProvider.config.s3RetentionEnabled);
+        assumeTrue("Cannot run test without retention enabled", getConfig().retentionEnabled);
         // Create a document with blob
         doc = session.createDocumentModel("/", "document", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("A retainable content"));
@@ -105,86 +90,98 @@ public class TestS3BlobStoreRecordRetainIndeterminate {
         doc = session.getDocument(doc.getRef());
         ManagedBlob blob = (ManagedBlob) doc.getPropertyValue("file:content");
         assertNotNull(blob);
-        String key = blob.getKey().substring("test:".length());
-        int seppos = key.indexOf(VER_SEP);
-        String objectKey = key.substring(0, seppos);
-        versionId = key.substring(seppos + 1);
-        bucketKey = blobProvider.config.bucketKey(objectKey);
-        amazonS3 = blobProvider.config.amazonS3;
-        bucketName = blobProvider.config.bucketName;
     }
 
     @After
     public void tearDown() {
-        if (amazonS3 != null) {
-            try {
-                // To clean the bucket, wait for retention expired
-                await().atMost(2, SECONDS)
-                       .pollInterval(200, MILLISECONDS)
-                       .until(() -> Instant.now()
-                                           .isAfter(amazonS3.getObjectRetention(
-                                                   b -> b.bucket(bucketName).key(bucketKey).versionId(versionId))
-                                                            .retention()
-                                                            .retainUntilDate()));
-                // and remove hold
-                amazonS3.putObjectLegalHold(
-                        pb -> pb.bucket(bucketName).key(bucketKey).versionId(versionId).legalHold(b -> b.status(OFF)));
-            } catch (SdkException e) {
-                // Never mind
-            }
+        try {
+            // remove hold
+            removeLegalHold();
+            // to clean the bucket, wait for retention expired
+            await().atMost(2, SECONDS).pollInterval(200, MILLISECONDS).until(this::isRetentionExpired);
+
+        } catch (IOException e) {
+            // Never mind
         }
+    }
+
+    @Test
+    public void testRetainUntilShortWhileAndExtend() {
+        Calendar retainShortWhile = Calendar.getInstance();
+        retainShortWhile.add(MILLISECOND, 500);
+        session.setRetainUntil(doc.getRef(), retainShortWhile, null);
+        txFeature.nextTransaction();
+        assertRetention(retainShortWhile.toInstant());
+
+        // Extend retention expiration date
+        Calendar retainLongerWhile = Calendar.getInstance();
+        retainLongerWhile.add(MILLISECOND, 500);
+        session.setRetainUntil(doc.getRef(), retainLongerWhile, null);
+        txFeature.nextTransaction();
+        assertRetention(retainLongerWhile.toInstant());
+    }
+
+    @Test
+    public void testLegalHoldUnHold() {
+        session.setLegalHold(doc.getRef(), true, null);
+        txFeature.nextTransaction();
+        assertObjectHasLegalHold();
+
+        session.setLegalHold(doc.getRef(), false, null);
+        txFeature.nextTransaction();
+        assertObjectHasNotLegalHold();
     }
 
     @Test
     public void testRetainUntilIndeterminate() {
         session.setRetainUntil(doc.getRef(), RETAIN_UNTIL_INDETERMINATE, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON);
+        assertObjectHasLegalHold();
 
         Calendar retainShortWhile = Calendar.getInstance();
         retainShortWhile.add(MILLISECOND, 500);
         session.setRetainUntil(doc.getRef(), retainShortWhile, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(OFF);
+        assertObjectHasNotLegalHold();
     }
 
     @Test
     public void testRetainUntilIndeterminateAndHold() {
         session.setRetainUntil(doc.getRef(), RETAIN_UNTIL_INDETERMINATE, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON);
+        assertObjectHasLegalHold();
 
-        session.setLegalHold(doc.getRef(), true, bucketKey);
+        session.setLegalHold(doc.getRef(), true, null);
         txFeature.nextTransaction();
 
         Calendar retainShortWhile = Calendar.getInstance();
         retainShortWhile.add(MILLISECOND, 500);
         session.setRetainUntil(doc.getRef(), retainShortWhile, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON);
+        assertObjectHasLegalHold();
     }
 
     @Test
     public void testRetainUntilIndeterminateHoldAndUnhold() {
         session.setRetainUntil(doc.getRef(), RETAIN_UNTIL_INDETERMINATE, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON);
+        assertObjectHasLegalHold();
 
         // explicitly set legal hold (including at repository level)
-        session.setLegalHold(doc.getRef(), true, bucketKey);
+        session.setLegalHold(doc.getRef(), true, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON);
+        assertObjectHasLegalHold();
 
         // explicitly unset legal hold (including at repository level)
-        session.setLegalHold(doc.getRef(), false, bucketKey);
+        session.setLegalHold(doc.getRef(), false, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(ON); // due to retention indeterminate
+        assertObjectHasLegalHold(); // due to retention indeterminate
 
         Calendar retainShortWhile = Calendar.getInstance();
         retainShortWhile.add(MILLISECOND, 500);
         session.setRetainUntil(doc.getRef(), retainShortWhile, null);
         txFeature.nextTransaction();
-        assertObjectLegalHold(OFF);
+        assertObjectHasNotLegalHold();
     }
 
 }

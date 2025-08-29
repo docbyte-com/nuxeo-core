@@ -18,8 +18,6 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -159,19 +157,10 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
      */
     public long lengthOfBlob(ManagedBlob blob) throws IOException {
         String key = stripBlobKeyPrefix(blob.getKey());
-        String objectKey;
-        String versionId;
-        int seppos = key.indexOf(VER_SEP);
-        if (seppos < 0) {
-            objectKey = key;
-            versionId = null;
-        } else {
-            objectKey = key.substring(0, seppos);
-            versionId = key.substring(seppos + 1);
-        }
+        var s3Key = new S3BlobKey(config, key);
         try {
             return config.amazonS3.headObject(
-                    b -> b.bucket(config.bucketName).key(config.bucketKey(objectKey)).versionId(versionId))
+                    b -> b.bucket(config.bucketName).key(s3Key.bucketKey()).versionId(s3Key.versionId()))
                                   .contentLength();
         } catch (SdkException e) {
             if (S3BlobStore.isMissingKey(e)) {
@@ -189,31 +178,29 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         if (hint != BlobManager.UsageHint.DOWNLOAD || !config.directDownload) {
             return null;
         }
-        String bucketKey = config.bucketKey(stripBlobKeyPrefix(blob.getKey()));
+        var s3Key = new S3BlobKey(config, stripBlobKeyPrefix(blob.getKey()));
         long expiresMs = config.directDownloadExpire * 1000;
         try {
             if (config.cloudFront.enabled) {
-                return getURICloudFront(bucketKey, blob, Instant.ofEpochMilli(expiresMs), servletRequest);
+                return getURICloudFront(s3Key, blob, Instant.ofEpochMilli(expiresMs), servletRequest);
             } else {
-                return getURIS3(bucketKey, blob, Duration.ofMillis(expiresMs), servletRequest);
+                return getURIS3(s3Key, blob, Duration.ofMillis(expiresMs), servletRequest);
             }
         } catch (URISyntaxException e) {
             throw new IOException(e);
         }
     }
 
-    protected URI getURICloudFront(String bucketKey, ManagedBlob blob, Instant expiration,
+    protected URI getURICloudFront(S3BlobKey s3Key, ManagedBlob blob, Instant expiration,
             HttpServletRequest servletRequest) throws URISyntaxException {
-        String[] parts = bucketKey.split(String.valueOf(VER_SEP));
-        bucketKey = parts[0];
         CloudFrontConfiguration cloudFront = config.cloudFront;
         String protocol = cloudFront.protocol;
         String baseURI = "http".equals(protocol) || "https".equals(protocol)
-                ? protocol + "://" + cloudFront.distributionDomain + "/" + bucketKey
-                : bucketKey;
+                ? protocol + "://" + cloudFront.distributionDomain + "/" + s3Key.bucketKey()
+                : s3Key.bucketKey();
         URIBuilder uriBuilder = new URIBuilder(baseURI);
-        if (parts.length > 1) {
-            uriBuilder.addParameter("versionId", parts[1]);
+        if (s3Key.isVersioned()) {
+            uriBuilder.addParameter("versionId", s3Key.versionId());
         }
         uriBuilder.addParameter("response-content-type", getContentTypeHeader(blob));
         uriBuilder.addParameter("response-content-disposition", getContentDispositionHeader(blob, servletRequest));
@@ -247,10 +234,9 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         }
     }
 
-    protected URI getURIS3(String bucketKey, ManagedBlob blob, Duration expiration, HttpServletRequest servletRequest)
+    protected URI getURIS3(S3BlobKey s3Key, ManagedBlob blob, Duration expiration, HttpServletRequest servletRequest)
             throws URISyntaxException {
         // split version id if part of file key
-        String[] parts = bucketKey.split(String.valueOf(VER_SEP));
         S3Presigner.Builder s3Presignerbuilder = S3Presigner.builder()
                                                             .credentialsProvider(config.awsCredentialsProvider)
                                                             .region(config.region);
@@ -260,11 +246,11 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
         try (S3Presigner presigner = s3Presignerbuilder.build()) {
             var presignRequest = GetObjectPresignRequest.builder().signatureDuration(expiration).getObjectRequest(b -> {
                 b.bucket(config.bucketName)
-                 .key(parts[0])
+                 .key(s3Key.bucketKey())
                  .responseContentDisposition(getContentDispositionHeader(blob, servletRequest))
                  .responseContentType(getContentTypeHeader(blob));
-                if (parts.length > 1) {
-                    b.versionId(parts[1]);
+                if (s3Key.isVersioned()) {
+                    b.versionId(s3Key.versionId());
                 }
             }).build();
             return presigner.presignGetObject(presignRequest).url().toURI();
@@ -286,17 +272,10 @@ public class S3BlobProvider extends BlobStoreBlobProvider implements S3ManagedTr
     @Override
     public BlobStatus getStatus(ManagedBlob blob) throws IOException {
         String key = stripBlobKeyPrefix(blob.getKey());
-        String objectKey;
-        int seppos = key.indexOf(VER_SEP);
-        if (seppos < 0) {
-            objectKey = key;
-        } else {
-            objectKey = key.substring(0, seppos);
-        }
-        String bucketKey = config.bucketKey(objectKey);
+        var s3Key = new S3BlobKey(config, key);
         HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
                                                                .bucket(config.bucketName)
-                                                               .key(bucketKey)
+                                                               .key(s3Key.bucketKey())
                                                                .build();
         try {
             HeadObjectResponse response = config.amazonS3.headObject(headObjectRequest);

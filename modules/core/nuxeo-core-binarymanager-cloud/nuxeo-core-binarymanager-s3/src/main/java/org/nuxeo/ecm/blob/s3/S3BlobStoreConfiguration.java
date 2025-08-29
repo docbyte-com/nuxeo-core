@@ -306,7 +306,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * Is Object Lock feature enabled at s3 level.
      *
      * @since 2021.13
+     * @deprecated since 2025.8, use {@link CloudBlobStoreConfiguration#retentionEnabled} instead
      */
+    @Deprecated(since = "2025.8", forRemoval = true)
     public final boolean s3RetentionEnabled;
 
     /**
@@ -410,8 +412,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         encryptClients();
         if (Boolean.parseBoolean(properties.get(RECORD))) {
             retentionMode = computeBucketRetentionMode();
-            s3RetentionEnabled = retentionMode != null;
-            if (!s3RetentionEnabled) {
+            retentionEnabled = retentionMode != null;
+            if (!retentionEnabled) {
                 log.warn("Blob provider is configured for records but retention is not enabled on s3 bucket {}",
                         bucketName);
             } else {
@@ -419,8 +421,11 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             }
         } else {
             retentionMode = null;
-            s3RetentionEnabled = false;
+            retentionEnabled = false;
         }
+        // For compat
+        s3RetentionEnabled = retentionEnabled;
+
         transferManager = createTransferManager();
     }
 
@@ -839,7 +844,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     /** @deprecated since 2023.0, unused */
     @Deprecated(since = "2023.0")
     protected boolean isS3RetentionEnabled() {
-        return s3RetentionEnabled;
+        return retentionEnabled;
     }
 
 }
