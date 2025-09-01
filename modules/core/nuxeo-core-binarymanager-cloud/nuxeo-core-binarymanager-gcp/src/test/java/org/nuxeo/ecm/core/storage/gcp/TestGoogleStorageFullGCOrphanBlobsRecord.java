@@ -18,24 +18,15 @@
  */
 package org.nuxeo.ecm.core.storage.gcp;
 
-import org.junit.Test;
-import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobs;
+import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobsRecord;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 /**
- * @since 2023.5
+ * @since 2025.8
  */
 @Features(GoogleStorageBlobProviderFeature.class)
-public class TestGoogleStorageFullGCOrphanBlobs extends AbstractTestFullGCOrphanBlobs {
-
-    @Override
-    public int getNbFiles() {
-        return 2;
-    }
-
-    @Test
-    public void testGCBlobsAction() {
-        testGCBlobsAction(false);
-    }
+@Deploy("org.nuxeo.ecm.core.storage.gcp.tests:OSGI-INF/test-google-storage-record.xml")
+public class TestGoogleStorageFullGCOrphanBlobsRecord extends AbstractTestFullGCOrphanBlobsRecord {
 
 }

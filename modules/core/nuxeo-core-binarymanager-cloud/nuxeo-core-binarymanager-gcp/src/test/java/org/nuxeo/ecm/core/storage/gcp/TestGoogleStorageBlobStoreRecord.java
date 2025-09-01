@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,28 +14,19 @@
  * limitations under the License.
  *
  * Contributors:
- *     Guillaume Renard
+ *     Florent Guillaume
  */
 package org.nuxeo.ecm.core.storage.gcp;
 
-import org.junit.Test;
-import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobs;
+import org.nuxeo.ecm.core.blob.TestAbstractBlobStoreRecord;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 /**
- * @since 2023.5
+ * @since 2025.8
  */
 @Features(GoogleStorageBlobProviderFeature.class)
-public class TestGoogleStorageFullGCOrphanBlobs extends AbstractTestFullGCOrphanBlobs {
-
-    @Override
-    public int getNbFiles() {
-        return 2;
-    }
-
-    @Test
-    public void testGCBlobsAction() {
-        testGCBlobsAction(false);
-    }
+@Deploy("org.nuxeo.ecm.core.storage.gcp.tests:OSGI-INF/test-google-storage-record.xml")
+public class TestGoogleStorageBlobStoreRecord extends TestAbstractBlobStoreRecord {
 
 }
