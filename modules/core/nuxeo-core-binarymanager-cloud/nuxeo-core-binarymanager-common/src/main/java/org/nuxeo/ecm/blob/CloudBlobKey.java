@@ -21,7 +21,7 @@ package org.nuxeo.ecm.blob;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
 /**
- * Interface to map Nuxeo blob keys to Cloud Storage provider object keys with convenient methods to extract the object
+ * Interface to map Nuxeo blob keys to Cloud Storage Provider object keys with convenient methods to extract the object
  * version id if any.
  *
  * @since 2025.8
@@ -46,7 +46,7 @@ public interface CloudBlobKey<T extends CloudBlobStoreConfiguration> {
     T config();
 
     /**
-     * Is the Nuxeo blob key prefixed.
+     * Is the Nuxeo blob key versioned.
      */
     default boolean isVersioned() {
         return key().indexOf(VER_SEP) > 0;

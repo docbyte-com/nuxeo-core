@@ -1369,7 +1369,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
     }
 
     protected static void notifySetLegalHold(Document doc, boolean hold) {
-        if (hold || (doc.getRetainUntil() != null && RETAIN_UNTIL_INDETERMINATE.compareTo(doc.getRetainUntil()) != 0)) {
+        if (hold || doc.getRetainUntil() == null || RETAIN_UNTIL_INDETERMINATE.compareTo(doc.getRetainUntil()) != 0) {
             getDocumentBlobManager().notifySetLegalHold(doc, hold);
         }
     }
