@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 import io.dropwizard.metrics5.Counter;
+import io.dropwizard.metrics5.MetricName;
 import io.dropwizard.metrics5.MetricRegistry;
 import io.dropwizard.metrics5.SharedMetricRegistries;
 import io.dropwizard.metrics5.jvm.BufferPoolMetricSet;
@@ -139,23 +140,24 @@ public class MetricsServiceImpl extends DefaultComponent implements MetricsServi
         reporterConfigs = null;
     }
 
-    protected void updateInstrumentation(List<MetricsConfigurationDescriptor.InstrumentDescriptor> instruments, boolean activate) {
+    protected void updateInstrumentation(List<MetricsConfigurationDescriptor.InstrumentDescriptor> instruments,
+            boolean activate) {
         for (String instrument : instruments.stream()
                                             .filter(MetricsConfigurationDescriptor.InstrumentDescriptor::isEnabled)
                                             .map(MetricsConfigurationDescriptor.InstrumentDescriptor::getId)
                                             .collect(Collectors.toList())) {
             switch (instrument) {
-            case "log4j":
-                instrumentLog4j(activate);
-                break;
-            case "tomcat":
-                instrumentTomcat(activate);
-                break;
-            case "jvm":
-                instrumentJvm(activate);
-                break;
-            default:
-                log.warn("Ignoring unknown instrumentation: " + instrument);
+                case "log4j":
+                    instrumentLog4j(activate);
+                    break;
+                case "tomcat":
+                    instrumentTomcat(activate);
+                    break;
+                case "jvm":
+                    instrumentJvm(activate);
+                    break;
+                default:
+                    log.warn("Ignoring unknown instrumentation: " + instrument);
             }
         }
     }
@@ -219,11 +221,12 @@ public class MetricsServiceImpl extends DefaultComponent implements MetricsServi
 
     protected void instrumentJvm(boolean activate) {
         if (activate) {
-            registry.register("jvm.memory", new MemoryUsageGaugeSet());
-            registry.register("jvm.garbage", new GarbageCollectorMetricSet());
-            registry.register("jvm.threads", new ThreadStatesGaugeSet());
-            registry.register("jvm.files", new FileDescriptorRatioGauge());
-            registry.register("jvm.buffers", new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
+            registry.register(MetricName.build("jvm.memory"), new MemoryUsageGaugeSet());
+            registry.register(MetricName.build("jvm.garbage"), new GarbageCollectorMetricSet());
+            registry.register(MetricName.build("jvm.threads"), new ThreadStatesGaugeSet());
+            registry.register(MetricName.build("jvm.files"), new FileDescriptorRatioGauge());
+            registry.register(MetricName.build("jvm.buffers"),
+                    new BufferPoolMetricSet(ManagementFactory.getPlatformMBeanServer()));
         } else {
             registry.removeMatching((name, metric) -> name.getKey().startsWith("jvm."));
         }

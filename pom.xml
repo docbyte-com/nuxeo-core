@@ -76,6 +76,7 @@
     <guice.version>7.0.0</guice.version>
     <jersey.version>3.1.11</jersey.version>
     <chemistry.opencmis.version>2.0.0</chemistry.opencmis.version>
+    <apache.httpasyncclient.version>4.1.5</apache.httpasyncclient.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
     <apache.poi.version>5.4.1</apache.poi.version>
@@ -142,7 +143,7 @@
 
     <kafka.version>3.9.1</kafka.version>
     <confluent.version>7.9.2</confluent.version>
-    <metrics.version>5.0.0</metrics.version>
+    <metrics.version>5.0.4</metrics.version>
     <amqp.client.version>5.26.0</amqp.client.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.16.0</prometheus.client.version>
@@ -2482,6 +2483,11 @@
         <groupId>commons-httpclient</groupId>
         <artifactId>commons-httpclient</artifactId>
         <version>3.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents</groupId>
+        <artifactId>httpasyncclient</artifactId>
+        <version>${apache.httpasyncclient.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.httpcomponents</groupId>

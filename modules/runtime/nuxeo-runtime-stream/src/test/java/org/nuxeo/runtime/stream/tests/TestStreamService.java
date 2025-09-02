@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -226,7 +226,8 @@ public class TestStreamService {
     public void testStreamMetrics() {
         // before running the stream metrics computation no stream metrics are registered
         MetricRegistry registry = SharedMetricRegistries.getOrCreate(NUXEO_METRICS_REGISTRY_NAME);
-        SortedMap<MetricName, Gauge> gauges = registry.getGauges((name, metric) -> name.getKey().startsWith("nuxeo.streams.global"));
+        SortedMap<MetricName, Gauge<?>> gauges = registry.getGauges(
+                (name, metric) -> name.getKey().startsWith("nuxeo.streams.global"));
         assertTrue(gauges.isEmpty());
 
         // create a stream metrics computation

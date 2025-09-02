@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ public class NuxeoMetricSet implements MetricSet {
     }
 
     public NuxeoMetricSet(String name, String... names) {
-        this(MetricName.join(MetricName.build(name), MetricName.build(names)));
+        this(MetricName.build(name).resolve(names));
     }
 
     public NuxeoMetricSet(MetricName name) {
@@ -65,7 +65,7 @@ public class NuxeoMetricSet implements MetricSet {
     }
 
     public <T> void putGauge(Gauge<T> gauge, String name, String... names) {
-        metrics.put(MetricName.join(prefixName.resolve(name), MetricName.build(names)), gauge);
+        metrics.put(prefixName.resolve(name).resolve(names), gauge);
     }
 
     @Override
