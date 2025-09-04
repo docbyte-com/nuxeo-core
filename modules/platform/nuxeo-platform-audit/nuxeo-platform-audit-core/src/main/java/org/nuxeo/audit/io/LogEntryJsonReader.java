@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,9 +92,7 @@ public class LogEntryJsonReader extends EntityJsonReader<LogEntry> {
             for (var entry : extendedNode.properties()) {
                 var entryNode = entry.getValue();
                 var extendedValue = readExtendedEntity(entryNode);
-                if (extendedValue != null) {
-                    logEntryBuilder.extended(entry.getKey(), extendedValue);
-                }
+                logEntryBuilder.extended(entry.getKey(), extendedValue);
             }
         }
         return logEntryBuilder.build();

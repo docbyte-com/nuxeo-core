@@ -20,13 +20,16 @@ package org.nuxeo.audit.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_CATEGORY;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_PATH;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_DOC_UUID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_DATE;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
 import static org.nuxeo.audit.service.AuditBackend.Capability.STARTS_WITH_PARTIAL_MATCH;
+import static org.nuxeo.ecm.core.query.sql.model.Predicates.eq;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -261,5 +264,28 @@ public class TestAuditBackend {
                                        .and(Predicates.isnotnull(extendedNumberField))
                                        .and(Predicates.gt(extendedNumberField, 2)));
         assertEquals(2, logs.size());
+    }
+
+    // NXP-30511
+    @Test
+    public void testSupportNullExtendedInfos() {
+        var logEntry = LogEntry.builder("documentModified", new Date())
+                               .category("cat")
+                               .docUUID("testSupportNullExtendedInfos")
+                               .repositoryId("test")
+                               .extended("nullValue", null)
+                               .build();
+        backend.addLogEntries(List.of(logEntry));
+
+        transactionalFeature.nextTransaction();
+
+        var logEntries = backend.queryLogs(
+                new AuditQueryBuilder().predicate(eq(LOG_DOC_UUID, "testSupportNullExtendedInfos"))
+                                       .and(eq(LOG_EVENT_ID, "documentModified")));
+        assertEquals(1, logEntries.size());
+        var queriedLogEntry = logEntries.getFirst();
+        var extended = queriedLogEntry.getExtended();
+        assertTrue("ExtendedInfo should exist", extended.containsKey("nullValue"));
+        assertNull("ExtendedInfo value should be null", extended.get("nullValue"));
     }
 }

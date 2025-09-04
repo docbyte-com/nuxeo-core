@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,6 +36,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.commons.lang3.BooleanUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.io.LogEntryJsonWriter;
@@ -51,6 +53,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @since 9.1
  */
 public class MongoDBAuditEntryWriter {
+
+    private static final Logger log = LogManager.getLogger(MongoDBAuditEntryWriter.class);
 
     /**
      * Framework properties to write extended info that are JSON content as object and not string. Default to true.
@@ -80,19 +84,17 @@ public class MongoDBAuditEntryWriter {
         for (Entry<String, Object> entry : extendedInfo.entrySet()) {
             String key = entry.getKey();
             Object value = entry.getValue();
-            if (value instanceof Object[] array) {
-                value = Arrays.asList(array);
-            } else if (BooleanUtils.toBoolean(Framework.getProperty(EXTENDED_INFO_JSON_AS_OBJECT, "true"))
-                    && value instanceof String string && LogEntryJsonWriter.isJsonContent(string)) {
-                try {
+            try {
+                if (value instanceof Object[] array) {
+                    value = Arrays.asList(array);
+                } else if (BooleanUtils.toBoolean(Framework.getProperty(EXTENDED_INFO_JSON_AS_OBJECT, "true"))
+                        && value instanceof String string && LogEntryJsonWriter.isJsonContent(string)) {
                     value = MAPPER.readValue(string, Map.class);
-                } catch (JsonProcessingException e) {
-                    // ignore invalid JSON content, same behavior than LogEntryJsonWriter
-                    value = null;
                 }
-            }
-            if (value != null) {
                 extended.put(key, value);
+            } catch (JsonProcessingException e) {
+                // ignore invalid JSON content, same behavior than LogEntryJsonWriter
+                log.debug("Unable to parse extended value for key: {}", key, e);
             }
         }
         document.put(LOG_EXTENDED, extended);
