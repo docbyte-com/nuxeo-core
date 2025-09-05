@@ -104,7 +104,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     @Override
     public void clear() {
-        for (Blob blob : bucket.list().iterateAll()) {
+        for (Blob blob : bucket.list(BlobListOption.prefix(bucketPrefix)).iterateAll()) {
             blob.delete();
         }
     }
