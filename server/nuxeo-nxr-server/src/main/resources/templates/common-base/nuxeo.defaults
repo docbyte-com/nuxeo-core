@@ -134,6 +134,8 @@ nuxeo.search.stream.indexingAsync.defaultPartitions=8
 nuxeo.search.stream.reindexing.defaultConcurrency=${nuxeo.bulk.action.reindex.index.concurrency:=4}
 nuxeo.search.stream.reindexing.defaultPartitions=${nuxeo.bulk.action.reindex.index.partitions:=8}
 
+nuxeo.search.default.fulltext.size.max=${elasticsearch.fulltext.size.max:=-1}
+
 nuxeo.search.client.default.name=repository
 nuxeo.search.client.default.scroller.index.name=repository
 
