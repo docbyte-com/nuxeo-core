@@ -42,9 +42,24 @@ public interface SearchIndexingService {
     /**
      * Internal: reindex documents of the given repository according to the given NXQL query.
      *
+     * @param repository the repository name
+     * @param nxql the NXQL query
      * @return the bulk command id in charge of reindexing
      */
-    String reindexDocuments(String repository, String nxql);
+    default String reindexDocuments(String repository, String nxql) {
+        return reindexDocuments(repository, nxql, -1);
+    }
+
+    /**
+     * Internal: reindex documents of the given repository according to the given NXQL query using a limit.
+     *
+     * @since 2025.8
+     * @param repository the repository name
+     * @param nxql the NXQL query
+     * @param queryLimit limit applied to the number of documents to index, -1 for no limit
+     * @return the bulk command id in charge of reindexing
+     */
+    String reindexDocuments(String repository, String nxql, long queryLimit);
 
     /**
      * Refreshes an index so newly indexed documents are searchable.

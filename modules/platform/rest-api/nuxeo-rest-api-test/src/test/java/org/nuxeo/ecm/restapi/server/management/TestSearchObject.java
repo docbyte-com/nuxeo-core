@@ -126,6 +126,21 @@ public class TestSearchObject extends ManagementBaseTest {
     }
 
     @Test
+    public void shouldRunIndexingWithQueryLimit() {
+        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
+
+        // Create new documents without indexing them
+        createDocuments();
+
+        String query = "SELECT * FROM Document'";
+        // Start the ES indexing of document that match the nxql query (2 files)
+        httpClient.buildPostRequest("/management/search/reindex")
+                  .addQueryParameter("query", query)
+                  .addQueryParameter("queryLimit", "2")
+                  .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 2));
+    }
+
+    @Test
     public void testCheckSearch() {
         httpClient.buildGetRequest("/management/search/checkSearch")
                   .executeAndConsume(new JsonNodeHandler(), jsonNode -> {

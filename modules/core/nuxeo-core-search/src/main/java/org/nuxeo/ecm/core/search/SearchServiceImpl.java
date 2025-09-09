@@ -296,14 +296,18 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     @Override
-    public String reindexDocuments(String repository, String nxql) {
-        log.debug("Reindexing repository: {} with nxql: {}", repository, nxql);
+    public String reindexDocuments(String repository, String nxql, long queryLimit) {
+        log.debug("Reindexing repository: {} with nxql: {}, limit: {}", repository, nxql, queryLimit);
         BulkService bulkService = Framework.getService(BulkService.class);
-        String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
-                nxql, SYSTEM_USERNAME).repository(repository).build());
+        var builder = new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
+                nxql, SYSTEM_USERNAME).repository(repository);
+        if (queryLimit > 0) {
+            builder.queryLimit(queryLimit);
+        }
+        String commandId = bulkService.submit(builder.build());
         var searchIndexes = getIndexNames(repository);
-        log.warn("Reindexing documents on repository: {} using {}, with bulk command: {} on indexes: {}", repository,
-                nxql, commandId, searchIndexes);
+        log.warn("Reindexing documents on repository: {} using: {}{}, with bulk command: {} on indexes: {}", repository,
+                nxql, queryLimit > 0 ? " limit: " + queryLimit : "", commandId, searchIndexes);
         return commandId;
     }
 
