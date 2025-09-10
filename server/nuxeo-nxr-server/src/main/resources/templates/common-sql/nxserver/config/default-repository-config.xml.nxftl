@@ -2,6 +2,8 @@
 <?xml version="1.0"?>
 <component name="default-repository-config">
 
+  <#if "${nuxeo.mongodb.server}" == "">
+
   <extension target="org.nuxeo.runtime.datasource" point="datasources">
     <link name="jdbc/repository_default" global="${nuxeo.db.commonds}" type="javax.sql.DataSource" />
   </extension>
@@ -102,6 +104,6 @@
 </#if>
     </repository>
   </extension>
-
+</#if>
 </component>
 </#escape>
