@@ -24,7 +24,7 @@ import static org.nuxeo.lib.stream.codec.NoCodec.NO_CODEC;
 
 import java.util.EnumSet;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

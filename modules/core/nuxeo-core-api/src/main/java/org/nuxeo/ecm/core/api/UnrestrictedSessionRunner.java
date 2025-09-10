@@ -21,6 +21,7 @@ package org.nuxeo.ecm.core.api;
 
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.NuxeoLoginContext;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * Helper class to run code with an unrestricted session.
@@ -124,6 +125,9 @@ public abstract class UnrestrictedSessionRunner {
             } finally {
                 session = baseSession;
             }
+        } catch (Exception e) {
+            TransactionHelper.setTransactionRollbackOnly();
+            throw e;
         } finally {
             isUnrestricted = false;
         }

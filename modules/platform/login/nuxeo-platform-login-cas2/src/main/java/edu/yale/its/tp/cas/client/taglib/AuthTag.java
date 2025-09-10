@@ -32,15 +32,24 @@
 
 package edu.yale.its.tp.cas.client.taglib;
 
-import java.io.*;
-import java.util.*;
-import javax.servlet.*;
-import javax.servlet.http.*;
-import javax.servlet.jsp.*;
-import javax.servlet.jsp.tagext.*;
-import edu.yale.its.tp.cas.client.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.jsp.JspException;
+import jakarta.servlet.jsp.JspTagException;
+import jakarta.servlet.jsp.PageContext;
+import jakarta.servlet.jsp.tagext.TagSupport;
+
 import org.xml.sax.SAXException;
+
+import edu.yale.its.tp.cas.client.ProxyTicketValidator;
+import edu.yale.its.tp.cas.client.Util;
 
 /**
  * <p>
@@ -202,8 +211,8 @@ public class AuthTag extends TagSupport {
     // *********************************************************************
     // Utility methods
 
-    private String getAuthenticatedNetid(String ticket) throws ParserConfigurationException, SAXException, IOException,
-            JspTagException {
+    private String getAuthenticatedNetid(String ticket)
+            throws ParserConfigurationException, SAXException, IOException, JspTagException {
         ProxyTicketValidator pv = new ProxyTicketValidator();
         pv.setCasValidateUrl(casValidate);
         pv.setServiceTicket(ticket);

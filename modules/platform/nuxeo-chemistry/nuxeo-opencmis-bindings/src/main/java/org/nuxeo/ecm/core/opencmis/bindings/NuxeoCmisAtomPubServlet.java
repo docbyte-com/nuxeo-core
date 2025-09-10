@@ -24,16 +24,16 @@ package org.nuxeo.ecm.core.opencmis.bindings;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.server.impl.atompub.AbstractAtomPubServiceCall;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.shared.Dispatcher;
 import org.apache.chemistry.opencmis.server.shared.ExceptionHelper;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.opencmis.bindings.NuxeoCmisErrorHelper.ErrorInfo;
@@ -49,8 +49,8 @@ public class NuxeoCmisAtomPubServlet extends CmisAtomPubServlet {
     private static final Logger log = LogManager.getLogger(NuxeoCmisAtomPubServlet.class);
 
     @Override
-    protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void service(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
         String baseUrl = VirtualHostHelper.getBaseURL(request);
         if (baseUrl != null) {
             baseUrl = StringUtils.stripEnd(baseUrl, "/") + request.getServletPath() + "/"
@@ -87,9 +87,7 @@ public class NuxeoCmisAtomPubServlet extends CmisAtomPubServlet {
 
             PrintWriter pw = response.getWriter();
 
-            pw.print("<html><head><title>Apache Chemistry OpenCMIS - "
-                    + errorInfo.exceptionName
-                    + " error</title>"
+            pw.print("<html><head><title>Apache Chemistry OpenCMIS - " + errorInfo.exceptionName + " error</title>"
                     + "<style><!--H1 {font-size:24px;line-height:normal;font-weight:bold;background-color:#f0f0f0;color:#003366;border-bottom:1px solid #3c78b5;padding:2px;} "
                     + "BODY {font-family:Verdana,arial,sans-serif;color:black;font-size:14px;} "
                     + "HR {color:#3c78b5;height:1px;}--></style></head><body>");

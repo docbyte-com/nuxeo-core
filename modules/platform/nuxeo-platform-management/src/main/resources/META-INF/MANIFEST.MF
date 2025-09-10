@@ -11,9 +11,7 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Nuxeo-Component: OSGI-INF/platform-management-component.xml,
  OSGI-INF/platform-management-adapters.xml
-Import-Package: javax.annotation;version="1.0",
- javax.servlet.http,
- org.apache.commons.lang,
+Import-Package: org.apache.commons.lang,
  org.apache.commons.logging,
  org.nuxeo.common.xmap.annotation,
  org.nuxeo.ecm.core,

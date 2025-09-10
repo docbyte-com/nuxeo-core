@@ -20,8 +20,7 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling.service;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * Request dumper returning nothing.

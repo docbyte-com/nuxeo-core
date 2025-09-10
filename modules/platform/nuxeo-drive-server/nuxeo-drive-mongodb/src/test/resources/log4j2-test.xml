@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Configuration>
-  <Loggers>
-    <Logger name="org.nuxeo.mongodb" level="trace" />
-    <Logger name="org.nuxeo.drive" level="trace" />
-  </Loggers>
-</Configuration>

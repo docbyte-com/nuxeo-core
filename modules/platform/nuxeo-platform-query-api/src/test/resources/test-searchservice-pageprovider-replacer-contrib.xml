@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider.replacer.test">
+
+  <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="replacers">
+
+    <replacer withClass="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider">
+      <provider>CURRENT_DOCUMENT_CHILDREN</provider>
+      <provider>CURRENT_DOCUMENT_CHILDREN_WITH_SEARCH_DOCUMENT</provider>
+      <provider>CUSTOM_SELECT_STATEMENT</provider>
+      <provider>TEST_IN</provider>
+      <provider>TEST_IN_INTEGERS</provider>
+      <provider>TEST_NOT_IN_INTEGERS</provider>
+      <provider>PREDICATE_WITH_HINT</provider>
+      <provider>DUMMY_FETCH_DOCUMENTS</provider>
+      <provider>DUMMY_NOT_ILIKE_PP</provider>
+      <provider>nxql_search</provider>
+      <provider>namedParamProvider</provider>
+      <provider>namedParamProviderInvalid</provider>
+      <provider>namedParamProviderWithDoc</provider>
+      <provider>namedParamProviderWithDocInvalid</provider>
+      <provider>namedParamProviderWithList</provider>
+      <provider>namedParamProviderWithWhereClause</provider>
+      <provider>namedParamProviderComplex</provider>
+    </replacer>
+
+  </extension>
+
+</component>

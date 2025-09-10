@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.automation.test.operation.multi.repo.test">
+
+  <extension point="operations" target="org.nuxeo.ecm.core.operation.OperationServiceComponent">
+    <operation class="org.nuxeo.ecm.automation.server.test.MultiRepositoryDummyOperation" />
+  </extension>
+
+</component>

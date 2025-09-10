@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,7 @@ import org.nuxeo.ecm.platform.publisher.rules.ValidatorsRuleDescriptor;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -86,6 +87,12 @@ public class PublisherServiceImpl extends DefaultComponent implements PublisherS
     protected static final String ROOT_PATH_KEY = "RootPath";
 
     protected static final String RELATIVE_ROOT_PATH_KEY = "RelativeRootPath";
+
+    @Override
+    public int getApplicationStartedOrder() {
+        // start after PageProviderService as we're using it in DomainsFinder
+        return ComponentStartOrders.PAGE_PROVIDER + 100;
+    }
 
     @Override
     public void start(ComponentContext context) {
@@ -188,9 +195,7 @@ public class PublisherServiceImpl extends DefaultComponent implements PublisherS
 
     @Override
     public List<String> getAvailablePublicationTree() {
-        List<String> treeConfigs = new ArrayList<>();
-        treeConfigs.addAll(treeConfigDescriptors.keySet());
-        return treeConfigs;
+        return new ArrayList<>(treeConfigDescriptors.keySet());
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,16 @@ package org.nuxeo.ecm.core.uidgen;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
-import org.nuxeo.runtime.RuntimeMessage.Level;
-import org.nuxeo.runtime.RuntimeMessage.Source;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.model.Extension;
 
@@ -46,10 +46,8 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
 
     public static final String SEQUENCERS_EXTENSION_POINT = "sequencers";
 
-    /**
-     * Extension point is deprecated should be removed - preserved for now only for startup warnings.
-     */
-    public static final String EXTENSION_POINT_SEQUENCER_FACTORY = "sequencerFactory";
+    /** @since 2025.0 */
+    public static final String DEFAULT_SEQUENCER_NAME = "default";
 
     protected final Map<String, UIDGenerator> generators = new HashMap<>();
 
@@ -58,6 +56,11 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
     protected final LinkedHashMap<String, UIDSequencerProviderDescriptor> sequencerContribs = new LinkedHashMap<>();
 
     protected String defaultSequencer;
+
+    @Override
+    public int getApplicationStartedOrder() {
+        return ComponentStartOrders.SEQUENCER;
+    }
 
     @Override
     public void start(ComponentContext context) {
@@ -86,11 +89,6 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
             final Object[] contribs = extension.getContributions();
             registerSequencers(extension, contribs);
             computeDefault();
-        } else if (EXTENSION_POINT_SEQUENCER_FACTORY.equals(extPoint)) {
-            String msg = "UIDSequencer factory no more supported from version 5.4. Faulty component: "
-                    + extension.getComponent();
-            addRuntimeMessage(Level.WARNING, msg, Source.EXTENSION, extension.getComponent().getName().getName());
-            log.error(msg);
         } else {
             log.warn("extension not handled: {}", extPoint);
         }
@@ -118,7 +116,7 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
         String def = null;
         String last = null;
         for (UIDSequencerProviderDescriptor contrib : sequencerContribs.values()) {
-            if (contrib.isIsdefault()) {
+            if (DEFAULT_SEQUENCER_NAME.equals(contrib.getName())) {
                 def = contrib.getName();
             }
             last = contrib.getName();
@@ -262,6 +260,11 @@ public class UIDGeneratorComponent extends DefaultComponent implements UIDGenera
             return adapter.cast(this);
         }
         return null;
+    }
+
+    @Override
+    public List<UIDSequencer> getSequencers() {
+        return List.copyOf(sequencers.values());
     }
 
     @Override

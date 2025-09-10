@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,38 +15,32 @@
  *
  * Contributors:
  *     <a href="mailto:tdelprat@nuxeo.com">Thierry Delprat</a>
- *
- * $Id:
  */
-
 package org.nuxeo.ecm.platform.mail.service.automation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.platform.mail.MailFeature.getSampleMessage;
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.PARENT_PATH_KEY;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.mail.Message;
-import javax.mail.internet.MimeMessage;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.mail.MailFeature;
 import org.nuxeo.ecm.platform.mail.action.ExecutionContext;
 import org.nuxeo.ecm.platform.mail.action.MessageActionPipe;
 import org.nuxeo.ecm.platform.mail.action.Visitor;
@@ -62,13 +56,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author tiry
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(MailFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.mail")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.core.convert")
-@Deploy("org.nuxeo.ecm.core.convert.api")
-@Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.ecm.platform.mail.test:OSGI-INF/nxmail-automation-contrib.xml")
 public class TestMailInjection {
 
@@ -92,7 +81,7 @@ public class TestMailInjection {
         injectEmail("data/test_mail.eml", mailFolder1.getPathAsString());
         DocumentModelList children = session.getChildren(mailFolder1.getRef());
         assertNotNull(children);
-        assertTrue(!children.isEmpty());
+        assertFalse(children.isEmpty());
         assertEquals(1, children.size());
 
         injectEmail("data/test_mail2.eml", mailFolder1.getPathAsString());
@@ -126,16 +115,6 @@ public class TestMailInjection {
         Message[] messages = { getSampleMessage(filePath) };
 
         visitor.visit(messages, initialExecutionContext);
-    }
-
-    @SuppressWarnings("resource") // test
-    private Message getSampleMessage(String filePath) throws Exception {
-        InputStream stream = new FileInputStream(getTestMailSource(filePath));
-        return new MimeMessage(null, stream);
-    }
-
-    private String getTestMailSource(String filePath) {
-        return FileUtils.getResourcePathFromContext(filePath);
     }
 
     private void createMailFolders() {

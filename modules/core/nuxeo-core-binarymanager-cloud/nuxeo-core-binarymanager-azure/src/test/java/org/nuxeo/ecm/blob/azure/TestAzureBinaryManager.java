@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo
  */
-
 package org.nuxeo.ecm.blob.azure;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -34,7 +33,6 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -45,8 +43,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -71,7 +69,7 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
 import org.nuxeo.ecm.core.blob.binary.Binary;
 import org.nuxeo.ecm.core.io.download.DownloadHelper;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.test.ImagingFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -105,7 +103,7 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
 
     private static final Logger log = LogManager.getLogger(TestAzureBinaryManager.class);
 
-    protected static final List<String> PARAMETERS = Arrays.asList(AzureBinaryManager.ACCOUNT_KEY_PROPERTY,
+    protected static final List<String> PARAMETERS = List.of(AzureBinaryManager.ACCOUNT_KEY_PROPERTY,
             AzureBinaryManager.ACCOUNT_NAME_PROPERTY, AzureBinaryManager.CONTAINER_PROPERTY);
 
     protected static Map<String, String> properties = new HashMap<>();
@@ -247,7 +245,7 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
             blobClient.upload(in, 1);
         }
         // check that the files are here
-        assertEquals(new HashSet<>(Arrays.asList(name1, name2)), listAllObjects());
+        assertEquals(new HashSet<>(List.of(name1, name2)), listAllObjects());
         // run base test with the prefix
         super.testBinaryManagerGC();
 
@@ -296,7 +294,7 @@ public class TestAzureBinaryManager extends AbstractTestCloudBinaryManager<Azure
 
         tpe.shutdown();
         assertTrue("ThreadPoolExecutor timeout", tpe.awaitTermination(20, TimeUnit.SECONDS));
-        exceptions.stream().forEach(e -> log.error(e, e));
+        exceptions.forEach(e -> log.error(e, e));
         exceptions.stream().findFirst().ifPresent(e -> fail(e.getMessage()));
     }
 

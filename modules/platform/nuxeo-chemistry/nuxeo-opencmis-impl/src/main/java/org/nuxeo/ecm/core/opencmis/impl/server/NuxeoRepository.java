@@ -71,7 +71,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.chemistry.opencmis.commons.data.ExtensionFeature;
 import org.apache.chemistry.opencmis.commons.data.PermissionMapping;
@@ -168,8 +168,8 @@ public class NuxeoRepository {
             setUseElasticsearch(true);
         }
         FulltextConfiguration fulltextConfiguration = Framework.getService(RepositoryService.class)
-                                                    .getRepository(repositoryId)
-                                                    .getFulltextConfiguration();
+                                                               .getRepository(repositoryId)
+                                                               .getFulltextConfiguration();
         repositoryFulltextSearchDisabled = fulltextConfiguration == null
                 || fulltextConfiguration.fulltextSearchDisabled;
     }
@@ -236,15 +236,21 @@ public class NuxeoRepository {
         // convert the transitive closure for Folder and Document subtypes
         Set<String> done = new HashSet<>();
         TypeManagerImpl typeManager = new TypeManagerImpl();
-        typeManager.addTypeDefinition(NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_DOCUMENT, schemaManager, cmisVersion));
-        typeManager.addTypeDefinition(NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_FOLDER, schemaManager, cmisVersion));
-        typeManager.addTypeDefinition(NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_RELATIONSHIP, schemaManager, cmisVersion));
+        typeManager.addTypeDefinition(
+                NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_DOCUMENT, schemaManager, cmisVersion));
+        typeManager.addTypeDefinition(
+                NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_FOLDER, schemaManager, cmisVersion));
+        typeManager.addTypeDefinition(
+                NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_RELATIONSHIP, schemaManager, cmisVersion));
         if (cmisVersion != CmisVersion.CMIS_1_0) {
-            typeManager.addTypeDefinition(NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_SECONDARY, schemaManager, cmisVersion));
+            typeManager.addTypeDefinition(
+                    NuxeoTypeHelper.constructCmisBase(BaseTypeId.CMIS_SECONDARY, schemaManager, cmisVersion));
         }
-        addTypesRecursively(typeManager, NuxeoTypeHelper.NUXEO_DOCUMENT, typesChildren, done, schemaManager, cmisVersion);
+        addTypesRecursively(typeManager, NuxeoTypeHelper.NUXEO_DOCUMENT, typesChildren, done, schemaManager,
+                cmisVersion);
         addTypesRecursively(typeManager, NuxeoTypeHelper.NUXEO_FOLDER, typesChildren, done, schemaManager, cmisVersion);
-        addTypesRecursively(typeManager, NuxeoTypeHelper.NUXEO_RELATION, typesChildren, done, schemaManager, cmisVersion);
+        addTypesRecursively(typeManager, NuxeoTypeHelper.NUXEO_RELATION, typesChildren, done, schemaManager,
+                cmisVersion);
         if (cmisVersion != CmisVersion.CMIS_1_0) {
             addSecondaryTypes(typeManager, schemaManager, cmisVersion);
         }
@@ -407,7 +413,8 @@ public class NuxeoRepository {
          * Add Nuxeo-specific permissions registered through the permissionsVisibility extension point.
          */
 
-        DefaultPermissionProvider permissionProvider = (DefaultPermissionProvider) Framework.getService(PermissionProvider.class);
+        DefaultPermissionProvider permissionProvider = (DefaultPermissionProvider) Framework.getService(
+                PermissionProvider.class);
         permissionProvider.getUserVisiblePermissionDescriptors(); // init var
         Map<String, PermissionVisibilityDescriptor> map = permissionProvider.mergedPermissionsVisibility;
         // iterate for all types regisited, not just the default ""

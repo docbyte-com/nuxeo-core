@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,12 @@
  */
 package org.nuxeo.ecm.core.storage.sql.kv;
 
-import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.storage.sql.SQLBackendFeature;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.kv.AbstractKeyValueStoreTest;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-@RunWith(FeaturesRunner.class)
-@Features(SQLBackendFeature.class)
-@Deploy("org.nuxeo.runtime.jtajca")
-@Deploy("org.nuxeo.runtime.datasource")
+@Features(DataSourceFeature.class)
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/sql-keyvalue-test-contrib.xml")
 public class TestSQLKeyValueStore extends AbstractKeyValueStoreTest {
 

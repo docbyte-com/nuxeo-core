@@ -20,12 +20,10 @@ package org.nuxeo.ecm.core.lifecycle.event;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETED_STATE;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETE_TRANSITION;
 
 import java.util.Collection;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -188,56 +186,6 @@ public class BulkLifeCycleChangeListenerTest {
         assertEquals("approved", session.getCurrentLifeCycleState(testFile1.getRef()));
         assertEquals("approved", session.getCurrentLifeCycleState(testFile2.getRef()));
         assertEquals("approved", session.getCurrentLifeCycleState(testFile3.getRef()));
-    }
-
-    @Test
-    @Deprecated
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testLifeCycleAPIDelete() {
-        testBulkLifeCycleChangeDelete();
-    }
-
-    /*
-     * NXP-22197
-     */
-    @Test
-    @Deprecated
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    @Deploy("org.nuxeo.ecm.core.test.tests:test-bulk-life-cycle-change-listener-paginate-contrib.xml")
-    @Ignore("NXP-26315")
-    public void testLifeCycleAPIDeletePaginate() {
-        testBulkLifeCycleChangeDelete();
-    }
-
-    @Deprecated
-    protected void testBulkLifeCycleChangeDelete() {
-
-        DocumentModel folderDoc = session.createDocumentModel("/", "testFolder", "Folder");
-        folderDoc = session.createDocument(folderDoc);
-        DocumentModel testFile1 = session.createDocumentModel("/testFolder", "testFile1", "File");
-        testFile1 = session.createDocument(testFile1);
-        DocumentModel testFile2 = session.createDocumentModel("/testFolder", "testFile2", "File");
-        testFile2 = session.createDocument(testFile2);
-        DocumentModel testFile3 = session.createDocumentModel("/testFolder", "testFile3", "File");
-        testFile3 = session.createDocument(testFile3);
-
-        session.saveDocument(folderDoc);
-        session.saveDocument(testFile1);
-        session.saveDocument(testFile2);
-        session.saveDocument(testFile3);
-
-        Collection<String> allowedStateTransitions = session.getAllowedStateTransitions(folderDoc.getRef());
-        assertTrue(allowedStateTransitions.contains(DELETE_TRANSITION));
-
-        assertTrue(session.followTransition(folderDoc.getRef(), DELETE_TRANSITION));
-        session.save();
-
-        txFeature.nextTransaction();
-
-        // Check that the BulkLifeCycleChangeListener has changed child folders and files to approved
-        assertEquals(DELETED_STATE, session.getCurrentLifeCycleState(testFile1.getRef()));
-        assertEquals(DELETED_STATE, session.getCurrentLifeCycleState(testFile2.getRef()));
-        assertEquals(DELETED_STATE, session.getCurrentLifeCycleState(testFile3.getRef()));
     }
 
 }

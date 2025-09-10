@@ -29,20 +29,21 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConnection;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.Part;
 
 // this should use a mock library instead
 public class MockHttpServletRequest implements HttpServletRequest {
@@ -163,12 +164,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
         return false;
     }
 
-    @Deprecated
-    @Override
-    public boolean isRequestedSessionIdFromUrl() {
-        return false;
-    }
-
     @Override
     public boolean isRequestedSessionIdValid() {
         return false;
@@ -264,12 +259,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
         return null;
     }
 
-    @Deprecated
-    @Override
-    public String getRealPath(String path) {
-        return null;
-    }
-
     @Override
     public String getRemoteAddr() {
         return null;
@@ -332,6 +321,21 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
     @Override
     public DispatcherType getDispatcherType() {
+        return null;
+    }
+
+    @Override
+    public String getRequestId() {
+        return "";
+    }
+
+    @Override
+    public String getProtocolRequestId() {
+        return "";
+    }
+
+    @Override
+    public ServletConnection getServletConnection() {
         return null;
     }
 

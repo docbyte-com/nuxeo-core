@@ -24,16 +24,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.Test;
+import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.template.api.TemplateInput;
 import org.nuxeo.template.api.adapters.TemplateBasedDocument;
 import org.nuxeo.template.api.adapters.TemplateSourceDocument;
@@ -46,17 +46,15 @@ public class TestAuditEntriesODTProcessing extends SimpleTemplateDocTestCase {
     public void testRenderWithAuditEntries() throws Exception {
 
         // build fake AuditEntries
-        ArrayList<LogEntry> auditEntries = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            LogEntryImpl entry = new LogEntryImpl();
-            entry.setId(i);
-            entry.setComment("Comment" + i);
-            entry.setCategory("Testing");
-            entry.setEventId("TestEvent" + i);
-            entry.setPrincipalName("TestingUser");
-            auditEntries.add(entry);
-        }
-        AuditExtensionFactory.testAuditEntries = auditEntries;
+        AuditExtensionFactory.testAuditEntries = //
+                IntStream.range(0, 5)
+                         .mapToObj(i -> LogEntry.builder("TestEvent" + i, new Date())
+                                                .id((long) i)
+                                                .comment("Comment" + i)
+                                                .category("Testing")
+                                                .principalName("TestingUser")
+                                                .build())
+                         .toList();
 
         TemplateBasedDocument adapter = setupTestDocs();
         DocumentModel testDoc = adapter.getAdaptedDoc();

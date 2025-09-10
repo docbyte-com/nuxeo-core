@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,21 @@
  *
  * Contributors:
  *     Benoit Delbosc
- *
  */
-
 package org.nuxeo.ecm.platform.query.core;
 
-import java.util.Arrays;
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
+
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderClassReplacerDefinition;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 6.0
@@ -34,31 +37,60 @@ import org.nuxeo.ecm.platform.query.api.PageProviderClassReplacerDefinition;
 @XObject(value = "replacer")
 public class PageProviderClassReplacerDescriptor implements PageProviderClassReplacerDefinition {
 
-    @XNode("@withClass")
-    public String className;
+    protected Class<? extends PageProvider<?>> providerClass;
 
     @XNode("@enabled")
     protected boolean enabled = true;
+
+    @XNodeList(value = "provider", type = String[].class, componentType = String.class)
+    protected String[] names = new String[0];
+
+    @Override
+    public String getPageProviderClassName() {
+        return providerClass.getName();
+    }
+
+    @XNode("@withClass")
+    @SuppressWarnings("unchecked")
+    protected void setPageProviderClassName(String className) {
+        try {
+            var ret = (Class<? extends PageProvider<?>>) Class.forName(className);
+            if (!PageProvider.class.isAssignableFrom(ret)) {
+                throw new IllegalStateException(
+                        String.format("Class: %s does not implement PageProvider interface", className));
+            }
+            providerClass = ret;
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException(String.format("Class: %s not found", className), e);
+        }
+
+    }
+
+    @Override
+    public Class<? extends PageProvider<?>> getPageProviderClass() {
+        return providerClass;
+    }
 
     @Override
     public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
-    @XNodeList(value = "provider", type = String[].class, componentType = String.class)
-    String[] names = new String[0];
-
     @Override
     public List<String> getPageProviderNames() {
-        return Arrays.asList(names);
+        return List.of(names);
     }
 
     @Override
-    public String getPageProviderClassName() {
-        return className;
+    public Descriptor merge(Descriptor o) {
+        var other = (PageProviderClassReplacerDescriptor) o;
+        var merged = new PageProviderClassReplacerDescriptor();
+        merged.providerClass = providerClass; // we merge based on providerClass, so no name merging needed
+        merged.enabled = other.enabled;
+        // merge names
+        var namesSet = new LinkedHashSet<>(Set.of(nullToEmpty(names)));
+        namesSet.addAll(Set.of(nullToEmpty(other.names)));
+        merged.names = namesSet.toArray(String[]::new);
+        return merged;
     }
 }

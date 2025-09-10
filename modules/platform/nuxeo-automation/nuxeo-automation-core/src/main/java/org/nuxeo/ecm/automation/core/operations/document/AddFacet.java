@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Thibaud Arguillere
  *     Ricardo Dias
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import org.nuxeo.ecm.automation.core.Constants;
@@ -34,7 +33,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
  *
  * @since 8.3
  */
-@Operation(id = AddFacet.ID, category = Constants.CAT_DOCUMENT, label = "Add Facet", description = "Adds the facet to the document. <p>WARNING: The save parameter is true by default, which means the document is saved in the database after adding the facet. It must be set to false when the operation is used in the context of an event that will fail if the document is saved (empty document created, about to create, before modification, ...).</p>", aliases = { "Document.AddFacet" })
+@Operation(id = AddFacet.ID, category = Constants.CAT_DOCUMENT, label = "Add Facet", description = "Adds the facet to the document. <p>WARNING: The save parameter is true by default, which means the document is saved in the database after adding the facet. It must be set to false when the operation is used in the context of an event that will fail if the document is saved (empty document created, about to create, before modification, ...).</p>")
 public class AddFacet {
 
     public static final String ID = "Document.AddFacet";

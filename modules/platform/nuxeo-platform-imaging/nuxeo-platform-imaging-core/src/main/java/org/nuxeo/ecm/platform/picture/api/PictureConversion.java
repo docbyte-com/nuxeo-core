@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,23 @@
  * Contributors:
  *     Thomas Roger (troger@nuxeo.com)
  */
-
 package org.nuxeo.ecm.platform.picture.api;
+
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object to store the definition of a picture conversion, to be used when computing views for a given image.
@@ -36,7 +41,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 7.1
  */
 @XObject("pictureConversion")
-public class PictureConversion implements Comparable<PictureConversion> {
+public class PictureConversion implements Descriptor, Comparable<PictureConversion> {
 
     private static final int DEFAULT_ORDER = 0;
 
@@ -70,15 +75,11 @@ public class PictureConversion implements Comparable<PictureConversion> {
     @XNodeList(value = "filters/filter-id", type = ArrayList.class, componentType = String.class)
     protected List<String> filterIds;
 
-    /**
-     * @since 7.2
-     */
+    /** @since 7.2 */
     @XNode("@rendition")
     protected Boolean rendition;
 
-    /**
-     * @since 7.2
-     */
+    /** @since 7.2 */
     @XNode("@renditionVisible")
     protected Boolean renditionVisible;
 
@@ -93,12 +94,13 @@ public class PictureConversion implements Comparable<PictureConversion> {
         this.maxSize = maxSize;
     }
 
+    @Override
     public String getId() {
         return id;
     }
 
     public int getOrder() {
-        return order == null ? DEFAULT_ORDER : order.intValue();
+        return defaultIfNull(order, DEFAULT_ORDER);
     }
 
     public String getDescription() {
@@ -110,7 +112,7 @@ public class PictureConversion implements Comparable<PictureConversion> {
     }
 
     public boolean isEnabled() {
-        return enabled == null ? DEFAULT_ENABLED : enabled.booleanValue();
+        return toBooleanDefaultIfNull(enabled, DEFAULT_ENABLED);
     }
 
     public String getChainId() {
@@ -154,11 +156,11 @@ public class PictureConversion implements Comparable<PictureConversion> {
     }
 
     public boolean isRenditionVisible() {
-        return renditionVisible == null ? DEFAULT_RENDITION_VISIBLE : renditionVisible.booleanValue();
+        return toBooleanDefaultIfNull(renditionVisible, DEFAULT_RENDITION_VISIBLE);
     }
 
     public boolean isRendition() {
-        return rendition == null ? DEFAULT_ISRENDITION : rendition.booleanValue();
+        return toBooleanDefaultIfNull(rendition, DEFAULT_ISRENDITION);
     }
 
     public void setRendition(Boolean rendition) {
@@ -170,13 +172,20 @@ public class PictureConversion implements Comparable<PictureConversion> {
     }
 
     @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
+    public Descriptor merge(Descriptor o) {
+        var other = (PictureConversion) o;
+        var merged = new PictureConversion();
+        merged.id = id; // we merge based on id, so no name merging needed
+        merged.order = defaultIfNull(other.order, order);
+        merged.description = defaultIfNull(other.description, description);
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.chainId = defaultIfBlank(other.chainId, chainId);
+        merged.tag = defaultIfBlank(other.tag, tag);
+        merged.maxSize = defaultIfNull(other.maxSize, maxSize);
+        merged.filterIds = union(emptyIfNull(filterIds), emptyIfNull(other.filterIds));
+        merged.rendition = defaultIfNull(other.rendition, rendition);
+        merged.renditionVisible = defaultIfNull(other.renditionVisible, renditionVisible);
+        return merged;
     }
 
     @Override
@@ -185,52 +194,13 @@ public class PictureConversion implements Comparable<PictureConversion> {
     }
 
     @Override
-    public PictureConversion clone() {
-        PictureConversion clone = new PictureConversion();
-        clone.id = id;
-        clone.description = description;
-        clone.tag = tag;
-        clone.maxSize = maxSize;
-        clone.order = order;
-        clone.chainId = chainId;
-        clone.enabled = enabled;
-        if (filterIds != null) {
-            clone.filterIds = new ArrayList<>(filterIds);
-        }
-        clone.rendition = rendition;
-        clone.renditionVisible = renditionVisible;
-        return clone;
+    public int hashCode() {
+        return HashCodeBuilder.reflectionHashCode(this);
     }
 
-    public void merge(PictureConversion other) {
-        if (other.enabled != null) {
-            enabled = other.enabled;
-        }
-        if (!StringUtils.isBlank(other.chainId)) {
-            chainId = other.chainId;
-        }
-        if (!StringUtils.isBlank(other.tag)) {
-            tag = other.tag;
-        }
-        if (!StringUtils.isBlank(other.description)) {
-            description = other.description;
-        }
-        if (other.order != null) {
-            order = other.order;
-        }
-        if (other.maxSize != null) {
-            maxSize = other.maxSize;
-        }
-        List<String> newFilterIds = new ArrayList<>();
-        newFilterIds.addAll(filterIds);
-        newFilterIds.addAll(other.filterIds);
-        filterIds = newFilterIds;
-        if (other.rendition != null) {
-            rendition = other.rendition;
-        }
-        if (other.renditionVisible != null) {
-            renditionVisible = other.renditionVisible;
-        }
+    @Override
+    public boolean equals(Object obj) {
+        return EqualsBuilder.reflectionEquals(this, obj);
     }
 
     @Override

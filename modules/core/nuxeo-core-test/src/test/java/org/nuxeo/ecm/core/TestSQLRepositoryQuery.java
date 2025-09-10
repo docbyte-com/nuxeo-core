@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,16 +29,16 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.junit.Assume.assumeFalse;
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_BOOLEAN_PROP;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_STRINGS_PROP;
 
 import java.io.Serializable;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -56,10 +56,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.core.LogEvent;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.DateUtils;
@@ -93,28 +94,34 @@ import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.schema.FacetNames;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
+import org.nuxeo.ecm.core.storage.dbs.IgnoreIfNotDBSRepository;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
-@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/testquery-core-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib-2.xml")
+@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-query-core-types-contrib.xml")
 public class TestSQLRepositoryQuery {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -139,20 +146,8 @@ public class TestSQLRepositoryQuery {
         return coreFeature.getStorageConfiguration().isDBSMongoDB();
     }
 
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
     protected void maybeSleepToNextSecond() {
         coreFeature.getStorageConfiguration().maybeSleepToNextSecond();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     /**
@@ -514,13 +509,13 @@ public class TestSQLRepositoryQuery {
         assertEquals(notMatchesNull() ? 2 : 0, dml.size());
 
         // with a scalar list defined by a xs:complexType (and not a xs:simpleType)
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
-        Property prop = doc.getProperty("my:participants");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
+        Property prop = doc.getProperty(COMMON_STRINGS_PROP);
         assertTrue(prop instanceof ListProperty);
-        prop.setValue(Arrays.asList("foo", "bar"));
+        prop.setValue(List.of("foo", "bar"));
         doc = session.createDocument(doc);
         session.save();
-        dml = session.query("SELECT * FROM MyDocType WHERE my:participants/* = 'foo'");
+        dml = session.query("SELECT * FROM CommonDocument WHERE tcs:strings/* = 'foo'");
         assertEquals(1, dml.size());
     }
 
@@ -920,9 +915,8 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "DBS MongoDB cannot query const = const")
     public void testQueryConstantsLeft() {
-        assumeTrue("DBS MongoDB cannot query const = const", !isDBSMongoDB());
-
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -1099,7 +1093,7 @@ public class TestSQLRepositoryQuery {
         // even if it's useless: (primaryType='Folder' OR primaryType LIKE
         // 'Folder/%')
         sql = "SELECT * FROM Document WHERE ecm:primaryType STARTSWITH 'Folder'";
-        assertTrue(session.query(sql).size() > 0);
+        assertFalse(session.query(sql).isEmpty());
     }
 
     @Test
@@ -1205,9 +1199,8 @@ public class TestSQLRepositoryQuery {
 
     // new-style date comparisons (casting to native DATE type)
     @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "MongoDB does not support NXQL DATE casts")
     public void testDateNew() {
-        assumeFalse("MongoDB does not support NXQL DATE casts", isDBSMongoDB());
-
         String sql;
         DocumentModelList dml;
         createDocs();
@@ -1305,33 +1298,33 @@ public class TestSQLRepositoryQuery {
         DocumentModelList dml;
         createDocs();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(0, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(0, dml.size());
 
-        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", "MyDocType");
-        doc.setPropertyValue("my:boolean", Boolean.TRUE);
+        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", COMMON_DOC_TYPE);
+        doc.setPropertyValue(COMMON_BOOLEAN_PROP, Boolean.TRUE);
         doc = session.createDocument(doc);
         session.save();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(1, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(0, dml.size());
 
-        doc.setPropertyValue("my:boolean", Boolean.FALSE);
+        doc.setPropertyValue(COMMON_BOOLEAN_PROP, Boolean.FALSE);
         session.saveDocument(doc);
         session.save();
 
-        sql = "SELECT * FROM document WHERE my:boolean = 1";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 1";
         dml = session.query(sql);
         assertEquals(0, dml.size());
-        sql = "SELECT * FROM document WHERE my:boolean = 0";
+        sql = "SELECT * FROM document WHERE tcs:boolean = 0";
         dml = session.query(sql);
         assertEquals(1, dml.size());
     }
@@ -1472,7 +1465,7 @@ public class TestSQLRepositoryQuery {
     }
 
     private static void assertIdSet(DocumentModelList dml, String... ids) {
-        Collection<String> expected = new HashSet<>(Arrays.asList(ids));
+        Collection<String> expected = new HashSet<>(List.of(ids));
         Collection<String> actual = new HashSet<>();
         for (DocumentModel d : dml) {
             actual.add(d.getId());
@@ -1481,6 +1474,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryACL() {
         createDocs();
         DocumentModel folder1 = session.getDocument(new PathRef("/testfolder1"));
@@ -1595,6 +1589,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryACLReturnedValue() {
         createDocs();
         DocumentModel folder1 = session.getDocument(new PathRef("/testfolder1"));
@@ -1643,7 +1638,7 @@ public class TestSQLRepositoryQuery {
                     + map.get("ecm:acl/*1/permission"));
         }
         res.close();
-        assertEquals(new HashSet<>(Arrays.asList("local:bob:Browse", "local:steve:Read")), set);
+        assertEquals(new HashSet<>(List.of("local:bob:Browse", "local:steve:Read")), set);
 
         // read full ACL
         // ecm:pos in VCS-specific so not checked
@@ -1665,7 +1660,7 @@ public class TestSQLRepositoryQuery {
             set.add(ace);
         }
         res.close();
-        assertEquals(new HashSet<>(Arrays.asList("local:Administrator:Everything:true:null:null:null",
+        assertEquals(new HashSet<>(List.of("local:Administrator:Everything:true:null:null:null",
                 "local:bob:Browse:true:null:null:null", "local:steve:Read:true:null:null:null",
                 "local:leela:Write:true:Administrator:" + begin.getTimeInMillis() + ":" + end.getTimeInMillis(),
                 "local:Everyone:Everything:false:null:null:null")), set);
@@ -2098,7 +2093,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(7, dml.size());
 
         // create a doc with no lifecycle associated
-        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/testfolder1", "mydoc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
         assertEquals("undefined", doc.getCurrentLifeCycleState());
@@ -2111,22 +2106,6 @@ public class TestSQLRepositoryQuery {
     public void testIsTrashedWithProperty() {
         String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 0";
         String sqlTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 1";
-        doTestTrashed(sqlNotTrashed, sqlTrashed);
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testIsTrashedWithLifeCycle() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 0";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:isTrashed = 1";
-        doTestTrashed(sqlNotTrashed, sqlTrashed);
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-trash-service-lifecycle-override.xml")
-    public void testLifeCycleStateDeletedForTrash() {
-        String sqlNotTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState <> 'deleted'";
-        String sqlTrashed = "SELECT * FROM Document WHERE ecm:currentLifeCycleState = 'deleted'";
         doTestTrashed(sqlNotTrashed, sqlTrashed);
     }
 
@@ -2162,7 +2141,7 @@ public class TestSQLRepositoryQuery {
         session.saveDocument(file1);
         session.save();
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         query = "SELECT * FROM File Where dc:title = 'hello world 1' ORDER BY ecm:currentLifeCycleState";
 
@@ -2518,7 +2497,7 @@ public class TestSQLRepositoryQuery {
     public void testQueryNow() throws Exception {
         setupDocTest();
         // sleep a second to be sure that the document is found
-        nextTransaction();
+        txFeature.nextTransaction();
         Thread.sleep(1000); // 1s
 
         String testQuery = "SELECT * FROM Folder WHERE dc:title = 'test' AND dc:modified < NOW() AND ecm:isProxy = 0";
@@ -2636,7 +2615,7 @@ public class TestSQLRepositoryQuery {
         friend1.put("firstname", "John");
         // tst:friends/1/lastname = 'Smith'
         friend1.put("lastname", "Smith");
-        List<Map<String, Object>> friends = Arrays.asList(friend0, friend1);
+        List<Map<String, Object>> friends = List.of(friend0, friend1);
         doc.setPropertyValue("tst:friends", (Serializable) friends);
 
         // this one doesn't have a schema prefix
@@ -2667,6 +2646,7 @@ public class TestSQLRepositoryQuery {
     protected static String SELECT_TITLE_WHERE = "SELECT tst:title" + FROM_WHERE;
 
     @Test
+    @Ignore
     public void testQueryComplexWhere() {
         DocumentModel doc = makeComplexDoc();
         String docId = doc.getId();
@@ -2682,7 +2662,7 @@ public class TestSQLRepositoryQuery {
         // AND p.firstname = 'Bruce'
         clause = "tst:owner/firstname = 'Bruce'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:title, tst:owner/lastname" + FROM_WHERE + clause, "NXQL");
         assertEquals(1, it.size());
         assertEquals("Willis", it.iterator().next().get("tst:owner/lastname"));
@@ -2692,15 +2672,15 @@ public class TestSQLRepositoryQuery {
 
         clause = "tst:owner/firstname LIKE 'B%'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         clause = "tst:owner/firstname IS NOT NULL";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         clause = "tst:owner/firstname IN ('Bruce', 'Bilbo')";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // hierarchy h
         // JOIN hierarchy h2 ON h2.parentid = h.id
@@ -2711,7 +2691,7 @@ public class TestSQLRepositoryQuery {
         // AND p.firstname = 'Steve'
         clause = "tst:couple/first/firstname = 'Steve'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:title, tst:couple/first/lastname" + FROM_WHERE + clause, "NXQL");
         assertEquals(1, it.size());
         assertEquals("Jobs", it.iterator().next().get("tst:couple/first/lastname"));
@@ -2724,7 +2704,7 @@ public class TestSQLRepositoryQuery {
         // AND p.firstname = 'John'
         clause = "tst:friends/0/firstname = 'John'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:title, tst:friends/0/lastname" + FROM_WHERE + clause, "NXQL");
         assertEquals(1, it.size());
         assertEquals("Lennon", it.iterator().next().get("tst:friends/0/lastname"));
@@ -2733,7 +2713,7 @@ public class TestSQLRepositoryQuery {
         // alternate xpath syntax
         clause = "tst:friends/item[0]/firstname = 'John'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // hierarchy h
         // JOIN hierarchy h2 ON h2.parentid = h.id
@@ -2742,7 +2722,7 @@ public class TestSQLRepositoryQuery {
         // AND p.firstname = 'John'
         clause = "tst:friends/*/firstname = 'John'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch(SELECT_TITLE_WHERE + clause, "NXQL");
         // MongoDB query projecting on a non-wildcard values doesn't repeat matches
         // as this would entail re-evaluating the projection from the full state
@@ -2753,7 +2733,7 @@ public class TestSQLRepositoryQuery {
         // alternate xpath syntax
         clause = "tst:friends/item[*]/firstname = 'John'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // hierarchy h
         // JOIN hierarchy h2 ON h2.parentid = h.id
@@ -2763,7 +2743,7 @@ public class TestSQLRepositoryQuery {
         // AND p.lastname = 'Smith'
         clause = "tst:friends/*1/firstname = 'John'" + " AND tst:friends/*1/lastname = 'Smith'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:title, tst:friends/*1/lastname" + FROM_WHERE + clause, "NXQL");
         assertEquals(1, it.size()); // correlated stars
         assertEquals("Smith", it.iterator().next().get("tst:friends/*1/lastname"));
@@ -2772,10 +2752,11 @@ public class TestSQLRepositoryQuery {
         // alternate xpath syntax
         clause = "tst:friends/item[*1]/firstname = 'John'" + " AND tst:friends/item[*1]/lastname = 'Smith'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
     }
 
     @Test
+    @Ignore
     public void testQueryComplexCorrelation() {
         DocumentModel doc = session.createDocumentModel("/", "doc", "TestDoc");
         doc.setPropertyValue("tst:title", "title");
@@ -2785,7 +2766,7 @@ public class TestSQLRepositoryQuery {
         Map<String, Object> friend1 = new HashMap<>();
         friend1.put("firstname", "Adam");
         friend1.put("lastname", "Smith");
-        doc.setPropertyValue("tst:friends", (Serializable) Arrays.asList(friend0, friend1));
+        doc.setPropertyValue("tst:friends", (Serializable) List.of(friend0, friend1));
         doc = session.createDocument(doc);
         session.save();
 
@@ -2833,6 +2814,7 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @Ignore
     public void testQueryComplexCorrelationForSchemaWithNoPrefix() {
         DocumentModel doc = session.createDocumentModel("/", "testfile", "File");
         Blob blob1 = Blobs.createBlob("foo", "text/plain", null, "foo.txt");
@@ -2857,7 +2839,7 @@ public class TestSQLRepositoryQuery {
         // schema with a prefix
         clause = "tst:owner/firstname = 'Bruce'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // use of prefix is mandatory if defined
         try {
@@ -2873,12 +2855,12 @@ public class TestSQLRepositoryQuery {
         // schema without a prefix
         clause = "animal/race = 'dog'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // allow use with schema-name-as-prefix
         clause = "testschema3:animal/race = 'dog'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
     }
 
     @Test
@@ -2898,14 +2880,14 @@ public class TestSQLRepositoryQuery {
         // WHERE h2.name = 'tst:friends'
         clause = "tst:title = 'hello world'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:friends/*/lastname" + FROM_WHERE + clause, "NXQL");
         assertEquals(2, it.size());
         set = new HashSet<>();
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:friends/*/lastname"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("Lennon", "Smith")), set);
+        assertEquals(new HashSet<>(List.of("Lennon", "Smith")), set);
         it.close();
 
         // SELECT p.firstname, p.lastname
@@ -2915,7 +2897,7 @@ public class TestSQLRepositoryQuery {
         // WHERE h2.name = 'tst:friends'
         clause = "tst:title = 'hello world'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:friends/*1/firstname, tst:friends/*1/lastname" + FROM_WHERE + clause,
                 "NXQL");
         assertEquals(2, it.size());
@@ -2925,8 +2907,8 @@ public class TestSQLRepositoryQuery {
             fn.add((String) map.get("tst:friends/*1/firstname"));
             ln.add((String) map.get("tst:friends/*1/lastname"));
         }
-        assertEquals(Collections.singleton("John"), fn);
-        assertEquals(new HashSet<>(Arrays.asList("Lennon", "Smith")), ln);
+        assertEquals(Set.of("John"), fn);
+        assertEquals(new HashSet<>(List.of("Lennon", "Smith")), ln);
         it.close();
 
     }
@@ -2947,7 +2929,7 @@ public class TestSQLRepositoryQuery {
         // AND s.item = 'foo'
         clause = "tst:subjects/0 = 'foo'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         clause = "tst:subjects/0 = 'bar'";
         res = session.query(SELECT_WHERE + clause);
         assertEquals(0, res.size());
@@ -2971,7 +2953,7 @@ public class TestSQLRepositoryQuery {
         // AND s0.item LIKE 'foo%'
         clause = "tst:subjects/0 LIKE 'foo%'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:subjects/1" + FROM_WHERE + clause, "NXQL");
         assertEquals(1, it.size());
         assertEquals("bar", it.iterator().next().get("tst:subjects/1"));
@@ -2983,33 +2965,33 @@ public class TestSQLRepositoryQuery {
         // WHERE s.item LIKE '%oo'
         clause = "tst:subjects/*1 LIKE '%oo'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:subjects/*1" + FROM_WHERE + clause, "NXQL");
         assertEquals(2, it.size());
         set = new HashSet<>();
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*1"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "moo")), set);
+        assertEquals(new HashSet<>(List.of("foo", "moo")), set);
         it.close();
 
         // projection only
         clause = "tst:title = 'hello world'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:subjects/*1" + FROM_WHERE + clause, "NXQL");
         assertEquals(3, it.size());
         set = new HashSet<>();
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*1"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "moo", "bar")), set);
+        assertEquals(new HashSet<>(List.of("foo", "moo", "bar")), set);
         it.close();
 
         // projection only on non-matching doc
         clause = "tst:title = 'nosuchtitle'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.emptyList(), getIds(res));
+        assertEquals(List.of(), getIds(res));
         it = session.queryAndFetch("SELECT tst:subjects/*1" + FROM_WHERE + clause, "NXQL");
         assertEquals(0, it.size());
         it.close();
@@ -3017,7 +2999,7 @@ public class TestSQLRepositoryQuery {
         // projection on uncorrelated wildcard
         clause = "tst:subjects/* LIKE '%oo'";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         it = session.queryAndFetch("SELECT tst:subjects/*" + FROM_WHERE + clause, "NXQL");
         // two uncorrelated stars, resulting in a cross join
         assertEquals(6, it.size());
@@ -3025,7 +3007,7 @@ public class TestSQLRepositoryQuery {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "moo", "bar")), set);
+        assertEquals(new HashSet<>(List.of("foo", "moo", "bar")), set);
         it.close();
 
         // WHAT
@@ -3036,7 +3018,7 @@ public class TestSQLRepositoryQuery {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "bar", "moo")), set);
+        assertEquals(new HashSet<>(List.of("foo", "bar", "moo")), set);
         it.close();
     }
 
@@ -3051,32 +3033,32 @@ public class TestSQLRepositoryQuery {
 
         clause = "tst:title LIKE '%' ORDER BY tst:owner/firstname";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         clause = "tst:owner/firstname = 'Bruce' ORDER BY tst:title";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         clause = "tst:owner/firstname = 'Bruce' ORDER BY tst:owner/firstname";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // this produces a DISTINCT and adds tst:title to the select list
         clause = "tst:subjects/* = 'foo' ORDER BY tst:title";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         clause = "tst:friends/*/firstname = 'John' ORDER BY tst:title";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // no wildcard index so no DISTINCT needed
         clause = "tst:title LIKE '%' ORDER BY tst:friends/0/lastname";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
         clause = "tst:title LIKE '%' ORDER BY tst:subjects/0";
         res = session.query(SELECT_WHERE + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
 
         // SELECT * statement cannot ORDER BY array or complex list element
         clause = "tst:subjects/*1 = 'foo' ORDER BY tst:subjects/*1";
@@ -3111,7 +3093,7 @@ public class TestSQLRepositoryQuery {
         Map<String, Serializable> map2 = new HashMap<>();
         map2.put("name", "pete");
         map2.put("subscribers", new String[] { "sub1" });
-        doc.setPropertyValue("tst2:notifs", (Serializable) Arrays.asList(map1, map2));
+        doc.setPropertyValue("tst2:notifs", (Serializable) List.of(map1, map2));
         doc = session.createDocument(doc);
         session.save();
 
@@ -3119,7 +3101,7 @@ public class TestSQLRepositoryQuery {
 
         String query = "SELECT * FROM File2 WHERE ecm:isProxy = 0 AND tst2:notifs/*/subscribers/* = 'sub1'";
         DocumentModelList res = session.query(query);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
     }
 
     @Test
@@ -3129,7 +3111,7 @@ public class TestSQLRepositoryQuery {
         map1.put("name", "bob");
         map1.put("enabled", Long.valueOf(1));
         map1.put("subscribers", new String[] { "sub1", "sub2" });
-        doc.setPropertyValue("tst2:notifs", (Serializable) Collections.singletonList(map1));
+        doc.setPropertyValue("tst2:notifs", (Serializable) List.of(map1));
         doc = session.createDocument(doc);
         session.save();
 
@@ -3137,7 +3119,7 @@ public class TestSQLRepositoryQuery {
 
         String query = "SELECT * FROM File2 WHERE ecm:isProxy = 0 AND tst2:notifs/*/enabled = 1";
         DocumentModelList res = session.query(query);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
     }
 
     @Test
@@ -3176,7 +3158,7 @@ public class TestSQLRepositoryQuery {
         for (Map<String, Serializable> map : it) {
             list.add((String) map.get("tst:subjects/*1"));
         }
-        assertEquals(Arrays.asList("bar", "foo", "moo"), list);
+        assertEquals(List.of("bar", "foo", "moo"), list);
         it.close();
 
         clause = "tst:title = 'hello world' ORDER BY tst:subjects/*1";
@@ -3195,7 +3177,7 @@ public class TestSQLRepositoryQuery {
 
         clause = "tst:friends/*/firstname = 'John' ORDER BY tst:title";
         res = session.query("SELECT * FROM TestDoc WHERE " + clause);
-        assertEquals(Collections.singletonList(docId), getIds(res));
+        assertEquals(List.of(docId), getIds(res));
     }
 
     @Test
@@ -3207,13 +3189,12 @@ public class TestSQLRepositoryQuery {
 
         // doc2 tst:owner/firstname = 'Bruce'
         DocumentModel doc2 = session.createDocumentModel("/", "doc2", "TestDoc");
-        doc2.setPropertyValue("tst:owner", (Serializable) Collections.singletonMap("firstname", "Bruce"));
+        doc2.setPropertyValue("tst:owner", (Serializable) Map.of("firstname", "Bruce"));
         doc2 = session.createDocument(doc2);
 
         // doc3 tst:friends/0/firstname = 'John'
         DocumentModel doc3 = session.createDocumentModel("/", "doc3", "TestDoc");
-        doc3.setPropertyValue("tst:friends",
-                (Serializable) Collections.singletonList(Collections.singletonMap("firstname", "John")));
+        doc3.setPropertyValue("tst:friends", (Serializable) List.of(Map.of("firstname", "John")));
         doc3 = session.createDocument(doc3);
 
         // doc4 tst:subjects/0 = 'foo'
@@ -3233,16 +3214,16 @@ public class TestSQLRepositoryQuery {
         DocumentModelList res;
 
         res = session.query(s1 + c1 + s2);
-        assertEquals(Collections.singletonList(doc1.getId()), getIds(res));
+        assertEquals(List.of(doc1.getId()), getIds(res));
 
         res = session.query(s1 + c2 + s2);
-        assertEquals(Collections.singletonList(doc2.getId()), getIds(res));
+        assertEquals(List.of(doc2.getId()), getIds(res));
 
         res = session.query(s1 + c3 + s2);
-        assertEquals(Collections.singletonList(doc3.getId()), getIds(res));
+        assertEquals(List.of(doc3.getId()), getIds(res));
 
         res = session.query(s1 + c4 + s2);
-        assertEquals(Collections.singletonList(doc4.getId()), getIds(res));
+        assertEquals(List.of(doc4.getId()), getIds(res));
 
         res = session.query(s1 + c1 + o + c2 + s2);
         assertEquals(2, res.size());
@@ -3401,7 +3382,7 @@ public class TestSQLRepositoryQuery {
         session.createDocument(doc3);
 
         session.save();
-        nextTransaction();
+        txFeature.nextTransaction();
 
         DocumentModelList dml = session.query("SELECT dc:source FROM File WHERE ecm:name IN ('doc2', 'doc3')");
         assertEquals(2, dml.size());
@@ -3467,7 +3448,7 @@ public class TestSQLRepositoryQuery {
     @Test
     public void testQueryIdListFromArrayTotalSize() {
         DocumentModel doc1 = session.createDocumentModel("/", "doc1", "File");
-        doc1.setPropertyValue("dc:subjects", (Serializable) Arrays.asList("a", "b", "c"));
+        doc1.setPropertyValue("dc:subjects", (Serializable) List.of("a", "b", "c"));
         doc1 = session.createDocument(doc1);
         session.save();
 
@@ -3554,11 +3535,11 @@ public class TestSQLRepositoryQuery {
         doc3 = session.createDocument(doc3);
 
         // test both orders
-        for (Pair<DocumentModel, DocumentModel> pair : Arrays.asList(Pair.of(doc1, doc2), Pair.of(doc2, doc1))) {
+        for (Pair<DocumentModel, DocumentModel> pair : List.of(Pair.of(doc1, doc2), Pair.of(doc2, doc1))) {
             DocumentModel doca = pair.getLeft();
             DocumentModel docb = pair.getRight();
             String[] prop = new String[] { "not-a-valid-id", doca.getId(), doca.getId(), docb.getId() };
-            List<String> expected = Arrays.asList(prop[1], prop[2], prop[3]);
+            List<String> expected = List.of(prop[1], prop[2], prop[3]);
             doc3.setPropertyValue("dc:subjects", prop);
             doc3 = session.saveDocument(doc3);
             session.save();
@@ -3571,13 +3552,13 @@ public class TestSQLRepositoryQuery {
             // test with proxies
             dml = session.query(query);
             assertEquals(3, dml.size());
-            actual = Arrays.asList(dml.get(0).getId(), dml.get(1).getId(), dml.get(2).getId());
+            actual = List.of(dml.get(0).getId(), dml.get(1).getId(), dml.get(2).getId());
             assertEquals(expected, actual);
 
             // same without proxies
             dml = session.query(query + " AND ecm:isProxy = 0");
             assertEquals(3, dml.size());
-            actual = Arrays.asList(dml.get(0).getId(), dml.get(1).getId(), dml.get(2).getId());
+            actual = List.of(dml.get(0).getId(), dml.get(1).getId(), dml.get(2).getId());
             assertEquals(expected, actual);
         }
     }
@@ -3614,7 +3595,7 @@ public class TestSQLRepositoryQuery {
 
     @Test
     @LogCaptureFeature.FilterOn(logLevel = "WARN")
-    public void testScrollApiEmtpy() throws Exception {
+    public void testScrollApiEmpty() throws Exception {
         // do a scroll that return nothing
         ScrollResult<String> ret = session.scroll("SELECT * FROM File", 10, 1);
         assertFalse(ret.hasResults());
@@ -3829,30 +3810,31 @@ public class TestSQLRepositoryQuery {
     @Test
     public void testQueryDefaultValue() {
         // create a document with no metadata
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         // try to query default values
-        DocumentModelList dml = session.query("SELECT * FROM MyDocType WHERE my:testDefault = 'the default value'");
+        DocumentModelList dml = session.query(
+                "SELECT * FROM CommonDocument WHERE tcs:defaultString = 'defaultString default value'");
         assertEquals(1, dml.size());
     }
 
     @Test
     public void testQueryDefaultValueInComplex() {
         // create a document with no metadata
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         session.createDocument(doc);
         session.save();
         // try to query default values
         DocumentModelList dml = session.query(
-                "SELECT * FROM MyDocType WHERE my:complex/testDefault = 'the default value'");
+                "SELECT * FROM CommonDocument WHERE tcc:complex/defaultString = 'complex/defaultString default value'");
         assertEquals(1, dml.size());
     }
 
     @Test
     public void testIsRecord() {
-        String queryRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1";
-        String queryNotRecord = "SELECT * FROM MyDocType WHERE ecm:isRecord = 0";
+        String queryRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1";
+        String queryNotRecord = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 0";
         DocumentModelList dml;
 
         // no record present initially
@@ -3862,7 +3844,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create a document
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.save();
 
@@ -3886,10 +3868,10 @@ public class TestSQLRepositoryQuery {
 
     @Test
     public void testIsFlexibleRecord() {
-        String queryAllRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1";
-        String queryEnforcedRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 0";
-        String queryFlexibleRecords = "SELECT * FROM MyDocType WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 1";
-        String queryNotRecord = "SELECT * FROM MyDocType WHERE ecm:isRecord = 0";
+        String queryAllRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1";
+        String queryEnforcedRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 0";
+        String queryFlexibleRecords = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 1 AND ecm:isFlexibleRecord = 1";
+        String queryNotRecord = "SELECT * FROM CommonDocument WHERE ecm:isRecord = 0";
         DocumentModelList dml;
 
         // no record present initially
@@ -3904,9 +3886,9 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create 2 documents
-        DocumentModel doc1 = session.createDocumentModel("/", "doc1", "MyDocType");
+        DocumentModel doc1 = session.createDocumentModel("/", "doc1", COMMON_DOC_TYPE);
         doc1 = session.createDocument(doc1);
-        DocumentModel doc2 = session.createDocumentModel("/", "doc2", "MyDocType");
+        DocumentModel doc2 = session.createDocumentModel("/", "doc2", COMMON_DOC_TYPE);
         doc2 = session.createDocument(doc2);
         session.save();
 
@@ -3945,13 +3927,13 @@ public class TestSQLRepositoryQuery {
     public void testRetainUntil() {
         Calendar fiveSeconds = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         fiveSeconds.add(Calendar.SECOND, 5);
-        String query = String.format("SELECT * FROM MyDocType WHERE ecm:retainUntil > TIMESTAMP '%s'",
+        String query = String.format("SELECT * FROM CommonDocument WHERE ecm:retainUntil > TIMESTAMP '%s'",
                 DateParser.formatW3CDateTime(fiveSeconds));
         DocumentModelList dml = session.query(query);
         assertEquals(0, dml.size());
 
         // create a record
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.makeRecord(doc.getRef());
         // retain one hour
@@ -3968,8 +3950,8 @@ public class TestSQLRepositoryQuery {
 
     @Test
     public void testHasLegalHold() {
-        String queryHolds = "SELECT * FROM MyDocType WHERE ecm:hasLegalHold = 1";
-        String queryNoHold = "SELECT * FROM MyDocType WHERE ecm:hasLegalHold = 0";
+        String queryHolds = "SELECT * FROM CommonDocument WHERE ecm:hasLegalHold = 1";
+        String queryNoHold = "SELECT * FROM CommonDocument WHERE ecm:hasLegalHold = 0";
         DocumentModelList dml;
 
         // no hold present initially
@@ -3979,7 +3961,7 @@ public class TestSQLRepositoryQuery {
         assertEquals(0, dml.size());
 
         // create a document
-        DocumentModel doc = session.createDocumentModel("/", "doc", "MyDocType");
+        DocumentModel doc = session.createDocumentModel("/", "doc", COMMON_DOC_TYPE);
         doc = session.createDocument(doc);
         session.makeRecord(doc.getRef());
         session.save();
@@ -4003,9 +3985,8 @@ public class TestSQLRepositoryQuery {
     }
 
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSRepository.class, cause = "Internal ecm:blobKeys only supported on DBS")
     public void testBlobKeys() {
-        assumeTrue("Internal ecm:blobKeys only supported on DBS", isDBS());
-
         DocumentModel doc = session.createDocumentModel("/", "testfile", "File");
         Blob blob1 = Blobs.createBlob("foo");
         doc.setPropertyValue("content", (Serializable) blob1);

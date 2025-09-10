@@ -1,0 +1,264 @@
+/*
+ * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     bstefanescu
+ */
+package org.nuxeo.ecm.webengine.rest.servlet;
+
+import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URL;
+import java.util.Enumeration;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import org.glassfish.jersey.CommonProperties;
+import org.glassfish.jersey.server.ResourceConfig;
+import org.glassfish.jersey.server.ServerProperties;
+import org.glassfish.jersey.servlet.ServletContainer;
+import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
+import org.nuxeo.ecm.platform.rendering.api.ResourceLocator;
+import org.nuxeo.ecm.platform.rendering.fm.FreemarkerEngine;
+import org.nuxeo.ecm.webengine.rest.ApplicationHost;
+import org.nuxeo.ecm.webengine.rest.ApplicationManager;
+import org.nuxeo.ecm.webengine.rest.BundleNotFoundException;
+import org.nuxeo.ecm.webengine.rest.Reloadable;
+import org.nuxeo.ecm.webengine.rest.Utils;
+import org.nuxeo.ecm.webengine.rest.servlet.config.ServletDescriptor;
+import org.nuxeo.ecm.webengine.rest.views.ResourceContext;
+import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.ComponentManager;
+import org.osgi.framework.Bundle;
+
+/**
+ * A hot re-loadable REST servlet. This servlet is building a Jersey REST Application.
+ * <p>
+ * Use it as the webengine servlet in web.xml if you want hot reload, otherwise directly use the Jersey servlet:
+ * {@link ServletContainer}.
+ *
+ * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
+ */
+public class ApplicationServlet extends HttpServlet implements ManagedServlet, Reloadable, ResourceLocator {
+
+    private static final long serialVersionUID = 1L;
+
+    protected volatile boolean isDirty = false;
+
+    protected Bundle bundle;
+
+    protected ApplicationHost app;
+
+    protected ServletContainer container;
+
+    protected String resourcesPrefix;
+
+    @Override
+    public void setDescriptor(ServletDescriptor sd) {
+        this.bundle = sd.getBundle();
+    }
+
+    @Override
+    public void init(ServletConfig config) throws ServletException {
+        super.init(config);
+        resourcesPrefix = config.getInitParameter("resources.prefix");
+        if (resourcesPrefix == null) {
+            resourcesPrefix = "/skin";
+        }
+        String name = config.getInitParameter("application.name");
+        if (name == null) {
+            name = ApplicationManager.DEFAULT_HOST;
+        }
+        app = ApplicationManager.getInstance().getOrCreateApplication(name);
+        // use init parameters that are booleans as features
+        for (Enumeration<String> en = config.getInitParameterNames(); en.hasMoreElements();) {
+            String n = en.nextElement();
+            String v = config.getInitParameter(n);
+            if (Boolean.TRUE.toString().equals(v) || Boolean.FALSE.toString().equals(v)) {
+                app.getFeatures().put(n, Boolean.valueOf(v));
+            }
+        }
+        container = createServletContainer(app);
+
+        initContainer();
+        app.setRendering(initRendering(config));
+
+        app.addReloadListener(this);
+        Framework.getRuntime().getComponentManager().addListener(new ComponentManager.Listener() {
+            @Override
+            public void afterStart(ComponentManager mgr, boolean isResume) {
+                ApplicationServlet.this.reload();
+            }
+        });
+    }
+
+    @Override
+    public void destroy() {
+        destroyContainer();
+        destroyRendering();
+        container = null;
+        app = null;
+        bundle = null;
+        resourcesPrefix = null;
+    }
+
+    @Override
+    public synchronized void reload() {
+        isDirty = true;
+    }
+
+    public RenderingEngine getRenderingEngine() {
+        return app.getRendering();
+    }
+
+    public Bundle getBundle() {
+        return bundle;
+    }
+
+    public ServletContainer getContainer() {
+        return container;
+    }
+
+    @Override
+    public void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String pinfo = request.getPathInfo();
+        if (pinfo != null && pinfo.startsWith(resourcesPrefix)) {
+            super.service(request, response);
+        } else {
+            containerService(request, response);
+        }
+    }
+
+    protected void containerService(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (isDirty) {
+            reloadContainer();
+        }
+        String method = request.getMethod().toUpperCase();
+        if (!"GET".equals(method)) {
+            // force reading properties because Jersey is consuming one character from the input stream
+            // see WebComponent.filterFormParameters and the related containerRequest.hasEntity call
+            request.getParameterMap();
+        }
+        ResourceContext ctx = new ResourceContext(app);
+        ctx.setRequest(request);
+        ResourceContext.setContext(ctx);
+        request.setAttribute(ResourceContext.class.getName(), ctx);
+        try {
+            container.service(request, response);
+        } finally {
+            ResourceContext.destroyContext();
+            request.removeAttribute(ResourceContext.class.getName());
+        }
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String pathInfo = req.getPathInfo();
+        checkPathTraversal(pathInfo);
+        InputStream in = getServletContext().getResourceAsStream(pathInfo.substring(resourcesPrefix.length()));
+        if (in != null) {
+            String ctype = getServletContext().getMimeType(pathInfo);
+            if (ctype != null) {
+                resp.addHeader("Content-Type", ctype);
+            }
+            try {
+                @SuppressWarnings("resource") // not ours to close
+                OutputStream out = resp.getOutputStream();
+                byte[] bytes = new byte[1024 * 64];
+                int r = in.read(bytes);
+                while (r > -1) {
+                    if (r > 0) {
+                        out.write(bytes, 0, r);
+                    }
+                    r = in.read(bytes);
+                }
+                out.flush();
+            } finally {
+                in.close();
+            }
+        }
+    }
+
+    protected RenderingEngine initRendering(ServletConfig config) throws ServletException {
+        RenderingEngine rendering;
+        try {
+            String v = config.getInitParameter(RenderingEngine.class.getName());
+            if (v != null) {
+                rendering = (RenderingEngine) Utils.getClassRef(v, bundle).newInstance();
+            } else { // default settings
+                rendering = new FreemarkerEngine();
+                ((FreemarkerEngine) rendering).getConfiguration().setClassicCompatible(false);
+            }
+            rendering.setResourceLocator(this);
+            return rendering;
+        } catch (ReflectiveOperationException | BundleNotFoundException e) {
+            throw new ServletException(e);
+        }
+    }
+
+    protected void destroyRendering() {
+        // do nothing
+    }
+
+    protected void initContainer() throws ServletException {
+        container.init(getServletConfig());
+    }
+
+    protected void destroyContainer() {
+        container.destroy();
+        container = null;
+    }
+
+    protected synchronized void reloadContainer() throws ServletException {
+        try {
+            container.destroy();
+            container = createServletContainer(app);
+            container.init(getServletConfig());
+        } finally {
+            isDirty = false;
+        }
+    }
+
+    protected ServletContainer createServletContainer(ApplicationHost app) {
+        ResourceConfig config = ResourceConfig.forApplication(app);
+        // disable Jersey buffering because we have MessageBodyWriter which doesn't use the given OutputStream which
+        // results in Jersey setting the ContentLength of the response to 0, leading to an empty response
+        config.property(CommonProperties.OUTBOUND_CONTENT_LENGTH_BUFFER, -1);
+        // disable wadl since we got class loader pb in JAXB under equinox
+        config.property(ServerProperties.WADL_FEATURE_DISABLE, true);
+        config.property(ServerProperties.RESPONSE_SET_STATUS_OVER_SEND_ERROR, true);
+        return new ServletContainer(config);
+    }
+
+    @Override
+    public File getResourceFile(String key) {
+        return null;
+    }
+
+    @Override
+    public URL getResourceURL(String key) {
+        return ResourceContext.getContext().findEntry(key);
+    }
+
+}

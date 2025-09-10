@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,27 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
+
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("openUrl")
-public class OpenUrlDescriptor {
+public class OpenUrlDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
 
+    @XNode("grantPattern")
     protected String grantPattern;
 
     protected Pattern compiledGrantPattern;
@@ -46,35 +49,39 @@ public class OpenUrlDescriptor {
     @XNode("method")
     protected String method;
 
-    public String getName() {
+    @Override
+    public String getId() {
         return name;
     }
 
-    @XNode("grantPattern")
-    public void setGrantPattern(String grantPattern) {
-        this.grantPattern = Framework.expandVars(grantPattern);
+    public String getName() {
+        return name;
     }
 
     public String getGrantPattern() {
         return grantPattern;
     }
 
+    public void setGrantPattern(String grantPattern) {
+        this.grantPattern = grantPattern;
+    }
+
     public Pattern getCompiledGrantPattern() {
-        if (compiledGrantPattern == null && (grantPattern != null && grantPattern.length() > 0)) {
-            compiledGrantPattern = Pattern.compile(grantPattern);
+        if (compiledGrantPattern == null && isNotEmpty(grantPattern)) {
+            compiledGrantPattern = Pattern.compile(Framework.expandVars(grantPattern));
         }
         return compiledGrantPattern;
     }
 
+    public String getDenyPattern() {
+        return denyPattern;
+    }
+
     public Pattern getCompiledDenyPattern() {
-        if (compiledDenyPattern == null && denyPattern != null && denyPattern.length() > 0) {
+        if (compiledDenyPattern == null && isNotEmpty(denyPattern)) {
             compiledDenyPattern = Pattern.compile(denyPattern);
         }
         return compiledDenyPattern;
-    }
-
-    public String getDenyPattern() {
-        return denyPattern;
     }
 
     public String getMethod() {

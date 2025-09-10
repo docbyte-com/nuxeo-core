@@ -15,7 +15,6 @@ Nuxeo-Component: OSGI-INF/content-template-framework.xml,
  OSGI-INF/content-template-contrib.xml,
  OSGI-INF/content-template-listener.xml
 Import-Package: com.google.inject;version="2.0.0",
- javax.annotation;version="1.0",
  org.apache.commons.logging,
  org.jboss.util,
  org.nuxeo.common.xmap.annotation,

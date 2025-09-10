@@ -35,8 +35,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import org.apache.http.HttpHeaders;
 import org.apache.http.NameValuePair;
@@ -51,7 +51,6 @@ import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
@@ -62,16 +61,16 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * This is an HttpClient wrapped as a JUnit {@link TestRule} to perform needed cleanup on teardown.
  * <p>
  * In a unit test with an embedded Nuxeo, the client can be instantiated like below:
- * 
+ *
  * <pre>
  * &#64;Inject
  * protected ServletContainerFeature servletContainerFeature;
- * 
+ *
  * &#64;Rule
  * public final HttpClientTestRule httpClient = HttpClientTestRule.defaultJsonClient(
  *         () -> servletContainerFeature.getHttpUrl());
  * </pre>
- * 
+ *
  * The client is now ready to execute requests on {@code http://localhost:PORT}. The default JSON client has the
  * following configuration:
  * <ul>
@@ -81,14 +80,14 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * </ul>
  * The most interesting way to use the client is with {@link ResponseHandler handler} and {@code executeAnd*} APIs, for
  * example:
- * 
+ *
  * <pre>
  * httpClient.buildGetRequest("/api/v1/me").executeAndConsume(new JsonNodeHandler(), node -> {
  *     assertEquals("user", node.get("entity-type").asText());
  *     assertEquals("Administrator", node.get("id").asText());
  * });
  * </pre>
- * 
+ *
  * In this example, we execute a GET request to {@code /api/v1/me} endpoint, and then we consume the HTTP response with
  * the {@link org.nuxeo.http.test.handler.JsonNodeHandler} handler which asserts that the HTTP response status code has
  * the value {@code 200}, asserts that the header {@code Content-Type} has the {@code application/json} value,
@@ -103,12 +102,16 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * @see HttpClientTestRule#defaultClient(Supplier)
  * @see HttpClientTestRule#defaultJsonClient(Supplier)
  * @see org.nuxeo.http.test.handler
+ * @apiNote Formerly in {@code org.nuxeo.jaxrs.test} package, it was moved for 2025.0 to remove jaxrs word
  */
 public class HttpClientTestRule implements TestRule {
 
     public static final String ADMINISTRATOR = "Administrator";
 
     public static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(60);
+
+    public static final String NUXEO_URL = System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo")
+                                                 .replaceAll("/$", "");
 
     protected final Supplier<String> url;
 
@@ -151,11 +154,7 @@ public class HttpClientTestRule implements TestRule {
                                          .setConnectionRequestTimeout((int) timeout.toMillis())
                                          .setRedirectsEnabled(redirectsEnabled)
                                          .build();
-        var headers = this.headers.entrySet()
-                                  .stream()
-                                  .map(entry -> new BasicHeader(entry.getKey(), entry.getValue()))
-                                  .toList();
-        client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).setDefaultHeaders(headers).build();
+        client = HttpClientBuilder.create().setDefaultRequestConfig(requestConfig).build();
     }
 
     public void finished() {
@@ -248,7 +247,7 @@ public class HttpClientTestRule implements TestRule {
         private boolean redirectsEnabled;
 
         public Builder() {
-            this.url = () -> System.getProperty("nuxeoURL", "http://localhost:8080/nuxeo").replaceAll("/$", "");
+            this.url = () -> NUXEO_URL;
             this.timeout = DEFAULT_TIMEOUT;
             this.headers = new HashMap<>();
             this.redirectsEnabled = true;
@@ -317,10 +316,12 @@ public class HttpClientTestRule implements TestRule {
 
         protected RequestBuilder(String method, String url) {
             this.internalBuilder = org.apache.http.client.methods.RequestBuilder.create(method).setUri(url);
+            HttpClientTestRule.this.headers.forEach(this.internalBuilder::addHeader);
         }
 
         public RequestBuilder credentials(String username, String password) {
-            return addHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthorizationValue(username, password));
+            internalBuilder.setHeader(HttpHeaders.AUTHORIZATION, buildBasicAuthorizationValue(username, password));
+            return this;
         }
 
         public RequestBuilder accept(String accept) {
@@ -464,10 +465,10 @@ public class HttpClientTestRule implements TestRule {
                 try {
                     return responseHandler.handleResponse(execution.response());
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {
@@ -481,10 +482,10 @@ public class HttpClientTestRule implements TestRule {
                     var handledResponse = responseHandler.handleResponse(execution.response());
                     return finisher.apply(handledResponse);
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {
@@ -498,10 +499,10 @@ public class HttpClientTestRule implements TestRule {
                     var handledResponse = responseHandler.handleResponse(execution.response());
                     consumer.accept(handledResponse);
                 } catch (AssertionError e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw e;
                 } catch (Exception e) {
-                    logDebugInfo(HttpClientTestRule.this, execution.request(), execution.response());
+                    logDebugInfo(execution.request(), execution.response());
                     throw new NuxeoException("An error occurred during HTTP response handling", e);
                 }
             } catch (IOException e) {

@@ -20,6 +20,9 @@
  */
 package org.nuxeo.common.utils;
 
+import static org.apache.commons.io.FileUtils.copyDirectoryToDirectory;
+import static org.apache.commons.io.FileUtils.copyFile;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -56,7 +59,7 @@ public final class FileUtils {
         if (src.isFile()) {
             copyFile(src, dst);
         } else {
-            copyTree(src, dst);
+            copyDirectoryToDirectory(src, dst);
         }
     }
 
@@ -64,53 +67,6 @@ public final class FileUtils {
         for (File file : src) {
             copy(file, dst);
         }
-    }
-
-    /**
-     * @deprecated since 10.1 - use {@link org.apache.commons.io.FileUtils#copyFile(File, File)} or
-     *             {@link org.apache.commons.io.FileUtils#copyFileToDirectory(File, File)} instead.
-     */
-    @Deprecated
-    public static void copyFile(File src, File dst) throws IOException {
-        if (dst.isDirectory()) {
-            dst = new File(dst, src.getName());
-        }
-        org.apache.commons.io.FileUtils.copyFile(src, dst, false);
-    }
-
-    /**
-     * Copies recursively source to destination.
-     * <p>
-     * The source file is assumed to be a directory.
-     *
-     * @param src the source directory
-     * @param dst the destination directory
-     * @deprecated since 10.1 - waiting ReloadComponent to be cleaned
-     */
-    @Deprecated
-    public static void copyTree(File src, File dst) throws IOException {
-        if (src.isFile()) {
-            copyFile(src, dst);
-        } else if (src.isDirectory()) {
-            if (dst.exists()) {
-                dst = new File(dst, src.getName());
-                dst.mkdir();
-            } else { // allows renaming dest dir
-                dst.mkdirs();
-            }
-            File[] files = src.listFiles();
-            for (File file : files) {
-                copyTree(file, dst);
-            }
-        }
-    }
-
-    /**
-     * @deprecated since 10.1 - seems unused
-     */
-    @Deprecated
-    public static void copyTree(File src, File dst, PathFilter filter) throws IOException {
-        copyTree(src, dst, new Path("/"), filter);
     }
 
     public static void copyTree(File src, File dst, Path prefix, PathFilter filter) throws IOException {

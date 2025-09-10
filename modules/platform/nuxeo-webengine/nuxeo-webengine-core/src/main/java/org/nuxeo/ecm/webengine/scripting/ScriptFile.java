@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.webengine.scripting;
 
 import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
@@ -31,19 +28,24 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.runtime.api.Framework;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-public final class ScriptFile {
+public class ScriptFile {
 
     public static final String ROOT_PATH = Framework.getService(WebEngine.class).getRootDirectory().getAbsolutePath();
 
-    File file;
+    protected File file;
 
-    String ext = "";
+    protected final String ext;
+
+    protected ScriptFile(String ext) {
+        this.ext = ext;
+    }
 
     // TODO should remove the typed file name
     public ScriptFile(File file) throws IOException {
@@ -52,6 +54,8 @@ public final class ScriptFile {
         int p = name.lastIndexOf('.');
         if (p > -1) {
             ext = name.substring(p + 1);
+        } else {
+            ext = "";
         }
         this.file = file.getCanonicalFile();
     }
@@ -69,40 +73,39 @@ public final class ScriptFile {
     }
 
     public String getAbsolutePath() {
-        return file.getAbsolutePath();
+        return getFile().getAbsolutePath();
     }
 
     public String getRelativePath() {
-        return file.getAbsolutePath().substring(ROOT_PATH.length());
+        return getAbsolutePath().substring(ROOT_PATH.length());
     }
 
     public String getFileName() {
-        return file.getName();
+        return getFile().getName();
     }
 
     public String getURL() throws MalformedURLException {
-        return file.toURI().toURL().toExternalForm();
+        return getFile().toURI().toURL().toExternalForm();
     }
 
     public URL toURL() throws MalformedURLException {
-        return file.toURI().toURL();
+        return getFile().toURI().toURL();
     }
 
     public URI toURI() {
-        return file.toURI();
+        return getFile().toURI();
+    }
+
+    public long lastModified() {
+        return getFile().lastModified();
+    }
+
+    public InputStream getInputStream() throws IOException {
+        return new FileInputStream(getFile());
     }
 
     @Override
     public String toString() {
-        return file.toString();
+        return ToStringBuilder.reflectionToString(this);
     }
-
-    public long lastModified() {
-        return file.lastModified();
-    }
-
-    public InputStream getInputStream() throws IOException {
-        return new FileInputStream(file);
-    }
-
 }

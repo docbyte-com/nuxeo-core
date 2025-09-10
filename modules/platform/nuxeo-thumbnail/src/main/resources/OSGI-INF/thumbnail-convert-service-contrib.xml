@@ -28,6 +28,7 @@
       <destinationMimeType>image/png</destinationMimeType>
 
       <sourceMimeType>application/pdf</sourceMimeType>
+      <sourceMimeType>application/json</sourceMimeType>
       <sourceMimeType>image/jpeg</sourceMimeType>
       <sourceMimeType>image/png</sourceMimeType>
       <sourceMimeType>image/gif</sourceMimeType>

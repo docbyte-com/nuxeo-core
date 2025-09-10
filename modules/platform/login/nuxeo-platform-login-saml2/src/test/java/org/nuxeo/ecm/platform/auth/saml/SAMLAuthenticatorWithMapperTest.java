@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,9 +35,9 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletRequest;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletResponse;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletRequest;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletResponse;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -89,8 +89,7 @@ public class SAMLAuthenticatorWithMapperTest {
                         <saml:Audience>%s</saml:Audience>
                       </saml:AudienceRestriction>
                     </saml:Conditions>
-                    <saml:AuthnStatement AuthnInstant=""
-                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                    <saml:AuthnStatement SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
                       <saml:AuthnContext>
                         <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
                         </saml:AuthnContextClassRef>
@@ -102,7 +101,6 @@ public class SAMLAuthenticatorWithMapperTest {
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
         requestHandler = MockHttpServletRequest.init("POST", url)
-                                               .withAttributes()
                                                .whenGetParameterThenReturn("SAMLResponse", encodedSamlResponse)
                                                .whenGetParameterThenReturn("RelayState", "/relay");
         responseHandler = MockHttpServletResponse.init();

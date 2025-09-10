@@ -1,0 +1,30 @@
+<#escape x as x?xml>
+<?xml version="1.0"?>
+<component name="default-blob-provider-config">
+
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="default">
+      <class>${nuxeo.core.binarymanager}</class>
+      <property name="path">${repository.binary.store}</property>
+      <property name="key">${nuxeo.core.binarymanager_key}</property>
+    </blobprovider>
+  </extension>
+
+<#if "${nuxeo.vcs.fulltext.storedInBlob}" == "true">
+  <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
+    <blobprovider name="fulltext">
+      <class>${nuxeo.core.binarymanager}</class>
+      <property name="path">${nuxeo.binarystores.root}/fulltext</property>
+      <property name="key">${nuxeo.core.binarymanager_key}</property>
+    </blobprovider>
+  </extension>
+  <extension target="org.nuxeo.ecm.core.blob.DocumentBlobManager" point="configuration">
+    <blobdispatcher>
+      <property name="blob:xpath=ecm:fulltextBinary">fulltext</property>
+      <property name="default">default</property>
+    </blobdispatcher>
+  </extension>
+</#if>
+
+</component>
+</#escape>

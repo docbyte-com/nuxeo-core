@@ -18,6 +18,9 @@
  */
 package org.nuxeo.ecm.automation.core.operations.services.query;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
@@ -27,7 +30,7 @@ import org.nuxeo.ecm.automation.core.annotations.Param;
 import org.nuxeo.ecm.automation.core.util.PageProviderHelper;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.core.util.StringList;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -38,16 +41,13 @@ import org.nuxeo.ecm.platform.query.api.PageProviderService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
  * @since 6.0 Document query operation to perform queries on the repository.
  */
 @Operation(id = DocumentPaginatedQuery.ID, category = Constants.CAT_FETCH, label = "Query", description = "Perform a query on the repository. "
         + "The document list returned will become the input for the next operation."
-        + "If no provider name is given, a query returning all the documents that the user has access to will be executed.",
-        since = "6.0", addToStudio = true, aliases = { "Document.Query" })
+        + "If no provider name is given, a query returning all the documents that the user has access to will be executed.", since = "6.0", addToStudio = true, aliases = {
+                "Document.Query" })
 public class DocumentPaginatedQuery {
 
     public static final String ID = "Repository.Query";
@@ -62,8 +62,8 @@ public class DocumentPaginatedQuery {
     @Param(name = "query", required = false, description = "The query to perform.")
     protected String query;
 
-    @Param(name = "language", required = false, description = "The query language.",
-            widget = Constants.W_OPTION, values = { NXQL.NXQL })
+    @Param(name = "language", required = false, description = "The query language.", widget = Constants.W_OPTION, values = {
+            NXQL.NXQL })
     protected String lang = NXQL.NXQL;
 
     @Param(name = "currentPageIndex", alias = "page", required = false, description = "Target listing page.")
@@ -78,12 +78,11 @@ public class DocumentPaginatedQuery {
     @Param(name = "sortBy", required = false, description = "Sort by properties (separated by comma)")
     protected StringList sortBy;
 
-    @Param(name = "sortOrder", required = false, description = "Sort order, ASC or DESC",
-            widget = Constants.W_OPTION, values = { ASC, DESC })
+    @Param(name = "sortOrder", required = false, description = "Sort order, ASC or DESC", widget = Constants.W_OPTION, values = {
+            ASC, DESC })
     protected StringList sortOrder;
 
-    @Param(name = PageProviderService.NAMED_PARAMETERS, required = false,
-            description = "Named parameters to pass to the page provider to fill in query variables.")
+    @Param(name = PageProviderService.NAMED_PARAMETERS, required = false, description = "Named parameters to pass to the page provider to fill in query variables.")
     protected Properties namedParameters;
 
     /**

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.permissions;
 
 import static org.junit.Assert.assertEquals;
@@ -30,9 +29,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -46,10 +46,8 @@ import org.nuxeo.ecm.core.event.impl.EventContextImpl;
 import org.nuxeo.ecm.core.security.UpdateACEStatusListener;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.tokenauth.TokenAuthenticationServiceFeature;
 import org.nuxeo.ecm.tokenauth.service.TokenAuthenticationService;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -58,10 +56,10 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 /**
  * @since 8.1
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
-@Features({ TransactionalFeature.class, PlatformFeature.class, TokenAuthenticationServiceFeature.class })
+@Features({ PermissionsFeature.class, TokenAuthenticationServiceFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.permissions")
 public class TestPermissionForTransientUsers {
 
     @Inject

@@ -4,21 +4,24 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.ftests</groupId>
   <artifactId>nuxeo-ftests</artifactId>
   <packaging>pom</packaging>
-  <name>Nuxeo Functional Tests</name>
+  <name>Nuxeo Functional Tests Parent</name>
 
   <properties>
-    <maven.deploy.skip>true</maven.deploy.skip>
     <nuxeo.ftests.tier5>false</nuxeo.ftests.tier5>
     <nuxeo.ftests.tier6>false</nuxeo.ftests.tier6>
     <nuxeo.ftests.tier7>false</nuxeo.ftests.tier7>
     <nuxeo.bench.itests>true</nuxeo.bench.itests>
   </properties>
+
+  <modules>
+    <module>nuxeo-functional-tests</module>
+  </modules>
 
   <profiles>
     <profile>
@@ -32,6 +35,9 @@
         <module>nuxeo-server-cmis-tests</module>
         <module>nuxeo-server-tests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
     </profile>
 
     <profile>
@@ -45,6 +51,9 @@
         <module>nuxeo-server-gatling-tests</module>
         <module>nuxeo-server-hotreload-tests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
     </profile>
 
     <profile>
@@ -55,7 +64,6 @@
         </property>
       </activation>
       <modules>
-        <module>nuxeo-3d-ftests</module>
         <module>nuxeo-adobe-connector-ftests</module>
         <module>nuxeo-amazon-s3-ftests</module>
         <module>nuxeo-audit-storage-directory-ftests</module>
@@ -79,22 +87,21 @@
         <module>nuxeo-quota-ftests</module>
         <module>nuxeo-saml2-login-ftests</module>
         <module>nuxeo-scan-importer-ftests</module>
+        <module>nuxeo-scim-v2-ftests</module>
         <module>nuxeo-shibboleth-login-ftests</module>
         <module>nuxeo-signature-ftests</module>
         <module>nuxeo-template-rendering-ftests</module>
         <module>nuxeo-tree-snapshot-ftests</module>
         <module>nuxeo-wopi-ftests</module>
       </modules>
+      <properties>
+        <maven.deploy.skip>true</maven.deploy.skip>
+      </properties>
       <dependencies>
         <dependency>
           <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
           <artifactId>nuxeo-server-tomcat</artifactId>
           <type>zip</type>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
-          <artifactId>nuxeo-functional-tests</artifactId>
           <scope>test</scope>
         </dependency>
         <dependency>
@@ -118,11 +125,6 @@
           <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
           <artifactId>nuxeo-server-tomcat</artifactId>
           <type>zip</type>
-          <scope>test</scope>
-        </dependency>
-        <dependency>
-          <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
-          <artifactId>nuxeo-functional-tests</artifactId>
           <scope>test</scope>
         </dependency>
         <dependency>

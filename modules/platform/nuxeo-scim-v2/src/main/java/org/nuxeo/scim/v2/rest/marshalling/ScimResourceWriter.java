@@ -18,6 +18,8 @@
  */
 package org.nuxeo.scim.v2.rest.marshalling;
 
+import static com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 
@@ -25,6 +27,7 @@ import java.io.IOException;
 
 import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriter;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
+import org.nuxeo.ecm.core.io.registry.reflect.Supports;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.unboundid.scim2.common.ScimResource;
@@ -36,6 +39,7 @@ import com.unboundid.scim2.common.utils.JsonUtils;
  * @since 2023.15
  */
 @Setup(mode = SINGLETON, priority = REFERENCE)
+@Supports({ MEDIA_TYPE_SCIM, APPLICATION_JSON })
 public class ScimResourceWriter extends AbstractJsonWriter<ScimResource> {
 
     @Override

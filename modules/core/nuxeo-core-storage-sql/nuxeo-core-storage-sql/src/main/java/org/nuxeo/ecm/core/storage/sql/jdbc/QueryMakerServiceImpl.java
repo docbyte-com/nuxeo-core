@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.storage.sql.jdbc;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,8 +83,7 @@ public class QueryMakerServiceImpl extends DefaultComponent implements QueryMake
         if (queryMakers == null) {
             // recompute queryMakers
             queryMakers = new ArrayList<>(2);
-            List<QueryMakerDescriptor> qmdl = new ArrayList<>(descriptors);
-            Collections.reverse(qmdl);
+            List<QueryMakerDescriptor> qmdl = new ArrayList<>(descriptors).reversed();
             Set<String> done = new HashSet<>();
             for (QueryMakerDescriptor descriptor : qmdl) {
                 if (!done.add(descriptor.name)) {
@@ -95,7 +93,7 @@ public class QueryMakerServiceImpl extends DefaultComponent implements QueryMake
                     queryMakers.add(descriptor.queryMaker);
                 }
             }
-            Collections.reverse(queryMakers);
+            queryMakers = queryMakers.reversed();
             // BBB backward compat
             if (queryMakers.isEmpty() && !done.contains(NXQL.NXQL)) {
                 queryMakers.add(NXQLQueryMaker.class);

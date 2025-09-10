@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,9 @@
 package org.nuxeo.ecm.platform.thumbnail.test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
+
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,15 +29,13 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.thumbnail.ThumbnailService;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.platform.thumbnail.ThumbnailFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
-import com.google.inject.Inject;
 
 /**
  * Test class to verify the fetch of the default thumbnail for a document type.
@@ -42,22 +43,19 @@ import com.google.inject.Inject;
  * @since 9.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(ThumbnailFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.thumbnail")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.url")
-@Deploy("org.nuxeo.ecm.platform.thumbnail:test-thumbnail-document-contrib.xml")
+@Deploy("org.nuxeo.ecm.platform.thumbnail.test:test-thumbnail-document-contrib.xml")
 public class TestGetDefaultThumbnail {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Test
     public void thumbnail_service_returns_default_thumbnail_outside_servlet_context() {
         // When I create a new File in the repository
         DocumentModel root = session.getRootDocument();
-        DocumentModel newDoc = session.createDocumentModel(root.getPathAsString(), "MyDoc", "MyDocType");
+        DocumentModel newDoc = session.createDocumentModel(root.getPathAsString(), "MyDoc", COMMON_DOC_TYPE);
         session.createDocument(newDoc);
         session.save();
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import static org.junit.Assert.assertTrue;
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter.ENTITY_TYPE;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.FETCH_PROPERTIES;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.HEADER_PREFIX;
+import static org.nuxeo.ecm.core.schema.test.CommonDocumentConstants.COMMON_DOC_TYPE;
 import static org.nuxeo.ecm.core.schema.types.PrimitiveType.PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY;
 
 import java.io.Serializable;
@@ -42,8 +43,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
@@ -74,7 +75,7 @@ import org.nuxeo.ecm.platform.preview.io.PreviewJsonEnricher;
 import org.nuxeo.ecm.platform.tag.TagService;
 import org.nuxeo.ecm.platform.tag.io.TagsJsonEnricher;
 import org.nuxeo.ecm.platform.thumbnail.io.ThumbnailJsonEnricher;
-import org.nuxeo.ecm.restapi.jaxrs.io.RestConstants;
+import org.nuxeo.ecm.restapi.io.RestConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -114,11 +115,11 @@ public class DocumentBrowsingTest {
 
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
-                                                                   .url(() -> restServerFeature.getRestApiUrl())
-                                                                   .adminCredentials()
-                                                                   .contentType(MediaType.APPLICATION_JSON)
-                                                                   .header("X-NXDocumentProperties", "dublincore")
-                                                                   .build();
+            .url(() -> restServerFeature.getRestApiUrl())
+            .adminCredentials()
+            .contentType(MediaType.APPLICATION_JSON)
+            .header("X-NXDocumentProperties", "dublincore")
+            .build();
 
     @Test
     public void iCanBrowseTheRepoByItsPath() {
@@ -126,9 +127,9 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
         // When i do a GET Request
         httpClient.buildGetRequest("/path" + note.getPathAsString())
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get a document
-                          node -> assertDocumentEqualsNode(note, node));
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get a document
+                        node -> assertDocumentEqualsNode(note, node));
     }
 
     @Test
@@ -137,9 +138,9 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
         // When i do a GET Request
         httpClient.buildGetRequest("/id/" + note.getId())
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get a document
-                          node -> assertDocumentEqualsNode(note, node));
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get a document
+                        node -> assertDocumentEqualsNode(note, node));
     }
 
     @Test
@@ -153,12 +154,12 @@ public class DocumentBrowsingTest {
         DocumentModel childFinal = child;
         // When i call a GET on the children for that doc
         httpClient.buildGetRequest("/id/" + folder.getId() + "/@children")
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      // Then i get the only document of the folder
-                      Iterator<JsonNode> elements = node.get("entries").elements();
-                      node = elements.next();
-                      assertDocumentEqualsNode(childFinal, node);
-                  });
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    // Then i get the only document of the folder
+                    Iterator<JsonNode> elements = node.get("entries").elements();
+                    node = elements.next();
+                    assertDocumentEqualsNode(childFinal, node);
+                });
     }
 
     @Test
@@ -166,18 +167,18 @@ public class DocumentBrowsingTest {
         // Given a document
         DocumentModel note = RestServerInit.getNote(0, session);
         JSONDocumentNode jsonDoc = httpClient.buildGetRequest("/id/" + note.getId())
-                                             .addHeader("X-NXDocumentProperties", "dublincore")
-                                             .executeAndThen(new JSONDocumentNodeHandler(), json -> {
-                                                 // When i do a PUT request on the document with modified data
-                                                 // and the same change token
-                                                 String changeToken = json.node.get("changeToken").asText();
-                                                 assertNotNull(changeToken);
-                                                 return json;
-                                             });
+                .addHeader("X-NXDocumentProperties", "dublincore")
+                .executeAndThen(new JSONDocumentNodeHandler(), json -> {
+                    // When i do a PUT request on the document with modified data
+                    // and the same change token
+                    String changeToken = json.node.get("changeToken").asText();
+                    assertNotNull(changeToken);
+                    return json;
+                });
         jsonDoc.setPropertyValue("dc:title", "New title");
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .entity(jsonDoc.asJson())
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity(jsonDoc.asJson())
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
         // Then the document is updated
         transactionalFeature.nextTransaction();
         note = RestServerInit.getNote(0, session);
@@ -188,14 +189,14 @@ public class DocumentBrowsingTest {
     public void iCanUpdateADocumentWithAComment() throws Exception {
         DocumentModel note = RestServerInit.getNote(0, session);
         JSONDocumentNode jsonDoc = httpClient.buildGetRequest("/id/" + note.getId())
-                                             .addHeader("X-NXDocumentProperties", "dublincore")
-                                             .execute(new JSONDocumentNodeHandler());
+                .addHeader("X-NXDocumentProperties", "dublincore")
+                .execute(new JSONDocumentNodeHandler());
         jsonDoc.setPropertyValue("dc:title", "Another title");
         try (CapturingEventListener listener = new CapturingEventListener(DocumentEventTypes.BEFORE_DOC_UPDATE)) {
             httpClient.buildPutRequest("/id/" + note.getId())
-                      .addHeader(RestConstants.UPDATE_COMMENT_HEADER, "a simple comment")
-                      .entity(jsonDoc.asJson())
-                      .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                    .addHeader(RestConstants.UPDATE_COMMENT_HEADER, "a simple comment")
+                    .entity(jsonDoc.asJson())
+                    .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
             transactionalFeature.nextTransaction();
             note = RestServerInit.getNote(0, session);
@@ -211,8 +212,8 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
         String noteId = note.getId();
         JSONDocumentNode jsonDoc = httpClient.buildGetRequest("/id/" + noteId)
-                                             .addHeader("X-NXDocumentProperties", "dublincore")
-                                             .execute(new JSONDocumentNodeHandler());
+                .addHeader("X-NXDocumentProperties", "dublincore")
+                .execute(new JSONDocumentNodeHandler());
 
         // When i do a PUT request on the document with modified data and pass an old/invalid change token
         jsonDoc.setPropertyValue("dc:title", "New title");
@@ -220,12 +221,12 @@ public class DocumentBrowsingTest {
 
         // Then we get a 409 CONFLICT
         httpClient.buildPutRequest("/id/" + noteId)
-                  .entity(jsonDoc.asJson())
-                  .executeAndConsume(new JsonNodeHandler(SC_CONFLICT), node -> {
-                      // Assert the response is a JSON entity
-                      String error = JsonNodeHelper.getErrorMessage(node);
-                      assertEquals(noteId + ", Invalid change token", error);
-                  });
+                .entity(jsonDoc.asJson())
+                .executeAndConsume(new JsonNodeHandler(SC_CONFLICT), node -> {
+                    // Assert the response is a JSON entity
+                    String error = JsonNodeHelper.getErrorMessage(node);
+                    assertEquals(noteId + ", Invalid change token", error);
+                });
 
         // And the document is NOT updated
         transactionalFeature.nextTransaction();
@@ -245,7 +246,7 @@ public class DocumentBrowsingTest {
 
         var statusCodeHandler = new HttpStatusCodeHandler();
         httpClient.buildGetRequest("/id/" + doc.getId())
-                  .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
+                .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
 
         String payload = """
                 {
@@ -259,8 +260,8 @@ public class DocumentBrowsingTest {
                 }
                 """;
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity(payload)
-                  .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
+                .entity(payload)
+                .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -281,18 +282,18 @@ public class DocumentBrowsingTest {
         assertEquals("0.1", note.getVersionLabel());
 
         JSONDocumentNode jsonDoc = httpClient.buildGetRequest("/id/" + note.getId())
-                                             .addHeader("X-NXDocumentProperties", "dublincore")
-                                             .execute(new JSONDocumentNodeHandler());
+                .addHeader("X-NXDocumentProperties", "dublincore")
+                .execute(new JSONDocumentNodeHandler());
 
         // When i do a PUT request on the document with modified version in the header
         jsonDoc.setPropertyValue("dc:title", "New title !");
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .addHeader(RestConstants.X_VERSIONING_OPTION, VersioningOption.MAJOR.toString())
-                  .addHeader(HEADER_PREFIX + FETCH_PROPERTIES + "." + ENTITY_TYPE, "versionLabel")
-                  .entity(jsonDoc.asJson())
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Check if the version of the document has been returned
-                          node -> assertEquals("1.0", node.get("versionLabel").asText()));
+                .addHeader(RestConstants.X_VERSIONING_OPTION, VersioningOption.MAJOR.toString())
+                .addHeader(HEADER_PREFIX + FETCH_PROPERTIES + "." + ENTITY_TYPE, "versionLabel")
+                .entity(jsonDoc.asJson())
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Check if the version of the document has been returned
+                        node -> assertEquals("1.0", node.get("versionLabel").asText()));
 
         // Check if the original document is still not versioned.
         note = RestServerInit.getNote(0, session);
@@ -305,12 +306,12 @@ public class DocumentBrowsingTest {
         // Given a document
         DocumentModel note = RestServerInit.getNote(0, session);
         httpClient.buildGetRequest("/path" + note.getPathAsString())
-                  .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
+                .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
 
         // When i do a PUT request on the document with modified data
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:title\":\"Other New title\"}}")
-                  .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:title\":\"Other New title\"}}")
+                .executeAndConsume(statusCodeHandler, status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -329,8 +330,8 @@ public class DocumentBrowsingTest {
 
         // When i do a PUT request on the document with modified data
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:format\":null}}")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:format\":null}}")
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -349,8 +350,8 @@ public class DocumentBrowsingTest {
 
         // When i do a PUT request on the document with modified data
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:format\":\"\"}}")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:format\":\"\"}}")
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -376,8 +377,8 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":null}}}")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":null}}}")
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -400,8 +401,8 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":null,\"bar\":null}}}")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":null,\"bar\":null}}}")
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -423,8 +424,8 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":\"val3\",\"bar\":null}}}")
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:complexWithoutDefault\":{\"foo\":\"val3\",\"bar\":null}}}")
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -444,15 +445,15 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:subjects\":[]}}")
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      JsonNode jsonProperties = node.get("properties");
-                      assertNotNull(jsonProperties);
-                      JsonNode jsonSubjects = jsonProperties.get("dc:subjects");
-                      assertNotNull(jsonSubjects);
-                      assertTrue(jsonSubjects.isArray());
-                      assertTrue(jsonSubjects.isEmpty());
-                  });
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:subjects\":[]}}")
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    JsonNode jsonProperties = node.get("properties");
+                    assertNotNull(jsonProperties);
+                    JsonNode jsonSubjects = jsonProperties.get("dc:subjects");
+                    assertNotNull(jsonSubjects);
+                    assertTrue(jsonSubjects.isArray());
+                    assertTrue(jsonSubjects.isEmpty());
+                });
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -472,15 +473,15 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:subjects\":null}}")
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      JsonNode jsonProperties = node.get("properties");
-                      assertNotNull(jsonProperties);
-                      JsonNode jsonSubjects = jsonProperties.get("dc:subjects");
-                      assertNotNull(jsonSubjects);
-                      assertTrue(jsonSubjects.isArray());
-                      assertTrue(jsonSubjects.isEmpty());
-                  });
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dc:subjects\":null}}")
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    JsonNode jsonProperties = node.get("properties");
+                    assertNotNull(jsonProperties);
+                    JsonNode jsonSubjects = jsonProperties.get("dc:subjects");
+                    assertNotNull(jsonSubjects);
+                    assertTrue(jsonSubjects.isArray());
+                    assertTrue(jsonSubjects.isEmpty());
+                });
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -501,16 +502,16 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:multiComplexWithoutDefault\":[]}}")
-                  .addHeader("X-NXDocumentProperties", "defaultvalue")
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      JsonNode jsonProperties = node.get("properties");
-                      assertNotNull(jsonProperties);
-                      JsonNode jsonMultiComplex = jsonProperties.get("dv:multiComplexWithoutDefault");
-                      assertNotNull(jsonMultiComplex);
-                      assertTrue(jsonMultiComplex.isArray());
-                      assertTrue(jsonMultiComplex.isEmpty());
-                  });
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:multiComplexWithoutDefault\":[]}}")
+                .addHeader("X-NXDocumentProperties", "defaultvalue")
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    JsonNode jsonProperties = node.get("properties");
+                    assertNotNull(jsonProperties);
+                    JsonNode jsonMultiComplex = jsonProperties.get("dv:multiComplexWithoutDefault");
+                    assertNotNull(jsonMultiComplex);
+                    assertTrue(jsonMultiComplex.isArray());
+                    assertTrue(jsonMultiComplex.isEmpty());
+                });
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -533,16 +534,16 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildPutRequest("/id/" + doc.getId())
-                  .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:multiComplexWithoutDefault\":null}}")
-                  .addHeader("X-NXDocumentProperties", "defaultvalue")
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      JsonNode jsonProperties = node.get("properties");
-                      assertNotNull(jsonProperties);
-                      JsonNode jsonMultiComplex = jsonProperties.get("dv:multiComplexWithoutDefault");
-                      assertNotNull(jsonMultiComplex);
-                      assertTrue(jsonMultiComplex.isArray());
-                      assertTrue(jsonMultiComplex.isEmpty());
-                  });
+                .entity("{\"entity-type\":\"document\",\"properties\":{\"dv:multiComplexWithoutDefault\":null}}")
+                .addHeader("X-NXDocumentProperties", "defaultvalue")
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    JsonNode jsonProperties = node.get("properties");
+                    assertNotNull(jsonProperties);
+                    JsonNode jsonMultiComplex = jsonProperties.get("dv:multiComplexWithoutDefault");
+                    assertNotNull(jsonMultiComplex);
+                    assertTrue(jsonMultiComplex.isArray());
+                    assertTrue(jsonMultiComplex.isEmpty());
+                });
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -558,18 +559,28 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"dc:description\":\" \"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "dc:description": " "
+                  }
+                }
+                """;
 
         String id = httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                              .entity(data)
-                              .executeAndThen(new JsonNodeHandler(SC_CREATED), node -> {
-                                  // Then the create document is returned
-                                  assertEquals("My title", node.get("title").asText());
-                                  assertEquals(" ", node.get("properties").get("dc:description").textValue());
-                                  String uid = node.get("uid").asText();
-                                  assertTrue(StringUtils.isNotBlank(uid));
-                                  return uid;
-                              });
+                .entity(data)
+                .executeAndThen(new JsonNodeHandler(SC_CREATED), node -> {
+                    // Then the create document is returned
+                    assertEquals("My title", node.get("title").asText());
+                    assertEquals(" ", node.get("properties").get("dc:description").textValue());
+                    String uid = node.get("uid").asText();
+                    assertTrue(StringUtils.isNotBlank(uid));
+                    return uid;
+                });
 
         // Then a document is created in the database
         transactionalFeature.nextTransaction();
@@ -587,53 +598,85 @@ public class DocumentBrowsingTest {
         // Given a folder and a Rest Creation request
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"File\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"My title\",\"note:note\":\"File does not have note\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "File",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "My title",
+                    "note:note": "File does not have note"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                  .entity(data)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_CREATED, status.intValue()));
+                .entity(data)
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        status -> assertEquals(SC_CREATED, status.intValue()));
     }
 
     // NXP-30680
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void iCantCreateADocumentWithAWrongPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"MyDocType\",\"name\":\"newName\",\"properties\": {\"my:integer\":\"Some string\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:integer": "Some string"
+                  }
+                }
+                """.formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                  .entity(data)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+                .entity(data)
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     public void iCanCreateADocumentWithABooleanPropertyType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"MyDocType\",\"name\":\"newName\",\"properties\": {\"my:boolean\":\"Some string\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:boolean": "Some string"
+                  }
+                }""".formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                  .entity(data)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_CREATED, status.intValue()));
+                .entity(data)
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        status -> assertEquals(SC_CREATED, status.intValue()));
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-repo-core-types-contrib.xml")
     @WithFrameworkProperty(name = PRIMITIVE_TYPE_STRICT_VALIDATION_PROPERTY, value = "true")
     public void iCantCreateADocumentWithAWrongBooleanPropertyTypeStrictValidation() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"MyDocType\",\"name\":\"newName\",\"properties\": {\"my:boolean\":\"Some string\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "%s",
+                  "name": "newName",
+                  "properties": {
+                    "tcs:boolean": "Some string"
+                  }
+                }""".formatted(COMMON_DOC_TYPE);
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                  .entity(data)
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+                .entity(data)
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     // NXP-30052
@@ -641,14 +684,23 @@ public class DocumentBrowsingTest {
     public void iCantCreateADocumentWithNonExistingType() {
         DocumentModel folder = RestServerInit.getFolder(0, session);
 
-        String data = "{\"entity-type\": \"document\",\"type\": \"Foo\",\"name\":\"newName\",\"properties\": {\"dc:title\":\"Foo\"}}";
+        String data = """
+                {
+                  "entity-type": "document",
+                  "type": "Foo",
+                  "name": "newName",
+                  "properties": {
+                    "dc:title": "Foo"
+                  }
+                }
+                """;
 
         httpClient.buildPostRequest("/path" + folder.getPathAsString())
-                  .entity(data)
-                  .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
-                      assertEquals(400, node.get("status").longValue());
-                      assertEquals("Type: Foo does not exist", node.get("message").textValue());
-                  });
+                .entity(data)
+                .executeAndConsume(new JsonNodeHandler(SC_BAD_REQUEST), node -> {
+                    assertEquals(400, node.get("status").longValue());
+                    assertEquals("Type: Foo does not exist", node.get("message").textValue());
+                });
     }
 
     @Test
@@ -658,8 +710,8 @@ public class DocumentBrowsingTest {
 
         // When I do a DELETE request
         httpClient.buildDeleteRequest("/path" + doc.getPathAsString())
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          status -> assertEquals(SC_NO_CONTENT, status.intValue()));
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        status -> assertEquals(SC_NO_CONTENT, status.intValue()));
 
         transactionalFeature.nextTransaction();
         // Then the doc is deleted
@@ -673,15 +725,15 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get a document
-                          node -> assertDocumentEqualsNode(note, node));
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get a document
+                        node -> assertDocumentEqualsNode(note, node));
 
         // When i do a GET Request on a non existent repository
         httpClient.buildGetRequest("/repo/nonexistentrepo/path" + note.getPathAsString())
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          // Then i receive a 404
-                          status -> assertEquals(SC_NOT_FOUND, status.intValue()));
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        // Then i receive a 404
+                        status -> assertEquals(SC_NOT_FOUND, status.intValue()));
     }
 
     @Test
@@ -691,9 +743,9 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString() + "/@acl")
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get a the ACL
-                          node -> assertEquals(ACPJsonWriter.ENTITY_TYPE, node.get("entity-type").asText()));
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get a the ACL
+                        node -> assertEquals(ACPJsonWriter.ENTITY_TYPE, node.get("entity-type").asText()));
     }
 
     @Test
@@ -703,15 +755,15 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ACLJsonEnricher.NAME)
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get a the ACL
-                          node -> assertEquals("inherited",
-                                  node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
-                                      .get("acls")
-                                      .get(0)
-                                      .get("name")
-                                      .textValue()));
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ACLJsonEnricher.NAME)
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get a the ACL
+                        node -> assertEquals("inherited",
+                                node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
+                                        .get("acls")
+                                        .get(0)
+                                        .get("name")
+                                        .textValue()));
     }
 
     @Test
@@ -741,14 +793,14 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note without any image
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ThumbnailJsonEnricher.NAME)
-                  .executeAndConsume(new JsonNodeHandler(),
-                          // Then i get no result for valid thumbnail url as expected but still
-                          // thumbnail entry from the contributor
-                          node -> assertNotNull(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
-                                                    .get("thumbnail")
-                                                    .get("url")
-                                                    .textValue()));
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ThumbnailJsonEnricher.NAME)
+                .executeAndConsume(new JsonNodeHandler(),
+                        // Then i get no result for valid thumbnail url as expected but still
+                        // thumbnail entry from the contributor
+                        node -> assertNotNull(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
+                                .get("thumbnail")
+                                .get("url")
+                                .textValue()));
     }
 
     /**
@@ -763,13 +815,13 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      assertFalse(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
-                                      .get(FavoritesJsonEnricher.NAME)
-                                      .get(FavoritesJsonEnricher.IS_FAVORITE)
-                                      .booleanValue());
-                  });
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    assertFalse(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
+                            .get(FavoritesJsonEnricher.NAME)
+                            .get(FavoritesJsonEnricher.IS_FAVORITE)
+                            .booleanValue());
+                });
         // The above GET will force the creation of the user workspace if it did not exist yet.
         // Force to refresh current transaction context.
         transactionalFeature.nextTransaction();
@@ -780,12 +832,12 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(),
-                          node -> assertTrue(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
-                                                 .get(FavoritesJsonEnricher.NAME)
-                                                 .get(FavoritesJsonEnricher.IS_FAVORITE)
-                                                 .booleanValue()));
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(),
+                        node -> assertTrue(node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
+                                .get(FavoritesJsonEnricher.NAME)
+                                .get(FavoritesJsonEnricher.IS_FAVORITE)
+                                .booleanValue()));
     }
 
     /**
@@ -800,9 +852,9 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(), node -> assertEquals(0,
-                          node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(TagsJsonEnricher.NAME).size()));
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(), node -> assertEquals(0,
+                        node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(TagsJsonEnricher.NAME).size()));
 
         // The above GET will force the creation of the user workspace if it did not exist yet.
         // Force to refresh current transaction context.
@@ -814,14 +866,14 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      JsonNode tags = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(TagsJsonEnricher.NAME);
-                      if (!tags.isEmpty()) { // XXX NXP-17670 tags not implemented for MongoDB
-                          assertEquals(1, tags.size());
-                          assertEquals("pouet", tags.get(0).textValue());
-                      }
-                  });
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    JsonNode tags = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(TagsJsonEnricher.NAME);
+                    if (!tags.isEmpty()) { // XXX NXP-17670 tags not implemented for MongoDB
+                        assertEquals(1, tags.size());
+                        assertEquals("pouet", tags.get(0).textValue());
+                    }
+                });
     }
 
     /**
@@ -836,9 +888,9 @@ public class DocumentBrowsingTest {
         DocumentModel note = RestServerInit.getNote(0, session);
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(), node -> assertEquals(0,
-                          node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(CollectionsJsonEnricher.NAME).size()));
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(), node -> assertEquals(0,
+                        node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get(CollectionsJsonEnricher.NAME).size()));
 
         // The above GET will force the creation of the user workspace if it did not exist yet.
         // Force to refresh current transaction context.
@@ -850,13 +902,13 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeaders(headers)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      ArrayNode collections = (ArrayNode) node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
-                                                              .get(CollectionsJsonEnricher.NAME);
-                      assertEquals(1, collections.size());
-                      assertEquals("dummyCollection", collections.get(0).get("title").textValue());
-                  });
+                .addHeaders(headers)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    ArrayNode collections = (ArrayNode) node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS)
+                            .get(CollectionsJsonEnricher.NAME);
+                    assertEquals(1, collections.size());
+                    assertEquals("dummyCollection", collections.get(0).get("title").textValue());
+                });
     }
 
     @Test
@@ -871,14 +923,14 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the doc
         httpClient.buildGetRequest("/repo/" + file.getRepositoryName() + "/path" + file.getPathAsString())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", BasePermissionsJsonEnricher.NAME)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      // Then i get a list of permissions as an admin
-                      JsonNode permissions = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("permissions");
-                      assertNotNull(permissions);
-                      assertTrue(permissions.isArray());
-                      assertFalse(permissions.isEmpty());
-                  });
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", BasePermissionsJsonEnricher.NAME)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    // Then i get a list of permissions as an admin
+                    JsonNode permissions = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("permissions");
+                    assertNotNull(permissions);
+                    assertTrue(permissions.isArray());
+                    assertFalse(permissions.isEmpty());
+                });
     }
 
     @Test
@@ -888,13 +940,13 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", BasePermissionsJsonEnricher.NAME)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      // Then i get a list of permissions
-                      JsonNode permissions = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("permissions");
-                      assertNotNull(permissions);
-                      assertTrue(permissions.isArray());
-                  });
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", BasePermissionsJsonEnricher.NAME)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    // Then i get a list of permissions
+                    JsonNode permissions = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("permissions");
+                    assertNotNull(permissions);
+                    assertTrue(permissions.isArray());
+                });
     }
 
     @Test
@@ -904,13 +956,13 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", PreviewJsonEnricher.NAME)
-                  .executeAndConsume(new JsonNodeHandler(), node -> {
-                      // Then i get a preview url
-                      JsonNode preview = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("preview");
-                      assertNotNull(preview);
-                      StringUtils.endsWith(preview.get("url").textValue(), "/default/");
-                  });
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", PreviewJsonEnricher.NAME)
+                .executeAndConsume(new JsonNodeHandler(), node -> {
+                    // Then i get a preview url
+                    JsonNode preview = node.get(RestConstants.CONTRIBUTOR_CTX_PARAMETERS).get("preview");
+                    assertNotNull(preview);
+                    StringUtils.endsWith(preview.get("url").textValue(), "/default/");
+                });
     }
 
     @Test
@@ -922,16 +974,16 @@ public class DocumentBrowsingTest {
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest(
-                "/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString().replace(" ", "%20"))
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          // Then i get a the ACL
-                          status -> assertEquals(SC_OK, status.intValue()));
+                        "/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString().replace(" ", "%20"))
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        // Then i get a the ACL
+                        status -> assertEquals(SC_OK, status.intValue()));
 
         // When i do a GET Request on the note repository
         httpClient.buildGetRequest("/repo/" + note.getRepositoryName() + "/path" + note.getPathAsString())
-                  .executeAndConsume(new HttpStatusCodeHandler(),
-                          // Then i get a the ACL
-                          status -> assertEquals(SC_OK, status.intValue()));
+                .executeAndConsume(new HttpStatusCodeHandler(),
+                        // Then i get a the ACL
+                        status -> assertEquals(SC_OK, status.intValue()));
     }
 
     @Test
@@ -939,15 +991,15 @@ public class DocumentBrowsingTest {
         // Given a document
         DocumentModel note = RestServerInit.getNote(0, session);
         JSONDocumentNode jsonDoc = httpClient.buildGetRequest("/id/" + note.getId())
-                                             .addHeader("X-NXDocumentProperties", "dublincore")
-                                             .execute(new JSONDocumentNodeHandler());
+                .addHeader("X-NXDocumentProperties", "dublincore")
+                .execute(new JSONDocumentNodeHandler());
 
         // When i do a PUT request on the document with modified data
         jsonDoc.setPropertyValue("dc:title", "New title");
         jsonDoc.setPropertyArray("dc:contributors", "bob");
         httpClient.buildPutRequest("/id/" + note.getId())
-                  .entity(jsonDoc.asJson())
-                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+                .entity(jsonDoc.asJson())
+                .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Then the document is updated
         transactionalFeature.nextTransaction();
@@ -973,16 +1025,16 @@ public class DocumentBrowsingTest {
         transactionalFeature.nextTransaction();
 
         httpClient.buildGetRequest("/id/" + doc.getId())
-                  .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ACLJsonEnricher.NAME)
-                  .addHeader("properties", "*")
-                  .addHeader("fetch.document", "delivery:docy")
-                  .addHeader("depth", "max")
-                  .executeAndConsume(ThrowableConsumer.asConsumer(response -> {
-                      assertEquals(SC_OK, response.getStatus());
-                      var jsonAssert = JsonAssert.on(response.getEntityString());
-                      jsonAssert.has("properties").has("delivery:docu");
-                      jsonAssert.has("contextParameters").has("acls");
-                  }));
+                .addHeader(MarshallingConstants.EMBED_ENRICHERS + ".document", ACLJsonEnricher.NAME)
+                .addHeader("properties", "*")
+                .addHeader("fetch.document", "delivery:docy")
+                .addHeader("depth", "max")
+                .executeAndConsume(ThrowableConsumer.asConsumer(response -> {
+                    assertEquals(SC_OK, response.getStatus());
+                    var jsonAssert = JsonAssert.on(response.getEntityString());
+                    jsonAssert.has("properties").has("delivery:docu");
+                    jsonAssert.has("contextParameters").has("acls");
+                }));
     }
 
     protected void assertDocumentEqualsNode(DocumentModel expected, JsonNode actual) {

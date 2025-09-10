@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
  */
 package org.nuxeo.ecm.automation.core.events.operations;
 
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.Constants;
@@ -39,11 +40,10 @@ import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.event.impl.EventContextImpl;
 
 /**
- * Save the session - TODO remove this?
- *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Operation(id = FireEvent.ID, category = Constants.CAT_NOTIFICATION, label = "Send Event", description = "Send a Nuxeo event.", aliases = { "Notification.SendEvent" })
+@Operation(id = FireEvent.ID, category = Constants.CAT_NOTIFICATION, label = "Send Event", description = "Send a Nuxeo event.", aliases = {
+        "Notification.SendEvent" })
 public class FireEvent {
 
     public static final String ID = "Event.Fire";
@@ -65,36 +65,28 @@ public class FireEvent {
     public void run() {
         CoreSession session = ctx.getCoreSession();
         Object input = ctx.getInput();
-        if (input instanceof DocumentModel) {
-            sendDocumentEvent((DocumentModel) input);
-        } else if (input instanceof DocumentRef) {
-            sendDocumentEvent(session.getDocument((DocumentRef) input));
-        } else if (input instanceof DocumentModelList) {
-            DocumentModelList docs = (DocumentModelList) input;
-            for (DocumentModel documentModel : docs) {
-                sendDocumentEvent(documentModel);
-            }
-        } else {
-            sendUnknownEvent(input);
+        switch (input) {
+            case DocumentRef docRef -> sendDocumentEvent(session.getDocument(docRef));
+            case DocumentModel doc -> sendDocumentEvent(doc);
+            case DocumentModelList docs -> docs.forEach(this::sendDocumentEvent);
+            case null, default -> sendUnknownEvent(input);
         }
     }
 
     protected void sendDocumentEvent(DocumentModel input) {
         CoreSession session = ctx.getCoreSession();
-        EventContextImpl evctx = new DocumentEventContext(session, session.getPrincipal(), input);
-        sendEvent(evctx);
+        sendEvent(new DocumentEventContext(session, session.getPrincipal(), input));
     }
 
     protected void sendUnknownEvent(Object input) {
         CoreSession session = ctx.getCoreSession();
-        EventContextImpl evctx = new EventContextImpl(session, session.getPrincipal(), input);
-        sendEvent(evctx);
+        sendEvent(new EventContextImpl(session, session.getPrincipal(), input));
     }
 
     protected void sendEvent(EventContext eventContext) {
         Event event = eventContext.newEvent(name);
-        event.getContext().setProperties(
-                properties.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        event.getContext()
+             .setProperties(properties.entrySet().stream().collect(toMap(Map.Entry::getKey, Map.Entry::getValue)));
         service.fireEvent(event);
     }
 

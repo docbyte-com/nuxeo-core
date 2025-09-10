@@ -9,7 +9,7 @@
   the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
   OF ANY KIND, either express or implied. See the License for the specific language
   governing permissions and limitations under the License. -->
-<Context antiResourceLocking="false" privileged="true" docBase="../nxserver/nuxeo.war">
+<Context antiResourceLocking="false" privileged="true" docBase="../nxserver/nuxeo.war" notFoundClassResourceCacheSize="0">
 
   <CookieProcessor sameSiteCookies="${nuxeo.server.cookies.sameSite}" />
   
@@ -36,11 +36,11 @@
 </#noparse>
 
   <Resource name="TransactionManager" auth="Container"
-    type="javax.transaction.TransactionManager" factory="org.nuxeo.runtime.jtajca.NuxeoTransactionManagerFactory"
+    type="jakarta.transaction.TransactionManager" factory="org.nuxeo.runtime.jtajca.NuxeoTransactionManagerFactory"
     transactionTimeoutSeconds="${nuxeo.db.transactiontimeout}" />
   <Transaction factory="org.nuxeo.runtime.jtajca.NuxeoUserTransactionFactory" />
 
-  <Resource auth="Container" name="Mail" type="javax.mail.Session" factory="org.nuxeo.ecm.platform.ec.notification.email.EmailResourceFactory"
+  <Resource auth="Container" name="Mail" type="jakarta.mail.Session" factory="org.nuxeo.ecm.platform.ec.notification.email.EmailResourceFactory"
     mail.from="${mail.from}"
 <#if "${mail.debug}" == "true">
     mail.debug="${mail.debug}"

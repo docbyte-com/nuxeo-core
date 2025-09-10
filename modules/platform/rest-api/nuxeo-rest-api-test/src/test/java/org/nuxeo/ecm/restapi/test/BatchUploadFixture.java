@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-SC_ACCEPTED4 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,8 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
+import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static javax.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
 import static org.apache.http.HttpStatus.SC_ACCEPTED;
 import static org.apache.http.HttpStatus.SC_BAD_REQUEST;
 import static org.apache.http.HttpStatus.SC_CONFLICT;
@@ -39,7 +39,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManagerComponent.DEFAULT_BATCH_HANDLER;
+import static org.nuxeo.ecm.core.io.upload.batch.BatchManagerComponent.DEFAULT_BATCH_HANDLER;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -47,8 +47,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.URLEncoder;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.junit.Rule;
@@ -56,14 +56,15 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.core.operations.blob.AttachBlob;
 import org.nuxeo.ecm.automation.core.operations.blob.CreateBlob;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManager;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.io.NginxConstants;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -75,7 +76,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -290,15 +290,19 @@ public class BatchUploadFixture {
                   });
 
         // Create a doc which references the uploaded blobs using the Document path endpoint
-        String json = "{";
-        json += "\"entity-type\":\"document\" ,";
-        json += "\"name\":\"testBatchUploadDoc\" ,";
-        json += "\"type\":\"MultiBlobDoc\" ,";
-        json += "\"properties\" : {";
-        json += "\"mb:blobs\" : [ ";
-        json += "{ \"content\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" } },";
-        json += "{ \"content\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"1\" } }";
-        json += "]}}";
+        String json = """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "MultiBlobDoc",
+                  "properties": {
+                    "mb:blobs": [
+                      { "content": { "upload-batch": "%s", "upload-fileId": "0" } },
+                      { "content": { "upload-batch": "%s", "upload-fileId": "1" } }
+                    ]
+                  }
+                }
+                """.formatted(batchId, batchId);
 
         httpClient.buildPostRequest("/path/")
                   .entity(json)
@@ -1211,15 +1215,19 @@ public class BatchUploadFixture {
                       assertEquals("0", node.get("fileIdx").asText());
                   });
 
-        String json = "{";
-        json += "\"entity-type\":\"document\" ,";
-        json += "\"name\":\"testBatchUploadDoc\" ,";
-        json += "\"type\":\"File\" ,";
-        json += "\"properties\" : {";
-        json += "\"files:files\" : [ ";
-        json += "{ \"file\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"0\" }},";
-        json += "{ \"file\" : { \"upload-batch\": \"" + batchId + "\", \"upload-fileId\": \"1\" }}";
-        json += "]}}";
+        String json = """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "File",
+                  "properties": {
+                    "files:files": [
+                      { "file": { "upload-batch": "%s", "upload-fileId": "0" } },
+                      { "file": { "upload-batch": "%s", "upload-fileId": "1" } }
+                    ]
+                  }
+                }
+                """.formatted(batchId, batchId);
 
         // Assert second batch won't make the upload fail because the file does not exist
         httpClient.buildPostRequest("/path/")
@@ -1394,17 +1402,19 @@ public class BatchUploadFixture {
     }
 
     protected String getCreateDocumentJSON(String type, String batchId) {
-        return "{" + //
-                "  \"entity-type\":\"document\"," + //
-                "  \"name\":\"testBatchUploadDoc\"," + //
-                "  \"type\":\"" + type + "\"," + //
-                "  \"properties\" : {" + //
-                "    \"file:content\" : {" + //
-                "      \"upload-batch\": \"" + batchId + "\"," + //
-                "      \"upload-fileId\": \"0\"" + //
-                "    }" + //
-                "  }" + //
-                "}";
+        return """
+                {
+                  "entity-type": "document",
+                  "name": "testBatchUploadDoc",
+                  "type": "%s",
+                  "properties": {
+                    "file:content": {
+                      "upload-batch": "%s",
+                      "upload-fileId": "0"
+                    }
+                  }
+                }
+                """.formatted(type, batchId);
     }
 
 }

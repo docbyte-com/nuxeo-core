@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.directory.sql;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;

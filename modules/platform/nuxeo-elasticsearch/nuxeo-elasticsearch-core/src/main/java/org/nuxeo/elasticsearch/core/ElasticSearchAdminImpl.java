@@ -24,6 +24,7 @@ import static org.nuxeo.elasticsearch.ElasticSearchConstants.ALL_FIELDS;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,26 +33,20 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.elasticsearch.api.ESClient;
-import org.nuxeo.elasticsearch.api.ESClientFactory;
-import org.nuxeo.elasticsearch.api.ESHintQueryBuilder;
 import org.nuxeo.elasticsearch.api.ElasticSearchAdmin;
-import org.nuxeo.elasticsearch.config.ESHintQueryBuilderDescriptor;
-import org.nuxeo.elasticsearch.config.ElasticSearchClientConfig;
-import org.nuxeo.elasticsearch.config.ElasticSearchEmbeddedServerConfig;
 import org.nuxeo.elasticsearch.config.ElasticSearchIndexConfig;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.kv.KeyValueService;
 import org.nuxeo.runtime.kv.KeyValueStore;
+import org.nuxeo.runtime.opensearch1.OpenSearchClientService;
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.nuxeo.runtime.pubsub.AbstractPubSubBroker;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -86,15 +81,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
 
     protected final Map<String, ElasticSearchIndexConfig> indexConfig;
 
-    protected Map<String, ESHintQueryBuilder> hints;
-
-    protected final ElasticSearchEmbeddedServerConfig embeddedServerConfig;
-
-    protected final ElasticSearchClientConfig clientConfig;
-
-    protected ElasticSearchEmbeddedNode embeddedServer;
-
-    protected ESClient client;
+    protected OpenSearchClient client;
 
     protected boolean indexInitDone;
 
@@ -110,16 +97,8 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
      *
      * @since 9.1
      */
-    public ElasticSearchAdminImpl(ElasticSearchEmbeddedServerConfig embeddedServerConfig,
-            ElasticSearchClientConfig clientConfig, Map<String, ElasticSearchIndexConfig> indexConfig,
-            Collection<ESHintQueryBuilderDescriptor> hintDescriptors) {
-        this.embeddedServerConfig = embeddedServerConfig;
+    public ElasticSearchAdminImpl(Map<String, ElasticSearchIndexConfig> indexConfig) {
         this.indexConfig = indexConfig;
-        this.clientConfig = clientConfig;
-        this.hints = hintDescriptors.stream()
-                                    .collect(Collectors.toMap(ESHintQueryBuilderDescriptor::getName,
-                                            ESHintQueryBuilderDescriptor::newInstance));
-        checkConfig();
         connect();
         initializeIndexes();
         reindexingPubSub = new ReindexingPubSub();
@@ -127,21 +106,11 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
         reindexingPubSub.initialize(REINDEXING_PUBSUB_TOPIC, nodeId);
     }
 
-    protected void checkConfig() {
-        if (clientConfig == null) {
-            throw new IllegalStateException("No Elasticsearch Client configuration provided, aborting");
-        }
-    }
-
     protected void connect() {
         if (client != null) {
             return;
         }
-        if (embeddedServerConfig != null) {
-            embeddedServer = new ElasticSearchEmbeddedNode(embeddedServerConfig);
-            embeddedServer.start();
-        }
-        client = createClient(embeddedServer);
+        client = retrieveClient();
         try {
             checkClusterHealth();
             log.info("Elasticsearch Connected");
@@ -162,35 +131,18 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             indexInitDone = false;
             log.info("Elasticsearch Disconnected");
         }
-        if (embeddedServer != null) {
-            try {
-                embeddedServer.close();
-            } catch (IOException e) {
-                log.error("Failed to close embedded node: {}", e.getMessage(), e);
-            }
-            embeddedServer = null;
-            log.info("Elasticsearch embedded Node Stopped");
-        }
     }
 
-    protected ESClient createClient(ElasticSearchEmbeddedNode node) {
+    protected OpenSearchClient retrieveClient() {
         log.info("Connecting to Elasticsearch");
-        ESClient ret;
-        try {
-            ESClientFactory clientFactory = clientConfig.getKlass().getDeclaredConstructor().newInstance();
-            ret = clientFactory.create(node, clientConfig);
-        } catch (ReflectiveOperationException e) {
-            log.error("Cannot instantiate Elasticsearch Client from class: {}", clientConfig::getKlass);
-            throw new NuxeoException(e);
-        }
-        return ret;
+        return Framework.getService(OpenSearchClientService.class).getClient("default");
     }
 
     protected void checkClusterHealth(String... indexNames) {
         if (client == null) {
             throw new IllegalStateException("No Elasticsearch Client available");
         }
-        client.waitForYellowStatus(indexNames, TIMEOUT_WAIT_FOR_CLUSTER_SECOND);
+        client.waitForYellowStatus(indexNames, Duration.ofSeconds(TIMEOUT_WAIT_FOR_CLUSTER_SECOND));
     }
 
     protected void initializeIndexes() {
@@ -334,7 +286,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
     }
 
     @Override
-    public ESClient getClient() {
+    public OpenSearchClient getClient() {
         return client;
     }
 
@@ -450,7 +402,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
             if (getClient().indexExists(searchAlias)) {
                 if (Framework.isTestModeSet()) {
                     // in test mode we drop an index that have the target alias name
-                    getClient().deleteIndex(searchAlias, TIMEOUT_DELETE_SECOND);
+                    getClient().dropIndex(searchAlias, Duration.ofSeconds(TIMEOUT_DELETE_SECOND));
                 }
                 searchIndex = searchAlias;
             } else {
@@ -498,7 +450,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
         if (indexExists) {
             if (!dropIfExists) {
                 log.debug("Index: {} already exists", indexName);
-                mappingExists = getClient().mappingExists(indexName, conf.getType());
+                mappingExists = getClient().mappingExists(indexName);
                 if (conf.isDocumentIndex()) {
                     // Check if the index is actually an alias.
                     String realIndexForAlias = getClient().getFirstIndexForAlias(conf.getName());
@@ -511,7 +463,7 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
                     log.warn("Initializing index: {}, type: {} with dropIfExists flag, deleting an existing index",
                             indexName, conf.getType());
                 }
-                getClient().deleteIndex(indexName, TIMEOUT_DELETE_SECOND);
+                getClient().dropIndex(indexName, Duration.ofSeconds(TIMEOUT_DELETE_SECOND));
                 indexExists = false;
             }
         }
@@ -532,10 +484,10 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
         if (!mappingExists) {
             log.info("Creating mapping type: {} on index: {}", indexName, conf.getName());
             log.debug("Using mapping: {}", conf::getMapping);
-            getClient().createMapping(indexName, conf.getType(), conf.getMapping());
+            getClient().createMapping(indexName, conf.getMapping());
             for (String extraMapping : conf.getExtraMappings()) {
                 try {
-                    getClient().createMapping(indexName, conf.getType(), extraMapping);
+                    getClient().createMapping(indexName, extraMapping);
                 } catch (NuxeoException e) {
                     throw e.addInfo("An error occurred while putting the mapping: " + extraMapping
                             + " into ElasticSearch configuration");
@@ -550,36 +502,9 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
     }
 
     @Override
-    public long getPendingWorkerCount() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public long getRunningWorkerCount() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
-    }
-
-    @Override
-    public int getTotalCommandProcessed() {
-        return totalCommandProcessed.get();
-    }
-
-    @Override
-    public boolean isEmbedded() {
-        return embeddedServer != null;
-    }
-
-    @Override
     public boolean useExternalVersion() {
-        return clientConfig.useExternalVersion();
-    }
-
-    @Override
-    public boolean isIndexingInProgress() {
-        // impl of scheduling is left to the ESService
-        throw new UnsupportedOperationException("Not implemented");
+        // always true, no false case in our code base
+        return true;
     }
 
     @Override
@@ -624,11 +549,6 @@ public class ElasticSearchAdminImpl implements ElasticSearchAdmin {
      */
     public List<String> getInitializedRepositories() {
         return repositoryInitialized;
-    }
-
-    @Override
-    public Optional<ESHintQueryBuilder> getHintByOperator(String name) {
-        return Optional.ofNullable(hints.get(name));
     }
 
     public class ReindexingPubSub extends AbstractPubSubBroker<ReindexingMessage> {

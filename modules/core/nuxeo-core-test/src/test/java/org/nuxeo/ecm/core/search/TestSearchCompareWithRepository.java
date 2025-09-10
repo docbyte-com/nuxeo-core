@@ -1,0 +1,280 @@
+/*
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Thierry Delprat
+ */
+package org.nuxeo.ecm.core.search;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import jakarta.inject.Inject;
+
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
+import org.nuxeo.ecm.core.api.trash.TrashService;
+import org.nuxeo.ecm.core.search.client.repository.IgnoreIfRepositorySearchClient;
+import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.ecm.core.test.annotations.Granularity;
+import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+
+@RunWith(FeaturesRunner.class)
+@Features(CoreSearchFeature.class)
+@RepositoryConfig(cleanup = Granularity.METHOD)
+@ConditionalIgnore(condition = IgnoreIfRepositorySearchClient.class)
+public class TestSearchCompareWithRepository {
+
+    @Inject
+    protected CoreSession session;
+
+    @Inject
+    protected SearchService searchService;
+
+    @Inject
+    protected TrashService trashService;
+
+    @Inject
+    protected TransactionalFeature txFeature;
+
+    @Inject
+    protected CoreFeature coreFeature;
+
+    private String proxyPath;
+
+    @Before
+    public void initWorkingDocuments() {
+        for (int i = 0; i < 5; i++) {
+            String name = "file" + i;
+            DocumentModel doc = session.createDocumentModel("/", name, "File");
+            doc.setPropertyValue("dc:title", "File" + i);
+            doc.setPropertyValue("dc:nature", "Nature" + i);
+            doc.setPropertyValue("dc:rights", "Rights" + i % 2);
+            doc.setPropertyValue("dc:subjects",
+                    (i % 2 == 0) ? new String[] { "Subjects1" } : new String[] { "Subjects1", "Subjects2" });
+            doc.setPropertyValue("relatedtext:relatedtextresources",
+                    (Serializable) List.of(Map.of("relatedtextid", "123")));
+            session.createDocument(doc);
+        }
+        for (int i = 5; i < 10; i++) {
+            String name = "note" + i;
+            DocumentModel doc = session.createDocumentModel("/", name, "Note");
+            doc.setPropertyValue("dc:title", "Note" + i);
+            doc.setPropertyValue("note:note", "Content" + i);
+            doc.setPropertyValue("dc:nature", "Nature" + i);
+            doc.setPropertyValue("dc:rights", "Rights" + i % 2);
+            session.createDocument(doc);
+        }
+
+        DocumentModel doc = session.createDocumentModel("/", "hidden", "HiddenFolder");
+        doc.setPropertyValue("dc:title", "HiddenFolder");
+        session.createDocument(doc);
+
+        DocumentModel folder = session.createDocumentModel("/", "folder", "Folder");
+        folder.setPropertyValue("dc:title", "Folder");
+        folder = session.createDocument(folder);
+
+        DocumentModel file = session.getDocument(new PathRef("/file3"));
+        DocumentModel proxy = session.publishDocument(file, folder);
+        proxyPath = proxy.getPathAsString();
+
+        DocumentModel orphan = session.createDocumentModel(null, "orphan", "File");
+        orphan.setPropertyValue("dc:title", "orphan document");
+        session.createDocument(orphan);
+
+        trashService.trashDocument(session.getDocument(new PathRef("/file1")));
+        trashService.trashDocument(session.getDocument(new PathRef("/note5")));
+
+        session.checkIn(new PathRef("/file2"), VersioningOption.MINOR, "for testing");
+
+        // wait for async jobs
+        txFeature.nextTransaction();
+    }
+
+    protected String getDigest(DocumentModelList docs) {
+        StringBuilder sb = new StringBuilder();
+        for (DocumentModel doc : docs) {
+            String nameOrTitle = doc.getName();
+            if (nameOrTitle == null || nameOrTitle.isEmpty()) {
+                nameOrTitle = doc.getTitle();
+            }
+            sb.append(nameOrTitle)
+              .append("[")
+              .append(doc.getPropertyValue("dc:nature"))
+              .append("]")
+              .append("[")
+              .append(doc.getPropertyValue("dc:rights"))
+              .append("]")
+              .append(",");
+        }
+        return sb.toString();
+    }
+
+    protected void assertSameDocumentLists(String nxql, DocumentModelList expected, DocumentModelList actual) {
+        assertEquals("Size for: %s is not equal".formatted(nxql), expected.size(), actual.size());
+        // quick check for some props for better failure messages
+        for (int i = 0; i < expected.size(); i++) {
+            DocumentModel expectedDoc = expected.get(i);
+            DocumentModel actualDoc = actual.get(i);
+            for (String xpath : List.of("dc:title", "dc:nature", "dc:rights", "dc:subjects",
+                    "relatedtext:relatedtextresources")) {
+                Serializable expectedValue = getProperty(expectedDoc, xpath);
+                Serializable actualValue = getProperty(actualDoc, xpath);
+                assertEquals("Property: %s of doc: %s for: %s is not equal".formatted(xpath,
+                        expectedDoc.getPathAsString(), nxql), expectedValue, actualValue);
+            }
+            assertEquals("Version check of document: %s for: %s".formatted(expectedDoc.getPathAsString(), nxql),
+                    expectedDoc.isVersion(), actualDoc.isVersion());
+        }
+        assertEquals("Digest for: %s is not equal".formatted(nxql), getDigest(expected), getDigest(actual));
+    }
+
+    protected Serializable getProperty(DocumentModel doc, String xpath) {
+        Serializable value;
+        try {
+            value = doc.getPropertyValue(xpath);
+        } catch (PropertyNotFoundException e) {
+            value = "__NOTFOUND__";
+        }
+        if (value instanceof Object[]) {
+            value = (Serializable) List.of(((Object[]) value));
+        }
+        if (value instanceof List && ((List<?>) value).isEmpty()) {
+            value = null;
+        }
+        return value;
+    }
+
+    protected void compareSearchAndCore(String nxql) {
+        DocumentModelList coreResult = session.query(nxql);
+        var searchQuery = newSearchQuery(session, nxql);
+        DocumentModelList esResult = searchService.search(searchQuery).loadDocuments(session);
+        assertSameDocumentLists(nxql, coreResult, esResult);
+    }
+
+    protected void testQueries(String[] testQueries) {
+        for (String nxql : testQueries) {
+            compareSearchAndCore(nxql);
+        }
+    }
+
+    @Test
+    public void testSimpleSearchWithSort() {
+        testQueries(new String[] { "select * from Document order by dc:created, ecm:uuid",
+                "select * from Document where ecm:isTrashed = 0 order by ecm:uuid",
+                "select * from File order by ecm:uuid", });
+    }
+
+    @Test
+    public void testSearchOnProxies() {
+        testQueries(new String[] { "select * from Document where ecm:isProxy=0 order by ecm:uuid",
+                "select * from Document where ecm:isProxy=1 order by dc:title", });
+    }
+
+    // NXP-30266
+    @Test
+    public void testSearchOnProxyVersionableId() {
+        var proxy = session.getDocument(new PathRef(proxyPath));
+        var versionableId = proxy.getVersionSeriesId();
+        testQueries(new String[] { "select * from Document where ecm:isProxy=1 and ecm:proxyVersionableId = '"
+                + versionableId + "' order by dc:title" });
+    }
+
+    @Test
+    public void testSearchOnProxyTargetId() {
+        DocumentModel proxy = session.getDocument(new PathRef(proxyPath));
+        String sourceId = proxy.getSourceId();
+        testQueries(new String[] { "select * from Document where ecm:isProxy=1 and ecm:proxyTargetId = '" + sourceId
+                + "' order by dc:title" });
+    }
+
+    @Test
+    public void testSearchOnVersions() {
+        testQueries(new String[] { "select * from Document where ecm:isVersion = 0 order by ecm:uuid",
+                "select * from Document where ecm:isVersion = 1 order by ecm:uuid",
+                "select * from Document where ecm:isCheckedInVersion = 0 order by ecm:uuid",
+                "select * from Document where ecm:isCheckedInVersion = 1 order by ecm:uuid",
+                "select * from Document where ecm:versionDescription = 'for testing' order by ecm:uuid",
+                "select * from Document where ecm:versionCreated IS NOT NULL order by ecm:uuid",
+                // TODO: fix, OpenSearch results sounds correct
+                // "select * from Document where ecm:isCheckedIn = 0 order by dc:title",
+                // "select * from Document where ecm:isCheckedIn = 1 order by dc:title"
+        });
+    }
+
+    @Test
+    public void testSearchOnTypes() {
+        testQueries(new String[] { "select * from File order by ecm:uuid", "select * from Folder order by ecm:uuid",
+                "select * from Note order by ecm:uuid",
+                "select * from Note where ecm:primaryType IN ('Note', 'Folder') order by ecm:uuid",
+                "select * from Document where ecm:mixinType = 'Folderish' order by ecm:uuid",
+                "select * from Document where ecm:mixinType != 'Folderish' order by ecm:uuid", });
+    }
+
+    @Test
+    public void testSearchWithLike() {
+        // Validate that NXP-14338 is fixed
+        testQueries(new String[] { "SELECT * FROM Document WHERE dc:title LIKE 'nomatch%'",
+                "SELECT * from Document WHERE dc:title LIKE 'File%' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE dc:title LIKE '%ile%' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE dc:title NOT LIKE '%ile%' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE dc:title NOT LIKE '%i%e%' ORDER BY ecm:uuid", });
+    }
+
+    @Test
+    public void testSearchWithEsHints() {
+        testQueries(new String[] { "SELECT * from Document WHERE dc:title LIKE 'File%' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE /*+ES: INDEX(dc:title.fulltext) OPERATOR(match_phrase_prefix) */ dc:title LIKE 'File%' ORDER BY ecm:uuid" });
+    }
+
+    @Test
+    public void testSearchWithStartsWith() {
+        testQueries(new String[] {
+                // Note that there are differences between Search and Repository:
+                // Search version document has a path and is searchable with startswith
+                "SELECT * from Document WHERE ecm:path STARTSWITH '/nomatch' ORDER BY dc:title",
+                "SELECT * from Document WHERE ecm:path STARTSWITH '/folder' ORDER BY dc:title",
+                "SELECT * from Document WHERE ecm:path STARTSWITH '/folder/' ORDER BY dc:title",
+                "SELECT * FROM Document WHERE ecm:path STARTSWITH '/' AND ecm:isVersion = 0 ORDER BY dc:title", });
+    }
+
+    @Test
+    public void testSearchWithAncestorId() {
+        DocumentModel folder = session.getDocument(new PathRef("/folder"));
+        assertNotNull(folder);
+        String fid = folder.getId();
+        testQueries(new String[] { "SELECT * from Document WHERE ecm:ancestorId = 'non-esisting-id' ORDER BY ecm:uuid",
+                "SELECT * from Document WHERE ecm:ancestorId != 'non-existing-id' ORDER BY ecm:uuid",
+                "SELECT * FROM Document WHERE ecm:ancestorId = '" + fid + "' ORDER BY ecm:uuid", });
+    }
+
+}

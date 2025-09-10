@@ -36,12 +36,13 @@ import java.util.Properties;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Store;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.validation.constraints.NotNull;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Store;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -50,7 +51,7 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * Builds your {@link javax.mail.Session}.
+ * Builds your {@link jakarta.mail.Session}.
  *
  * @since 11.1
  */
@@ -109,7 +110,7 @@ public class MailSessionBuilder {
         @Override
         protected Session retrieveSession() {
             try {
-                log.debug("Lookup for javax.mail.Session with jndi name: {}", jndiSessionName);
+                log.debug("Lookup for jakarta.mail.Session with jndi name: {}", jndiSessionName);
                 return (Session) new InitialContext().lookup(jndiSessionName);
             } catch (NamingException e) {
                 throw new NuxeoException(e);
@@ -124,7 +125,7 @@ public class MailSessionBuilder {
                     try {
                         return FromJndi.this.retrieveSession();
                     } catch (NuxeoException e) {
-                        log.debug("Lookup failed for javax.mail.Session with jndi name: {}, fallback on properties",
+                        log.debug("Lookup failed for jakarta.mail.Session with jndi name: {}, fallback on properties",
                                 jndiSessionName, e);
                         return super.retrieveSession();
                     }
@@ -152,7 +153,7 @@ public class MailSessionBuilder {
 
         private FromProperties(Properties properties) {
             this.properties = properties;
-            // remove the debug properties due to javax.mail.Session initialization which prints to the console
+            // remove the debug properties due to jakarta.mail.Session initialization which prints to the console
             this.debug = properties != null
                     && Boolean.parseBoolean((String) properties.remove(CONFIGURATION_MAIL_DEBUG));
         }
@@ -193,7 +194,7 @@ public class MailSessionBuilder {
         }
 
         public Session build() {
-            log.info("Build a javax.mail.Session from builder: {}", this);
+            log.info("Build a jakarta.mail.Session from builder: {}", this);
             if (!debug) {
                 // check nuxeo.conf - same configuration key
                 log.trace("Mail log debug enabled by nuxeo.conf");
@@ -226,7 +227,7 @@ public class MailSessionBuilder {
                 store.connect(user, password); // accept nulls
                 return store;
             } catch (MessagingException e) {
-                throw new NuxeoException("Unable to build/connect javax.mail.Store", e);
+                throw new NuxeoException("Unable to build/connect jakarta.mail.Store", e);
             }
         }
     }

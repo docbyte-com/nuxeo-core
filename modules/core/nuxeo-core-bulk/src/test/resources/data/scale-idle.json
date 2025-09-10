@@ -2,6 +2,7 @@
   "scale": {
     "currentNodes": 1,
     "bestNodes": 1,
+    "optimalNodes": 1,
     "metric": 0
   },
   "nodes": [
@@ -26,5 +27,48 @@
       "type": "front"
     }
   ],
-  "computations": []
+  "computations": [
+    {
+      "computation": "bulk-csvExport",
+      "streams": {
+        "bulk-csvExport": {
+          "stream": "bulk-csvExport",
+          "partitions": 12,
+          "lag": 0,
+          "end": 2079,
+          "latency": 95844
+        }
+      },
+      "nodes": [
+        {
+          "nodeId": "nuxeo2",
+          "threads": 2,
+          "timestamp": 1678439098,
+          "count": 176,
+          "sum": 602486542242,
+          "rate1m": 1.069237387958875,
+          "rate5m": 0.4534031511581195,
+          "min": 0.565528808,
+          "p50": 3.309264707,
+          "mean": 3.425377699470227,
+          "p95": 6.768989816,
+          "max": 8.524464747,
+          "stddev": 1.6281256028737054
+        }
+      ],
+      "current": {
+        "nodes": 1,
+        "threads": 2,
+        "rate1m": 1.0692374,
+        "eta": 0
+      },
+      "best": {
+        "nodes": 1,
+        "threads": null,
+        "rate1m": 1.0692374,
+        "eta": 0,
+        "relevant": true
+      }
+    }
+  ]
 }

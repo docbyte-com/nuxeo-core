@@ -18,26 +18,17 @@
  */
 package org.nuxeo.template.processors.tests;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.Arrays;
+import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
-import org.assertj.core.util.Files;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.jxls.common.Context;
-import org.jxls.util.JxlsHelper;
+import org.jxls.transform.poi.JxlsPoiTemplateFillerBuilder;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -50,7 +41,7 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.template.context.SimpleContextBuilder;
 
-import net.sf.jxls.transformer.XLSTransformer;
+import jakarta.inject.Inject;
 
 /**
  * This test is mainly here to check that we can correctly invoke XLSTransformer and that there is no linkage issue
@@ -72,45 +63,21 @@ public class TestXLSTransformer {
     protected CoreSession session;
 
     @Test
-    public void testXLSTransformer() throws Exception {
+    public void testJxlsTemplateProcessing() throws IOException {
         File input = FileUtils.getResourceFileFromContext("data/ProjectRevenue.xlsx");
         File out = Framework.createTempFile("testxls", "");
         try {
             DocumentModel doc = session.createDocumentModel("nxtrProject");
             Map<String, Serializable> people1 = new HashMap<>();
             people1.put("role", "Manager");
-            people1.put("number", Long.valueOf(2));
-            people1.put("price_per_day", Double.valueOf(12345.0));
-            people1.put("number_of_days", Long.valueOf(15));
-            doc.setPropertyValue("nxtrproject:involved_people", (Serializable) Arrays.asList(people1));
+            people1.put("number", 2L);
+            people1.put("price_per_day", 12345.0F);
+            people1.put("number_of_days", 15L);
+            doc.setPropertyValue("nxtrproject:involved_people", (Serializable) List.of(people1));
             Map<String, Object> ctx = new SimpleContextBuilder().build(doc, "ProjectRevenue");
-            XLSTransformer transformer = new XLSTransformer();
-            transformer.transformXLS(input.getAbsolutePath(), ctx, out.getAbsolutePath());
+            JxlsPoiTemplateFillerBuilder.newInstance().withTemplate(input).buildAndFill(ctx, out);
         } finally {
-            out.delete();
-        }
-    }
-
-    /* JXLS 2 */
-    @Test
-    public void testJxlsHelperProcessTemplate() throws IOException {
-        File input = FileUtils.getResourceFileFromContext("data/ProjectRevenue.xlsx");
-        File out = Framework.createTempFile("testxls", "");
-        try {
-            DocumentModel doc = session.createDocumentModel("nxtrProject");
-            Map<String, Serializable> people1 = new HashMap<>();
-            people1.put("role", "Manager");
-            people1.put("number", Long.valueOf(2));
-            people1.put("price_per_day", Double.valueOf(12345.0));
-            people1.put("number_of_days", Long.valueOf(15));
-            doc.setPropertyValue("nxtrproject:involved_people", (Serializable) Arrays.asList(people1));
-            Map<String, Object> ctx = new SimpleContextBuilder().build(doc, "ProjectRevenue");
-            try (InputStream is = new BufferedInputStream(new FileInputStream(input));
-                    OutputStream os = new BufferedOutputStream(new FileOutputStream(out))) {
-                JxlsHelper.getInstance().processTemplate(is, os, new Context(ctx));
-            }
-        } finally {
-            Files.delete(out);
+            Files.delete(out.toPath());
         }
     }
 

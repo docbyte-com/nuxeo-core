@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ package org.nuxeo.ecm.platform.url.codec;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -29,6 +29,7 @@ import org.nuxeo.ecm.core.api.impl.DocumentLocationImpl;
 import org.nuxeo.ecm.platform.url.DocumentViewImpl;
 import org.nuxeo.ecm.platform.url.api.DocumentViewCodecManager;
 import org.nuxeo.ecm.platform.url.codec.api.DocumentViewCodec;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -41,6 +42,7 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.url:OSGI-INF/test-docviewurlservice-contrib.xml")
+@BlacklistComponent("org.nuxeo.ecm.platform.url.marshallers") // needs MarshallerRegistry
 public class TestDocumentViewCodecPriority {
 
     @Inject

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.ADMINISTRATOR;
 import java.io.IOException;
 import java.util.function.Supplier;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.core.test.DetectThreadDeadlocksFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
@@ -41,7 +41,7 @@ import com.google.inject.Scopes;
  * @since 5.7
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Features({ DetectThreadDeadlocksFeature.class, WebEngineFeature.class, AutomationServerFeature.class })
+@Features({ AutomationFeature.class, DetectThreadDeadlocksFeature.class, WebEngineFeature.class })
 public class EmbeddedAutomationServerFeature implements RunnerFeature {
 
     @Inject
@@ -85,9 +85,8 @@ public class EmbeddedAutomationServerFeature implements RunnerFeature {
 
     protected HttpAutomationClient getHttpAutomationClient() {
         // port must be supplied dynamically because it may change after hot-reload of services
-        Supplier<String> urlSupplier = () -> "http://localhost:" + servletContainerFeature.getPort() + "/automation/";
-        HttpAutomationClient client = new HttpAutomationClient(urlSupplier);
-        return client;
+        Supplier<String> urlSupplier = () -> servletContainerFeature.getHttpUrl() + "/automation/";
+        return new HttpAutomationClient(urlSupplier);
     }
 
 }

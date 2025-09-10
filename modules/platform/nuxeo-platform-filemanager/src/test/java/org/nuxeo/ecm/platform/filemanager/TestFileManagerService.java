@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Before;
@@ -49,7 +49,6 @@ import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.event.test.CapturingEventListener;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
@@ -63,10 +62,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(FileManagerFeature.class)
 @RepositoryConfig(init = RepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
 @Deploy("org.nuxeo.ecm.platform.filemanager:ecm-types-test-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.filemanager:nxfilemanager-test-contribs.xml")
 public class TestFileManagerService {
@@ -637,7 +634,7 @@ public class TestFileManagerService {
             fileManager.createOrUpdateDocument(context);
             // test if the parent path is found in the event context properties
             assertEquals(workspace.getPathAsString(),
-                    listener.findFirstCapturedEventContext().get().getProperty(CoreEventConstants.PARENT_PATH));
+                    listener.findFirstCapturedEventContextOrElseThrow().getProperty(CoreEventConstants.PARENT_PATH));
         }
     }
 

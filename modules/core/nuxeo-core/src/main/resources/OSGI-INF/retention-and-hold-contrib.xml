@@ -6,8 +6,7 @@
       The retention and hold security policy prevents deletion of a document
       when it is under retention or has a legal hold.
     </documentation>
-    <policy name="retentionAndHold" class="org.nuxeo.ecm.core.security.RetentionAndHoldSecurityPolicy"
-      order="1" />
+    <policy name="retentionAndHold" class="org.nuxeo.ecm.core.security.RetentionAndHoldSecurityPolicy" order="1" />
   </extension>
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
@@ -19,7 +18,8 @@
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
     <!-- NOT httpEnabled -->
-    <action name="retentionExpired" inputStream="retention/retentionExpired" bucketSize="100" batchSize="25" />
+    <action name="retentionExpired" defaultScroller="repository" inputStream="retention/retentionExpired"
+      bucketSize="100" batchSize="25" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">

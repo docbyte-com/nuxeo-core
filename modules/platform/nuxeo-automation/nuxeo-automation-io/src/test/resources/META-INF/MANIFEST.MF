@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo Automation IO Test
+Bundle-SymbolicName: org.nuxeo.ecm.automation.io.test;singleton:=true

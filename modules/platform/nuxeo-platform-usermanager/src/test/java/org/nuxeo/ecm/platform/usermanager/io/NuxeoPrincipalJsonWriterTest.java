@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.platform.usermanager.io;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.directory.test.DirectoryFeature;
@@ -33,7 +33,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/directory-config.xml")
 public class NuxeoPrincipalJsonWriterTest

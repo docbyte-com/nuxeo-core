@@ -27,37 +27,36 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.servlet.GenericServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Application;
+import jakarta.servlet.GenericServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Application;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.rendering.api.RenderingEngine;
 import org.nuxeo.ecm.platform.rendering.api.ResourceLocator;
 import org.nuxeo.ecm.platform.rendering.fm.FreemarkerEngine;
 import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.ecm.webengine.app.WebEngineModule;
-import org.nuxeo.ecm.webengine.jaxrs.ApplicationFragment;
-import org.nuxeo.ecm.webengine.jaxrs.ApplicationHost;
-import org.nuxeo.ecm.webengine.jaxrs.ApplicationManager;
 import org.nuxeo.ecm.webengine.loader.WebLoader;
 import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.impl.ModuleConfiguration;
 import org.nuxeo.ecm.webengine.model.impl.ModuleManager;
+import org.nuxeo.ecm.webengine.rest.ApplicationFragment;
+import org.nuxeo.ecm.webengine.rest.ApplicationHost;
+import org.nuxeo.ecm.webengine.rest.ApplicationManager;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
 import org.nuxeo.ecm.webengine.scripting.Scripting;
 import org.nuxeo.runtime.annotations.AnnotationManager;
 import org.nuxeo.runtime.api.Framework;
 
-import freemarker.ext.jsp.TaglibFactory;
-import freemarker.ext.servlet.HttpRequestHashModel;
-import freemarker.ext.servlet.HttpRequestParametersHashModel;
-import freemarker.ext.servlet.ServletContextHashModel;
+import freemarker.ext.jakarta.jsp.TaglibFactory;
+import freemarker.ext.jakarta.servlet.HttpRequestHashModel;
+import freemarker.ext.jakarta.servlet.HttpRequestParametersHashModel;
+import freemarker.ext.jakarta.servlet.ServletContextHashModel;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -84,7 +83,12 @@ public class WebEngine implements ResourceLocator {
     public static WebContext getActiveContext() {
         RequestContext ctx = RequestContext.getActiveContext();
         if (ctx != null) {
-            return (WebContext) ctx.getRequest().getAttribute(WebContext.class.getName());
+            var webContext = (WebContext) ctx.getRequest().getAttribute(WebContext.class.getName());
+            if (webContext == null) {
+                log.warn(
+                        "No active WebContext found. You might need to set up WebContextProvider as a singleton of your application");
+            }
+            return webContext;
         }
         return null;
     }
@@ -105,11 +109,7 @@ public class WebEngine implements ResourceLocator {
 
     protected final Map<String, Object> env;
 
-    protected boolean devMode;
-
     protected final AnnotationManager annoMgr;
-
-    protected final ResourceRegistry registry;
 
     protected String skinPathPrefix;
 
@@ -118,11 +118,6 @@ public class WebEngine implements ResourceLocator {
     protected volatile boolean isDirty;
 
     public WebEngine(File root) {
-        this(new EmptyRegistry(), root);
-    }
-
-    public WebEngine(ResourceRegistry registry, File root) {
-        this.registry = registry;
         this.root = root;
         webLoader = new WebLoader(this);
         apps = new HashMap<>();
@@ -151,8 +146,7 @@ public class WebEngine implements ResourceLocator {
      * JSP taglib support
      */
     public void loadJspTaglib(GenericServlet servlet) {
-        if (rendering instanceof FreemarkerEngine) {
-            FreemarkerEngine fm = (FreemarkerEngine) rendering;
+        if (rendering instanceof FreemarkerEngine fm) {
             ServletContextHashModel servletContextModel = new ServletContextHashModel(servlet, fm.getObjectWrapper());
             fm.setSharedVariable("Application", servletContextModel);
             fm.setSharedVariable("__FreeMarkerServlet.Application__", servletContextModel);
@@ -164,33 +158,11 @@ public class WebEngine implements ResourceLocator {
 
     public void initJspRequestSupport(GenericServlet servlet, HttpServletRequest request,
             HttpServletResponse response) {
-        if (rendering instanceof FreemarkerEngine) {
-            FreemarkerEngine fm = (FreemarkerEngine) rendering;
+        if (rendering instanceof FreemarkerEngine fm) {
             HttpRequestHashModel requestModel = new HttpRequestHashModel(request, response, fm.getObjectWrapper());
             fm.setSharedVariable("__FreeMarkerServlet.Request__", requestModel);
             fm.setSharedVariable("Request", requestModel);
             fm.setSharedVariable("RequestParameters", new HttpRequestParametersHashModel(request));
-
-            // HttpSessionHashModel sessionModel = null;
-            // HttpSession session = request.getSession(false);
-            // if(session != null) {
-            // sessionModel = (HttpSessionHashModel)
-            // session.getAttribute(ATTR_SESSION_MODEL);
-            // if (sessionModel == null || sessionModel.isZombie()) {
-            // sessionModel = new HttpSessionHashModel(session, wrapper);
-            // session.setAttribute(ATTR_SESSION_MODEL, sessionModel);
-            // if(!sessionModel.isZombie()) {
-            // initializeSession(request, response);
-            // }
-            // }
-            // }
-            // else {
-            // sessionModel = new HttpSessionHashModel(servlet, request,
-            // response, fm.getObjectWrapper());
-            // }
-            // sessionModel = new HttpSessionHashModel(request, response,
-            // fm.getObjectWrapper());
-            // fm.setSharedVariable("Session", sessionModel);
         }
     }
 
@@ -204,11 +176,6 @@ public class WebEngine implements ResourceLocator {
 
     public String getSkinPathPrefix() {
         return skinPathPrefix;
-    }
-
-    @Deprecated
-    public ResourceRegistry getRegistry() {
-        return registry;
     }
 
     public Class<?> loadClass(String className) throws ClassNotFoundException {
@@ -240,7 +207,7 @@ public class WebEngine implements ResourceLocator {
     }
 
     public synchronized WebEngineModule[] getApplications() {
-        return apps.values().toArray(new WebEngineModule[apps.size()]);
+        return apps.values().toArray(WebEngineModule[]::new);
     }
 
     public synchronized void addApplication(WebEngineModule app) {
@@ -282,10 +249,10 @@ public class WebEngine implements ResourceLocator {
         return moduleMgr;
     }
 
-    public Module getModule(String name, WebContext context) {
+    public Module getModule(String name) {
         ModuleConfiguration md = getModuleManager().getModule(name);
         if (md != null) {
-            return md.get(context);
+            return md.get();
         }
         return null;
     }
@@ -304,37 +271,6 @@ public class WebEngine implements ResourceLocator {
 
     public RenderingEngine getRendering() {
         return rendering;
-    }
-
-    /**
-     * Manage jax-rs root resource bindings
-     *
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public void addResourceBinding(ResourceBinding binding) {
-        try {
-            binding.resolve(this);
-            registry.addBinding(binding);
-        } catch (ClassNotFoundException e) {
-            throw new NuxeoException("Failed o register binding: " + binding, e);
-        }
-    }
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public void removeResourceBinding(ResourceBinding binding) {
-        registry.removeBinding(binding);
-    }
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public ResourceBinding[] getBindings() {
-        return registry.getBindings();
     }
 
     public synchronized void setDirty(boolean dirty) {
@@ -405,7 +341,6 @@ public class WebEngine implements ResourceLocator {
     }
 
     public void stop() {
-        registry.clear();
         moduleMgr = null;
     }
 

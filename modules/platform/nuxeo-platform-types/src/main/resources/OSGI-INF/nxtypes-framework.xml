@@ -95,14 +95,6 @@
           <deniedSubtypes>
             <type>File</type>
           </deniedSubtypes>
-          <layouts mode="any">
-            <layout>heading</layout>
-          </layouts>
-          <layouts mode="listing">
-            <layout>document_listing</layout>
-            <layout>document_listing_compact_2_columns</layout>
-            <layout>document_listing_icon_2_columns</layout>
-          </layouts>
           <contentViews category="content">
             <contentView>document_content</contentView>
           </contentViews>

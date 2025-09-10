@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,23 +133,16 @@ public class IdentityQueryTransformer implements QueryTransformer {
 
     @Override
     public Operand transform(Operand node) {
-        if (node instanceof Literal) {
-            return transform((Literal) node);
-        } else if (node instanceof LiteralList) {
-            return transform((LiteralList) node);
-        } else if (node instanceof Function) {
-            return transform((Function) node);
-        } else if (node instanceof MultiExpression) {
-            return transform((MultiExpression) node);
-        } else if (node instanceof Predicate) {
-            return transform((Predicate) node);
-        } else if (node instanceof Expression) {
-            return transform((Expression) node);
-        } else if (node instanceof Reference) {
-            return transform((Reference) node);
-        } else {
-            throw new QueryParseException("Unknown operand: " + node);
-        }
+        return switch (node) {
+            case Literal literal -> transform(literal);
+            case LiteralList literals -> transform(literals);
+            case Function function -> transform(function);
+            case MultiExpression multiExpression -> transform(multiExpression);
+            case Predicate predicate -> transform(predicate);
+            case Expression expression -> transform(expression);
+            case Reference reference -> transform(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + node);
+        };
     }
 
     @Override
@@ -220,19 +213,14 @@ public class IdentityQueryTransformer implements QueryTransformer {
 
     @Override
     public Literal transform(Literal node) {
-        if (node instanceof BooleanLiteral) {
-            return transform((BooleanLiteral) node);
-        } else if (node instanceof DateLiteral) {
-            return transform((DateLiteral) node);
-        } else if (node instanceof DoubleLiteral) {
-            return transform((DoubleLiteral) node);
-        } else if (node instanceof IntegerLiteral) {
-            return transform((IntegerLiteral) node);
-        } else if (node instanceof StringLiteral) {
-            return transform((StringLiteral) node);
-        } else {
-            throw new QueryParseException("Unknown literal: " + node);
-        }
+        return switch (node) {
+            case BooleanLiteral booleanLiteral -> transform(booleanLiteral);
+            case DateLiteral dateLiteral -> transform(dateLiteral);
+            case DoubleLiteral doubleLiteral -> transform(doubleLiteral);
+            case IntegerLiteral integerLiteral -> transform(integerLiteral);
+            case StringLiteral stringLiteral -> transform(stringLiteral);
+            case null, default -> throw new QueryParseException("Unknown literal: " + node);
+        };
     }
 
     @Override

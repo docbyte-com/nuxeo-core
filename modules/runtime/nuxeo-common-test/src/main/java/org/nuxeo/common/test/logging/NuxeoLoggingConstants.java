@@ -35,6 +35,9 @@ public final class NuxeoLoggingConstants {
     /** A Console appender that prints DEBUG logs. */
     public static final String APPENDER_CONSOLE_DEBUG = "CONSOLE-DEBUG";
 
+    /** A Console appender that prints TRACE logs. */
+    public static final String APPENDER_CONSOLE_TRACE = "CONSOLE-TRACE";
+
     /** A File appender that prints DEBUG logs and higher. */
     public static final String APPENDER_FILE = "FILE";
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import net.jodah.failsafe.RetryPolicy;
  */
 public class ComputationPolicy {
 
-    public static final RetryPolicy<Object> NO_RETRY = new RetryPolicy<Object>().withMaxRetries(0);
+    public static final RetryPolicy<Object> NO_RETRY = new RetryPolicy<>().withMaxRetries(0);
 
     /* No retry, abort on failure, no batching */
     public static final ComputationPolicy NONE = new ComputationPolicyBuilder().retryPolicy(NO_RETRY)
@@ -72,14 +72,6 @@ public class ComputationPolicy {
 
     public int getSkipFirstFailures() {
         return skipFirstFailures;
-    }
-
-    /**
-     * @deprecated since 10.3 use {@link #continueOnFailure()} instead
-     */
-    @Deprecated
-    public boolean isSkipFailure() {
-        return skipFailure;
     }
 
     @Override

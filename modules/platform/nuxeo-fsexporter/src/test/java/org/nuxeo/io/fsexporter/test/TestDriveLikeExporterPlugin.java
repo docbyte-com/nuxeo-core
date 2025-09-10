@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,10 @@ import static org.nuxeo.io.fsexporter.test.DocumentBuilder.folder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -36,28 +37,25 @@ import org.nuxeo.common.Environment;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.io.fsexporter.FSExporterService;
+import org.nuxeo.io.fsexporter.FsExporterFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy({ "nuxeo-fsexporter" })
+@Features(FsExporterFeature.class)
 @Deploy("nuxeo-fsexporter:drivelike-contrib.xml")
 public class TestDriveLikeExporterPlugin {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    FSExporterService service;
+    protected FSExporterService service;
 
     @Before
-    public void doBefore() throws Exception {
+    public void doBefore() {
         PathRef defaultDomain = new PathRef("/default-domain");
         if (session.exists(defaultDomain)) {
             session.removeDocument(defaultDomain);
@@ -80,14 +78,14 @@ public class TestDriveLikeExporterPlugin {
         File exportRoot = exportRepository();
 
         // Then the exported folder uses the title
-        List<File> files = Arrays.asList(exportRoot.listFiles());
+        List<File> files = List.of(exportRoot.listFiles());
         assertThat(files).hasSize(1);
 
         File expectedFolder = files.get(0);
         assertThat(expectedFolder).hasName("Title of folder 1");
 
         // Then the exported file uses the filename
-        files = Arrays.asList(expectedFolder.listFiles());
+        files = List.of(expectedFolder.listFiles());
         assertThat(files).hasSize(1);
 
         File expectedFile = files.get(0);
@@ -108,7 +106,7 @@ public class TestDriveLikeExporterPlugin {
         File exportRoot = exportRepository();
 
         // Then the exported file uses the filename
-        List<File> files = Arrays.asList(exportRoot.listFiles());
+        List<File> files = List.of(exportRoot.listFiles());
         assertThat(files).hasSize(1);
 
         File expectedFolder = files.get(0);
@@ -126,8 +124,7 @@ public class TestDriveLikeExporterPlugin {
         // When I export the repository
         File exportRoot = exportRepository();
 
-        List<String> folderNames = Arrays.asList(exportRoot.listFiles()).stream().map(f -> f.getName()).collect(
-                Collectors.toList());
+        List<String> folderNames = Stream.of(exportRoot.listFiles()).map(File::getName).toList();
 
         // Then folder titles are created to not collide
         assertThat(folderNames).hasSize(2);
@@ -144,8 +141,7 @@ public class TestDriveLikeExporterPlugin {
         // When I export the repository
         File exportRoot = exportRepository();
 
-        List<String> folderNames = Arrays.asList(exportRoot.listFiles()).stream().map(f -> f.getName()).collect(
-                Collectors.toList());
+        List<String> folderNames = Stream.of(exportRoot.listFiles()).map(File::getName).toList();
 
         // Then files titles are created to not collide
         assertThat(folderNames).hasSize(2);
@@ -165,8 +161,7 @@ public class TestDriveLikeExporterPlugin {
 
         // When I export the repository
         File exportRoot = exportRepository();
-        List<String> fileNames = Arrays.asList(exportRoot.listFiles()).stream().map(f -> f.getName()).collect(
-                Collectors.toList());
+        List<String> fileNames = Stream.of(exportRoot.listFiles()).map(File::getName).toList();
 
         // Then I get only one file
         assertThat(fileNames).hasSize(1);
@@ -183,7 +178,7 @@ public class TestDriveLikeExporterPlugin {
         File exportRoot = exportRepository();
 
         // Then the exported folder special chars are replaced by a dash.
-        List<File> files = Arrays.asList(exportRoot.listFiles());
+        List<File> files = List.of(exportRoot.listFiles());
         assertThat(files).hasSize(1);
 
         File expectedFolder = files.get(0);

@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-core-bulk</artifactId>
@@ -87,6 +87,16 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-cache</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-event</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-io</artifactId>
       <type>test-jar</type>
       <scope>test</scope>
@@ -101,8 +111,8 @@
       <artifactId>commons-collections4</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
   </dependencies>
 

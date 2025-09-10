@@ -26,9 +26,9 @@ import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.IMAPS;
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.LEAVE_ON_SERVER_KEY;
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.PROTOCOL_TYPE_KEY;
 
-import javax.mail.Flags.Flag;
-import javax.mail.Message;
-import javax.mail.MessagingException;
+import jakarta.mail.Flags.Flag;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 
 import org.nuxeo.ecm.platform.mail.action.ExecutionContext;
 

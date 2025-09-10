@@ -27,7 +27,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentModel;

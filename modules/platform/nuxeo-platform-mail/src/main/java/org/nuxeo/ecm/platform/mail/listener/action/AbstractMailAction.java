@@ -23,7 +23,7 @@ package org.nuxeo.ecm.platform.mail.listener.action;
 
 import static org.nuxeo.ecm.platform.mail.utils.MailCoreConstants.CORE_SESSION_KEY;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.platform.mail.action.ExecutionContext;

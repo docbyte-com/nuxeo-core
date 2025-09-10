@@ -23,7 +23,7 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.servlet.ServletException;
+import jakarta.servlet.ServletException;
 
 import org.nuxeo.ecm.core.api.DocumentSecurityException;
 

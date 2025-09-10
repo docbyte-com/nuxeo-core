@@ -25,6 +25,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest.SystemProperty;
 import org.nuxeo.ecm.core.event.CoreEventFeature;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.runtime.RuntimeServiceException;
@@ -54,7 +56,14 @@ public class WorkManagerFeature implements RunnerFeature {
 
     public static final String BUNDLE_TEST_NAME = "org.nuxeo.ecm.core.event.test";
 
-    public static final String WORK_MANAGER_PROPERTY = "nuxeo.test.workmanager";
+    public static final SystemProperty TEST_WORK_MANAGER_PROPERTY = new SystemProperty("nuxeo.test.workmanager",
+            "default");
+
+    /**
+     * @deprecated since 2025.0, use {@link #TEST_WORK_MANAGER_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String WORK_MANAGER_PROPERTY = TEST_WORK_MANAGER_PROPERTY.key();
 
     public static final String WORK_MANAGER_DEFAULT = "default";
 
@@ -62,20 +71,22 @@ public class WorkManagerFeature implements RunnerFeature {
 
     // stream work manager properties part
 
-    public static final String STREAM_WORK_MANAGER_STORESTATE_ENABLED_PROPERTY = "nuxeo.test.workmanager.stream.storestate.enabled";
+    public static final SystemProperty STREAM_WORK_MANAGER_STORESTATE_PROPERTY = new SystemProperty(
+            "nuxeo.test.workmanager.stream.storestate.enabled", "false");
 
-    public static final String STREAM_WORK_MANAGER_STORESTATE_ENABLED_DEFAULT = "false";
+    /**
+     * @deprecated since 2025.0, use {@link #STREAM_WORK_MANAGER_STORESTATE_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String STREAM_WORK_MANAGER_STORESTATE_ENABLED_PROPERTY = STREAM_WORK_MANAGER_STORESTATE_PROPERTY.key();
+
+    /**
+     * @deprecated since 2025.0, use {@link #STREAM_WORK_MANAGER_STORESTATE_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String STREAM_WORK_MANAGER_STORESTATE_ENABLED_DEFAULT = STREAM_WORK_MANAGER_STORESTATE_PROPERTY.defaultValue();
 
     protected String workManagerType;
-
-    protected static String defaultProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            value = def;
-        }
-        Framework.getProperties().setProperty(name, value);
-        return value;
-    }
 
     @Override
     public void initialize(FeaturesRunner runner) {
@@ -85,7 +96,7 @@ public class WorkManagerFeature implements RunnerFeature {
     @Override
     public void start(FeaturesRunner runner) {
         RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-        workManagerType = defaultProperty(WORK_MANAGER_PROPERTY, WORK_MANAGER_DEFAULT);
+        workManagerType = ThirdPartyUnderTest.computeSystemProperty(TEST_WORK_MANAGER_PROPERTY);
         try {
             log.info(MARKER_CONSOLE_OVERRIDE, "Deploying WorkManager using {} implementation", workManagerType);
             switch (workManagerType) {
@@ -105,8 +116,7 @@ public class WorkManagerFeature implements RunnerFeature {
 
     protected void initStreamImplementation(RuntimeHarness harness) throws Exception {
         // compute the store state enabled property
-        defaultProperty(STREAM_WORK_MANAGER_STORESTATE_ENABLED_PROPERTY,
-                STREAM_WORK_MANAGER_STORESTATE_ENABLED_DEFAULT);
+        ThirdPartyUnderTest.computeSystemProperty(TEST_WORK_MANAGER_PROPERTY);
         harness.deployContrib(BUNDLE_TEST_NAME, "OSGI-INF/test-stream-workmanager-config.xml");
     }
 

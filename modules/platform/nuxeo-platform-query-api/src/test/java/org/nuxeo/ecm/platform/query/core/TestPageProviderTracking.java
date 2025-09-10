@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,6 +54,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
+@Deploy("org.nuxeo.ecm.core.query.test:OSGI-INF/test-aggregate-schemas-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.query.api.test:test-pageprovider-track-contrib.xml")
 public class TestPageProviderTracking {
@@ -65,7 +66,7 @@ public class TestPageProviderTracking {
     protected PageProviderService pps;
 
     @Test
-    public void testTrackingFlag() throws Exception {
+    public void testTrackingFlag() {
         PageProviderDefinition def = pps.getPageProviderDefinition("CURRENT_DOCUMENT_CHILDREN");
         assertFalse(def.isUsageTrackingEnabled());
 
@@ -78,7 +79,7 @@ public class TestPageProviderTracking {
 
     @Test
     @WithFrameworkProperty(name = AbstractPageProvider.PAGEPROVIDER_TRACK_PROPERTY_NAME, value = "CURRENT_DOCUMENT_CHILDREN2")
-    public void testTrackingProperty() throws Exception {
+    public void testTrackingProperty() {
         PageProviderDefinition def = pps.getPageProviderDefinition("CURRENT_DOCUMENT_CHILDREN2");
         assertFalse(def.isUsageTrackingEnabled());
 
@@ -96,7 +97,7 @@ public class TestPageProviderTracking {
     }
 
     @Test
-    public void testTrackingListener() throws Exception {
+    public void testTrackingListener() {
 
         Map<String, Serializable> props = new HashMap<>();
         props.put(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (Serializable) coreSession);
@@ -133,7 +134,7 @@ public class TestPageProviderTracking {
     }
 
     @Test
-    public void testTrackingData() throws Exception {
+    public void testTrackingData() {
 
         Map<String, Serializable> props = new HashMap<>();
         props.put(CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY, (Serializable) coreSession);

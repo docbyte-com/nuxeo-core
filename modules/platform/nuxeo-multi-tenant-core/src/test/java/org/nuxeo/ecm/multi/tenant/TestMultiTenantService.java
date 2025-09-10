@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger <troger@nuxeo.com>
  */
-
 package org.nuxeo.ecm.multi.tenant;
 
 import static org.junit.Assert.assertEquals;
@@ -35,8 +34,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
 import javax.security.auth.login.LoginException;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Test;
@@ -61,13 +61,10 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.OperationNotAllowedException;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.NuxeoLoginContext;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -76,14 +73,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.6
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, NuxeoLoginFeature.class })
+@Features(MultiTenantCoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.multi.tenant")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.core.cache")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.default.config")
-@Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-test-contrib.xml")
 public class TestMultiTenantService {
 
     @Inject
@@ -451,7 +442,7 @@ public class TestMultiTenantService {
         return coreFeature.getCoreSessionCurrentUser();
     }
 
-    protected String getPowerUsersGroup() throws LoginException {
+    protected String getPowerUsersGroup() {
         try (NuxeoLoginContext loginContext = Framework.loginSystem("Administrator")) {
             NuxeoGroup pwrUsrGrp = userManager.getGroup(Constants.POWER_USERS_GROUP);
 
@@ -467,7 +458,7 @@ public class TestMultiTenantService {
         }
     }
 
-    protected NuxeoPrincipal createUser(String username, boolean isPowerUser, String tenant) throws LoginException {
+    protected NuxeoPrincipal createUser(String username, boolean isPowerUser, String tenant) {
         DocumentModel user = userManager.getBareUserModel();
         user.setPropertyValue("user:username", username);
         user.setPropertyValue("user:tenantId", tenant);

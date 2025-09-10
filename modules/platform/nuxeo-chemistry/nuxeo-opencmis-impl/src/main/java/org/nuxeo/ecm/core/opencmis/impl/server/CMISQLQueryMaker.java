@@ -18,10 +18,6 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl.server;
 
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IN_MIGRATION;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDICATED_PROPERTY;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -65,7 +61,6 @@ import org.apache.chemistry.opencmis.server.support.query.QueryUtilStrict;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
 import org.nuxeo.ecm.core.api.trash.TrashService;
@@ -444,13 +439,6 @@ public class CMISQLQueryMaker implements QueryMaker {
             // not trashed filter
 
             if (skipDeleted) {
-                Supplier<String> lifecycleTrashedConstraint = () -> {
-                    ModelProperty propertyInfo = model.getPropertyInfo(Model.MISC_LIFECYCLE_STATE_PROP);
-                    Column lscol = getTable(database.getTable(propertyInfo.fragmentName), qual).getColumn(
-                            propertyInfo.fragmentKey);
-                    String lscolName = lscol.getFullQuotedName();
-                    return String.format("(%s <> ? OR %s IS NULL)", lscolName, lscolName);
-                };
                 Supplier<String> propertyTrashedConstraint = () -> {
                     ModelProperty propertyInfo = model.getPropertyInfo(Model.MAIN_IS_TRASHED_PROP);
                     Column lscol = qualHierTable.getColumn(propertyInfo.fragmentKey);
@@ -458,20 +446,9 @@ public class CMISQLQueryMaker implements QueryMaker {
                     return String.format("(%s <> ? OR %s IS NULL)", lscolName, lscolName);
                 };
 
-                if (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-                    whereClauses.add(lifecycleTrashedConstraint.get());
-                    whereParams.add(LifeCycleConstants.DELETED_STATE);
+                whereClauses.add(propertyTrashedConstraint.get());
+                whereParams.add(Boolean.TRUE);
 
-                } else if (trashService.hasFeature(TRASHED_STATE_IN_MIGRATION)) {
-                    whereClauses.add(String.format("(%s OR %s)", lifecycleTrashedConstraint.get(),
-                            propertyTrashedConstraint.get()));
-                    whereParams.add(LifeCycleConstants.DELETED_STATE);
-                    whereParams.add(Boolean.TRUE);
-
-                } else if (trashService.hasFeature(TRASHED_STATE_IS_DEDICATED_PROPERTY)) {
-                    whereClauses.add(propertyTrashedConstraint.get());
-                    whereParams.add(Boolean.TRUE);
-                }
             }
 
             // searchAllVersions filter
@@ -691,8 +668,6 @@ public class CMISQLQueryMaker implements QueryMaker {
     // after this method, allTables also contain hier table for virtual columns
     protected void addSystemColumns(boolean addSystemColumns, boolean distinct) {
         TrashService trashService = Framework.getService(TrashService.class);
-        boolean lifeCycleTrashState = trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)
-                || trashService.hasFeature(TRASHED_STATE_IN_MIGRATION);
 
         List<CmisSelector> addedSystemColumns = new ArrayList<>(2);
 
@@ -715,7 +690,7 @@ public class CMISQLQueryMaker implements QueryMaker {
                     addedSystemColumns.add(col);
                 }
             }
-            if (skipDeleted && lifeCycleTrashState || lifecycleWhereClauseQualifiers.contains(qual)) {
+            if (lifecycleWhereClauseQualifiers.contains(qual)) {
                 // add lifecycle state column
                 ModelProperty propertyInfo = model.getPropertyInfo(Model.MISC_LIFECYCLE_STATE_PROP);
                 Table table = getTable(database.getTable(propertyInfo.fragmentName), qual);
@@ -856,17 +831,7 @@ public class CMISQLQueryMaker implements QueryMaker {
         }
         col.setInfo(column);
         String qual = canonicalQualifier.get(col.getQualifier());
-
-        TrashService trashService = Framework.getService(TrashService.class);
-        boolean trashInMigration = trashService.hasFeature(TRASHED_STATE_IN_MIGRATION);
-        if (clauseType == ClauseType.WHERE && NuxeoTypeHelper.NX_LIFECYCLE_STATE.equals(col.getPropertyId())
-                && (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE) || trashInMigration)) {
-            // explicit lifecycle query: do not include the 'deleted' lifecycle filter
-            skipDeleted = false;
-            lifecycleWhereClauseQualifiers.add(qual);
-        }
-        if (clauseType == ClauseType.WHERE && NuxeoTypeHelper.NX_ISTRASHED.equals(col.getPropertyId())
-                && (trashService.hasFeature(TRASHED_STATE_IS_DEDICATED_PROPERTY) || trashInMigration)) {
+        if (clauseType == ClauseType.WHERE && NuxeoTypeHelper.NX_ISTRASHED.equals(col.getPropertyId())) {
             // explicit trashed query: do not include the `isTrashed = 0` filter
             skipDeleted = false;
         }

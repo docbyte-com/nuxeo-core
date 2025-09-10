@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.automation.core.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -27,18 +28,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.operations.services.AuditPageProviderOperation;
 import org.nuxeo.ecm.automation.core.util.Paginable;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.core.util.StringList;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -47,26 +52,37 @@ import org.nuxeo.ecm.core.api.versioning.VersioningService;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.test.annotations.RepositoryInit;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.AuditReader;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ AuditFeature.class })
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AuditFeature.class, AutomationFeaturesFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = TestDocumentAuditPageProviderOperation.Populate.class)
 public class TestDocumentAuditPageProviderOperation {
 
     private static final int MAX_ENTRIES = 500;
+
+    /**
+     * The number of {@link LogEntry log entries} that has been generated during the repository initialization:
+     * <ul>
+     * <li>1 {@code documentCreated} for {@code /section}</li>
+     * <li>1 {@code documentCreated} for {@code /doc}</li>
+     * <li>5 {@code documentUpdated} for {@code /doc}</li>
+     * <li>1 {@code documentCheckedIn} for {@code /doc}</li>
+     * <li>1 {@code documentCreated} for version 0.1 of {@code /doc}</li>
+     * <li>5 {@code documentUpdated} for {@code /doc}</li>
+     * <li>1 {@code documentCheckedIn} for {@code /doc} in the publish context</li>
+     * <li>1 {@code documentCreated} for version 0.2 of {@code /doc} in the publish context</li>
+     * <li>1 {@code documentCreated} for {@code /section/doc} in the publish context (proxy creation)</li>
+     * <li>1 {@code documentProxyPublished} for {@code /section/doc} in the publish context</li>
+     * <li>1 {@code sectionContentPublished} for version 0.2 of {@code /section} in the publish context</li>
+     * <li>5 {@code documentUpdated} for {@code /doc}</li>
+     * <li>1 {@code someEvent} for a manually added log entry</li>
+     * </ul>
+     */
+    protected static final long NB_LOG_ENTRIES_AFTER_REPOSITORY_INIT = 25;
 
     /**
      * wait at least 1s to be sure we have a precise timestamp in all DB backend.
@@ -84,7 +100,7 @@ public class TestDocumentAuditPageProviderOperation {
 
         @Override
         public void populate(CoreSession session) {
-            AuditLogger auditLogger = Framework.getService(AuditLogger.class);
+            var auditBackend = Framework.getService(AuditBackend.class);
 
             DocumentModel section = session.createDocumentModel("/", "section", "Folder");
             section = session.createDocument(section);
@@ -132,17 +148,19 @@ public class TestDocumentAuditPageProviderOperation {
 
             List<LogEntry> newEntries = new ArrayList<>();
 
-            LogEntry entry = new LogEntryImpl();
-            entry.setCategory("somecat");
-            entry.setEventId("someEvent");
-            entry.setEventDate(new Date());
-            entry.setPrincipalName("toto");
+            LogEntry entry = LogEntry.builder("someEvent", new Date())
+                                     .category("somecat")
+                                     .principalName("toto")
+                                     .build();
 
             newEntries.add(entry);
-            auditLogger.addLogEntries(newEntries);
+            auditBackend.addLogEntries(newEntries);
         }
 
     }
+
+    @Inject
+    protected AuditBackend backend;
 
     @Inject
     protected AutomationService service;
@@ -150,28 +168,19 @@ public class TestDocumentAuditPageProviderOperation {
     @Inject
     protected CoreSession session;
 
+    @Inject
+    protected TransactionalFeature txFeature;
+
     protected DocumentModel doc;
 
     protected DocumentModel proxy;
 
     protected List<DocumentModel> versions;
 
-    @Inject
-    TransactionalFeature txFeature;
-
-    @Inject
-    protected AuditReader reader;
-
-    protected int nbEntries = 0;
-
     protected OperationContext ctx;
 
     @Before
-    @SuppressWarnings("unchecked")
-    public void initRepo() {
-        txFeature.nextTransaction();
-        List<LogEntry> entries = (List<LogEntry>) reader.nativeQuery("from LogEntry", 0, MAX_ENTRIES);
-        nbEntries = entries.size();
+    public void initOperationContext() {
         ctx = new OperationContext(session);
     }
 
@@ -185,13 +194,13 @@ public class TestDocumentAuditPageProviderOperation {
     public void testSimpleQuery() throws Exception {
 
         Map<String, Object> params = new HashMap<>();
-        params.put("query", "from LogEntry");
+        params.put("query", "SELECT * FROM LogEntry");
         params.put("pageSize", MAX_ENTRIES);
         params.put("maxResults", MAX_ENTRIES);
         params.put("currentPageIndex", 0);
 
-        List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertEquals(nbEntries, entries.size());
+        var entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        assertEquals(NB_LOG_ENTRIES_AFTER_REPOSITORY_INIT, entries.size());
         params.put("pageSize", 5);
         entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
         assertEquals(5, entries.size());
@@ -202,7 +211,7 @@ public class TestDocumentAuditPageProviderOperation {
     public void testOwnerQuery() throws Exception {
 
         Map<String, Object> params = new HashMap<>();
-        params.put("query", "FROM LogEntry log WHERE log.principalName=?");
+        params.put("query", "SELECT * FROM LogEntry WHERE principalName=?");
         params.put("pageSize", MAX_ENTRIES);
         params.put("maxResults", MAX_ENTRIES);
         params.put("currentPageIndex", 0);
@@ -211,8 +220,8 @@ public class TestDocumentAuditPageProviderOperation {
         queryParams.add("$currentUser");
         params.put("queryParams", queryParams);
 
-        List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
+        var entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        assertFalse(entries.isEmpty());
     }
 
     @Test
@@ -225,20 +234,19 @@ public class TestDocumentAuditPageProviderOperation {
         params.put("pageSize", 10);
         params.put("currentPageIndex", 0);
 
-        Paginable<LogEntry> entries = (Paginable<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        var entries = (Paginable<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
 
         assertEquals(10, entries.size());
-        assertEquals(nbEntries, entries.getResultsCount());
+        assertEquals(NB_LOG_ENTRIES_AFTER_REPOSITORY_INIT, entries.getResultsCount());
         assertTrue(entries.getNumberOfPages() > 1);
 
         int total = entries.size();
-
         for (int i = 1; i < entries.getNumberOfPages(); i++) {
             params.put("currentPageIndex", i);
             entries = (Paginable<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
             total += entries.size();
         }
-        assertEquals(nbEntries, total);
+        assertEquals(NB_LOG_ENTRIES_AFTER_REPOSITORY_INIT, total);
     }
 
     @Test
@@ -255,9 +263,8 @@ public class TestDocumentAuditPageProviderOperation {
         namedParams.put("bas:eventIds", "sectionContentPublished,someEvent");
         params.put("namedQueryParams", namedParams);
 
-        List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
-        assertTrue(nbEntries > entries.size());
+        var entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        assertEquals(2, entries.size());
     }
 
     @Test
@@ -276,9 +283,8 @@ public class TestDocumentAuditPageProviderOperation {
 
         params.put("namedQueryParams", namedParams);
 
-        List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
-        assertTrue(entries.size() > 0);
-        assertTrue(entries.size() < nbEntries);
+        var entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        assertEquals(1, entries.size());
     }
 
     @Test
@@ -291,7 +297,7 @@ public class TestDocumentAuditPageProviderOperation {
         params.put("maxResults", 10);
         params.put("currentPageIndex", 0);
 
-        List<LogEntry> entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
+        var entries = (List<LogEntry>) service.run(ctx, AuditPageProviderOperation.ID, params);
 
         long lastId = entries.get(entries.size() - 1).getId();
 

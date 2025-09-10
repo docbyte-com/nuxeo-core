@@ -23,7 +23,7 @@ package org.nuxeo.template.processors.fm;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -57,7 +57,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(0, list.size());
 
         verify(resolver, times(0)).handleLoop(any(), any());
@@ -76,7 +76,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(1, list.size());
         assertEquals("myStraingueValeur", list.get(0));
 
@@ -97,7 +97,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(2, list.size());
         assertEquals(Boolean.TRUE, list.get(0));
         assertEquals(Boolean.FALSE, list.get(1));
@@ -120,7 +120,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(1, list.size());
         assertTrue(list.get(0) instanceof SimpleScalar);
         assertEquals("Here is the string", ((SimpleScalar) list.get(0)).getAsString());
@@ -143,7 +143,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         // DocProperty if blob are ignored ?? that's not me...
         assertEquals(0, list.size());
 
@@ -166,7 +166,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(0, list.size());
 
         verify(resolver, times(0)).handleLoop(any(), any());
@@ -187,7 +187,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(1, list.size());
         assertNull(list.get(0));
 
@@ -209,7 +209,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertEquals(1, ctx.size());
         assertTrue(ctx.containsKey("myListValue"));
         assertTrue(ctx.get("myListValue") instanceof List);
-        List list = (List) ctx.get("myListValue");
+        var list = (List<?>) ctx.get("myListValue");
         assertEquals(1, list.size());
         assertEquals("Here is the Blob", list.get(0));
 
@@ -229,7 +229,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(0, map.size());
 
         verify(resolver, times(0)).handleLoop(any(), any());
@@ -249,7 +249,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(1, map.size());
         assertEquals("myStraingueValeur", map.get("dontCare"));
 
@@ -271,7 +271,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(2, map.size());
         assertEquals(Boolean.TRUE, map.get("dontCare1"));
         assertEquals(Boolean.FALSE, map.get("dontCare2"));
@@ -295,7 +295,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(1, map.size());
         assertTrue(map.get("docPropValue") instanceof SimpleScalar);
         assertEquals("Here is the string", ((SimpleScalar) map.get("docPropValue")).getAsString());
@@ -319,7 +319,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         // DocProperty if blob are ignored ?? that's not me...
         assertEquals(0, map.size());
 
@@ -343,7 +343,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(0, map.size());
 
         verify(resolver, times(0)).handleLoop(any(), any());
@@ -365,7 +365,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(1, map.size());
         assertNull(map.get("pictureProperty"));
 
@@ -388,7 +388,7 @@ public class TestFMBindingResolverListAndMap extends TestFMBindingAbstract {
         assertTrue(ctx.containsKey("myMapValue"));
         assertTrue(ctx.get("myMapValue") instanceof Map);
 
-        Map map = (Map) ctx.get("myMapValue");
+        var map = (Map<?, ?>) ctx.get("myMapValue");
         assertEquals(1, map.size());
         assertEquals("Here is the Blob", map.get("contentValue"));
 

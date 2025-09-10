@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.convert.cache">
+
+  <extension target="org.nuxeo.ecm.core.convert.service.ConversionServiceImpl" point="configuration">
+    <cache enabled="${nuxeo.conversion.cache.enabled:=true}">
+      <gcRate>${nuxeo.conversion.cache.gcRate:=10m}</gcRate>
+      <maxSizeKB>${nuxeo.conversion.cache.maxSizeKB:=10240}</maxSizeKB> <!-- 10Mb -->
+    </cache>
+  </extension>
+
+</component>

@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.uidgen.opensearch1.contrib.test">
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="uidgen">
+      <client id="seq/default" />
+      <settings>
+        {
+          "number_of_shards" : 1,
+          "auto_expand_replicas" : "0-all"
+        }
+      </settings>
+      <mapping>
+        {
+          "_source" : {
+            "enabled": false
+          },
+          "enabled" : false
+        }
+      </mapping>
+    </index>
+  </extension>
+
+  <extension target="org.nuxeo.ecm.core.uidgen.UIDGeneratorService" point="sequencers">
+    <sequencer name="default" class="org.nuxeo.uidgen.opensearch1.OpenSearchUIDSequencer" />
+  </extension>
+
+</component>

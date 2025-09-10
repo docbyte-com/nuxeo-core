@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,14 @@
  *
  * Contributors:
  *     Julien Carsique
- *
  */
-
 package org.nuxeo.runtime.test.runner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -51,6 +49,7 @@ import org.nuxeo.runtime.test.runner.RandomBug.RepeatRule;
  *
  * @since 5.9.5
  */
+@SuppressWarnings({ "JUnitMalformedDeclaration", "NewClassNamingConvention" })
 public class RandomBugTest {
 
     private static final Logger log = LogManager.getLogger(RandomBugTest.class);
@@ -153,7 +152,7 @@ public class RandomBugTest {
         }
 
         @Test
-        public void failbeforeFiveRetry() throws Exception {
+        public void failBeforeFiveRetry() {
             log.trace(repeatRule.statement.serial);
             if (repeatRule.statement.serial < 5) {
                 fail("on retry " + repeatRule.statement.serial);
@@ -161,7 +160,7 @@ public class RandomBugTest {
         }
 
         @Test
-        public void successOnSevenRetry() throws Exception {
+        public void successOnSevenRetry() {
             log.trace(repeatRule.statement.serial);
             if (repeatRule.statement.serial != 7) {
                 fail("on retry " + repeatRule.statement.serial);
@@ -169,7 +168,7 @@ public class RandomBugTest {
         }
 
         @Test
-        public void failAfterTenRetry() throws Exception {
+        public void failAfterTenRetry() {
             log.trace(repeatRule.statement.serial);
             if (repeatRule.statement.serial > 10) {
                 fail("on retry " + repeatRule.statement.serial);
@@ -177,9 +176,24 @@ public class RandomBugTest {
         }
     }
 
+    public static class FailingMethodParent {
+
+        @Inject
+        @Named("method")
+        protected RepeatRule methodRule;
+
+        @Test
+        public void toOverride() throws Exception {
+            log.error(methodRule.statement.serial);
+            if (methodRule.statement.serial < 5) {
+                fail("on retry " + methodRule.statement.serial);
+            }
+        }
+    }
+
     @RunWith(FeaturesRunner.class)
     @Features({ RandomBug.Feature.class })
-    public static class FailingMethod {
+    public static class FailingMethod extends FailingMethodParent {
         @ClassRule
         public static final IgnoreInner ignoreInner = new IgnoreInner();
 
@@ -201,7 +215,7 @@ public class RandomBugTest {
 
         @Test
         @RandomBug.Repeat(issue = "failingMethod")
-        public void failbeforeFiveRetry() throws Exception {
+        public void failBeforeFiveRetry() {
             log.trace(methodRule.statement.serial);
             if (methodRule.statement.serial < 5) {
                 fail("on retry " + methodRule.statement.serial);
@@ -210,7 +224,7 @@ public class RandomBugTest {
 
         @Test
         @RandomBug.Repeat(issue = "failingMethod")
-        public void successOnSevenRetry() throws Exception {
+        public void successOnSevenRetry() {
             log.trace(methodRule.statement.serial);
             if (methodRule.statement.serial != 7) {
                 fail("on retry " + methodRule.statement.serial);
@@ -219,11 +233,18 @@ public class RandomBugTest {
 
         @Test
         @RandomBug.Repeat(issue = "failingMethod")
-        public void failAfterTenRetry() throws Exception {
+        public void failAfterTenRetry() {
             log.trace(methodRule.statement.serial);
             if (methodRule.statement.serial > 10) {
                 fail("on retry " + methodRule.statement.serial);
             }
+        }
+
+        @Test // mandatory otherwise @RandomBug.Repeat is not taken into account
+        @Override
+        @RandomBug.Repeat(issue = "failingMethod")
+        public void toOverride() throws Exception {
+            super.toOverride();
         }
     }
 
@@ -236,7 +257,7 @@ public class RandomBugTest {
     @Test
     public void testBypassOnMethod() {
         System.setProperty(RandomBug.MODE_PROPERTY, RandomBug.Mode.BYPASS.toString());
-        runClassAndVerify(FailingMethod.class, "Test should be ignored in BYPASS mode!", 5, 0, 4);
+        runClassAndVerify(FailingMethod.class, "Test should be ignored in BYPASS mode!", 6, 0, 5);
     }
 
     @Test
@@ -248,7 +269,7 @@ public class RandomBugTest {
     @Test
     public void testStrictOnMethod() {
         System.setProperty(RandomBug.MODE_PROPERTY, RandomBug.Mode.STRICT.toString());
-        runClassAndVerify(FailingMethod.class, "STRICT mode should reveal failure", 5, 3, 1);
+        runClassAndVerify(FailingMethod.class, "STRICT mode should reveal failure", 6, 4, 1);
     }
 
     @Test
@@ -261,7 +282,7 @@ public class RandomBugTest {
     @Test
     public void testRelaxOnMethod() {
         System.setProperty(RandomBug.MODE_PROPERTY, RandomBug.Mode.RELAX.toString());
-        runClassAndVerify(FailingMethod.class, "RELAX mode expects a success", 5, 0, 1);
+        runClassAndVerify(FailingMethod.class, "RELAX mode expects a success", 6, 0, 1);
     }
 
     public static class ThisFeature implements RunnerFeature {

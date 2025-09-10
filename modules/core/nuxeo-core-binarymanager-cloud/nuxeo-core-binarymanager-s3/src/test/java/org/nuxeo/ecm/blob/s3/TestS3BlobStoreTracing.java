@@ -33,14 +33,13 @@ import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.core.LogEvent;
@@ -86,7 +85,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.osgi.framework.Bundle;
 
-import com.amazonaws.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.ObjectStorageClass;
 
 @RunWith(FeaturesRunner.class)
 @Features({ BlobManagerFeature.class, WorkManagerFeature.class, TransactionalFeature.class, LogCaptureFeature.class,
@@ -110,17 +109,6 @@ public class TestS3BlobStoreTracing {
     protected static final String FOO_SHA256 = "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae";
 
     protected static final String BAR_MD5 = "37b51d194a7513e45b56f6524f2d51f2";
-
-    // from test-blob-provider-s3-tracing.xml, for cleanup
-    protected static final List<String> BLOB_PROVIDER_IDS = Arrays.asList( //
-            "s3", //
-            "s3-other", //
-            "s3-subdirs", //
-            "s3-sha256-async", //
-            "s3-nocache", //
-            "s3-managed", //
-            "s3-coldStorage", //
-            "s3-record");
 
     protected static final String BLOB_PROVIDER_PREFIX_REGEX = String.format("((%s)/)", String.join("|", List.of( //
             "base", //
@@ -151,7 +139,6 @@ public class TestS3BlobStoreTracing {
 
     @Before
     public void setUp() throws IOException {
-        clearBlobStores();
         tmpFile = Files.createTempFile("tmp_", ".tmp");
         logCaptureResult.clear();
     }
@@ -163,12 +150,7 @@ public class TestS3BlobStoreTracing {
 
     @After
     public void tearDown() throws IOException {
-        clearBlobStores();
         Files.deleteIfExists(tmpFile);
-    }
-
-    protected void clearBlobStores() {
-        BLOB_PROVIDER_IDS.forEach(id -> getBlobStore(id).clear());
     }
 
     protected BlobStore getBlobStore(String id) {
@@ -348,7 +330,7 @@ public class TestS3BlobStoreTracing {
         Blob blob = bp.readBlob(blobInfo);
         BlobStatus status = bp.getStatus((ManagedBlob) blob);
         assertFalse(status.isDownloadable());
-        assertEquals(StorageClass.Glacier.toString(), status.getStorageClass());
+        assertEquals(ObjectStorageClass.GLACIER.toString(), status.getStorageClass());
         assertFalse(status.isOngoingRestore());
         checkTrace("trace-update-coldStorage.txt");
     }

@@ -47,7 +47,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.automation.AutomationService;
@@ -237,7 +237,7 @@ public class TestTreeCommentManager extends AbstractTestCommentManager {
 
         var versionReplies = commentManager.getComments(session, versionComment.getId());
         assertEquals(1, versionReplies.size());
-        var versionReply = versionReplies.get(0);
+        var versionReply = versionReplies.getFirst();
         assertEquals(Set.of(versionId, versionComment.getId()), new HashSet<>(versionReply.getAncestorIds()));
     }
 
@@ -259,6 +259,27 @@ public class TestTreeCommentManager extends AbstractTestCommentManager {
         comment = commentManager.updateComment(jamesSession, comment.getId(), comment);
 
         assertTrue(session.getVersions(commentedDocModel.getRef()).isEmpty());
+    }
+
+    // NXP-32876
+    @Test
+    @Deploy("org.nuxeo.ecm.platform.comment.tests:OSGI-INF/note-automatic-versioning-before-update-contrib.xml")
+    public void _testRelatedTextDoesNotTriggerBeforeUpdateAutomaticVersioning() {
+        var note = session.createDocumentModel("/domain", "note001", "Note");
+        note = session.createDocument(note);
+        assertTrue("Note is not checked out", note.isCheckedOut());
+        assertEquals("0.0", note.getVersionLabel());
+        // make a modification to trigger automatic versioning
+        note.setPropertyValue("note:note", "A wonderful content");
+        note = session.saveDocument(note);
+        assertTrue("Note is not checked out", note.isCheckedOut());
+        assertEquals("0.1+", note.getVersionLabel());
+        // add a comment on the note
+        commentManager.createComment(session, newComment(note.getId()));
+        // assert that the note has not been versioned again
+        note.refresh();
+        assertTrue("Note is not checked out", note.isCheckedOut());
+        assertEquals("0.1+", note.getVersionLabel());
     }
 
     @Test

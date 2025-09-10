@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-tree-snapshot-core</artifactId>
@@ -66,12 +66,12 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-relations-jena-plugin</artifactId>
+      <artifactId>nuxeo-platform-relations-default-config</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-core</artifactId>
+      <groupId>org.glassfish.jersey.core</groupId>
+      <artifactId>jersey-common</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

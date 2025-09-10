@@ -53,8 +53,7 @@ class MethodAnnotations {
         if (annos.length == 0) {
             return;
         }
-        for (int i = 0, len = entries.size(); i < len; i++) {
-            Entry entry = entries.get(i);
+        for (Entry entry : entries) {
             if (entry.isSameAs(m)) {
                 for (Annotation anno : annos) {
                     Class<?> annoType = anno.annotationType();
@@ -75,8 +74,7 @@ class MethodAnnotations {
     }
 
     public void addSuperMethod(AnnotatedMethod am) {
-        for (int i = 0, len = entries.size(); i < len; i++) {
-            Entry entry = entries.get(i);
+        for (Entry entry : entries) {
             if (entry.isSameAs(am.method)) {
                 Annotation[] annos = am.getAnnotations();
                 for (Annotation anno : annos) {

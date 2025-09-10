@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.storage.dbs;
 
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -28,19 +29,18 @@ import java.util.Set;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.repository.PoolConfiguration;
 import org.nuxeo.ecm.core.storage.FulltextDescriptor;
 import org.nuxeo.ecm.core.storage.FulltextDescriptor.FulltextIndexDescriptor;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * DBS Repository Descriptor.
  *
  * @since 7.10-HF04, 8.1
  */
-public class DBSRepositoryDescriptor implements Cloneable {
-
-    public DBSRepositoryDescriptor() {
-    }
+public class DBSRepositoryDescriptor implements Cloneable, Descriptor {
 
     @XNode("@name")
     public String name;
@@ -50,6 +50,11 @@ public class DBSRepositoryDescriptor implements Cloneable {
 
     @XNode("@isDefault")
     protected Boolean isDefault;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public Boolean isDefault() {
         return isDefault;
@@ -171,48 +176,32 @@ public class DBSRepositoryDescriptor implements Cloneable {
             clone.pool = pool == null ? null : new PoolConfiguration(pool);
             return clone;
         } catch (CloneNotSupportedException e) { // cannot happen
-            throw new RuntimeException(e);
+            throw new NuxeoException(e);
         }
     }
 
-    public void merge(DBSRepositoryDescriptor other) {
-        if (other.name != null) {
-            name = other.name;
-        }
-        if (other.label != null) {
-            label = other.label;
-        }
-        if (other.isDefault != null) {
-            isDefault = other.isDefault;
-        }
+    @Override
+    public DBSRepositoryDescriptor merge(Descriptor o) {
+        var other = (DBSRepositoryDescriptor) o;
+        var merged = clone(); // for implementations to get the right new instance
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.cacheConcurrencyLevel = defaultIfNull(other.cacheConcurrencyLevel, cacheConcurrencyLevel);
+        merged.cacheEnabled = defaultIfNull(other.cacheEnabled, cacheEnabled);
+        merged.cacheMaxSize = defaultIfNull(other.cacheMaxSize, cacheMaxSize);
+        merged.cacheTTL = defaultIfNull(other.cacheTTL, cacheTTL);
+        merged.clusterInvalidatorClass = defaultIfNull(other.clusterInvalidatorClass, clusterInvalidatorClass);
+        merged.fulltextDescriptor.merge(other.fulltextDescriptor);
+        merged.idType = defaultIfNull(other.idType, idType);
+        merged.isDefault = defaultIfNull(other.isDefault, isDefault);
+        merged.label = defaultIfNull(other.label, label);
+        merged.changeTokenEnabled = defaultIfNull(other.changeTokenEnabled, changeTokenEnabled);
         if (other.pool != null) {
-            if (pool == null) {
-                pool = new PoolConfiguration(other.pool);
+            if (merged.pool == null) {
+                merged.pool = new PoolConfiguration(other.pool);
             } else {
-                pool.merge(other.pool);
+                merged.pool.merge(other.pool);
             }
         }
-        if (other.idType != null) {
-            idType = other.idType;
-        }
-        fulltextDescriptor.merge(other.fulltextDescriptor);
-        if (other.cacheEnabled != null) {
-            cacheEnabled = other.cacheEnabled;
-        }
-        if (other.cacheTTL != null) {
-            cacheTTL = other.cacheTTL;
-        }
-        if (other.cacheMaxSize != null) {
-            cacheMaxSize = other.cacheMaxSize;
-        }
-        if (other.cacheConcurrencyLevel != null) {
-            cacheConcurrencyLevel = other.cacheConcurrencyLevel;
-        }
-        if (other.clusterInvalidatorClass != null) {
-            clusterInvalidatorClass = other.clusterInvalidatorClass;
-        }
-        if (other.changeTokenEnabled != null) {
-            changeTokenEnabled = other.changeTokenEnabled;
-        }
+        return merged;
     }
 }

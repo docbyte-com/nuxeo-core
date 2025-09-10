@@ -23,7 +23,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Rule;
@@ -39,13 +39,12 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.io.fsexporter.FSExporter;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.io.fsexporter.FsExporterFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CollectionFeature.class)
-@Deploy("nuxeo-fsexporter")
+@Features({ CollectionFeature.class, FsExporterFeature.class })
 public class TestFSExporterCollection {
 
     @Rule

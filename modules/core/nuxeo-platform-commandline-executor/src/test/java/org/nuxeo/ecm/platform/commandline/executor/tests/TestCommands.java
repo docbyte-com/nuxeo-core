@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,11 +25,10 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.Assume;
@@ -57,6 +56,7 @@ import org.nuxeo.runtime.transaction.TransactionRuntimeException;
 @RunWith(FeaturesRunner.class)
 @Features(TransactionalFeature.class)
 @Deploy("org.nuxeo.ecm.platform.commandline.executor")
+@Deploy("org.nuxeo.ecm.platform.commandline.executor.test:OSGI-INF/commandline-command-test-contrib.xml")
 public class TestCommands {
 
     @Inject
@@ -75,27 +75,26 @@ public class TestCommands {
         // test String param
         params.addNamedParameter("foo", "/some/path");
         res = ShellExecutor.replaceParams("foo=#{foo}", params);
-        assertEquals(Arrays.asList("foo=/some/path"), res);
+        assertEquals(List.of("foo=/some/path"), res);
         params.addNamedParameter("width", "320");
         params.addNamedParameter("height", "200");
         res = ShellExecutor.replaceParams("#{width}x#{height}", params);
-        assertEquals(Arrays.asList("320x200"), res);
+        assertEquals(List.of("320x200"), res);
 
         // test File param
         File tmp = Framework.createTempFile("testCommands", "txt");
         tmp.delete();
         params.addNamedParameter("foo", tmp);
         res = ShellExecutor.replaceParams("-file=#{foo}[0]", params);
-        assertEquals(Arrays.asList("-file=" + tmp.getAbsolutePath() + "[0]"), res);
+        assertEquals(List.of("-file=" + tmp.getAbsolutePath() + "[0]"), res);
 
         // test List param
-        params.addNamedParameter("tags", Arrays.asList("-foo", "-bar", "-baz"));
+        params.addNamedParameter("tags", List.of("-foo", "-bar", "-baz"));
         res = ShellExecutor.replaceParams("#{tags}", params);
-        assertEquals(Arrays.asList("-foo", "-bar", "-baz"), res);
+        assertEquals(List.of("-foo", "-bar", "-baz"), res);
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.platform.commandline.executor:OSGI-INF/commandline-command-test-contrib.xml")
     public void testCmdEnvironment() throws Exception {
         List<String> cmds = cles.getRegistredCommands();
         assertNotNull(cmds);
@@ -111,7 +110,6 @@ public class TestCommands {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.platform.commandline.executor:OSGI-INF/commandline-command-test-contrib.xml")
     public void testCmdPipe() throws Exception {
 
         ExecResult result = cles.execCommand("pipe", cles.getDefaultCmdParameters());
@@ -123,9 +121,7 @@ public class TestCommands {
         assertEquals(expected, line);
     }
 
-
     @Test
-    @Deploy("org.nuxeo.ecm.platform.commandline.executor:OSGI-INF/commandline-command-test-contrib.xml")
     public void testTimeoutOnBlockingCommand() throws Exception {
         Assume.assumeTrue("Requires timeout", cles.getAvailableCommands().contains("timeout"));
         List<String> cmds = cles.getRegistredCommands();
@@ -139,7 +135,6 @@ public class TestCommands {
     }
 
     @Test
-    @Deploy("org.nuxeo.ecm.platform.commandline.executor:OSGI-INF/commandline-command-test-contrib.xml")
     public void testTimeoutOnTransaction() throws Exception {
         Assume.assumeTrue("Requires timeout", cles.getAvailableCommands().contains("timeout"));
         List<String> cmds = cles.getRegistredCommands();

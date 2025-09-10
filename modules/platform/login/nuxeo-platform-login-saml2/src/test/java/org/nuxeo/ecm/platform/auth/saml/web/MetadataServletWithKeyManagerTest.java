@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,18 +21,18 @@ package org.nuxeo.ecm.platform.auth.saml.web;
 import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.formatXML;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.auth.saml.SAMLFeature;
 import org.nuxeo.ecm.platform.auth.saml.key.KeyManagerFeature;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletRequest;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletResponse;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletRequest;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletResponse;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import net.shibboleth.utilities.java.support.codec.Base64Support;
+import net.shibboleth.shared.codec.Base64Support;
 
 /**
  * @since 2023.0
@@ -47,7 +47,7 @@ public class MetadataServletWithKeyManagerTest {
     @Test
     public void testDoGet() throws Exception {
         var requestHandler = MockHttpServletRequest.init("GET", "http://localhost:8080/core/saml/metadata");
-        var responseHandler = MockHttpServletResponse.init().withOutputStream();
+        var responseHandler = MockHttpServletResponse.init();
 
         new MetadataServlet().doGet(requestHandler.mock(), responseHandler.mock());
 
@@ -82,6 +82,6 @@ public class MetadataServletWithKeyManagerTest {
                 </md:EntityDescriptor>
                 """.formatted(
                 encodedCertificate, encodedCertificate);
-        assertEquals(expected, formatXML(responseHandler.getResponseString()));
+        assertEquals(expected, formatXML(responseHandler.getResponseAsString()));
     }
 }

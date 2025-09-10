@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,34 +17,33 @@
  *     Radu Darlea
  *     Florent Guillaume
  */
-
 package org.nuxeo.ecm.platform.tag;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_PRINCIPAL_NAME;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_PRINCIPAL_NAME;
 
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.awaitility.Duration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.test.AuditFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -64,10 +63,6 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditQueryBuilder;
-import org.nuxeo.ecm.platform.audit.service.AuditBackend;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -76,10 +71,12 @@ import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features({ LogCaptureFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, AutomationCoreFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.runtime.datasource")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.dublincore")
 @Deploy("org.nuxeo.ecm.tag.tests:test-core-types-contrib.xml")
@@ -96,7 +93,7 @@ public abstract class AbstractTestTagService {
     protected TagService tagService;
 
     @Inject
-    protected NXAuditEventsService auditEventsService;
+    protected AuditBackend auditBackend;
 
     /**
      * @since 11.1
@@ -117,7 +114,7 @@ public abstract class AbstractTestTagService {
     public void maybeSleep() {
         StorageConfiguration storageConfiguration = coreFeature.getStorageConfiguration();
         if (storageConfiguration.isVCSOracle() || storageConfiguration.isVCSSQLServer()) {
-            await().pollDelay(Duration.FIVE_SECONDS).until(() -> true);
+            await().pollDelay(Duration.ofSeconds(5)).until(() -> true);
         }
     }
 
@@ -135,8 +132,8 @@ public abstract class AbstractTestTagService {
         String file1Id = file1.getId();
         String file2Id = file2.getId();
 
-        Set<String> file1set = new HashSet<>(Collections.singleton(file1Id));
-        Set<String> twofiles = new HashSet<>(Arrays.asList(file1Id, file2Id));
+        Set<String> file1set = new HashSet<>(List.of(file1Id));
+        Set<String> twofiles = new HashSet<>(List.of(file1Id, file2Id));
 
         // add tag
         tagService.tag(session, file1Id, "mytag");
@@ -144,8 +141,8 @@ public abstract class AbstractTestTagService {
         tagService.tag(session, file2Id, "mytag");
         session.save();
 
-        Set<String> mytag = new HashSet<>(Collections.singleton("mytag"));
-        Set<String> twotags = new HashSet<>(Arrays.asList("mytag", "othertag"));
+        Set<String> mytag = new HashSet<>(List.of("mytag"));
+        Set<String> twotags = new HashSet<>(List.of("mytag", "othertag"));
 
         // find tags for doc
         Set<String> tags;
@@ -187,7 +184,7 @@ public abstract class AbstractTestTagService {
 
         // check tag present
         Set<String> tags = tagService.getTags(session, file1Id);
-        assertEquals(Collections.singleton("mytag"), tags);
+        assertEquals(Set.of("mytag"), tags);
 
         // trash doc
         Framework.getService(TrashService.class).trashDocument(file);
@@ -199,7 +196,7 @@ public abstract class AbstractTestTagService {
         file.refresh();
         assertTrue(file.isTrashed());
         tags = tagService.getTags(session, file1Id);
-        assertEquals(Collections.singleton("mytag"), tags);
+        assertEquals(Set.of("mytag"), tags);
     }
 
     @Test
@@ -433,7 +430,7 @@ public abstract class AbstractTestTagService {
         // Test tag present
         Set<String> tags = tagService.getTags(bobSession, file1Id);
         assertEquals(1, tags.size());
-        assertEquals("mytag", new ArrayList<>(tags).get(0));
+        assertEquals("mytag", new ArrayList<>(tags).getFirst());
 
         // Untag
         tagService.untag(bobSession, file1Id, "mytag");
@@ -511,9 +508,9 @@ public abstract class AbstractTestTagService {
         session.save();
         String fileId = file.getId();
 
-        List<String> charToTests = Arrays.asList(" ", "\\", "/", "'", "%");
+        List<String> charToTests = List.of(" ", "\\", "/", "'", "%");
         String sanitizedLabel = "mytag";
-        Set<String> expectedTagLabels = singleton(sanitizedLabel);
+        Set<String> expectedTagLabels = Set.of(sanitizedLabel);
         for (String charToTest : charToTests) {
             String tagLabel = "my" + charToTest + "tag";
             String message = "Character '" + charToTest + "' is not well sanitized";
@@ -529,7 +526,7 @@ public abstract class AbstractTestTagService {
             assertEquals(message, expectedTagLabels, suggestions);
             // find documents with this tag
             List<String> taggedDocIds = tagService.getTagDocumentIds(session, tagLabel);
-            assertEquals(message, singletonList(fileId), taggedDocIds);
+            assertEquals(message, List.of(fileId), taggedDocIds);
             // remove tag
             tagService.untag(session, fileId, tagLabel);
             session.save();
@@ -543,7 +540,7 @@ public abstract class AbstractTestTagService {
             session.save();
             // find documents with this tag
             taggedDocIds = tagService.getTagDocumentIds(session, sanitizedLabel);
-            assertEquals(message, singletonList(fileId), taggedDocIds);
+            assertEquals(message, List.of(fileId), taggedDocIds);
             // remove tag
             tagService.untag(session, fileId, sanitizedLabel);
             session.save();
@@ -566,7 +563,6 @@ public abstract class AbstractTestTagService {
         testQueriesOnTags();
     }
 
-    @SuppressWarnings("resource") // test
     protected void testQueriesOnTags() {
         String nxql;
         DocumentModelList dml;
@@ -598,7 +594,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag = 'tag2'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         nxql = nxql("SELECT * FROM File WHERE ecm:tag IN ('tag1', 'tag2')");
         assertEquals(2, session.query(nxql).size());
@@ -619,7 +615,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag/* = 'tag1' AND ecm:tag/* = 'tag2'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         // any tag instance
         nxql = nxql("SELECT * FROM File WHERE ecm:tag/* = 'tag1' OR ecm:tag/* = 'tag2'");
@@ -631,12 +627,12 @@ public abstract class AbstractTestTagService {
             nxql = nxql("SELECT * FROM File WHERE ecm:tag IS NULL'");
             dml = session.query(nxql);
             assertEquals(1, dml.size());
-            assertEquals(file3.getId(), dml.get(0).getId());
+            assertEquals(file3.getId(), dml.getFirst().getId());
 
             nxql = nxql("SELECT * FROM File WHERE ecm:tag/* IS NULL'");
             dml = session.query(nxql);
             assertEquals(1, dml.size());
-            assertEquals(file3.getId(), dml.get(0).getId());
+            assertEquals(file3.getId(), dml.getFirst().getId());
         }
 
         // numbered tag instance
@@ -659,7 +655,7 @@ public abstract class AbstractTestTagService {
         nxql = nxql("SELECT * FROM File WHERE ecm:tag IN ('tag1', 'tag2') AND dc:title = 'file1'");
         dml = session.query(nxql);
         assertEquals(1, dml.size());
-        assertEquals(file1.getId(), dml.get(0).getId());
+        assertEquals(file1.getId(), dml.getFirst().getId());
 
         // ----- queryAndFetch -----
 
@@ -724,7 +720,7 @@ public abstract class AbstractTestTagService {
                 set.add(tag);
             }
         }
-        assertEquals(new HashSet<>(Arrays.asList(expected)), set);
+        assertEquals(new HashSet<>(List.of(expected)), set);
     }
 
     @Test
@@ -802,11 +798,10 @@ public abstract class AbstractTestTagService {
         assertEquals("Administrator", file1.getPropertyValue("dc:lastContributor"));
 
         // Also check that the event was not logged in the audit
-        AuditBackend backend = auditEventsService.getBackend();
-        assertEquals(0, backend
-                               .queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_PRINCIPAL_NAME, "bob"))
-                                                                 .and(Predicates.eq(LOG_EVENT_ID, DOCUMENT_UPDATED)))
-                               .size());
+        assertEquals(0,
+                auditBackend.queryLogs(new AuditQueryBuilder().predicate(Predicates.eq(LOG_PRINCIPAL_NAME, "bob"))
+                                                              .and(Predicates.eq(LOG_EVENT_ID, DOCUMENT_UPDATED)))
+                            .size());
     }
 
     /**

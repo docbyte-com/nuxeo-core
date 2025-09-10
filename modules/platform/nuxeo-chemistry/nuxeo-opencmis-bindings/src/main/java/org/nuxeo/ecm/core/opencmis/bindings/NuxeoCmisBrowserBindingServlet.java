@@ -21,16 +21,16 @@
  */
 package org.nuxeo.ecm.core.opencmis.bindings;
 
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_EXCEPTION;
 import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_MESSAGE;
 import static org.apache.chemistry.opencmis.commons.impl.JSONConstants.ERROR_STACKTRACE;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.commons.exceptions.CmisBaseException;
 import org.apache.chemistry.opencmis.commons.impl.json.JSONObject;

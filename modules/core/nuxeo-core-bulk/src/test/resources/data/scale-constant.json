@@ -2,6 +2,7 @@
   "scale": {
     "currentNodes": 4,
     "bestNodes": 4,
+    "optimalNodes": 4,
     "metric": 0
   },
   "nodes": [
@@ -140,7 +141,8 @@
         "nodes": 4,
         "threads": 8,
         "rate1m": 0.32531962,
-        "eta": 463949
+        "eta": 463949,
+        "relevant": true
       }
     }
   ]

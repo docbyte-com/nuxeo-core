@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
-import org.junit.Before;
+import jakarta.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -33,24 +34,21 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
-import org.nuxeo.ecm.core.convert.cache.ConversionCacheHolder;
 import org.nuxeo.ecm.core.event.EventService;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
-
-import com.google.inject.Inject;
 
 /**
  * @since 7.4
  */
 @RunWith(FeaturesRunner.class)
 @Features({ ConvertFeature.class, TransientStoreFeature.class })
-@Deploy("org.nuxeo.ecm.core.event")
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-test.xml")
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/converters-test-contrib3.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/convert-service-no-cache-test-contrib.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib3.xml")
 public class TestAsyncConversion {
 
     @Inject
@@ -58,12 +56,6 @@ public class TestAsyncConversion {
 
     @Inject
     protected EventService eventService;
-
-    @Before
-    public void setUp() {
-        // TODO: might be a bug? ensure no cache is used - when file is cached the filename is not preserved!
-        ConversionCacheHolder.deleteCache();
-    }
 
     @Test
     public void shouldDoAsyncConversionGivenDestinationMimeType() throws IOException {

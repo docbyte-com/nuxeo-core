@@ -32,6 +32,7 @@ import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.cos.COSBase;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -79,11 +80,9 @@ public class PDF2TextConverter implements Converter {
     @Override
     public BlobHolder convert(BlobHolder blobHolder, Map<String, Serializable> parameters) throws ConversionException {
 
-        PDDocument document = null;
         File f = null;
         OutputStream fas = null;
-        try {
-            document = PDDocument.load(blobHolder.getBlob().getStream());
+        try (PDDocument document = Loader.loadPDF(blobHolder.getBlob().getFile())) {
             // NXP-1556: if document is protected an IOException will be raised
             // Instead of catching the exception based on its message string
             // lets avoid sending messages that will generate this error
@@ -115,13 +114,6 @@ public class PDF2TextConverter implements Converter {
         } catch (IOException e) {
             throw new ConversionException("Error during text extraction with PDFBox", blobHolder, e);
         } finally {
-            if (document != null) {
-                try {
-                    document.close();
-                } catch (IOException e) {
-                    log.error("Error while closing PDFBox document", e);
-                }
-            }
             if (fas != null) {
                 try {
                     fas.close();

@@ -12,8 +12,7 @@ Bundle-Vendor: Nuxeo
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
 Bundle-SymbolicName: org.nuxeo.ecm.platform.api
-Import-Package: javax.annotation;version="1.0",
- javax.naming,
+Import-Package: javax.naming,
  javax.security.auth.callback,
  javax.security.auth.login,
  org.apache.commons.logging,

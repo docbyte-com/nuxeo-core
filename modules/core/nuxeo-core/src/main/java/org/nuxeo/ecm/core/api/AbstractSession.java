@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,8 @@
  */
 package org.nuxeo.ecm.core.api;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static org.apache.commons.lang3.ObjectUtils.isEmpty;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.CHANGED_ACL_NAME;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.NEW_ACE;
 import static org.nuxeo.ecm.core.api.event.CoreEventConstants.OLD_ACE;
@@ -44,8 +45,6 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_LIFE_CYCLE
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_PROPERTIES;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_SECURITY;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_VERSION;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
-import static org.nuxeo.ecm.core.trash.LifeCycleTrashService.FROM_LIFE_CYCLE_TRASH_SERVICE;
 
 import java.io.Serializable;
 import java.security.InvalidParameterException;
@@ -60,8 +59,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -146,12 +147,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     public static final String MAX_RESULTS_PROPERTY = "org.nuxeo.ecm.core.max.results";
 
     public static final String LIMIT_RESULTS_PROPERTY = "org.nuxeo.ecm.core.limit.results";
-
-    /**
-     * @deprecated since 10.1, new trash behavior is: always keep checkedIn state
-     */
-    @Deprecated
-    public static final String TRASH_KEEP_CHECKED_IN_PROPERTY = "org.nuxeo.trash.keepCheckedIn";
 
     // @since 9.1 disable ecm:isLatestVersion and ecm:isLatestMajorVersion updates for performance purpose
     public static final String DISABLED_ISLATESTVERSION_PROPERTY = "org.nuxeo.core.isLatestVersion.disabled";
@@ -253,6 +248,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
      *
      * @return the repository session
      */
+    @SuppressWarnings("rawtypes")
     public abstract Session getSession();
 
     @Override
@@ -279,12 +275,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             options.putAll(doc.getContextData());
         }
         return options;
-    }
-
-    public DocumentEventContext newEventContext(DocumentModel source) {
-        DocumentEventContext ctx = new DocumentEventContext(this, getPrincipal(), source);
-        ctx.setProperty(CoreEventConstants.REPOSITORY_NAME, getRepositoryName());
-        return ctx;
     }
 
     protected void notifyEvent(String eventId, DocumentModel source, Map<String, Serializable> options, String category,
@@ -316,26 +306,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             event.setInline(true);
         }
         Framework.getService(EventService.class).fireEvent(event);
-    }
-
-    /**
-     * Copied from obsolete VersionChangeNotifier.
-     * <p>
-     * Sends change notifications to core event listeners. The event contains info with older document (before version
-     * change) and newer doc (current document).
-     *
-     * @param options additional info to pass to the event
-     */
-    protected void notifyVersionChange(DocumentModel oldDocument, DocumentModel newDocument,
-            Map<String, Serializable> options) {
-        final Map<String, Serializable> info = new HashMap<>();
-        if (options != null) {
-            info.putAll(options);
-        }
-        info.put(VersioningChangeNotifier.EVT_INFO_NEW_DOC_KEY, newDocument);
-        info.put(VersioningChangeNotifier.EVT_INFO_OLD_DOC_KEY, oldDocument);
-        notifyEvent(VersioningChangeNotifier.CORE_EVENT_ID_VERSIONING_CHANGE, newDocument, info,
-                DocumentEventCategories.EVENT_CLIENT_NOTIF_CATEGORY, null, false, false);
     }
 
     @Override
@@ -380,16 +350,12 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             throw new IllegalArgumentException("null reference");
         }
         int type = docRef.type();
-        switch (type) {
-        case DocumentRef.ID:
-            return getSession().getDocumentByUUID((String) ref);
-        case DocumentRef.PATH:
-            return getSession().resolvePath((String) ref);
-        case DocumentRef.INSTANCE:
-            return getSession().getDocumentByUUID(((DocumentModel) ref).getId());
-        default:
-            throw new IllegalArgumentException("Invalid type: " + type);
-        }
+        return switch (type) {
+            case DocumentRef.ID -> getSession().getDocumentByUUID((String) ref);
+            case DocumentRef.PATH -> getSession().resolvePath((String) ref);
+            case DocumentRef.INSTANCE -> getSession().getDocumentByUUID(((DocumentModel) ref).getId());
+            default -> throw new IllegalArgumentException("Invalid type: " + type);
+        };
     }
 
     protected Document resolveParentReference(DocumentRef docRef) {
@@ -642,11 +608,13 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void updateReadACLs(Collection<String> docIds) {
         getSession().updateReadACLs(docIds);
         updateVersionsReadACLs(docIds);
     }
 
+    @SuppressWarnings("unchecked")
     protected void updateVersionsReadACLs(Collection<String> docIds) {
         if (docIds.isEmpty()) {
             return;
@@ -830,15 +798,15 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             throw new DocumentSecurityException("Only Administrator can import");
         }
         String name = docModel.getName();
-        if (name == null || name.length() == 0) {
+        if (name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Invalid empty name");
         }
         String typeName = docModel.getType();
-        if (typeName == null || typeName.length() == 0) {
+        if (typeName == null || typeName.isEmpty()) {
             throw new IllegalArgumentException("Invalid empty type");
         }
         String id = docModel.getId();
-        if (id == null || id.length() == 0) {
+        if (id == null || id.isEmpty()) {
             throw new IllegalArgumentException("Invalid empty id");
         }
 
@@ -1113,8 +1081,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             docsList.add(readModel(doc));
             doc = doc.getParent();
         }
-        Collections.reverse(docsList);
-        return docsList;
+        return docsList.reversed();
     }
 
     @Override
@@ -1191,14 +1158,6 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             limitedResults = Boolean.valueOf(Framework.getProperty(LIMIT_RESULTS_PROPERTY));
         }
         return limitedResults;
-    }
-
-    protected void setMaxResults(long maxResults) {
-        this.maxResults = maxResults;
-    }
-
-    protected void setLimitedResults(boolean limitedResults) {
-        this.limitedResults = limitedResults;
     }
 
     @Override
@@ -1354,6 +1313,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public PartialList<Map<String, Serializable>> queryProjection(String query, String queryType,
             boolean distinctDocuments, long limit, long offset, long countUpTo, Object... params) {
         NuxeoPrincipal principal = getPrincipal();
@@ -1389,6 +1349,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ScrollResult<String> scroll(String query, int batchSize, int keepAliveSeconds) {
         Map<String, AttributeValue> map = new HashMap<>();
         Span span = Tracing.getTracer().getCurrentSpan();
@@ -1412,6 +1373,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public ScrollResult<String> scroll(String scrollId) {
         Span span = Tracing.getTracer().getCurrentSpan();
         span.addAnnotation("AbstractSession#scroll.next");
@@ -2101,7 +2063,9 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         // find versions
         String versionsQuery = String.format(FIND_VERSIONS_QUERY, docId);
         PartialList<Map<String, Serializable>> res = queryProjection(versionsQuery, 0, 0);
-        List<DocumentRef> versions = res.stream().map(m -> new IdRef((String) m.get(NXQL.ECM_UUID))).collect(Collectors.toList());
+        List<DocumentRef> versions = res.stream()
+                                        .map(m -> new IdRef((String) m.get(NXQL.ECM_UUID)))
+                                        .collect(Collectors.toList());
         if (versions.isEmpty()) {
             log.debug("No orphan version for: {}, there is no version.", docRef);
             return Collections.emptyList();
@@ -2118,7 +2082,9 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Collection<OrphanVersionRemovalFilter> filters = coreService.getOrphanVersionRemovalFilters();
         if (!filters.isEmpty()) {
             // Hopefully, this OrphanVersionRemovalFilter extension point is rarely used
-            List<String> versionIds = versions.stream().map(ref -> (String) ref.reference()).collect(Collectors.toList());
+            List<String> versionIds = versions.stream()
+                                              .map(ref -> (String) ref.reference())
+                                              .collect(Collectors.toList());
             for (OrphanVersionRemovalFilter filter : filters) {
                 ShallowDocumentModel deleted = new ShallowDocumentModel(docId, getRepositoryName(), "unknown", null,
                         "Unknown", false, false, false, false, Collections.emptyMap(), null, null);
@@ -2252,6 +2218,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public DataModel getDataModel(DocumentRef docRef, Schema schema) {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
@@ -2265,7 +2232,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
             Schema docSchema = doc.getType().getSchema(schema);
             if (docSchema != null) {
                 String prefix = docSchema.getNamespace().prefix;
-                if (prefix != null && prefix.length() > 0) {
+                if (prefix != null && !prefix.isEmpty()) {
                     field = prefix + ':' + field;
                 }
                 return doc.getPropertyValue(field);
@@ -2444,6 +2411,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @Deprecated(since = "11.1", forRemoval = true)
     public boolean isRetentionActive(DocumentRef docRef) {
         Document doc = resolveReference(docRef);
         checkPermission(doc, READ);
@@ -2451,6 +2419,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     }
 
     @Override
+    @Deprecated(since = "11.1", forRemoval = true)
     public void setRetentionActive(DocumentRef docRef, boolean retentionActive) {
         Document doc = resolveReference(docRef);
         if (isRetentionActive(docRef) == retentionActive) {
@@ -2462,7 +2431,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         doc.setRetentionActive(retentionActive);
         // send an event for audit logging
         Map<String, Serializable> options = new HashMap<>();
-        options.put(CoreEventConstants.RETENTION_ACTIVE, Boolean.valueOf(retentionActive));
+        options.put(CoreEventConstants.RETENTION_ACTIVE, retentionActive);
         options.put("comment", Boolean.toString(retentionActive)); // for audit
         DocumentModel docModel = readModel(doc);
         notifyEvent(DocumentEventTypes.RETENTION_ACTIVE_CHANGED, docModel, options, null, null, true, false);
@@ -2500,34 +2469,11 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         Document doc = resolveReference(docRef);
         checkPermission(doc, WRITE_LIFE_CYCLE);
 
-        // backward compat - used to forward deprecated call followTransition("deleted") to trash service
-        TrashService trashService = Framework.getService(TrashService.class);
-        boolean deleteTransitions = LifeCycleConstants.DELETE_TRANSITION.equals(transition)
-                || LifeCycleConstants.UNDELETE_TRANSITION.equals(transition);
-        if (deleteTransitions && !trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)
-                && !Boolean.TRUE.equals(options.get(FROM_LIFE_CYCLE_TRASH_SERVICE))) {
-            String message = "Following the transition '" + transition + "' is deprecated. Please use TrashService.";
-            if (log.isTraceEnabled()) {
-                log.warn(message, new Throwable("stack trace"));
-            } else {
-                log.warn(message);
-            }
-            DocumentModel docModel = readModel(doc);
-            if (LifeCycleConstants.DELETE_TRANSITION.equals(transition)) {
-                trashService.trashDocument(docModel);
-            } else {
-                trashService.untrashDocument(docModel);
-            }
-            return true;
+        if (!doc.isVersion() && !doc.isProxy() && !doc.isCheckedOut()) {
+            checkOut(docRef);
+            doc = resolveReference(docRef);
         }
 
-        if (!doc.isVersion() && !doc.isProxy() && !doc.isCheckedOut()) {
-            if (!deleteTransitions || Framework.getService(ConfigurationService.class)
-                                               .isBooleanFalse(TRASH_KEEP_CHECKED_IN_PROPERTY)) {
-                checkOut(docRef);
-                doc = resolveReference(docRef);
-            }
-        }
         String formerStateName = doc.getLifeCycleState();
         doc.followTransition(transition);
 
@@ -2922,6 +2868,7 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         return null;
     }
 
+    @SuppressWarnings("deprecation")
     protected void loadDataModelsForFacet(DocumentModel docModel, Document doc, String facetName) {
         // Load all the data related to facet's schemas
         SchemaManager schemaManager = Framework.getService(SchemaManager.class);
@@ -2951,7 +2898,16 @@ public abstract class AbstractSession implements CoreSession, Serializable {
         return doc;
     }
 
+    public static boolean isFulltextValueABlobKey(String fulltext) {
+        // Since there are different blob provider implementation, we cannot rely on a BlobStoreBlobProvider.isValidKey
+        // The fulltext key is a md5 digest like:
+        // "644fc11ecc4891631f9c8244d8010f0b" length 32
+        // "fulltext:644fc11ecc4891631f9c8244d8010f0b" length 42
+        return !isEmpty(fulltext) && (fulltext.length() <= 52) && !fulltext.contains(" ");
+    }
+
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, String> getBinaryFulltext(DocumentRef ref) {
         Document doc = resolveReference(ref);
         checkPermission(doc, READ);
@@ -2971,21 +2927,30 @@ public abstract class AbstractSession implements CoreSession, Serializable {
     @Override
     public DocumentModel getOrCreateDocument(DocumentModel docModel,
             Function<DocumentModel, DocumentModel> postCreate) {
+        DocumentRef parentRef = docModel.getParentRef();
         DocumentRef ref = docModel.getRef();
-        // Check if the document exists
-        if (exists(ref)) {
-            return getDocument(ref);
-        }
-        // handle placeless documents, no locks are needed in this case
-        if (docModel.getParentRef() == null) {
-            return postCreate.apply(createDocument(docModel));
-        }
-        String key = computeKeyForAtomicCreation(docModel);
-        return LockHelper.doAtomically(key, () -> {
-            if (exists(ref)) {
-                return getDocument(ref);
+        Supplier<Optional<DocumentModel>> resolveDoc = () -> {
+            if (parentRef == null && exists(ref)) {
+                return Optional.of(getDocument(ref));
+            } else if (parentRef != null) {
+                Document parentDocument = resolveReference(parentRef);
+                if (parentDocument.hasChild(docModel.getName())) {
+                    Document childDoc = parentDocument.getChild(docModel.getName());
+                    checkPermission(childDoc, READ);
+                    return Optional.of(readModel(childDoc));
+                }
             }
-            return postCreate.apply(createDocument(docModel));
+            return Optional.empty();
+        };
+        // Check if the document exists
+        return resolveDoc.get().orElseGet(() -> {
+            // handle placeless documents, no locks are needed in this case
+            if (parentRef == null) {
+                return postCreate.apply(createDocument(docModel));
+            }
+            String key = computeKeyForAtomicCreation(docModel);
+            return LockHelper.doAtomically(key,
+                    () -> resolveDoc.get().orElseGet(() -> postCreate.apply(createDocument(docModel))));
         });
     }
 

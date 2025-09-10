@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
  * Contributors:
  *     Funsho David
  */
-
 package org.nuxeo.ecm.platform.tag;
 
+import static org.nuxeo.audit.service.AuditComponent.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.core.api.CoreSession.ALLOW_VERSION_WRITE;
 import static org.nuxeo.ecm.core.query.sql.NXQL.ECM_UUID;
-import static org.nuxeo.ecm.platform.audit.service.NXAuditEventsService.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.platform.dublincore.listener.DublinCoreListener.DISABLE_DUBLINCORE_LISTENER;
 import static org.nuxeo.ecm.platform.tag.TagConstants.TAG_FACET;
 import static org.nuxeo.ecm.platform.tag.TagConstants.TAG_LIST;
@@ -35,8 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
@@ -50,8 +47,6 @@ import org.nuxeo.ecm.core.api.versioning.VersioningService;
  * @since 9.3
  */
 public class FacetedTagService extends AbstractTagService {
-
-    private static final Logger log = LogManager.getLogger(FacetedTagService.class);
 
     public static final String LABEL_PROPERTY = "label";
 

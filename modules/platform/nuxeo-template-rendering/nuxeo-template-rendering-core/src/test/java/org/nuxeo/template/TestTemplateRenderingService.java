@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Qastia (http://www.qastia.com/) and others.
+ * (C) Copyright 2019-2024 Qastia (http://www.qastia.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  *
  * Contributors:
  *     Benjamin JALON
- *
  */
-
 package org.nuxeo.template;
 
+import static java.util.Calendar.DECEMBER;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.nuxeo.template.api.InputType.ListValue;
@@ -35,11 +34,12 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -56,7 +56,7 @@ import org.nuxeo.template.api.adapters.TemplateSourceDocument;
 import org.nuxeo.template.context.extensions.ContextFunctions;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features({ AuditFeature.class, CoreFeature.class })
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.convert")
 @Deploy("org.nuxeo.ecm.actions")
@@ -68,7 +68,7 @@ import org.nuxeo.template.context.extensions.ContextFunctions;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.template.manager")
 public class TestTemplateRenderingService {
 
@@ -80,7 +80,7 @@ public class TestTemplateRenderingService {
     protected CoreSession session;
 
     @Inject
-    TemplateProcessorService tps;
+    protected TemplateProcessorService tps;
 
     protected DocumentModel renditionContainer;
 
@@ -101,7 +101,7 @@ public class TestTemplateRenderingService {
     }
 
     @Test
-    public void whenTemplateWithUsename_shouldRenderBlobAsIt() throws IOException {
+    public void whenTemplateWithUsername_shouldRenderBlobAsIt() throws IOException {
         TemplateSourceDocument templateSrc = createTemplateSourceDoc("Hello ${username} !", WEBVIEW_RENDITION);
         TemplateBasedDocument templateBase = createTemplateBasedDoc(templateSrc.getAdaptedDoc());
 
@@ -288,7 +288,7 @@ public class TestTemplateRenderingService {
         String format2 = "EEEE dd MMMMM yyyy";
         Locale locale = Locale.getDefault();
 
-        GregorianCalendar calendar = new GregorianCalendar(2013, 11, 31);
+        GregorianCalendar calendar = new GregorianCalendar(2013, DECEMBER, 31);
         Date dt = calendar.getTime();
 
         SimpleDateFormat defaultSdf = new SimpleDateFormat(defaultFormat, locale);

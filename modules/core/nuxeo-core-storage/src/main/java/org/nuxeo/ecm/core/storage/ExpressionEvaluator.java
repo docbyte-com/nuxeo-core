@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,6 @@ package org.nuxeo.ecm.core.storage;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IN_MIGRATION;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDICATED_PROPERTY;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +34,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
-import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.query.sql.model.BooleanLiteral;
@@ -55,7 +50,6 @@ import org.nuxeo.ecm.core.query.sql.model.Operator;
 import org.nuxeo.ecm.core.query.sql.model.Predicate;
 import org.nuxeo.ecm.core.query.sql.model.Reference;
 import org.nuxeo.ecm.core.query.sql.model.StringLiteral;
-import org.nuxeo.runtime.api.Framework;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
@@ -276,21 +270,7 @@ public abstract class ExpressionEvaluator {
         if (op != Operator.EQ && op != Operator.NOTEQ) {
             throw new QueryParseException(NXQL.ECM_ISTRASHED + " requires = or <> operator");
         }
-        TrashService trashService = Framework.getService(TrashService.class);
-        if (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-            return walkIsTrashed(new Reference(NXQL.ECM_LIFECYCLESTATE), op, rvalue,
-                    new StringLiteral(LifeCycleConstants.DELETED_STATE));
-        } else if (trashService.hasFeature(TRASHED_STATE_IN_MIGRATION)) {
-            Boolean lifeCycleTrashed = walkIsTrashed(new Reference(NXQL.ECM_LIFECYCLESTATE), op, rvalue,
-                    new StringLiteral(LifeCycleConstants.DELETED_STATE));
-            Boolean propertyTrashed = walkIsTrashed(new Reference(NXQL.ECM_ISTRASHED), op, rvalue,
-                    new IntegerLiteral(1L));
-            return or(lifeCycleTrashed, propertyTrashed);
-        } else if (trashService.hasFeature(TRASHED_STATE_IS_DEDICATED_PROPERTY)) {
-            return walkIsTrashed(new Reference(NXQL.ECM_ISTRASHED), op, rvalue, new IntegerLiteral(1L));
-        } else {
-            throw new UnsupportedOperationException("TrashService is in an unknown state");
-        }
+        return walkIsTrashed(new Reference(NXQL.ECM_ISTRASHED), op, rvalue, new IntegerLiteral(1L));
     }
 
     protected Boolean walkIsTrashed(Reference ref, Operator op, Operand initialRvalue, Literal deletedRvalue) {
@@ -401,6 +381,7 @@ public abstract class ExpressionEvaluator {
         return walkExpression(pred);
     }
 
+    @SuppressWarnings("unchecked")
     public Boolean walkIn(Operand lvalue, Operand rvalue, boolean positive) {
         Object right = walkOperand(rvalue);
         if (!(right instanceof List)) {
@@ -415,35 +396,25 @@ public abstract class ExpressionEvaluator {
     }
 
     public Object walkOperand(Operand op) {
-        if (op instanceof Literal) {
-            return walkLiteral((Literal) op);
-        } else if (op instanceof LiteralList) {
-            return walkLiteralList((LiteralList) op);
-        } else if (op instanceof Function) {
-            return walkFunction((Function) op);
-        } else if (op instanceof Expression) {
-            return walkExpression((Expression) op);
-        } else if (op instanceof Reference) {
-            return walkReference((Reference) op);
-        } else {
-            throw new QueryParseException("Unknown operand: " + op);
-        }
+        return switch (op) {
+            case Literal literal -> walkLiteral(literal);
+            case LiteralList literals -> walkLiteralList(literals);
+            case Function function -> walkFunction(function);
+            case Expression expression -> walkExpression(expression);
+            case Reference reference -> walkReference(reference);
+            case null, default -> throw new QueryParseException("Unknown operand: " + op);
+        };
     }
 
     public Object walkLiteral(Literal lit) {
-        if (lit instanceof BooleanLiteral) {
-            return walkBooleanLiteral((BooleanLiteral) lit);
-        } else if (lit instanceof DateLiteral) {
-            return walkDateLiteral((DateLiteral) lit);
-        } else if (lit instanceof DoubleLiteral) {
-            return walkDoubleLiteral((DoubleLiteral) lit);
-        } else if (lit instanceof IntegerLiteral) {
-            return walkIntegerLiteral((IntegerLiteral) lit);
-        } else if (lit instanceof StringLiteral) {
-            return walkStringLiteral((StringLiteral) lit);
-        } else {
-            throw new QueryParseException("Unknown literal: " + lit);
-        }
+        return switch (lit) {
+            case BooleanLiteral booleanLiteral -> walkBooleanLiteral(booleanLiteral);
+            case DateLiteral dateLiteral -> walkDateLiteral(dateLiteral);
+            case DoubleLiteral doubleLiteral -> walkDoubleLiteral(doubleLiteral);
+            case IntegerLiteral integerLiteral -> walkIntegerLiteral(integerLiteral);
+            case StringLiteral stringLiteral -> walkStringLiteral(stringLiteral);
+            case null, default -> throw new QueryParseException("Unknown literal: " + lit);
+        };
     }
 
     public Boolean walkBooleanLiteral(BooleanLiteral lit) {
@@ -499,15 +470,15 @@ public abstract class ExpressionEvaluator {
     }
 
     public Boolean walkStartsWith(Operand lvalue, Operand rvalue) {
-        if (!(lvalue instanceof Reference)) {
+        if (!(lvalue instanceof Reference lreference)) {
             throw new QueryParseException("Invalid STARTSWITH query, left hand side must be a property: " + lvalue);
         }
-        String name = ((Reference) lvalue).name;
-        if (!(rvalue instanceof StringLiteral)) {
+        String name = lreference.name;
+        if (!(rvalue instanceof StringLiteral rliteral)) {
             throw new QueryParseException(
                     "Invalid STARTSWITH query, right hand side must be a literal path: " + rvalue);
         }
-        String path = ((StringLiteral) rvalue).value;
+        String path = rliteral.value;
         if (path.length() > 1 && path.endsWith("/")) {
             path = path.substring(0, path.length() - 1);
         }
@@ -652,10 +623,9 @@ public abstract class ExpressionEvaluator {
         if (left == null || right == null) {
             return null; // NOSONAR
         }
-        if (!(left instanceof String)) {
+        if (!(left instanceof String value)) {
             throw new QueryParseException("Invalid LIKE lhs: " + left);
         }
-        String value = (String) left;
         if (caseInsensitive) {
             value = value.toLowerCase();
             right = right.toLowerCase();
@@ -679,34 +649,34 @@ public abstract class ExpressionEvaluator {
             char c = chars[i];
             boolean escapeNext = false;
             switch (c) {
-            case '%':
-                if (escape) {
+                case '%':
+                    if (escape) {
+                        regex.append(c);
+                    } else {
+                        regex.append(".*");
+                    }
+                    break;
+                case '_':
+                    if (escape) {
+                        regex.append(c);
+                    } else {
+                        regex.append(".");
+                    }
+                    break;
+                case '\\':
+                    if (escape) {
+                        regex.append("\\\\"); // backslash escaped for regexp
+                    } else {
+                        escapeNext = true;
+                    }
+                    break;
+                default:
+                    // escape mostly everything just in case
+                    if (!CharUtils.isAsciiAlphanumeric(c)) {
+                        regex.append("\\");
+                    }
                     regex.append(c);
-                } else {
-                    regex.append(".*");
-                }
-                break;
-            case '_':
-                if (escape) {
-                    regex.append(c);
-                } else {
-                    regex.append(".");
-                }
-                break;
-            case '\\':
-                if (escape) {
-                    regex.append("\\\\"); // backslash escaped for regexp
-                } else {
-                    escapeNext = true;
-                }
-                break;
-            default:
-                // escape mostly everything just in case
-                if (!CharUtils.isAsciiAlphanumeric(c)) {
-                    regex.append("\\");
-                }
-                regex.append(c);
-                break;
+                    break;
             }
             escape = escapeNext;
         }

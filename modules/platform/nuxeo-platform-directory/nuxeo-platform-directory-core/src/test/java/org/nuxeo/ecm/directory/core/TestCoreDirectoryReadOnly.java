@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,9 +23,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,9 +41,6 @@ import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
-import com.google.inject.Inject;
-import com.google.inject.name.Named;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreDirectoryFeature.class)
@@ -65,7 +64,7 @@ public class TestCoreDirectoryReadOnly {
     }
 
     @Test
-    public void testReadOnlyOnGetEntry() throws Exception {
+    public void testReadOnlyOnGetEntry() {
         assertTrue(dirSystemReadOnlySession.isReadOnly());
         DocumentModel entry = dirSystemReadOnlySession.getEntry(CoreDirectoryInit.DOC_ID_USER1);
         assertNotNull(entry);
@@ -73,7 +72,7 @@ public class TestCoreDirectoryReadOnly {
     }
 
     @Test
-    public void testReadOnlyEntryInQueryResults() throws Exception {
+    public void testReadOnlyEntryInQueryResults() {
         Map<String, String> orderBy = new HashMap<>();
         orderBy.put(TestCoreDirectory.UID_FIELD, "asc");
         DocumentModelComparator comp = new DocumentModelComparator(orderBy);
@@ -81,7 +80,7 @@ public class TestCoreDirectoryReadOnly {
         Map<String, Serializable> filter = new HashMap<>();
 
         DocumentModelList results = dirSystemReadOnlySession.query(filter);
-        Collections.sort(results, comp);
+        results.sort(comp);
         assertTrue(BaseSession.isReadOnlyEntry(results.get(0)));
         assertTrue(BaseSession.isReadOnlyEntry(results.get(1)));
 

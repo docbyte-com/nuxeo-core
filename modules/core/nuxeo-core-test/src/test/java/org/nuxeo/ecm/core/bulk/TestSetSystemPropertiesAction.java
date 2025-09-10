@@ -30,7 +30,7 @@ import static org.nuxeo.ecm.core.trash.PropertyTrashService.SYSPROP_IS_TRASHED;
 
 import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

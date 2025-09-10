@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2009-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.io.IOUtils;
@@ -67,9 +67,6 @@ import org.nuxeo.runtime.kv.KeyValueStore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.HotDeployer;
 
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.platform.routing.core")
 @Deploy("org.nuxeo.ecm.platform.routing.core.test")
 @RepositoryConfig(init = TestDocumentRoutingServiceImport.ImportRouteRepositoryInit.class, cleanup = Granularity.METHOD)
 public class TestDocumentRoutingServiceImport extends DocumentRoutingTestCase {

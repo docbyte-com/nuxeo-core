@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,15 +20,16 @@ package org.nuxeo.ecm.restapi.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.nuxeo.ecm.core.io.registry.context.RenderingContext.REPOSITORY_NAME_REQUEST_HEADER;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.core.MediaType;
 
 import org.junit.After;
 import org.junit.Before;
@@ -36,14 +37,13 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.function.ThrowableFunction;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.http.test.HttpClientTestRule;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -57,11 +57,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class })
-@Deploy("org.nuxeo.ecm.platform.restapi.test.test:test-multi-repository-contrib.xml")
+@Features({ RestServerFeature.class, MultiRepositoryFeature.class })
 public class TestMultiRepository {
 
     protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    protected static final String DEFAULT_REPO = "test";
+
+    protected static final String OTHER_REPO = "other";
 
     @Inject
     protected RestServerFeature restServerFeature;
@@ -72,23 +75,24 @@ public class TestMultiRepository {
     @Inject
     protected CoreSession defaultRepositorySession;
 
+    @Inject
+    @Named(OTHER_REPO)
+    protected CoreSession otherRepositorySession;
+
     @Rule
     public final HttpClientTestRule httpClient = HttpClientTestRule.defaultClient(
             () -> restServerFeature.getRestApiUrl());
 
-    protected CoreSession otherRepositorySession;
-
     protected Map<String, CoreSession> sessions;
 
     @Before
-    public void init() throws Exception {
-        otherRepositorySession = CoreInstance.getCoreSession("other");
+    public void init() {
         sessions = Stream.of(defaultRepositorySession, otherRepositorySession)
                          .collect(Collectors.toMap(CoreSession::getRepositoryName, Function.identity()));
     }
 
     @After
-    public void cleanUp() throws Exception {
+    public void cleanUp() {
         otherRepositorySession.removeChildren(new PathRef("/"));
     }
 
@@ -96,106 +100,106 @@ public class TestMultiRepository {
     @Test
     public void testPOST() {
         // default repository
-        assertEquals(201, create("test", "newDoc1", "New Doc 1"));
+        assertEquals(201, create(DEFAULT_REPO, "newDoc1", "New Doc 1")); // NOSONAR
 
         // other repository, without "X-NXRepository" header
         // expecting 404 as the repository cannot be guessed
-        assertEquals(404, create("other", "newDoc1", "New Doc 1"));
+        assertEquals(404, create(OTHER_REPO, "newDoc1", "New Doc 1"));
 
         // other repository, with "X-NXRepository" header
-        assertEquals(201, createWithRepoHeader("other", "newDoc1", "New Doc 1"));
+        assertEquals(201, createWithRepoHeader(OTHER_REPO, "newDoc1", "New Doc 1"));
     }
 
     @Test
-    public void testGET() throws IOException {
+    public void testGET() {
         // default repository
-        assertEquals(200, read("test"));
+        assertEquals(200, read(DEFAULT_REPO));
 
         // other repository, without "X-NXRepository" header
         // expecting 404 as the repository cannot be guessed
-        assertEquals(404, read("other"));
+        assertEquals(404, read(OTHER_REPO));
 
         // other repository, with "X-NXRepository" header
-        assertEquals(200, readWithRepoHeader("other"));
+        assertEquals(200, readWithRepoHeader(OTHER_REPO));
     }
 
     @Test
     public void testPUT() {
         // default repository, without "uid" field
-        assertEquals(200, update("test", "Root Doc Update 1", false));
+        assertEquals(200, update(DEFAULT_REPO, "Root Doc Update 1", false)); // NOSONAR
 
         // default repository, with "uid" field
-        assertEquals(200, update("test", "Root Doc Update 2", true));
+        assertEquals(200, update(DEFAULT_REPO, "Root Doc Update 2", true)); // NOSONAR
 
         // other repository, without "X-NXRepository" header, without "uid" field
         // expecting 404 as the repository cannot be guessed
-        assertEquals(404, update("other", "Root Doc Update 1", false));
+        assertEquals(404, update(OTHER_REPO, "Root Doc Update 1", false));
 
         // other repository, without "X-NXRepository" header, with "uid" field
         // expecting 404 as the repository cannot be guessed
-        assertEquals(404, update("other", "Root Doc Update 2", true));
+        assertEquals(404, update(OTHER_REPO, "Root Doc Update 2", true));
 
         // other repository, with "X-NXRepository" header, without "uid" field
-        assertEquals(200, updateWithRepoHeader("other", "Root Doc Update 1", false));
+        assertEquals(200, updateWithRepoHeader(OTHER_REPO, "Root Doc Update 1", false));
 
         // other repository, with "X-NXRepository" header, with "uid" field
-        assertEquals(200, updateWithRepoHeader("other", "Root Doc Update 2", true));
+        assertEquals(200, updateWithRepoHeader(OTHER_REPO, "Root Doc Update 2", true));
     }
 
     @Test
-    public void testDELETE() throws IOException {
+    public void testDELETE() {
         // default repository
-        assertEquals(204, delete("test"));
+        assertEquals(204, delete(DEFAULT_REPO));
 
         // other repository, without "X-NXRepository" header
         // expecting 404 as the repository cannot be guessed
-        assertEquals(404, delete("other"));
+        assertEquals(404, delete(OTHER_REPO));
 
         // other repository, with "X-NXRepository" header
-        assertEquals(204, deleteWithRepoHeader("other"));
+        assertEquals(204, deleteWithRepoHeader(OTHER_REPO));
     }
 
     // Tests on the /api/v1/repo/{repoId}/id/{docId} endpoint.
     @Test
     public void testPOSTWithRepoInPath() {
         // default repository
-        assertEquals(201, createWithRepoInPath("test", "newDoc1", "New Doc 1"));
+        assertEquals(201, createWithRepoInPath(DEFAULT_REPO, "newDoc1", "New Doc 1"));
 
         // other repository
-        assertEquals(201, createWithRepoInPath("other", "newDoc1", "New Doc 1"));
+        assertEquals(201, createWithRepoInPath(OTHER_REPO, "newDoc1", "New Doc 1"));
     }
 
     @Test
-    public void testGETWithRepoInPath() throws IOException {
+    public void testGETWithRepoInPath() {
         // default repository
-        assertEquals(200, readWithRepoInPath("test"));
+        assertEquals(200, readWithRepoInPath(DEFAULT_REPO));
 
         // other repository
-        assertEquals(200, readWithRepoInPath("other"));
+        assertEquals(200, readWithRepoInPath(OTHER_REPO));
     }
 
     @Test
     public void testPUTWithRepoInPath() {
         // default repository, without "uid" field
-        assertEquals(200, updateWithRepoInPath("test", "Root Doc Update 1", false));
+        assertEquals(200, updateWithRepoInPath(DEFAULT_REPO, "Root Doc Update 1", false));
 
         // default repository, with "uid" field
-        assertEquals(200, updateWithRepoInPath("test", "Root Doc Update 2", true));
+        assertEquals(200, updateWithRepoInPath(DEFAULT_REPO, "Root Doc Update 2", true));
 
         // other repository, without "uid" field
-        assertEquals(200, updateWithRepoInPath("other", "Root Doc Update 1", false));
+        assertEquals(200, updateWithRepoInPath(OTHER_REPO, "Root Doc Update 1", false));
 
         // other repository, with "uid" field
-        assertEquals(200, updateWithRepoInPath("other", "Root Doc Update 2", true));
+        assertEquals(200, updateWithRepoInPath(OTHER_REPO, "Root Doc Update 2", true));
     }
 
     @Test
-    public void testDELETEWithRepoInPath() throws IOException {
+    public void testDELETEWithRepoInPath() {
         // default repository
-        assertEquals(204, deleteWithRepoInPath("test"));
+        assertEquals(204, deleteWithRepoInPath(DEFAULT_REPO));
 
         // other repository
-        assertEquals(204, deleteWithRepoInPath("other"));
+        assertEquals(204, deleteWithRepoInPath(OTHER_REPO));
     }
 
     protected int create(String repoName, String name, String title) {
@@ -220,11 +224,7 @@ public class TestMultiRepository {
      */
     protected int create(String repoName, String name, String title, boolean repoInPath, boolean repoHeader) {
         CoreSession session = sessions.get(repoName);
-        String rootDocumentId = session.getRootDocument().getId();
-        String path = "id/" + rootDocumentId;
-        if (repoInPath) {
-            path = "repo/" + repoName + "/" + path;
-        }
+        String path = getRepoPath(repoName, repoInPath, session.getRootDocument().getId());
         String data = buildDocumentCreationJSON(name, title);
         Map<String, String> headers = repoHeader ? Map.of(RenderingContext.REPOSITORY_NAME_REQUEST_HEADER, repoName)
                 : Map.of();
@@ -243,15 +243,15 @@ public class TestMultiRepository {
                          });
     }
 
-    protected int read(String repoName) throws IOException {
+    protected int read(String repoName) {
         return read(repoName, false, false);
     }
 
-    protected int readWithRepoHeader(String repoName) throws IOException {
+    protected int readWithRepoHeader(String repoName) {
         return read(repoName, false, true);
     }
 
-    protected int readWithRepoInPath(String repoName) throws IOException {
+    protected int readWithRepoInPath(String repoName) {
         return read(repoName, true, false);
     }
 
@@ -263,14 +263,11 @@ public class TestMultiRepository {
      * <p>
      * If {@code repoHeader} is true, passes the {@link RenderingContext#REPOSITORY_NAME_REQUEST_HEADER} request header.
      */
-    protected int read(String repoName, boolean repoInPath, boolean repoHeader) throws IOException {
+    protected int read(String repoName, boolean repoInPath, boolean repoHeader) {
         CoreSession session = sessions.get(repoName);
         String rootDocumentId = session.getRootDocument().getId();
-        String path = "id/" + rootDocumentId;
-        if (repoInPath) {
-            path = "repo/" + repoName + "/" + path;
-        }
-        Map<String, String> headers = repoHeader ? Map.of("X-NXRepository", repoName) : Map.of();
+        String path = getRepoPath(repoName, repoInPath, rootDocumentId);
+        Map<String, String> headers = repoHeader ? Map.of(REPOSITORY_NAME_REQUEST_HEADER, repoName) : Map.of();
         return httpClient.buildGetRequest(path)
                          .addHeaders(headers)
                          .executeAndThen(ThrowableFunction.asFunction(response -> {
@@ -310,12 +307,9 @@ public class TestMultiRepository {
     protected int update(String repoName, String title, boolean repoInPath, boolean repoHeader, boolean specifyUID) {
         CoreSession session = sessions.get(repoName);
         String rootDocumentId = session.getRootDocument().getId();
-        String path = "id/" + rootDocumentId;
-        if (repoInPath) {
-            path = "repo/" + repoName + "/" + path;
-        }
+        String path = getRepoPath(repoName, repoInPath, rootDocumentId);
         String data = buildDocumentUpdateJSON(title, specifyUID ? rootDocumentId : null);
-        Map<String, String> headers = repoHeader ? Map.of("X-NXRepository", repoName) : Map.of();
+        Map<String, String> headers = repoHeader ? Map.of(REPOSITORY_NAME_REQUEST_HEADER, repoName) : Map.of();
         return httpClient.buildPutRequest(path)
                          .addHeaders(headers)
                          .entity(data)
@@ -330,15 +324,23 @@ public class TestMultiRepository {
                          });
     }
 
-    protected int delete(String repoName) throws IOException {
+    protected String getRepoPath(String repoName, boolean repoInPath, String rootDocumentId) {
+        String path = "id/" + rootDocumentId;
+        if (repoInPath) {
+            path = "repo/" + repoName + "/" + path; // NOSONAR
+        }
+        return path;
+    }
+
+    protected int delete(String repoName) {
         return delete(repoName, false, false);
     }
 
-    protected int deleteWithRepoHeader(String repoName) throws IOException {
+    protected int deleteWithRepoHeader(String repoName) {
         return delete(repoName, false, true);
     }
 
-    protected int deleteWithRepoInPath(String repoName) throws IOException {
+    protected int deleteWithRepoInPath(String repoName) {
         return delete(repoName, true, false);
     }
 
@@ -350,16 +352,13 @@ public class TestMultiRepository {
      * <p>
      * If {@code repoHeader} is true, passes the {@link RenderingContext#REPOSITORY_NAME_REQUEST_HEADER} request header.
      */
-    protected int delete(String repoName, boolean repoInPath, boolean repoHeader) throws IOException {
+    protected int delete(String repoName, boolean repoInPath, boolean repoHeader) {
         CoreSession session = sessions.get(repoName);
         // first create a document to be deleted afterwards
         String docId = session.createDocument(session.createDocumentModel("/", "docToDelete", "File")).getId();
         txFeature.nextTransaction();
-        String path = "id/" + docId;
-        if (repoInPath) {
-            path = "repo/" + repoName + "/" + path;
-        }
-        Map<String, String> headers = repoHeader ? Map.of("X-NXRepository", repoName) : Map.of();
+        String path = getRepoPath(repoName, repoInPath, docId);
+        Map<String, String> headers = repoHeader ? Map.of(REPOSITORY_NAME_REQUEST_HEADER, repoName) : Map.of();
         return httpClient.buildDeleteRequest(path).addHeaders(headers).executeAndThen(response -> {
             int status = response.getStatus();
             if (status == 204) {
@@ -371,15 +370,16 @@ public class TestMultiRepository {
     }
 
     protected String buildDocumentCreationJSON(String name, String title) {
-        String json = "{";
-        json += "  \"entity-type\": \"document\",";
-        json += "  \"name\": \"" + name + "\",";
-        json += "  \"type\": \"File\",";
-        json += "  \"properties\": {";
-        json += "    \"dc:title\": \"" + title + "\"";
-        json += "  }";
-        json += "}";
-        return json;
+        return """
+                {
+                  "entity-type": "document",
+                  "name": "%s",
+                  "type": "File",
+                  "properties": {
+                    "dc:title": "%s"
+                  }
+                }
+                """.formatted(name, title);
     }
 
     protected String buildDocumentUpdateJSON(String title, String uid) {

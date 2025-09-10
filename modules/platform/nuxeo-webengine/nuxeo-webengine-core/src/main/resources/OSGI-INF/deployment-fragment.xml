@@ -43,11 +43,6 @@
       <servlet-class>
         org.nuxeo.ecm.webengine.app.jersey.WebEngineServlet
       </servlet-class>
-      <!-- servlet-class>org.nuxeo.ecm.webengine.app.jersey.ReloadingJerseyServlet</servlet-class>
-        <init-param>
-        <param-name>javax.ws.rs.Application</param-name>
-        <param-value>org.nuxeo.ecm.webengine.app.WebEngineApplication</param-value>
-        </init-param-->
     </servlet>
 
     <servlet-mapping>
@@ -84,22 +79,10 @@
     </filter-mapping>
 
     <filter>
-      <display-name>WebContextFilter</display-name>
-      <filter-name>WebContextFilter</filter-name>
-      <filter-class>org.nuxeo.ecm.webengine.app.WebContextFilter</filter-class>
-    </filter>
-    <filter-mapping>
-      <filter-name>WebContextFilter</filter-name>
-      <url-pattern>/site/*</url-pattern>
-      <dispatcher>REQUEST</dispatcher>
-      <dispatcher>FORWARD</dispatcher>
-    </filter-mapping>
-
-    <filter>
       <display-name>SessionCleanupFilter</display-name>
       <filter-name>SessionCleanupFilter</filter-name>
       <filter-class>
-        org.nuxeo.ecm.webengine.jaxrs.session.SessionCleanupFilter
+        org.nuxeo.ecm.webengine.rest.session.SessionCleanupFilter
       </filter-class>
     </filter>
     <filter-mapping>
@@ -108,7 +91,6 @@
       <dispatcher>REQUEST</dispatcher>
       <dispatcher>FORWARD</dispatcher>
     </filter-mapping>
-
 
   </extension>
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.storage;
 
+import static org.nuxeo.ecm.core.api.CoreSession.RETAIN_UNTIL_INDETERMINATE;
 import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.BLOBS_CANDIDATE_FOR_DELETION_EVENT;
 import static org.nuxeo.ecm.core.blob.DocumentBlobManagerComponent.MAIN_BLOB_XPATH;
 
@@ -43,6 +44,9 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.AbstractSession;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -61,6 +65,7 @@ import org.nuxeo.ecm.core.api.model.impl.primitives.BlobProperty;
 import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
+import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.BlobEventContext;
 import org.nuxeo.ecm.core.model.BaseSession;
@@ -92,6 +97,7 @@ import org.nuxeo.runtime.api.Framework;
  * @since 7.3
  */
 public abstract class BaseDocument<T extends StateAccessor> implements Document {
+    private static final Logger log = LogManager.getLogger(BaseDocument.class);
 
     protected static final Pattern LIST_INDEX_PATTERN = Pattern.compile("/\\d+$");
 
@@ -262,27 +268,21 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
         if (array == null) {
             array = EMPTY_STRING_ARRAY;
         }
-        Class<?> klass;
-        if (type instanceof StringType) {
-            klass = String.class;
-        } else if (type instanceof BooleanType) {
-            klass = Boolean.class;
-        } else if (type instanceof LongType) {
-            klass = Long.class;
-        } else if (type instanceof DoubleType) {
-            klass = Double.class;
-        } else if (type instanceof DateType) {
-            klass = Calendar.class;
-        } else if (type instanceof BinaryType) {
-            klass = String.class;
-        } else if (type instanceof IntegerType) {
-            throw new RuntimeException("Unimplemented primitive type: " + type.getClass().getName());
-        } else if (type instanceof SimpleTypeImpl) {
+        if (type instanceof SimpleTypeImpl) {
             // simple type with constraints -- ignore constraints XXX
             return typedArray(type.getSuperType(), array);
-        } else {
-            throw new RuntimeException("Invalid primitive type: " + type.getClass().getName());
         }
+        Class<?> klass = switch (type) {
+            case StringType ignored -> String.class;
+            case BooleanType ignored -> Boolean.class;
+            case LongType ignored -> Long.class;
+            case DoubleType ignored -> Double.class;
+            case DateType ignored -> Calendar.class;
+            case BinaryType ignored -> String.class;
+            case IntegerType ignored ->
+                throw new RuntimeException("Unimplemented primitive type: " + type.getClass().getName());
+            case null, default -> throw new RuntimeException("Invalid primitive type: " + type.getClass().getName());
+        };
         int len = array.length;
         Object[] copy = (Object[]) Array.newInstance(klass, len);
         System.arraycopy(array, 0, copy, 0, len);
@@ -724,9 +724,27 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
     protected void setPropertyBlobData(String xpath, String string) {
         Blob blob = string == null ? null : Blobs.createBlob(string);
         DocumentBlobManager blobManager = Framework.getService(DocumentBlobManager.class);
+        if (getSession().isFulltextStoredInBlob()) {
+            String oldKey = (String) getPropertyValue(xpath);
+            if (AbstractSession.isFulltextValueABlobKey(oldKey)) {
+                if (oldKey.contains(":")) {
+                    // A prefix is needed to create a ManagedBlob
+                    BlobInfo oldBlobInfo = new BlobInfo();
+                    oldBlobInfo.key = oldKey;
+                    ManagedBlob oldBlob = new SimpleManagedBlob(oldBlobInfo);
+                    EventService es = Framework.getService(EventService.class);
+                    es.fireEvent(new BlobEventContext(NuxeoPrincipal.getCurrent(), getRepositoryName(), getUUID(),
+                            xpath, oldBlob).newEvent(BLOBS_CANDIDATE_FOR_DELETION_EVENT));
+                } else {
+                    log.trace("Missing key prefix to fire event on doc: {}, prop: {}, oldKey: {}", getUUID(), xpath,
+                            oldKey);
+                }
+            }
+        }
         String key;
         try {
             key = blobManager.writeBlob(blob, this, xpath);
+            log.debug("setPropertyBlobData({}) for doc: {} with blob key: {}", xpath, getUUID(), key);
         } catch (IOException e) {
             throw new PropertyException("Cannot write binary for doc: " + getUUID(), e);
         }
@@ -967,8 +985,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 if (listType.getFieldType().isSimpleType()) {
                     // array
                     Serializable value = property.getValueForWrite();
-                    if (value instanceof List) {
-                        List<?> list = (List<?>) value;
+                    if (value instanceof List<?> list) {
                         Object[] array;
                         // use properly-typed array, useful for mem backend that doesn't re-convert all types
                         Class<?> klass = Object.class;
@@ -980,8 +997,7 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                         }
                         array = (Object[]) Array.newInstance(klass, list.size());
                         value = list.toArray(array);
-                    } else if (value instanceof Object[]) {
-                        Object[] ar = (Object[]) value;
+                    } else if (value instanceof Object[] ar) {
                         if (ar.length != 0) {
                             // use properly-typed array, useful for mem backend that doesn't re-convert all types
                             Class<?> klass = Object.class;
@@ -1052,6 +1068,12 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
                 visit.visitBlobsComplex(state, schema);
             }
         }
+        // system props
+        if (getSession().isFulltextStoredInBlob()) {
+            Deque<String> path = new ArrayDeque<>();
+            path.addLast(BaseDocument.FULLTEXT_BINARYTEXT_PROP);
+            blobVisitor.accept(new StatePropertyBlobAccessor(path, state, markDirty));
+        }
     }
 
     protected class StateBlobAccessor implements BlobAccessor {
@@ -1083,6 +1105,29 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
             // markDirty has to be called *before* we change the state
             markDirty.run();
             setValueBlob(state, blob, getXPath(), gcOldBlob);
+        }
+    }
+
+    protected class StatePropertyBlobAccessor extends StateBlobAccessor {
+
+        public StatePropertyBlobAccessor(Collection<String> path, T state, Runnable markDirty) {
+            super(path, state, markDirty);
+        }
+
+        @Override
+        public Blob getBlob() throws PropertyException {
+            BlobInfo blobInfo = new BlobInfo();
+            blobInfo.key = (String) getPropertyValue(getXPath());
+            try {
+                return getDocumentBlobManager().readBlob(blobInfo, BaseDocument.this, getXPath());
+            } catch (IOException e) {
+                throw new BlobNotFoundException("Unable to find blob with key: " + blobInfo.key, e);
+            }
+        }
+
+        @Override
+        public void setBlob(Blob blob, boolean gcOldBlob) throws PropertyException {
+            throw new IllegalStateException("This accessor is read only: " + getXPath());
         }
     }
 
@@ -1308,4 +1353,18 @@ public abstract class BaseDocument<T extends StateAccessor> implements Document 
         return retainUntil.after(current);
     }
 
+    protected static DocumentBlobManager getDocumentBlobManager() {
+        return Framework.getService(DocumentBlobManager.class);
+    }
+
+    protected static void notifySetRetainUntil(Document doc, Calendar retainUntil, Calendar previous) {
+        if (!doc.hasLegalHold() && retainUntil != null && retainUntil.compareTo(RETAIN_UNTIL_INDETERMINATE) == 0) {
+            getDocumentBlobManager().notifySetLegalHold(doc, true);
+        } else {
+            if (!doc.hasLegalHold() && previous != null && previous.compareTo(RETAIN_UNTIL_INDETERMINATE) == 0) {
+                getDocumentBlobManager().notifySetLegalHold(doc, false);
+            }
+            getDocumentBlobManager().notifySetRetainUntil(doc, retainUntil);
+        }
+    }
 }

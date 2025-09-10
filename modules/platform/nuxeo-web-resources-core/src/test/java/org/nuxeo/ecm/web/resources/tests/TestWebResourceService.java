@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +36,7 @@ import org.nuxeo.ecm.web.resources.api.ResourceContext;
 import org.nuxeo.ecm.web.resources.api.ResourceContextImpl;
 import org.nuxeo.ecm.web.resources.api.ResourceType;
 import org.nuxeo.ecm.web.resources.api.service.WebResourceManager;
-import org.nuxeo.ecm.web.resources.core.service.WebResourceManagerImpl;
+import org.nuxeo.ecm.web.resources.core.ResourceBundleDescriptor;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -51,19 +51,19 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @Features({ RuntimeFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.web.resources.core")
 @Deploy("org.nuxeo.web.resources.core:webresources-test-config.xml")
-@LogCaptureFeature.FilterOn(logLevel = "ERROR", loggerClass = WebResourceManagerImpl.class)
+@LogCaptureFeature.FilterOn(logLevel = "ERROR", loggerClass = ResourceBundleDescriptor.class)
 public class TestWebResourceService {
 
-    @Inject
-    LogCaptureFeature.Result logCaptureResult;
-
-    static final String BUNDLE = "org.nuxeo.web.resources.core";
+    protected static final String BUNDLE = "org.nuxeo.web.resources.core";
 
     @Inject
     protected WebResourceManager service;
 
     @Inject
     protected HotDeployer deployer;
+
+    @Inject
+    protected LogCaptureFeature.Result logCaptureResult;
 
     @Test
     public void testService() {
@@ -91,7 +91,7 @@ public class TestWebResourceService {
         assertEquals("foldable-box.js", r.getName());
         assertEquals(ResourceType.js.name(), r.getType());
         assertEquals(1, r.getDependencies().size());
-        assertEquals("effects", r.getDependencies().get(0));
+        assertEquals("effects", r.getDependencies().getFirst());
         assertEquals("scripts/foldable-box.js", r.getPath());
 
         r = service.getResource("foldable-box.css");
@@ -147,13 +147,15 @@ public class TestWebResourceService {
         logCaptureResult.assertHasEvent();
         List<String> events = logCaptureResult.getCaughtEventMessages();
         assertEquals(1, events.size());
-        assertEquals("Some resources references were null or blank while setting myFaultyApp and have been supressed. "
-                + "This probably happened because some <resource> tags were empty in the xml declaration. "
-                + "The correct form is <resource>resource name</resource>.", events.get(0));
+        assertEquals(
+                "Some resources references were null or blank while setting: myFaultyApp and have been suppressed. "
+                        + "This probably happened because some <resource> tags were empty in the xml declaration. "
+                        + "The correct form is <resource>resource name</resource>.",
+                events.getFirst());
     }
 
     @Test
-    public void testResources() throws Exception {
+    public void testResources() {
         ResourceContext ctx = new ResourceContextImpl();
         List<Resource> res = service.getResources(ctx, "foo", null);
         assertNotNull(res);
@@ -185,7 +187,7 @@ public class TestWebResourceService {
         res = service.getResources(ctx, "myapp", ResourceType.css.name());
         assertNotNull(res);
         assertEquals(1, res.size());
-        assertEquals("foldable-box.css", res.get(0).getName());
+        assertEquals("foldable-box.css", res.getFirst().getName());
 
     }
 
@@ -196,11 +198,11 @@ public class TestWebResourceService {
         assertEquals(10, p.getOrder());
         assertEquals(MockProcessor.class, p.getTargetProcessorClass());
         assertEquals(1, p.getTypes().size());
-        assertEquals("wroPost", p.getTypes().get(0));
+        assertEquals("wroPost", p.getTypes().getFirst());
 
         List<Processor> procs = service.getProcessors("wroPost");
         assertEquals(1, procs.size());
-        assertEquals(p, procs.get(0));
+        assertEquals(p, procs.getFirst());
 
         deployer.deploy(BUNDLE + ":webresources-test-override-config.xml");
 

@@ -27,8 +27,7 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRouteStep;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 
 /***
- * Updates the number of comments stored on the {@link DocumentRouteStep}. This is used to avoid unnecessary jena calls
- * when displaying the number of comments on each step.
+ * Updates the number of comments stored on the {@link DocumentRouteStep}.
  *
  * @author mcedica
  */

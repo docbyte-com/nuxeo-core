@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.audio.extension;
 
 import static org.junit.Assert.assertEquals;
@@ -25,10 +24,8 @@ import static org.junit.Assert.assertNull;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -38,10 +35,9 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.schema.DocumentType;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.platform.audio.AudioCoreFeature;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -49,13 +45,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * Tests that the AudioImporter class works by importing a sample audio file
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.audio.core")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.platform.io.core")
-@Deploy("org.nuxeo.ecm.platform.rendition.core")
-@Deploy("org.nuxeo.ecm.platform.tag")
+@Features(AudioCoreFeature.class)
 public class TestAudioImporter {
 
     protected static final String AUDIO_TYPE = "Audio";
@@ -66,20 +56,8 @@ public class TestAudioImporter {
     @Inject
     protected FileManager fileManagerService;
 
-    protected DocumentModel root;
-
     private File getTestFile() {
         return new File(FileUtils.getResourcePathFromContext("test-data/sample.wav"));
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        root = session.getRootDocument();
-    }
-
-    @After
-    public void tearDown() throws Exception {
-        root = null;
     }
 
     @Test
@@ -117,15 +95,14 @@ public class TestAudioImporter {
     public void testImportAudio() throws Exception {
         File testFile = getTestFile();
         Blob blob = Blobs.createBlob(testFile, "audio/wav");
+        var root = session.getRootDocument();
         String rootPath = root.getPathAsString();
         assertNotNull(blob);
         assertNotNull(rootPath);
         assertNotNull(session);
         assertNotNull(fileManagerService);
 
-        FileImporterContext context = FileImporterContext.builder(session, blob, rootPath)
-                                                         .overwrite(true)
-                                                         .build();
+        FileImporterContext context = FileImporterContext.builder(session, blob, rootPath).overwrite(true).build();
         DocumentModel docModel = fileManagerService.createOrUpdateDocument(context);
 
         assertNotNull(docModel);

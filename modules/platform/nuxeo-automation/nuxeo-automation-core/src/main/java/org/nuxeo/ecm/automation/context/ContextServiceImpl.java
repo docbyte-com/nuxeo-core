@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.automation.context;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -26,22 +25,14 @@ import java.util.Map;
  */
 public class ContextServiceImpl implements ContextService {
 
-    protected final ContextHelperRegistry contextHelperRegistry;
+    protected final Map<String, ContextHelper> contextHelpers;
 
-    public ContextServiceImpl(ContextHelperRegistry contextHelperRegistry) {
-        this.contextHelperRegistry = contextHelperRegistry;
+    public ContextServiceImpl(Map<String, ContextHelper> contextHelpers) {
+        this.contextHelpers = contextHelpers;
     }
 
     @Override
     public Map<String, ContextHelper> getHelperFunctions() {
-        Map<String, ContextHelper> contextHelpers = new HashMap<>();
-        Map<String, ContextHelperDescriptor> contextHelperDescriptors = contextHelperRegistry.getContextHelperDescriptors();
-        for (ContextHelperDescriptor contextHelperDescriptor : contextHelperDescriptors.values()) {
-            if (contextHelperDescriptor.isEnabled()) {
-                contextHelpers.put(contextHelperDescriptor.getId(), contextHelperDescriptor.getContextHelper());
-            }
-        }
         return contextHelpers;
     }
-
 }

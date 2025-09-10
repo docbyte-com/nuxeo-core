@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,43 +20,39 @@
 package org.nuxeo.ecm.automation.core.impl;
 
 import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.nuxeo.common.function.ThrowableFunction;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationDocumentation;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationType;
-import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.OperationChainContribution;
-import org.nuxeo.ecm.automation.core.util.BlobList;
-import org.nuxeo.ecm.core.api.Blob;
-import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.DocumentRefList;
 import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 5.7.2 Operation Type Implementation for a chain
  */
-public class ChainTypeImpl implements OperationType {
+public class ChainTypeImpl extends AbstractOperationType {
+
+    protected static final Method runMethod;
+
+    static {
+        try {
+            runMethod = OperationChainCompiler.CompiledChainImpl.class.getMethod("invoke", OperationContext.class);
+        } catch (NoSuchMethodException | SecurityException e) {
+            throw new UnsupportedOperationException("Cannot use reflection for run method", e);
+        }
+    }
 
     protected OperationChain chain;
-
-    /**
-     * The service that registered the operation.
-     */
-    protected AutomationService service;
 
     /**
      * Invocable methods.
@@ -73,43 +69,11 @@ public class ChainTypeImpl implements OperationType {
      */
     protected OperationChainContribution contribution;
 
-    /**
-     * @deprecated since 11.1, see other constructor
-     */
-    @Deprecated
-    public ChainTypeImpl(AutomationService service, OperationChain chain, OperationChainContribution contribution) {
-        this(service, chain, contribution, null);
-    }
-
-    /**
-     * @since 11.1
-     */
-    public ChainTypeImpl(AutomationService service, OperationChain chain, OperationChainContribution contribution,
-            String contributingComponent) {
-        this.service = service;
+    /** @since 2025.0 */
+    public ChainTypeImpl(OperationChain chain, OperationChainContribution contribution, String contributingComponent) {
         this.contribution = contribution;
         this.chain = chain;
         this.contributingComponent = contributingComponent;
-    }
-
-    public OperationChain getChain() {
-        return chain;
-    }
-
-    public Map<String, Object> getChainParameters() {
-        return chain.getChainParameters();
-    }
-
-    @Override
-    public Object newInstance(OperationContext ctx, Map<String, Object> args) throws OperationException {
-        Object input = ctx.getInput();
-        Class<?> inputType = input == null ? Void.TYPE : input.getClass();
-        return service.compileChain(inputType, chain);
-    }
-
-    @Override
-    public AutomationService getService() {
-        return service;
     }
 
     @Override
@@ -120,6 +84,11 @@ public class ChainTypeImpl implements OperationType {
     @Override
     public String[] getAliases() {
         return chain.getAliases();
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return chain.isEnabled();
     }
 
     @Override
@@ -137,10 +106,10 @@ public class ChainTypeImpl implements OperationType {
         OperationChainContribution.Operation[] operations = contribution.getOps();
         doc.operations = operations;
         doc.since = contribution.getSince();
-        if (doc.requires.length() == 0) {
+        if (doc.requires.isEmpty()) {
             doc.requires = null;
         }
-        if (doc.label.length() == 0) {
+        if (doc.label.isEmpty()) {
             doc.label = doc.id;
         }
         doc.description = contribution.getDescription();
@@ -150,8 +119,8 @@ public class ChainTypeImpl implements OperationType {
             // Fill signature with first inputs of the first operation and
             // related outputs of last operation
             // following the proper automation path
-            ArrayList<String> result = getSignature(operations);
-            doc.signature = result.toArray(new String[result.size()]);
+            List<String> result = getSignature(operations);
+            doc.signature = result.toArray(String[]::new);
         } else {
             doc.signature = new String[] { "void", "void" };
         }
@@ -163,22 +132,10 @@ public class ChainTypeImpl implements OperationType {
      * @param operations operations listing that chain contains.
      * @return the chain signature.
      */
-    protected ArrayList<String> getSignature(OperationChainContribution.Operation[] operations)
-            throws OperationException {
-        ArrayList<String> result = new ArrayList<>();
-        Collection<String> collectedSigs = new HashSet<>();
-        OperationType operationType = service.getOperation(operations[0].getId());
-        for (InvokableMethod method : operationType.getMethods()) {
-            String chainInput = getParamDocumentationType(method.getInputType(), method.isIterable());
-            String chainOutput = getParamDocumentationType(getChainOutput(method.getInputType(), operations));
-            String sigKey = chainInput + ":" + method.getInputType();
-            if (!collectedSigs.contains(sigKey)) {
-                result.add(chainInput);
-                result.add(chainOutput);
-                collectedSigs.add(sigKey);
-            }
-        }
-        return result;
+    protected List<String> getSignature(OperationChainContribution.Operation[] operations) throws OperationException {
+        OperationType operationType = Framework.getService(AutomationService.class).getOperation(operations[0].getId());
+        return buildSignature(operationType.getMethods(),
+                ThrowableFunction.asFunction(method -> getChainOutput(method.getInputType(), operations)));
     }
 
     /**
@@ -187,7 +144,7 @@ public class ChainTypeImpl implements OperationType {
     protected Class<?> getChainOutput(Class<?> chainInput, OperationChainContribution.Operation[] operations)
             throws OperationException {
         for (OperationChainContribution.Operation operation : operations) {
-            OperationType operationType = service.getOperation(operation.getId());
+            OperationType operationType = Framework.getService(AutomationService.class).getOperation(operation.getId());
             if (operationType instanceof ChainTypeImpl) {
                 chainInput = getChainOutput(chainInput, operationType.getDocumentation().getOperations());
             } else {
@@ -200,32 +157,21 @@ public class ChainTypeImpl implements OperationType {
     /**
      * @since 5.7.2
      */
-    public Class<?> getOperationOutput(Class<?> input, OperationType operationType) {
+    protected Class<?> getOperationOutput(Class<?> input, OperationType operationType) {
         InvokableMethod[] methodsMatchingInput = operationType.getMethodsMatchingInput(input);
         if (methodsMatchingInput.length == 0) {
             return input;
         }
         // Choose the top priority method
-        InvokableMethod topMethod = getTopMethod(methodsMatchingInput);
+        var topMethod = Stream.of(methodsMatchingInput)
+                              .max(Comparator.comparingInt(InvokableMethod::getPriority))
+                              .orElseThrow(); // can not happen since we're checking the length above
         Class<?> nextInput = topMethod.getOutputType();
         // If output is void, skip this method
         if (nextInput == Void.TYPE) {
             return input;
         }
         return nextInput;
-    }
-
-    /**
-     * @since 5.7.2 Define the top priority method to take into account for chain operations signature.
-     */
-    protected InvokableMethod getTopMethod(InvokableMethod[] methods) {
-        InvokableMethod topMethod = methods[0];
-        for (InvokableMethod method : methods) {
-            if (method.getPriority() > topMethod.getPriority()) {
-                topMethod = method;
-            }
-        }
-        return topMethod;
     }
 
     @Override
@@ -238,61 +184,29 @@ public class ChainTypeImpl implements OperationType {
         return methods;
     }
 
-    protected static final Method runMethod = loadRunMethod();
-
-    protected static Method loadRunMethod() {
-        try {
-            return OperationChainCompiler.CompiledChainImpl.class.getMethod("invoke", OperationContext.class);
-        } catch (NoSuchMethodException | SecurityException e) {
-            throw new UnsupportedOperationException("Cannot use reflection for run method", e);
-        }
-    }
-
-    /**
-     * @since 5.7.2
-     */
-    protected String getParamDocumentationType(Class<?> type) {
-        return getParamDocumentationType(type, false);
-    }
-
-    /**
-     * @since 5.7.2
-     */
-    protected String getParamDocumentationType(Class<?> type, boolean isIterable) {
-        String t;
-        if (DocumentModel.class.isAssignableFrom(type) || DocumentRef.class.isAssignableFrom(type)) {
-            t = isIterable ? Constants.T_DOCUMENTS : Constants.T_DOCUMENT;
-        } else if (DocumentModelList.class.isAssignableFrom(type) || DocumentRefList.class.isAssignableFrom(type)) {
-            t = Constants.T_DOCUMENTS;
-        } else if (BlobList.class.isAssignableFrom(type)) {
-            t = Constants.T_BLOBS;
-        } else if (Blob.class.isAssignableFrom(type)) {
-            t = isIterable ? Constants.T_BLOBS : Constants.T_BLOB;
-        } else if (URL.class.isAssignableFrom(type)) {
-            t = Constants.T_RESOURCE;
-        } else if (Calendar.class.isAssignableFrom(type)) {
-            t = Constants.T_DATE;
-        } else {
-            t = type.getSimpleName().toLowerCase();
-        }
-        return t;
-    }
-
-    @Override
-    public String toString() {
-        return "ChainTypeImpl [id=" + chain.getId() + "]";
-    }
-
-    public OperationChainContribution getContribution() {
-        return contribution;
-    }
-
     /**
      * @since 5.7.2
      */
     @Override
     public List<InvokableMethod> getMethods() {
-        return Arrays.asList(methods);
+        return List.of(methods);
+    }
+
+    @Override
+    public Object newInstance(OperationContext ctx, Map<String, Object> args) throws OperationException {
+        Object input = ctx.getInput();
+        Class<?> inputType = input == null ? Void.TYPE : input.getClass();
+        return Framework.getService(AutomationService.class).compileChain(inputType, chain);
+    }
+
+    // public internal APIs
+
+    public OperationChain getChain() {
+        return chain;
+    }
+
+    public Map<String, Object> getChainParameters() {
+        return chain.getChainParameters();
     }
 
     @Override
@@ -308,39 +222,14 @@ public class ChainTypeImpl implements OperationType {
         if (this == obj) {
             return true;
         }
-        if (!(obj instanceof ChainTypeImpl)) {
+        if (!(obj instanceof ChainTypeImpl other)) {
             return false;
         }
-        ChainTypeImpl other = (ChainTypeImpl) obj;
         return Objects.equals(chain, other.chain);
     }
 
-    public static ChainTypeImpl typeof(OperationChain chain, boolean replace) {
-        return new ChainTypeImpl(Framework.getService(AutomationService.class), chain,
-                OperationChainContribution.contribOf(chain, replace), null);
-    }
-
     @Override
-    public boolean isEnabled() {
-        return chain.isEnabled();
-    }
-
-    @Override
-    public ChainTypeImpl clone() {
-        ChainTypeImpl clone = new ChainTypeImpl(service, chain.clone(), contribution.clone(), contributingComponent);
-        if (methods != null) {
-            clone.methods = Arrays.copyOf(methods, methods.length);
-        }
-        return clone;
-    }
-
-    @Override
-    public void merge(OperationType other) {
-        var oc = (ChainTypeImpl) other;
-        chain.merge(oc.chain);
-        contribution.merge(oc.contribution);
-        contributingComponent = oc.getContributingComponent();
-        methods = other.getMethods().toArray(InvokableMethod[]::new);
-        service = other.getService();
+    public String toString() {
+        return new ToStringBuilder(this).append("id", getId()).toString();
     }
 }

@@ -14,7 +14,7 @@ phases:
 
   install:
     runtime-versions:
-      java: corretto17
+      java: corretto21
     commands:
       - yum -y install glibc-all-langpacks
       - export LC_ALL="en_US.UTF-8"
@@ -54,8 +54,8 @@ phases:
       - mvn org.cyclonedx:cyclonedx-maven-plugin:makeAggregateBom $MAVEN_ARGS
       - . ~/tools/codebuild-dependencytrack-results.sh
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
-      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:latest
-      - docker tag nuxeo/nuxeo:2023.x $REPOSITORY_URI:$IMAGE_TAG
+      - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:latest
+      - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:$IMAGE_TAG
       - echo Build finished on `date`
       - echo Pushing the Docker images...
       - docker push $REPOSITORY_URI:latest

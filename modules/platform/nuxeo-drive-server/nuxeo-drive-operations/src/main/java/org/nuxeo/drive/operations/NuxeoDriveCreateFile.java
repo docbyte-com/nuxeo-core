@@ -20,7 +20,7 @@ package org.nuxeo.drive.operations;
 
 import java.io.IOException;
 
-import javax.mail.internet.ParseException;
+import jakarta.mail.internet.ParseException;
 
 import org.nuxeo.drive.adapter.FileItem;
 import org.nuxeo.drive.adapter.FileSystemItem;

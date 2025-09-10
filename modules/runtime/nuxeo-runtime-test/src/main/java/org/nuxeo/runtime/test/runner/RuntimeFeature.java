@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,15 @@
  */
 package org.nuxeo.runtime.test.runner;
 
-import java.util.Arrays;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.Rule;
 import org.junit.rules.MethodRule;
@@ -38,7 +42,10 @@ import com.google.inject.Binder;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
-@Features({ MDCFeature.class, ConditionalIgnoreRule.Feature.class, RandomBug.Feature.class,
+@Features({ //
+        MDCFeature.class, //
+        ConditionalIgnoreRule.Feature.class, //
+        RandomBug.Feature.class, //
         WithFrameworkPropertyFeature.class })
 public class RuntimeFeature implements RunnerFeature {
 
@@ -114,7 +121,7 @@ public class RuntimeFeature implements RunnerFeature {
         });
 
         harness.start();
-        deployment.deploy(runner, harness);
+        deployment.deploy(harness);
     }
 
     @Override
@@ -128,13 +135,15 @@ public class RuntimeFeature implements RunnerFeature {
     }
 
     protected void blacklistComponents(FeaturesRunner aRunner) {
-        BlacklistComponent config = aRunner.getConfig(BlacklistComponent.class);
-        if (config.value().length == 0) {
+        List<BlacklistComponent> configs = aRunner.getAnnotations(BlacklistComponent.class);
+        if (configs.isEmpty() || configs.stream().allMatch(c -> c.value().length == 0)) {
             return;
         }
         final ComponentManager manager = Framework.getRuntime().getComponentManager();
         Set<String> blacklist = new HashSet<>(manager.getBlacklist());
-        blacklist.addAll(Arrays.asList(config.value()));
+        configs.stream()
+               .flatMap(config -> Stream.of(config.value()))
+               .collect(collectingAndThen(toSet(), blacklist::addAll));
         manager.setBlacklist(blacklist);
     }
 

@@ -25,7 +25,7 @@ See [XDocReport documentation  http://code.google.com/p/xdocreport/wiki/DesignRe
 
 ## XDocReport Remoting
 
-This module also contains a WebEngine JAX-RS module to provide experimental support for XDocReport remoting and tooling.
+This module also contains a WebEngine module to provide experimental support for XDocReport remoting and tooling.
 
 ## XDocReportTools and REST bindings
 

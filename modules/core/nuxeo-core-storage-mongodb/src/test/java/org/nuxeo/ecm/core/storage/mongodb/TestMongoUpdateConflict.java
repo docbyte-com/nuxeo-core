@@ -15,24 +15,24 @@ import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.MONGODB_SET;
 
 import org.junit.Test;
-import org.nuxeo.ecm.core.storage.mongodb.MongoDBConverter.UpdateBuilder;
+import org.nuxeo.ecm.core.storage.mongodb.MongoDBRepositoryConverter.UpdateBuilder;
 
 public class TestMongoUpdateConflict {
 
     protected UpdateBuilder newUpdateBuilder() {
-        UpdateBuilder ub = new MongoDBConverter().new UpdateBuilder();
+        UpdateBuilder ub = new MongoDBRepositoryConverter().new UpdateBuilder();
         ub.newUpdate();
         return ub;
     }
 
     @Test
-    public void testEmpty() throws Exception {
+    public void testEmpty() {
         UpdateBuilder ulb = newUpdateBuilder();
         assertEquals(1, ulb.conditionsAndUpdates.updates.size());
     }
 
     @Test
-    public void testComplexPropNoConflict() throws Exception {
+    public void testComplexPropNoConflict() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar", "val");
         ub.update(MONGODB_SET, "foo.0.zoo", "val");
@@ -40,7 +40,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testComplexPropNoConflict2() throws Exception {
+    public void testComplexPropNoConflict2() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar.zoo.x", "val");
         ub.update(MONGODB_SET, "foo.0.bar.zoo.y", "val");
@@ -48,7 +48,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testComplexPropNoConflict3() throws Exception {
+    public void testComplexPropNoConflict3() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar.zoo.x", "val");
         ub.update(MONGODB_SET, "foo.0.bar.z", "val");
@@ -56,7 +56,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testComplexPropNoConflict4() throws Exception {
+    public void testComplexPropNoConflict4() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar.zoo", "val");
         ub.update(MONGODB_SET, "foo.00.bar", "val");
@@ -70,7 +70,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testConflictEqual() throws Exception {
+    public void testConflictEqual() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar", "val");
         ub.update(MONGODB_SET, "foo.0.bar", "val2");
@@ -78,7 +78,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testConflictEqual2() throws Exception {
+    public void testConflictEqual2() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo", "val");
         ub.update(MONGODB_SET, "foo", "val2");
@@ -86,7 +86,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testConflict1() throws Exception {
+    public void testConflict1() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar", "val");
         ub.update(MONGODB_SET, "foo.0.bar.zoo", "val");
@@ -94,7 +94,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testConflict2() throws Exception {
+    public void testConflict2() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar.zoo", "val");
         ub.update(MONGODB_SET, "foo.0.bar", "val");
@@ -102,7 +102,7 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testConflict3() throws Exception {
+    public void testConflict3() {
         UpdateBuilder ub = newUpdateBuilder();
         ub.update(MONGODB_SET, "foo.0.bar.zoo", "val");
         ub.update(MONGODB_SET, "foo", "val");
@@ -110,13 +110,11 @@ public class TestMongoUpdateConflict {
     }
 
     @Test
-    public void testBigComplex() throws Exception {
+    public void testBigComplex() {
         UpdateBuilder ub = newUpdateBuilder();
         for (int i = 0; i < 10000; i++) {
             ub.update(MONGODB_SET, "foo." + i + ".bar.zoo", "val");
         }
         assertEquals(1, ub.conditionsAndUpdates.updates.size());
     }
-
-
 }

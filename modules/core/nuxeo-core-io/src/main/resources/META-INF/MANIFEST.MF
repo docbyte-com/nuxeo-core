@@ -30,6 +30,8 @@ Import-Package: javax.security.auth.login,
 Bundle-SymbolicName: org.nuxeo.ecm.core.io;singleton:=true
 Nuxeo-Component: OSGI-INF/document-xml-exporter-service.xml,
  OSGI-INF/avro-factory-contrib.xml,
+ OSGI-INF/batchmanager-contrib.xml,
+ OSGI-INF/batchmanager-framework.xml,
  OSGI-INF/download-service.xml,
  OSGI-INF/MarshallerRegistry.xml,
  OSGI-INF/marshallers-contrib.xml

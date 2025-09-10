@@ -1,3 +1,4 @@
+<#escape x as x?html>
 <@extends src="base.ftl">
 
   <@block name="content">
@@ -50,3 +51,4 @@
 
   </@block>
 </@extends>
+</#escape>

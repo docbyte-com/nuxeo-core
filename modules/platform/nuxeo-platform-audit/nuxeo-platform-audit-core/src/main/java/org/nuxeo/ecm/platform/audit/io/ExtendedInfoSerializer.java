@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,64 +15,62 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.ecm.platform.audit.io;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
+import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.SerializationUtils;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
 import org.nuxeo.ecm.platform.audit.impl.ExtendedInfoImpl;
 
-import java.io.IOException;
-import java.io.Serializable;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeFormatterBuilder;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
  * Serializer class for extended info to a JSON object
  *
  * @since 9.3
+ * @deprecated since 2025, use {@link org.nuxeo.audit.io.LogEntryJsonWriter} with help of nuxeo-core-io instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoSerializer extends JsonSerializer<ExtendedInfo> {
 
-    @Override
-    public void serialize(ExtendedInfo info, JsonGenerator jg,
-            SerializerProvider provider) throws IOException {
+    protected static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().appendInstant(3)
+                                                                                            .toFormatter();
 
-        ObjectMapper mapper = new ObjectMapper();
-        jg.setCodec(mapper);
-        if (info instanceof ExtendedInfoImpl.DateInfo) {
-            ExtendedInfoImpl.DateInfo dateInfo = (ExtendedInfoImpl.DateInfo) info;
-            DateTimeFormatter formatter = new DateTimeFormatterBuilder().appendInstant(3).toFormatter();
-            Instant instant = dateInfo.getDateValue().toInstant();
-            jg.writeObject(formatter.format(instant));
-        } else if (info instanceof ExtendedInfoImpl.BlobInfo) {
-            Serializable value = ((ExtendedInfoImpl.BlobInfo) info).getBlobValue();
-            jg.writeObject(Base64.encodeBase64(SerializationUtils.serialize(value)));
-        } else if (info instanceof ExtendedInfoImpl.StringInfo) {
-            writeString(jg, mapper, ((ExtendedInfoImpl.StringInfo) info).getStringValue().trim());
-        } else { // ESExtendedInfo or MongoDBExtendedInfo
-            Serializable value = info.getSerializableValue();
-            if (value instanceof String) {
-                writeString(jg, mapper, (String) value);
-            } else {
-                jg.writeObject(value);
+    protected static final ObjectMapper MAPPER = new ObjectMapper();
+
+    @Override
+    public void serialize(ExtendedInfo info, JsonGenerator jg, SerializerProvider provider) throws IOException {
+        jg.setCodec(MAPPER);
+        switch (info) {
+            case ExtendedInfoImpl.DateInfo dateInfo ->
+                jg.writeObject(DATE_FORMATTER.format(dateInfo.getDateValue().toInstant()));
+            case ExtendedInfoImpl.BlobInfo blobInfo ->
+                jg.writeObject(Base64.encodeBase64(SerializationUtils.serialize(blobInfo.getBlobValue())));
+            case ExtendedInfoImpl.StringInfo stringInfo -> writeString(jg, stringInfo.getStringValue().trim());
+            case null, default -> { // ESExtendedInfo or MongoDBExtendedInfo
+                if (info != null && info.getSerializableValue() instanceof String serializableValue) {
+                    writeString(jg, serializableValue);
+                } else {
+                    jg.writeObject(info == null ? null : info.getSerializableValue());
+                }
             }
         }
     }
 
-    private void writeString(JsonGenerator jg, ObjectMapper mapper, String stringValue) throws IOException {
+    private void writeString(JsonGenerator jg, String stringValue) throws IOException {
         if ((stringValue.startsWith("{") && stringValue.endsWith("}"))
                 || (stringValue.startsWith("[") && stringValue.endsWith("]"))) {
             try {
-                mapper.readTree(stringValue);
+                MAPPER.readTree(stringValue);
                 jg.writeRawValue(stringValue);
             } catch (IOException e) {
                 // If the value represents an invalid JSON, send a null value to ES to prevent potential

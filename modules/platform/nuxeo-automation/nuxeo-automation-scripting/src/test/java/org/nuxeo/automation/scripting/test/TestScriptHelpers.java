@@ -25,12 +25,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.automation.scripting.AutomationScriptingFeature;
 import org.nuxeo.automation.scripting.helper.Console;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
@@ -38,9 +39,7 @@ import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogCaptureFeature;
@@ -52,11 +51,8 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 7.10
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, LogCaptureFeature.class })
+@Features({ AutomationScriptingFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.scripting")
-@Deploy("org.nuxeo.ecm.automation.scripting:automation-scripting-contrib.xml")
 @FilterOn(loggerClass = Console.class)
 // set the level higher than INFO because we test scripting log which has logic depending on logger's level
 @LoggerLevel(klass = Console.class, level = "WARN")

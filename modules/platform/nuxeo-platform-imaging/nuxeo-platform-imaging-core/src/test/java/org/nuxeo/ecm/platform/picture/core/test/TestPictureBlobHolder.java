@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.platform.picture.api.ImagingDocumentConstants.PICTUR
 import java.io.File;
 import java.io.Serializable;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
@@ -44,12 +44,12 @@ import org.nuxeo.ecm.core.api.blobholder.BlobHolderAdapterService;
 import org.nuxeo.ecm.core.api.impl.DocumentModelImpl;
 import org.nuxeo.ecm.platform.picture.api.adapters.PictureBlobHolder;
 import org.nuxeo.ecm.platform.picture.api.adapters.PictureBookBlobHolder;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 public class TestPictureBlobHolder {
 
     @Inject
@@ -116,7 +116,6 @@ public class TestPictureBlobHolder {
         assertEquals("image/jpeg", blob.getMimeType());
         byte[] bytes = IOUtils.toByteArray(blob.getStream());
         assertEquals(134561, bytes.length);
-        bytes = null;
     }
 
 }

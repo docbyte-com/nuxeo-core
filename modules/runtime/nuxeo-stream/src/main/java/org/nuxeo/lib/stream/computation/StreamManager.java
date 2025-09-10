@@ -18,10 +18,12 @@
  */
 package org.nuxeo.lib.stream.computation;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 
 import org.nuxeo.lib.stream.log.LogOffset;
+import org.nuxeo.lib.stream.log.Name;
 
 /**
  * Gives access to StreamProcessor and appender for source provider.
@@ -59,6 +61,13 @@ public interface StreamManager extends AutoCloseable {
      * Appends a record to a processor's source stream.
      */
     LogOffset append(String stream, Record record);
+
+    /**
+     * Wait for a consumer group to process the stream up to the given offset.
+     *
+     * @since 2025.0
+     */
+    boolean waitFor(String stream, Name group, LogOffset offset, Duration timeout) throws InterruptedException;
 
     /**
      * Gets a set of processor names.

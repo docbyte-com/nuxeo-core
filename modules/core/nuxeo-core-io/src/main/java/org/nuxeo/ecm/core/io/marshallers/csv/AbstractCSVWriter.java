@@ -25,8 +25,8 @@ import java.lang.reflect.Type;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -34,7 +34,6 @@ import org.nuxeo.ecm.core.io.registry.MarshallerRegistry;
 import org.nuxeo.ecm.core.io.registry.Writer;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Supports;
-import org.nuxeo.ecm.core.schema.SchemaManager;
 
 /**
  * Base class for CSV {@link Writer}.
@@ -56,9 +55,6 @@ public abstract class AbstractCSVWriter<T> implements Writer<T> {
      */
     @Inject
     protected RenderingContext ctx;
-
-    @Inject
-    protected SchemaManager schemaManager;
 
     @Inject
     protected MarshallerRegistry registry;
@@ -83,8 +79,7 @@ public abstract class AbstractCSVWriter<T> implements Writer<T> {
 
     protected CSVPrinter getCSVPrinter(T entity, OutputStream out) throws IOException {
         CSVPrinter printer;
-        if (out instanceof OutputStreamWithCSVWriter) {
-            OutputStreamWithCSVWriter oscsv = (OutputStreamWithCSVWriter) out;
+        if (out instanceof OutputStreamWithCSVWriter oscsv) {
             if (oscsv.getCsvPrinter() != null) {
                 return oscsv.getCsvPrinter();
             } else {

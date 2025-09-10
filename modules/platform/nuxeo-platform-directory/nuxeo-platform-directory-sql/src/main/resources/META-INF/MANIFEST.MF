@@ -17,7 +17,6 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Nuxeo-Component: OSGI-INF/SQLDirectoryFactory.xml
 Bundle-ManifestVersion: 2
 Import-Package: au.com.bytecode.opencsv,
- javax.annotation;version="1.0",
  javax.resource;version="2.0.0",
  javax.resource.cci;version="2.0.0",
  javax.sql,

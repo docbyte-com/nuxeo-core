@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 
 package org.nuxeo.ecm.restapi.test;
 
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
-import static javax.servlet.http.HttpServletResponse.SC_OK;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.nuxeo.ecm.core.io.download.DownloadService.EXTENDED_INFO_RENDITION;
@@ -32,11 +32,12 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -44,7 +45,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.ecm.platform.thumbnail.ThumbnailConstants;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
@@ -60,7 +61,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, RestServerFeature.class, ImagingCoreFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.platform.io.core")
@@ -93,6 +94,17 @@ public class RenditionTest {
 
         httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/dummyRendition")
                   .executeAndConsume(new StringHandler(), body -> assertEquals("adoc", body));
+    }
+
+    @Test
+    public void shouldRetrieveTheFullHDRendition() {
+        DocumentModel doc = session.createDocumentModel("/", "adoc", "Picture");
+        doc = session.createDocument(doc);
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+
+        httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/FullHD")
+                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
     }
 
     @Test
@@ -152,8 +164,7 @@ public class RenditionTest {
 
         httpClient.buildGetRequest("/path" + doc.getPathAsString() + "/@rendition/unexistingRendition")
                   .executeAndConsume(new HttpStatusCodeHandler(),
-                          // should be 404?
-                          status -> assertEquals(SC_INTERNAL_SERVER_ERROR, status.intValue()));
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     // NXP-31166

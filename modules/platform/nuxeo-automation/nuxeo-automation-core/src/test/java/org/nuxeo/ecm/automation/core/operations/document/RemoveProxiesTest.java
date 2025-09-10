@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,11 @@
  */
 package org.nuxeo.ecm.automation.core.operations.document;
 
+import static org.junit.Assert.assertEquals;
+
+import jakarta.inject.Inject;
+
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,8 +39,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 /**
  * @since 8.3
  */
@@ -47,13 +48,15 @@ import com.google.inject.Inject;
 public class RemoveProxiesTest {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     protected DocumentModel folder;
+
     protected DocumentModel section;
+
     protected DocumentModel fileToPublish;
 
     protected OperationContext ctx;
@@ -90,18 +93,18 @@ public class RemoveProxiesTest {
         ctx.setInput(fileToPublish);
         OperationChain chain = new OperationChain("publishDocument");
         chain.add(FetchContextDocument.ID);
-        chain.add(PublishDocument.ID).set("target",section.getId());
-        DocumentModel publishedDoc = (DocumentModel)service.run(ctx, chain);
+        chain.add(PublishDocument.ID).set("target", section.getId());
+        DocumentModel publishedDoc = (DocumentModel) service.run(ctx, chain);
 
-        Assert.assertEquals("Section", session.getDocument(publishedDoc.getParentRef()).getTitle());
-        Assert.assertEquals(1, session.getChildren(section.getRef()).size());
+        assertEquals("Section", session.getDocument(publishedDoc.getParentRef()).getTitle());
+        assertEquals(1, session.getChildren(section.getRef()).size());
 
         OperationChain removeProxies = new OperationChain("testRemoveProxies");
         removeProxies.add(FetchContextDocument.ID);
         removeProxies.add(RemoveProxies.ID);
         service.run(ctx, removeProxies);
 
-        Assert.assertEquals(0, session.getChildren(section.getRef()).size());
+        assertEquals(0, session.getChildren(section.getRef()).size());
     }
 
 }

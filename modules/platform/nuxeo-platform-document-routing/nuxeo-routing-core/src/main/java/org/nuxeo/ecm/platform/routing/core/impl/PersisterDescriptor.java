@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,34 @@ package org.nuxeo.ecm.platform.routing.core.impl;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingPersister;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:arussel@nuxeo.com">Alexandre Russel</a>
  */
 @XObject("persister")
-public class PersisterDescriptor {
+public class PersisterDescriptor implements Descriptor {
+
     @XNode("@class")
     protected Class<DocumentRoutingPersister> klass;
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public Class<DocumentRoutingPersister> getKlass() {
         return klass;
     }
 
+    /** @since 2025.0 */
+    public DocumentRoutingPersister instantiatePersister() {
+        try {
+            return klass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException(e);
+        }
+    }
 }

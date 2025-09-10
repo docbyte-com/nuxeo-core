@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,19 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.login.deputy.management.tests;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.junit.Assert.assertThat;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +36,7 @@ import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.login.deputy.management.DeputyManagementStorageService;
 import org.nuxeo.ecm.platform.login.deputy.management.DeputyManager;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -50,18 +48,19 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.platform.login.deputy.management")
+@BlacklistComponent("org.nuxeo.ecm.platform.login.deputy.management.actions") // actions not needed
 public class TestCanPersistDeputyMandates {
 
     @Inject
-    DeputyManager dm;
+    protected DeputyManager dm;
 
     @Before
-    public void initStorage() throws Exception {
+    public void initStorage() {
         ((DeputyManagementStorageService) dm).resetDeputies();
     }
 
     @Test
-    public void testAddDeputies() throws Exception {
+    public void testAddDeputies() {
         // titi has 2 deputies
         dm.addMandate(dm.newMandate("titi", "toto"));
         dm.addMandate(dm.newMandate("titi", "tata"));
@@ -82,7 +81,7 @@ public class TestCanPersistDeputyMandates {
     }
 
     @Test
-    public void testValidity() throws Exception {
+    public void testValidity() {
         initStorage();
 
         Calendar notStarted = new GregorianCalendar();
@@ -107,7 +106,7 @@ public class TestCanPersistDeputyMandates {
     }
 
     @Test
-    public void testDuplicate() throws Exception {
+    public void testDuplicate() {
         initStorage();
 
         dm.addMandate(dm.newMandate("adm", "titi"));

@@ -15,8 +15,7 @@ Bundle-ManifestVersion: 2
 Nuxeo-component: OSGI-INF/docviewurlservice-framework.xml,
  OSGI-INF/docviewurlservice-contrib.xml,
  OSGI-INF/marshallers-contrib.xml
-Import-Package: javax.annotation;version="1.0",
- org.apache.commons.logging,
+Import-Package: org.apache.commons.logging,
  org.nuxeo.common.utils,
  org.nuxeo.common.xmap.annotation,
  org.nuxeo.ecm.core;api=split,

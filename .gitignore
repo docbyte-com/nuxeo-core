@@ -18,6 +18,7 @@ bin
 .checkstyle
 .mylar
 .idea
+.run
 *.iml
 *.ipr
 *.iws
@@ -28,6 +29,7 @@ bin
 
 # build artifacts
 target*/
+!targetplatforms/
 nashorn_code_cache/
 chromedriver.log
 *.log

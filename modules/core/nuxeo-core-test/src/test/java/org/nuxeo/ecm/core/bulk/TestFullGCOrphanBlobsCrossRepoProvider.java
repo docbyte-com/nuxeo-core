@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,33 +18,20 @@
  */
 package org.nuxeo.ecm.core.bulk;
 
-import static org.junit.Assume.assumeTrue;
-
-import java.io.IOException;
-
-import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2023
  */
-@RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, CoreBulkFeature.class })
+@ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
 public class TestFullGCOrphanBlobsCrossRepoProvider extends AbstractTestUnsupportedFullGCOrphanBlobs {
-
-    @Before
-    public void setup() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
-    }
 
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
-    public void testBlobDeleteCrossRepositoryProvider() throws IOException {
+    public void testBlobDeleteCrossRepositoryProvider() {
         assertdoGCNotImplemented();
     }
 

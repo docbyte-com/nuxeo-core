@@ -27,6 +27,9 @@ nuxeo.server.hsts.maxage=2592000
 nuxeo.server.hsts.includesubdomains=false
 nuxeo.server.hsts.preload=false
 
+# whether the deprecated paths removed from Nuxeo should be forwarded to new paths
+nuxeo.forward.deprecated.path.enabled=true
+
 # GlobalNamingResources datasource (not visible from webapp)
 nuxeo.db.xaMode=false
 nuxeo.db.commonds=jdbc/nuxeo
@@ -79,6 +82,11 @@ mail.user=nobody
 mail.debug=false
 mail.from=noreply@nuxeo.com
 
+#######
+# Audit
+#######
+nuxeo.audit.backend.default.factory=org.nuxeo.audit.mem.MemAuditBackendFactory
+
 nuxeo.core.binarymanager=org.nuxeo.ecm.core.blob.LocalBlobProvider
 nuxeo.core.binarymanager_key=
 nuxeo.quartz.enable=false
@@ -107,84 +115,22 @@ nuxeo.picture.views.transaction.timeout.seconds=300
 # Explicit timeout for video generation
 nuxeo.video.transaction.timeout.seconds=600
 
+
 ###
-# Elasticsearch
-elasticsearch.enabled=true
-# Name of the Elasticsearch index for the default document repository
-elasticsearch.indexName=nuxeo
-# Comma separated list of Elasticsearch nodes, if empty use a local in JVM node
-elasticsearch.addressList=
-# Name of the Elasticsearch cluster to join
-elasticsearch.clusterName=nuxeoCluster
-# Number of replicas (not for local node)
-elasticsearch.indexNumberOfReplicas=1
-# Number of shards (not for local node)
-elasticsearch.indexNumberOfShards=5
-# Name of the local node
-elasticsearch.nodeName=nuxeoNode
-# Does the local node accept HTTP request on port 9200
-elasticsearch.httpEnabled=false
-# Network binding. Policy is to accept request from local machine only.
-elasticsearch.networkHost=127.0.0.1
-# Comma separated list of CorePageProvider names to supersede by Elasticsearch
-elasticsearch.override.pageproviders=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,document_picker
-# Reindexing option, number of documents to process per worker @since 6.0-HF02
-elasticsearch.reindex.bucketReadSize=500
-# Reindexing option, number of documents to submit to Elasticsearch per bulk command @since 6.0-HF02
-elasticsearch.reindex.bucketWriteSize=100
-# Maximum size of the indexing thread pool @since 6.0-HF02
-elasticsearch.indexing.maxThreads=4
-# Time to keep the completed indexing worker states @since 6.0-HF02
-elasticsearch.indexing.clearCompletedAfterSeconds=90
-# Display Elasticsearch cluster and nodes information in the admin center @since 6.0-HF06, always true for embedded mode
-elasticsearch.adminCenter.displayClusterInfo=false
-# Reindex the repository content on startup if the index is empty
-elasticsearch.reindex.onStartup=false
-# Use Elasticsearch as a backend for audit logs
-audit.elasticsearch.enabled=false
-# Name of the Elasticsearch index for audit logs
-audit.elasticsearch.indexName=${elasticsearch.indexName}-audit
-# Name of the Elasticsearch index for the uid sequencer
-seqgen.elasticsearch.indexName=${elasticsearch.indexName}-uidgen
-# Migrate audit logs from SQL storage to Elasticsearch indexing, requires audit.elasticsearch.enabled=true
-audit.elasticsearch.migration=false
-# Batch size for audit logs migration, only useful with audit.elasticsearch.migration=true
-audit.elasticsearch.migration.batchSize=1000
-# Improve performance on getLatestLogId limiting events to the past 2 weeks, using elastic date syntax
-audit.elasticsearch.latestLogId.afterDate=now-14d/d
-# Refresh interval for the health check
-nuxeo.healthcheck.refresh.interval.seconds=20
-# Default request durability means that Elasticsearch is doing one fsync per request. With async durability it is one fsync every 5s.
-elasticsearch.index.translog.durability=request
-# For the rest client, a timeout in milliseconds until a connection is established
-elasticsearch.restClient.connectionTimeoutMs=30000
-# For the rest client, a maximum period, in milliseconds, of inactivity between two consecutive data packets
-elasticsearch.restClient.socketTimeoutMs=121000
-# A username for client basic authentication
-elasticsearch.restClient.username=
-# A password for client basic authentication
-elasticsearch.restClient.password=
-# TLS/SSL trustStore/keyStore configuration
-elasticsearch.restClient.truststore.path=
-elasticsearch.restClient.truststore.password=
-elasticsearch.restClient.truststore.type=
-elasticsearch.restClient.keystore.path=
-elasticsearch.restClient.keystore.password=
-elasticsearch.restClient.keystore.type=
-elasticsearch.restClient.ssl.certificate.verification=true
+# Search Service
+nuxeo.search.stream.indexing.defaultConcurrency=4
+nuxeo.search.stream.indexing.defaultPartitions=12
+nuxeo.search.stream.indexing.batch.size=20
+nuxeo.search.stream.indexing.batch.threshold=250ms
+nuxeo.search.stream.indexingAsync.defaultConcurrency=4
+nuxeo.search.stream.indexingAsync.defaultPartitions=8
+nuxeo.search.stream.reindexing.defaultConcurrency=${nuxeo.bulk.action.reindex.index.concurrency:=4}
+nuxeo.search.stream.reindexing.defaultPartitions=${nuxeo.bulk.action.reindex.index.partitions:=8}
 
-elasticsearch.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{common,core-api,elasticsearch-core}*.jar
-elasticsearch.check.class=org.nuxeo.elasticsearch.ElasticSearchChecker
-# Nuxeo managing index alias
-elasticsearch.manageAlias.enabled=false
-# Bulk Index action, fetching content (bulk/index computation)
-elasticsearch.bulk.index.fetch.concurrency=4
-elasticsearch.bulk.index.fetch.partitions=12
-# Bulk Index action, submitting requests to elastic (bulk/bulkIndex computation)
-elasticsearch.bulk.index.submit.concurrency=2
-elasticsearch.bulk.index.submit.partitions=8
+nuxeo.search.client.default.name=repository
+nuxeo.search.client.default.scroller.index.name=repository
 
-
+nuxeo.search.pageproviders.override=${elasticsearch.override.pageproviders:=default_search,default_document_suggestion,DEFAULT_DOCUMENT_SUGGESTION,advanced_document_content,domain_documents,expired_search,default_trash_search,REST_API_SEARCH_ADAPTER,all_collections,simple_search,document_content,section_content,document_trash_content,orderable_document_content,document_picker,GET_TASKS_FOR_ACTORS,GET_TASKS_FOR_ACTORS_OR_DELEGATED_ACTORS,GET_TASKS_FOR_PROCESS,GET_TASKS_FOR_PROCESS_AND_ACTORS,GET_TASKS_FOR_PROCESS_AND_NODE,GET_TASKS_FOR_TARGET_DOCUMENT,GET_TASKS_FOR_TARGET_DOCUMENTS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS,GET_TASKS_FOR_TARGET_DOCUMENTS_AND_ACTORS_OR_DELEGATED_ACTORS}
 
 # Kafka
 kafka.check.classpath=${nuxeo.home}/nxserver/bundles/nuxeo-{common,core-api,runtime-stream}*.jar
@@ -233,8 +179,6 @@ nuxeo.work.queue.renditionBuilder.threads=2
 nuxeo.transientstore.rendition.cache.ttl=240
 nuxeo.transientstore.rendition.cache.ttl2=10
 
-# deprecated we don't use anymore zookeeper
-kafka.zkServers=localhost:2181
 # Confluent Avro Schema Registry
 confluent.schema_registry.enabled=false
 confluent.schema_registry.urls=http://localhost:8081
@@ -382,6 +326,9 @@ nuxeo.bulk.action.extractBinaryFulltext.defaultConcurrency=2
 nuxeo.bulk.action.extractBinaryFulltext.defaultPartitions=4
 nuxeo.bulk.action.holdDocumentsAction.defaultConcurrency=2
 nuxeo.bulk.action.holdDocumentsAction.defaultPartitions=4
+nuxeo.bulk.action.idle.enabled=false
+nuxeo.bulk.action.idle.defaultConcurrency=4
+nuxeo.bulk.action.idle.defaultPartitions=12
 nuxeo.bulk.action.migration.defaultConcurrency=2
 nuxeo.bulk.action.migration.defaultPartitions=4
 nuxeo.bulk.action.processRetentionEvent.defaultConcurrency=2
@@ -399,10 +346,8 @@ nuxeo.bulk.action.recomputeViewsBackground.maxRetries=1
 nuxeo.bulk.action.recomputeVideoConversions.defaultConcurrency=2
 nuxeo.bulk.action.recomputeVideoConversions.defaultPartitions=6
 nuxeo.bulk.action.recomputeVideoConversions.maxRetries=1
-nuxeo.bulk.action.reindex.bulkIndex.concurrency=${elasticsearch.bulk.index.submit.concurrency}
-nuxeo.bulk.action.reindex.bulkIndex.partitions=${elasticsearch.bulk.index.submit.partitions}
-nuxeo.bulk.action.reindex.index.concurrency=${elasticsearch.bulk.index.fetch.concurrency}
-nuxeo.bulk.action.reindex.index.partitions=${elasticsearch.bulk.index.fetch.partitions}
+nuxeo.bulk.action.garbageCollectExpiredOAuth2Tokens.defaultConcurrency=2
+nuxeo.bulk.action.garbageCollectExpiredOAuth2Tokens.defaultPartitions=4
 nuxeo.bulk.action.garbageCollectWokflows.defaultConcurrency=2
 nuxeo.bulk.action.garbageCollectWokflows.defaultPartitions=4
 nuxeo.bulk.action.garbageCollectOrphanBlobs.defaultConcurrency=2
@@ -424,5 +369,13 @@ nuxeo.bulk.action.unholdDocumentsAction.defaultPartitions=4
 nuxeo.bulk.action.updateReadAcls.defaultConcurrency=1
 nuxeo.bulk.action.updateReadAcls.defaultPartitions=1
 
+# OAuth2 GC
+nuxeo.oauth2.garbageCollectExpiredTokens.enabled=true
+## Every Sunday at 2am
+nuxeo.oauth2.garbageCollectExpiredTokens.cronExpression=0 0 2 ? * SUN
+
 # Primitive type strict validation
 nuxeo.primitive.type.strict.validation=false
+
+# UIDSequencer default implementation
+nuxeo.uidsequencer.default.class=org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.webengine.model.impl;
 
 import java.io.File;
@@ -37,14 +34,12 @@ import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
 import org.nuxeo.ecm.webengine.model.TypeVisibility;
-import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
+import org.nuxeo.ecm.webengine.scripting.ScriptJarFile;
 import org.nuxeo.ecm.webengine.security.Guard;
 import org.nuxeo.ecm.webengine.security.PermissionService;
 import org.nuxeo.runtime.annotations.AnnotationManager;
-
-import com.sun.jersey.server.spi.component.ResourceComponentConstructor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -54,8 +49,6 @@ public abstract class AbstractResourceType implements ResourceType {
     protected final WebEngine engine;
 
     protected final Module owner;
-
-    protected final ResourceComponentConstructor constructor;
 
     protected final String name;
 
@@ -72,13 +65,12 @@ public abstract class AbstractResourceType implements ResourceType {
     protected volatile ConcurrentMap<String, ScriptFile> templateCache;
 
     protected AbstractResourceType(WebEngine engine, Module module, AbstractResourceType superType, String name,
-            ClassProxy clazz, ResourceComponentConstructor constructor, int visibility) {
+            ClassProxy clazz, int visibility) {
         this.engine = engine;
         owner = module;
         this.superType = superType;
         this.name = name;
         this.clazz = clazz;
-        this.constructor = constructor;
         this.visibility = visibility;
         templateCache = new ConcurrentHashMap<>();
         AnnotationManager mgr = engine.getAnnotationManager();
@@ -122,14 +114,14 @@ public abstract class AbstractResourceType implements ResourceType {
 
     @Override
     @SuppressWarnings("unchecked")
-    public Class<Resource> getResourceClass() {
-        return (Class<Resource>) clazz.get();
+    public <R extends Resource> Class<R> getResourceClass() {
+        return (Class<R>) clazz.get();
     }
 
     @Override
-    public <T extends Resource> T newInstance(Class<T> typeof, WebContext context) {
+    public <R extends Resource> R newInstance() {
         try {
-            return typeof.cast(constructor.construct(context.getServerHttpContext()));
+            return this.<R> getResourceClass().getDeclaredConstructor().newInstance();
         } catch (ReflectiveOperationException e) {
             throw new NuxeoException("Failed to instantiate web object: " + clazz, e);
         }
@@ -156,11 +148,11 @@ public abstract class AbstractResourceType implements ResourceType {
         templateCache = new ConcurrentHashMap<>();
     }
 
-    protected void loadGuardFromAnnoation(Class<?> c) {
+    protected void loadGuardFromAnnotation(Class<?> c) {
         org.nuxeo.ecm.webengine.model.Guard ag = c.getAnnotation(org.nuxeo.ecm.webengine.model.Guard.class);
         if (ag != null) {
             String g = ag.value();
-            if (g != null && g.length() > 0) {
+            if (g != null && !g.isEmpty()) {
                 try {
                     guard = PermissionService.parse(g);
                 } catch (ParseException e) {
@@ -217,24 +209,20 @@ public abstract class AbstractResourceType implements ResourceType {
     }
 
     protected ScriptFile findSkinTemplate(Module module, String name) {
-        return module.getFile(new StringBuilder().append("views")
-                                                 .append(File.separatorChar)
-                                                 .append(this.name)
-                                                 .append(File.separatorChar)
-                                                 .append(name)
-                                                 .toString());
+        return module.getFile("views" + File.separatorChar + this.name + File.separatorChar + name);
     }
 
     protected ScriptFile findTypeTemplate(Module module, String name) {
         String path = resolveResourcePath(clazz.getClassName(), name);
         URL url = clazz.get().getResource(path);
         if (url != null) {
-            if (!"file".equals(url.getProtocol())) {
-                // TODO ScriptFile is not supporting URLs .. must refactor ScriptFile
-                return null;
-            }
             try {
-                return new ScriptFile(new File(url.toURI()));
+                if ("file".equals(url.getProtocol())) {
+                    return new ScriptFile(new File(url.toURI()));
+                } else if ("jar".equals(url.getProtocol())) {
+                    return new ScriptJarFile(url);
+                }
+                return null;
             } catch (IOException | URISyntaxException e) {
                 throw new NuxeoException("Failed to convert URL to URI: " + url, e);
             }
@@ -249,9 +237,9 @@ public abstract class AbstractResourceType implements ResourceType {
         if (p > -1) {
             path = path.substring(0, p);
             path = path.replace('.', '/');
-            return new StringBuilder().append('/').append(path).append('/').append(fileName).toString();
+            return '/' + path + '/' + fileName;
         }
-        return new StringBuilder().append('/').append(fileName).toString();
+        return '/' + fileName;
     }
 
 }

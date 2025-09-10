@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,39 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
+
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("startURLPattern")
-public class StartURLPatternDescriptor {
+public class StartURLPatternDescriptor implements Descriptor {
 
     @XNodeList(value = "patterns/pattern", type = ArrayList.class, componentType = String.class)
-    private List<String> startURLPatterns;
+    protected List<String> startURLPatterns;
 
-    List<String> getStartURLPatterns() {
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
+
+    public List<String> getStartURLPatterns() {
         return startURLPatterns;
     }
 
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (StartURLPatternDescriptor) o;
+        var merged = new StartURLPatternDescriptor();
+        merged.startURLPatterns = new ArrayList<>(emptyIfNull(startURLPatterns));
+        merged.startURLPatterns.addAll(emptyIfNull(other.startURLPatterns));
+        return merged;
+    }
 }

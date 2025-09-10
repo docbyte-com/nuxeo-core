@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,10 +21,10 @@ package org.nuxeo.connect.update.standalone.commands;
 import static org.junit.Assert.fail;
 
 import org.junit.Test;
-
 import org.nuxeo.connect.update.ValidationStatus;
 import org.nuxeo.connect.update.task.Task;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -33,7 +33,7 @@ public class TestCopyInstallValidation extends TestCopy {
 
     @Test
     @Override
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-9086")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-9086")
     public void testInstallThenUninstall() throws Exception {
         // create the target file so that the copy command will not validate
         getTargetFile().createNewFile();

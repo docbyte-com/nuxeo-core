@@ -18,20 +18,9 @@
  */
 package org.nuxeo.ecm.platform.audit.service;
 
-import static org.nuxeo.ecm.core.schema.FacetNames.SYSTEM_DOCUMENT;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_CATEGORY;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_PATH;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_DOC_UUID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_DATE;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_ID;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_REPOSITORY_ID;
-import static org.nuxeo.ecm.platform.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
-import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_AUDIT_ENABLED_PROP;
-import static org.nuxeo.ecm.platform.audit.listener.StreamAuditEventListener.STREAM_NAME;
-
 import java.io.Serializable;
 import java.security.Principal;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -42,19 +31,20 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import javax.el.ELException;
+import jakarta.el.ELException;
 
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.Logger;
-import org.jboss.el.ExpressionFactoryImpl;
+import org.nuxeo.audit.api.AuditQueryBuilder;
+import org.nuxeo.audit.service.AuditService;
+import org.nuxeo.audit.service.extension.AdapterDescriptor;
+import org.nuxeo.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.DocumentNotFoundException;
 import org.nuxeo.ecm.core.api.DocumentRef;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
-import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.PropertyException;
@@ -65,34 +55,27 @@ import org.nuxeo.ecm.core.event.DeletedDocumentModel;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventBundle;
 import org.nuxeo.ecm.core.event.EventContext;
-import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
-import org.nuxeo.ecm.core.query.sql.model.Operator;
-import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
-import org.nuxeo.ecm.core.query.sql.model.Predicate;
-import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.platform.audit.api.AuditQueryBuilder;
 import org.nuxeo.ecm.platform.audit.api.AuditStorage;
 import org.nuxeo.ecm.platform.audit.api.ExtendedInfo;
-import org.nuxeo.ecm.platform.audit.api.FilterMapEntry;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
-import org.nuxeo.ecm.platform.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.ecm.platform.audit.service.extension.AuditBackendDescriptor;
-import org.nuxeo.ecm.platform.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
-import org.nuxeo.lib.stream.log.LogManager;
-import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.stream.StreamService;
 
 /**
  * Abstract class to share code between {@link AuditBackend} implementations
  *
  * @author tiry
+ * @param <L> to give the log entry type for the new {@link org.nuxeo.audit.service.AuditBackend} interface that defines
+ *            a new entry type.
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.AbstractAuditBackend} instead
  */
-public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage {
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
+public abstract class AbstractAuditBackend<L extends LogEntry> implements AuditBackend<L>, AuditStorage {
 
     protected static final Logger log = org.apache.logging.log4j.LogManager.getLogger(AbstractAuditBackend.class);
 
@@ -145,6 +128,8 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         Calendar creationDate = (Calendar) doc.getProperty("dublincore", "created");
         if (creationDate != null) {
             entry.setEventDate(creationDate.getTime());
+        } else {
+            entry.setEventDate(new Date());
         }
 
         doPutExtendedInfos(entry, null, doc, principal);
@@ -232,87 +217,19 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
 
     @Override
     public Set<String> getAuditableEventNames() {
-        return component.getAuditableEventNames();
+        return Framework.getService(AuditService.class).getAuditableEventNames();
     }
 
     @Override
-    public LogEntry buildEntryFromEvent(Event event) {
-        EventContext ctx = event.getContext();
-        String eventName = event.getName();
-        Date eventDate = new Date(event.getTime());
-
-        LogEntry entry = newLogEntry();
-        entry.setEventId(eventName);
-        entry.setEventDate(eventDate);
-
-        if (ctx instanceof DocumentEventContext) {
-            DocumentEventContext docCtx = (DocumentEventContext) ctx;
-            DocumentModel document = docCtx.getSourceDocument();
-            if (document.hasFacet(SYSTEM_DOCUMENT) && !document.hasFacet(FORCE_AUDIT_FACET)) {
-                // do not log event on System documents
-                // unless it has the FORCE_AUDIT_FACET facet
-                return null;
-            }
-
-            Boolean disabled = (Boolean) docCtx.getProperty(NXAuditEventsService.DISABLE_AUDIT_LOGGER);
-            if (disabled != null && disabled.booleanValue()) {
-                // don't log events with this flag
-                return null;
-            }
-            NuxeoPrincipal principal = docCtx.getPrincipal();
-            Map<String, Serializable> properties = docCtx.getProperties();
-
-            entry.setDocUUID(document.getId());
-            entry.setDocPath(document.getPathAsString());
-            entry.setDocType(document.getType());
-            entry.setRepositoryId(document.getRepositoryName());
-            if (principal != null) {
-                entry.setPrincipalName(principal.getActingUser());
-            } else {
-                log.warn("received event {} with null principal", eventName);
-            }
-            entry.setComment((String) properties.get("comment"));
-            if (document instanceof DeletedDocumentModel) {
-                entry.setComment("Document does not exist anymore!");
-            } else {
-                if (document.isLifeCycleLoaded()) {
-                    entry.setDocLifeCycle(document.getCurrentLifeCycleState());
-                }
-            }
-            if (LifeCycleConstants.TRANSITION_EVENT.equals(eventName)) {
-                entry.setDocLifeCycle((String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TO));
-            }
-            String category = (String) properties.get("category");
-            if (category != null) {
-                entry.setCategory(category);
-            } else {
-                entry.setCategory("eventDocumentCategory");
-            }
-
-            doPutExtendedInfos(entry, docCtx, document, principal);
-
-        } else {
-            NuxeoPrincipal principal = ctx.getPrincipal();
-            Map<String, Serializable> properties = ctx.getProperties();
-
-            if (principal != null) {
-                entry.setPrincipalName(principal.getActingUser());
-            }
-            entry.setComment((String) properties.get("comment"));
-
-            String category = (String) properties.get("category");
-            entry.setCategory(category);
-
-            doPutExtendedInfos(entry, ctx, null, principal);
-
-        }
-
-        return entry;
+    @SuppressWarnings("unchecked")
+    public L buildEntryFromEvent(Event event) {
+        return (L) Framework.getService(AuditService.class).buildEntryFromEvent(event);
     }
 
     @Override
-    public LogEntry newLogEntry() {
-        return new LogEntryImpl();
+    @SuppressWarnings("unchecked")
+    public L newLogEntry() {
+        return (L) new LogEntryImpl();
     }
 
     @Override
@@ -357,17 +274,6 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         return nbSyncedEntries;
     }
 
-    @Override
-    @Deprecated
-    public void logEvents(EventBundle bundle) {
-        if (!isAuditable(bundle)) {
-            return;
-        }
-        for (Event event : bundle) {
-            logEvent(event);
-        }
-    }
-
     protected boolean isAuditable(EventBundle eventBundle) {
         for (String name : getAuditableEventNames()) {
             if (eventBundle.containsEventName(name)) {
@@ -378,88 +284,8 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
     }
 
     @Override
-    @Deprecated
-    public void logEvent(Event event) {
-        if (!getAuditableEventNames().contains(event.getName())) {
-            return;
-        }
-        LogEntry entry = buildEntryFromEvent(event);
-        if (entry == null) {
-            return;
-        }
-        if (Framework.isBooleanPropertyFalse(STREAM_AUDIT_ENABLED_PROP)) {
-            component.bulker.offer(entry);
-        } else {
-            log.error("Usage of AuditLogger#logEvent while AuditBulker is disabled", new Exception());
-        }
-    }
-
-    @SuppressWarnings("resource") // LogManager not ours to close
-    @Override
     public boolean await(long time, TimeUnit unit) throws InterruptedException {
-        if (Framework.isBooleanPropertyFalse(STREAM_AUDIT_ENABLED_PROP)) {
-            return component.bulker.await(time, unit);
-        } else {
-            StreamService service = Framework.getService(StreamService.class);
-            LogManager logManager = service.getLogManager();
-            // when there is no lag between producer and consumer we are done
-            long deadline = System.currentTimeMillis() + unit.toMillis(time);
-            while (logManager.getLag(Name.ofUrn(STREAM_NAME), Name.ofUrn(COMPUTATION_NAME)).lag() > 0) {
-                if (System.currentTimeMillis() > deadline) {
-                    log.warn("await timeout on audit/writer");
-                    return false;
-                }
-                Thread.sleep(50);
-            }
-            return true;
-        }
-    }
-
-    @Override
-    public List<LogEntry> queryLogsByPage(String[] eventIds, Date limit, String[] categories, String path, int pageNb,
-            int pageSize) {
-        QueryBuilder builder = new AuditQueryBuilder();
-        if (ArrayUtils.isNotEmpty(eventIds)) {
-            if (eventIds.length == 1) {
-                builder.predicate(Predicates.eq(LOG_EVENT_ID, eventIds[0]));
-            } else {
-                builder.predicate(Predicates.in(LOG_EVENT_ID, eventIds[0]));
-            }
-        }
-        if (ArrayUtils.isNotEmpty(categories)) {
-            if (categories.length == 1) {
-                builder.predicate(Predicates.eq(LOG_CATEGORY, categories[0]));
-            } else {
-                builder.predicate(Predicates.in(LOG_CATEGORY, categories[0]));
-            }
-        }
-        if (path != null) {
-            builder.predicate(Predicates.eq(LOG_DOC_PATH, path));
-        }
-        if (limit != null) {
-            builder.predicate(Predicates.lt(LOG_EVENT_DATE, limit));
-        }
-        builder.offset(pageNb * pageSize).limit(pageSize);
-        return queryLogs(builder);
-    }
-
-    @Override
-    public long getLatestLogId(String repositoryId, String... eventIds) {
-        QueryBuilder builder = new AuditQueryBuilder().predicate(Predicates.eq(LOG_REPOSITORY_ID, repositoryId))
-                                                      .and(Predicates.in(LOG_EVENT_ID, eventIds))
-                                                      .order(OrderByExprs.desc(LOG_ID))
-                                                      .limit(1);
-        return queryLogs(builder).stream().mapToLong(LogEntry::getId).findFirst().orElse(0L);
-    }
-
-    @Override
-    public List<LogEntry> getLogEntriesAfter(long logIdOffset, int limit, String repositoryId, String... eventIds) {
-        QueryBuilder builder = new AuditQueryBuilder().predicate(Predicates.eq(LOG_REPOSITORY_ID, repositoryId))
-                                                      .and(Predicates.in(LOG_EVENT_ID, eventIds))
-                                                      .and(Predicates.gte(LOG_ID, logIdOffset))
-                                                      .order(OrderByExprs.asc(LOG_ID))
-                                                      .limit(limit);
-        return queryLogs(builder);
+        return Framework.getService(AuditService.class).await(Duration.ofMillis(unit.toMillis(time)));
     }
 
     @Override
@@ -489,5 +315,4 @@ public abstract class AbstractAuditBackend implements AuditBackend, AuditStorage
         log.info("Audit restoration done: {} entries migrated from the audit storage", total);
 
     }
-
 }

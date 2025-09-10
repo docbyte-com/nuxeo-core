@@ -20,6 +20,7 @@
 package org.nuxeo.ecm.platform.test;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -41,4 +42,9 @@ public class UserManagerFeatureTest {
         assertNotNull(userManager);
     }
 
+    @Test
+    public void testRuntimeStarted() {
+        assertTrue("Nuxeo Runtime should start without error, check Nuxeo Platform Started log.",
+                Framework.getRuntime().getStatusMessage(new StringBuilder()));
+    }
 }

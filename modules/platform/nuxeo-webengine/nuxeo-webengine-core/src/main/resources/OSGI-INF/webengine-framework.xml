@@ -45,19 +45,6 @@
       class="org.nuxeo.ecm.webengine.security.GuardDescriptor" />
   </extension-point>
 
-  <extension-point name="resource">
-    <documentation>
-      @author Bogdan Stefanescu (bs@nuxeo.com)
-      Register a JAX-RS root resource
-      <code>
-        <resource path="{lang:[a-z]}" singleton="false" class="org.nuxeo.Resource" />
-      </code>
-    </documentation>
-
-    <object
-      class="org.nuxeo.ecm.webengine.ResourceBinding" />
-  </extension-point>
-
   <extension-point name="request-configuration">
     <documentation>
       Obsolete since 8.4, transactions are always active.

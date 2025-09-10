@@ -52,7 +52,6 @@ import org.nuxeo.ecm.core.api.model.PropertyNotFoundException;
 import org.nuxeo.ecm.core.api.model.ReadOnlyPropertyException;
 import org.nuxeo.ecm.core.api.model.VersionNotModifiableException;
 import org.nuxeo.ecm.core.api.model.impl.ComplexProperty;
-import org.nuxeo.ecm.core.blob.DocumentBlobManager;
 import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
 import org.nuxeo.ecm.core.lifecycle.LifeCycle;
 import org.nuxeo.ecm.core.lifecycle.LifeCycleService;
@@ -550,10 +549,6 @@ public class DBSDocument extends BaseDocument<State> {
         accessor.setBlob(managedBlob.withKeyAndDigest(newKey, newDigest), false);
     }
 
-    protected DocumentBlobManager getDocumentBlobManager() {
-        return Framework.getService(DocumentBlobManager.class);
-    }
-
     @Override
     public void makeFlexibleRecord() {
         makeRecord(true);
@@ -618,7 +613,7 @@ public class DBSDocument extends BaseDocument<State> {
         }
         docState.put(KEY_RETAIN_UNTIL, retainUntil);
         DBSDocument doc = session.getDocument(docState);
-        getDocumentBlobManager().notifySetRetainUntil(doc, retainUntil);
+        notifySetRetainUntil(doc, retainUntil, current);
     }
 
     @Override
@@ -934,13 +929,13 @@ public class DBSDocument extends BaseDocument<State> {
         String propertyName;
         if (name.startsWith(SYSPROP_FULLTEXT_SIMPLE)) {
             propertyName = name.replace(SYSPROP_FULLTEXT_SIMPLE, KEY_FULLTEXT_SIMPLE);
-            if (session.fulltextStoredInBlob) {
+            if (session.isFulltextStoredInBlob()) {
                 // if binary fulltext is stored in blob, there is no simple fulltext available
                 return;
             }
         } else if (name.startsWith(SYSPROP_FULLTEXT_BINARY)) {
             propertyName = name.replace(SYSPROP_FULLTEXT_BINARY, KEY_FULLTEXT_BINARY);
-            if (session.fulltextStoredInBlob) {
+            if (session.isFulltextStoredInBlob()) {
                 if (!(value instanceof String)) {
                     throw new PropertyException("Property " + name + " must be a string");
                 }
@@ -1093,18 +1088,18 @@ public class DBSDocument extends BaseDocument<State> {
 
     protected String getSchema(String xpath) {
         switch (xpath) {
-        case KEY_MAJOR_VERSION:
-        case KEY_MINOR_VERSION:
-        case "major_version":
-        case "minor_version":
-            return "uid";
-        case KEY_FULLTEXT_JOBID:
-        case KEY_IS_TRASHED:
-        case KEY_LIFECYCLE_POLICY:
-        case KEY_LIFECYCLE_STATE:
-        case KEY_BLOB_KEYS:
-        case KEY_RETAINED_PROPS:
-            return "__ecm__";
+            case KEY_MAJOR_VERSION:
+            case KEY_MINOR_VERSION:
+            case "major_version":
+            case "minor_version":
+                return "uid";
+            case KEY_FULLTEXT_JOBID:
+            case KEY_IS_TRASHED:
+            case KEY_LIFECYCLE_POLICY:
+            case KEY_LIFECYCLE_STATE:
+            case KEY_BLOB_KEYS:
+            case KEY_RETAINED_PROPS:
+                return "__ecm__";
         }
         if (xpath.startsWith(KEY_FULLTEXT_SIMPLE) || xpath.startsWith(KEY_FULLTEXT_BINARY)) {
             return "__ecm__";
@@ -1147,10 +1142,10 @@ public class DBSDocument extends BaseDocument<State> {
     @Override
     protected String internalName(String name) {
         switch (name) {
-        case PROP_MAJOR_VERSION:
-            return KEY_MAJOR_VERSION;
-        case PROP_MINOR_VERSION:
-            return KEY_MINOR_VERSION;
+            case PROP_MAJOR_VERSION:
+                return KEY_MAJOR_VERSION;
+            case PROP_MINOR_VERSION:
+                return KEY_MINOR_VERSION;
         }
         return name;
     }

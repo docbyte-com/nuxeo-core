@@ -1,0 +1,49 @@
+/*
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Thierry Delprat
+ */
+package org.nuxeo.template.xdocreport.rest;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.Provider;
+
+import org.nuxeo.ecm.core.io.download.BufferingServletOutputStream;
+
+import fr.opensagres.xdocreport.remoting.resources.domain.LargeBinaryData;
+import fr.opensagres.xdocreport.remoting.resources.services.jaxrs.LargeBinaryDataMessageBodyWriter;
+
+@Singleton
+@Provider
+public class NuxeoLargeBinaryDataMessageWriter extends LargeBinaryDataMessageBodyWriter {
+
+    @Override
+    public void writeTo(LargeBinaryData t, Class<?> type, Type genericType, Annotation[] annotations,
+            MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream)
+            throws IOException, WebApplicationException {
+        BufferingServletOutputStream.stopBuffering(entityStream);
+        httpHeaders.add("X-Nuxeo", "WebEngine-REST");
+        super.writeTo(t, type, genericType, annotations, mediaType, httpHeaders, entityStream);
+    }
+}

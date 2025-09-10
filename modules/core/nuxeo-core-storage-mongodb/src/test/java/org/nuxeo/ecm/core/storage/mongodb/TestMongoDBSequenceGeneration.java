@@ -23,14 +23,14 @@ import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.COUNTER_FIELD
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.COUNTER_NAME_UUID;
 import static org.nuxeo.ecm.core.storage.mongodb.MongoDBRepository.MONGODB_ID;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.core.storage.dbs.DBSRepositoryBase.IdType;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.mongodb.MongoDBConnectionService;
 import org.nuxeo.runtime.mongodb.MongoDBFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -61,7 +61,7 @@ public class TestMongoDBSequenceGeneration {
 
     public void setUp(IdType idType) {
         MongoDBRepositoryDescriptor desc = new MongoDBRepositoryDescriptor();
-        desc.name = Framework.getProperty(MongoDBFeature.MONGODB_DBNAME_PROPERTY);
+        desc.name = ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_VALUE;
         desc.idType = idType.name();
         desc.sequenceBlockSize = 5;
 

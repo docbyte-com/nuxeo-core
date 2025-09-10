@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,34 @@
  */
 package org.nuxeo.ecm.platform.web.common.requestcontroller.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.Hashtable;
 import java.util.regex.Pattern;
 
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
 
 import com.thetransactioncompany.cors.CORSFilter;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * @author <a href="mailto:ak@nuxeo.com">Arnaud Kervern</a>
  * @since 5.7.2
  */
 @XObject(value = "corsConfig")
-public class NuxeoCorsFilterDescriptor implements Cloneable {
+public class NuxeoCorsFilterDescriptor implements Descriptor {
 
     private static final String PROPERTIES_PREFIX = "cors.";
 
@@ -80,7 +83,7 @@ public class NuxeoCorsFilterDescriptor implements Cloneable {
     protected Pattern pattern;
 
     @XNode("pattern")
-    public void setPattern(String patternString) {
+    protected void setPattern(String patternString) {
         patternString = Framework.expandVars(patternString);
         if (!StringUtils.isBlank(patternString)) {
             pattern = Pattern.compile(patternString);
@@ -89,6 +92,15 @@ public class NuxeoCorsFilterDescriptor implements Cloneable {
 
     // volatile for double-checked locking
     protected volatile CORSFilter filter;
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
 
     public CORSFilter getFilter() {
         if (filter == null) {
@@ -134,54 +146,6 @@ public class NuxeoCorsFilterDescriptor implements Cloneable {
         };
     }
 
-    @Override
-    public NuxeoCorsFilterDescriptor clone() throws CloneNotSupportedException {
-        NuxeoCorsFilterDescriptor n = new NuxeoCorsFilterDescriptor();
-        n.name = name;
-        n.allowGenericHttpRequests = allowGenericHttpRequests;
-        n.allowOrigin = allowOrigin;
-        n.allowSubdomains = allowSubdomains;
-        n.supportedMethods = supportedMethods;
-        n.supportedHeaders = supportedHeaders;
-        n.exposedHeaders = exposedHeaders;
-        n.supportsCredentials = supportsCredentials;
-        n.maxAge = maxAge;
-        n.pattern = pattern;
-        return n;
-    }
-
-    public void merge(NuxeoCorsFilterDescriptor o) {
-        allowGenericHttpRequests = o.allowGenericHttpRequests;
-        supportsCredentials = o.supportsCredentials;
-        allowSubdomains = o.allowSubdomains;
-
-        if (!StringUtils.isEmpty(o.allowOrigin)) {
-            allowOrigin = o.allowOrigin;
-        }
-
-        if (!StringUtils.isEmpty(o.supportedMethods)) {
-            supportedMethods = o.supportedMethods;
-        }
-
-        if (!StringUtils.isEmpty(o.supportedHeaders)) {
-            supportedHeaders = o.supportedHeaders;
-        }
-
-        if (!StringUtils.isEmpty(o.exposedHeaders)) {
-            exposedHeaders = o.exposedHeaders;
-        }
-
-        if (maxAge == -1) {
-            maxAge = o.maxAge;
-        }
-
-        if (o.pattern != null) {
-            pattern = o.pattern;
-        }
-
-        filter = null; // recomputed on first access
-    }
-
     protected Dictionary<String, String> buildDictionary() {
         Dictionary<String, String> params = new Hashtable<>();
         params.put(PROPERTIES_PREFIX + "allowGenericHttpRequests", Boolean.toString(allowGenericHttpRequests));
@@ -208,5 +172,22 @@ public class NuxeoCorsFilterDescriptor implements Cloneable {
         params.put(PROPERTIES_PREFIX + "maxAge", Integer.toString(maxAge));
 
         return params;
+    }
+
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (NuxeoCorsFilterDescriptor) o;
+        var merged = new NuxeoCorsFilterDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.allowGenericHttpRequests = defaultIfNull(other.allowGenericHttpRequests, allowGenericHttpRequests);
+        merged.allowOrigin = defaultIfEmpty(other.allowOrigin, allowOrigin);
+        merged.allowSubdomains = other.allowSubdomains;
+        merged.supportedMethods = defaultIfEmpty(other.supportedMethods, supportedMethods);
+        merged.supportedHeaders = defaultIfEmpty(other.supportedHeaders, supportedHeaders);
+        merged.exposedHeaders = defaultIfEmpty(other.exposedHeaders, exposedHeaders);
+        merged.maxAge = maxAge == -1 ? other.maxAge : maxAge;
+        merged.pattern = defaultIfNull(other.pattern, pattern);
+        return merged;
     }
 }

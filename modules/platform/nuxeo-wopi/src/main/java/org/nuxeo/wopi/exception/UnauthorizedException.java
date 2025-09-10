@@ -19,7 +19,7 @@
 
 package org.nuxeo.wopi.exception;
 
-import static javax.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
+import static jakarta.servlet.http.HttpServletResponse.SC_UNAUTHORIZED;
 
 /**
  * @since 10.3

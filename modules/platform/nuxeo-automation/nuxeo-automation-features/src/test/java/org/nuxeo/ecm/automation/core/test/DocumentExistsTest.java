@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,11 +34,10 @@ import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.context.ContextHelper;
 import org.nuxeo.ecm.automation.context.ContextService;
 import org.nuxeo.ecm.automation.core.scripting.Scripting;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.automation.features.PlatformFunctions;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -46,20 +45,18 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 8.3
  */
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 public class DocumentExistsTest {
 
     protected DocumentModel src;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    ContextService ctxService;
+    protected ContextService ctxService;
 
-    OperationContext ctx;
+    protected OperationContext ctx;
 
     private String exprTemplate = "Fn.documentExists(Session,\"%s\")";
 
@@ -74,7 +71,7 @@ public class DocumentExistsTest {
     }
 
     @After
-    public void clearRepo() throws Exception {
+    public void clearRepo() {
         session.removeChildren(session.getRootDocument().getRef());
     }
 
@@ -83,7 +80,6 @@ public class DocumentExistsTest {
         Map<String, ContextHelper> contextHelperList = ctxService.getHelperFunctions();
         PlatformFunctions functions = (PlatformFunctions) contextHelperList.get("Fn");
         assertEquals(functions, Scripting.newExpression("Fn").eval(ctx));
-        assertTrue(functions instanceof PlatformFunctions);
 
         // using directly the platform functions
         boolean exists = functions.documentExists(session, src.getPath().toString());
@@ -95,7 +91,7 @@ public class DocumentExistsTest {
     }
 
     @Test
-    public void testDocumentExists() throws Exception {
+    public void testDocumentExists() {
 
         // using the scripting with a document path
         String expr = String.format(exprTemplate, src.getId());
@@ -110,7 +106,7 @@ public class DocumentExistsTest {
     }
 
     @Test
-    public void testDocumentDoNotExists() throws Exception {
+    public void testDocumentDoNotExists() {
 
         // using the scripting with a document path
         String expr = String.format(exprTemplate, "/notsrc");

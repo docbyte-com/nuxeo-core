@@ -1,0 +1,11 @@
+<?xml version="1.0" ?>
+<instance>
+  <packages>
+    <package>
+      <supportsHotReload>false</supportsHotReload>
+      <description>Download and install the latest hotfix to keep your Nuxeo up-to-date.
+    Changes will take effects after restart.
+      </description>
+    </package>
+  </packages>
+</instance>

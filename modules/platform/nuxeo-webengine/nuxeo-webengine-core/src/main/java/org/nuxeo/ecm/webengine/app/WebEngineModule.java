@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -32,32 +31,24 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.ext.Provider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.platform.web.common.RequestContext;
 import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.jaxrs.ApplicationFactory;
-import org.nuxeo.ecm.webengine.jaxrs.scan.Scanner;
 import org.nuxeo.ecm.webengine.loader.WebLoader;
 import org.nuxeo.ecm.webengine.model.Module;
+import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultTypeLoader;
 import org.nuxeo.ecm.webengine.model.impl.ModuleConfiguration;
 import org.nuxeo.ecm.webengine.model.impl.ModuleManager;
+import org.nuxeo.ecm.webengine.rest.ApplicationFactory;
+import org.nuxeo.ecm.webengine.rest.scan.Scanner;
 import org.osgi.framework.Bundle;
-
-import com.sun.jersey.core.spi.component.ComponentContext;
-import com.sun.jersey.core.spi.component.ComponentScope;
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
-import com.sun.jersey.spi.inject.Injectable;
-import com.sun.jersey.spi.inject.InjectableProvider;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -65,12 +56,6 @@ import com.sun.jersey.spi.inject.InjectableProvider;
 public class WebEngineModule extends Application implements ApplicationFactory {
 
     private static final Logger log = LogManager.getLogger(WebEngineModule.class);
-
-    public final static String WEBOBJECT_ANNO = "Lorg/nuxeo/ecm/webengine/model/WebObject;";
-
-    public final static String WEBADAPTER_ANNO = "Lorg/nuxeo/ecm/webengine/model/WebAdapter;";
-
-    protected ServerInjectableProviderContext context;
 
     protected Bundle bundle;
 
@@ -114,10 +99,10 @@ public class WebEngineModule extends Application implements ApplicationFactory {
                             + bundle.getSymbolicName());
                 }
             } else {
-                initRoots(engine);
+                initRoots();
             }
         } else {
-            initRoots(engine);
+            initRoots();
         }
     }
 
@@ -125,11 +110,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         if (packageBase == null) {
             packageBase = "/";
         }
-        Scanner scanner = new Scanner(bundle, packageBase, Scanner.PATH_ANNO, Scanner.PROVIDER_ANNO, WEBOBJECT_ANNO,
-                WEBADAPTER_ANNO);
+        Scanner scanner = new Scanner(bundle, packageBase, Path.class, Provider.class, WebObject.class,
+                WebAdapter.class);
         scanner.scan();
-        Collection<Class<?>> paths = scanner.getCollector(Scanner.PATH_ANNO);
-        Collection<Class<?>> providers = scanner.getCollector(Scanner.PROVIDER_ANNO);
+        Collection<Class<Path>> paths = scanner.getClasses(Path.class);
+        Collection<Class<Provider>> providers = scanner.getClasses(Provider.class);
         cfg.roots = new Class<?>[paths.size() + providers.size()];
         int i = 0;
         for (Class<?> cl : paths) {
@@ -138,8 +123,8 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         for (Class<?> cl : providers) {
             cfg.roots[i++] = cl;
         }
-        Collection<Class<?>> objs = scanner.getCollector(WEBOBJECT_ANNO);
-        Collection<Class<?>> adapters = scanner.getCollector(WEBADAPTER_ANNO);
+        Collection<Class<WebObject>> objs = scanner.getClasses(WebObject.class);
+        Collection<Class<WebAdapter>> adapters = scanner.getClasses(WebAdapter.class);
         cfg.types = new Class<?>[objs.size() + adapters.size()];
         i = 0;
         for (Class<?> cl : objs) {
@@ -162,13 +147,11 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     private static Class<?>[] readWebTypes(WebLoader loader, InputStream in)
             throws ReflectiveOperationException, IOException {
         HashSet<Class<?>> types = new HashSet<>();
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new InputStreamReader(in));
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.trim();
-                if (line.length() == 0 || line.startsWith("#")) {
+                if (line.isEmpty() || line.startsWith("#")) {
                     continue;
                 }
                 int p = line.indexOf('|');
@@ -178,39 +161,20 @@ public class WebEngineModule extends Application implements ApplicationFactory {
                 Class<?> cl = loader.loadClass(line);
                 types.add(cl);
             }
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                }
-            }
         }
-        return types.toArray(new Class<?>[types.size()]);
+        return types.toArray(Class<?>[]::new);
     }
 
-    private void initRoots(WebEngine engine) {
+    private void initRoots() {
         ArrayList<Class<?>> roots = new ArrayList<>();
         for (Class<?> cl : cfg.types) {
             if (cl.isAnnotationPresent(Path.class)) {
                 roots.add(cl);
-            } else if (cfg.rootType != null) {
-                // compat mode - should be removed later
-                WebObject wo = cl.getAnnotation(WebObject.class);
-                if (wo != null && wo.type().equals(cfg.rootType)) {
-                    log.warn(
-                            "Invalid web module: {} from bundle: {}. The root-type {} in module.xml is deprecated. "
-                                    + "Consider using @Path annotation on you root web objects.",
-                            cfg.name, bundle.getSymbolicName(), cl);
-                }
             }
         }
         if (roots.isEmpty()) {
             log.error("No root web objects found in web module: {} from bundle: {}", cfg.name,
                     bundle.getSymbolicName());
-            // throw new
-            // IllegalStateException("No root web objects found in web module "+cfg.name+" from bundle
-            // "+bundle.getSymbolicName());
         }
         cfg.roots = roots.toArray(Class<?>[]::new);
     }
@@ -219,10 +183,8 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         if (file != null && file.isFile()) {
             cfg = ModuleManager.readConfiguration(engine, file);
         } else {
-            cfg = new ModuleConfiguration();
+            cfg = new ModuleConfiguration(engine);
         }
-        cfg.engine = engine;
-        cfg.file = file;
         return cfg;
     }
 
@@ -231,7 +193,7 @@ public class WebEngineModule extends Application implements ApplicationFactory {
     }
 
     public Module getModule(WebContext context) {
-        return cfg.get(context);
+        return cfg.get();
     }
 
     public Bundle getBundle() {
@@ -245,14 +207,7 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         }
         Set<Class<?>> set = new HashSet<>();
         Collections.addAll(set, cfg.roots);
-        return set;
-    }
-
-    @Override
-    public Set<Object> getSingletons() {
-        Set<Object> set = new HashSet<>();
-        set.add(new HttpServletRequestProvider());
-        set.add(new HttpServletResponseProvider());
+        set.add(WebContextProvider.class);
         return set;
     }
 
@@ -270,50 +225,8 @@ public class WebEngineModule extends Application implements ApplicationFactory {
         return WebEngineModuleFactory.getApplication(this, bundle, args);
     }
 
-    public static class HttpServletRequestProvider
-            implements InjectableProvider<Context, Type>, Injectable<HttpServletRequest> {
-        @Override
-        public HttpServletRequest getValue() {
-            RequestContext ctx = RequestContext.getActiveContext();
-            return ctx != null ? ctx.getRequest() : null;
-        }
-
-        @Override
-        public ComponentScope getScope() {
-            return ComponentScope.PerRequest;
-        }
-
-        @Override
-        public Injectable<HttpServletRequest> getInjectable(ComponentContext ic, Context a, Type c) {
-            if (!c.equals(HttpServletRequest.class)) {
-                return null;
-            }
-            return this;
-        }
-
+    @Override
+    public String toString() {
+        return "WebEngineModule{cfg=" + cfg + ", bundle=" + bundle + '}';
     }
-
-    public static class HttpServletResponseProvider
-            implements InjectableProvider<Context, Type>, Injectable<HttpServletResponse> {
-        @Override
-        public HttpServletResponse getValue() {
-            RequestContext ctx = RequestContext.getActiveContext();
-            return ctx != null ? ctx.getResponse() : null;
-        }
-
-        @Override
-        public ComponentScope getScope() {
-            return ComponentScope.PerRequest;
-        }
-
-        @Override
-        public Injectable<HttpServletResponse> getInjectable(ComponentContext ic, Context a, Type c) {
-            if (!c.equals(HttpServletResponse.class)) {
-                return null;
-            }
-            return this;
-        }
-
-    }
-
 }

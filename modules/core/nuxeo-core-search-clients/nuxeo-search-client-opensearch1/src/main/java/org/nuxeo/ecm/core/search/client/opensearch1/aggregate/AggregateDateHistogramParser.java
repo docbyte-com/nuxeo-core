@@ -1,0 +1,175 @@
+/*
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     bdelbosc
+ */
+package org.nuxeo.ecm.core.search.client.opensearch1.aggregate;
+
+import static org.nuxeo.ecm.core.search.client.opensearch1.aggregate.AggregateParserBase.getFieldName;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_EXTENDED_BOUND_MAX_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_EXTENDED_BOUND_MIN_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_FORMAT_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_INTERVAL_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_MIN_DOC_COUNT_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_ORDER_COUNT_ASC;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_ORDER_COUNT_DESC;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_ORDER_KEY_ASC;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_ORDER_KEY_DESC;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_ORDER_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_PRE_ZONE_PROP;
+import static org.nuxeo.ecm.platform.query.api.AggregateConstants.AGG_TIME_ZONE_PROP;
+
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import org.joda.time.DateTimeZone;
+import org.nuxeo.common.utils.DateUtils;
+import org.nuxeo.ecm.platform.query.api.Aggregate;
+import org.nuxeo.ecm.platform.query.api.Bucket;
+import org.nuxeo.ecm.platform.query.core.BucketRangeDate;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.RangeQueryBuilder;
+import org.opensearch.search.aggregations.AggregationBuilders;
+import org.opensearch.search.aggregations.BucketOrder;
+import org.opensearch.search.aggregations.bucket.MultiBucketsAggregation;
+import org.opensearch.search.aggregations.bucket.histogram.DateHistogramAggregationBuilder;
+import org.opensearch.search.aggregations.bucket.histogram.DateHistogramInterval;
+import org.opensearch.search.aggregations.bucket.histogram.LongBounds;
+
+/**
+ * @since 6.0
+ */
+public final class AggregateDateHistogramParser {
+
+    private AggregateDateHistogramParser() {
+    }
+
+    public static DateHistogramAggregationBuilder getAggregate(Aggregate<? extends Bucket> agg) {
+        DateHistogramAggregationBuilder ret = AggregationBuilders.dateHistogram(agg.getId())
+                                                                 .field(getFieldName(agg.getField()))
+                                                                 .timeZone(DateTimeZone.getDefault()
+                                                                                       .toTimeZone()
+                                                                                       .toZoneId());
+        Map<String, String> props = agg.getProperties();
+        if (props.containsKey(AGG_INTERVAL_PROP)) {
+            ret.calendarInterval(new DateHistogramInterval(props.get(AGG_INTERVAL_PROP)));
+        }
+        if (props.containsKey(AGG_MIN_DOC_COUNT_PROP)) {
+            ret.minDocCount(Long.parseLong(props.get(AGG_MIN_DOC_COUNT_PROP)));
+        }
+        if (props.containsKey(AGG_ORDER_PROP)) {
+            switch (props.get(AGG_ORDER_PROP).toLowerCase()) {
+                case AGG_ORDER_COUNT_DESC:
+                    ret.order(BucketOrder.count(false));
+                    break;
+                case AGG_ORDER_COUNT_ASC:
+                    ret.order(BucketOrder.count(true));
+                    break;
+                case AGG_ORDER_KEY_DESC:
+                    ret.order(BucketOrder.key(false));
+                    break;
+                case AGG_ORDER_KEY_ASC:
+                    ret.order(BucketOrder.key(true));
+                    break;
+                default:
+                    throw new IllegalArgumentException("Invalid order: " + props.get(AGG_ORDER_PROP));
+            }
+        }
+        if (props.containsKey(AGG_EXTENDED_BOUND_MAX_PROP) && props.containsKey(AGG_EXTENDED_BOUND_MIN_PROP)) {
+            ret.extendedBounds(
+                    new LongBounds(props.get(AGG_EXTENDED_BOUND_MIN_PROP), props.get(AGG_EXTENDED_BOUND_MAX_PROP)));
+        }
+        if (props.containsKey(AGG_TIME_ZONE_PROP)) {
+            ret.timeZone(DateTimeZone.forID(props.get(AGG_TIME_ZONE_PROP)).toTimeZone().toZoneId());
+        }
+        if (props.containsKey(AGG_PRE_ZONE_PROP)) {
+            ret.timeZone(DateTimeZone.forID(props.get(AGG_PRE_ZONE_PROP)).toTimeZone().toZoneId());
+        }
+        if (props.containsKey(AGG_FORMAT_PROP)) {
+            ret.format(props.get(AGG_FORMAT_PROP));
+        }
+        return ret;
+    }
+
+    public static QueryBuilder getFilter(Aggregate<? extends Bucket> agg) {
+        if (agg.getSelection().isEmpty()) {
+            return null;
+        }
+        BoolQueryBuilder ret = QueryBuilders.boolQuery();
+        for (String sel : agg.getSelection()) {
+            RangeQueryBuilder rangeFilter = QueryBuilders.rangeQuery(getFieldName(agg.getField()));
+            ZonedDateTime from = convertStringToDate(sel, agg);
+            ZonedDateTime to = DateHelper.plusDuration(from, getInterval(agg));
+            rangeFilter.gte(from.toInstant().toEpochMilli())
+                       .lt(to.toInstant().toEpochMilli())
+                       .format(DateHelper.EPOCH_MILLIS_FORMAT);
+            ret.should(rangeFilter);
+        }
+        return ret;
+    }
+
+    protected static ZonedDateTime convertStringToDate(String date, Aggregate<? extends Bucket> agg) {
+        String timezone = "UTC";
+        var props = agg.getProperties();
+        if (props.containsKey(AGG_TIME_ZONE_PROP)) {
+            timezone = props.get(AGG_TIME_ZONE_PROP);
+        }
+        DateTimeFormatter fmt;
+        if (props.containsKey(AGG_FORMAT_PROP)) {
+            fmt = DateUtils.robustOfPattern(props.get(AGG_FORMAT_PROP)).withZone(ZoneId.of(timezone));
+        } else {
+            throw new IllegalArgumentException("format property must be defined for " + agg);
+        }
+        TemporalAccessor ta = fmt.parseBest(date, ZonedDateTime::from, LocalDate::from);
+        if (ta instanceof LocalDate) {
+            return ((LocalDate) ta).atStartOfDay(ZoneId.of(timezone));
+        } else {
+            return (ZonedDateTime) ta;
+        }
+    }
+
+    public static List<BucketRangeDate> parseBuckets(Collection<? extends MultiBucketsAggregation.Bucket> buckets,
+            Aggregate<? extends Bucket> agg) {
+        List<BucketRangeDate> nxBuckets = new ArrayList<>(buckets.size());
+        for (MultiBucketsAggregation.Bucket bucket : buckets) {
+            ZonedDateTime fromZDT = (ZonedDateTime) bucket.getKey();
+            ZonedDateTime toZDT = DateHelper.plusDuration(fromZDT, getInterval(agg));
+            nxBuckets.add(new BucketRangeDate(bucket.getKeyAsString(), fromZDT, toZDT, bucket.getDocCount()));
+        }
+        return nxBuckets;
+    }
+
+    protected static String getInterval(Aggregate<? extends Bucket> agg) {
+        String ret;
+        var props = agg.getProperties();
+        if (props.containsKey(AGG_INTERVAL_PROP)) {
+            ret = props.get(AGG_INTERVAL_PROP);
+        } else {
+            throw new IllegalArgumentException("interval property must be defined for " + agg);
+        }
+        return ret;
+    }
+
+}

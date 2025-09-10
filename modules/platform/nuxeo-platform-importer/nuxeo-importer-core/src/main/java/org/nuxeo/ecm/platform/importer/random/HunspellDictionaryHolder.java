@@ -52,10 +52,10 @@ public class HunspellDictionaryHolder implements DictionaryHolder {
     protected String dicName = DEFAULT_DIC;
 
     public HunspellDictionaryHolder(String lang) {
-        if (lang != null) {
-            // sanitize the input so we don't open a security breach.
-            dicName = lang.replaceAll("\\W+", "") + ".dic";
-        }
+        dicName = switch (lang) {
+            case "fr_FR", "en_US" -> lang + ".dic";
+            case null, default -> DEFAULT_DIC;
+        };
     }
 
     @Override

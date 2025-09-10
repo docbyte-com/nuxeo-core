@@ -38,7 +38,7 @@ public class RangeValidator implements FieldValidator {
     public boolean validateNumber(Number value) {
         double d = value.doubleValue();
         boolean result = d > min && d < max;
-        return negate ? !result : result;
+        return negate != result;
     }
 
     @Override

@@ -1,0 +1,225 @@
+/*
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Thierry Delprat
+ *     Benoit Delbosc
+ */
+package org.nuxeo.ecm.core.search.index.commands;
+
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKIN;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_EXTEND_RETENTION;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_MAKE_RECORD;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_REMOVE_LEGAL_HOLD;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_SET_LEGAL_HOLD;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_SET_RETENTION;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.AFTER_UNSET_RETENTION;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.BEFORE_DOC_UPDATE;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.BINARYTEXT_UPDATED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CHECKEDIN;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CHECKEDOUT;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CHILDREN_ORDER_CHANGED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED_BY_COPY;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_IMPORTED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_MOVED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_PROXY_UPDATED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_REMOVED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_RESTORED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_SECURITY_UPDATED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_TAG_UPDATED;
+import static org.nuxeo.ecm.core.api.trash.TrashService.DOCUMENT_TRASHED;
+import static org.nuxeo.ecm.core.api.trash.TrashService.DOCUMENT_UNTRASHED;
+import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
+import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.SYNC_INDEXING_FLAG;
+
+import java.util.Map;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.AbstractSession;
+import org.nuxeo.ecm.core.api.CoreInstance;
+import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.IdRef;
+import org.nuxeo.ecm.core.api.LifeCycleConstants;
+import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.runtime.api.Framework;
+
+/**
+ * Contains logic to stack ElasticSearch commands depending on Document events This class is mainly here to make testing
+ * easier
+ */
+public abstract class IndexingCommandsStacker {
+
+    private static final Logger log = LogManager.getLogger(IndexingCommandsStacker.class);
+
+    protected abstract Map<String, IndexingCommands> getAllCommands();
+
+    protected abstract boolean isSyncIndexingByDefault();
+
+    protected IndexingCommands getCommands(DocumentModel doc) {
+        return getAllCommands().get(getDocKey(doc));
+    }
+
+    public void stackCommand(DocumentEventContext docCtx, String eventId) {
+        DocumentModel doc = docCtx.getSourceDocument();
+        if (doc == null) {
+            return;
+        }
+        if (doc.getRepositoryName() == null) {
+            log.warn("Skipping indexing doc without repo: {}, event: {}", doc.getId(), eventId);
+            return;
+        }
+        if ("/".equals(doc.getPathAsString())) {
+            log.debug("Skip indexing command for root document");
+            if (eventId.equals(DOCUMENT_SECURITY_UPDATED)) {
+                log.debug("Indexing root document children to update their permissions");
+                DocumentModelList children = doc.getCoreSession().getChildren(doc.getRef());
+                children.forEach(child -> stackCommand(child, docCtx, eventId));
+            }
+        } else {
+            stackCommand(doc, docCtx, eventId);
+        }
+    }
+
+    protected void stackCommand(DocumentModel doc, DocumentEventContext docCtx, String eventId) {
+        Boolean block = (Boolean) docCtx.getProperty(DISABLE_AUTO_INDEXING);
+        if (block != null && block) {
+            log.debug("Indexing is disable, skip indexing command for doc: {}", doc);
+            return;
+        }
+        boolean sync = isSynchronous(docCtx, doc);
+        stackCommand(doc, eventId, sync);
+    }
+
+    protected boolean isSynchronous(DocumentEventContext docCtx, DocumentModel doc) {
+        // 1. look at event context
+        Boolean sync = (Boolean) docCtx.getProperty(SYNC_INDEXING_FLAG);
+        if (sync != null) {
+            return sync;
+        }
+        // 2. look at document context
+        sync = (Boolean) doc.getContextData(SYNC_INDEXING_FLAG);
+        if (sync != null) {
+            return sync;
+        }
+        // 3. get the default
+        sync = isSyncIndexingByDefault();
+        return sync;
+    }
+
+    protected void stackCommand(DocumentModel doc, String eventId, boolean sync) {
+        IndexingCommand.Type type;
+        boolean recurse = false;
+        switch (eventId) {
+            case DOCUMENT_CREATED:
+            case DOCUMENT_IMPORTED:
+                type = IndexingCommand.Type.INSERT;
+                break;
+            case DOCUMENT_CREATED_BY_COPY:
+                type = IndexingCommand.Type.INSERT;
+                recurse = isFolderish(doc);
+                break;
+            case BEFORE_DOC_UPDATE:
+            case DOCUMENT_CHECKEDIN:
+            case DOCUMENT_CHECKEDOUT:
+            case BINARYTEXT_UPDATED:
+            case DOCUMENT_TAG_UPDATED:
+            case DOCUMENT_PROXY_UPDATED:
+            case LifeCycleConstants.TRANSITION_EVENT:
+            case DOCUMENT_TRASHED:
+            case DOCUMENT_UNTRASHED:
+            case DOCUMENT_RESTORED:
+            case AFTER_MAKE_RECORD:
+            case AFTER_SET_RETENTION:
+            case AFTER_UNSET_RETENTION:
+            case AFTER_EXTEND_RETENTION:
+            case AFTER_SET_LEGAL_HOLD:
+            case AFTER_REMOVE_LEGAL_HOLD:
+                if (doc.isProxy() && !doc.isImmutable()) {
+                    CoreInstance.doPrivileged(doc.getCoreSession(),
+                            (CoreSession s) -> stackCommand(s.getDocument(new IdRef(doc.getSourceId())),
+                                    BEFORE_DOC_UPDATE, false));
+                }
+                type = IndexingCommand.Type.UPDATE;
+                break;
+            case ABOUT_TO_CHECKIN:
+                if (indexIsLatestVersion()) {
+                    String query = String.format(
+                            "SELECT * FROM %s WHERE (ecm:isLatestMajorVersion = 1 OR ecm:isLatestVersion = 1) AND ecm:versionVersionableId= '%s'",
+                            doc.getType(), doc.getId());
+                    DocumentModelList versions = doc.getCoreSession().query(query);
+                    for (DocumentModel version : versions) {
+                        stackCommand(version, BEFORE_DOC_UPDATE, false);
+                    }
+                }
+                type = IndexingCommand.Type.UPDATE;
+                break;
+            case DOCUMENT_MOVED:
+                type = IndexingCommand.Type.UPDATE;
+                recurse = isFolderish(doc);
+                break;
+            case DOCUMENT_REMOVED:
+                type = IndexingCommand.Type.DELETE;
+                recurse = isFolderish(doc);
+                break;
+            case DOCUMENT_SECURITY_UPDATED:
+                type = IndexingCommand.Type.UPDATE_SECURITY;
+                recurse = isFolderish(doc);
+                break;
+            case DOCUMENT_CHILDREN_ORDER_CHANGED:
+                type = IndexingCommand.Type.UPDATE_DIRECT_CHILDREN;
+                recurse = true;
+                break;
+            default:
+                return;
+        }
+        IndexingCommands cmds = getOrCreateCommands(doc);
+        if (sync && recurse) {
+            // split into 2 commands one sync and an async recurse
+            cmds.add(type, false, true);
+            if (type != IndexingCommand.Type.UPDATE_DIRECT_CHILDREN) {
+                // case where there is no sync updated needed
+                cmds.add(type, true, false);
+            }
+        } else {
+            cmds.add(type, sync, recurse);
+        }
+    }
+
+    private boolean indexIsLatestVersion() {
+        return !Framework.isBooleanPropertyTrue(AbstractSession.DISABLED_ISLATESTVERSION_PROPERTY);
+    }
+
+    private boolean isFolderish(DocumentModel doc) {
+        return doc.isFolder() && !doc.isVersion();
+    }
+
+    protected IndexingCommands getOrCreateCommands(DocumentModel doc) {
+        IndexingCommands cmds = getCommands(doc);
+        if (cmds == null) {
+            cmds = new IndexingCommands(doc);
+            getAllCommands().put(getDocKey(doc), cmds);
+        }
+        return cmds;
+    }
+
+    protected String getDocKey(DocumentModel doc) {
+        return doc.getId();
+    }
+
+}

@@ -31,7 +31,9 @@ import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 9.3
+ * @deprecated since 2025.0, restore is not available on new {@link org.nuxeo.audit.service.AuditBackend}
  */
+@Deprecated(since = "2025.0", forRemoval = true)
 @Operation(id = AuditRestore.ID, category = Constants.CAT_SERVICES, label = "Restore log entries", description = "Restore log entries from an audit storage implementation to the audit backend.")
 public class AuditRestore {
 

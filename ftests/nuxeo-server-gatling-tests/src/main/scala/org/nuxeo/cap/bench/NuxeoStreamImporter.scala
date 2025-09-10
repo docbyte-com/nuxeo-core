@@ -30,7 +30,7 @@ object NuxeoStreamImporter {
       .headers(Headers.base)
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
-      .basicAuth("${adminId}", "${adminPassword}")
+      .basicAuth("#{adminId}", "#{adminPassword}")
   }
 
   def importDocuments(nbThreads: Integer) = {
@@ -40,7 +40,7 @@ object NuxeoStreamImporter {
       .headers(Headers.base)
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
-      .basicAuth("${adminId}", "${adminPassword}")
+      .basicAuth("#{adminId}", "#{adminPassword}")
   }
 
 }

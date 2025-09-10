@@ -1,0 +1,13 @@
+<instance>
+  <packages>
+    <package>
+      <supportsHotReload>false</supportsHotReload>
+      <templates>template-1</templates>
+    </package>
+    <package>
+      <supportsHotReload>false</supportsHotReload>
+      <templates>template-1</templates>
+      <templates>template-2</templates>
+    </package>
+  </packages>
+</instance>

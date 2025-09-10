@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertNotNull;
 
 import java.net.URL;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +35,7 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.picture.api.ImageInfo;
 import org.nuxeo.ecm.platform.picture.api.ImagingService;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -46,7 +43,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author btatar
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestImageInfo {
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import static org.junit.Assert.assertNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -53,7 +53,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(BinaryMetadataFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-test.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-disable-listener.xml")
 @Deploy("org.nuxeo.binary.metadata:binary-metadata-contrib-pdf-test.xml")
@@ -61,10 +60,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestBinaryMetadataOperation extends BaseBinaryMetadataTest {
 
     @Inject
-    AutomationService automationService;
+    protected AutomationService automationService;
 
     @Inject
-    OperationContext operationContext;
+    protected OperationContext operationContext;
 
     private static final Map<String, Object> triggerParameters;
 
@@ -165,7 +164,8 @@ public class TestBinaryMetadataOperation extends BaseBinaryMetadataTest {
         automationService.run(operationContext, ReadMetadataFromBinaryToContext.ID, params);
         assertNotNull(operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA));
         assertEquals("Metal",
-                ((Map<?, ?>) operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA)).get("ID3:Genre"));
+                ((Map<?, ?>) operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA)).get(
+                        "ID3:Genre"));
 
         // Run the same operation with specific properties listing
         operationContext.setInput(musicBlobHolder.getBlob());
@@ -176,7 +176,8 @@ public class TestBinaryMetadataOperation extends BaseBinaryMetadataTest {
         parameters.put("metadata", metadata);
         automationService.run(operationContext, ReadMetadataFromBinaryToContext.ID, parameters);
         assertNotNull(operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA));
-        assertNull(((Map<?, ?>) operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA)).get("ID3:Genre"));
+        assertNull(((Map<?, ?>) operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA)).get(
+                "ID3:Genre"));
         assertEquals(2, ((Map<?, ?>) operationContext.get(ReadMetadataFromBinaryToContext.CTX_BINARY_METADATA)).size());
     }
 }

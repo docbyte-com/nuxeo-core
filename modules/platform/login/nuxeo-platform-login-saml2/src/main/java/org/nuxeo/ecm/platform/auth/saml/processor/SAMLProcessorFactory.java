@@ -28,11 +28,14 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.namespace.QName;
 
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.apache.hc.client5.http.config.ConnectionConfig;
+import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
+import org.apache.hc.core5.util.Timeout;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.auth.saml.SAMLConfiguration;
 import org.nuxeo.ecm.platform.auth.saml.key.KeyManager;
@@ -86,8 +89,8 @@ import org.opensaml.xmlsec.keyinfo.impl.StaticKeyInfoCredentialResolver;
 import org.opensaml.xmlsec.messaging.impl.PopulateSignatureValidationParametersHandler;
 import org.opensaml.xmlsec.signature.support.impl.ExplicitKeySignatureTrustEngine;
 
-import net.shibboleth.utilities.java.support.component.ComponentInitializationException;
-import net.shibboleth.utilities.java.support.resolver.ResolverException;
+import net.shibboleth.shared.component.ComponentInitializationException;
+import net.shibboleth.shared.resolver.ResolverException;
 
 /**
  * @since 2023.0
@@ -97,6 +100,10 @@ public class SAMLProcessorFactory {
     protected static final String SIGNATURE_ALGORITHM = "SignatureAlgorithm";
 
     protected static final String DIGEST_ALGORITHM = "DigestAlgorithm";
+
+    protected static final String SIGNATURE_MANDATORY = "signatureMandatory";
+
+    protected final boolean signatureMandatory;
 
     /**
      * Message handlers that run on a SAML inbound message, ie: message from IDP.
@@ -114,6 +121,7 @@ public class SAMLProcessorFactory {
     protected final MessageHandler outboundHandlerChain;
 
     public SAMLProcessorFactory(Map<String, String> parameters) {
+        this.signatureMandatory = Boolean.parseBoolean(parameters.getOrDefault(SIGNATURE_MANDATORY, "true"));
         try {
             var idpMetadataResolver = instantiateIdpMetadataResolver(parameters);
             var signingConfiguration = instantiateSigningConfiguration(parameters);
@@ -155,7 +163,7 @@ public class SAMLProcessorFactory {
         return Stream.of(SAMLInboundBinding.values())
                      .filter(b -> b.accept(request))
                      .findFirst()
-                     .map(b -> new InboundProcessor(b, inboundHandlerChain));
+                     .map(b -> new InboundProcessor(b, inboundHandlerChain, signatureMandatory));
     }
 
     public SAMLProcessor retrieveOutboundProcessor(String profileId) {
@@ -190,15 +198,16 @@ public class SAMLProcessorFactory {
 
             if (metadataUrl.startsWith("http:") || metadataUrl.startsWith("https:")) {
                 int requestTimeout = Integer.parseInt(parameters.getOrDefault("timeout", "5"));
-                int timeoutMs = requestTimeout * 1000;
-                var httpClient = HttpClientBuilder.create()
-                                                  .setDefaultRequestConfig(
-                                                          RequestConfig.custom()
-                                                                       .setConnectTimeout(timeoutMs)
-                                                                       .setConnectionRequestTimeout(timeoutMs)
-                                                                       .setSocketTimeout(timeoutMs)
-                                                                       .build())
-                                                  .build();
+                var timeout = Timeout.ofSeconds(requestTimeout);
+                var connectionManager = //
+                        PoolingHttpClientConnectionManagerBuilder.create()
+                                                                 .setDefaultConnectionConfig(
+                                                                         ConnectionConfig.custom()
+                                                                                         .setConnectTimeout(timeout)
+                                                                                         .setSocketTimeout(timeout)
+                                                                                         .build())
+                                                                 .build();
+                var httpClient = HttpClientBuilder.create().setConnectionManager(connectionManager).build();
                 metadataResolver = new HTTPMetadataResolver(httpClient, metadataUrl);
             } else { // file
                 metadataResolver = new FilesystemMetadataResolver(new File(metadataUrl));
@@ -361,11 +370,12 @@ public class SAMLProcessorFactory {
         return messageXMLSignatureHandler;
     }
 
-    protected MessageHandler buildCheckMandatoryAuthentication() {
+    protected MessageHandler buildCheckMandatoryAuthentication() throws ComponentInitializationException {
         var mandatoryAuthentication = new CheckMandatoryAuthentication();
         mandatoryAuthentication.setAuthenticationLookupStrategy(
                 context -> ((SignableSAMLObject) context.getMessage()).getSignature() == null
                         || context.getSubcontext(SAMLPeerEntityContext.class).isAuthenticated());
+        mandatoryAuthentication.initialize();
         return mandatoryAuthentication;
     }
 

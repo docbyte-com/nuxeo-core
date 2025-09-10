@@ -18,10 +18,10 @@ package org.nuxeo.mail;
 
 import static org.nuxeo.mail.MailConstants.CONFIGURATION_MAIL_FROM;
 
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.MimeMessage;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.Transport;
+import jakarta.mail.internet.MimeMessage;
 
 /**
  * Default implementation of {@link MailSender} building {@link MimeMessage}s and sending via SMTP protocol.

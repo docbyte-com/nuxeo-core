@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,11 @@
  */
 package org.nuxeo.ecm.core.event.pipe;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import jakarta.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
@@ -29,45 +33,42 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
-import com.google.inject.Inject;
-
 @RunWith(FeaturesRunner.class)
 @Features(CoreEventFeature.class)
 @Deploy("org.nuxeo.ecm.core.event.test:test-DummyPipes.xml")
 public class PipeContribTest {
 
     @Inject
-    EventService eventService;
+    protected EventService eventService;
 
     @Test
     public void testDummyDispatcher() {
 
         // check that pipes were contributed
-        Assert.assertNotNull(DummyDispatcher.pipeDescriptors);
+        assertNotNull(DummyDispatcher.pipeDescriptors);
         // check that the 2 contrib on the same pipe were merged
-        Assert.assertEquals(2, DummyDispatcher.pipeDescriptors.size());
+        assertEquals(2, DummyDispatcher.pipeDescriptors.size());
 
         // check first pipe
         EventPipeDescriptor desc1 = DummyDispatcher.pipeDescriptors.get(0);
-        Assert.assertEquals("dummyPipe1", desc1.getName());
+        assertEquals("dummyPipe1", desc1.getName());
 
         // check second pipe
         EventPipeDescriptor desc2 = DummyDispatcher.pipeDescriptors.get(1);
-        Assert.assertEquals("dummyPipe2", desc2.getName());
+        assertEquals("dummyPipe2", desc2.getName());
 
         // check that params were merged
-        Assert.assertEquals(2, desc2.getParameters().size());
+        assertEquals(2, desc2.getParameters().size());
 
         // check that priority was overridden
-        Assert.assertEquals(Integer.valueOf(10), desc2.getPriority());
-
+        assertEquals(Integer.valueOf(10), desc2.getPriority());
 
         UnboundEventContext ctx = new UnboundEventContext(new UserPrincipal("titi", null, false, false), null);
 
         eventService.fireEvent(ctx.newEvent("Test1"));
         eventService.fireEvent(ctx.newEvent("Test2"));
 
-        Assert.assertEquals(4, DummyPipe.receivedEvents.size());
+        assertEquals(4, DummyPipe.receivedEvents.size());
 
     }
 

@@ -21,13 +21,13 @@ package org.nuxeo.connect.client.we;
 
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -44,6 +44,7 @@ import org.nuxeo.connect.update.task.Task;
 import org.nuxeo.connect.update.task.standalone.UninstallTask;
 import org.nuxeo.ecm.admin.NuxeoCtlManager;
 import org.nuxeo.ecm.admin.runtime.PlatformVersionHelper;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -61,7 +62,7 @@ public class UninstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "start/{pkgId}")
-    public Object startUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template startUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         try {
             PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
@@ -99,7 +100,7 @@ public class UninstallHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "run/{pkgId}")
-    public Object doUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
+    public Template doUninstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source,
             @QueryParam("filterOnPlatform") Boolean filterOnPlatform) {
         PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
         try {
@@ -160,7 +161,7 @@ public class UninstallHandler extends DefaultObject {
 
     @POST
     @Path("restart")
-    public Object restartServer() {
+    public Response restartServer() {
         NuxeoCtlManager.restart();
         // TODO create a page that waits for the server to restart
         return Response.ok().build();

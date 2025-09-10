@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
  */
 package org.nuxeo.ecm.automation.core;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.nuxeo.ecm.automation.core.Constants.T_BOOLEAN;
 import static org.nuxeo.ecm.automation.core.Constants.T_DATE;
 import static org.nuxeo.ecm.automation.core.Constants.T_DOCUMENT;
@@ -30,39 +31,44 @@ import static org.nuxeo.ecm.automation.core.Constants.T_LONG;
 import static org.nuxeo.ecm.automation.core.Constants.T_PROPERTIES;
 import static org.nuxeo.ecm.automation.core.Constants.T_RESOURCE;
 import static org.nuxeo.ecm.automation.core.Constants.T_STRING;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.nuxeo.common.xmap.annotation.XContent;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationDocumentation;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.OperationParameters;
+import org.nuxeo.ecm.automation.OperationType;
+import org.nuxeo.ecm.automation.core.impl.ChainTypeImpl;
 import org.nuxeo.ecm.automation.core.impl.adapters.helper.TypeAdapterHelper;
 import org.nuxeo.ecm.automation.core.scripting.Scripting;
 import org.nuxeo.ecm.automation.core.util.Properties;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.impl.DocumentRefListImpl;
 import org.nuxeo.ecm.core.schema.utils.DateParser;
-import org.osgi.framework.Bundle;
+import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @XObject("chain")
-public class OperationChainContribution {
+public class OperationChainContribution implements OperationDescriptor {
 
     @XNode("@id")
     protected String id;
@@ -91,6 +97,9 @@ public class OperationChainContribution {
      */
     @XNodeList(value = "aliases/alias", type = String[].class, componentType = String.class)
     protected String[] aliases;
+
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
 
     @XObject("operation")
     public static class Operation {
@@ -145,112 +154,25 @@ public class OperationChainContribution {
         }
     }
 
-    public OperationDocumentation.Param[] getParams() {
-        return params;
-    }
-
+    @Override
     public String getId() {
         return id;
     }
 
-    public OperationChain toOperationChain(Bundle bundle) throws OperationException {
-        OperationChain chain = new OperationChain(id);
-        chain.setEnabled(enabled);
-        chain.setDescription(description);
-        chain.setPublic(isPublic);
-        chain.setAliases(aliases);
-        for (Operation op : ops) {
-            OperationParameters params = chain.add(op.id);
-            for (Param param : op.params) {
-                param.value = param.value.trim();
-                // decode XML entities in every case
-                param.value = StringEscapeUtils.unescapeXml(param.value);
-                if (param.value.startsWith("expr:")) {
-                    String value = param.value.substring(5);
-                    if (value.contains("@{")) {
-                        params.set(param.name, Scripting.newTemplate(value));
-                    } else {
-                        params.set(param.name, Scripting.newExpression(value));
-                    }
-                } else {
-                    Object val = null;
-                    String type = param.type.toLowerCase();
-                    char c = type.charAt(0);
-                    switch (c) {
-                    case 's': // string
-                        if (T_STRING.equals(type)) {
-                            val = param.value;
-                        }
-                        break;
-                    case 'p':
-                        if (T_PROPERTIES.equals(type)) {
-                            if (param.map != null && !param.map.isEmpty()) {
-                                val = new Properties(param.map);
-                            } else {
-                                try {
-                                    val = new Properties(param.value);
-                                } catch (IOException e) {
-                                    throw new OperationException(e);
-                                }
-                            }
-                        }
-                        break;
-                    case 'i':
-                        if (T_INTEGER.equals(type)) {
-                            val = Integer.valueOf(param.value);
-                        }
-                        break;
-                    case 'l':
-                        if (T_LONG.equals(type)) {
-                            val = Long.valueOf(param.value);
-                        }
-                        break;
-                    case 'b':
-                        if (T_BOOLEAN.equals(type)) {
-                            val = Boolean.valueOf(param.value);
-                        }
-                        break;
-                    case 'd':
-                        if (T_DOCUMENT.equals(type)) {
-                            val = TypeAdapterHelper.createDocumentRefOrExpression(param.value);
-                        } else if (T_DOCUMENTS.equals(type)) {
-                            String[] ar = org.nuxeo.common.utils.StringUtils.split(param.value, ',', true);
-                            DocumentRefListImpl result = new DocumentRefListImpl(ar.length);
-                            for (String ref : ar) {
-                                result.add(TypeAdapterHelper.createDocumentRef(ref));
-                            }
-                            val = result;
-                        } else if (T_DATE.equals(type)) {
-                            val = DateParser.parseW3CDateTime(param.value);
-                        }
-                        break;
-                    case 'f':
-                        if (T_FLOAT.equals(type)) {
-                            val = Double.valueOf(param.value);
-                        }
-                        break;
-                    case 'r':
-                        if (T_RESOURCE.equals(type)) {
-                            if (param.value.contains(":/")) { // a real URL
-                                try {
-                                    val = new URL(param.value);
-                                } catch (MalformedURLException e) {
-                                    throw new OperationException(e);
-                                }
-                            } else { // try with class loader
-                                val = bundle.getEntry(param.value);
-                            }
-                        }
-                        break;
-                    }
-                    if (val == null) {
-                        val = param.value;
-                    }
-                    params.set(param.name, val);
-                }
-            }
-        }
-        return chain;
+    /** @since 2025.0 */
+    @Override
+    public boolean replace() {
+        return replace;
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public OperationDocumentation.Param[] getParams() {
+        return params;
     }
 
     public Operation[] getOps() {
@@ -317,40 +239,125 @@ public class OperationChainContribution {
         }).toArray(Operation[]::new);
     }
 
-    /** @since 2021.17 */
     @Override
-    public OperationChainContribution clone() {
-        OperationChainContribution clone = new OperationChainContribution();
-        clone.id = id;
-        clone.replace = replace;
-        clone.description = description;
-        if (ops != null) {
-            clone.ops = Arrays.copyOf(ops, ops.length);
-        }
-        clone.isPublic = isPublic;
-        clone.enabled = enabled;
-        if (params != null) {
-            clone.params = Arrays.copyOf(params, params.length);
-        }
-        if (aliases != null) {
-            clone.aliases = Arrays.copyOf(aliases, aliases.length);
-        }
-        return clone;
+    public OperationType toType() {
+        return new ChainTypeImpl(toOperationChain(), this, contributingComponent.getName().getRawName());
     }
 
-    /** @since 2021.17 */
-    public void merge(OperationChainContribution other) {
-        if (StringUtils.isNotBlank(other.id)) {
-            id = other.id;
+    protected OperationChain toOperationChain() {
+        OperationChain chain = new OperationChain(id);
+        chain.setEnabled(enabled);
+        chain.setDescription(description);
+        chain.setPublic(isPublic);
+        chain.setAliases(aliases);
+        for (Operation op : ops) {
+            OperationParameters params = chain.add(op.id);
+            for (Param param : op.params) {
+                param.value = param.value.trim();
+                // decode XML entities in every case
+                param.value = StringEscapeUtils.unescapeXml(param.value);
+                if (param.value.startsWith("expr:")) {
+                    String value = param.value.substring(5);
+                    if (value.contains("@{")) {
+                        params.set(param.name, Scripting.newTemplate(value));
+                    } else {
+                        params.set(param.name, Scripting.newExpression(value));
+                    }
+                } else {
+                    Object val = null;
+                    String type = param.type.toLowerCase();
+                    char c = type.charAt(0);
+                    switch (c) {
+                        case 's': // string
+                            if (T_STRING.equals(type)) {
+                                val = param.value;
+                            }
+                            break;
+                        case 'p':
+                            if (T_PROPERTIES.equals(type)) {
+                                if (param.map != null && !param.map.isEmpty()) {
+                                    val = new Properties(param.map);
+                                } else {
+                                    try {
+                                        val = new Properties(param.value);
+                                    } catch (IOException e) {
+                                        throw new NuxeoException(e);
+                                    }
+                                }
+                            }
+                            break;
+                        case 'i':
+                            if (T_INTEGER.equals(type)) {
+                                val = Integer.valueOf(param.value);
+                            }
+                            break;
+                        case 'l':
+                            if (T_LONG.equals(type)) {
+                                val = Long.valueOf(param.value);
+                            }
+                            break;
+                        case 'b':
+                            if (T_BOOLEAN.equals(type)) {
+                                val = Boolean.valueOf(param.value);
+                            }
+                            break;
+                        case 'd':
+                            switch (type) {
+                                case T_DOCUMENT -> val = TypeAdapterHelper.createDocumentRefOrExpression(param.value);
+                                case T_DOCUMENTS -> {
+                                    String[] ar = org.nuxeo.common.utils.StringUtils.split(param.value, ',', true);
+                                    DocumentRefListImpl result = new DocumentRefListImpl(ar.length);
+                                    for (String ref : ar) {
+                                        result.add(TypeAdapterHelper.createDocumentRef(ref));
+                                    }
+                                    val = result;
+                                }
+                                case T_DATE -> val = DateParser.parseW3CDateTime(param.value);
+                            }
+                            break;
+                        case 'f':
+                            if (T_FLOAT.equals(type)) {
+                                val = Double.valueOf(param.value);
+                            }
+                            break;
+                        case 'r':
+                            if (T_RESOURCE.equals(type)) {
+                                if (param.value.contains(":/")) { // a real URL
+                                    try {
+                                        val = new URI(param.value).toURL();
+                                    } catch (MalformedURLException | URISyntaxException e) {
+                                        throw new NuxeoException(e);
+                                    }
+                                } else { // try with class loader
+                                    val = contributingComponent.getContext().getBundle().getEntry(param.value);
+                                }
+                            }
+                            break;
+                    }
+                    if (val == null) {
+                        val = param.value;
+                    }
+                    params.set(param.name, val);
+                }
+            }
         }
-        replace = other.replace;
-        if (StringUtils.isNotBlank(other.description)) {
-            description = other.description;
-        }
-        ops = other.ops;
-        isPublic = other.isPublic;
-        enabled = other.enabled;
-        params = other.params;
-        aliases = other.aliases;
+        return chain;
+    }
+
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (OperationChainContribution) o;
+        var merged = new OperationChainContribution();
+        // support merge only for description boolean
+        merged.id = id; // we merge based on id, so no name merging needed
+        merged.replace = other.replace;
+        merged.enabled = other.enabled;
+        merged.description = defaultIfBlank(other.description, description);
+        merged.ops = ArrayUtils.clone(other.ops);
+        merged.isPublic = other.isPublic;
+        merged.params = ArrayUtils.clone(other.params);
+        merged.aliases = ArrayUtils.clone(other.aliases);
+        merged.contributingComponent = other.contributingComponent;
+        return merged;
     }
 }

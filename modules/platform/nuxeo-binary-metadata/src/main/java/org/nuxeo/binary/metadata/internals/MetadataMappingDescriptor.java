@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import java.util.List;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.1
  */
 @XObject("metadataMapping")
-public class MetadataMappingDescriptor implements Serializable {
+public class MetadataMappingDescriptor implements Descriptor, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -79,6 +80,7 @@ public class MetadataMappingDescriptor implements Serializable {
 
     }
 
+    @Override
     public String getId() {
         return id;
     }
@@ -109,7 +111,7 @@ public class MetadataMappingDescriptor implements Serializable {
 
     @Override
     public String toString() {
-        return "MetadataMappingDescriptor{id=" + id + ", processor=" + processor + ", blobXPath="
-                + blobXPath  + ", ignorePrefix=" + ignorePrefix + ", readOnly=" + readOnly + '}';
+        return "MetadataMappingDescriptor{id=" + id + ", processor=" + processor + ", blobXPath=" + blobXPath
+                + ", ignorePrefix=" + ignorePrefix + ", readOnly=" + readOnly + '}';
     }
 }

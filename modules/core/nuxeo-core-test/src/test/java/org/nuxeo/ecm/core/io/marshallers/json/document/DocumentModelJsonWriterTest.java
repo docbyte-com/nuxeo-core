@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json.document;
 
 import static org.junit.Assert.assertNotNull;
@@ -28,12 +27,11 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.nuxeo.common.utils.DateUtils;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
@@ -388,8 +386,6 @@ public class DocumentModelJsonWriterTest extends AbstractJsonWriterTest.Local<Do
         json = json.has("properties." + xpath).isObject();
         json.has("entity-type").isEquals("document");
         json.has("path").isEquals("/myDoc");
-
-        // TODO other repo
     }
 
     @Test
@@ -411,8 +407,6 @@ public class DocumentModelJsonWriterTest extends AbstractJsonWriterTest.Local<Do
         json = json.has("properties." + xpath).isObject();
         json.has("entity-type").isEquals("document");
         json.has("path").isEquals("/myDoc");
-
-        // TODO other repo
     }
 
     @Test
@@ -665,22 +659,6 @@ public class DocumentModelJsonWriterTest extends AbstractJsonWriterTest.Local<Do
         child = json.get(2);
         child.childrenContains("entity-type", "document");
         child.childrenContains("path", "/file3");
-    }
-
-    // NXP-30615
-    @Test
-    @Deploy("org.nuxeo.ecm.core.test:OSGI-INF/other-repo.xml")
-    public void testMultiRepo() throws IOException {
-        // create a document in another repo
-        CoreSession secondSession = CoreInstance.getCoreSession("import");
-        DocumentModel doc = secondSession.createDocumentModel("/", "file", "File");
-        doc.setPropertyValue("dc:title", "bar foo");
-        doc = secondSession.createDocument(doc);
-
-        // write the document with the default session in ctx
-        RenderingContext ctxDefault = CtxBuilder.properties("*").session(session).get();
-        JsonAssert json = jsonAssert(doc, ctxDefault);
-        assertNotNull(json);
     }
 
 }

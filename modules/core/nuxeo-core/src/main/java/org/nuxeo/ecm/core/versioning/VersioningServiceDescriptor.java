@@ -21,14 +21,19 @@ package org.nuxeo.ecm.core.versioning;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.versioning.VersioningService;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor to contribute a new {@link VersioningService}.
  */
 @XObject("service")
-public class VersioningServiceDescriptor {
+public class VersioningServiceDescriptor implements Descriptor {
 
     @XNode("@class")
     protected String className;
 
+    @Override
+    public String getId() {
+        return Descriptor.UNIQUE_DESCRIPTOR_ID;
+    }
 }

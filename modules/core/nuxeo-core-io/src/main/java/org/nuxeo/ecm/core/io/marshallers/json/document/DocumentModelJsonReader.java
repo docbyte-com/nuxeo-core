@@ -31,7 +31,7 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.stream.Stream;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;

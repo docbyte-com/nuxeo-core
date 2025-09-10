@@ -19,15 +19,15 @@
 package org.nuxeo.ecm.webengine.base;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Response;
 
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.model.exceptions.WebSecurityException;
@@ -38,7 +38,7 @@ import org.nuxeo.ecm.webengine.model.impl.ModuleShortcut;
 /**
  * The web entry point of WebEngine.
  * <p>
- * This is a mix between an webengine module and a JAX-RS root resource
+ * This is a mix between an webengine module and a Jakarta RS root resource
  *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
@@ -48,7 +48,7 @@ import org.nuxeo.ecm.webengine.model.impl.ModuleShortcut;
 public class Main extends ModuleRoot {
 
     @GET
-    public Object doGet() {
+    public Template doGet() {
         List<ModuleShortcut> list = new ArrayList<>();
         for (ModuleConfiguration mc : ctx.getEngine().getModuleManager().getModules()) {
             List<ModuleShortcut> items = mc.getShortcuts();
@@ -68,12 +68,7 @@ public class Main extends ModuleRoot {
                 }
             }
         }
-        Collections.sort(list, new Comparator<ModuleShortcut>() {
-            @Override
-            public int compare(ModuleShortcut o1, ModuleShortcut o2) {
-                return o1.title.compareTo(o2.title);
-            }
-        });
+        list.sort(Comparator.comparing(ModuleShortcut::getTitle));
         return getView("index").arg("moduleLinks", list);
     }
 

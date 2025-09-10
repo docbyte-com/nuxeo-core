@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Alexandre Russel
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.mail.fetcher;
 
 import static org.junit.Assert.assertEquals;
@@ -28,22 +25,21 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.ecm.platform.mail.MailFeature;
 import org.nuxeo.ecm.platform.mail.service.MailService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @author Alexandre Russel
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.platform.mail")
+@Features(MailFeature.class)
 @Deploy("org.nuxeo.ecm.platform.mail.test")
 public class TestPropertiesFetcher {
 
@@ -59,7 +55,7 @@ public class TestPropertiesFetcher {
     public MailService propertiesFetcherService;
 
     @Test
-    public void testService() throws Exception {
+    public void testService() {
         assertNotNull(propertiesFetcherService);
         PropertiesFetcher fetcher = propertiesFetcherService.getFetcher("testFactory");
         assertNotNull(fetcher);

@@ -27,7 +27,7 @@ import static org.nuxeo.ecm.platform.publisher.impl.core.SectionPublicationTree.
 import java.util.HashMap;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +65,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.publisher")
 @Deploy("org.nuxeo.ecm.platform.publisher.test")

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,10 @@ package org.nuxeo.ecm.web.resources.wro;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.initMocks;
 
-import java.io.IOException;
-
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -34,6 +32,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.nuxeo.ecm.web.resources.wro.factory.NuxeoWroCacheKeyFactory;
 
 import ro.isdc.wro.cache.CacheKey;
@@ -57,6 +56,8 @@ public class TestNuxeoWroCacheKeyFactory {
 
     private NuxeoWroCacheKeyFactory victim;
 
+    protected AutoCloseable mocksToClose;
+
     @BeforeClass
     public static void onBeforeClass() {
         assertEquals(0, Context.countActive());
@@ -69,7 +70,7 @@ public class TestNuxeoWroCacheKeyFactory {
 
     @Before
     public void setUp() {
-        initMocks(this);
+        mocksToClose = MockitoAnnotations.openMocks(this);
         Context.set(Context.standaloneContext());
         victim = new NuxeoWroCacheKeyFactory();
         final WroManagerFactory managerFactory = new BaseWroManagerFactory().setGroupExtractor(mockGroupExtractor);
@@ -77,13 +78,14 @@ public class TestNuxeoWroCacheKeyFactory {
     }
 
     @After
-    public void tearDown() {
+    public void tearDown() throws Exception {
         Context.unset();
+        mocksToClose.close();
     }
 
     @Test
     public void shouldHaveMinimizeEnabledByDefault() {
-        assertEquals(true, Context.get().getConfig().isMinimizeEnabled());
+        assertTrue(Context.get().getConfig().isMinimizeEnabled());
     }
 
     @Test(expected = NullPointerException.class)
@@ -119,7 +121,7 @@ public class TestNuxeoWroCacheKeyFactory {
     }
 
     @Test
-    public void shouldHaveMinimizationTurnedOffWhenMinimizeEnabledIsFalse() throws IOException {
+    public void shouldHaveMinimizationTurnedOffWhenMinimizeEnabledIsFalse() {
         when(mockGroupExtractor.isMinimized(mockRequest)).thenReturn(true);
         when(mockGroupExtractor.getGroupName(mockRequest)).thenReturn("g1");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);
@@ -128,7 +130,7 @@ public class TestNuxeoWroCacheKeyFactory {
     }
 
     @Test
-    public void shouldChangeWithFlavor() throws IOException {
+    public void shouldChangeWithFlavor() {
         Context.get().getConfig().setMinimizeEnabled(false);
         when(mockGroupExtractor.getGroupName(mockRequest)).thenReturn("g1");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);
@@ -147,7 +149,7 @@ public class TestNuxeoWroCacheKeyFactory {
     }
 
     @Test
-    public void shouldChangeWithParams() throws IOException {
+    public void shouldChangeWithParams() {
         Context.get().getConfig().setMinimizeEnabled(false);
         when(mockGroupExtractor.getGroupName(mockRequest)).thenReturn("g1");
         when(mockGroupExtractor.getResourceType(mockRequest)).thenReturn(ResourceType.CSS);

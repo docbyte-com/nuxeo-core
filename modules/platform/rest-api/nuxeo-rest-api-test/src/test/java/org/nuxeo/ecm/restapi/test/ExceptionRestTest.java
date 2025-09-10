@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import static org.nuxeo.ecm.webengine.app.JsonWebengineWriter.SHOW_EXCEPTION_MES
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -112,8 +112,7 @@ public class ExceptionRestTest {
     public void testNotFoundEndpoint() {
         httpClient.buildGetRequest("/foo/notFound").executeAndConsume(new JsonNodeHandler(SC_NOT_FOUND), node -> {
             assertEquals(SC_NOT_FOUND, node.get("status").numberValue());
-            assertEquals("com.sun.jersey.api.NotFoundException: null for uri: " + restServerFeature.getRestApiUrl()
-                    + "/foo/notFound", node.get("message").textValue());
+            assertEquals("jakarta.ws.rs.NotFoundException: HTTP 404 Not Found", node.get("message").textValue());
         });
 
         List<String> caughtEvents = logCaptureResult.getCaughtEventMessages();

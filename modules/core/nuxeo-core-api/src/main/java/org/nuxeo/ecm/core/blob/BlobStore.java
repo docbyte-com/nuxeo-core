@@ -25,7 +25,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 

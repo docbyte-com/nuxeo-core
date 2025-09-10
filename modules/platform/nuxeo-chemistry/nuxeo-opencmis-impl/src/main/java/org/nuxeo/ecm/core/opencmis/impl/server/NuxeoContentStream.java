@@ -35,11 +35,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
-import com.google.common.collect.Iterators;
 import org.apache.chemistry.opencmis.commons.data.CacheHeaderContentStream;
 import org.apache.chemistry.opencmis.commons.data.CmisExtensionElement;
 import org.apache.chemistry.opencmis.commons.data.ContentLengthContentStream;
@@ -56,6 +55,8 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
 import org.nuxeo.ecm.core.io.download.DownloadService;
 import org.nuxeo.runtime.api.Framework;
+
+import com.google.common.collect.Iterators;
 
 /**
  * Nuxeo implementation of a CMIS {@link ContentStream}, backed by a {@link Blob}.
@@ -236,7 +237,7 @@ public class NuxeoContentStream
         protected Supplier<InputStream> supplier;
 
         public LazyInputStream(Supplier<InputStream> supplier) {
-            super(null);
+            super((InputStream) null);
             this.supplier = supplier;
         }
 

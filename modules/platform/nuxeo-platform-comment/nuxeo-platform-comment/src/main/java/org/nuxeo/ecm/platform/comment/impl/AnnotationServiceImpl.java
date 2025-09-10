@@ -21,11 +21,8 @@
 package org.nuxeo.ecm.platform.comment.impl;
 
 import static java.util.Collections.singletonMap;
-import static org.nuxeo.ecm.platform.comment.api.AnnotationConstants.ANNOTATION_DOC_TYPE;
-import static org.nuxeo.ecm.platform.comment.api.AnnotationConstants.ANNOTATION_XPATH_PROPERTY;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.COMMENT_SCHEMA;
 import static org.nuxeo.ecm.platform.comment.api.CommentManager.Feature.COMMENTS_ARE_SPECIAL_CHILDREN;
-import static org.nuxeo.ecm.platform.comment.api.CommentManager.Feature.COMMENTS_LINKED_WITH_PROPERTY;
 import static org.nuxeo.ecm.platform.comment.impl.AbstractCommentManager.COMMENTS_DIRECTORY;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryAndFetchPageProvider.CORE_SESSION_PROPERTY;
 
@@ -100,7 +97,6 @@ public class AnnotationServiceImpl extends DefaultComponent implements Annotatio
         DocumentModel annotatedDoc = session.getDocument(new IdRef(documentId));
         CommentManager commentManager = Framework.getService(CommentManager.class);
         return CoreInstance.doPrivileged(session, s -> {
-            // check the TreeCommentManager first as it also handles COMMENTS_LINKED_WITH_PROPERTY feature
             if (commentManager.hasFeature(COMMENTS_ARE_SPECIAL_CHILDREN)) {
                 // handle first comment/reply cases
                 String parentId = documentId;
@@ -111,19 +107,13 @@ public class AnnotationServiceImpl extends DefaultComponent implements Annotatio
                 // when comments are special children we can leverage inherited acls
                 Map<String, Serializable> props = Map.of(CORE_SESSION_PROPERTY, (Serializable) session);
                 return getPageProviderPage(GET_ANNOTATIONS_FOR_DOCUMENT_PAGE_PROVIDER_NAME, props, parentId, xpath);
-            } else if (commentManager.hasFeature(COMMENTS_LINKED_WITH_PROPERTY)) {
+            } else {
                 Map<String, Serializable> props = Map.of(CORE_SESSION_PROPERTY, (Serializable) s);
                 List<DocumentModel> docs = getPageProviderPage(GET_ANNOTATIONS_FOR_DOC_PAGEPROVIDER_NAME, props,
                         documentId, xpath);
                 docs.forEach(doc -> doc.detach(true)); // due to privileged session
                 return docs;
             }
-            // provide a poor support for deprecated implementations
-            return commentManager.getComments(session, annotatedDoc)
-                                 .stream()
-                                 .filter(annotationModel -> ANNOTATION_DOC_TYPE.equals(annotationModel.getType())
-                                         && xpath.equals(annotationModel.getPropertyValue(ANNOTATION_XPATH_PROPERTY)))
-                                 .collect(Collectors.toList());
         }).stream();
     }
 

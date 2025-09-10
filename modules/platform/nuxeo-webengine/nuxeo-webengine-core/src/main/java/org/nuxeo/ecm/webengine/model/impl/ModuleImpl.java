@@ -33,14 +33,12 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.common.server.WebApplication;
 import org.nuxeo.common.utils.Path;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.ecm.webengine.ResourceBinding;
 import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.AdapterType;
 import org.nuxeo.ecm.webengine.model.LinkDescriptor;
@@ -48,11 +46,8 @@ import org.nuxeo.ecm.webengine.model.Messages;
 import org.nuxeo.ecm.webengine.model.Module;
 import org.nuxeo.ecm.webengine.model.Resource;
 import org.nuxeo.ecm.webengine.model.ResourceType;
-import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.ecm.webengine.model.exceptions.WebResourceNotFoundException;
 import org.nuxeo.ecm.webengine.scripting.ScriptFile;
-
-import com.sun.jersey.server.impl.inject.ServerInjectableProviderContext;
 
 /**
  * The default implementation for a web configuration.
@@ -72,19 +67,11 @@ public class ModuleImpl implements Module {
 
     protected final ModuleConfiguration configuration;
 
-    protected final ServerInjectableProviderContext sic;
-
     protected final ModuleImpl superModule;
 
     protected LinkRegistry linkReg;
 
     protected final String skinPathPrefix;
-
-    /**
-     * @deprecated Use {@link WebApplication} to declare modules - modules may have multiple roots
-     */
-    @Deprecated
-    protected ResourceType rootType;
 
     protected Messages messages;
 
@@ -93,30 +80,15 @@ public class ModuleImpl implements Module {
     // cache used for resolved files
     protected ConcurrentMap<String, ScriptFile> fileCache;
 
-    public ModuleImpl(WebEngine engine, ModuleImpl superModule, ModuleConfiguration config,
-            ServerInjectableProviderContext sic) {
+    public ModuleImpl(WebEngine engine, ModuleImpl superModule, ModuleConfiguration config) {
         this.engine = engine;
         this.superModule = superModule;
-        this.sic = sic;
         configuration = config;
-        skinPathPrefix = new StringBuilder().append(engine.getSkinPathPrefix())
-                                            .append('/')
-                                            .append(config.name)
-                                            .toString();
+        skinPathPrefix = engine.getSkinPathPrefix() + '/' + config.name;
         fileCache = new ConcurrentHashMap<>();
         loadConfiguration();
         reloadMessages();
         loadDirectoryStack();
-    }
-
-    /**
-     * Whether or not this module has a GUI and should be listed in available GUI module list. For example, REST modules
-     * usually don't have a GUI.
-     *
-     * @return true if headless (no GUI is provided), false otherwise
-     */
-    public boolean isHeadless() {
-        return configuration.isHeadless;
     }
 
     /**
@@ -149,31 +121,6 @@ public class ModuleImpl implements Module {
         return configuration;
     }
 
-    /**
-     * @deprecated Use {@link WebApplication} to declare modules
-     */
-    @Deprecated
-    public ResourceType getRootType() {
-        // force type registry creation if needed
-        getTypeRegistry();
-        if (rootType == null) {
-            throw new IllegalStateException("You use new web module declaration - should not call this compat. method");
-        }
-        return rootType;
-    }
-
-    /**
-     * @deprecated Use {@link WebApplication} to declare modules
-     */
-    @Override
-    @Deprecated
-    public Resource getRootObject(WebContext ctx) {
-        ((AbstractWebContext) ctx).setModule(this);
-        Resource obj = ctx.newObject(getRootType());
-        obj.setRoot(true);
-        return obj;
-    }
-
     @Override
     public String getSkinPathPrefix() {
         return skinPathPrefix;
@@ -183,12 +130,7 @@ public class ModuleImpl implements Module {
         if (typeReg == null) { // create type registry if not already created
             synchronized (typeLock) {
                 if (typeReg == null) {
-                    TypeRegistry registry = createTypeRegistry();
-                    if (configuration.rootType != null) {
-                        // compatibility code for avoiding NPE
-                        rootType = registry.getType(configuration.rootType);
-                    }
-                    typeReg = registry;
+                    typeReg = createTypeRegistry();
                 }
             }
         }
@@ -265,11 +207,6 @@ public class ModuleImpl implements Module {
     }
 
     @Override
-    public List<ResourceBinding> getResourceBindings() {
-        return configuration.resources;
-    }
-
-    @Override
     public boolean isDerivedFrom(String moduleName) {
         if (configuration.name.equals(moduleName)) {
             return true;
@@ -320,24 +257,6 @@ public class ModuleImpl implements Module {
             // remove type cache files if any
             new DefaultTypeLoader(this, typeReg, configuration.directory).flushCache();
             typeReg = null; // type registry will be recreated on first access
-        }
-    }
-
-    /**
-     * @deprecated resources are deprecated - you should use a jax-rs application to declare more resources.
-     */
-    @Deprecated
-    public void flushRootResourcesCache() {
-        if (configuration.resources != null) { // reregister resources
-            for (ResourceBinding rb : configuration.resources) {
-                try {
-                    engine.removeResourceBinding(rb);
-                    rb.reload(engine);
-                    engine.addResourceBinding(rb);
-                } catch (ClassNotFoundException e) {
-                    log.error("Failed to reload resource", e);
-                }
-            }
         }
     }
 
@@ -392,9 +311,8 @@ public class ModuleImpl implements Module {
         char c = path.charAt(0);
         if (c == '.') { // avoid getting files outside the web root
             path = new Path(path).makeAbsolute().toString();
-        } else if (c != '/') {// avoid doing duplicate entries in document stack
-                              // cache
-            path = new StringBuilder(len + 1).append("/").append(path).toString();
+        } else if (c != '/') { // avoid doing duplicate entries in document stack cache
+            path = "/" + path;
         }
         try {
             return findFile(new Path(path).makeAbsolute().toString());
@@ -467,8 +385,7 @@ public class ModuleImpl implements Module {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     public Map<String, String> getMessages(String language) {
         log.info("Loading i18n files for module: {}", configuration.name);
-        File file = new File(configuration.directory,
-                new StringBuilder().append("/i18n/messages_").append(language).append(".properties").toString());
+        File file = new File(configuration.directory, "/i18n/messages_" + language + ".properties");
         InputStream in = null;
         try {
             in = new FileInputStream(file);

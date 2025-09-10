@@ -19,10 +19,10 @@
 
 package org.nuxeo.ecm.core.bulk.computation;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static java.lang.Math.min;
 import static java.util.Objects.requireNonNullElse;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 import static org.nuxeo.ecm.core.bulk.BulkServiceImpl.STATUS_STREAM;
 import static org.nuxeo.ecm.core.bulk.message.BulkStatus.State.ABORTED;
 import static org.nuxeo.ecm.core.bulk.message.BulkStatus.State.COMPLETED;
@@ -171,7 +171,8 @@ public class BulkScrollerComputation extends AbstractComputation {
             commandId = command.getId();
 
             if (detectRetryOnFlushedScroll(commandId)) {
-                log.warn("Aborting scroll computation for command: {} as it already has downstream records.", commandId);
+                log.warn("Aborting scroll computation for command: {} as it already has downstream records.",
+                        commandId);
                 Framework.getService(BulkService.class).abort(commandId);
                 return;
             }

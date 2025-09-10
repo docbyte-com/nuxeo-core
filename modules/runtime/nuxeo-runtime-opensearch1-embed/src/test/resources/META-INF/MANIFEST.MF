@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 1
+Bundle-Name: Nuxeo Runtime OpenSearch 1.x Embed Test
+Bundle-SymbolicName: org.nuxeo.runtime.opensearch1.embed.test;singleton:=true
+Bundle-Version: 1.0.0

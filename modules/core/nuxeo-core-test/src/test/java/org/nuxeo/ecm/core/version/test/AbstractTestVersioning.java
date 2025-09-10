@@ -21,7 +21,7 @@ package org.nuxeo.ecm.core.version.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;

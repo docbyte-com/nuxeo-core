@@ -42,10 +42,8 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.blob.SimpleManagedBlob;
-import org.nuxeo.ecm.core.blob.binary.BinaryBlob;
 import org.nuxeo.ecm.core.bulk.action.computation.AbstractBulkComputation;
 import org.nuxeo.ecm.core.model.Document;
-import org.nuxeo.ecm.core.storage.sql.S3BinaryManager;
 import org.nuxeo.lib.stream.computation.Topology;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamProcessorTopology;
@@ -145,12 +143,6 @@ public class S3SetBlobLengthAction implements StreamProcessorTopology {
             if (blob instanceof SimpleManagedBlob simpleManagedBlob) {
                 simpleManagedBlob.length = fixedLength;
                 return simpleManagedBlob;
-            } else if (blob instanceof BinaryBlob binaryBlob) {
-                log.info("Fixing length blob: {} for doc: {}, from: {} to: {}.", blob.getKey(), docId, length,
-                        fixedLength);
-                return new BinaryBlob(binaryBlob.getBinary(), binaryBlob.getKey(), binaryBlob.getFilename(),
-                        binaryBlob.getMimeType(), binaryBlob.getEncoding(), binaryBlob.getDigestAlgorithm(),
-                        binaryBlob.getDigest(), fixedLength);
             } else {
                 log.warn("Unsupported blob: {} with class: {}", blobKey, blobKey.getClass());
                 return null;
@@ -171,9 +163,6 @@ public class S3SetBlobLengthAction implements StreamProcessorTopology {
                     log.warn("Cannot get length for blob: {},  doc{}: ", blob::getKey, () -> docId);
                     length = -1;
                 }
-            } else if (blobProvider instanceof S3BinaryManager s3Binarymanager) {
-                log.debug("Fetching length from s3");
-                length = s3Binarymanager.lengthOfBlob(blob.getDigest());
             } else {
                 log.debug("Not supported binary manager impl");
             }

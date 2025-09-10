@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,15 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.ec.notification.email.templates;
 
 import java.net.URL;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.ecm.platform.ec.notification.service.NotificationServiceHelper;
+import org.nuxeo.ecm.platform.notification.api.NotificationManager;
+import org.nuxeo.runtime.api.Framework;
 
 import freemarker.cache.URLTemplateLoader;
 
@@ -39,7 +37,7 @@ public class NuxeoTemplatesLoader extends URLTemplateLoader {
     @Override
     protected URL getURL(String name) {
         log.debug("Searching for template with name: {}", name);
-        return NotificationServiceHelper.getNotificationService().getTemplateURL(name);
+        return Framework.getService(NotificationManager.class).getTemplateUrl(name);
     }
 
 }

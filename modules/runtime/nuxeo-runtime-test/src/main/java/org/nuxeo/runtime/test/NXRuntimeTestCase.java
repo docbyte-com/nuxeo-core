@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,7 +63,7 @@ import org.nuxeo.runtime.test.runner.RandomBug;
  * @deprecated since 10.2 this class <b>must</b> not be subclassed anymore, for RuntimeHarness implementation use
  *             {@code RuntimeHarnessImpl}
  */
-// Make sure this class is kept in sync with with RuntimeHarness
+// Make sure this class is kept in sync with RuntimeHarness
 @RunWith(FeaturesRunner.class)
 @Features({ MDCFeature.class, ConditionalIgnoreRule.Feature.class, RandomBug.Feature.class })
 @Ignore
@@ -80,8 +80,6 @@ public class NXRuntimeTestCase extends RuntimeHarnessImpl {
         // where slf4j to jul, and jcl over slf4j is deployed
         System.setProperty(AbstractRuntimeService.REDIRECT_JUL, "false");
     }
-
-    protected boolean restart = false;
 
     protected List<String[]> deploymentStack = new ArrayList<>();
 
@@ -106,20 +104,6 @@ public class NXRuntimeTestCase extends RuntimeHarnessImpl {
     public NXRuntimeTestCase(Class<?> clazz) {
         super(clazz);
         isTestUnit = false;
-    }
-
-    /**
-     * Restarts the runtime and preserve homes directory.
-     */
-    @Override
-    public void restart() throws Exception {
-        restart = true;
-        try {
-            tearDown();
-            setUp();
-        } finally {
-            restart = false;
-        }
     }
 
     @Override
@@ -171,7 +155,7 @@ public class NXRuntimeTestCase extends RuntimeHarnessImpl {
     public void stopRuntime() throws Exception {
         tearDown();
         wipeRuntime();
-        if (workingDir != null && !restart) {
+        if (workingDir != null) {
             if (workingDir.exists() && !FileUtils.deleteQuietly(workingDir)) {
                 log.warn("Cannot delete: {}", workingDir);
             }
@@ -243,7 +227,7 @@ public class NXRuntimeTestCase extends RuntimeHarnessImpl {
     }
 
     protected static boolean isVersionSuffix(String s) {
-        if (s.length() == 0) {
+        if (s.isEmpty()) {
             return true;
         }
         return s.matches("-(\\d+\\.?)+(-SNAPSHOT)?(\\.\\w+)?");

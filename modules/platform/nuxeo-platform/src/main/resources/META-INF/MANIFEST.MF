@@ -17,8 +17,7 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Nuxeo-Component: OSGI-INF/locationmanager-contrib.xml,
  OSGI-INF/locationmanager-plugins-contrib.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.ejb,
+Import-Package: javax.ejb,
  org.apache.commons.logging,
  org.nuxeo.common.xmap.annotation,
  org.nuxeo.ecm.core;api=split,

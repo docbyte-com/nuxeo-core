@@ -21,7 +21,7 @@ package org.nuxeo.drive.operations;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-import javax.mail.internet.ParseException;
+import jakarta.mail.internet.ParseException;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.Blob;

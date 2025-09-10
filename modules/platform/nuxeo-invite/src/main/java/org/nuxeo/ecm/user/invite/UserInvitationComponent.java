@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -518,7 +518,7 @@ public class UserInvitationComponent extends DefaultComponent implements UserInv
     }
 
     protected static boolean isTestModeSet() {
-        return Framework.isTestModeSet() || !isBlank(Framework.getProperty("org.nuxeo.ecm.tester.name"));
+        return Framework.isTestModeSet();
     }
 
     protected boolean checkUserFromRegistrationExistence(DocumentModel registrationDoc) {

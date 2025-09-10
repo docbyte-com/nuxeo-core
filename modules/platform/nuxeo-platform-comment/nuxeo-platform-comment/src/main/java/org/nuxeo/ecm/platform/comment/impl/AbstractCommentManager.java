@@ -81,12 +81,6 @@ public abstract class AbstractCommentManager implements CommentManager {
     }
 
     @Override
-    @SuppressWarnings("removal")
-    public List<DocumentModel> getComments(DocumentModel docModel, DocumentModel parent) {
-        return getComments(docModel);
-    }
-
-    @Override
     public List<Comment> getComments(CoreSession session, String documentId) {
         return getComments(session, documentId, 0L, 0L, true);
     }
@@ -213,12 +207,6 @@ public abstract class AbstractCommentManager implements CommentManager {
             log.debug("Principal not found: {}", author);
         }
         return principal;
-    }
-
-    protected void setFolderPermissions(CoreSession session, DocumentModel documentModel) {
-        ACP acp = documentModel.getACP();
-        acp.blockInheritance(ACL.LOCAL_ACL, SecurityConstants.SYSTEM_USERNAME);
-        documentModel.setACP(acp, true);
     }
 
     /**

@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.platform.routing.core.impl;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -60,6 +61,7 @@ import org.nuxeo.runtime.api.Framework;
  */
 public class GraphRunner extends AbstractRunner implements ElementRunner, Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private static final Logger log = LogManager.getLogger(GraphRunner.class);
@@ -127,40 +129,36 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
         if (task != null) {
             finishTask(session, graph, node, task, false, status);
             // don't delete (yet)
-            if (task != null) {
-                Map<String, Serializable> eventProperties = new HashMap<>();
-                eventProperties.put(DocumentEventContext.CATEGORY_PROPERTY_KEY,
-                        DocumentRoutingConstants.ROUTING_CATEGORY);
-                eventProperties.put("taskName", task.getName());
-                eventProperties.put("modelName", graph.getModelName());
-                eventProperties.put("action", status);
-                eventProperties.put("data", (Serializable) varData);
-                eventProperties.put(RoutingAuditHelper.WORKFLOW_INITATIOR, graph.getInitiator());
-                eventProperties.put(RoutingAuditHelper.TASK_ACTOR, session.getPrincipal().getActingUser());
-                eventProperties.put("nodeVariables", (Serializable) node.getVariables());
-                eventProperties.put("workflowVariables", (Serializable) graph.getVariables());
+            Map<String, Serializable> eventProperties = new HashMap<>();
+            eventProperties.put(DocumentEventContext.CATEGORY_PROPERTY_KEY, DocumentRoutingConstants.ROUTING_CATEGORY);
+            eventProperties.put("taskName", task.getName());
+            eventProperties.put("modelName", graph.getModelName());
+            eventProperties.put("action", status);
+            eventProperties.put("data", (Serializable) varData);
+            eventProperties.put(RoutingAuditHelper.WORKFLOW_INITATIOR, graph.getInitiator());
+            eventProperties.put(RoutingAuditHelper.TASK_ACTOR, session.getPrincipal().getActingUser());
+            eventProperties.put("nodeVariables", (Serializable) node.getVariables());
+            eventProperties.put("workflowVariables", (Serializable) graph.getVariables());
 
-                // Compute duration of the task itself
-                long duration = RoutingAuditHelper.computeDurationSinceTaskStarted(task.getId());
-                if (duration >= 0) {
-                    eventProperties.put(RoutingAuditHelper.TIME_SINCE_TASK_STARTED, duration);
-                }
-
-                // Then compute duration since workflow started
-                long timeSinceWfStarted = RoutingAuditHelper.computeDurationSinceWfStarted(task.getProcessId());
-                if (timeSinceWfStarted >= 0) {
-                    eventProperties.put(RoutingAuditHelper.TIME_SINCE_WF_STARTED, timeSinceWfStarted);
-                }
-
-                DocumentEventContext envContext = new DocumentEventContext(session, session.getPrincipal(),
-                        task.getDocument());
-                envContext.setProperties(eventProperties);
-                EventProducer eventProducer = Framework.getService(EventProducer.class);
-                eventProducer.fireEvent(
-                        envContext.newEvent(DocumentRoutingConstants.Events.afterWorkflowTaskEnded.name()));
+            // Compute duration of the task itself
+            long duration = RoutingAuditHelper.computeDurationSinceTaskStarted(task.getId());
+            if (duration >= 0) {
+                eventProperties.put(RoutingAuditHelper.TIME_SINCE_TASK_STARTED, duration);
             }
+
+            // Then compute duration since workflow started
+            long timeSinceWfStarted = RoutingAuditHelper.computeDurationSinceWfStarted(task.getProcessId());
+            if (timeSinceWfStarted >= 0) {
+                eventProperties.put(RoutingAuditHelper.TIME_SINCE_WF_STARTED, timeSinceWfStarted);
+            }
+
+            DocumentEventContext envContext = new DocumentEventContext(session, session.getPrincipal(),
+                    task.getDocument());
+            envContext.setProperties(eventProperties);
+            EventProducer eventProducer = Framework.getService(EventProducer.class);
+            eventProducer.fireEvent(envContext.newEvent(DocumentRoutingConstants.Events.afterWorkflowTaskEnded.name()));
         } else {
-            // cancel any remaing tasks on this node
+            // cancel any remaining tasks on this node
             node.cancelTasks();
         }
         if (node.hasOpenTasks()) {
@@ -168,7 +166,7 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
             // do nothing, the workflow is resumed only when all the tasks
             // created from
             // this node are processed
-            // as this is a multi-task node, reset comment if it was
+            // as this is a multitask node, reset comment if it was
             // previously set
             if (varData != null && varData.get(Constants.VAR_WORKFLOW_NODE) != null
                     && ((Map<String, Serializable>) varData.get(Constants.VAR_WORKFLOW_NODE)).containsKey(
@@ -212,6 +210,100 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
         }
     }
 
+    protected boolean runNode(CoreSession session, GraphNode node, GraphRoute graph, List<GraphNode> subRoutes) {
+        LinkedList<GraphNode> pendingNodes = new LinkedList<>();
+        pendingNodes.add(node);
+        boolean done = false;
+        int count = 0;
+        while (!pendingNodes.isEmpty()) {
+            GraphNode currentNode = pendingNodes.pop();
+            count++;
+            if (count > MAX_LOOPS) {
+                throw new DocumentRouteException("Execution is looping, node: " + currentNode);
+            }
+            State jump = null;
+            switch (currentNode.getState()) {
+                case READY:
+                    log.debug("Doing node: {}", currentNode);
+                    if (currentNode.isMerge()) {
+                        jump = State.WAITING;
+                    } else {
+                        jump = State.RUNNING_INPUT;
+                    }
+                    break;
+                case WAITING:
+                    if (currentNode.canMerge()) {
+                        recursiveCancelInput(currentNode, pendingNodes);
+                        jump = State.RUNNING_INPUT;
+                    }
+                    // else leave state to WAITING
+                    break;
+                case RUNNING_INPUT:
+                    currentNode.starting();
+                    currentNode.executeChain(currentNode.getInputChain());
+                    if (currentNode.hasTask() || currentNode.hasMultipleTasks()) {
+                        createTask(session, graph, currentNode); // may create several
+                        currentNode.setState(State.SUSPENDED);
+                    }
+                    if (currentNode.hasSubRoute()) {
+                        if (!subRoutes.contains(currentNode)) {
+                            subRoutes.add(currentNode);
+                        }
+                        currentNode.setState(State.SUSPENDED);
+                    }
+                    if (currentNode.getState() != State.SUSPENDED) {
+                        jump = State.RUNNING_OUTPUT;
+                    }
+                    // else this node is suspended,
+                    // remove it from queue of nodes to process
+                    break;
+                case SUSPENDED:
+                    if (currentNode != node) {
+                        throw new DocumentRouteException("Executing unexpected SUSPENDED state");
+                    }
+                    // actor
+                    NuxeoPrincipal principal = session.getPrincipal();
+                    String actor = principal.getActingUser();
+                    currentNode.setLastActor(actor);
+                    // resuming, variables have been set by resumeGraph
+                    jump = State.RUNNING_OUTPUT;
+                    break;
+                case RUNNING_OUTPUT:
+                    currentNode.executeChain(currentNode.getOutputChain());
+                    List<Transition> trueTrans = currentNode.evaluateTransitions();
+                    currentNode.ending();
+                    currentNode.setState(State.READY);
+                    if (currentNode.isStop()) {
+                        if (!pendingNodes.isEmpty()) {
+                            throw new DocumentRouteException(String.format(
+                                    "Route %s stopped with still pending nodes: %s", graph, pendingNodes));
+                        }
+                        done = true;
+                    } else {
+                        if (trueTrans.isEmpty()) {
+                            throw new DocumentRouteException(
+                                    "No transition evaluated to true from node " + currentNode);
+                        }
+                        for (Transition t : trueTrans) {
+                            currentNode.executeTransitionChain(t);
+                            GraphNode target = graph.getNode(t.target);
+                            if (!pendingNodes.contains(target)) {
+                                pendingNodes.add(target);
+                            }
+                        }
+                    }
+                    break;
+            }
+            if (jump != null) {
+                currentNode.setState(jump);
+                // loop again on this node
+                count--;
+                pendingNodes.addFirst(currentNode);
+            }
+        }
+        return done;
+    }
+
     /**
      * Runs the graph starting with the given node.
      *
@@ -221,95 +313,7 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
             throws DocumentRouteException {
         GraphRoute graph = (GraphRoute) element;
         List<GraphNode> pendingSubRoutes = new LinkedList<>();
-        LinkedList<GraphNode> pendingNodes = new LinkedList<>();
-        pendingNodes.add(initialNode);
-        boolean done = false;
-        int count = 0;
-        while (!pendingNodes.isEmpty()) {
-            GraphNode node = pendingNodes.pop();
-            count++;
-            if (count > MAX_LOOPS) {
-                throw new DocumentRouteException("Execution is looping, node: " + node);
-            }
-            State jump = null;
-            switch (node.getState()) {
-            case READY:
-                log.debug("Doing node: {}", node);
-                if (node.isMerge()) {
-                    jump = State.WAITING;
-                } else {
-                    jump = State.RUNNING_INPUT;
-                }
-                break;
-            case WAITING:
-                if (node.canMerge()) {
-                    recursiveCancelInput(graph, node, pendingNodes);
-                    jump = State.RUNNING_INPUT;
-                }
-                // else leave state to WAITING
-                break;
-            case RUNNING_INPUT:
-                node.starting();
-                node.executeChain(node.getInputChain());
-                if (node.hasTask() || node.hasMultipleTasks()) {
-                    createTask(session, graph, node); // may create several
-                    node.setState(State.SUSPENDED);
-                }
-                if (node.hasSubRoute()) {
-                    if (!pendingSubRoutes.contains(node)) {
-                        pendingSubRoutes.add(node);
-                    }
-                    node.setState(State.SUSPENDED);
-                }
-                if (node.getState() != State.SUSPENDED) {
-                    jump = State.RUNNING_OUTPUT;
-                }
-                // else this node is suspended,
-                // remove it from queue of nodes to process
-                break;
-            case SUSPENDED:
-                if (node != initialNode) {
-                    throw new DocumentRouteException("Executing unexpected SUSPENDED state");
-                }
-                // actor
-                NuxeoPrincipal principal = session.getPrincipal();
-                String actor = principal.getActingUser();
-                node.setLastActor(actor);
-                // resuming, variables have been set by resumeGraph
-                jump = State.RUNNING_OUTPUT;
-                break;
-            case RUNNING_OUTPUT:
-                node.executeChain(node.getOutputChain());
-                List<Transition> trueTrans = node.evaluateTransitions();
-                node.ending();
-                node.setState(State.READY);
-                if (node.isStop()) {
-                    if (!pendingNodes.isEmpty()) {
-                        throw new DocumentRouteException(
-                                String.format("Route %s stopped with still pending nodes: %s", graph, pendingNodes));
-                    }
-                    done = true;
-                } else {
-                    if (trueTrans.isEmpty()) {
-                        throw new DocumentRouteException("No transition evaluated to true from node " + node);
-                    }
-                    for (Transition t : trueTrans) {
-                        node.executeTransitionChain(t);
-                        GraphNode target = graph.getNode(t.target);
-                        if (!pendingNodes.contains(target)) {
-                            pendingNodes.add(target);
-                        }
-                    }
-                }
-                break;
-            }
-            if (jump != null) {
-                node.setState(jump);
-                // loop again on this node
-                count--;
-                pendingNodes.addFirst(node);
-            }
-        }
+        boolean done = runNode(session, initialNode, graph, pendingSubRoutes);
         if (done) {
             element.setDone(session);
             /*
@@ -329,7 +333,7 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
         session.save();
     }
 
-    protected void recursiveCancelInput(GraphRoute graph, GraphNode originalNode, LinkedList<GraphNode> pendingNodes) {
+    protected void recursiveCancelInput(GraphNode originalNode, LinkedList<GraphNode> pendingNodes) {
         LinkedList<GraphNode> todo = new LinkedList<>();
         todo.add(originalNode);
         Set<String> done = new HashSet<>();
@@ -362,15 +366,13 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
     }
 
     protected void createTask(CoreSession session, GraphRoute graph, GraphNode node) throws DocumentRouteException {
-        DocumentRouteElement routeInstance = graph;
         Map<String, String> taskVariables = new HashMap<>();
-        taskVariables.put(DocumentRoutingConstants.TASK_ROUTE_INSTANCE_DOCUMENT_ID_KEY,
-                routeInstance.getDocument().getId());
+        taskVariables.put(DocumentRoutingConstants.TASK_ROUTE_INSTANCE_DOCUMENT_ID_KEY, graph.getDocument().getId());
         taskVariables.put(DocumentRoutingConstants.TASK_NODE_ID_KEY, node.getId());
         taskVariables.put(DocumentRoutingConstants.OPERATION_STEP_DOCUMENT_KEY, node.getDocument().getId());
-        String taskNotiftemplate = node.getTaskNotificationTemplate();
-        if (!StringUtils.isEmpty(taskNotiftemplate)) {
-            taskVariables.put(DocumentRoutingConstants.TASK_ASSIGNED_NOTIFICATION_TEMPLATE, taskNotiftemplate);
+        String taskNotifTemplate = node.getTaskNotificationTemplate();
+        if (!StringUtils.isEmpty(taskNotifTemplate)) {
+            taskVariables.put(DocumentRoutingConstants.TASK_ASSIGNED_NOTIFICATION_TEMPLATE, taskNotifTemplate);
         } else {
             // disable notification service
             taskVariables.put(TaskEventNames.DISABLE_NOTIFICATION_SERVICE, "true");
@@ -390,9 +392,9 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
         // has the property
         // hasMultipleTasks set to true
         List<Task> tasks = taskService.createTaskForProcess(session, session.getPrincipal(), docs,
-                node.getTaskDocType(), node.getDocument().getTitle(), node.getId(), routeInstance.getDocument().getId(),
-                taskNotiftemplate, new ArrayList<>(actors), node.hasMultipleTasks(), node.getTaskDirective(),
-                null, dueDate, taskVariables, null, node.getWorkflowContextualInfo(session, true));
+                node.getTaskDocType(), node.getDocument().getTitle(), node.getId(), graph.getDocument().getId(),
+                taskNotifTemplate, new ArrayList<>(actors), node.hasMultipleTasks(), node.getTaskDirective(), null,
+                dueDate, taskVariables, null, node.getWorkflowContextualInfo(session, true));
 
         // Audit task assignment
         for (Task task : tasks) {
@@ -405,9 +407,7 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
             eventProperties.put(RoutingAuditHelper.WORKFLOW_INITATIOR, graph.getInitiator());
             eventProperties.put(RoutingAuditHelper.TASK_ACTOR, session.getPrincipal().getOriginatingUser());
             eventProperties.put("nodeVariables", (Serializable) node.getVariables());
-            if (routeInstance instanceof GraphRoute) {
-                eventProperties.put("workflowVariables", (Serializable) ((GraphRoute) routeInstance).getVariables());
-            }
+            eventProperties.put("workflowVariables", (Serializable) graph.getVariables());
 
             // compute duration since workflow started
             long timeSinceWfStarted = RoutingAuditHelper.computeDurationSinceWfStarted(task.getProcessId());
@@ -453,7 +453,7 @@ public class GraphRunner extends AbstractRunner implements ElementRunner, Serial
         // get the last comment on the task, if there are several:
         // task might have been previously reassigned or delegated
         List<TaskComment> comments = task.getComments();
-        String comment = comments.size() > 0 ? comments.get(comments.size() - 1).getText() : "";
+        String comment = !comments.isEmpty() ? comments.getLast().getText() : "";
         // actor
         NuxeoPrincipal principal = session.getPrincipal();
         String actor = principal.getActingUser();

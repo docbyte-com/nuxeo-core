@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.repository" version="1.0">
+
+  <implementation class="org.nuxeo.ecm.core.search.client.repository.RepositorySearchClientFactory" />
+
+  <service>
+    <provide interface="org.nuxeo.ecm.core.search.client.repository.RepositorySearchClientFactory" />
+  </service>
+
+  <extension-point name="searchClient">
+    <object class="org.nuxeo.ecm.core.search.client.repository.RepositorySearchClientDescriptor" />
+  </extension-point>
+
+</component>

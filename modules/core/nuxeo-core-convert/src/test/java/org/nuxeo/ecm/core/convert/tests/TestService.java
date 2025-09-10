@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.anyString;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 import java.io.Serializable;
@@ -36,7 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,6 +46,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.api.ConversionException;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.api.ConverterCheckResult;
@@ -65,7 +66,6 @@ import org.nuxeo.runtime.test.runner.HotDeployer;
 
 @RunWith(FeaturesRunner.class)
 @Features({ ConvertFeature.class, MockitoFeature.class })
-@Deploy("org.nuxeo.ecm.core.mimetype")
 public class TestService {
 
     @Inject
@@ -126,8 +126,7 @@ public class TestService {
         Converter cv = ConversionServiceImpl.getConverter("dummyChain");
         assertNotNull(cv);
         boolean isChain = false;
-        if (cv instanceof ChainedConverter) {
-            ChainedConverter ccv = (ChainedConverter) cv;
+        if (cv instanceof ChainedConverter ccv) {
             List<String> steps = ccv.getSteps();
             assertNotNull(steps);
             assertEquals(2, steps.size());
@@ -149,8 +148,7 @@ public class TestService {
         Converter cv2 = ConversionServiceImpl.getConverter("dummyChain2");
         assertNotNull(cv2);
         isChain = false;
-        if (cv2 instanceof ChainedConverter) {
-            ChainedConverter ccv = (ChainedConverter) cv2;
+        if (cv2 instanceof ChainedConverter ccv) {
             List<String> steps = ccv.getSteps();
             assertNull(steps);
             isChain = true;
@@ -252,24 +250,6 @@ public class TestService {
         assertFalse(result.isAvailable());
         assertNotNull(result.getErrorMessage());
         assertNotNull(result.getInstallationMessage());
-    }
-
-    @Test
-    @Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-test.xml")
-    public void testServiceConfig() throws Exception {
-        assertNotNull(cs);
-
-        assertEquals(12, ConversionServiceImpl.getGCIntervalInMinutes());
-        assertEquals(132, ConversionServiceImpl.getMaxCacheSizeInKB());
-        assertFalse(ConversionServiceImpl.isCacheEnabled());
-
-        // override
-        deployer.deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-override.xml");
-
-        assertEquals(34, ConversionServiceImpl.getGCIntervalInMinutes());
-        assertEquals(10, ConversionServiceImpl.getMaxCacheSizeInKB());
-        assertTrue(ConversionServiceImpl.isCacheEnabled());
-        assertEquals("/tmp/nosuchdirforcache", ConversionServiceImpl.getCacheBasePath());
     }
 
     @Test

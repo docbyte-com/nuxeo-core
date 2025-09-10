@@ -28,12 +28,13 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 9.1
  */
 @XObject("policy")
-public class VersioningPolicyDescriptor implements Comparable<VersioningPolicyDescriptor> {
+public class VersioningPolicyDescriptor implements Comparable<VersioningPolicyDescriptor>, Descriptor {
 
     @XNode("@id")
     protected String id;
@@ -53,6 +54,7 @@ public class VersioningPolicyDescriptor implements Comparable<VersioningPolicyDe
     @XNodeList(value = "filter-id", componentType = String.class, type = ArrayList.class)
     protected List<String> filterIds = new ArrayList<>();
 
+    @Override
     public String getId() {
         return id;
     }
@@ -77,14 +79,6 @@ public class VersioningPolicyDescriptor implements Comparable<VersioningPolicyDe
         return filterIds;
     }
 
-    public void merge(VersioningPolicyDescriptor other) {
-        id = defaultIfNull(other.id, id);
-        order = defaultIfNull(other.order, order);
-        increment = defaultIfNull(other.increment, increment);
-        initialState = defaultIfNull(other.initialState, initialState);
-        filterIds.addAll(other.filterIds);
-    }
-
     @Override
     public int compareTo(VersioningPolicyDescriptor versioningPolicyDescriptor) {
         return Integer.compare(getOrder(), versioningPolicyDescriptor.getOrder());
@@ -95,5 +89,4 @@ public class VersioningPolicyDescriptor implements Comparable<VersioningPolicyDe
         return getClass().getSimpleName() + '(' + id + ", increment=" + increment + ", beforeUpdate=" + beforeUpdate
                 + ')';
     }
-
 }

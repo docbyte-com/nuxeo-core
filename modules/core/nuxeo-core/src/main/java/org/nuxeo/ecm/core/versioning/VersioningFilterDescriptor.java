@@ -27,12 +27,13 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 9.1
  */
 @XObject("filter")
-public class VersioningFilterDescriptor {
+public class VersioningFilterDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(VersioningFilterDescriptor.class);
 
@@ -54,6 +55,7 @@ public class VersioningFilterDescriptor {
     @XNode("condition")
     protected String condition;
 
+    @Override
     public String getId() {
         return id;
     }

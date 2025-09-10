@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@
  */
 package org.nuxeo.ecm.automation.test;
 
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
@@ -26,11 +25,10 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  * Automation feature which deploys the automation bundles needed by a server.
  *
  * @since 10.1
+ * @deprecated since 2025.0, use {@link AutomationFeature} instead
  */
 @Features(AutomationFeature.class)
-@Deploy("org.nuxeo.ecm.platform.forms.layout.export")
-@Deploy("org.nuxeo.ecm.automation.io")
-@Deploy("org.nuxeo.ecm.automation.server")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AutomationServerFeature implements RunnerFeature {
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Frédéric Vadon
  *     Ricardo Dias
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import java.io.IOException;
@@ -41,8 +40,7 @@ import org.nuxeo.ecm.core.schema.types.ListType;
 /**
  * @since 8.3
  */
-@Operation(id = AddItemToListProperty.ID, category = Constants.CAT_DOCUMENT, label = "Adds an Entry Into a Multivalued Complex Property", description = "This operation can add new entries to a multivalued complex property. The xpath parameter is the property that should be updated (e.g.: contract:customers). The value parameter is a String containing the JSON-formatted list of entries to add. E.g.: assuming a Contract document type holding customers, each having a firstName and lastName property: [{\"lastName\":\"Norris\", \"firstName\": \"Chuck\"}, {\"lastName\":\"Lee\", \"firstName\": \"Bruce\"}] . Activating the save parameter forces the changes to be written in database immediately (at the cost of performance loss), otherwise changes made to the document will be written in bulk when the chain succeeds. <p>Save parameter has to be turned off when this operation is used in the context of the empty document created, about to create, before document modification, document modified events.</p>", aliases = {
-        "Document.AddItemToListProperty" })
+@Operation(id = AddItemToListProperty.ID, category = Constants.CAT_DOCUMENT, label = "Adds an Entry Into a Multivalued Complex Property", description = "This operation can add new entries to a multivalued complex property. The xpath parameter is the property that should be updated (e.g.: contract:customers). The value parameter is a String containing the JSON-formatted list of entries to add. E.g.: assuming a Contract document type holding customers, each having a firstName and lastName property: [{\"lastName\":\"Norris\", \"firstName\": \"Chuck\"}, {\"lastName\":\"Lee\", \"firstName\": \"Bruce\"}] . Activating the save parameter forces the changes to be written in database immediately (at the cost of performance loss), otherwise changes made to the document will be written in bulk when the chain succeeds. <p>Save parameter has to be turned off when this operation is used in the context of the empty document created, about to create, before document modification, document modified events.</p>")
 public class AddItemToListProperty {
 
     public static final String ID = "Document.AddItemToListProperty";

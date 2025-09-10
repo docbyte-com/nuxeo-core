@@ -286,7 +286,6 @@ object Actions {
       .header("X-user-Id", "${user}")
       .header("X-Authentication-Token", "${token}")
       .check(status.in(200))
-      .check(regex("NuxeoDrive.GetClientUpdateInfo").exists)
       .check(regex("NuxeoDrive.GetTopLevelFolder").exists)
       .check(regex("NuxeoDrive.GetFileSystemItem").exists)
       .check(regex("NuxeoDrive.GetChangeSummary").exists)

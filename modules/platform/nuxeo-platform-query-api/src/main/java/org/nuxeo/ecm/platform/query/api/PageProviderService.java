@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -195,27 +195,13 @@ public interface PageProviderService extends Serializable {
             Object... parameters);
 
     /**
-     * @since 6.0
-     */
-    void registerPageProviderDefinition(PageProviderDefinition desc);
-
-    /**
-     * @since 6.0
-     */
-    void unregisterPageProviderDefinition(PageProviderDefinition desc);
-
-    /**
      * Returns all the registered page provider names, or an empty set if no page provider is registered.
      *
      * @since 6.0
      */
     Set<String> getPageProviderDefinitionNames();
 
-    /**
-     * Returns the {@link PageProviderType} of the given page provider.
-     *
-     * @since 2021.8
-     */
-    PageProviderType getPageProviderType(PageProvider<?> pageProvider);
+    // Registration is required by cloud.docbyte.archiver.search.configuration.SearchConfigurationService
+    void registerPageProviderDefinition(PageProviderDefinition desc);
 
 }

@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.core.api.security.SecurityConstants.WRITE_PROPERTIES
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.jmock.Expectations;
 import org.jmock.Mockery;

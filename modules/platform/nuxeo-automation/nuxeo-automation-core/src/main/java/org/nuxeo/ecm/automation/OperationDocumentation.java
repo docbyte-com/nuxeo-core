@@ -25,7 +25,6 @@ import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.OperationChainContribution;
-import org.nuxeo.ecm.platform.forms.layout.api.WidgetDefinition;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
@@ -72,8 +71,6 @@ public class OperationDocumentation implements Comparable<OperationDocumentation
 
     public Param[] params;
 
-    public WidgetDefinition[] widgetDefinitions;
-
     /**
      * The operations listing in case of a chain.
      */
@@ -103,7 +100,6 @@ public class OperationDocumentation implements Comparable<OperationDocumentation
         documentation.implementationClass = od.implementationClass;
         documentation.description = od.description;
         documentation.params = od.params;
-        documentation.widgetDefinitions = od.widgetDefinitions;
         return documentation;
     }
 
@@ -285,7 +281,7 @@ public class OperationDocumentation implements Comparable<OperationDocumentation
 
     @Override
     public String toString() {
-        return category + " > " + label + " [" + id + ": " + Arrays.toString(signature) + "] (" + Arrays.toString(params) + ")\n"
-                + description;
+        return category + " > " + label + " [" + id + ": " + Arrays.toString(signature) + "] ("
+                + Arrays.toString(params) + ")\n" + description;
     }
 }

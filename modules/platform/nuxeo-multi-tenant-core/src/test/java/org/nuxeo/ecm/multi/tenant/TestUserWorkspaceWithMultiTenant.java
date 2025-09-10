@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,26 +32,15 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
 import org.nuxeo.ecm.platform.userworkspace.api.UserWorkspaceService;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features({ NuxeoLoginFeature.class, PlatformFeature.class })
+@Features(MultiTenantCoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.multi.tenant")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.core.cache")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.default.config")
-@Deploy("org.nuxeo.ecm.platform.test:test-usermanagerimpl/userservice-config.xml")
-@Deploy("org.nuxeo.ecm.multi.tenant:multi-tenant-test-contrib.xml")
 public class TestUserWorkspaceWithMultiTenant {
 
     @Inject

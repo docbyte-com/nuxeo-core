@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.webengine.model.impl;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.common.xmap.annotation.XContent;
 import org.nuxeo.common.xmap.annotation.XNode;
@@ -47,23 +47,23 @@ public class MediaTypeRef {
         if (p > -1) {
             type = mimeType.substring(0, p);
             subtype = mimeType.substring(p + 1);
-            if (subtype.length() == 0 || subtype.equals("*")) {
+            if (subtype.isEmpty() || subtype.equals("*")) {
                 subtype = "*";
             }
         } else {
             type = mimeType;
             subtype = "*";
         }
-        if (type.length() == 0 || type.equals("*")) {
+        if (type.isEmpty() || type.equals("*")) {
             type = "*";
         }
     }
 
     public String match(MediaType mt) {
-        if (type != "*" && !type.equals(mt.getType())) {
+        if (!"*".equals(type) && !type.equals(mt.getType())) {
             return null;
         }
-        if (subtype != "*" && !subtype.equals(mt.getSubtype())) {
+        if (!"*".equals(subtype) && !subtype.equals(mt.getSubtype())) {
             return null;
         }
         return id;

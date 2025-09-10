@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,101 +20,56 @@
  */
 package org.nuxeo.automation.scripting.internals;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import static org.nuxeo.ecm.automation.core.AutomationComponent.AUTOMATION_COMPONENT_NAME;
+import static org.nuxeo.ecm.automation.core.AutomationComponent.XP_INTERNAL_OPERATIONS;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
+
+import java.util.Optional;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
-import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.core.AutomationComponent;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.services.config.ConfigurationService;
 
 /**
  * @since 7.2
  */
 public class AutomationScriptingComponent extends DefaultComponent {
 
-    private static final Logger log = LogManager.getLogger(AutomationScriptingComponent.class);
-
     protected static final String XP_OPERATION = "operation";
 
     protected static final String XP_CLASSFILTER = "classFilter";
 
-    protected final AutomationScriptingServiceImpl service = new AutomationScriptingServiceImpl();
-
-    protected final AutomationScriptingRegistry registry = new AutomationScriptingRegistry();
-
-    protected final List<ClassFilterDescriptor> classFilterDescriptors = new ArrayList<>();
-
-    @Override
-    public void activate(ComponentContext context) {
-        registry.automation = Framework.getService(AutomationService.class);
-        registry.scripting = service;
-    }
+    protected AutomationScriptingServiceImpl service;
 
     @Override
     public void start(ComponentContext context) {
-        boolean inlinedContext = Framework.getService(ConfigurationService.class)
-                                          .isBooleanTrue("nuxeo.automation.scripting.inline-context-in-params");
-
-        service.paramsInjector = AutomationScriptingParamsInjector.newInstance(inlinedContext);
-        service.clearMapperScript();
+        var allowedClassNames = Optional.ofNullable(
+                this.<ClassFilterDescriptor> getDescriptor(XP_CLASSFILTER, UNIQUE_DESCRIPTOR_ID))
+                                        .map(ClassFilterDescriptor::getAllowedClassNames)
+                                        .orElseGet(Set::of);
+        service = new AutomationScriptingServiceImpl(allowedClassNames);
     }
 
     @Override
     public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         if (XP_OPERATION.equals(extensionPoint)) {
-            ScriptingOperationDescriptor desc = (ScriptingOperationDescriptor) contribution;
-            desc.setContributingComponent(contributor.getName().toString());
-            registry.addContribution(desc);
-        } else if (XP_CLASSFILTER.equals(extensionPoint)) {
-            registerClassFilter((ClassFilterDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point: {}", extensionPoint);
+            // also register the contribution to AutomationComponent
+            getAutomationComponent().registerContribution(contribution, XP_INTERNAL_OPERATIONS, contributor);
         }
+        super.registerContribution(contribution, extensionPoint, contributor);
     }
 
     @Override
     public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
         if (XP_OPERATION.equals(extensionPoint)) {
-            registry.removeContribution((ScriptingOperationDescriptor) contribution);
-        } else if (XP_CLASSFILTER.equals(extensionPoint)) {
-            unregisterClassFilter((ClassFilterDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point: {}", extensionPoint);
+            // also unregister the contribution to AutomationComponent
+            getAutomationComponent().unregisterContribution(contribution, XP_INTERNAL_OPERATIONS, contributor);
         }
-    }
-
-    protected void registerClassFilter(ClassFilterDescriptor desc) {
-        classFilterDescriptors.add(desc);
-        recomputeClassFilters();
-    }
-
-    protected void unregisterClassFilter(ClassFilterDescriptor desc) {
-        classFilterDescriptors.remove(desc);
-        recomputeClassFilters();
-    }
-
-    protected void recomputeClassFilters() {
-        Set<String> allowedClassNames = new HashSet<>();
-        for (ClassFilterDescriptor desc : classFilterDescriptors) {
-            if (desc.deny.contains("*")) {
-                allowedClassNames.clear();
-                allowedClassNames.addAll(desc.allow);
-            } else {
-                allowedClassNames.addAll(desc.allow);
-                allowedClassNames.removeAll(desc.deny);
-            }
-        }
-        // we don't care about update atomicity, as nothing executes concurrently with XML config
-        service.allowedClassNames.clear();
-        service.allowedClassNames.addAll(allowedClassNames);
+        super.unregisterContribution(contribution, extensionPoint, contributor);
     }
 
     @Override
@@ -125,4 +80,7 @@ public class AutomationScriptingComponent extends DefaultComponent {
         return super.getAdapter(adapter);
     }
 
+    protected static AutomationComponent getAutomationComponent() {
+        return (AutomationComponent) Framework.getRuntime().getComponent(AUTOMATION_COMPONENT_NAME);
+    }
 }

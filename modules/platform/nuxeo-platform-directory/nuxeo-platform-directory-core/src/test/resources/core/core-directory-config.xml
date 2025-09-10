@@ -22,29 +22,18 @@
       <acl userOrGroupName="user_2" privilege="Read" granted="true" />
       <acl userOrGroupName="user_2" privilege="Write" granted="true" />
       <acl userOrGroupName="Everyone" privilege="Everything" granted="false" />
-      <references>
-        <coreDirectoryReference field="groups" directory="groupCoreDirectory"
-          targetField="groupId" />
-      </references>
-
     </directory>
 
     <directory name="groupCoreDirectory">
       <schema>schema1</schema>
       <docType>OtherDirDoc</docType>
       <repositoryName>test</repositoryName>
+      <idField>groupId</idField>
       <readOnly>false</readOnly>
       <autoVersioning>false</autoVersioning>
+      <fieldMapping name="groupId">uid</fieldMapping>
       <createPath>/rootFolder</createPath>
       <canCreateRootFolder>false</canCreateRootFolder>
-      <references>
-        <inverseReference field="members" directory="userCoreDirectory"
-          dualReferenceField="groups" />
-        <coreDirectoryReference field="subGroups" directory="groupCoreDirectory"
-          targetField="parentGroupId" />
-        <inverseReference field="parentGroups"
-          directory="groupCoreDirectory" dualReferenceField="subGroups" />
-      </references>
     </directory>
 
   </extension>

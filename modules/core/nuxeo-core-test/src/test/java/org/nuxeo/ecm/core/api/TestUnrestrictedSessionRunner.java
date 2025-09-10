@@ -19,8 +19,9 @@
 package org.nuxeo.ecm.core.api;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,8 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
+import org.nuxeo.runtime.transaction.TransactionHelper;
 
 /**
  * Test unrestricted session runner.
@@ -51,17 +54,54 @@ public class TestUnrestrictedSessionRunner {
     @Inject
     protected CoreFeature coreFeature;
 
+    @Inject
+    protected CoreSession coreSession;
+
+    @Inject
+    protected TransactionalFeature txFeature;
+
     @Test
     public void testUnrestrictedPropertySetter() throws Exception {
-        CoreSession session = coreFeature.getCoreSession("bob");
-        seeDocCreatedByUnrestricted(session);
+        CoreSession bobSession = coreFeature.getCoreSession("bob");
+        seeDocCreatedByUnrestricted(bobSession);
     }
 
     @SuppressWarnings("deprecation")
     @Test
     public void testUnrestrictedSessionSeesDocCreatedBefore() throws Exception {
-        CoreSession session = coreFeature.getCoreSession(SecurityConstants.ADMINISTRATOR);
-        unrestrictedSeesDocCreatedBefore(session);
+        CoreSession adminSession = coreFeature.getCoreSession(SecurityConstants.ADMINISTRATOR);
+        unrestrictedSeesDocCreatedBefore(adminSession);
+    }
+
+    protected void testUnrestrictedRollbackOnException(CoreSession session) {
+        DocumentModel doc = coreSession.createDocumentModel("/", DOC_NAME, "File");
+        doc.setPropertyValue(DC_TITLE, NEW_TITLE);
+        doc = coreSession.createDocument(doc);
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        var docRef = doc.getRef();
+        assertThrows(NuxeoException.class, () -> new UnrestrictedSessionRunner(session) {
+            @Override
+            public void run() {
+                var d = session.getDocument(docRef);
+                d.setPropertyValue(DC_TITLE, "foo");
+                session.saveDocument(d);
+                throw new NuxeoException("On purpose");
+            }
+        }.runUnrestricted());
+        TransactionHelper.commitOrRollbackTransaction();
+        TransactionHelper.startTransaction();
+        assertEquals(NEW_TITLE, coreSession.getDocument(docRef).getPropertyValue(DC_TITLE));
+    }
+
+    @Test
+    public void testNonAdminUnrestrictedRollbackOnException() {
+        testUnrestrictedRollbackOnException(coreFeature.getCoreSession("bob"));
+    }
+
+    @Test
+    public void testAdminUnrestrictedRollbackOnException() {
+        testUnrestrictedRollbackOnException(coreSession);
     }
 
     /*

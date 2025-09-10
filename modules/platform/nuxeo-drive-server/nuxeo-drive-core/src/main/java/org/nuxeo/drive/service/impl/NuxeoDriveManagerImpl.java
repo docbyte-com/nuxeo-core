@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
  */
 package org.nuxeo.drive.service.impl;
 
+import static org.nuxeo.audit.service.AuditComponent.DISABLE_AUDIT_LOGGER;
 import static org.nuxeo.ecm.platform.query.nxql.CoreQueryDocumentPageProvider.CORE_SESSION_PROPERTY;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -67,7 +69,6 @@ import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
 import org.nuxeo.ecm.core.query.sql.NXQL;
-import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.ecm.platform.ec.notification.NotificationConstants;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
@@ -112,8 +113,6 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
      * key).
      */
     protected Cache collectionSyncRootMemberCache;
-
-    protected ChangeFinderRegistry changeFinderRegistry;
 
     protected FileSystemChangeFinder changeFinder;
 
@@ -242,11 +241,11 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                     subscriptions.add(subscription);
                 }
                 newRootContainer.setPropertyValue(DRIVE_SUBSCRIPTIONS_PROPERTY, (Serializable) subscriptions);
-                newRootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+                newRootContainer.putContextData(DISABLE_AUDIT_LOGGER, true);
                 newRootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
                 newRootContainer.putContextData(CoreSession.SOURCE, "drive");
                 DocumentModel savedNewRootContainer = session.saveDocument(newRootContainer);
-                newRootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, false);
+                newRootContainer.putContextData(DISABLE_AUDIT_LOGGER, false);
                 newRootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, false);
                 fireEvent(savedNewRootContainer, session, NuxeoDriveEvents.ROOT_REGISTERED, userName);
                 session.save();
@@ -282,11 +281,11 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                     }
                 }
                 rootContainer.setPropertyValue(DRIVE_SUBSCRIPTIONS_PROPERTY, (Serializable) subscriptions);
-                rootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, true);
+                rootContainer.putContextData(DISABLE_AUDIT_LOGGER, true);
                 rootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, true);
                 rootContainer.putContextData(CoreSession.SOURCE, "drive");
                 session.saveDocument(rootContainer);
-                rootContainer.putContextData(NXAuditEventsService.DISABLE_AUDIT_LOGGER, false);
+                rootContainer.putContextData(DISABLE_AUDIT_LOGGER, false);
                 rootContainer.putContextData(NotificationConstants.DISABLE_NOTIFICATION_SERVICE, false);
                 fireEvent(rootContainer, session, NuxeoDriveEvents.ROOT_UNREGISTERED, userName);
                 session.save();
@@ -343,7 +342,7 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
         // Truncate sync date to 0 milliseconds
         syncDate = System.currentTimeMillis();
         syncDate = syncDate - (syncDate % 1000);
-        Boolean hasTooManyChanges = Boolean.FALSE;
+        boolean hasTooManyChanges = false;
         int limit = Integer.parseInt(Framework.getProperty(DOCUMENT_CHANGE_LIMIT_PROPERTY, "1000"));
         if (!allRepositories.isEmpty() && lowerBound >= 0 && upperBound > lowerBound) {
             for (String repositoryName : allRepositories) {
@@ -371,7 +370,7 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
                             repoCollectionSyncRootMemberIds, lowerBound, upperBound, limit);
                     allChanges.addAll(changes);
                 } catch (TooManyChangesException e) {
-                    hasTooManyChanges = Boolean.TRUE;
+                    hasTooManyChanges = true;
                     allChanges.clear();
                     break;
                 }
@@ -509,15 +508,13 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
      * @since 5.9.5
      */
     protected String computeSyncRootsQuery(String username) {
-        return String.format(
-                "SELECT ecm:uuid FROM Document" //
-                        + " WHERE %s/*1/username = %s" //
-                        + " AND %s/*1/enabled = 1" //
-                        + " AND ecm:isTrashed = 0" //
-                        + " AND ecm:isVersion = 0" //
-                        + " ORDER BY dc:title, dc:created DESC",
-                DRIVE_SUBSCRIPTIONS_PROPERTY, NXQLQueryBuilder.prepareStringLiteral(username, true, true),
-                DRIVE_SUBSCRIPTIONS_PROPERTY);
+        return String.format("SELECT ecm:uuid FROM Document" //
+                + " WHERE %s/*1/username = %s" //
+                + " AND %s/*1/enabled = 1" //
+                + " AND ecm:isTrashed = 0" //
+                + " AND ecm:isVersion = 0" //
+                + " ORDER BY dc:title, dc:created DESC", DRIVE_SUBSCRIPTIONS_PROPERTY,
+                NXQLQueryBuilder.prepareStringLiteral(username, true, true), DRIVE_SUBSCRIPTIONS_PROPERTY);
     }
 
     @Override
@@ -549,38 +546,6 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
 
     /*------------------------ DefaultComponent -----------------------------*/
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CHANGE_FINDER_EP.equals(extensionPoint)) {
-            changeFinderRegistry.addContribution((ChangeFinderDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (CHANGE_FINDER_EP.equals(extensionPoint)) {
-            changeFinderRegistry.removeContribution((ChangeFinderDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        if (changeFinderRegistry == null) {
-            changeFinderRegistry = new ChangeFinderRegistry();
-        }
-    }
-
-    @Override
-    public void deactivate(ComponentContext context) {
-        super.deactivate(context);
-        changeFinderRegistry = null;
-    }
-
-    @Override
     public int getApplicationStartedOrder() {
         ComponentInstance cacheComponent = Framework.getRuntime()
                                                     .getComponentInstance("org.nuxeo.ecm.core.cache.CacheService");
@@ -598,7 +563,12 @@ public class NuxeoDriveManagerImpl extends DefaultComponent implements NuxeoDriv
         syncRootCache = Framework.getService(CacheService.class).getCache(DRIVE_SYNC_ROOT_CACHE);
         collectionSyncRootMemberCache = Framework.getService(CacheService.class)
                                                  .getCache(DRIVE_COLLECTION_SYNC_ROOT_MEMBER_CACHE);
-        changeFinder = changeFinderRegistry.changeFinder;
+        try {
+            changeFinder = this.<ChangeFinderDescriptor> getDescriptor(CHANGE_FINDER_EP, UNIQUE_DESCRIPTOR_ID)
+                               .getChangeFinder();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Cannot instantiate changeFinder.", e);
+        }
     }
 
     @Override

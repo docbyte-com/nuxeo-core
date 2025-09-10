@@ -29,19 +29,20 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import javax.naming.NamingException;
-import javax.transaction.HeuristicMixedException;
-import javax.transaction.HeuristicRollbackException;
-import javax.transaction.InvalidTransactionException;
-import javax.transaction.NotSupportedException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.Transaction;
-import javax.transaction.TransactionManager;
-import javax.transaction.TransactionSynchronizationRegistry;
-import javax.transaction.UserTransaction;
 import javax.transaction.xa.XAResource;
+
+import jakarta.transaction.HeuristicMixedException;
+import jakarta.transaction.HeuristicRollbackException;
+import jakarta.transaction.InvalidTransactionException;
+import jakarta.transaction.NotSupportedException;
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.Transaction;
+import jakarta.transaction.TransactionManager;
+import jakarta.transaction.TransactionSynchronizationRegistry;
+import jakarta.transaction.UserTransaction;
 
 import org.apache.geronimo.transaction.manager.TransactionImpl;
 import org.apache.logging.log4j.LogManager;
@@ -596,7 +597,10 @@ public class TransactionHelper {
      * @since 9.1
      */
     public static void runWithoutTransaction(Runnable runnable) {
-        runWithoutTransaction(() -> { runnable.run(); return null; });
+        runWithoutTransaction(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
     /**
@@ -617,7 +621,10 @@ public class TransactionHelper {
      * @since 9.1
      */
     public static void runInNewTransaction(Runnable runnable) {
-        runInNewTransaction(() -> { runnable.run(); return null;});
+        runInNewTransaction(() -> {
+            runnable.run();
+            return null;
+        });
     }
 
     /**
@@ -651,7 +658,10 @@ public class TransactionHelper {
      * @since 11.5
      */
     public static void runInTransaction(int timeout, Runnable runnable) {
-        runInTransaction(timeout, () -> {runnable.run(); return null;});
+        runInTransaction(timeout, () -> {
+            runnable.run();
+            return null;
+        });
     }
 
     /**

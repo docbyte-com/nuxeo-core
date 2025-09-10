@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch1.embed.test.contrib">
+
+  <extension target="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent" point="server">
+    <server name="nuxeoTestClusterLocal">
+      <nodeName>nuxeoTestNode</nodeName>
+    </server>
+  </extension>
+
+</component>

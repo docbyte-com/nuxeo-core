@@ -19,17 +19,18 @@
  */
 package org.nuxeo.connect.client.we;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.connect.update.Package;
 import org.nuxeo.connect.update.PackageException;
 import org.nuxeo.connect.update.PackageUpdateService;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
 import org.nuxeo.runtime.api.Framework;
@@ -47,7 +48,7 @@ public class RemoveHandler extends DefaultObject {
     @GET
     @Produces("text/html")
     @Path(value = "start/{pkgId}")
-    public Object startInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
+    public Template startInstall(@PathParam("pkgId") String pkgId, @QueryParam("source") String source) {
         try {
             PackageUpdateService pus = Framework.getService(PackageUpdateService.class);
             pus.removePackage(pkgId);

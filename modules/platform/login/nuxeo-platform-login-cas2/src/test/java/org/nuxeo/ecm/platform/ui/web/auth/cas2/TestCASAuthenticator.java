@@ -16,8 +16,6 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  *     Academie de Rennes - proxy CAS support
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
  */
 
 package org.nuxeo.ecm.platform.ui.web.auth.cas2;
@@ -25,13 +23,12 @@ package org.nuxeo.ecm.platform.ui.web.auth.cas2;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 import java.security.Principal;
 
 import javax.security.auth.login.LoginContext;
-import javax.servlet.ServletException;
 
 import org.junit.Test;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;
@@ -65,7 +62,7 @@ public class TestCASAuthenticator extends AbstractAuthenticator {
      * TODO : create a random number for the ticket, add it to the MockServiceValidators and associate this ticket to
      * the username
      */
-    protected void doAuthenticationToCasServer(String username) throws ServletException {
+    protected void doAuthenticationToCasServer(String username) {
         String casTicket = username;
         when(request.getParameter(eq(TICKET_KEY))).thenReturn(casTicket);
     }

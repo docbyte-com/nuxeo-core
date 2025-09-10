@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,11 +38,11 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
-import org.awaitility.Duration;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -92,13 +92,11 @@ public abstract class TestAbstractBlobStore {
     public void setUp() throws IOException {
         bp = blobManager.getBlobProvider("test");
         bs = ((BlobStoreBlobProvider) bp).store;
-        bs.clear();
         tmpFile = Files.createTempFile("tmp_", ".tmp");
     }
 
     @After
     public void tearDown() throws IOException {
-        bs.clear();
         Files.deleteIfExists(tmpFile);
     }
 
@@ -162,12 +160,12 @@ public abstract class TestAbstractBlobStore {
         }
         // check readBlobTo
         assertTrue(bs.readBlob(key, tmpFile));
-        assertEquals(value, new String(Files.readAllBytes(tmpFile), UTF_8));
+        assertEquals(value, Files.readString(tmpFile));
         // check file
         OptionalOrUnknown<Path> fileOpt = bs.getFile(key);
         if (fileOpt.isKnown()) {
             assertTrue(fileOpt.isPresent());
-            assertEquals(value, new String(Files.readAllBytes(fileOpt.get()), UTF_8));
+            assertEquals(value, Files.readString(fileOpt.get()));
         }
         // check stream
         OptionalOrUnknown<InputStream> streamOpt = bs.getStream(key);
@@ -215,6 +213,11 @@ public abstract class TestAbstractBlobStore {
     @Test
     public void testMissing() throws IOException {
         assertNoBlob(ID1);
+    }
+
+    @Test
+    public void testDoesNotExist() {
+        assertFalse(bs.exists(getBlobKey(ID1)));
     }
 
     @Test
@@ -340,7 +343,7 @@ public abstract class TestAbstractBlobStore {
         assertEquals(60, testExpiration);
         URL urlOneMinute = storeBlobAndGetDirectDownloadURL("test");
         // direct download link of provider "test" expires in 60 seconds
-        await().atMost(Duration.TEN_SECONDS).pollInterval(Duration.ONE_SECOND).untilAsserted(() -> {
+        await().atMost(Duration.ofSeconds(10)).pollInterval(Duration.ofSeconds(1)).untilAsserted(() -> {
             try (InputStream in = urlOneMinute.openStream()) {
                 String actual = IOUtils.toString(in, Charset.defaultCharset());
                 assertEquals(FOO, actual);
@@ -353,7 +356,7 @@ public abstract class TestAbstractBlobStore {
         assertEquals(1, otherExpiration);
         URL urlOneSecond = storeBlobAndGetDirectDownloadURL("other");
         // direct download link of "other" provider expires in 1 second
-        await().atMost(Duration.ONE_MINUTE).pollDelay(Duration.ONE_SECOND).untilAsserted(() -> {
+        await().atMost(Duration.ofMinutes(1)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
             HttpURLConnection connection = (HttpURLConnection) urlOneSecond.openConnection();
             connection.setRequestMethod("GET");
             connection.connect();

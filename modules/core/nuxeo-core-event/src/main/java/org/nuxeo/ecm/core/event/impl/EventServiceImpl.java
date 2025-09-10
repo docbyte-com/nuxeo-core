@@ -31,10 +31,11 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -48,21 +49,17 @@ import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.event.EventServiceAdmin;
-import org.nuxeo.ecm.core.event.EventServiceComponent;
 import org.nuxeo.ecm.core.event.EventStats;
 import org.nuxeo.ecm.core.event.PostCommitEventListener;
 import org.nuxeo.ecm.core.event.pipe.EventPipeDescriptor;
-import org.nuxeo.ecm.core.event.pipe.EventPipeRegistry;
 import org.nuxeo.ecm.core.event.pipe.dispatch.EventBundleDispatcher;
 import org.nuxeo.ecm.core.event.pipe.dispatch.EventDispatcherDescriptor;
-import org.nuxeo.ecm.core.event.pipe.dispatch.EventDispatcherRegistry;
 import org.nuxeo.ecm.core.event.stream.DomainEventProducer;
 import org.nuxeo.ecm.core.event.stream.DomainEventProducerDescriptor;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.Settings;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.codec.CodecService;
-import org.nuxeo.runtime.model.DescriptorRegistry;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.nuxeo.runtime.transaction.TransactionRuntimeException;
@@ -118,17 +115,9 @@ public class EventServiceImpl implements EventService, EventServiceAdmin, Synchr
 
     protected boolean bulkModeEnabled = false;
 
-    protected EventPipeRegistry registeredPipes = new EventPipeRegistry();
-
-    protected EventDispatcherRegistry dispatchers = new EventDispatcherRegistry();
-
     protected EventBundleDispatcher pipeDispatcher;
 
-    // @since 11.4
-    protected DescriptorRegistry domainEventProducers = new DescriptorRegistry();
-
-    // @since 11.4
-    protected static final String REGISTRY_TARGET_NAME = "EventService";
+    protected List<DomainEventProducerDescriptor> domainEventProducers = new ArrayList<>();
 
     public EventServiceImpl() {
         listenerDescriptors = new EventListenerList();
@@ -136,40 +125,21 @@ public class EventServiceImpl implements EventService, EventServiceAdmin, Synchr
         asyncExec = new AsyncEventExecutor();
     }
 
-    public void init() {
+    public void init(List<DomainEventProducerDescriptor> domainEventProducers,
+            EventDispatcherDescriptor dispatcherDescriptor, List<EventPipeDescriptor> eventPipes) {
         asyncExec.init();
 
-        EventDispatcherDescriptor dispatcherDescriptor = dispatchers.getDispatcherDescriptor();
-        if (dispatcherDescriptor != null) {
-            List<EventPipeDescriptor> pipes = registeredPipes.getPipes();
-            if (!pipes.isEmpty()) {
-                pipeDispatcher = dispatcherDescriptor.getInstance();
-                pipeDispatcher.init(pipes, dispatcherDescriptor.getParameters());
-            }
+        if (dispatcherDescriptor != null && !eventPipes.isEmpty()) {
+            pipeDispatcher = dispatcherDescriptor.getInstance();
+            pipeDispatcher.init(eventPipes, dispatcherDescriptor.getParameters());
         }
+
+        this.domainEventProducers = domainEventProducers;
         initDomainEventStreams();
     }
 
     public EventBundleDispatcher getEventBundleDispatcher() {
         return pipeDispatcher;
-    }
-
-    public void addDomainEventProducer(DomainEventProducerDescriptor descriptor) {
-        if (descriptor.isEnabled()) {
-            domainEventProducers.register(REGISTRY_TARGET_NAME, EventServiceComponent.DOMAIN_EVENT_PRODUCER_XP,
-                    descriptor);
-            log.debug("Registered domain event producer: {}", descriptor::getName);
-        } else {
-            domainEventProducers.unregister(REGISTRY_TARGET_NAME, EventServiceComponent.DOMAIN_EVENT_PRODUCER_XP,
-                    descriptor);
-            log.debug("Unregistered domain event producer (disabled): {}", descriptor::getName);
-        }
-    }
-
-    public void removeDomainEventProducer(DomainEventProducerDescriptor descriptor) {
-        domainEventProducers.unregister(REGISTRY_TARGET_NAME, EventServiceComponent.DOMAIN_EVENT_PRODUCER_XP,
-                descriptor);
-        log.debug("Unregistered domain event producer: {}", descriptor::getName);
     }
 
     public void shutdown(long timeoutMillis) throws InterruptedException {
@@ -235,30 +205,10 @@ public class EventServiceImpl implements EventService, EventServiceAdmin, Synchr
         log.debug("Registered event listener: {}", listener::getName);
     }
 
-    public void addEventPipe(EventPipeDescriptor pipeDescriptor) {
-        registeredPipes.addContribution(pipeDescriptor);
-        log.debug("Registered event pipe: {}", pipeDescriptor::getName);
-    }
-
-    public void addEventDispatcher(EventDispatcherDescriptor dispatcherDescriptor) {
-        dispatchers.addContrib(dispatcherDescriptor);
-        log.debug("Registered event dispatcher: {}", dispatcherDescriptor::getName);
-    }
-
     @Override
     public void removeEventListener(EventListenerDescriptor listener) {
         listenerDescriptors.removeDescriptor(listener);
         log.debug("Unregistered event listener: {}", listener::getName);
-    }
-
-    public void removeEventPipe(EventPipeDescriptor pipeDescriptor) {
-        registeredPipes.removeContribution(pipeDescriptor);
-        log.debug("Unregistered event pipe: {}", pipeDescriptor::getName);
-    }
-
-    public void removeEventDispatcher(EventDispatcherDescriptor dispatcherDescriptor) {
-        dispatchers.removeContrib(dispatcherDescriptor);
-        log.debug("Unregistered event dispatcher: {}", dispatcherDescriptor::getName);
     }
 
     @Override
@@ -607,19 +557,14 @@ public class EventServiceImpl implements EventService, EventServiceAdmin, Synchr
 
     @Override
     public List<DomainEventProducer> createDomainEventProducers() {
-        // TODO: optimize this by keeping an immutable list
-        List<DomainEventProducerDescriptor> descriptors = domainEventProducers.getDescriptors(REGISTRY_TARGET_NAME,
-                EventServiceComponent.DOMAIN_EVENT_PRODUCER_XP);
-        return descriptors.stream().map(DomainEventProducerDescriptor::newInstance).collect(Collectors.toList());
+        return domainEventProducers.stream().map(DomainEventProducerDescriptor::newInstance).toList();
     }
 
     protected void initDomainEventStreams() {
-        List<DomainEventProducerDescriptor> descriptors = domainEventProducers.getDescriptors(REGISTRY_TARGET_NAME,
-                EventServiceComponent.DOMAIN_EVENT_PRODUCER_XP);
         Settings settings = new Settings(1, 1);
         List<String> streams = new ArrayList<>();
         CodecService codecService = Framework.getService(CodecService.class);
-        descriptors.forEach(descriptor -> {
+        domainEventProducers.forEach(descriptor -> {
             String streamName = descriptor.getStream().name;
             streams.add(streamName);
             settings.setPartitions(streamName, descriptor.getStream().partitions);

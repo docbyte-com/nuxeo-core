@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
-
 package org.nuxeo.directory.test.io;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -27,7 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Locale;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.json.JSONException;
 import org.junit.Test;
@@ -53,7 +51,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
  */
 @RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.directory")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directory-resolver-contrib.xml")
 public class DirectoryEntryJsonWriterTest
         extends AbstractJsonWriterTest.External<DirectoryEntryJsonWriter, DirectoryEntry> {

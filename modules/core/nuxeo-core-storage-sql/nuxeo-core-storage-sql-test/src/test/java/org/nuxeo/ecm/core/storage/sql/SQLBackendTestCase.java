@@ -18,11 +18,15 @@
  */
 package org.nuxeo.ecm.core.storage.sql;
 
+import static org.nuxeo.ecm.core.storage.sql.VCSRepositoryFeature.ID_TYPE;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,7 +54,10 @@ public abstract class SQLBackendTestCase {
 
     private static final String REPOSITORY_NAME = "test";
 
-    private final Map<String, BlobProviderDescriptor> blobProviderDescriptors = new HashMap<>();
+    @Inject
+    protected VCSRepositoryFeature repositoryFeature;
+
+    protected final Map<String, BlobProviderDescriptor> blobProviderDescriptors = new HashMap<>();
 
     protected RepositoryImpl repository;
 
@@ -82,7 +89,7 @@ public abstract class SQLBackendTestCase {
         if (name == null) {
             name = REPOSITORY_NAME;
         }
-        RepositoryDescriptor descriptor = DatabaseHelper.DATABASE.getRepositoryDescriptor();
+        RepositoryDescriptor descriptor = newDescriptorDependingOnDB();
         descriptor.name = name;
         FieldDescriptor schemaField1 = new FieldDescriptor();
         schemaField1.field = "tst:bignote";
@@ -91,9 +98,32 @@ public abstract class SQLBackendTestCase {
         schemaField2.field = "tst:bignotes";
         schemaField2.type = Model.FIELD_TYPE_LARGETEXT;
         descriptor.schemaFields = Arrays.asList(schemaField1, schemaField2);
-        // disable fulltext because fulltext workers wouldn't have any
-        // high-level repository to get a session from anyway.
+        // disable fulltext because fulltext workers wouldn't have any high-level repository to get a session from
         descriptor.setFulltextDisabled(true);
+        return descriptor;
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    protected RepositoryDescriptor newDescriptorDependingOnDB() {
+        var descriptor = new RepositoryDescriptor();
+        if (repositoryFeature.isDB2()) {
+            // nothing to do
+        } else if (repositoryFeature.isH2()) {
+            // nothing to do
+        } else if (repositoryFeature.isMySQL()) {
+            // nothing to do
+        } else if (repositoryFeature.isOracle()) {
+            descriptor.idType = Framework.getProperty(ID_TYPE.key());
+        } else if (repositoryFeature.isPostgreSQL()) {
+            descriptor.setFulltextAnalyzer("french");
+            descriptor.setPathOptimizationsEnabled(true);
+            descriptor.setAclOptimizationsEnabled(true);
+            descriptor.idType = Framework.getProperty(ID_TYPE.key());
+        } else if (repositoryFeature.isSQLServer()) {
+            descriptor.setFulltextAnalyzer("French");
+            descriptor.setFulltextCatalog("nuxeo");
+            descriptor.idType = Framework.getProperty(ID_TYPE.key());
+        }
         return descriptor;
     }
 

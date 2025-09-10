@@ -239,18 +239,6 @@ public class ThreadDeadlocksDetector {
         timer = null;
     }
 
-    @SuppressWarnings("deprecation")
-    public static void killThreads(Set<Long> ids) {
-        Map<Long, Thread> threads = getThreads();
-        for (long id : ids) {
-            Thread thread = threads.get(id);
-            if (thread == null) {
-                continue;
-            }
-            thread.stop();
-        }
-    }
-
     protected static Map<Long, Thread> getThreads() {
         ThreadGroup root = rootGroup(Thread.currentThread().getThreadGroup());
         int nThreads = root.activeCount();

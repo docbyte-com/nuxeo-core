@@ -22,12 +22,13 @@ package org.nuxeo.ecm.core.scheduler;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * ScheduleImpl extension definition.
  */
 @XObject("schedule")
-public class ScheduleImpl implements Schedule {
+public class ScheduleImpl implements Descriptor, Schedule {
 
     @XNode("@id")
     public String id;
@@ -128,7 +129,6 @@ public class ScheduleImpl implements Schedule {
     public boolean isEnabled() {
         return enabled;
     }
-
 
     /**
      * @since 10.2

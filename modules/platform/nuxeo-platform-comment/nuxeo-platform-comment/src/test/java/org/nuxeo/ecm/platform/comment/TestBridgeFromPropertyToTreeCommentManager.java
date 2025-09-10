@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,14 @@
  * Contributors:
  *     Salem Aouana
  */
-
 package org.nuxeo.ecm.platform.comment;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.nuxeo.ecm.platform.comment.CommentUtils.newComment;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentRef;
@@ -37,6 +36,7 @@ import org.nuxeo.runtime.test.runner.Features;
 /**
  * @since 11.1
  */
+@SuppressWarnings("deprecation")
 @Features({ PropertyCommentFeature.class, BridgeCommentFeature.class })
 public class TestBridgeFromPropertyToTreeCommentManager extends AbstractTestCommentManager {
 

@@ -19,6 +19,8 @@
  */
 package org.nuxeo.ecm.core.query.sql.model;
 
+import org.nuxeo.ecm.core.api.SortInfo;
+
 /**
  * Helper to instantiate {@link OrderByExpr}s compatible with the search service inside Audit.
  * <p>
@@ -36,4 +38,11 @@ public class OrderByExprs {
         return new OrderByExpr(new Reference(name), true);
     }
 
+    /**
+     * @return the given {@link SortInfo} as an {@link OrderByExpr}
+     * @since 2025.0
+     */
+    public static OrderByExpr from(SortInfo sortInfo) {
+        return new OrderByExpr(new Reference(sortInfo.getSortColumn()), !sortInfo.getSortAscending());
+    }
 }

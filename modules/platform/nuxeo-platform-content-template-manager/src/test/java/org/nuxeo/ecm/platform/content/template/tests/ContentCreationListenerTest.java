@@ -20,7 +20,7 @@
 
 package org.nuxeo.ecm.platform.content.template.tests;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

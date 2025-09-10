@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,9 +24,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +38,7 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
+import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.core.util.BlobList;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.api.Blob;
@@ -46,26 +49,31 @@ import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
 import org.nuxeo.ecm.platform.pdf.PDFPageExtractor;
 import org.nuxeo.ecm.platform.pdf.operations.PDFConvertToPicturesOperation;
 import org.nuxeo.ecm.platform.pdf.operations.PDFExtractPagesOperation;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 @RunWith(FeaturesRunner.class)
 @Features({ AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.pdf")
-@ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26793")
+@ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26793")
 public class PDFPageExtractorTest {
 
-    private FileBlob pdfFileBlob, encryptedPdfFileBlob;
-
-    private DocumentModel testDocsFolder, pdfDocModel;
+    @Inject
+    protected CoreSession coreSession;
 
     @Inject
-    CoreSession coreSession;
+    protected AutomationService automationService;
 
-    @Inject
-    AutomationService automationService;
+    protected FileBlob pdfFileBlob;
+
+    protected FileBlob encryptedPdfFileBlob;
+
+    protected DocumentModel testDocsFolder;
+
+    protected DocumentModel pdfDocModel;
 
     protected OperationContext ctx;
 
@@ -79,8 +87,8 @@ public class PDFPageExtractorTest {
         pdfFileBlob = new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.PDF_PATH));
         pdfFileBlob.setMimeType("application/pdf");
         pdfFileBlob.setFilename(pdfFileBlob.getFile().getName());
-        pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(),
-                pdfFileBlob.getFile().getName(), "File");
+        pdfDocModel = coreSession.createDocumentModel(testDocsFolder.getPathAsString(), pdfFileBlob.getFile().getName(),
+                "File");
         pdfDocModel.setPropertyValue("dc:title", pdfFileBlob.getFile().getName());
         pdfDocModel.setPropertyValue("file:content", pdfFileBlob);
         pdfDocModel = coreSession.createDocument(pdfDocModel);
@@ -97,18 +105,18 @@ public class PDFPageExtractorTest {
         coreSession.save();
     }
 
-    private void checkExtractedPDFPages1To3(File extractedPDFPages) throws Exception {
-        PDDocument resultPDF = PDDocument.load(extractedPDFPages);
-        assertEquals(3, resultPDF.getNumberOfPages());
-        String text = TestUtils.extractText(resultPDF, 1, 3);
-        assertEquals(4567, text.length());
-        assertTrue(text.startsWith("Creative Brief\nDo this\nLorem ipsum dolor sit amet, consectetur adipisicing"));
-        assertTrue(text.endsWith("blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et \n"));
-        resultPDF.close();
+    private void checkExtractedPDFPages1To3(File extractedPDFPages) throws IOException {
+        try (PDDocument resultPDF = Loader.loadPDF(extractedPDFPages)) {
+            assertEquals(3, resultPDF.getNumberOfPages());
+            String text = TestUtils.extractText(resultPDF, 1, 3);
+            assertEquals(4567, text.length());
+            assertTrue(text.startsWith("Creative Brief\nDo this\nLorem ipsum dolor sit amet, consectetur adipisicing"));
+            assertTrue(text.endsWith("blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et \n"));
+        }
     }
 
     @Test
-    public void testExtractPDFPages() throws Exception {
+    public void testExtractPDFPages() throws IOException {
         PDFPageExtractor pdfpe = new PDFPageExtractor(pdfFileBlob);
         Blob result = pdfpe.extract(1, 3);
         assertEquals(pdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
@@ -117,7 +125,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesEncrypted() throws Exception {
+    public void testExtractPDFPagesEncrypted() throws IOException {
         PDFPageExtractor pdfpe = new PDFPageExtractor(encryptedPdfFileBlob);
         pdfpe.setPassword(TestUtils.PDF_ENCRYPTED_PASSWORD);
         Blob result = pdfpe.extract(1, 3);
@@ -127,7 +135,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesWithFileName() throws Exception {
+    public void testExtractPDFPagesWithFileName() throws IOException {
         PDFPageExtractor pdfpe = new PDFPageExtractor(pdfFileBlob);
         Blob result = pdfpe.extract(1, 3, "newpdf.pdf", null, null, null);
         assertEquals("newpdf.pdf", result.getFilename());
@@ -136,21 +144,21 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesWithInfo() throws Exception {
+    public void testExtractPDFPagesWithInfo() throws IOException {
         PDFPageExtractor pe = new PDFPageExtractor(pdfFileBlob);
         Blob result = pe.extract(1, 3, null, "Once Upon a Time", "Fairyland", "Cool Author");
         assertEquals(pdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
         assertEquals("application/pdf", result.getMimeType());
         checkExtractedPDFPages1To3(result.getFile());
-        PDDocument resultPDF = PDDocument.load(result.getFile());
-        assertEquals("Once Upon a Time", resultPDF.getDocumentInformation().getTitle());
-        assertEquals("Fairyland", resultPDF.getDocumentInformation().getSubject());
-        assertEquals("Cool Author", resultPDF.getDocumentInformation().getAuthor());
-        resultPDF.close();
+        try (PDDocument resultPDF = Loader.loadPDF(result.getFile())) {
+            assertEquals("Once Upon a Time", resultPDF.getDocumentInformation().getTitle());
+            assertEquals("Fairyland", resultPDF.getDocumentInformation().getSubject());
+            assertEquals("Cool Author", resultPDF.getDocumentInformation().getAuthor());
+        }
     }
 
     @Test
-    public void testExtractPDFPagesToPictures() throws Exception {
+    public void testExtractPDFPagesToPictures() {
         FileBlob fb = new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.PDF_TRANSCRIPT_PATH));
         PDFPageExtractor pdfpe = new PDFPageExtractor(fb);
         BlobList results = pdfpe.getPagesAsImages(null);
@@ -164,12 +172,10 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesOperation() throws Exception {
+    public void testExtractPDFPagesOperation() throws OperationException, IOException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfFileBlob);
-        chain.add(PDFExtractPagesOperation.ID)
-        .set("startPage", 1)
-        .set("endPage", 3);
+        chain.add(PDFExtractPagesOperation.ID).set("startPage", 1).set("endPage", 3);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         assertEquals(pdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
@@ -178,13 +184,13 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testExtractPDFPagesOperationEncrypted() throws Exception {
+    public void testExtractPDFPagesOperationEncrypted() throws OperationException, IOException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(encryptedPdfFileBlob);
         chain.add(PDFExtractPagesOperation.ID)
-        .set("startPage", 1)
-        .set("endPage", 3)
-        .set("password", TestUtils.PDF_ENCRYPTED_PASSWORD);
+             .set("startPage", 1)
+             .set("endPage", 3)
+             .set("password", TestUtils.PDF_ENCRYPTED_PASSWORD);
         Blob result = (Blob) automationService.run(ctx, chain);
         assertNotNull(result);
         assertEquals(encryptedPdfFileBlob.getFilename().replace(".pdf", "-1-3.pdf"), result.getFilename());
@@ -193,7 +199,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test
-    public void testConvertPDFToPicturesOperation() throws Exception {
+    public void testConvertPDFToPicturesOperation() throws OperationException {
         OperationChain chain = new OperationChain("testChain");
         ctx.setInput(pdfDocModel);
         chain.add(PDFConvertToPicturesOperation.ID);
@@ -207,7 +213,7 @@ public class PDFPageExtractorTest {
     }
 
     @Test(expected = NuxeoException.class)
-    public void testExtractPDFPagesShouldFail() throws Exception {
+    public void testExtractPDFPagesShouldFail() {
         PDFPageExtractor pdfpe = new PDFPageExtractor(
                 new FileBlob(FileUtils.getResourceFileFromContext(TestUtils.JPG_PATH)));
         pdfpe.extract(1, 3); // IOException: Failed to load the PDF

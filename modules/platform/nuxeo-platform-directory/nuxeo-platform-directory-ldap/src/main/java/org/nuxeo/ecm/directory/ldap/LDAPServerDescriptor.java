@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,10 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
 package org.nuxeo.ecm.directory.ldap;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -44,9 +42,10 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.ldap.dns.DNSServiceEntry;
 import org.nuxeo.ecm.directory.ldap.dns.DNSServiceResolver;
 import org.nuxeo.ecm.directory.ldap.dns.DNSServiceResolverImpl;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject(value = "server")
-public class LDAPServerDescriptor {
+public class LDAPServerDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(LDAPServerDescriptor.class);
 
@@ -94,6 +93,11 @@ public class LDAPServerDescriptor {
         return isDynamicServerList;
     }
 
+    @Override
+    public String getId() {
+        return name;
+    }
+
     public String getName() {
         return name;
     }
@@ -102,7 +106,7 @@ public class LDAPServerDescriptor {
 
     @XNode("bindDn")
     public void setBindDn(String bindDn) {
-        if (null != bindDn && bindDn.trim().equals("")) {
+        if (StringUtils.isBlank(bindDn)) {
             // empty bindDn means anonymous authentication
             this.bindDn = null;
         } else {
@@ -289,8 +293,7 @@ public class LDAPServerDescriptor {
                     break;
                 }
             }
-            Collections.reverse(domainComponents);
-            return StringUtils.join(domainComponents, ".");
+            return StringUtils.join(domainComponents.reversed(), ".");
         } catch (InvalidNameException e) {
             throw new DirectoryException(e);
         }
@@ -337,7 +340,7 @@ public class LDAPServerDescriptor {
      *
      * @author Bob Browning
      */
-    protected class LdapEntryDescriptor implements LdapEntry {
+    protected static class LdapEntryDescriptor implements LdapEntry {
 
         protected LDAPUrlDescriptor url;
 

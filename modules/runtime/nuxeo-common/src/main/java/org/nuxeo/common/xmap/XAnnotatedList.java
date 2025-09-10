@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.common.xmap;
 
 import java.lang.reflect.Array;
@@ -108,16 +105,12 @@ public class XAnnotatedList extends XAnnotatedMember {
     public void toXML(Object instance, Element parent) {
         Object v = accessor.getValue(instance);
         if (v != null) {
-            Object[] objects;
-            if (v instanceof Object[]) {
-                objects = (Object[]) v;
-            } else if (v instanceof List) {
-                objects = ((List<?>) v).toArray();
-            } else if (v instanceof Collection) {
-                objects = ((Collection<?>) v).toArray();
-            } else {
-                objects = PrimitiveArrays.toObjectArray(v);
-            }
+            Object[] objects = switch (v) {
+                case Object[] objects1 -> objects1;
+                case List<?> list -> list.toArray();
+                case Collection<?> collection -> collection.toArray();
+                default -> PrimitiveArrays.toObjectArray(v);
+            };
             if (objects != null) {
                 if (xao == null) {
                     for (Object o : objects) {
@@ -156,7 +149,6 @@ class ElementValueVisitor implements DOMHelper.NodeVisitor {
         if (xam.valueFactory != null) {
             result.add(xam.valueFactory.deserialize(ctx, val));
         } else {
-            // TODO: log warning?
             result.add(val);
         }
     }
@@ -169,7 +161,6 @@ class AttributeValueVisitor implements DOMHelper.NodeVisitor {
         if (xam.valueFactory != null) {
             result.add(xam.valueFactory.deserialize(ctx, val));
         } else {
-            // TODO: log warning?
             result.add(val);
         }
     }

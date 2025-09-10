@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,19 @@
  */
 package org.nuxeo.ecm.core.blob;
 
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.storage.mongodb.blob.GridFSBlobProvider.STORE_SCROLL_NAME;
 
-import org.junit.Before;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
  * @since 2023.5
  */
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-gridfs-config.xml")
+@ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB feature only")
 public class TestGridFSBlobScroll extends AbstractTestBlobScroll {
 
-    @Before
-    public void setup() {
-        assumeTrue("MongoDB feature only", coreFeature.getStorageConfiguration().isDBS());
-    }
-    
     @Override
     public String getScrollName() {
         return STORE_SCROLL_NAME;

@@ -18,6 +18,8 @@
  */
 package org.nuxeo.runtime.stream;
 
+import static java.util.Objects.requireNonNullElse;
+
 import java.io.Externalizable;
 import java.time.Duration;
 import java.time.Instant;
@@ -49,9 +51,9 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.codec.CodecService;
 import org.nuxeo.runtime.kafka.KafkaConfigService;
-import org.nuxeo.runtime.kafka.KafkaConfigServiceImpl;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentManager;
+import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -80,8 +82,7 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
 
     @Override
     public int getApplicationStartedOrder() {
-        // start after kafka config service
-        return KafkaConfigServiceImpl.APPLICATION_STARTED_ORDER + 10;
+        return ComponentStartOrders.STREAM;
     }
 
     @Override
@@ -158,9 +159,8 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
         String kafkaConfig = desc.options.getOrDefault("kafkaConfig", "default");
         KafkaConfigService service = Framework.getService(KafkaConfigService.class);
         return new KafkaLogConfig(desc.getId(), desc.isDefault(), desc.getPatterns(),
-                service.getTopicPrefix(kafkaConfig),
-                service.getAdminProperties(kafkaConfig), service.getProducerProperties(kafkaConfig),
-                service.getConsumerProperties(kafkaConfig));
+                service.getTopicPrefix(kafkaConfig), service.getAdminProperties(kafkaConfig),
+                service.getProducerProperties(kafkaConfig), service.getConsumerProperties(kafkaConfig));
     }
 
     protected void initProcessor(StreamProcessorDescriptor descriptor) {
@@ -191,8 +191,8 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
 
     protected Settings getSettings(StreamProcessorDescriptor descriptor) {
         CodecService codecService = Framework.getService(CodecService.class);
-        Codec<Record> actualCodec = descriptor.defaultCodec == null ? codecService.getCodec(DEFAULT_CODEC, Record.class)
-                : codecService.getCodec(descriptor.defaultCodec, Record.class);
+        Codec<Record> actualCodec = codecService.getCodec(requireNonNullElse(descriptor.defaultCodec, DEFAULT_CODEC),
+                Record.class);
         Settings settings = new Settings(descriptor.defaultConcurrency, descriptor.defaultPartitions, actualCodec,
                 descriptor.getDefaultPolicy(), null, descriptor.defaultExternal);
         descriptor.computations.forEach(comp -> settings.setConcurrency(comp.name, comp.concurrency));
@@ -331,7 +331,7 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
         log.debug("Set computation position for {} after date: {}", computation, after);
         try (LogTailer<Externalizable> tailer = logManager.createTailer(computation, stream)) {
             boolean moved = false;
-            for (LogPartition partition: tailer.assignments()) {
+            for (LogPartition partition : tailer.assignments()) {
                 LogOffset offset = tailer.offsetForTimestamp(partition, after.toEpochMilli());
                 if (offset != null) {
                     tailer.seek(offset);
@@ -349,6 +349,26 @@ public class StreamServiceImpl extends DefaultComponent implements StreamService
             }
             throw e;
         }
+        return false;
+    }
+
+    @Override
+    public boolean await(Name stream, Name computation, Duration duration) throws InterruptedException {
+        log.debug("Await computation: {} for {}ms ", () -> computation, duration::toMillis);
+        long start = System.currentTimeMillis();
+        long deadline = start + duration.toMillis();
+        long lag;
+        do {
+            lag = logManager.getLag(stream, computation).lag();
+            // when there is no lag between producer and consumer we are done
+            if (lag == 0) {
+                log.debug("Computation: {} completed in {}ms", () -> computation,
+                        () -> System.currentTimeMillis() - start);
+                return true;
+            }
+            Thread.sleep(50);
+        } while (System.currentTimeMillis() < deadline);
+        log.warn("Await timeout on computation: {}, remaining lag: {}", computation, lag);
         return false;
     }
 

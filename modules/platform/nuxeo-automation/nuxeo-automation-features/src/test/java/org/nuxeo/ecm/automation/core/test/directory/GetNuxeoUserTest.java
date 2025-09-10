@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -35,11 +35,11 @@ import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationParameters;
 import org.nuxeo.ecm.automation.core.operations.users.GetNuxeoPrincipal;
 import org.nuxeo.ecm.automation.core.operations.users.SuggestUserEntries;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.io.registry.MarshallingConstants;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.usermanager.io.NuxeoPrincipalJsonWriter;
@@ -51,20 +51,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(init = DefaultRepositoryInit.class)
 @Deploy("org.nuxeo.ecm.platform.usermanager")
-@Deploy("org.nuxeo.ecm.actions")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 public class GetNuxeoUserTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     protected OperationContext ctx;
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,28 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.restapi.test;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.http.HttpStatus.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.audit.api.LogEntryConstants.LOG_EVENT_ID;
 import static org.nuxeo.common.utils.DateUtils.formatISODateTime;
 import static org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter.TEXT_CSV;
-import static org.nuxeo.ecm.platform.audit.api.BuiltinLogEntryData.LOG_EVENT_ID;
 
 import java.io.InputStreamReader;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -44,6 +45,10 @@ import org.apache.commons.csv.CSVRecord;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.io.LogEntryCSVWriter;
+import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.common.function.ThrowableConsumer;
 import org.nuxeo.common.utils.DateUtils;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -51,13 +56,9 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.io.registry.MarshallingConstants;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.platform.audit.AuditFeature;
-import org.nuxeo.ecm.platform.audit.api.AuditLogger;
-import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.io.LogEntryCSVWriter;
-import org.nuxeo.ecm.restapi.jaxrs.io.RestConstants;
-import org.nuxeo.ecm.restapi.server.jaxrs.adapters.AuditAdapter;
-import org.nuxeo.ecm.restapi.server.jaxrs.enrichers.AuditJsonEnricher;
+import org.nuxeo.ecm.restapi.io.RestConstants;
+import org.nuxeo.ecm.restapi.server.adapters.AuditAdapter;
+import org.nuxeo.ecm.restapi.server.enrichers.AuditJsonEnricher;
 import org.nuxeo.http.test.HttpClientTestRule;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
@@ -72,12 +73,12 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  * @since 5.7.3
  */
 @RunWith(FeaturesRunner.class)
-@Features({ RestServerFeature.class, AuditFeature.class })
+@Features({ AuditFeature.class, RestServerFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD, init = RestServerInit.class)
 public class AuditTest {
 
     @Inject
-    protected AuditLogger auditLogger;
+    protected AuditBackend auditBackend;
 
     @Inject
     protected CoreSession session;
@@ -164,6 +165,7 @@ public class AuditTest {
                                              .execute(new JSONDocumentNodeHandler());
         httpClient.buildPutRequest("/id/" + doc.getId())
                   .entity(jsonDoc.asJson())
+                  .contentType("application/json")
                   .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
 
         // Wait for audit indexing
@@ -197,7 +199,7 @@ public class AuditTest {
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", null, null));
         logEntries.add(buildLogEntry(doc, "One", "secondEvent", null, null));
         logEntries.add(buildLogEntry(doc, "Two", "firstEvent", null, null));
-        auditLogger.addLogEntries(logEntries);
+        auditBackend.addLogEntries(logEntries);
 
         transactionalFeature.nextTransaction();
 
@@ -222,7 +224,7 @@ public class AuditTest {
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", null, firstDate));
         logEntries.add(buildLogEntry(doc, "One", "secondEvent", null, firstDate));
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", null, secondDate));
-        auditLogger.addLogEntries(logEntries);
+        auditBackend.addLogEntries(logEntries);
 
         transactionalFeature.nextTransaction();
 
@@ -256,7 +258,7 @@ public class AuditTest {
         logEntries.add(buildLogEntry(doc, "One", "secondEvent", "leela", firstDate));
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", "leela", secondDate));
         logEntries.add(buildLogEntry(doc, "One", "thirdEvent", "leela", secondDate));
-        auditLogger.addLogEntries(logEntries);
+        auditBackend.addLogEntries(logEntries);
 
         transactionalFeature.nextTransaction();
 
@@ -284,14 +286,15 @@ public class AuditTest {
     public void shouldHandlePagination() {
         DocumentModel doc = RestServerInit.getFile(1, session);
 
+        var date = ZonedDateTime.now();
         List<LogEntry> logEntries = new ArrayList<>();
-        logEntries.add(buildLogEntry(doc, "One", "firstEvent", null, null));
-        logEntries.add(buildLogEntry(doc, "One", "secondEvent", null, null));
-        logEntries.add(buildLogEntry(doc, "One", "thirdEvent", null, null));
-        logEntries.add(buildLogEntry(doc, "One", "fourthEvent", null, null));
-        logEntries.add(buildLogEntry(doc, "One", "fifthEvent", null, null));
-        logEntries.add(buildLogEntry(doc, "One", "sixthEvent", null, null));
-        auditLogger.addLogEntries(logEntries);
+        logEntries.add(buildLogEntry(doc, "One", "firstEvent", null, date));
+        logEntries.add(buildLogEntry(doc, "One", "secondEvent", null, date.plusSeconds(1)));
+        logEntries.add(buildLogEntry(doc, "One", "thirdEvent", null, date.plusSeconds(2)));
+        logEntries.add(buildLogEntry(doc, "One", "fourthEvent", null, date.plusSeconds(3)));
+        logEntries.add(buildLogEntry(doc, "One", "fifthEvent", null, date.plusSeconds(4)));
+        logEntries.add(buildLogEntry(doc, "One", "sixthEvent", null, date.plusSeconds(5)));
+        auditBackend.addLogEntries(logEntries);
 
         transactionalFeature.nextTransaction();
 
@@ -375,7 +378,7 @@ public class AuditTest {
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", "james", null));
         logEntries.add(buildLogEntry(doc, "One", "thirdEvent", "james", null));
         logEntries.add(buildLogEntry(doc, "One", "firstEvent", "james", null));
-        auditLogger.addLogEntries(logEntries);
+        auditBackend.addLogEntries(logEntries);
 
         transactionalFeature.nextTransaction();
 
@@ -429,13 +432,11 @@ public class AuditTest {
 
     protected LogEntry buildLogEntry(DocumentModel documentModel, String category, String eventId, String principalName,
             ZonedDateTime eventDate) {
-        LogEntry logEntry = auditLogger.newLogEntry();
-        logEntry.setDocUUID(documentModel.getRef());
-        logEntry.setCategory(category);
-        logEntry.setEventId(eventId);
-        logEntry.setPrincipalName(principalName);
-        logEntry.setEventDate(DateUtils.toDate(eventDate));
-        return logEntry;
+        return LogEntry.builder(eventId, Optional.ofNullable(eventDate).map(DateUtils::toDate).orElseGet(Date::new))
+                       .docUUID(documentModel.getRef())
+                       .category(category)
+                       .principalName(principalName)
+                       .build();
     }
 
 }

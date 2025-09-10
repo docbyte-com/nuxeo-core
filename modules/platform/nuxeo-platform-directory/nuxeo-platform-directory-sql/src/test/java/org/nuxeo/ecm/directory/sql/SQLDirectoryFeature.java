@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,8 @@
  */
 package org.nuxeo.ecm.directory.sql;
 
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.directory.DirectoryCoreFeature;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -26,13 +27,9 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 6.0
  */
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.directory.api")
-@Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.core.schema")
-@Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.sql")
-@Deploy("org.nuxeo.ecm.directory.sql:nxdirectory-ds.xml")
+@Deploy("org.nuxeo.ecm.directory.sql.tests")
+@Features({ DataSourceFeature.class, DirectoryCoreFeature.class })
 public class SQLDirectoryFeature implements RunnerFeature {
 
 }

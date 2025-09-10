@@ -36,8 +36,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.security.auth.login.LoginException;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.SerializationUtils;
 import org.junit.Before;

@@ -23,30 +23,28 @@ import static com.unboundid.scim2.common.exceptions.BadRequestException.INVALID_
 import static com.unboundid.scim2.common.utils.ApiConstants.MEDIA_TYPE_SCIM;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_ATTRIBUTES;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_EXCLUDED_ATTRIBUTES;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON;
-import static javax.ws.rs.core.Response.Status.CREATED;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static jakarta.ws.rs.core.Response.Status.CREATED;
 import static org.nuxeo.scim.v2.api.ScimV2QueryContext.FETCH_GROUP_MEMBERS_CTX_PARAM;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.common.function.ThrowableUnaryOperator;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.directory.DirectoryException;
+import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.scim.v2.api.ScimV2Helper;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
-import com.sun.jersey.api.core.HttpContext;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.BadRequestException;
-import com.unboundid.scim2.common.exceptions.ResourceNotFoundException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
 import com.unboundid.scim2.common.messages.PatchRequest;
@@ -70,8 +68,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     protected static final ResourceTypeDefinition RESOURCE_TYPE_DEFINITION = ResourceTypeDefinition.fromJaxRsResource(
             ScimV2UserObject.class);
 
-    public ScimV2GroupObject(@Context HttpContext httpContext) {
-        super(httpContext);
+    public ScimV2GroupObject(@Context WebContext webContext) {
+        super(webContext);
     }
 
     @POST
@@ -144,12 +142,8 @@ public class ScimV2GroupObject extends ScimV2BaseUMObject {
     }
 
     protected Response doDeleteGroup(String uid) throws ScimException {
-        try {
-            um.deleteGroup(uid);
-            return Response.noContent().build();
-        } catch (DirectoryException e) {
-            throw new ResourceNotFoundException("Cannot find group: " + uid);
-        }
+        um.deleteGroup(ScimV2Helper.getGroupModel(uid, false));
+        return Response.noContent().build();
     }
 
     @Override

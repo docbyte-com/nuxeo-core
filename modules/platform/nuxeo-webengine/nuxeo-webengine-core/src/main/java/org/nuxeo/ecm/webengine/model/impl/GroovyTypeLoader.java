@@ -34,6 +34,8 @@ import org.nuxeo.ecm.webengine.loader.WebLoader;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.WebObject;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * Load web types extracted from Groovy source files. Types are cached in META-INF/groovy-web-types. When types are
  * reloaded this file will be removed.
@@ -44,7 +46,7 @@ public class GroovyTypeLoader {
 
     private static final Logger log = LogManager.getLogger(GroovyTypeLoader.class);
 
-    public static final String CRLF = System.getProperty("line.separator");
+    public static final String CRLF = System.lineSeparator();
 
     public static final String WEB_TYPES_FILE = "META-INF/groovy-web-types";
 
@@ -70,8 +72,8 @@ public class GroovyTypeLoader {
         try {
             File cache = new File(root, WEB_TYPES_FILE);
             if (cache.isFile()) {
-                for (String line : FileUtils.readLines(cache)) {
-                    if (line.equals("")) {
+                for (String line : FileUtils.readLines(cache, UTF_8)) {
+                    if (line.isEmpty()) {
                         continue;
                     }
                     TypeDescriptor td = loadType(line);

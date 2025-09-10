@@ -19,7 +19,6 @@
 package org.nuxeo.ecm.core.blob;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
@@ -29,6 +28,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.blob.KeyStrategy.WriteObserver;
@@ -56,7 +56,7 @@ public class TestKeyStrategies {
         BlobWriteContext c = ks.getBlobWriteContext(blobContext);
         WriteObserver writeObserver = c.writeObserver;
         @SuppressWarnings("resource")
-        OutputStream out = writeObserver.wrap(NULL_OUTPUT_STREAM);
+        OutputStream out = writeObserver.wrap(NullOutputStream.INSTANCE);
         out.write(ABC.getBytes(UTF_8), 0, 3);
         out.flush();
         writeObserver.done();

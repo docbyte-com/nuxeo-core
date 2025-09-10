@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,10 @@ package org.nuxeo.targetplatforms.core.descriptors;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for target package contributions.
@@ -47,20 +49,17 @@ public class TargetPackageDescriptor extends TargetDescriptor {
     }
 
     @Override
-    public TargetPackageDescriptor clone() {
-        TargetPackageDescriptor clone = new TargetPackageDescriptor();
-        doClone(clone);
-        return clone;
+    public Descriptor merge(Descriptor o) {
+        var other = (TargetPackageDescriptor) o;
+        var merged = new TargetPackageDescriptor();
+        doMerge(merged, other);
+        return merged;
     }
 
-    protected void doClone(TargetPackageDescriptor clone) {
-        super.doClone(clone);
-        if (targetPlatforms != null) {
-            clone.targetPlatforms = new ArrayList<>(targetPlatforms);
-        }
-        if (dependencies != null) {
-            clone.dependencies = new ArrayList<>(dependencies);
-        }
+    protected void doMerge(TargetPackageDescriptor merged, TargetPackageDescriptor other) {
+        super.doMerge(merged, other);
+        merged.targetPlatforms = new ArrayList<>(CollectionUtils.emptyIfNull(targetPlatforms));
+        merged.dependencies = new ArrayList<>(CollectionUtils.emptyIfNull(dependencies));
     }
 
 }

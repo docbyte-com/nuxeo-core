@@ -40,12 +40,6 @@ public class TreeHelper {
     public static final String TITLE_PROPERTY_NAME = "dc:title";
 
     /**
-     * @deprecated since 10.3, use {@link TrashService} instead
-     */
-    @Deprecated
-    public static final String DELETED_STATE = "deleted";
-
-    /**
      * Find or create a set of folders representing the date hierarchy
      *
      * @return the last child created (day)

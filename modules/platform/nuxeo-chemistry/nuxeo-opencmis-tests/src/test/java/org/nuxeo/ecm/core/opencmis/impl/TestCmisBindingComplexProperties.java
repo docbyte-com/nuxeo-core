@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectList;
@@ -69,7 +69,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @RunWith(FeaturesRunner.class)
 @Features({ CmisFeature.class, CmisFeatureConfiguration.class })
-@Deploy("org.nuxeo.ecm.webengine.jaxrs")
+@Deploy("org.nuxeo.ecm.webengine.rest")
 @Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.automation.core")
 @Deploy("org.nuxeo.ecm.core.opencmis.tests.tests:OSGI-INF/types-contrib.xml")

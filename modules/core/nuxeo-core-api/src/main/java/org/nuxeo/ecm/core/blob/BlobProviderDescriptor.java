@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.core.blob;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,12 +27,13 @@ import java.util.Map;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for a {@link BlobProvider}.
  */
 @XObject(value = "blobprovider")
-public class BlobProviderDescriptor {
+public class BlobProviderDescriptor implements Descriptor {
 
     public static final String PREVENT_USER_UPDATE = "preventUserUpdate";
 
@@ -94,7 +97,7 @@ public class BlobProviderDescriptor {
 
     /**
      * Flags this blob provider as allowing direct download with {@link URI} returned by
-     * {@link BlobProvider#getURI(ManagedBlob, org.nuxeo.ecm.core.blob.BlobManager.UsageHint, javax.servlet.http.HttpServletRequest)}.
+     * {@link BlobProvider#getURI(ManagedBlob, org.nuxeo.ecm.core.blob.BlobManager.UsageHint, jakarta.servlet.http.HttpServletRequest)}.
      *
      * @since 2023.7
      */
@@ -140,14 +143,20 @@ public class BlobProviderDescriptor {
         properties = new HashMap<>(other.properties);
     }
 
-    public void merge(BlobProviderDescriptor other) {
-        if (other.name != null) {
-            name = other.name;
-        }
-        if (other.klass != null) {
-            klass = other.klass;
-        }
-        properties.putAll(other.properties);
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    @Override
+    public BlobProviderDescriptor merge(Descriptor o) {
+        var other = (BlobProviderDescriptor) o;
+        var merged = new BlobProviderDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.klass = defaultIfNull(other.klass, klass);
+        merged.properties.putAll(properties);
+        merged.properties.putAll(other.properties);
+        return merged;
     }
 
 }

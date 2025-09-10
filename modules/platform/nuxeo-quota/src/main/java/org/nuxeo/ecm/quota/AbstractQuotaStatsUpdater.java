@@ -19,10 +19,6 @@
 
 package org.nuxeo.ecm.quota;
 
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETE_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSITION_EVENT;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.UNDELETE_TRANSITION;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKIN;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKOUT;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_REMOVE;
@@ -109,65 +105,60 @@ public abstract class AbstractQuotaStatsUpdater implements QuotaStatsUpdater {
         }
         try {
             switch (event.getName()) {
-            case DOCUMENT_CREATED:
-                processDocumentCreated(session, doc);
-                break;
-            case ABOUT_TO_REMOVE:
-            case ABOUT_TO_REMOVE_VERSION:
-                processDocumentAboutToBeRemoved(session, doc);
-                break;
-            case DOCUMENT_CREATED_BY_COPY:
-                processDocumentCopied(session, doc);
-                break;
-            case DOCUMENT_MOVED:
-                DocumentRef sourceParentRef = (DocumentRef) docCtx.getProperty(CoreEventConstants.PARENT_PATH);
-                DocumentRef destinationRef = (DocumentRef) docCtx.getProperty(CoreEventConstants.DESTINATION_REF);
-                DocumentModel sourceParent = sourceParentRef == null ? null : session.getDocument(sourceParentRef);
-                DocumentModel parent = destinationRef == null ? null : session.getDocument(destinationRef);
-                if (sourceParent == null && parent == null
-                        || sourceParent != null && parent != null && sourceParent.getId().equals(parent.getId())) {
-                    // rename
+                case DOCUMENT_CREATED:
+                    processDocumentCreated(session, doc);
                     break;
-                }
-                processDocumentMoved(session, doc, sourceParent);
-                break;
-            case DOCUMENT_UPDATED:
-                processDocumentUpdated(session, doc);
-                break;
-            case BEFORE_DOC_UPDATE:
-                processDocumentBeforeUpdate(session, doc);
-                break;
-            case TRANSITION_EVENT:
-                String transition = (String) docCtx.getProperty(TRANSTION_EVENT_OPTION_TRANSITION);
-                if (!DELETE_TRANSITION.equals(transition) && !UNDELETE_TRANSITION.equals(transition)) {
+                case ABOUT_TO_REMOVE:
+                case ABOUT_TO_REMOVE_VERSION:
+                    processDocumentAboutToBeRemoved(session, doc);
                     break;
-                }
-                processDocumentTrashOp(session, doc, DELETE_TRANSITION.equals(transition));
-                break;
-            case DOCUMENT_CHECKEDIN:
-                processDocumentCheckedIn(session, doc);
-                break;
-            case ABOUT_TO_CHECKIN:
-                processDocumentBeforeCheckedIn(session, doc);
-                break;
-            case DOCUMENT_CHECKEDOUT:
-                processDocumentCheckedOut(session, doc);
-                break;
-            case ABOUT_TO_CHECKOUT:
-                processDocumentBeforeCheckedOut(session, doc);
-                break;
-            case BEFORE_DOC_RESTORE:
-                processDocumentBeforeRestore(session, doc);
-                break;
-            case DOCUMENT_RESTORED:
-                processDocumentRestored(session, doc);
-                break;
-            case DOCUMENT_TRASHED:
-                processDocumentTrashOp(session, doc, true);
-                break;
-            case DOCUMENT_UNTRASHED:
-                processDocumentTrashOp(session, doc, false);
-                break;
+                case DOCUMENT_CREATED_BY_COPY:
+                    processDocumentCopied(session, doc);
+                    break;
+                case DOCUMENT_MOVED:
+                    DocumentRef sourceParentRef = (DocumentRef) docCtx.getProperty(CoreEventConstants.PARENT_PATH);
+                    DocumentRef destinationRef = (DocumentRef) docCtx.getProperty(CoreEventConstants.DESTINATION_REF);
+                    DocumentModel sourceParent = sourceParentRef == null ? null : session.getDocument(sourceParentRef);
+                    DocumentModel parent = destinationRef == null ? null : session.getDocument(destinationRef);
+                    if (sourceParent == null && parent == null
+                            || sourceParent != null && parent != null && sourceParent.getId().equals(parent.getId())) {
+                        // rename
+                        break;
+                    }
+                    processDocumentMoved(session, doc, sourceParent);
+                    break;
+                case DOCUMENT_UPDATED:
+                    processDocumentUpdated(session, doc);
+                    break;
+                case BEFORE_DOC_UPDATE:
+                    processDocumentBeforeUpdate(session, doc);
+                    break;
+                case DOCUMENT_CHECKEDIN:
+                    processDocumentCheckedIn(session, doc);
+                    break;
+                case ABOUT_TO_CHECKIN:
+                    processDocumentBeforeCheckedIn(session, doc);
+                    break;
+                case DOCUMENT_CHECKEDOUT:
+                    processDocumentCheckedOut(session, doc);
+                    break;
+                case ABOUT_TO_CHECKOUT:
+                    processDocumentBeforeCheckedOut(session, doc);
+                    break;
+                case BEFORE_DOC_RESTORE:
+                    processDocumentBeforeRestore(session, doc);
+                    break;
+                case DOCUMENT_RESTORED:
+                    processDocumentRestored(session, doc);
+                    break;
+                case DOCUMENT_TRASHED:
+                    processDocumentTrashOp(session, doc, true);
+                    break;
+                case DOCUMENT_UNTRASHED:
+                    processDocumentTrashOp(session, doc, false);
+                    break;
+                default:
+                    break;
             }
         } catch (QuotaExceededException e) {
             handleQuotaExceeded(e, event);

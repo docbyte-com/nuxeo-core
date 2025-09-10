@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
@@ -252,32 +252,32 @@ public abstract class NuxeoPropertyData<T> extends NuxeoPropertyDataBase<T> {
             // TODO WHEN_CHECKED_OUT, ON_CREATE
 
             switch (pd.getPropertyType()) {
-            case BOOLEAN:
-                return (PropertyData<U>) new NuxeoPropertyBooleanData((PropertyDefinition<Boolean>) pd, doc, name,
-                        readOnly, callContext);
-            case DATETIME:
-                return (PropertyData<U>) new NuxeoPropertyDateTimeData((PropertyDefinition<GregorianCalendar>) pd, doc,
-                        name, readOnly, callContext);
-            case DECIMAL:
-                return (PropertyData<U>) new NuxeoPropertyDecimalData((PropertyDefinition<BigDecimal>) pd, doc, name,
-                        readOnly, callContext);
-            case HTML:
-                return (PropertyData<U>) new NuxeoPropertyHtmlData((PropertyDefinition<String>) pd, doc, name, readOnly,
-                        callContext);
-            case ID:
-                return (PropertyData<U>) new NuxeoPropertyIdData((PropertyDefinition<String>) pd, doc, name, readOnly,
-                        callContext);
-            case INTEGER:
-                return (PropertyData<U>) new NuxeoPropertyIntegerData((PropertyDefinition<BigInteger>) pd, doc, name,
-                        readOnly, callContext);
-            case STRING:
-                return (PropertyData<U>) new NuxeoPropertyStringData((PropertyDefinition<String>) pd, doc, name,
-                        readOnly, callContext);
-            case URI:
-                return (PropertyData<U>) new NuxeoPropertyUriData((PropertyDefinition<String>) pd, doc, name, readOnly,
-                        callContext);
-            default:
-                throw new AssertionError(pd.getPropertyType().toString());
+                case BOOLEAN:
+                    return (PropertyData<U>) new NuxeoPropertyBooleanData((PropertyDefinition<Boolean>) pd, doc, name,
+                            readOnly, callContext);
+                case DATETIME:
+                    return (PropertyData<U>) new NuxeoPropertyDateTimeData((PropertyDefinition<GregorianCalendar>) pd,
+                            doc, name, readOnly, callContext);
+                case DECIMAL:
+                    return (PropertyData<U>) new NuxeoPropertyDecimalData((PropertyDefinition<BigDecimal>) pd, doc,
+                            name, readOnly, callContext);
+                case HTML:
+                    return (PropertyData<U>) new NuxeoPropertyHtmlData((PropertyDefinition<String>) pd, doc, name,
+                            readOnly, callContext);
+                case ID:
+                    return (PropertyData<U>) new NuxeoPropertyIdData((PropertyDefinition<String>) pd, doc, name,
+                            readOnly, callContext);
+                case INTEGER:
+                    return (PropertyData<U>) new NuxeoPropertyIntegerData((PropertyDefinition<BigInteger>) pd, doc,
+                            name, readOnly, callContext);
+                case STRING:
+                    return (PropertyData<U>) new NuxeoPropertyStringData((PropertyDefinition<String>) pd, doc, name,
+                            readOnly, callContext);
+                case URI:
+                    return (PropertyData<U>) new NuxeoPropertyUriData((PropertyDefinition<String>) pd, doc, name,
+                            readOnly, callContext);
+                default:
+                    throw new AssertionError(pd.getPropertyType().toString());
             }
         }
     }
@@ -604,27 +604,27 @@ public abstract class NuxeoPropertyData<T> extends NuxeoPropertyDataBase<T> {
             }
             boolean ok;
             switch (type) {
-            case STRING:
-            case ID:
-            case URI:
-            case HTML:
-                ok = v instanceof String;
-                break;
-            case INTEGER:
-                ok = v instanceof BigInteger || v instanceof Byte || v instanceof Short || v instanceof Integer
-                        || v instanceof Long;
-                break;
-            case DECIMAL:
-                ok = v instanceof BigDecimal;
-                break;
-            case BOOLEAN:
-                ok = v instanceof Boolean;
-                break;
-            case DATETIME:
-                ok = v instanceof GregorianCalendar;
-                break;
-            default:
-                throw new RuntimeException(type.toString());
+                case STRING:
+                case ID:
+                case URI:
+                case HTML:
+                    ok = v instanceof String;
+                    break;
+                case INTEGER:
+                    ok = v instanceof BigInteger || v instanceof Byte || v instanceof Short || v instanceof Integer
+                            || v instanceof Long;
+                    break;
+                case DECIMAL:
+                    ok = v instanceof BigDecimal;
+                    break;
+                case BOOLEAN:
+                    ok = v instanceof Boolean;
+                    break;
+                case DATETIME:
+                    ok = v instanceof GregorianCalendar;
+                    break;
+                default:
+                    throw new RuntimeException(type.toString());
             }
             if (!ok) {
                 throw new CmisInvalidArgumentException("Value does not match property type " + type + ":  " + v);

@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicLong;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,7 +46,8 @@ import org.nuxeo.ecm.automation.core.operations.services.DocumentPageProviderOpe
 import org.nuxeo.ecm.automation.core.operations.services.query.DocumentPaginatedQuery;
 import org.nuxeo.ecm.automation.core.util.Properties;
 import org.nuxeo.ecm.automation.core.util.StringList;
-import org.nuxeo.ecm.automation.jaxrs.io.documents.PaginableDocumentModelListImpl;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
+import org.nuxeo.ecm.automation.io.rest.documents.PaginableDocumentModelListImpl;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -65,10 +66,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features(AutomationFeaturesFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core:test-providers.xml")
 @Deploy("org.nuxeo.ecm.automation.core:test-operations.xml")
 @RepositoryConfig(cleanup = Granularity.METHOD)
@@ -288,8 +286,9 @@ public class CoreProviderTest {
         }
         session.save();
         txFeature.nextTransaction(); // make the change visible to other threads
-        var executor = Executors.newSingleThreadExecutor(ThreadFactories.newThreadFactory("concurrent-updater", true));
-        try (OperationContext context = new OperationContext(session)) {
+        try (var executor = Executors.newSingleThreadExecutor(
+                ThreadFactories.newThreadFactory("concurrent-updater", true));
+                OperationContext context = new OperationContext(session)) {
             executor.submit(createRunnableForConcurrentUpdate());
             var e = assertThrows(NuxeoException.class,
                     () -> service.run(context, "testRunOnProviderAChainThatChangeTheProviderResult"));
@@ -298,7 +297,6 @@ public class CoreProviderTest {
                      .contains(
                              "Infinite loop detected while running automation: testUpdateFormat on pageProvider: simpleProviderTest4"));
         }
-        executor.shutdown();
     }
 
     protected Runnable createRunnableForConcurrentUpdate() {

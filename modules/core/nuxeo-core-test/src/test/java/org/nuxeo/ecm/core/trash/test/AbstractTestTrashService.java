@@ -25,24 +25,18 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETED_STATE;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETE_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.UNDELETE_TRANSITION;
-import static org.nuxeo.ecm.core.api.trash.TrashService.Feature.TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.utils.Path;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
@@ -53,11 +47,10 @@ import org.nuxeo.ecm.core.api.VersioningOption;
 import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.core.trash.TrashInfo;
-import org.nuxeo.ecm.core.trash.TrashService;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -129,25 +122,15 @@ public abstract class AbstractTestTrashService {
     @Test
     public void testBase() {
         createDocuments();
-        assertTrue(trashService.folderAllowsDelete(fold));
-        assertTrue(trashService.checkDeletePermOnParents(Arrays.asList(doc1, doc2)));
-        assertTrue(trashService.canDelete(Collections.singletonList(fold), principal, false));
-        assertTrue(trashService.canDelete(Collections.singletonList(doc1), principal, false));
-        assertTrue(trashService.canDelete(Collections.singletonList(doc2), principal, false));
         assertFalse(trashService.canPurgeOrUntrash(Collections.singletonList(fold), principal));
         assertFalse(trashService.canPurgeOrUntrash(Collections.singletonList(doc1), principal));
         assertFalse(trashService.canPurgeOrUntrash(Collections.singletonList(doc2), principal));
 
-        TrashInfo info = trashService.getTrashInfo(Arrays.asList(fold, doc1, doc3), principal, false, false);
-        assertEquals(3, info.docs.size());
-        assertEquals(2, info.rootRefs.size());
-        assertEquals(new HashSet<>(Arrays.asList(new Path("/fold"), new Path("/doc3"))), info.rootPaths);
-
-        DocumentModel above = trashService.getAboveDocument(doc1, Collections.singleton(new Path("/fold/doc1")));
+        DocumentModel above = trashService.getAboveDocument(doc1, principal);
         assertEquals(above.getPathAsString(), fold.getId(), above.getId());
 
         // test new method return the same result
-        above = trashService.getAboveDocument(doc1, Collections.singleton(new Path("/fold/doc1")));
+        above = trashService.getAboveDocument(doc1, principal);
         assertEquals(above.getPathAsString(), fold.getId(), above.getId());
     }
 
@@ -393,8 +376,6 @@ public abstract class AbstractTestTrashService {
         DocumentRef verRef = doc3.checkIn(null, null);
         DocumentModel proxy = session.createProxy(verRef, fold.getRef());
         session.save();
-        assertTrue(trashService.canDelete(Collections.singletonList(proxy), principal, false));
-        assertFalse(trashService.canDelete(Collections.singletonList(proxy), principal, true));
         assertFalse(trashService.canPurgeOrUntrash(Collections.singletonList(proxy), principal));
     }
 
@@ -416,7 +397,7 @@ public abstract class AbstractTestTrashService {
         DocumentModel doc4 = session.createDocumentModel(null, "doc4", "Note");
         doc4 = session.createDocument(doc4);
         session.save();
-        DocumentModel above = trashService.getAboveDocument(doc4, Collections.singleton(new Path("/")));
+        DocumentModel above = trashService.getAboveDocument(doc4, principal);
         assertNull(above);
         above = trashService.getAboveDocument(doc4, principal);
         assertNull(above);
@@ -470,36 +451,11 @@ public abstract class AbstractTestTrashService {
         doc2.checkIn(VersioningOption.MAJOR, null);
         session.save();
 
-        // following a non-delete transition does a checkout like any other modification
+        // following a transition does a checkout like any other modification
         session.followTransition(doc2, "approve");
         doc2 = session.getDocument(new IdRef(doc2.getId()));
         assertEquals("approved", doc2.getCurrentLifeCycleState());
         assertTrue(doc2.isCheckedOut());
-    }
-
-    @Test
-    public void testFollowTransitionBackwardCompatibility() {
-        DocumentModel file = session.createDocumentModel("/", "file", "File");
-        file = session.createDocument(file);
-        session.save();
-        DocumentRef fileRef = file.getRef();
-
-        // following detete/undelete will trigger the trash service
-        file.followTransition(DELETE_TRANSITION);
-        // we don't follow transition anymore in new system
-        if (trashService.hasFeature(TRASHED_STATE_IS_DEDUCED_FROM_LIFECYCLE)) {
-            assertEquals(DELETED_STATE, session.getCurrentLifeCycleState(fileRef));
-        } else {
-            assertEquals("project", session.getCurrentLifeCycleState(fileRef));
-        }
-        assertTrue(session.isTrashed(fileRef));
-
-        file.followTransition(UNDELETE_TRANSITION);
-        // we don't follow transition anymore in new system
-        // in all cases we're expecting project state
-        assertEquals("project", session.getCurrentLifeCycleState(fileRef));
-        assertFalse(session.isTrashed(fileRef));
-
     }
 
     /*

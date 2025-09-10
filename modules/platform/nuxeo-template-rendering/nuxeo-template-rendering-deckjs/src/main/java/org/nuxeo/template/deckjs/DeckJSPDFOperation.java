@@ -37,7 +37,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.cache.SimpleCachableBlobHolder;
-import org.nuxeo.template.jaxrs.context.JAXRSExtensions;
+import org.nuxeo.template.rest.context.RestExtensions;
 
 @Operation(id = DeckJSPDFOperation.ID, category = Constants.CAT_CONVERSION, label = "Convert a deckJS slide to a pdf", description = "Convert a deckJS slide to a pdf.")
 public class DeckJSPDFOperation {
@@ -59,7 +59,7 @@ public class DeckJSPDFOperation {
         File workingDir = new File(Environment.getDefault().getTemp(), "nuxeo-deckJS-cache/"
                 + templateBasedDocument.getId());
         workingDir.mkdirs();
-        JAXRSExtensions jaxRsExtensions = new JAXRSExtensions(templateBasedDocument, null, templateName);
+        RestExtensions restExtensions = new RestExtensions(templateBasedDocument, null, templateName);
         BlobHolder sourceBh = templateSourceDocument.getAdapter(BlobHolder.class);
         for (Blob b : sourceBh.getBlobs()) {
             writeToTempDirectory(workingDir, b);
@@ -70,7 +70,7 @@ public class DeckJSPDFOperation {
         }
 
         String content = blob.getString();
-        String resourcePath = jaxRsExtensions.getResourceUrl("");
+        String resourcePath = restExtensions.getResourceUrl("");
         content = content.replaceAll(resourcePath, "./");
         File index = new File(workingDir, blob.getFilename());
         FileWriter fw = new FileWriter(index);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.user.center.profile.listeners.ResizeAvatarPictureLis
 import java.io.Serializable;
 import java.net.URL;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
@@ -43,25 +43,16 @@ import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.ecm.platform.picture.api.ImageInfo;
 import org.nuxeo.ecm.platform.picture.api.ImagingService;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
 import org.nuxeo.ecm.platform.userworkspace.api.UserWorkspaceService;
 import org.nuxeo.ecm.user.center.profile.UserProfileConstants;
+import org.nuxeo.ecm.user.center.profile.UserProfileFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
+@Features(UserProfileFeature.class)
 @RepositoryConfig(init = DefaultRepositoryInit.class)
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.platform.picture.core")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.platform.io.core")
-@Deploy("org.nuxeo.ecm.platform.rendition.core")
-@Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.user.center.profile")
-@Deploy("org.nuxeo.ecm.platform.tag")
 public class TestResizeAvatarPictureListener {
 
     @Inject

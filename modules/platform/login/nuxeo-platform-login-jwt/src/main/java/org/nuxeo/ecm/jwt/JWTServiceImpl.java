@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,9 @@
 package org.nuxeo.ecm.jwt;
 
 import static java.util.stream.Collectors.toMap;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -29,15 +31,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
-import org.nuxeo.runtime.model.SimpleContributionRegistry;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator.Builder;
@@ -66,61 +68,20 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
 
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    protected static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT = new TypeReference<Map<String, Object>>() {
+    protected static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT = new TypeReference<>() {
     };
 
-    protected static class JWTServiceConfigurationRegistry
-            extends SimpleContributionRegistry<JWTServiceConfigurationDescriptor> {
-
-        protected static final String KEY = ""; // value doesn't matter as long as we use a fixed one
-
-        protected static final JWTServiceConfigurationDescriptor DEFAULT_CONTRIBUTION = new JWTServiceConfigurationDescriptor();
-
-        @Override
-        public String getContributionId(JWTServiceConfigurationDescriptor contrib) {
-            return KEY;
-        }
-
-        @Override
-        public boolean isSupportingMerge() {
-            return true;
-        }
-
-        @Override
-        public JWTServiceConfigurationDescriptor clone(JWTServiceConfigurationDescriptor orig) {
-            return new JWTServiceConfigurationDescriptor(orig);
-        }
-
-        @Override
-        public void merge(JWTServiceConfigurationDescriptor src, JWTServiceConfigurationDescriptor dst) {
-            dst.merge(src);
-        }
-
-        public JWTServiceConfigurationDescriptor getContribution() {
-            JWTServiceConfigurationDescriptor contribution = getContribution(KEY);
-            if (contribution == null) {
-                contribution = DEFAULT_CONTRIBUTION;
-            }
-            return contribution;
-        }
-    }
-
-    protected final JWTServiceConfigurationRegistry registry = new JWTServiceConfigurationRegistry();
+    protected JWTServiceConfigurationDescriptor serviceConfiguration;
 
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP_CONFIGURATION.equals(extensionPoint)) {
-            registry.addContribution((JWTServiceConfigurationDescriptor) contribution);
-        } else {
-            throw new NuxeoException("Unknown extension point: " + extensionPoint);
-        }
+    public void start(ComponentContext context) {
+        serviceConfiguration = getIfNull(getDescriptor(XP_CONFIGURATION, UNIQUE_DESCRIPTOR_ID),
+                JWTServiceConfigurationDescriptor::new);
     }
 
     @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (XP_CONFIGURATION.equals(extensionPoint)) {
-            registry.removeContribution((JWTServiceConfigurationDescriptor) contribution);
-        }
+    public void stop(ComponentContext context) {
+        serviceConfiguration = null;
     }
 
     // -------------------- JWTService API --------------------
@@ -144,10 +105,9 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
             // default Nuxeo issuer
             builder.withIssuer(NUXEO_ISSUER);
             // default to current principal as subject
-            String subject = NuxeoPrincipal.getCurrent().getActingUser();
-            if (subject == null) {
-                throw new NuxeoException("No currently logged-in user");
-            }
+            String subject = Optional.ofNullable(NuxeoPrincipal.getCurrent())
+                                     .map(NuxeoPrincipal::getActingUser)
+                                     .orElseThrow(() -> new NuxeoException("No currently logged-in user"));
             builder.withSubject(subject);
             // default TTL
             withTTL(0);
@@ -164,26 +124,17 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
 
         @Override
         public JWTBuilderImpl withClaim(String name, Object value) {
-            if (value instanceof Boolean) {
-                builder.withClaim(name, (Boolean) value);
-            } else if (value instanceof Date) {
-                builder.withClaim(name, (Date) value);
-            } else if (value instanceof Double) {
-                builder.withClaim(name, (Double) value);
-            } else if (value instanceof Integer) {
-                builder.withClaim(name, (Integer) value);
-            } else if (value instanceof Long) {
-                builder.withClaim(name, (Long) value);
-            } else if (value instanceof String) {
-                builder.withClaim(name, (String) value);
-            } else if (value instanceof Integer[]) {
-                builder.withArrayClaim(name, (Integer[]) value);
-            } else if (value instanceof Long[]) {
-                builder.withArrayClaim(name, (Long[]) value);
-            } else if (value instanceof String[]) {
-                builder.withArrayClaim(name, (String[]) value);
-            } else {
-                throw new NuxeoException("Unknown claim type: " + value);
+            switch (value) {
+                case Boolean b -> builder.withClaim(name, b);
+                case Date date -> builder.withClaim(name, date);
+                case Double v -> builder.withClaim(name, v);
+                case Integer i -> builder.withClaim(name, i);
+                case Long l -> builder.withClaim(name, l);
+                case String s -> builder.withClaim(name, s);
+                case Integer[] integers -> builder.withArrayClaim(name, integers);
+                case Long[] longs -> builder.withArrayClaim(name, longs);
+                case String[] strings -> builder.withArrayClaim(name, strings);
+                case null, default -> throw new NuxeoException("Unknown claim type: " + value);
             }
             return this;
         }
@@ -202,31 +153,8 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
         }
     }
 
-    protected void builderWithClaim(Builder builder, String name, Object value) {
-        if (value instanceof Boolean) {
-            builder.withClaim(name, (Boolean) value);
-        } else if (value instanceof Date) {
-            builder.withClaim(name, (Date) value);
-        } else if (value instanceof Double) {
-            builder.withClaim(name, (Double) value);
-        } else if (value instanceof Integer) {
-            builder.withClaim(name, (Integer) value);
-        } else if (value instanceof Long) {
-            builder.withClaim(name, (Long) value);
-        } else if (value instanceof String) {
-            builder.withClaim(name, (String) value);
-        } else if (value instanceof Integer[]) {
-            builder.withArrayClaim(name, (Integer[]) value);
-        } else if (value instanceof Long[]) {
-            builder.withArrayClaim(name, (Long[]) value);
-        } else if (value instanceof String[]) {
-            builder.withArrayClaim(name, (String[]) value);
-        } else {
-            throw new NuxeoException("Unknown claim type: " + value);
-        }
-    }
-
     @Override
+    @SuppressWarnings("unchecked")
     public Map<String, Object> verifyToken(String token) {
         Objects.requireNonNull(token);
         Algorithm algorithm = getAlgorithm();
@@ -294,11 +222,11 @@ public class JWTServiceImpl extends DefaultComponent implements JWTService {
     }
 
     protected int getDefaultTTL() {
-        return registry.getContribution().getDefaultTTL();
+        return serviceConfiguration.getDefaultTTL();
     }
 
     protected Algorithm getAlgorithm() {
-        String secret = registry.getContribution().getSecret();
+        String secret = serviceConfiguration.getSecret();
         if (isBlank(secret)) {
             return null;
         }

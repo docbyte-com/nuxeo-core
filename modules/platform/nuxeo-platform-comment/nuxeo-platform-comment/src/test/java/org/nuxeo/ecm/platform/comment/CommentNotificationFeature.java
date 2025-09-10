@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,10 @@
  * Contributors:
  *     Salem Aouana
  */
-
 package org.nuxeo.ecm.platform.comment;
 
 import org.nuxeo.ecm.platform.ec.notification.NotificationFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.mail.SmtpMailServerFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 
@@ -29,7 +28,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  *
  * @since 11.1
  */
-@Features({ CommentFeature.class, NotificationFeature.class })
-@Deploy("org.nuxeo.ecm.platform.url")
+@Features({ CommentFeature.class, NotificationFeature.class, SmtpMailServerFeature.class })
 public class CommentNotificationFeature implements RunnerFeature {
 }

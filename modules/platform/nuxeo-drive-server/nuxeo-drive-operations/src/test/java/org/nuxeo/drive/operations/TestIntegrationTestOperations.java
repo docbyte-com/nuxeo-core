@@ -31,7 +31,7 @@ import static org.nuxeo.drive.operations.test.NuxeoDriveIntegrationTestsHelper.U
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;

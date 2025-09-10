@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@
  *     Mincong Huang <mhuang@nuxeo.com>
  *     Nuno Cunha <ncunha@nuxeo.com>
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import static java.util.stream.Collectors.toList;
@@ -83,15 +82,9 @@ public class AddPermission {
     /**
      * @since 10.3
      */
-    @Param(name = "users", required = false, alias = "users", description = "ACE target set of users and/or groups.")
+    @Param(name = "users", required = false, alias = { "user",
+            "username" }, description = "ACE target set of users and/or groups.")
     protected StringList users;
-
-    /**
-     * @deprecated since 10.3, use {@link #users} instead.
-     */
-    @Deprecated
-    @Param(name = "username", required = false, alias = "user", description = "ACE target user/group.")
-    protected String user;
 
     /**
      * @since 8.1
@@ -163,7 +156,7 @@ public class AddPermission {
     }
 
     protected void validateParameters() {
-        if (user == null && (users == null || users.isEmpty()) && email == null) {
+        if ((users == null || users.isEmpty()) && email == null) {
             throw new IllegalParameterException("'users' or 'email' parameters must be set");
         } else if (email != null && end == null) {
             throw new IllegalParameterException("'end' parameter must be set when adding a permission for an 'email'");
@@ -195,15 +188,10 @@ public class AddPermission {
         }
     }
 
-    /**
-     * Method to help deprecating {@link #user} parameter.
-     */
     protected void ensureUserListIsUsed() {
         users = users == null ? new StringList() : new StringList(users);
 
-        if (user != null && !users.contains(user)) {
-            users.add(user);
-        } else if (email != null && users.isEmpty()) {
+        if (email != null && users.isEmpty()) {
             // share a document with someone not registered in Nuxeo, by using only an email
             users.add(computeTransientUsername(email));
         }

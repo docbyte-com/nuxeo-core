@@ -19,7 +19,7 @@
  */
 package org.nuxeo.ecm.core.storage.sql.jdbc;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static org.nuxeo.ecm.core.api.ScrollResultImpl.emptyResult;
 
 import java.io.Serializable;

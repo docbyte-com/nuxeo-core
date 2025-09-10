@@ -29,24 +29,17 @@ import java.util.Map;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.directory.BaseSession;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @author Florent Guillaume
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.runtime.jtajca")
-@Deploy("org.nuxeo.ecm.core.schema")
-@Deploy("org.nuxeo.ecm.core.api")
-@Deploy("org.nuxeo.ecm.core.event")
-@Deploy("org.nuxeo.ecm.core")
-@Deploy("org.nuxeo.ecm.directory.types.contrib")
+@Features(DirectoryFeature.class)
 public class TestNuxeoPrincipalImpl {
 
     @Test

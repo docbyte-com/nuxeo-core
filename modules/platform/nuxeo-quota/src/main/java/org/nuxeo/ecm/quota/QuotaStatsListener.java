@@ -19,10 +19,7 @@
 
 package org.nuxeo.ecm.quota;
 
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.DELETE_TRANSITION;
 import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSITION_EVENT;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.TRANSTION_EVENT_OPTION_TRANSITION;
-import static org.nuxeo.ecm.core.api.LifeCycleConstants.UNDELETE_TRANSITION;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKIN;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_CHECKOUT;
 import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.ABOUT_TO_REMOVE;
@@ -69,17 +66,9 @@ public class QuotaStatsListener implements EventListener {
         if (!EVENTS_TO_HANDLE.contains(event.getName())) {
             return;
         }
-        if (TRANSITION_EVENT.equals(event.getName()) && !isTrashOpEvent((DocumentEventContext) ctx)) {
-            return;
-        }
         DocumentEventContext docCtx = (DocumentEventContext) ctx;
         QuotaStatsService quotaStatsService = Framework.getService(QuotaStatsService.class);
         quotaStatsService.updateStatistics(docCtx, event);
     }
 
-    @SuppressWarnings("deprecation")
-    protected boolean isTrashOpEvent(DocumentEventContext eventContext) {
-        String transition = (String) eventContext.getProperties().get(TRANSTION_EVENT_OPTION_TRANSITION);
-        return (DELETE_TRANSITION.equals(transition) || UNDELETE_TRANSITION.equals(transition));
-    }
 }

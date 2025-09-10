@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Nuxeo Automation Server Test
+Bundle-SymbolicName: org.nuxeo.ecm.automation.server.test
+Bundle-Vendor: Nuxeo

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service.cmdtesters;
 
 import java.io.IOException;
@@ -60,8 +56,7 @@ public class DefaultCommandTester implements CommandTester {
             Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         } catch (IOException e) {
-            return new CommandTestResult(
-                    "command " + cmd + " not found in system path (descriptor " + cmdDescriptor + ")");
+            return new CommandTestResult("command " + cmd + " not found in system path");
         }
 
         return new CommandTestResult();

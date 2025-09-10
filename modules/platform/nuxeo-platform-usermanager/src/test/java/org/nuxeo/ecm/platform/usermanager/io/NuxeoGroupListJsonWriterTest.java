@@ -22,7 +22,7 @@ package org.nuxeo.ecm.platform.usermanager.io;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.junit.Test;
@@ -35,7 +35,6 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/directory-config.xml")
 public class NuxeoGroupListJsonWriterTest extends

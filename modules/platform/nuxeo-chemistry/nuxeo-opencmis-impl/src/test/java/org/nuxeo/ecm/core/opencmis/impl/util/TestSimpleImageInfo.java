@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl.util;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.InputStream;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 public class TestSimpleImageInfo {
 

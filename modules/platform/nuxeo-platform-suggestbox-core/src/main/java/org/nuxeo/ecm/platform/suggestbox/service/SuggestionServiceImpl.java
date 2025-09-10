@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,16 +20,21 @@ package org.nuxeo.ecm.platform.suggestbox.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.platform.suggestbox.service.descriptors.SuggesterDescriptor;
 import org.nuxeo.ecm.platform.suggestbox.service.descriptors.SuggesterGroupDescriptor;
 import org.nuxeo.ecm.platform.suggestbox.service.descriptors.SuggesterGroupItemDescriptor;
-import org.nuxeo.ecm.platform.suggestbox.service.registries.SuggesterGroupRegistry;
-import org.nuxeo.ecm.platform.suggestbox.service.registries.SuggesterRegistry;
+import org.nuxeo.runtime.RuntimeMessage;
+import org.nuxeo.runtime.RuntimeMessage.Level;
+import org.nuxeo.runtime.RuntimeMessage.Source;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
+import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -39,14 +44,18 @@ public class SuggestionServiceImpl extends DefaultComponent implements Suggestio
 
     private static final Logger log = LogManager.getLogger(SuggestionServiceImpl.class);
 
-    protected SuggesterGroupRegistry suggesterGroups;
+    protected static final String XP_SUGGESTERS = "suggesters";
 
-    protected SuggesterRegistry suggesters;
+    protected static final String XP_SUGGESTER_GROUPS = "suggesterGroups";
+
+    protected Map<String, Suggester> suggesters;
+
+    protected Map<String, SuggesterGroupDescriptor> suggesterGroups;
 
     @Override
     public List<Suggestion> suggest(String userInput, SuggestionContext context) throws SuggestionException {
         List<Suggestion> suggestions = new ArrayList<>();
-        SuggesterGroupDescriptor suggesterGroup = suggesterGroups.getSuggesterGroupDescriptor(context.suggesterGroup);
+        SuggesterGroupDescriptor suggesterGroup = suggesterGroups.get(context.suggesterGroup);
         if (suggesterGroup == null) {
             log.warn("No registered SuggesterGroup with id: {}", context.suggesterGroup);
             return suggestions;
@@ -54,18 +63,9 @@ public class SuggestionServiceImpl extends DefaultComponent implements Suggestio
 
         for (SuggesterGroupItemDescriptor suggesterGroupItem : suggesterGroup.getSuggesters()) {
             String suggesterId = suggesterGroupItem.getName();
-            SuggesterDescriptor suggesterDescritor = suggesters.getSuggesterDescriptor(suggesterId);
-            if (suggesterDescritor == null) {
-                log.warn("No suggester registered with id: {}", suggesterId);
-                continue;
-            }
-            if (!suggesterDescritor.isEnabled()) {
-                continue;
-            }
-            Suggester suggester = suggesterDescritor.getSuggester();
+            Suggester suggester = suggesters.get(suggesterId);
             if (suggester == null) {
-                log.warn("Suggester with id: {} has a configuration that prevents instantiation"
-                        + " (no className in aggregate descriptor)", suggesterId);
+                log.warn("No suggester registered with id: {}", suggesterId);
                 continue;
             }
             suggestions.addAll(suggester.suggest(userInput, context));
@@ -76,19 +76,9 @@ public class SuggestionServiceImpl extends DefaultComponent implements Suggestio
     @Override
     public List<Suggestion> suggest(String input, SuggestionContext context, String suggesterName)
             throws SuggestionException {
-        SuggesterDescriptor suggesterDescriptor = suggesters.getSuggesterDescriptor(suggesterName);
-        if (suggesterDescriptor == null) {
-            throw new SuggestionException(String.format("No suggester registered under the name '%s'.", suggesterName));
-        }
-        if (!suggesterDescriptor.isEnabled()) {
-            throw new SuggestionException(
-                    String.format("Suggester registered under the name '%s' is disabled.", suggesterName));
-        }
-        Suggester suggester = suggesterDescriptor.getSuggester();
+        Suggester suggester = suggesters.get(suggesterName);
         if (suggester == null) {
-            String message = "Suggester with id '" + suggesterName + "' has a configuration that prevents instanciation"
-                    + " (no className in aggregate descriptor)";
-            throw new SuggestionException(message);
+            throw new SuggestionException(String.format("No suggester registered under the name '%s'.", suggesterName));
         }
         return suggester.suggest(input, context);
     }
@@ -96,43 +86,36 @@ public class SuggestionServiceImpl extends DefaultComponent implements Suggestio
     // Nuxeo Runtime Component API
 
     @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        suggesters = new SuggesterRegistry();
-        suggesterGroups = new SuggesterGroupRegistry();
+    public void start(ComponentContext context) {
+        suggesters = this.<SuggesterDescriptor> getDescriptors(XP_SUGGESTERS)
+                         .stream()
+                         .filter(SuggesterDescriptor::isEnabled)
+                         .<SuggesterWithName> mapMulti((descriptor, consumer) -> {
+                             try {
+                                 var suggester = descriptor.instantiateSuggester();
+                                 consumer.accept(new SuggesterWithName(descriptor.getName(), suggester));
+                             } catch (Exception e) {
+                                 ComponentName compName = descriptor.getContributingComponent().getName();
+                                 String msg = "Failed to register extension to: "
+                                         + "org.nuxeo.ecm.platform.suggestbox.service.SuggestionService, xpoint: suggesters "
+                                         + "in component: " + compName;
+                                 log.error(msg, e);
+                                 Framework.getRuntime()
+                                          .getMessageHandler()
+                                          .addMessage(new RuntimeMessage(Level.ERROR, msg + " (" + e + ')',
+                                                  Source.EXTENSION, compName.getName()));
+                             }
+                         })
+                         .collect(Collectors.toMap(SuggesterWithName::name, SuggesterWithName::suggester));
+        suggesterGroups = this.<SuggesterGroupDescriptor> getDescriptors(XP_SUGGESTER_GROUPS)
+                              .stream()
+                              .collect(Collectors.toMap(SuggesterGroupDescriptor::getName, Function.identity()));
     }
 
     @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (contribution instanceof SuggesterDescriptor suggesterDescriptor) {
-            log.info("Registering suggester: {}", suggesterDescriptor::getName);
-            try {
-                suggesterDescriptor.setRuntimeContext(contributor.getRuntimeContext());
-            } catch (ComponentInitializationException e) {
-                throw new RuntimeException(e);
-            }
-            suggesters.addContribution(suggesterDescriptor);
-        } else if (contribution instanceof SuggesterGroupDescriptor suggesterGroupDescriptor) {
-            log.info("Registering suggester group: {}", suggesterGroupDescriptor::getName);
-            suggesterGroups.addContribution(suggesterGroupDescriptor);
-        } else {
-            log.error("Unknown contribution to the SuggestionService styling service, extension point: {}: {}",
-                    extensionPoint, contribution);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (contribution instanceof SuggesterDescriptor suggesterDescriptor) {
-            log.info("Unregistering suggester: {}", suggesterDescriptor::getName);
-            suggesters.removeContribution(suggesterDescriptor);
-        } else if (contribution instanceof SuggesterGroupDescriptor suggesterGroupDescriptor) {
-            log.info("Unregistering suggester group: {}", suggesterGroupDescriptor::getName);
-            suggesterGroups.removeContribution(suggesterGroupDescriptor);
-        } else {
-            log.error("Unknown contribution to the SuggestionService styling service, extension point {}: {}",
-                    extensionPoint, contribution);
-        }
+    public void stop(ComponentContext context) {
+        suggesters = null;
+        suggesterGroups = null;
     }
 
     /**
@@ -140,8 +123,10 @@ public class SuggestionServiceImpl extends DefaultComponent implements Suggestio
      *
      * @return the suggester groups
      */
-    public SuggesterGroupRegistry getSuggesterGroups() {
+    public Map<String, SuggesterGroupDescriptor> getSuggesterGroups() {
         return suggesterGroups;
     }
 
+    record SuggesterWithName(String name, Suggester suggester) {
+    }
 }

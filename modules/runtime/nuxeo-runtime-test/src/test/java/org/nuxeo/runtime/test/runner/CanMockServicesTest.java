@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,9 +38,9 @@ import org.nuxeo.runtime.mockito.RuntimeService;
 @Features({ RuntimeFeature.class, MockitoFeature.class })
 public class CanMockServicesTest {
 
-    @RuntimeService
     @Mock
-    AFakeService myService;
+    @RuntimeService
+    protected AFakeService myService;
 
     @Before
     public void doBefore() {
@@ -48,14 +48,14 @@ public class CanMockServicesTest {
     }
 
     @Test
-    public void itShouldBindMocktoAService() throws Exception {
+    public void itShouldBindMockitoAService() {
         AFakeService service = Framework.getService(AFakeService.class);
         assertNotNull(service);
         assertEquals("Hello !", service.getSomething());
     }
 
     @Test
-    public void itShouldMockFields() throws Exception {
+    public void itShouldMockFields() {
         assertEquals("Hello !", myService.getSomething());
     }
 

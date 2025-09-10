@@ -23,8 +23,8 @@ package org.nuxeo.ecm.platform.mail.action;
 
 import java.util.Map;
 
-import javax.mail.Message;
-import javax.mail.MessagingException;
+import jakarta.mail.Message;
+import jakarta.mail.MessagingException;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

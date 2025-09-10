@@ -22,13 +22,18 @@
 package org.nuxeo.ecm.platform.mimetype;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.platform.mimetype.interfaces.MimetypeRegistry;
 import org.nuxeo.ecm.platform.mimetype.service.MimetypeRegistryService;
@@ -36,6 +41,9 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
+
+import net.sf.jmimemagic.Magic;
+import net.sf.jmimemagic.MagicMatch;
 
 /**
  * Test binary files sniff.
@@ -62,7 +70,7 @@ public class TestMimetypeSniffing {
     }
 
     @Test
-    public void testZeroesDocumentFromFile() throws Exception {
+    public void testZeroesDocumentFromFile() {
         assertEquals("application/octet-stream", mimetypeRegistry.getMimetypeFromFile(getZeroesDocument()));
     }
 
@@ -71,7 +79,7 @@ public class TestMimetypeSniffing {
     }
 
     @Test
-    public void testTextDocumentFromFile() throws Exception {
+    public void testTextDocumentFromFile() {
         assertEquals("text/plain", mimetypeRegistry.getMimetypeFromFile(getTextDocument()));
     }
 
@@ -80,7 +88,7 @@ public class TestMimetypeSniffing {
     }
 
     @Test
-    public void testWordDocumentFromFile() throws Exception {
+    public void testWordDocumentFromFile() {
         assertEquals("application/msword", mimetypeRegistry.getMimetypeFromFile(getWordDocument()));
     }
 
@@ -88,7 +96,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/hello.xls");
     }
 
-    public void xtestExcelDocumentFromFile() throws Exception {
+    public void xtestExcelDocumentFromFile() {
         assertEquals("application/vnd.ms-excel", mimetypeRegistry.getMimetypeFromFile(getExcelDocument()));
     }
 
@@ -96,7 +104,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/hello.ppt");
     }
 
-    public void xtestPowerpointDocumentFromFile() throws Exception {
+    public void xtestPowerpointDocumentFromFile() {
         assertEquals("application/vnd.ms-powerpoint", mimetypeRegistry.getMimetypeFromFile(getPowerpointDocument()));
     }
 
@@ -106,14 +114,14 @@ public class TestMimetypeSniffing {
     }
 
     @Test
-    public void testZipDocumentFromFile() throws Exception {
+    public void testZipDocumentFromFile() {
         assertEquals("application/zip", mimetypeRegistry.getMimetypeFromFile(getZipDocument()));
     }
 
     // Ms Office Visio
     @Test
     public void testVisioDocument() {
-        assertEquals("application/visio", mimetypeRegistry.getMimetypeFromExtension("vsdx"));
+        assertEquals("application/visio", mimetypeRegistry.getMimetypeFromExtension("vsdx")); //  NOSONAR
         assertEquals("application/visio", mimetypeRegistry.getMimetypeFromExtension("vsd"));
         assertEquals("application/visio", mimetypeRegistry.getMimetypeFromExtension("vst"));
         assertEquals("application/visio", mimetypeRegistry.getMimetypeFromExtension("vst"));
@@ -122,8 +130,8 @@ public class TestMimetypeSniffing {
 
     // CSV file
     @Test
-    public void testCsvDocument() throws Exception {
-        assertEquals("text/csv", mimetypeRegistry.getMimetypeFromExtension("csv"));
+    public void testCsvDocument() {
+        assertEquals("text/csv", mimetypeRegistry.getMimetypeFromExtension("csv")); // NOSONAR
         assertEquals("text/csv", mimetypeRegistry.getMimetypeFromFilename("test-data/test.csv"));
         assertEquals("text/csv", mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/test.csv")));
     }
@@ -150,7 +158,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/hello.ods");
     }
 
-    public void xtestODFspreadsheetDocumentFromFile() throws Exception {
+    public void xtestODFspreadsheetDocumentFromFile() {
         assertEquals("application/vnd.oasis.opendocument.spreadsheet",
                 mimetypeRegistry.getMimetypeFromFile(getODFspreadsheetDocument()));
     }
@@ -160,7 +168,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/hello.odp");
     }
 
-    public void xtestODFpresentationDocumentFromFile() throws Exception {
+    public void xtestODFpresentationDocumentFromFile() {
         mimetypeRegistry = new MimetypeRegistryService();
         assertEquals("application/vnd.oasis.opendocument.presentation",
                 mimetypeRegistry.getMimetypeFromFile(getODFpresentationDocument()));
@@ -171,7 +179,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/TestExcel2003AsXML.xml.txt");
     }
 
-    public void xtestMso2003XmlExcelDocumentFromFile() throws Exception {
+    public void xtestMso2003XmlExcelDocumentFromFile() {
         assertEquals("application/vnd.ms-excel", mimetypeRegistry.getMimetypeFromFile(getMso2003XmlExcelDocument()));
     }
 
@@ -180,7 +188,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/TestWord2003AsXML.xml.txt");
     }
 
-    public void xtestMso2003XmlWordDocumentFromFile() throws Exception {
+    public void xtestMso2003XmlWordDocumentFromFile() {
         assertEquals("application/msword", mimetypeRegistry.getMimetypeFromFile(getMso2003XmlWordDocument()));
     }
 
@@ -190,8 +198,31 @@ public class TestMimetypeSniffing {
     }
 
     @Test
-    public void testXmlDocumentFromFile() throws Exception {
+    public void testXmlDocumentFromFile() {
         assertEquals("text/xml", mimetypeRegistry.getMimetypeFromFile(getXmlDocument()));
+    }
+
+    // NXP-32673
+    // MIME type cannot be computed from file content by jMimeMagic, fall back on file extension, throwing if
+    // unregistered.
+    @Test
+    public void testUnregisteredMimeType() {
+        assertThrows(MimetypeNotFoundException.class,
+                () -> mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/undefined-mime-type.opj")));
+    }
+
+    // NXP-32673
+    // MIME type is computed from file content by jMimeMagic as an undefined marker: "???", fall back on
+    // "application/octet-stream" to have a valid MIME type.
+    @Test
+    public void testUndefinedMimeType() {
+        try (MockedStatic<Magic> magicMock = Mockito.mockStatic(Magic.class)) {
+            MagicMatch match = new MagicMatch();
+            match.setMimeType("???");
+            magicMock.when(() -> Magic.getMagicMatch(any(File.class), anyBoolean(), anyBoolean())).thenReturn(match);
+            assertEquals("application/octet-stream",
+                    mimetypeRegistry.getMimetypeFromFile(getFileFromResource("test-data/undefined-mime-type.opj")));
+        }
     }
 
     // OOo 1.x Writer
@@ -199,7 +230,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/hello.sxw");
     }
 
-    public void xtestOOowriterDocumentFromFile() throws Exception {
+    public void xtestOOowriterDocumentFromFile() {
         assertEquals("application/vnd.sun.xml.writer", mimetypeRegistry.getMimetypeFromFile(getOOowriterDocument()));
     }
 
@@ -208,7 +239,7 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/graphic_ooo.vclmtf");
     }
 
-    public void xtestOOoEMFDocumentFromFile() throws Exception {
+    public void xtestOOoEMFDocumentFromFile() {
         assertEquals("application/x-vclmtf", mimetypeRegistry.getMimetypeFromFile(getOOoEmfDocument()));
     }
 
@@ -217,14 +248,8 @@ public class TestMimetypeSniffing {
         return getFileFromResource("test-data/graphic.emf");
     }
 
-    public void xtestEMFDocumentFromFile() throws Exception {
+    public void xtestEMFDocumentFromFile() {
         assertEquals("application/x-emf", mimetypeRegistry.getMimetypeFromFile(getEmfDocument()));
     }
-
-    /**
-     * @Test public void testBigBinFromFile() throws Exception { long t0 = System.currentTimeMillis(); String mt
-     *       =mimetypeRegistry.getMimetypeFromFile(new File("/tmp/file-050MB.funky")); long t1 =
-     *       System.currentTimeMillis(); System.out.println(mt); System.out.println(t1-t0); }
-     **/
 
 }

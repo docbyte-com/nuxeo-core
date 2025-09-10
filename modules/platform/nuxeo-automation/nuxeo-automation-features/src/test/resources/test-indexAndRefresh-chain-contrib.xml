@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.automation.features.operations.services.search.test">
+  <extension point="chains" target="org.nuxeo.ecm.core.operation.OperationServiceComponent">
+    <chain id="indexAndRefresh">
+      <operation id="Search.Index" />
+      <operation id="Search.WaitForIndexing">
+        <param type="integer" name="timeoutSecond">60</param>
+        <param type="boolean" name="refresh">true</param>
+      </operation>
+    </chain>
+  </extension>
+</component>

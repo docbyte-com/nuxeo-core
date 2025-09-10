@@ -14,8 +14,10 @@ yum install -y \
   wget \
   gzip \
   xz \
+  aspell \
   google-noto-cjk-fonts
 
+identify -version
 
 export LIBREOFFICE_VERSION=7.5.8
 
@@ -32,8 +34,8 @@ mv /usr/local/bin/docker /usr/bin/docker
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
-curl -f -L https://exiftool.org/Image-ExifTool-13.26.tar.gz | tar -C /opt -xzv
-cd /opt/Image-ExifTool-13.26/
+curl -f -L https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.30.tar.gz/download | tar -C /opt -xzv
+cd /opt/Image-ExifTool-13.30/
 
 perl Makefile.PL
 sudo make install

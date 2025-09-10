@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Nuxeo Platform FileManager Test
+Bundle-SymbolicName: org.nuxeo.ecm.platform.filemanager.test;singleton:=true
+Bundle-Vendor: Nuxeo

@@ -22,7 +22,7 @@ import static org.nuxeo.scim.v2.api.ScimV2QueryContext.LIMIT_QUERY_COUNT;
 
 import java.util.List;
 
-import javax.ws.rs.Path;
+import jakarta.ws.rs.Path;
 
 import com.unboundid.scim2.common.types.AuthenticationScheme;
 import com.unboundid.scim2.common.types.BulkConfig;

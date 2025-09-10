@@ -37,6 +37,7 @@ import net.oauth.signature.pem.PEMReader;
  * Directory easier.
  *
  * @author tiry
+ * @implNote Copied from net.oauth.core:oauth-provider to make it Jakarta compatible
  */
 public class NuxeoOAuthConsumer extends OAuthConsumer {
 

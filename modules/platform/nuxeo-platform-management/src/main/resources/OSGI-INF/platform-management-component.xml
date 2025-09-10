@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <component name="org.nuxeo.ecm.platform.management">
 
-  <require>org.nuxeo.ecm.core.repository.RepositoryService</require>
+  <require>org.nuxeo.ecm.core.repository.RepositoryServiceComponent</require>
 
   <service>
     <provide interface="org.nuxeo.ecm.platform.management.statuses.ProbeScheduler"/>
@@ -9,16 +9,14 @@
 
   <implementation class="org.nuxeo.ecm.platform.management.PlatformManagementComponent"/>
 
-  <extension
-    target="org.nuxeo.ecm.platform.scheduler.core.service.SchedulerRegistryService"
-    point="schedule">
+  <extension target="org.nuxeo.ecm.platform.scheduler.core.service.SchedulerRegistryService" point="schedule">
     <schedule id="probeSchedule">
-          <username>ProbeScheduler</username>
-          <password></password>
-          <eventId>probeSchedule</eventId>
-          <eventCategory>default</eventCategory>
-          <cronExpression>0 0/5 * * * ?</cronExpression>
-     </schedule>
+      <username>ProbeScheduler</username>
+      <password></password>
+      <eventId>probeSchedule</eventId>
+      <eventCategory>default</eventCategory>
+      <cronExpression>0 0/5 * * * ?</cronExpression>
+    </schedule>
   </extension>
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
@@ -34,14 +32,14 @@
   <require>org.nuxeo.ecm.core.api.repository.RepositoryManager</require>
 
   <extension target="org.nuxeo.ecm.core.management.CoreManagementComponent" point="probes">
-         <probe name="queryRepository" class="org.nuxeo.ecm.platform.management.statuses.QueryRepositoryProbe">
-             <label>Repository Query</label>
-             <description>Execute a NXQL Query agains the Repository </description>
-         </probe>
-          <probe name="populateRepository" class="org.nuxeo.ecm.platform.management.statuses.PopulateRepositoryProbe">
-             <label>Repository Access</label>
-             <description>Create, Read and Delete document from repository</description>
-          </probe>
+    <probe name="queryRepository" class="org.nuxeo.ecm.platform.management.statuses.QueryRepositoryProbe">
+      <label>Repository Query</label>
+      <description>Execute a NXQL Query against the Repository </description>
+    </probe>
+    <probe name="populateRepository" class="org.nuxeo.ecm.platform.management.statuses.PopulateRepositoryProbe">
+      <label>Repository Access</label>
+      <description>Create, Read and Delete document from repository</description>
+    </probe>
   </extension>
 
 </component>

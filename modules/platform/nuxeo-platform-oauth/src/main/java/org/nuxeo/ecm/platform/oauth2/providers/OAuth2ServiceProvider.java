@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.platform.oauth2.providers;
 
-import com.google.api.client.auth.oauth2.Credential;
-
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import com.google.api.client.auth.oauth2.Credential;
 
 /**
  * @since 7.3

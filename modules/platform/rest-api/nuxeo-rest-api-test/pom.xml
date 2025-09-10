@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-rest-api-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-rest-api-test</artifactId>
@@ -13,16 +13,8 @@
 
   <dependencies>
     <dependency>
-      <groupId>javax.servlet</groupId>
-      <artifactId>javax.servlet-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sun.jersey.contribs</groupId>
-      <artifactId>jersey-multipart</artifactId>
+      <groupId>jakarta.servlet</groupId>
+      <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -61,6 +53,18 @@
       <artifactId>nuxeo-automation-test</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-rendition-core</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-thumbnail</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
 
     <dependency>
       <groupId>junit</groupId>
@@ -80,19 +84,7 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-api</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-core</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-      <artifactId>nuxeo-platform-audit-core</artifactId>
-      <type>test-jar</type>
-      <scope>test</scope>
+      <artifactId>nuxeo-platform-audit-test</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
@@ -157,6 +149,31 @@
       <groupId>org.apache.httpcomponents</groupId>
       <artifactId>httpcore</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-imaging-core</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-imaging-core</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-binary-metadata</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-filemanager</artifactId>
+      <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-preview-core</artifactId>
+      <type>test-jar</type>
     </dependency>
   </dependencies>
 </project>

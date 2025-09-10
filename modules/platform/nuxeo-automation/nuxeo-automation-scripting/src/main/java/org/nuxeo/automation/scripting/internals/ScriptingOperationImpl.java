@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,9 @@
  */
 package org.nuxeo.automation.scripting.internals;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import javax.script.ScriptException;
@@ -62,8 +63,7 @@ public class ScriptingOperationImpl {
      */
     public Object run(Object input) throws Exception {
         try (Session session = Framework.getService(AutomationScriptingService.class).get(ctx)) {
-            return session.handleof(new ByteArrayInputStream(script.getBytes(Charset.forName("UTF-8"))), Runnable.class)
-                          .run(input, args);
+            return session.handleof(new ByteArrayInputStream(script.getBytes(UTF_8)), Runnable.class).run(input, args);
         } catch (ScriptException e) {
             throw new OperationException(e);
         }

@@ -125,7 +125,7 @@ public class MemLogAppender<M extends Externalizable> implements CloseableLogApp
 
     private boolean isProcessed(OffsetTracker offsetTracker, long offset) {
         long committed = offsetTracker.get();
-        return committed > 0 && committed >= offset;
+        return committed > 0 && committed > offset;
     }
 
     @Override

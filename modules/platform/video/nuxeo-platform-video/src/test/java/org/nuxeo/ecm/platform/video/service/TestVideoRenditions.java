@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.platform.video.service;
 
 import static org.junit.Assert.assertEquals;
@@ -30,6 +29,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Before;
@@ -48,21 +49,14 @@ import org.nuxeo.ecm.platform.video.Video;
 import org.nuxeo.ecm.platform.video.VideoConstants;
 import org.nuxeo.ecm.platform.video.VideoFeature;
 import org.nuxeo.ecm.platform.video.VideoInfo;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-
-import com.google.inject.Inject;
 
 /**
  * @since 7.2
  */
 @RunWith(FeaturesRunner.class)
 @Features(VideoFeature.class)
-@Deploy("org.nuxeo.ecm.actions")
-@Deploy("org.nuxeo.ecm.platform.io.core")
-@Deploy("org.nuxeo.ecm.platform.rendition.api")
-@Deploy("org.nuxeo.ecm.platform.rendition.core")
 public class TestVideoRenditions {
 
     public static final String DELTA_MP4 = "DELTA.mp4";
@@ -90,7 +84,8 @@ public class TestVideoRenditions {
         DocumentModel doc = session.createDocumentModel("/", "video", VIDEO_TYPE);
         doc = session.createDocument(doc);
 
-        List<RenditionDefinition> availableRenditionDefinitions = renditionService.getAvailableRenditionDefinitions(doc);
+        List<RenditionDefinition> availableRenditionDefinitions = renditionService.getAvailableRenditionDefinitions(
+                doc);
         assertEquals(3, availableRenditionDefinitions.size());
 
         TranscodedVideo transcodedVideo = videoService.convert(video, "WebM 480p");
@@ -138,7 +133,8 @@ public class TestVideoRenditions {
         List<String> output = new ArrayList<>();
         output.add("Input #0, mov,mp4,m4a,3gp,3g2,mj2, from 'DELTA.mp4':");
         output.add("Duration: 00:00:08.38, start: 0.000000, bitrate: 930 kb/s");
-        output.add("Stream #0.0(und): Video: h264 (High), yuv420p, 768x480 [PAR 1:1 DAR 8:5], 927 kb/s, 23.98 fps, 23.98 tbr, 10k tbn, 47.96 tbc");
+        output.add(
+                "Stream #0.0(und): Video: h264 (High), yuv420p, 768x480 [PAR 1:1 DAR 8:5], 927 kb/s, 23.98 fps, 23.98 tbr, 10k tbn, 47.96 tbc");
         return output;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,65 +18,58 @@
  */
 package org.nuxeo.runtime.mongodb;
 
-import java.io.IOException;
-import java.net.URL;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_DBNAME_VALUE;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_PROPERTY;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_MONGODB_SERVER_VALUE;
 
-import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.model.URLStreamRef;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.RuntimeFeature;
-import org.nuxeo.runtime.test.runner.RuntimeHarness;
-import org.osgi.framework.Bundle;
 
 import com.mongodb.client.MongoClient;
 
 /**
  * @since 9.1
  */
-@Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.runtime.mongodb")
 @Deploy("org.nuxeo.runtime.mongodb.test")
-@ConditionalIgnoreRule.Ignore(condition = IgnoreNoMongoDB.class, cause = "Needs a MongoDB server!")
+@Features(RuntimeFeature.class)
+@ConditionalIgnore(condition = IgnoreNoMongoDB.class, cause = "Needs a MongoDB server!")
 public class MongoDBFeature implements RunnerFeature {
 
-    public static final String MONGODB_SERVER_PROPERTY = "nuxeo.test.mongodb.server";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_SERVER_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String MONGODB_SERVER_PROPERTY = STORAGE_MONGODB_SERVER_PROPERTY.key();
 
-    public static final String MONGODB_DBNAME_PROPERTY = "nuxeo.test.mongodb.dbname";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_DBNAME_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String MONGODB_DBNAME_PROPERTY = STORAGE_MONGODB_DBNAME_PROPERTY.key();
 
-    public static final String DEFAULT_MONGODB_SERVER = "localhost:27017";
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_SERVER_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_SERVER = STORAGE_MONGODB_SERVER_PROPERTY.defaultValue();
 
-    public static final String DEFAULT_MONGODB_DBNAME = "unittests";
-
-    protected static String defaultProperty(String name, String def) {
-        String value = System.getProperty(name);
-        if (value == null || value.equals("") || value.equals("${" + name + "}")) {
-            value = def;
-        }
-        Framework.getProperties().setProperty(name, value);
-        return value;
-    }
+    /**
+     * @deprecated since 2025.0, use {@link ThirdPartyUnderTest#STORAGE_MONGODB_DBNAME_PROPERTY} instead
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
+    public static final String DEFAULT_MONGODB_DBNAME = STORAGE_MONGODB_DBNAME_PROPERTY.defaultValue();
 
     @Override
     public void start(FeaturesRunner runner) {
-        // first configure the default MongoDB connection
-        String server = defaultProperty(MONGODB_SERVER_PROPERTY, DEFAULT_MONGODB_SERVER);
-        String dbname = defaultProperty(MONGODB_DBNAME_PROPERTY, DEFAULT_MONGODB_DBNAME);
-        // deploy the test bundle after the default properties have been set
-        try {
-            RuntimeHarness harness = runner.getFeature(RuntimeFeature.class).getHarness();
-            Bundle bundle = harness.getOSGiAdapter().getRegistry().getBundle("org.nuxeo.runtime.mongodb.test");
-            URL url = bundle.getEntry("OSGI-INF/mongodb-test-contrib.xml");
-            harness.getContext().deploy(new URLStreamRef(url));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        // finally clear the DB
-        try (MongoClient client = MongoDBConnectionHelper.newMongoClient(server)) {
-            MongoDBConnectionHelper.getDatabase(client, dbname).drop();
+        try (MongoClient client = MongoDBConnectionHelper.newMongoClient(STORAGE_MONGODB_SERVER_VALUE)) {
+            MongoDBConnectionHelper.getDatabase(client, STORAGE_MONGODB_DBNAME_VALUE).drop();
         }
     }
 

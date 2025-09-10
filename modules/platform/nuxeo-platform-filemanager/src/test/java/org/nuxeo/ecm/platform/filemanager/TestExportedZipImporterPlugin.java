@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,18 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- *
- *
  */
-
 package org.nuxeo.ecm.platform.filemanager;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.zip.ZipFile;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
@@ -49,14 +45,12 @@ import org.nuxeo.ecm.core.io.DocumentWriter;
 import org.nuxeo.ecm.core.io.impl.DocumentPipeImpl;
 import org.nuxeo.ecm.core.io.impl.plugins.DocumentTreeReader;
 import org.nuxeo.ecm.core.io.impl.plugins.NuxeoArchiveWriter;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.filemanager.service.extension.ExportedZipImporter;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -66,10 +60,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author tiry
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(FileManagerFeature.class)
 @RepositoryConfig(init = RepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
 public class TestExportedZipImporterPlugin {
 
     protected DocumentModel sourceWS;
@@ -149,7 +141,7 @@ public class TestExportedZipImporterPlugin {
                                                          .build();
         fm.createOrUpdateDocument(context);
         DocumentModelList children = coreSession.getChildren(destWS.getRef());
-        assertTrue(children.size() > 0);
+        assertFalse(children.isEmpty());
         DocumentModel importedWS = children.get(0);
         assertEquals(importedWS.getTitle(), sourceWS.getTitle());
         DocumentModelList subChildren = coreSession.getChildren(importedWS.getRef());

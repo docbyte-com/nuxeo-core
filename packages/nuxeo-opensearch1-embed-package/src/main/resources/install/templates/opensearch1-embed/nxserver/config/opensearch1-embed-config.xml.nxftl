@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<component name="opensearch1-embed-config" version="1.0.0">
+
+  <extension target="org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedComponent" point="server">
+    <server name="${nuxeo.opensearch1.embed.name}" enabled="${nuxeo.opensearch1.embed.enabled}">
+      <nodeName>${nuxeo.opensearch1.embed.nodeName}</nodeName>
+      <dataPath>${nuxeo.opensearch1.embed.dataPath}</dataPath>
+      <homePath>${nuxeo.opensearch1.embed.homePath}</homePath>
+      <http port="${nuxeo.opensearch1.embed.http.port}" />
+    </server>
+  </extension>
+
+</component>

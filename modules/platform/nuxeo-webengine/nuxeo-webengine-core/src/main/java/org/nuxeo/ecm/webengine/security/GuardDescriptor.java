@@ -161,7 +161,7 @@ public class GuardDescriptor {
     }
 
     public Guard getGuard() throws ParseException {
-        if (expression == null || expression.length() == 0) {
+        if (expression == null || expression.isEmpty()) {
             return new And(guards.values());
         }
         return PermissionService.getInstance().parse(expression, guards);

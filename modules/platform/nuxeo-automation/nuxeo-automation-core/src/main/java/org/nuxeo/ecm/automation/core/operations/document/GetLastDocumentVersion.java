@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Ricardo Dias
  */
-
 package org.nuxeo.ecm.automation.core.operations.document;
 
 import org.nuxeo.ecm.automation.core.Constants;
@@ -31,7 +30,7 @@ import org.nuxeo.ecm.core.api.IdRef;
 /**
  * @since 8.3
  */
-@Operation(id = GetLastDocumentVersion.ID, category = Constants.CAT_DOCUMENT, label = "Get Last version", description = "Returns the last version of the document if it exists.", aliases = { "Document.GetLastVersion" })
+@Operation(id = GetLastDocumentVersion.ID, category = Constants.CAT_DOCUMENT, label = "Get Last version", description = "Returns the last version of the document if it exists.")
 public class GetLastDocumentVersion {
 
     public static final String ID = "Document.GetLastVersion";

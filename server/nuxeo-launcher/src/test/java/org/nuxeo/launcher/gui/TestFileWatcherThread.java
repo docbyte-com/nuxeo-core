@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,10 @@
 package org.nuxeo.launcher.gui;
 
 import static org.awaitility.Awaitility.await;
-import static org.awaitility.Duration.ONE_SECOND;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -30,7 +30,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.nuxeo.common.test.ModuleUnderTest;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2023.0
@@ -56,7 +55,7 @@ public class TestFileWatcherThread {
         Files.write(file, List.of("new line"));
 
         // assert the watcher gets the event
-        await().atMost(ONE_SECOND).untilTrue(atomicBoolean);
+        await().atMost(Duration.ofSeconds(1)).untilTrue(atomicBoolean);
     }
 
     // test the case where nxserver/config doesn't exist
@@ -82,7 +81,7 @@ public class TestFileWatcherThread {
         Files.write(file, List.of("new line"));
 
         // assert the watcher gets the event
-        await().atMost(ONE_SECOND).untilTrue(atomicBoolean);
+        await().atMost(Duration.ofSeconds(1)).untilTrue(atomicBoolean);
     }
 
 }

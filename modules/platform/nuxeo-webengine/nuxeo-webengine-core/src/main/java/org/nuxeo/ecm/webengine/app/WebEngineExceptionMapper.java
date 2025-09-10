@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,24 +18,24 @@
  */
 package org.nuxeo.ecm.webengine.app;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_IMPLEMENTED;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.Provider;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.Provider;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.validation.DocumentValidationException;
-import org.nuxeo.ecm.webengine.WebEngine;
 import org.nuxeo.ecm.webengine.model.ModuleResource;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.runtime.api.Framework;
@@ -44,20 +44,23 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
+@Singleton
 @Provider
 public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
 
-    @Context
-    HttpHeaders headers;
-
     private static final Logger log = LogManager.getLogger(WebEngineExceptionMapper.class);
+
+    @Context
+    protected HttpHeaders headers;
+
+    @Context
+    protected WebContext webContext;
 
     @Override
     public Response toResponse(Throwable cause) {
         TransactionHelper.setTransactionRollbackOnly();
         if (headers.getAcceptableMediaTypes().contains(APPLICATION_JSON_TYPE)) {
-            if (cause instanceof DocumentValidationException) {
-                DocumentValidationException dve = (DocumentValidationException) cause;
+            if (cause instanceof DocumentValidationException dve) {
                 return Response.status(dve.getStatusCode()).entity(dve.getReport()).build();
             }
         }
@@ -66,8 +69,8 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
         Object result = handleErrorOnWebModule(cause);
         if (result instanceof Throwable) {
             cause = (Throwable) result;
-        } else if (result instanceof Response) {
-            return (Response) result;
+        } else if (result instanceof Response response) {
+            return response;
         } else if (result != null) {
             return Response.status(SC_INTERNAL_SERVER_ERROR).entity(result).build();
         }
@@ -87,11 +90,9 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
     }
 
     protected static int getStatusCode(Throwable t) {
-        if (t instanceof WebApplicationException) {
-            WebApplicationException e = (WebApplicationException) t;
+        if (t instanceof WebApplicationException e) {
             return e.getResponse().getStatus();
-        } else if (t instanceof NuxeoException) {
-            NuxeoException e = (NuxeoException) t;
+        } else if (t instanceof NuxeoException e) {
             return e.getStatusCode();
         } else if (t instanceof SecurityException) {
             return SC_FORBIDDEN;
@@ -108,10 +109,8 @@ public class WebEngineExceptionMapper implements ExceptionMapper<Throwable> {
         return getStatusCode(cause);
     }
 
-    protected static Object handleErrorOnWebModule(Throwable t) {
-        WebContext ctx = WebEngine.getActiveContext();
-        if (ctx != null && ctx.head() instanceof ModuleResource) {
-            ModuleResource mr = (ModuleResource) ctx.head();
+    protected Object handleErrorOnWebModule(Throwable t) {
+        if (webContext != null && webContext.head() instanceof ModuleResource mr) {
             return mr.handleError(t);
         }
         return null;

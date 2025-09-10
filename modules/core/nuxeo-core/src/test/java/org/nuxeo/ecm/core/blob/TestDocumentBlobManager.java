@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.jmock.Expectations;

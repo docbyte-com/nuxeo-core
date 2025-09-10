@@ -1,19 +1,8 @@
 <?xml version="1.0"?>
 <component name="ds:repository-test">
-
-  <extension target="org.nuxeo.runtime.datasource"
-    point="datasources">
-
-    <datasource name="jdbc/${nuxeo.test.vcs.database}" driverClassName="${nuxeo.test.vcs.driver}"
-        maxTotal="30" minTotal="5" maxWaitMillis="10000">
-      <property name="url">${nuxeo.test.vcs.url}</property>
-      <property name="username">${nuxeo.test.vcs.user}</property>
-      <property name="password">${nuxeo.test.vcs.password}</property>
-    </datasource>
-
-    <link name="jdbc/repository_test" global="jdbc/${nuxeo.test.vcs.database}"/>
-    <link name="jdbc/repository_repo2" global="jdbc/${nuxeo.test.vcs.database}"/>
-
+  <require>org.nuxeo.runtime.datasource.test</require>
+  <extension target="org.nuxeo.runtime.datasource" point="datasources">
+    <link name="jdbc/repository_test" global="jdbc/${nuxeo.test.sql.database}"/>
+    <link name="jdbc/repository_repo2" global="jdbc/${nuxeo.test.sql.database}"/>
   </extension>
-
 </component>

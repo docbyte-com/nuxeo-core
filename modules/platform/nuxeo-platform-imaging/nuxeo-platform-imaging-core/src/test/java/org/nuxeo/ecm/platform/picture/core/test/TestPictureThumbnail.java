@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@
  * Contributors:
  *     Vladimir Pasquier <vpasquier@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,8 +37,7 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.picture.api.PictureView;
 import org.nuxeo.ecm.platform.picture.api.adapters.MultiviewPicture;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -47,7 +45,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @since 5.7
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestPictureThumbnail {
 

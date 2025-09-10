@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,14 +18,20 @@
  */
 package org.nuxeo.ecm.web.resources.core;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.web.resources.api.ResourceBundle;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.3
@@ -33,14 +39,16 @@ import org.nuxeo.ecm.web.resources.api.ResourceBundle;
 @XObject("bundle")
 public class ResourceBundleDescriptor implements ResourceBundle {
 
+    private static final Logger log = LogManager.getLogger(ResourceBundleDescriptor.class);
+
     @XNode("@name")
-    public String name;
+    protected String name;
 
     @XNode("resources@append")
-    boolean append;
+    protected boolean append;
 
     @XNodeList(value = "resources/resource", type = ArrayList.class, componentType = String.class)
-    List<String> resources;
+    protected List<String> resources;
 
     @Override
     public String getName() {
@@ -49,6 +57,11 @@ public class ResourceBundleDescriptor implements ResourceBundle {
 
     @Override
     public List<String> getResources() {
+        if (resources.removeIf(StringUtils::isBlank)) {
+            log.error("Some resources references were null or blank while setting: {} and have been suppressed. "
+                    + "This probably happened because some <resource> tags were empty in the xml declaration. "
+                    + "The correct form is <resource>resource name</resource>.", name);
+        }
         return resources;
     }
 
@@ -78,43 +91,30 @@ public class ResourceBundleDescriptor implements ResourceBundle {
     }
 
     @Override
-    public ResourceBundleDescriptor clone() {
-        ResourceBundleDescriptor c = new ResourceBundleDescriptor();
-        c.name = name;
-        c.append = append;
-        if (resources != null) {
-            c.resources = new ArrayList<>(resources);
+    public Descriptor merge(Descriptor o) {
+        var other = (ResourceBundleDescriptor) o;
+        var merged = new ResourceBundleDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.resources = new ArrayList<>();
+        if (other.isAppend()) {
+            merged.resources.addAll(emptyIfNull(resources));
         }
-        return c;
-    }
-
-    @Override
-    public ResourceBundle merge(ResourceBundle other) {
-        if (other instanceof ResourceBundleDescriptor) {
-            boolean append = ((ResourceBundleDescriptor) other).isAppend();
-            List<String> res = other.getResources();
-            List<String> merged = new ArrayList<>();
-            if (append && resources != null) {
-                merged.addAll(resources);
-            }
-            if (res != null) {
-                merged.addAll(res);
-            }
-            resources = merged;
-        }
-        return this;
+        merged.resources.addAll(emptyIfNull(other.resources));
+        return merged;
     }
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof ResourceBundleDescriptor)) {
+        if (!(obj instanceof ResourceBundleDescriptor b)) {
             return false;
         }
         if (obj == this) {
             return true;
         }
-        ResourceBundleDescriptor b = (ResourceBundleDescriptor) obj;
-        return new EqualsBuilder().append(name, b.name).append(append, b.append).append(resources, b.resources).isEquals();
+        return new EqualsBuilder().append(name, b.name)
+                                  .append(append, b.append)
+                                  .append(resources, b.resources)
+                                  .isEquals();
     }
 
 }

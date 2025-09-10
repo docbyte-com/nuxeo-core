@@ -35,8 +35,6 @@ import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
- * TODO remove old WebEngine references and rename WebEngine2 to WebEngine
- *
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 public class WebEngineComponent extends DefaultComponent {
@@ -47,13 +45,9 @@ public class WebEngineComponent extends DefaultComponent {
 
     public static final String RENDERING_EXTENSION_XP = "rendering-extension";
 
-    public static final String RESOURCE_BINDING_XP = "resource";
-
     public static final String REQUEST_CONFIGURATION_XP = "request-configuration";
 
     public static final String GUARD_XP = "guard"; // global guards
-
-    public static final String FORM_XP = "form";
 
     private WebEngine engine;
 
@@ -107,9 +101,7 @@ public class WebEngineComponent extends DefaultComponent {
             } catch (ParseException e) {
                 throw new RuntimeException(e);
             }
-        } else if (RESOURCE_BINDING_XP.equals(extensionPoint)) {
-            engine.addResourceBinding((ResourceBinding) contribution);
-        } else if (extensionPoint.equals(RENDERING_EXTENSION_XP)) {
+        } else if (RENDERING_EXTENSION_XP.equals(extensionPoint)) {
             RenderingExtensionDescriptor fed = (RenderingExtensionDescriptor) contribution;
             try {
                 engine.registerRenderingExtension(fed.name, fed.newInstance());
@@ -117,10 +109,6 @@ public class WebEngineComponent extends DefaultComponent {
                 throw new RuntimeServiceException(
                         "Deployment Error. Failed to contribute freemarker template extension: " + fed.name);
             }
-            // TODO
-            // } else if (extensionPoint.endsWith(FORM_XP)) {
-            // Form form = (Form)contribution;
-            // engine.getFormManager().registerForm(form);
         } else if (extensionPoint.equals(REQUEST_CONFIGURATION_XP)) {
             log.warn("Extension point: {} is obsolete since 8.4, transactions are always active",
                     REQUEST_CONFIGURATION_XP);
@@ -132,15 +120,9 @@ public class WebEngineComponent extends DefaultComponent {
         if (GUARD_XP.equals(extensionPoint)) {
             GuardDescriptor gd = (GuardDescriptor) contribution;
             PermissionService.getInstance().unregisterGuard(gd.getId());
-        } else if (RESOURCE_BINDING_XP.equals(extensionPoint)) {
-            engine.removeResourceBinding((ResourceBinding) contribution);
         } else if (extensionPoint.equals(RENDERING_EXTENSION_XP)) {
             RenderingExtensionDescriptor fed = (RenderingExtensionDescriptor) contribution;
             engine.unregisterRenderingExtension(fed.name);
-            // TODO
-            // } else if (extensionPoint.endsWith(FORM_XP)) {
-            // Form form = (Form)contribution;
-            // engine.getFormManager().unregisterForm(form.getId());
         }
     }
 

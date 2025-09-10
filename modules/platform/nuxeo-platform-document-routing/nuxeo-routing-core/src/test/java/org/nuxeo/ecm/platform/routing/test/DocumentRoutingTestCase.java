@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2009-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
-import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
@@ -40,7 +39,6 @@ import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.core.work.api.WorkManager;
@@ -49,7 +47,7 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRoute;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingConstants;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingService;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -58,22 +56,10 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @Ignore
 @RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, DirectoryFeature.class })
+@Features(WorkflowFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.content.template")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.platform.usermanager")
-@Deploy("org.nuxeo.ecm.platform.userworkspace")
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.query.api")
-@Deploy("org.nuxeo.ecm.platform.task.api")
-@Deploy("org.nuxeo.ecm.platform.task.core")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
-@Deploy("org.nuxeo.ecm.platform.routing.core")
-@Deploy("org.nuxeo.ecm.platform.test:test-usermanagerimpl/directory-config.xml")
-@Deploy("org.nuxeo.ecm.platform.routing.core.test:OSGI-INF/test-sql-directories-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.routing.core.test:OSGI-INF/test-graph-types-contrib.xml")
-@Deploy("org.nuxeo.ecm.platform.audit:OSGI-INF/core-type-contrib.xml")
+// needs NotificationService & MailService
+@BlacklistComponent("org.nuxeo.ecm.platform.notification.document.routing.NotificationContrib")
 public class DocumentRoutingTestCase {
 
     public static final String ROOT_PATH = "/";

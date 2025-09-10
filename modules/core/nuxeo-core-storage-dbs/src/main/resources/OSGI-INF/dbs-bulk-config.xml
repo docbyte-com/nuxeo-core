@@ -8,7 +8,8 @@
 
   <extension target="org.nuxeo.ecm.core.bulk" point="actions">
     <!-- Internal -->
-    <action name="updateReadAcls" inputStream="bulk/updateReadAcls" bucketSize="100" batchSize="25" sequentialScroll="true" />
+    <action name="updateReadAcls" defaultScroller="repository" inputStream="bulk/updateReadAcls" bucketSize="100"
+      batchSize="25" sequentialScroll="true" />
   </extension>
 
   <!-- Action's processor -->

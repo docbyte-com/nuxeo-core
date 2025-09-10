@@ -44,6 +44,9 @@ public final class MongoDBOperators {
 
     public static final String NOT = "$not";
 
+    /** @since 2025.0 */
+    public static final String REGEX = "$regex";
+
     public static final String ELEM_MATCH = "$elemMatch";
 
     public static final String TEXT = "$text";

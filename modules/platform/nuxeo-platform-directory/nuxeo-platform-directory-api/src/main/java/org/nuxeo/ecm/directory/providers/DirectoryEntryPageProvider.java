@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.api.DocumentModelList;
-import org.nuxeo.ecm.core.api.SortInfo;
-import org.nuxeo.ecm.core.query.sql.model.OrderByExpr;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.Directory;
@@ -48,14 +46,12 @@ public class DirectoryEntryPageProvider extends AbstractPageProvider<DirectoryEn
             throw new IllegalStateException("Invalid parameters: " + Arrays.toString(parameters));
         }
 
-        if (!(parameters[0] instanceof Directory)) {
+        if (!(parameters[0] instanceof Directory directory)) {
             throw new IllegalStateException("Provided parameter is not a Directory: " + parameters[0]);
         }
 
-        Directory directory = (Directory) parameters[0];
-
         try (Session session = directory.getSession()) {
-            var orders = getSortInfos().stream().map(this::toOrderExp).collect(Collectors.toList());
+            var orders = getSortInfos().stream().map(OrderByExprs::from).collect(Collectors.toList());
             DocumentModelList result = session.query(new QueryBuilder().orders(orders)
                                                                        .limit(getPageSize())
                                                                        .offset(getCurrentPageOffset())
@@ -66,10 +62,5 @@ public class DirectoryEntryPageProvider extends AbstractPageProvider<DirectoryEn
                          .map(dir -> new DirectoryEntry(directory.getName(), dir))
                          .collect(Collectors.toList());
         }
-    }
-
-    protected OrderByExpr toOrderExp(SortInfo sortInfo) {
-        String sortColumn = sortInfo.getSortColumn();
-        return sortInfo.getSortAscending() ? OrderByExprs.asc(sortColumn) : OrderByExprs.desc(sortColumn);
     }
 }

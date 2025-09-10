@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     <a href="mailto:at@nuxeo.com">Anahide Tchertchian</a>
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.core.api;
 
 import java.text.Collator;
@@ -80,16 +77,12 @@ public class DocumentModelComparator implements Sorter {
         } else if (v2 == null) {
             return asc ? 1 : -1;
         }
-        final int cmp;
-        if (v1 instanceof Long && v2 instanceof Long) {
-            cmp = ((Long) v1).compareTo((Long) v2);
-        } else if (v1 instanceof Integer && v2 instanceof Integer) {
-            cmp = ((Integer) v1).compareTo((Integer) v2);
-        } else if (v1 instanceof Calendar && v2 instanceof Calendar) {
-            cmp = ((Calendar) v1).compareTo((Calendar) v2);
-        } else {
-            cmp = collator.compare(v1.toString(), v2.toString());
-        }
+        int cmp = switch (v1) {
+            case Long l1 when v2 instanceof Long l2 -> l1.compareTo(l2);
+            case Integer i1 when v2 instanceof Integer i2 -> i1.compareTo(i2);
+            case Calendar c1 when v2 instanceof Calendar c2 -> c1.compareTo(c2);
+            default -> collator.compare(v1.toString(), v2.toString());
+        };
         return asc ? cmp : -cmp;
     }
 
@@ -105,7 +98,9 @@ public class DocumentModelComparator implements Sorter {
 
         int cmp = 0;
         if (schemaName != null) {
+            @SuppressWarnings("deprecation")
             DataModel d1 = doc1.getDataModel(schemaName);
+            @SuppressWarnings("deprecation")
             DataModel d2 = doc2.getDataModel(schemaName);
             for (Entry<String, String> e : orderBy.entrySet()) {
                 final String fieldName = e.getKey();
@@ -121,13 +116,13 @@ public class DocumentModelComparator implements Sorter {
             for (Entry<String, String> e : orderBy.entrySet()) {
                 final String propertyName = e.getKey();
                 final boolean asc = ORDER_ASC.equals(e.getValue());
-                Object v1 = null;
+                Object v1;
                 try {
                     v1 = doc1.getPropertyValue(propertyName);
                 } catch (PropertyException pe) {
                     v1 = null;
                 }
-                Object v2 = null;
+                Object v2;
                 try {
                     v2 = doc2.getPropertyValue(propertyName);
                 } catch (PropertyException pe) {
@@ -141,13 +136,7 @@ public class DocumentModelComparator implements Sorter {
         }
         if (cmp == 0) {
             // everything being equal, provide consistent ordering
-            if (doc1.hashCode() == doc2.hashCode()) {
-                cmp = 0;
-            } else if (doc1.hashCode() < doc2.hashCode()) {
-                cmp = -1;
-            } else {
-                cmp = 1;
-            }
+            cmp = Integer.compare(doc1.hashCode(), doc2.hashCode());
         }
         return cmp;
     }

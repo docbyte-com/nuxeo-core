@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,11 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
-import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -39,14 +38,14 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.platform.picture.PictureViewsHelper;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /** @since 2021.27 */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 public class TestComputePictureViews {
 
     @Inject
@@ -61,7 +60,7 @@ public class TestComputePictureViews {
     protected PictureViewsHelper pvh = new PictureViewsHelper();
 
     @Test
-    public void testComputePictureViewsOnCreatedDocumentVersion() throws IOException, OperationException {
+    public void testComputePictureViewsOnCreatedDocumentVersion() throws IOException {
         // Take into account the initial status count.
         var initialCount = bulkService.getStatuses("Administrator").size();
 

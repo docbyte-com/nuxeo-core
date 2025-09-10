@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 package org.nuxeo.ecm.platform.signature.core.sign;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -39,7 +40,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +51,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.DefaultRepositoryInit;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -69,7 +71,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import com.lowagie.text.pdf.PdfReader;
 
 @RunWith(FeaturesRunner.class)
-@Features(SignatureCoreFeature.class)
+@Features({ CoreFeature.class, SignatureCoreFeature.class })
 @RepositoryConfig(init = DefaultRepositoryInit.class, cleanup = Granularity.METHOD)
 @Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
@@ -195,13 +197,8 @@ public class SignatureServiceTest {
     }
 
     protected List<String> getSignatureNames(Blob blob) throws IOException {
-        PdfReader reader = new PdfReader(blob.getStream());
-        try {
-            @SuppressWarnings("unchecked")
-            List<String> names = reader.getAcroFields().getSignedFieldNames();
-            return names;
-        } finally {
-            reader.close();
+        try (PdfReader reader = new PdfReader(blob.getStream())) {
+            return reader.getAcroFields().getSignedFieldNames();
         }
     }
 
@@ -215,8 +212,8 @@ public class SignatureServiceTest {
         assertNotNull(signedBlob);
         // verify there are certificates in the signed file
         List<X509Certificate> certificates = ssi.getCertificates(signedBlob);
-        assertTrue("There has to be at least 1 certificate in a signed document", certificates.size() > 0);
-        assertTrue(certificates.get(0).getSubjectDN().toString().contains("CN=Homer Simpson"));
+        assertFalse("There has to be at least 1 certificate in a signed document", certificates.isEmpty());
+        assertTrue(certificates.getFirst().getSubjectX500Principal().toString().contains("CN=Homer Simpson"));
     }
 
     @Test
@@ -323,7 +320,7 @@ public class SignatureServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Serializable>> files = (List<Map<String, Serializable>>) doc.getPropertyValue("files:files");
         assertEquals(1, files.size());
-        assertEquals(signedBlob, files.get(0).get("file"));
+        assertEquals(signedBlob, files.getFirst().get("file"));
     }
 
     @Test
@@ -341,7 +338,7 @@ public class SignatureServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Serializable>> files = (List<Map<String, Serializable>>) doc.getPropertyValue("files:files");
         assertEquals(1, files.size());
-        Blob archivedBlob = (Blob) files.get(0).get("file");
+        Blob archivedBlob = (Blob) files.getFirst().get("file");
         assertEquals("text/plain", archivedBlob.getMimeType());
         assertEquals("foo archive.txt", archivedBlob.getFilename());
     }
@@ -376,7 +373,7 @@ public class SignatureServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Serializable>> files = (List<Map<String, Serializable>>) doc.getPropertyValue("files:files");
         assertEquals(1, files.size());
-        assertEquals(signedBlob, files.get(0).get("file"));
+        assertEquals(signedBlob, files.getFirst().get("file"));
     }
 
     @Test
@@ -394,7 +391,7 @@ public class SignatureServiceTest {
         @SuppressWarnings("unchecked")
         List<Map<String, Serializable>> files = (List<Map<String, Serializable>>) doc.getPropertyValue("files:files");
         assertEquals(1, files.size());
-        Blob archivedBlob = (Blob) files.get(0).get("file");
+        Blob archivedBlob = (Blob) files.getFirst().get("file");
         assertEquals("application/pdf", archivedBlob.getMimeType());
         assertEquals("foo archive.pdf", archivedBlob.getFilename());
     }

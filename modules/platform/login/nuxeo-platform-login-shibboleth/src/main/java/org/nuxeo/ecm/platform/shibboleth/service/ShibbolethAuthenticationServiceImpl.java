@@ -26,7 +26,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;

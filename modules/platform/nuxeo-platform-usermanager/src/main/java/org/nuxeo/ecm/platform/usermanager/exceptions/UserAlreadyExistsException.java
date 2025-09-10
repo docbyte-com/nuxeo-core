@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.platform.usermanager.exceptions;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 

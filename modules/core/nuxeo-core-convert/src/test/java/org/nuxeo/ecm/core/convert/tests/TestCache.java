@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.core.convert.tests;
 
 import static org.junit.Assert.assertEquals;
@@ -37,6 +35,7 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.blobholder.SimpleBlobHolder;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.cache.CacheKeyGenerator;
 import org.nuxeo.ecm.core.convert.cache.ConversionCacheGCManager;
@@ -51,8 +50,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/convert-service-config-enabled.xml")
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/converters-test-contrib3.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib3.xml")
 public class TestCache {
 
     @Test

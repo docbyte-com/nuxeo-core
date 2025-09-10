@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,32 +15,31 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.types;
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
 import static org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfigurationConstants.UI_TYPES_CONFIGURATION_FACET;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.localconfiguration.LocalConfigurationService;
 import org.nuxeo.ecm.core.schema.DocumentType;
+import org.nuxeo.ecm.core.schema.DocumentTypeDescriptor;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.SchemaManagerImpl;
 import org.nuxeo.ecm.platform.types.localconfiguration.UITypesConfiguration;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 
@@ -52,41 +51,97 @@ public class TypeService extends DefaultComponent implements TypeManager {
 
     public static final String HIDDEN_IN_CREATION = "create";
 
-    private TypeRegistry typeRegistry;
+    protected Map<String, Type> types;
+
+    protected Map<String, DocumentTypeDescriptor> documentTypes;
 
     private Runnable recomputeCallback;
 
     @Override
     public void activate(ComponentContext context) {
-        typeRegistry = new TypeRegistry();
-        recomputeCallback = typeRegistry::recomputeTypes;
-        SchemaManagerImpl schemaManager = (SchemaManagerImpl) Framework.getService(SchemaManager.class);
-        schemaManager.registerRecomputeCallback(recomputeCallback);
+        super.activate(context);
     }
 
     @Override
     public void deactivate(ComponentContext context) {
-        SchemaManagerImpl schemaManager = (SchemaManagerImpl)Framework.getService(SchemaManager.class);
+    }
+
+    @Override
+    public void start(ComponentContext context) {
+        types = this.<Type> getDescriptors("types")
+                    .stream()
+                    // make a copy of the given Type in case of there's only one Descriptor, and so no merge happened
+                    // this will prevent to modify the original descriptor within recomputeTypes and breaks hot reload
+                    .map(type -> type.merge(new Type()))
+                    .collect(Collectors.toMap(Type::getId, Function.identity()));
+        documentTypes = types.values().stream().map(type -> {
+            var documentType = new DocumentTypeDescriptor();
+            documentType.name = type.getId();
+            documentType.subtypes = type.getAllowedSubTypes().keySet().toArray(String[]::new);
+            documentType.forbiddenSubtypes = type.getDeniedSubTypes();
+            documentType.append = true;
+            return documentType;
+        })
+                             .filter(descriptor -> isNotEmpty(descriptor.subtypes)
+                                     || isNotEmpty(descriptor.forbiddenSubtypes))
+                             .collect(Collectors.toMap(descriptor -> descriptor.name, Function.identity()));
+
+        // register documentTypes to SchemaManager
+        var schemaManager = (SchemaManagerImpl) Framework.getService(SchemaManager.class);
+        documentTypes.values().forEach(schemaManager::registerDocumentType);
+        // recompute types from SchemaManager
+        recomputeTypes();
+        // register recompute types callback
+        recomputeCallback = this::recomputeTypes;
+        schemaManager.registerRecomputeCallback(recomputeCallback);
+    }
+
+    @Override
+    public void stop(ComponentContext context) {
+        var schemaManager = (SchemaManagerImpl) Framework.getService(SchemaManager.class);
+        documentTypes.values().forEach(schemaManager::unregisterDocumentType);
         schemaManager.unregisterRecomputeCallback(recomputeCallback);
-        typeRegistry = null;
+
+        types = null;
+        documentTypes = null;
     }
 
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals("types")) {
-            typeRegistry.addContribution((Type) contribution);
+    /**
+     * @since 8.10
+     */
+    protected void recomputeTypes() {
+        for (Type type : types.values()) {
+            type.setAllowedSubTypes(getCoreAllowedSubtypes(type));
+            // do not need to add denied subtypes because allowed subtypes already come filtered from core
+            type.setDeniedSubTypes(new String[0]);
         }
     }
 
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (extensionPoint.equals("types")) {
-            typeRegistry.removeContribution((Type) contribution);
+    /**
+     * @since 8.10
+     */
+    protected Map<String, SubType> getCoreAllowedSubtypes(Type type) {
+        SchemaManager schemaManager = Framework.getService(SchemaManager.class);
+        Collection<String> coreAllowedSubtypes = schemaManager.getAllowedSubTypes(type.getId());
+        if (coreAllowedSubtypes == null) {
+            // there are no subtypes to take care of
+            return Map.of();
         }
-    }
 
-    public TypeRegistry getTypeRegistry() {
-        return typeRegistry;
+        Map<String, SubType> ecmSubTypes = type.getAllowedSubTypes();
+        Map<String, SubType> allowedSubTypes = new HashMap<>();
+        SubType subtype;
+        for (String name : coreAllowedSubtypes) {
+            if (ecmSubTypes.containsKey(name)) {
+                subtype = ecmSubTypes.get(name);
+            } else {
+                subtype = new SubType();
+                subtype.setName(name);
+            }
+            allowedSubTypes.put(name, subtype);
+        }
+
+        return allowedSubTypes;
     }
 
     // Service implementation for TypeManager interface
@@ -104,24 +159,22 @@ public class TypeService extends DefaultComponent implements TypeManager {
             superTypes.add(type.getName());
             type = (DocumentType) type.getSuperType();
         }
-        return superTypes.toArray(new String[superTypes.size()]);
+        return superTypes.toArray(String[]::new);
     }
 
     @Override
     public Type getType(String typeName) {
-        return typeRegistry.getType(typeName);
+        return types.get(typeName);
     }
 
     @Override
     public boolean hasType(String typeName) {
-        return typeRegistry.hasType(typeName);
+        return types.containsKey(typeName);
     }
 
     @Override
     public Collection<Type> getTypes() {
-        Collection<Type> types = new ArrayList<>();
-        types.addAll(typeRegistry.getTypes());
-        return types;
+        return new ArrayList<>(types.values());
     }
 
     @Override
@@ -163,14 +216,14 @@ public class TypeService extends DefaultComponent implements TypeManager {
         if (alreadyProcessedTypes == null) {
             alreadyProcessedTypes = new ArrayList<>();
         }
-        Set<Type> allAllowedSubTypes = new HashSet<>();
 
         Collection<Type> allowedSubTypes = getAllowedSubTypes(typeName, currentDoc);
-        allAllowedSubTypes.addAll(allowedSubTypes);
+        Set<Type> allAllowedSubTypes = new HashSet<>(allowedSubTypes);
         alreadyProcessedTypes.add(typeName);
         for (Type subType : allowedSubTypes) {
             if (!alreadyProcessedTypes.contains(subType.getId())) {
-                allAllowedSubTypes.addAll(findAllAllowedSubTypesFrom(subType.getId(), currentDoc, alreadyProcessedTypes));
+                allAllowedSubTypes.addAll(
+                        findAllAllowedSubTypesFrom(subType.getId(), currentDoc, alreadyProcessedTypes));
             }
         }
 
@@ -226,7 +279,7 @@ public class TypeService extends DefaultComponent implements TypeManager {
     protected Map<String, SubType> getFilteredAllowedSubTypes(String containerTypeName, DocumentModel currentDoc) {
         Type containerType = getType(containerTypeName);
         if (containerType == null) {
-            return Collections.emptyMap();
+            return Map.of();
         }
         Map<String, SubType> allowedSubTypes = containerType.getAllowedSubTypes();
         return filterSubTypesFromConfiguration(allowedSubTypes, currentDoc);

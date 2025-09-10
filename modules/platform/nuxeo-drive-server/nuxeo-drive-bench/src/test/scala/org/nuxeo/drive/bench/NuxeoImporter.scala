@@ -42,11 +42,12 @@ object NuxeoImporter {
 
   def waitForAsyncJobsAndESIndexation = () => {
     http("Wait For Async and ES Indexation")
-      .post(Constants.AUTOMATION_PATH + "/Elasticsearch.WaitForIndexing")
-      .basicAuth("${adminId}", "${adminPassword}")
+      .post(Constants.MANAGEMENT_API + "/search/wait")
+      .basicAuth("#{adminId}", "#{adminPassword}")
       .headers(Headers.base)
       .header("content-type", "application/json")
-      .body(StringBody( """{"params":{"timeoutSecond": "3600", "refresh": "true"},"context":{}}"""))
+      .queryParam("timeoutSecond", 3600)
+      .queryParam("refresh", true)
   }
 
 }

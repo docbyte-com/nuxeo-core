@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.usermapper.test;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import jakarta.inject.Inject;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -35,60 +37,57 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 import org.nuxeo.usermapper.service.UserMapperService;
 import org.nuxeo.usermapper.test.dummy.DummyUser;
 
-import com.google.inject.Inject;
-
+/**
+ * @author tiry
+ */
 @RunWith(FeaturesRunner.class)
 @Features(UserMapperFeature.class)
-@Deploy("org.nuxeo.usermapper:usermapper-contribs.xml")
+@Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.platform.userworkspace")
 @Deploy("org.nuxeo.ecm.user.center.profile")
-/**
- *
- * @author tiry
- *
- */
+@Deploy("org.nuxeo.usermapper:usermapper-contribs.xml")
 public class TestUserMapperService {
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Test
-    public void shouldDeclareService() throws Exception {
+    public void shouldDeclareService() {
         UserMapperService ums = Framework.getService(UserMapperService.class);
-        Assert.assertNotNull(ums);
-        Assert.assertEquals(3, ums.getAvailableMappings().size());
+        assertNotNull(ums);
+        assertEquals(3, ums.getAvailableMappings().size());
     }
 
     @Test
-    public void testJavaContrib() throws Exception {
+    public void testJavaContrib() {
 
         // test create
         DummyUser dm = new DummyUser("jchan", "Jacky", "Chan");
         UserMapperService ums = Framework.getService(UserMapperService.class);
         NuxeoPrincipal principal = ums.getOrCreateAndUpdateNuxeoPrincipal("javaDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("jchan", principal.getName());
-        Assert.assertEquals("Jacky", principal.getFirstName());
-        Assert.assertEquals("Chan", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("jchan", principal.getName());
+        assertEquals("Jacky", principal.getFirstName());
+        assertEquals("Chan", principal.getLastName());
 
         // test update
         dm = new DummyUser("jchan", null, "Chan2");
         principal = ums.getOrCreateAndUpdateNuxeoPrincipal("javaDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("jchan", principal.getName());
-        Assert.assertEquals("Jacky", principal.getFirstName());
-        Assert.assertEquals("Chan2", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("jchan", principal.getName());
+        assertEquals("Jacky", principal.getFirstName());
+        assertEquals("Chan2", principal.getLastName());
 
         TransactionHelper.runInTransaction(() -> {
             UserProfileService ups = Framework.getService(UserProfileService.class);
             DocumentModel profile = ups.getUserProfileDocument("jchan", session);
-            Assert.assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
+            assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
         });
     }
 
     // user mappers are called from the auth stack where the transaction isn't started
     @Test
-    public void testJavaContribNoTransaction() throws Exception {
+    public void testJavaContribNoTransaction() {
         TransactionHelper.commitOrRollbackTransaction();
         try {
             testJavaContrib();
@@ -98,52 +97,52 @@ public class TestUserMapperService {
     }
 
     @Test
-    public void testGroovyContrib() throws Exception {
+    public void testGroovyContrib() {
 
         // test create
         DummyUser dm = new DummyUser("bharper", "Ben", "Harper");
         UserMapperService ums = Framework.getService(UserMapperService.class);
         NuxeoPrincipal principal = ums.getOrCreateAndUpdateNuxeoPrincipal("groovyDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("bharper", principal.getName());
-        Assert.assertEquals("Ben", principal.getFirstName());
-        Assert.assertEquals("Harper", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("bharper", principal.getName());
+        assertEquals("Ben", principal.getFirstName());
+        assertEquals("Harper", principal.getLastName());
 
         dm = new DummyUser("bharper", "Bill", "Harper");
         principal = ums.getOrCreateAndUpdateNuxeoPrincipal("groovyDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("bharper", principal.getName());
-        Assert.assertEquals("Bill", principal.getFirstName());
-        Assert.assertEquals("Harper", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("bharper", principal.getName());
+        assertEquals("Bill", principal.getFirstName());
+        assertEquals("Harper", principal.getLastName());
 
         UserProfileService ups = Framework.getService(UserProfileService.class);
         DocumentModel profile = ups.getUserProfileDocument("bharper", session);
-        Assert.assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
+        assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
 
     }
 
     @Test
-    public void testNashornContrib() throws Exception {
+    public void testNashornContrib() {
 
         // test create
         DummyUser dm = new DummyUser("bharper", "Ben", "Harper");
         UserMapperService ums = Framework.getService(UserMapperService.class);
         NuxeoPrincipal principal = ums.getOrCreateAndUpdateNuxeoPrincipal("jsDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("bharper", principal.getName());
-        Assert.assertEquals("Ben", principal.getFirstName());
-        Assert.assertEquals("Harper", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("bharper", principal.getName());
+        assertEquals("Ben", principal.getFirstName());
+        assertEquals("Harper", principal.getLastName());
 
         dm = new DummyUser("bharper", "Bill", "Harper");
         principal = ums.getOrCreateAndUpdateNuxeoPrincipal("jsDummy", dm);
-        Assert.assertNotNull(principal);
-        Assert.assertEquals("bharper", principal.getName());
-        Assert.assertEquals("Bill", principal.getFirstName());
-        Assert.assertEquals("Harper", principal.getLastName());
+        assertNotNull(principal);
+        assertEquals("bharper", principal.getName());
+        assertEquals("Bill", principal.getFirstName());
+        assertEquals("Harper", principal.getLastName());
 
         UserProfileService ups = Framework.getService(UserProfileService.class);
         DocumentModel profile = ups.getUserProfileDocument("bharper", session);
-        Assert.assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
+        assertEquals("555.666.7777", profile.getPropertyValue("userprofile:phonenumber"));
 
     }
 

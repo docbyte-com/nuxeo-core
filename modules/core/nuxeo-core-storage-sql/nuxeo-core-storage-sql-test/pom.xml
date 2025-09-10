@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-storage-sql-parent</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
@@ -13,6 +13,56 @@
   <description>Nuxeo Core: SQL Storage Tests.</description>
 
   <dependencies>
+    <!-- Libraries -->
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hamcrest</groupId>
+      <artifactId>hamcrest-core</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.jmock</groupId>
+      <artifactId>jmock-junit4</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <!-- needed at runtime for database-specific tests -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.mysql</groupId>
+      <artifactId>mysql-connector-j</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mariadb.jdbc</groupId>
+      <artifactId>mariadb-java-client</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.microsoft.sqlserver</groupId>
+      <artifactId>mssql-jdbc</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+
+    <!-- Nuxeo dependencies -->
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
@@ -27,12 +77,14 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-test</artifactId>
+      <artifactId>nuxeo-runtime-cluster</artifactId>
+      <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.jmock</groupId>
-      <artifactId>jmock-junit4</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-datasource</artifactId>
+      <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
@@ -40,18 +92,15 @@
       <artifactId>nuxeo-runtime-jtajca</artifactId>
     </dependency>
     <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-stream</artifactId>
+      <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-test</artifactId>
       <scope>compile</scope>
-    </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
-      <artifactId>nuxeo-core-schema</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -59,11 +108,55 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-bulk</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-cache</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-event</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-event</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-io</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-query</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-schema</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-schema</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
@@ -77,49 +170,17 @@
       <groupId>cloud.docbyte.nuxeo.lib.core</groupId>
       <artifactId>nuxeo-core-storage-sql-extensions</artifactId>
     </dependency>
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
-      <artifactId>nuxeo-core-api</artifactId>
-    </dependency>
 
-    <dependency>
-      <groupId>com.h2database</groupId>
-      <artifactId>h2</artifactId>
-      <scope>compile</scope>
-    </dependency>
-
+    <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-kv</artifactId>
       <type>test-jar</type>
-      <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-cluster</artifactId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-api</artifactId>
       <type>test-jar</type>
-    </dependency>
-
-    <!-- needed at runtime for database-specific tests -->
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mariadb.jdbc</groupId>
-      <artifactId>mariadb-java-client</artifactId>
-      <scope>runtime</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.microsoft.sqlserver</groupId>
-      <artifactId>mssql-jdbc</artifactId>
-      <scope>runtime</scope>
     </dependency>
   </dependencies>
 

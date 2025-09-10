@@ -21,11 +21,12 @@
 
 package org.nuxeo.ecm.webengine.base;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.View;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
@@ -38,7 +39,7 @@ import org.nuxeo.ecm.webengine.model.impl.DefaultAdapter;
 public class ViewService extends DefaultAdapter {
 
     @GET
-    public Object doGet() {
+    public String doGet() {
         // TODO: display a list of templates
         // ctx.getModule().getFiles();
         return "View Service: TODO - display the list of existing views";
@@ -46,7 +47,7 @@ public class ViewService extends DefaultAdapter {
 
     @GET
     @Path("{view}")
-    public Object dispatchView(@PathParam("view") String name) {
+    public Template dispatchView(@PathParam("view") String name) {
         return new View(prev, name).resolve();
     }
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,27 +18,18 @@
  */
 package org.nuxeo.ecm.core.test;
 
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
+@Features(RuntimeFeature.class)
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-storage-blobstore-contrib.xml")
+@WithFrameworkProperty(name = FulltextStoredInBlobFeature.KEY, value = "true")
 public class FulltextStoredInBlobFeature implements RunnerFeature {
 
-    private static final String KEY = "nuxeo.test.fulltext.storedInBlob";
+    public static final String MIGRATION_KEY = "nuxeo.bulk.action.fixBinaryFulltextStorage.enabled";
 
-    private String flag;
-
-    @Override
-    public void initialize(FeaturesRunner runner) {
-        flag = System.setProperty(KEY, "true");
-    }
-
-    @Override
-    public void stop(FeaturesRunner runner) {
-        if (flag == null) {
-            System.clearProperty(KEY);
-        } else {
-            System.setProperty(KEY, flag);
-        }
-    }
-
+    protected static final String KEY = "nuxeo.test.fulltext.storedInBlob";
 }

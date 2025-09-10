@@ -391,4 +391,8 @@ public class CoreQueryDocumentPageProvider extends AbstractPageProvider<Document
         super.refresh();
     }
 
+    @Override
+    public String getScroller() {
+        return "repository";
+    }
 }

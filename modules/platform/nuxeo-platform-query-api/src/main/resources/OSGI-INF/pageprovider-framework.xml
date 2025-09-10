@@ -21,6 +21,8 @@
       class="org.nuxeo.ecm.platform.query.core.CoreQueryPageProviderDescriptor" />
     <object
       class="org.nuxeo.ecm.platform.query.core.GenericPageProviderDescriptor" />
+    <object
+        class="org.nuxeo.ecm.platform.query.core.SearchServicePageProviderDescriptor" />
   </extension-point>
 
   <extension-point name="replacers">

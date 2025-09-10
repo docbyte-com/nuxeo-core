@@ -1,5 +1,5 @@
 /*
-t * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+t * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import static org.nuxeo.ecm.jwt.JWTServiceImpl.NUXEO_ISSUER;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -49,6 +49,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
 @Deploy("org.nuxeo.ecm.jwt")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 public class TestJWTService {
 
     // secret from XML, to check manual token creation
@@ -60,18 +61,18 @@ public class TestJWTService {
     protected JWTService service;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         LoginComponent.pushPrincipal(new UserPrincipal(USERNAME, Collections.emptyList(), false, false));
     }
 
     @After
-    public void teardown() throws Exception {
+    public void teardown() {
         LoginComponent.popPrincipal();
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
-    public void testCreation() throws Exception {
+    public void testCreation() {
         String token = service.newBuilder().withClaim("myclaim", Long.valueOf(123456)).build();
         Map<String, Object> claims = service.verifyToken(token);
         String subject = (String) claims.get(CLAIM_SUBJECT);
@@ -83,7 +84,7 @@ public class TestJWTService {
     }
 
     @Test
-    public void testCreationSecretNotConfigured() throws Exception {
+    public void testCreationSecretNotConfigured() {
         try {
             service.newBuilder().build();
             fail("should fail because service not configured");
@@ -93,7 +94,7 @@ public class TestJWTService {
     }
 
     @Test
-    public void testValidateSecretNotConfigured() throws Exception {
+    public void testValidateSecretNotConfigured() {
         assertNull(service.verifyToken("sometoken"));
     }
 
@@ -108,14 +109,14 @@ public class TestJWTService {
 
     @Test
     @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
-    public void testCorruptedToken() throws Exception {
+    public void testCorruptedToken() {
         String token = service.newBuilder().build();
         assertNull(service.verifyToken(token + "foobar"));
     }
 
     @Test
     @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
-    public void testManualTokenCreation() throws Exception {
+    public void testManualTokenCreation() {
         String token = JWT.create() //
                           .withIssuer(NUXEO_ISSUER)
                           .withSubject(USERNAME)
@@ -125,7 +126,7 @@ public class TestJWTService {
 
     @Test
     @Deploy("org.nuxeo.ecm.jwt.tests:OSGI-INF/test-jwt-config.xml")
-    public void testCorruptedTokenBadSecret() throws Exception {
+    public void testCorruptedTokenBadSecret() {
         String token = JWT.create() //
                           .withIssuer(NUXEO_ISSUER)
                           .withSubject(USERNAME)

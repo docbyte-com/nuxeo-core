@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,28 @@
  * Contributors:
  *     Anahide Tchertchian
  */
-
 package org.nuxeo.ecm.web.resources.api;
 
 import java.util.List;
+
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Typed Web resource (js, css, bundle).
  *
  * @since 7.3
  */
-public interface Resource {
+public interface Resource extends Descriptor {
 
     /**
      * Marker for Nuxeo web resources, used by URI locators.
      */
     String PREFIX = "nuxeo:";
+
+    @Override
+    default String getId() {
+        return getName();
+    }
 
     String getName();
 

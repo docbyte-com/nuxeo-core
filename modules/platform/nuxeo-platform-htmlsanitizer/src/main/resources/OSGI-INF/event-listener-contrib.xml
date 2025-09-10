@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.htmlsanitizer.event.listener" version="1.0.0">
+
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
+    <description>
+      Listener that runs (very early) the HTML Sanitizer.
+    </description>
+    <listener name="htmlsanitizerlistener"
+              class="org.nuxeo.ecm.platform.htmlsanitizer.HtmlSanitizerListener"
+              postCommit="false" async="false" priority="-10">
+    </listener>
+  </extension>
+
+</component>

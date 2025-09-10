@@ -20,14 +20,13 @@
 package org.nuxeo.ecm.platform.publisher.listeners;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.api.LifeCycleConstants;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
-import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.platform.publisher.api.PublisherService;
 import org.nuxeo.ecm.platform.publisher.impl.service.PublisherServiceImpl;
 import org.nuxeo.runtime.api.Framework;
@@ -51,8 +50,7 @@ public class DomainEventsListener implements EventListener {
         if (Boolean.TRUE.equals(disableListener)) {
             return;
         }
-        if (ctx instanceof DocumentEventContext) {
-            DocumentEventContext docCtx = (DocumentEventContext) ctx;
+        if (ctx instanceof DocumentEventContext docCtx) {
             DocumentModel doc = docCtx.getSourceDocument();
             if (doc != null && "Domain".equals(doc.getType())) {
                 String eventName = event.getName();
@@ -64,8 +62,6 @@ public class DomainEventsListener implements EventListener {
                     registerNewPublicationTrees(doc);
                 } else if (DocumentEventTypes.DOCUMENT_REMOVED.equals(eventName)) {
                     unregisterPublicationTrees(doc);
-                } else if (LifeCycleConstants.TRANSITION_EVENT.equals(eventName)) {
-                    handleDomainLifeCycleChanged(docCtx, doc);
                 } else if (DocumentEventTypes.DOCUMENT_MOVED.equals(eventName)) {
                     handleDomainMoved(docCtx, doc);
                 } else if (TrashService.DOCUMENT_TRASHED.equals(eventName)) {
@@ -85,17 +81,6 @@ public class DomainEventsListener implements EventListener {
     protected void unregisterPublicationTrees(DocumentModel doc) {
         PublisherServiceImpl service = (PublisherServiceImpl) Framework.getService(PublisherService.class);
         service.unRegisterTreeConfigFor(doc);
-    }
-
-    protected void handleDomainLifeCycleChanged(DocumentEventContext docCtx, DocumentModel doc) {
-        String from = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_FROM);
-        String to = (String) docCtx.getProperty(LifeCycleConstants.TRANSTION_EVENT_OPTION_TO);
-
-        if (LifeCycleConstants.DELETED_STATE.equals(to)) {
-            handleDomainGoesToTrashedState(doc);
-        } else if (LifeCycleConstants.DELETED_STATE.equals(from)) {
-            handleDomainGoesFromTrashedState(doc);
-        }
     }
 
     protected void handleDomainGoesToTrashedState(DocumentModel doc) {

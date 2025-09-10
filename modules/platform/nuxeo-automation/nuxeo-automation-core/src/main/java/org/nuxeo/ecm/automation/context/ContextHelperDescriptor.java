@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,54 +18,55 @@
  */
 package org.nuxeo.ecm.automation.context;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.3
  */
 @XObject("contextHelper")
-public class ContextHelperDescriptor {
+public class ContextHelperDescriptor implements Descriptor {
+
+    private static final Logger log = LogManager.getLogger(ContextHelperDescriptor.class);
 
     @XNode("@id")
     protected String id;
 
-    protected ContextHelper contextHelper;
-
     @XNode("@class")
-    public void setClass(Class<? extends ContextHelper> aType) throws ReflectiveOperationException {
-        contextHelper = aType.getDeclaredConstructor().newInstance();
-    }
+    protected Class<? extends ContextHelper> contextHelperClass;
 
     @XNode("@enabled")
     protected boolean enabled = true;
 
-    public ContextHelper getContextHelper() {
-        return contextHelper;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
+    @Override
     public String getId() {
         return id;
     }
 
-    @Override
-    public ContextHelperDescriptor clone() {
-        ContextHelperDescriptor copy = new ContextHelperDescriptor();
-        copy.id = id;
-        copy.contextHelper = contextHelper;
-        copy.enabled = enabled;
-        return copy;
-    }
-
-    public void merge(ContextHelperDescriptor src) {
-        if (src.contextHelper != null) {
-            contextHelper = src.contextHelper;
+    public ContextHelper instantiateContextHelper() {
+        try {
+            return contextHelperClass.getDeclaredConstructor().newInstance();
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Unable to instantiate the context helper: " + id, e);
         }
-        enabled = src.enabled;
     }
 
+    /** @since 2025.0 */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /** @since 2025.0 */
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (ContextHelperDescriptor) o;
+        // there's no merge on this Descriptor, but there was a log in the former registry that can fit here
+        log.warn("The context helper: {} with id: {} is overriding the helper: {}", other.contextHelperClass, id,
+                contextHelperClass);
+        return other;
+    }
 }

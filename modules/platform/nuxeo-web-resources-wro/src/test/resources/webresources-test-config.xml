@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<component name="org.nuxeo.theme.styling.tests.themeContrib">
+<component name="org.nuxeo.web.resources.tests.contrib">
 
   <extension target="org.nuxeo.ecm.platform.WebResources" point="resources">
 
@@ -43,20 +43,6 @@
       <path>scripts/*</path>
     </resource>
 
-    <resource name="nuxeo_dm_default.css">
-      <path>themes/css/nuxeo_dm_default.css</path>
-      <processors>
-        <processor>flavor</processor>
-      </processors>
-    </resource>
-
-    <resource name="sass_app.scss" type="css">
-      <path>themes/sass/app.scss</path>
-      <processors>
-        <processor>sassCss</processor>
-      </processors>
-    </resource>
-
   </extension>
 
   <extension target="org.nuxeo.ecm.platform.WebResources" point="bundles">
@@ -66,7 +52,6 @@
         <resource>jquery.js</resource>
         <resource>foldable-box.js</resource>
         <resource>foldable-box.css</resource>
-        <resource>nuxeo_dm_default.css</resource>
       </resources>
     </bundle>
 
@@ -82,18 +67,6 @@
         <resource>all.js</resource>
       </resources>
     </bundle>
-
-  </extension>
-
-  <extension target="org.nuxeo.theme.styling.service" point="pages">
-
-    <page name="galaxy/default" charset="utf-8">
-      <resources>
-        <bundle>myapp</bundle>
-        <bundle>all</bundle>
-        <resource>cycle3.js</resource>
-      </resources>
-    </page>
 
   </extension>
 

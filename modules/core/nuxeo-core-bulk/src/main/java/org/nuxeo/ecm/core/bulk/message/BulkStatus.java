@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.core.bulk.message;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import java.io.Serializable;
 import java.time.Instant;
@@ -28,7 +28,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.apache.avro.reflect.AvroDefault;
 import org.apache.avro.reflect.AvroEncode;

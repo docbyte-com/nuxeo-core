@@ -27,7 +27,8 @@ import javax.naming.Name;
 import javax.naming.RefAddr;
 import javax.naming.Reference;
 import javax.naming.spi.ObjectFactory;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.TransactionManager;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.logging.log4j.LogManager;

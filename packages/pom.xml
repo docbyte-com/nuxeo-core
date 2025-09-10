@@ -4,7 +4,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.packages</groupId>
@@ -13,9 +13,11 @@
   <name>Nuxeo Packages</name>
 
   <modules>
-    <module>nuxeo-3d-package</module>
     <module>nuxeo-adobe-connector-package</module>
     <module>nuxeo-amazon-s3-package</module>
+    <module>nuxeo-audit-mongodb-package</module>
+    <module>nuxeo-audit-opensearch1-package</module>
+    <module>nuxeo-audit-sql-package</module>
     <module>nuxeo-audit-storage-directory-package</module>
     <module>nuxeo-cas2-login-package</module>
     <module>nuxeo-csv-package</module>
@@ -31,6 +33,7 @@
     <module>nuxeo-keycloak-package</module>
     <module>nuxeo-lang-ext-incomplete-package</module>
     <module>nuxeo-liveconnect-package</module>
+    <module>nuxeo-log4j-stream-package</module>
     <module>nuxeo-mail-amazon-ses-package</module>
     <module>nuxeo-mariadb-package</module>
     <module>nuxeo-microsoft-azure-package</module>
@@ -38,15 +41,19 @@
     <module>nuxeo-multi-tenant-package</module>
     <module>nuxeo-mysql-package</module>
     <module>nuxeo-openid-login-package</module>
+    <module>nuxeo-opensearch1-embed-package</module>
     <module>nuxeo-oracle-package</module>
     <module>nuxeo-quota-package</module>
     <module>nuxeo-saml2-login-package</module>
     <module>nuxeo-scan-importer-package</module>
     <module>nuxeo-scim-v2-package</module>
+    <module>nuxeo-search-client-opensearch1-package</module>
     <module>nuxeo-shibboleth-login-package</module>
     <module>nuxeo-signature-package</module>
     <module>nuxeo-template-rendering-package</module>
     <module>nuxeo-tree-snapshot-package</module>
+    <module>nuxeo-uidgen-opensearch1-package</module>
+    <module>nuxeo-uidgen-sql-package</module>
     <module>nuxeo-wopi-package</module>
   </modules>
 

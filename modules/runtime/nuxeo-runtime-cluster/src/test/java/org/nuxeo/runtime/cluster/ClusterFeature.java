@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,10 +28,10 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
  *
  * @since 11.1
  */
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.cluster")
+@Deploy("org.nuxeo.runtime.kv")
 @Deploy("org.nuxeo.runtime.cluster.tests:OSGI-INF/test-cluster-feature.xml")
+@Features(RuntimeFeature.class)
 public class ClusterFeature implements RunnerFeature {
 
 }

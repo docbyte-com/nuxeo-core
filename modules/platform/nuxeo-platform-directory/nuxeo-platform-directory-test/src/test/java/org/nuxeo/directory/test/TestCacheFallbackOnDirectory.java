@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  *
  * Contributors:
  *     Funsho David
- *
  */
 package org.nuxeo.directory.test;
 
@@ -23,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.nuxeo.ecm.core.cache.CacheDescriptor.OPTION_MAX_SIZE;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,7 +50,6 @@ import io.dropwizard.metrics5.SharedMetricRegistries;
  */
 @RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.ecm.core.cache")
 @Deploy("org.nuxeo.ecm.directory.tests:test-directories-schema-override.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:directory-default-user-contrib.xml")
 @Deploy("org.nuxeo.ecm.directory.tests:directory-cache-config.xml")
@@ -64,7 +62,7 @@ public class TestCacheFallbackOnDirectory {
     protected CacheService cacheService;
 
     @Test
-    public void testGetFromCache() throws Exception {
+    public void testGetFromCache() {
 
         Directory dir = directoryService.getDirectory("userDirectory");
         try (Session session = dir.getSession()) {

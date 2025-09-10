@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpStatus;
 import org.nuxeo.ecm.core.blob.BlobManager.UsageHint;
@@ -82,16 +82,16 @@ public class BoxBlobProvider extends AbstractLiveConnectBlobProvider<BoxOAuth2Se
         LiveConnectFileInfo fileInfo = toFileInfo(blob);
         String url = null;
         switch (usage) {
-        case STREAM:
-        case DOWNLOAD:
-            url = getDownloadUrl(fileInfo);
-            break;
-        case VIEW:
-            url = retrieveSharedLink(fileInfo).getURL();
-            break;
-        case EMBED:
-            url = getEmbedUrl(fileInfo);
-            break;
+            case STREAM:
+            case DOWNLOAD:
+                url = getDownloadUrl(fileInfo);
+                break;
+            case VIEW:
+                url = retrieveSharedLink(fileInfo).getURL();
+                break;
+            case EMBED:
+                url = getEmbedUrl(fileInfo);
+                break;
         }
         return url == null ? null : asURI(url);
     }

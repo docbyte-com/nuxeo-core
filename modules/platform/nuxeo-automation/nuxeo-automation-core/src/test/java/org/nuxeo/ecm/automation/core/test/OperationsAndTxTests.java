@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
-import javax.transaction.Transaction;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transaction;
 
 import org.junit.After;
 import org.junit.Before;
@@ -57,7 +57,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.core:test-operations.xml")
+@Deploy("org.nuxeo.ecm.automation.core.tests:test-operations.xml")
 @RepositoryConfig(init = DefaultRepositoryInit.class)
 public class OperationsAndTxTests {
 
@@ -71,16 +71,12 @@ public class OperationsAndTxTests {
 
     @Before
     public void before() throws Exception {
-        service.putOperation(OperationFailure.class);
-        service.putOperation(RunOnListItemWithTx.class);
         ctx = new OperationContext(session);
     }
 
     @After
     public void after() {
         ctx.close();
-        service.removeOperation(RunOnListItemWithTx.class);
-        service.removeOperation(OperationFailure.class);
     }
 
     @Test

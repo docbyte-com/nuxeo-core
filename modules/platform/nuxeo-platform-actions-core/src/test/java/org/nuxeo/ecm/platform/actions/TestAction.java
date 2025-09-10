@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.ecm.platform.actions.ActionService.XP_ACTIONS;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -32,13 +33,16 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.actions.ejb.ActionManager;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.model.Descriptor;
+import org.nuxeo.runtime.model.impl.ComponentManagerImpl;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -63,9 +67,9 @@ public class TestAction {
 
     @Test
     public void testActionExtensionPoint() {
-        ActionService as = getService();
-        Collection<Action> actions = as.getActionRegistry().getActions();
+        var actions = getActionDescriptors();
         assertEquals(9, actions.size());
+        ActionService as = getService();
 
         Action newDocument = as.getAction("newDocument");
         assertEquals("newDocument", newDocument.getId());
@@ -121,16 +125,26 @@ public class TestAction {
         assertEquals(filterIds, view.getFilterIds());
     }
 
+    protected List<Descriptor> getActionDescriptors() {
+        var registry = ((ComponentManagerImpl) Framework.getRuntime().getComponentManager()).getDescriptors();
+        return registry.getDescriptors("org.nuxeo.ecm.platform.actions.ActionService", XP_ACTIONS);
+    }
+
     @Test
     public void testFilterExtensionPoint() {
-        Collection<ActionFilter> filters = getService().getFilterRegistry().getFilters();
+        var as = getService();
+        Collection<ActionFilter> filters = getActionDescriptors().stream()
+                                                                 .map(a -> as.getFilters(a.getId()))
+                                                                 .filter(Objects::nonNull)
+                                                                 .flatMap(Arrays::stream)
+                                                                 .toList();
         assertEquals(5, filters.size());
 
-        ActionFilter f1 = getService().getFilter("MyCustomFilter");
+        DefaultActionFilter f1 = (DefaultActionFilter) getService().getFilter("MyCustomFilter");
         DefaultActionFilter f2 = (DefaultActionFilter) getService().getFilter("theFilter");
         DefaultActionFilter f3 = (DefaultActionFilter) getService().getFilter("createChild");
 
-        assertSame(DummyFilter.class, f1.getClass());
+        assertSame(DefaultActionFilter.class, f1.getClass());
         assertSame(DefaultActionFilter.class, f2.getClass());
         assertSame(DefaultActionFilter.class, f3.getClass());
 
@@ -382,6 +396,16 @@ public class TestAction {
         assertNull(getService().getAction("FOO", null, true));
     }
 
+    @Test
+    public void testRemoveAction() {
+        var actionId = "TAB_VIEW";
+        var service = getService();
+        assertTrue(service.getAction(actionId).isEnabled());
+        service.removeAction(actionId);
+        assertFalse(service.getAction(actionId).isEnabled());
+    }
+
+    // The following test breaks the Testing state, no test can be written after it.
     // NXP-9677: test override of inner filter after uninstall of the first
     // contribution
     @Test
@@ -423,5 +447,4 @@ public class TestAction {
         assertFalse(opreviewRules[0].grant);
         assertEquals("filter re-defined in action", opreviewRules[0].types[0]);
     }
-
 }

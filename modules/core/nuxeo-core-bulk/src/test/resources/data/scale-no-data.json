@@ -2,6 +2,7 @@
   "scale": {
     "currentNodes": -1,
     "bestNodes": -1,
+    "optimalNodes": -1,
     "metric": 0
   },
   "nodes": [],

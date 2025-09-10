@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.automation.core.operations.services.bulk;
 
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
-import static javax.servlet.http.HttpServletResponse.SC_NOT_FOUND;
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static org.nuxeo.ecm.automation.core.operations.services.bulk.AbstractAutomationBulkAction.OPERATION_ID;
 import static org.nuxeo.ecm.automation.core.operations.services.bulk.AutomationBulkActionUi.ACTION_NAME;
 
@@ -51,7 +51,6 @@ import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * Automation operation that can run an http enabled Bulk Action.
@@ -149,9 +148,8 @@ public class BulkRunAction {
             query = addExcludeClause(query, excludeDocs);
         }
 
-        String scroller = Framework.getService(PageProviderService.class).getPageProviderType(provider).toString();
         BulkCommand.Builder builder = new BulkCommand.Builder(action, query, session.getPrincipal().getName()).scroller(
-                scroller);
+                provider.getScroller());
 
         Map<String, Serializable> params = getParams(parametersAsJson);
         builder.params(params);

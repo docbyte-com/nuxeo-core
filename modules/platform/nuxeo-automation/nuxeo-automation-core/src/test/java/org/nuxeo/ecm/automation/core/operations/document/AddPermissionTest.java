@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 
 package org.nuxeo.ecm.automation.core.operations.document;
 
-import static java.util.Collections.singletonList;
+import static java.util.Calendar.SEPTEMBER;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.number.OrderingComparison.greaterThan;
 import static org.junit.Assert.assertEquals;
@@ -27,11 +27,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
@@ -39,7 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -126,8 +125,8 @@ public class AddPermissionTest {
         assertNull(doc.getACP().getACL("local"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, null, null, "Write", null, null, null, false,
-                false, null);
+        Map<String, Object> params = getParametersForAddOperation(null, null, "Write", null, null, null, false, false,
+                null);
 
         try {
             automationService.run(ctx, AddPermission.ID, params);
@@ -135,7 +134,7 @@ public class AddPermissionTest {
         } catch (IllegalParameterException e) {
             String expectedMsg = "'users' or 'email' parameters must be set";
             assertEquals(expectedMsg, e.getOriginalMessage());
-            verifyZeroInteractions(userManager);
+            verifyNoInteractions(userManager);
         }
     }
 
@@ -146,8 +145,8 @@ public class AddPermissionTest {
         assertNull(doc.getACP().getACL("local"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, null, "johndoe@nuxeo.com", "Write", null, null,
-                null, false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(null, "johndoe@nuxeo.com", "Write", null, null, null,
+                false, false, null);
 
         try {
             automationService.run(ctx, AddPermission.ID, params);
@@ -155,7 +154,7 @@ public class AddPermissionTest {
         } catch (IllegalParameterException e) {
             String expectedMsg = "'end' parameter must be set when adding a permission for an 'email'";
             assertEquals(expectedMsg, e.getOriginalMessage());
-            verifyZeroInteractions(userManager);
+            verifyNoInteractions(userManager);
         }
     }
 
@@ -165,15 +164,15 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        List<String> users = Arrays.asList("existingGroup", "unexistingUser", "existingUser", "unexistingUser2");
+        List<String> users = List.of("existingGroup", "unexistingUser", "existingUser", "unexistingUser2");
         when(userManager.getUserModel("existingUser")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getGroupModel("existingGroup")).thenReturn(SimpleDocumentModel.ofSchemas("group"));
         when(userManager.getUserModel("unexistingUser")).thenReturn(null);
         when(userManager.getUserModel("unexistingUser2")).thenReturn(null);
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, users, null, "Write", null, null, null, false,
-                false, null);
+        Map<String, Object> params = getParametersForAddOperation(users, null, "Write", null, null, null, false, false,
+                null);
 
         try {
             automationService.run(ctx, AddPermission.ID, params);
@@ -196,14 +195,14 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        List<String> users = Arrays.asList("existingGroup", "unexistingGroup", "existingUser");
+        List<String> users = List.of("existingGroup", "unexistingGroup", "existingUser");
         when(userManager.getUserModel("existingUser")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getGroupModel("existingGroup")).thenReturn(SimpleDocumentModel.ofSchemas("group"));
         when(userManager.getGroupModel("unexistingGroup")).thenReturn(null);
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, users, null, "Write", null, null, null, false,
-                false, null);
+        Map<String, Object> params = getParametersForAddOperation(users, null, "Write", null, null, null, false, false,
+                null);
 
         try {
             automationService.run(ctx, AddPermission.ID, params);
@@ -227,8 +226,8 @@ public class AddPermissionTest {
         ctx.setInput(doc);
         List<String> users = List.of("foo");
         String invalidPermission = "<a href=www.evil.com>New";
-        Map<String, Object> params = getParametersForAddOperation(null, users, null, invalidPermission, null, null,
-                null, false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(users, null, invalidPermission, null, null, null,
+                false, false, null);
         try {
             automationService.run(ctx, AddPermission.ID, params);
             fail(String.format("Calling %s with an invalid permission %s should fail.", AddPermission.ID,
@@ -248,11 +247,11 @@ public class AddPermissionTest {
         when(userManager.getUserModel("unexistingUser")).thenReturn(null);
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, singletonList("unexistingUser"), null, "Write",
-                "", null, null, false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(List.of("unexistingUser"), null, "Write", "", null,
+                null, false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -268,15 +267,16 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        List<String> groups = Arrays.asList("unexistingGroup1", "unexistingGroup2");
+        List<String> groups = List.of("unexistingGroup1", "unexistingGroup2");
         groups.forEach(group -> when(userManager.getGroupModel(group)).thenReturn(null));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, groups, null, "Read", null,
-                new GregorianCalendar(2018, 8, 2), new GregorianCalendar(2018, 8, 8), false, true, "Permission Given");
+        Map<String, Object> params = getParametersForAddOperation(groups, null, "Read", null,
+                new GregorianCalendar(2018, SEPTEMBER, 2), new GregorianCalendar(2018, SEPTEMBER, 8), false, true,
+                "Permission Given");
 
         automationService.run(ctx, AddPermission.ID, params);
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -295,8 +295,9 @@ public class AddPermissionTest {
         when(userManager.getUserModel("existingUser")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation("existingUser", null, null, "Read", null,
-                new GregorianCalendar(2018, 8, 2), new GregorianCalendar(2018, 8, 8), false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(List.of("existingUser"), null, "Read", null,
+                new GregorianCalendar(2018, SEPTEMBER, 2), new GregorianCalendar(2018, SEPTEMBER, 8), false, false,
+                null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -317,12 +318,12 @@ public class AddPermissionTest {
         assertNull(doc.getACP().getACL("local"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, null, "jane@nuxeo.com", "Write", null, null,
-                new GregorianCalendar(2018, 8, 8), false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(null, "jane@nuxeo.com", "Write", null, null,
+                new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
-        verifyZeroInteractions(userManager);
+        verifyNoInteractions(userManager);
 
         ACL acl = doc.getACP().getACL("local");
         assertNotNull(acl);
@@ -337,14 +338,14 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        List<String> users = Arrays.asList("existingUser2", "existingUser3");
+        List<String> users = List.of("existingUser1", "existingUser2", "existingUser3");
         when(userManager.getUserModel("existingUser1")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getUserModel("existingUser2")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getUserModel("existingUser3")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation("existingUser1", users, null, "Write", null, null,
-                null, false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(users, null, "Write", null, null, null, false, false,
+                null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -368,13 +369,13 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        List<String> users = Arrays.asList("existingUser1", "existingUser2");
+        List<String> users = List.of("existingUser1", "existingUser2");
         when(userManager.getUserModel("existingUser1")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
         when(userManager.getUserModel("existingUser2")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, users, "user@nuxeo.com", "Write", null, null,
-                new GregorianCalendar(2018, 8, 8), false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(users, "user@nuxeo.com", "Write", null, null,
+                new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -399,8 +400,8 @@ public class AddPermissionTest {
         when(userManager.getUserModel("existingUser1")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation("existingUser1", null, "user@nuxeo.com", "Write",
-                null, null, new GregorianCalendar(2018, 8, 8), false, false, null);
+        Map<String, Object> params = getParametersForAddOperation(List.of("existingUser1"), "user@nuxeo.com", "Write",
+                null, null, new GregorianCalendar(2018, SEPTEMBER, 8), false, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -420,13 +421,13 @@ public class AddPermissionTest {
         assertNotNull(doc.getACP());
         assertNull(doc.getACP().getACL("local"));
 
-        when(administratorGroupsProvider.getAdministratorsGroups()).thenReturn(singletonList("administrators"));
+        when(administratorGroupsProvider.getAdministratorsGroups()).thenReturn(List.of("administrators"));
 
         when(userManager.getUserModel("existingUser1")).thenReturn(SimpleDocumentModel.ofSchemas("user"));
 
         ctx.setInput(doc);
-        Map<String, Object> params = getParametersForAddOperation(null, singletonList("existingUser1"), null, "Write",
-                null, null, new GregorianCalendar(2018, 8, 8), true, false, null);
+        Map<String, Object> params = getParametersForAddOperation(List.of("existingUser1"), null, "Write", null, null,
+                new GregorianCalendar(2018, SEPTEMBER, 8), true, false, null);
 
         automationService.run(ctx, AddPermission.ID, params);
 
@@ -443,7 +444,7 @@ public class AddPermissionTest {
     @Test
     public void shouldAddPermissionForUsersWhenUsingChainExtension() throws OperationException {
         // Mock the users params
-        List<String> users = Arrays.asList("jchastain", "rdeniro", "dwashington");
+        List<String> users = List.of("jchastain", "rdeniro", "dwashington");
         users.forEach(user -> when(userManager.getUserModel(user)).thenReturn(SimpleDocumentModel.ofSchemas(user)));
 
         DocumentModel doc = session.getDocument(new PathRef("/src"));
@@ -480,21 +481,17 @@ public class AddPermissionTest {
     }
 
     protected void verifyUserOrGroup(String userOrGroup, String expectedToBeFindAs) {
-        switch (expectedToBeFindAs) {
-        case USER:
+        if (USER.equals(expectedToBeFindAs)) {
             verify(userManager).getUserModel(userOrGroup);
-            break;
-        default:
+        } else {
             verify(userManager).getUserModel(userOrGroup);
             verify(userManager).getGroupModel(userOrGroup);
         }
     }
 
-    protected Map<String, Object> getParametersForAddOperation(String user, List<String> users, String email,
-            String permission, String aclName, Calendar begin, Calendar end, boolean blockInheritance, boolean notify,
-            String comment) {
+    protected Map<String, Object> getParametersForAddOperation(List<String> users, String email, String permission,
+            String aclName, Calendar begin, Calendar end, boolean blockInheritance, boolean notify, String comment) {
         Map<String, Object> params = new HashMap<>();
-        params.put("user", user);
         params.put("users", users);
         params.put("email", email);
         params.put("permission", permission);

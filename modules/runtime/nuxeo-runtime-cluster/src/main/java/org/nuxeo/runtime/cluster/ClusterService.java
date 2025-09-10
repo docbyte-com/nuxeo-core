@@ -20,7 +20,7 @@ package org.nuxeo.runtime.cluster;
 
 import java.time.Duration;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import org.nuxeo.runtime.RuntimeServiceException;
 

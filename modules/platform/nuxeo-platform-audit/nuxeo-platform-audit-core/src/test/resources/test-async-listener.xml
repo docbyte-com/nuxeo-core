@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<component name="test.audit.async.contrib">
+<component name="org.nuxeo.audit.async.contrib.test">
+  <!-- Alias is deprecated since 2025.0 -->
+  <alias>test.audit.async.contrib</alias>
 
   <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="listener">
     <listener name="testDummyAsync" async="true" postCommit="true"
-      class="org.nuxeo.ecm.platform.audit.TestAsyncListener$DummyAsyncEventListener">
+      class="org.nuxeo.audit.TestAsyncListener$DummyAsyncEventListener">
       <event>testdummyasync</event>
     </listener>
   </extension>

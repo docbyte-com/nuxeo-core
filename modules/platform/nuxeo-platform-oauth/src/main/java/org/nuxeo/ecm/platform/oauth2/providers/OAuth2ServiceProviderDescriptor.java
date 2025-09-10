@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,25 +18,29 @@
  */
 package org.nuxeo.ecm.platform.oauth2.providers;
 
+import static org.apache.commons.lang3.ArrayUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 7.3
  */
 @XObject("provider")
-public class OAuth2ServiceProviderDescriptor {
+public class OAuth2ServiceProviderDescriptor implements Descriptor {
 
     public static final String DEFAULT_ACCESS_TOKEN_KEY = "access_token";
 
     public static final Class<? extends OAuth2ServiceProvider> DEFAULT_PROVIDER_CLASS = NuxeoOAuth2ServiceProvider.class;
 
-    @XNode("@enabled")
-    protected boolean enabled = true;
-
     @XNode("name")
     protected String name;
+
+    @XNode("@enabled")
+    protected boolean enabled = true;
 
     @XNode("tokenServerURL")
     protected String tokenServerURL;
@@ -71,8 +75,17 @@ public class OAuth2ServiceProviderDescriptor {
     @XNode("class")
     protected Class<? extends OAuth2ServiceProvider> providerClass = DEFAULT_PROVIDER_CLASS;
 
+    @Override
+    public String getId() {
+        return name;
+    }
+
     public String getName() {
         return name;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
     }
 
     public String getTokenServerURL() {
@@ -99,10 +112,6 @@ public class OAuth2ServiceProviderDescriptor {
         return icon;
     }
 
-    public boolean isEnabled() {
-        return enabled;
-    }
-
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }
@@ -117,5 +126,27 @@ public class OAuth2ServiceProviderDescriptor {
 
     public Class<? extends OAuth2ServiceProvider> getProviderClass() {
         return providerClass;
+    }
+
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (OAuth2ServiceProviderDescriptor) o;
+        var merged = new OAuth2ServiceProviderDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = other.enabled;
+        merged.tokenServerURL = defaultIfEmpty(other.tokenServerURL, tokenServerURL);
+        merged.authorizationServerURL = defaultIfEmpty(other.authorizationServerURL, tokenServerURL);
+        merged.userInfoURL = defaultIfEmpty(other.userInfoURL, userInfoURL);
+        merged.accessTokenKey = !DEFAULT_ACCESS_TOKEN_KEY.equals(other.accessTokenKey) ? other.accessTokenKey
+                : accessTokenKey;
+        merged.clientId = defaultIfEmpty(other.clientId, clientId);
+        merged.clientSecret = defaultIfEmpty(other.clientSecret, clientSecret);
+        merged.scopes = isNotEmpty(other.scopes) ? other.scopes : scopes;
+        merged.icon = defaultIfEmpty(other.icon, icon);
+        merged.label = defaultIfEmpty(other.label, label);
+        merged.description = defaultIfEmpty(other.description, description);
+        merged.providerClass = !DEFAULT_PROVIDER_CLASS.equals(other.providerClass) ? other.providerClass
+                : providerClass;
+        return merged;
     }
 }

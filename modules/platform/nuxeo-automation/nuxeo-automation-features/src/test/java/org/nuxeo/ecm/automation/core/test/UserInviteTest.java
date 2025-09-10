@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,13 @@
  */
 package org.nuxeo.ecm.automation.core.test;
 
-import static javax.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.assertThrows;
 
-import java.util.Collections;
+import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,11 +33,12 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.operations.services.UserInvite;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
-import org.nuxeo.ecm.platform.test.PlatformFeature;
+import org.nuxeo.ecm.platform.test.UserManagerFeature;
 import org.nuxeo.ecm.platform.usermanager.NuxeoPrincipalImpl;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
@@ -46,21 +47,19 @@ import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
+@Features({ AutomationFeaturesFeature.class, UserManagerFeature.class })
 @Deploy("org.nuxeo.ecm.user.invite")
 @Deploy("org.nuxeo.ecm.user.invite:test-invite-contrib.xml")
 public class UserInviteTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    UserManager um;
+    protected UserManager um;
 
     protected OperationContext ctx;
 
@@ -83,26 +82,22 @@ public class UserInviteTest {
         NuxeoPrincipal user = new NuxeoPrincipalImpl("user");
         ctx.setInput(user);
 
-        String invitationId = (String) service.run(ctx, UserInvite.ID, Collections.emptyMap());
+        String invitationId = (String) service.run(ctx, UserInvite.ID, Map.of());
 
         DocumentModel doc = session.getDocument(new IdRef(invitationId));
         assertEquals(user.getName(), doc.getPropertyValue("userinfo:login"));
     }
 
     @Test
-    public void testInviteExistingUserException() throws Exception {
+    public void testInviteExistingUserException() {
         // Given a user
         NuxeoPrincipal testUser = new NuxeoPrincipalImpl("testUser");
         um.createUser(testUser.getModel());
 
         // When trying to invite the existing user
         ctx.setInput(testUser);
-        try {
-            service.run(ctx, UserInvite.ID, Collections.emptyMap());
-            fail("User.Invite should have failed with an existent user");
-        } catch (UserAlreadyExistsException e) {
-            // Should return the UserAlreadyExists Exception
-            assertEquals(SC_CONFLICT, e.getStatusCode());
-        }
+        var e = assertThrows(UserAlreadyExistsException.class, () -> service.run(ctx, UserInvite.ID, Map.of()));
+        // Should return the UserAlreadyExists Exception
+        assertEquals(SC_CONFLICT, e.getStatusCode());
     }
 }

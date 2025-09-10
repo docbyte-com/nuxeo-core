@@ -20,14 +20,16 @@ package org.nuxeo.ecm.platform.auth.saml.processor;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
+import org.nuxeo.common.function.ThrowableConsumer;
 import org.opensaml.messaging.context.MessageContext;
 import org.opensaml.profile.action.ProfileAction;
 import org.opensaml.profile.context.ProfileRequestContext;
 
-import net.shibboleth.utilities.java.support.net.HttpServletRequestResponseContext;
+import net.shibboleth.shared.component.InitializableComponent;
+import net.shibboleth.shared.servlet.impl.HttpServletRequestResponseContext;
 
 /**
  * @since 2023.0
@@ -45,7 +47,10 @@ abstract class AbstractSAMLProcessor implements SAMLProcessor {
         var profileRequestContext = new ProfileRequestContext();
         profileRequestContext.setInboundMessageContext(new MessageContext());
         profileRequestContext.setOutboundMessageContext(new MessageContext());
-        getActions().forEach(a -> a.execute(profileRequestContext));
+        List<ProfileAction> actions = getActions();
+        // init the actions
+        actions.forEach(ThrowableConsumer.asConsumer(InitializableComponent::initialize));
+        actions.forEach(a -> a.execute(profileRequestContext));
     }
 
     protected abstract List<ProfileAction> getActions();

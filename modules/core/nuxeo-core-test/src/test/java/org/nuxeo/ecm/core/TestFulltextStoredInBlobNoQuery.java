@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,14 +20,13 @@ package org.nuxeo.ecm.core;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll.SCROLL_NAME;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction;
@@ -37,16 +36,19 @@ import org.nuxeo.ecm.core.blob.BlobInfo;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.DocumentBlobManager;
+import org.nuxeo.ecm.core.blob.stream.StreamOrphanBlobGC;
 import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.model.Document;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfNotDBSMongoDBRepository;
 import org.nuxeo.ecm.core.test.FulltextStoredInBlobFeature;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @Features(FulltextStoredInBlobFeature.class)
-@Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-blob-dispatcher-fulltext.xml")
+@WithFrameworkProperty(name = StreamOrphanBlobGC.ENABLED_PROPERTY_NAME, value = "false")
 public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery {
 
     // from XML config
@@ -69,8 +71,8 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
 
     @Override
     @Test
+    @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "Modern GC is only available on MongoDB")
     public void testBinaryText() throws IOException {
-        assumeTrue("Modern GC is only available on MongoDB", coreFeature.getStorageConfiguration().isDBS());
         super.testBinaryText();
 
         Document doc = mock(Document.class);
@@ -100,9 +102,13 @@ public class TestFulltextStoredInBlobNoQuery extends TestFulltextAbstractNoQuery
         session.save();
         coreFeature.waitForAsyncCompletion();
 
-        // Incremental GC deleted the fulltext blob
+        // incremental GC is deactivated blob is still there
+        assertEquals(BINARY_TEXT, ftbp.readBlob(bi).getString());
+
+        // run the Full GC
         gcStatus = triggerAndWaitGC();
-        assertEquals(1, gcStatus.getProcessed()); // fulltext blob
+        assertEquals(2, gcStatus.getTotal());
+        assertEquals(2, gcStatus.getProcessed()); // main blob + fulltext blob
         assertEquals(0, gcStatus.getSkipCount());
         try {
             blob = documentBlobManager.readBlob(blobInfo, doc, "ecm:fulltextBinary");

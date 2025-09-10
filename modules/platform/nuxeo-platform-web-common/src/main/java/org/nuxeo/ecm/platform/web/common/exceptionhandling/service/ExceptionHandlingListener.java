@@ -20,9 +20,9 @@ package org.nuxeo.ecm.platform.web.common.exceptionhandling.service;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Listener performing operations when dealing with an error. Order of methods called:
@@ -40,8 +40,8 @@ public interface ExceptionHandlingListener {
     /**
      * Error has happened, things to do before error is dealt with.
      */
-    void startHandling(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException,
-            ServletException;
+    void startHandling(Throwable t, HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException;
 
     void beforeSetErrorPageAttribute(Throwable t, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException;
@@ -49,8 +49,8 @@ public interface ExceptionHandlingListener {
     void beforeForwardToErrorPage(Throwable t, HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException;
 
-    void afterDispatch(Throwable t, HttpServletRequest request, HttpServletResponse response) throws IOException,
-            ServletException;
+    void afterDispatch(Throwable t, HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException;
 
     void responseComplete();
 

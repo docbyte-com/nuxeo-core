@@ -21,7 +21,7 @@
 
 package org.nuxeo.ecm.platform.mail.action;
 
-import javax.mail.MessagingException;
+import jakarta.mail.MessagingException;
 
 /**
  * Object method for a message action.

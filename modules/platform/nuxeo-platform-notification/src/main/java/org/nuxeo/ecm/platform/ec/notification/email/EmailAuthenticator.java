@@ -20,13 +20,14 @@ package org.nuxeo.ecm.platform.ec.notification.email;
 
 import java.util.Properties;
 
-import javax.mail.PasswordAuthentication;
+import jakarta.mail.Authenticator;
+import jakarta.mail.PasswordAuthentication;
 
 /**
  * @deprecated since 11.1, use {@link org.nuxeo.mail.MailAuthenticator} instead
  */
 @Deprecated(since = "11.1")
-public class EmailAuthenticator extends javax.mail.Authenticator {
+public class EmailAuthenticator extends Authenticator {
 
     protected final Properties properties;
 
@@ -47,28 +48,7 @@ public class EmailAuthenticator extends javax.mail.Authenticator {
         return new PasswordAuthentication(user, password);
     }
 
-    /**
-     * @deprecated since 10.2, use {@link #protocolValue(String)} instead
-     */
-    @Deprecated
-    protected String value(String name) {
-        String value = protocolValue(name);
-        if (value != null) {
-            return value;
-        }
-        return defaultValue(name);
-    }
-
     protected String protocolValue(String name) {
-        String key = "mail." + getRequestingProtocol() + "." + name;
-        return properties.getProperty(key);
-    }
-
-    /**
-     * @deprecated since 10.2, use {@link #protocolValue(String)} instead
-     */
-    @Deprecated
-    protected String defaultValue(String name) {
         String key = "mail." + getRequestingProtocol() + "." + name;
         return properties.getProperty(key);
     }

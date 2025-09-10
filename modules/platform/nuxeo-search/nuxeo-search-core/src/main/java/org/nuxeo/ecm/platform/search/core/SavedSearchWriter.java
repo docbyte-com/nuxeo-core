@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.search.core;
 
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.WILDCARD_VALUE;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.Property;
@@ -45,9 +45,9 @@ import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.core.schema.types.Schema;
+import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import org.nuxeo.runtime.api.Framework;
 
 /**
  * @since 8.3
@@ -73,8 +73,8 @@ public class SavedSearchWriter extends ExtensibleEntityJsonWriter<SavedSearch> {
         jg.writeStringField("queryLanguage", search.getQueryLanguage());
         jg.writeStringField("pageProviderName", search.getPageProviderName());
         jg.writeStringField("pageSize", search.getPageSize() == null ? null : search.getPageSize().toString());
-        jg.writeStringField("currentPageIndex", search.getCurrentPageIndex() == null ? null
-                : search.getCurrentPageIndex().toString());
+        jg.writeStringField("currentPageIndex",
+                search.getCurrentPageIndex() == null ? null : search.getCurrentPageIndex().toString());
         jg.writeStringField("maxResults", search.getMaxResults() == null ? null : search.getMaxResults().toString());
         jg.writeStringField("sortBy", search.getSortBy());
         jg.writeStringField("sortOrder", search.getSortOrder());

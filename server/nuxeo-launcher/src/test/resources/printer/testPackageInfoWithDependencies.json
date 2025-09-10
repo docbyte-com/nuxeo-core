@@ -1,0 +1,17 @@
+{
+  "packages": {
+    "package": [
+      {
+        "supportsHotReload": "false",
+        "dependencies": "dependency-1"
+      },
+      {
+        "supportsHotReload": "false",
+        "dependencies": [
+          "dependency-1",
+          "dependency-2"
+        ]
+      }
+    ]
+  }
+}

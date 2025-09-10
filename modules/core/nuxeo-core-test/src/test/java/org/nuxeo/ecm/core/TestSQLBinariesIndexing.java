@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import static org.junit.Assume.assumeTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -48,17 +48,19 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 public class TestSQLBinariesIndexing {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     protected CoreSession session;
@@ -72,18 +74,6 @@ public class TestSQLBinariesIndexing {
     @Before
     public void checkSupportsFulltextSearch() {
         assumeTrue("fulltext search not supported", coreFeature.getStorageConfiguration().supportsFulltextSearch());
-    }
-
-    protected void waitForFulltextIndexing() {
-        nextTransaction();
-        coreFeature.getStorageConfiguration().waitForFulltextIndexing();
-    }
-
-    protected void nextTransaction() {
-        if (TransactionHelper.isTransactionActiveOrMarkedRollback()) {
-            TransactionHelper.commitOrRollbackTransaction();
-            TransactionHelper.startTransaction();
-        }
     }
 
     /** Creates doc, doesn't do a session save. */
@@ -149,7 +139,7 @@ public class TestSQLBinariesIndexing {
     protected void allowFulltextUpdating() {
         startLatch.countDown();
         blockingWork = null;
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
     }
 
     protected int indexedDocs() {
@@ -174,7 +164,7 @@ public class TestSQLBinariesIndexing {
             allowFulltextUpdating();
         }
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         assertEquals(0, jobDocs());
         assertEquals(1, indexedDocs());
     }
@@ -195,7 +185,7 @@ public class TestSQLBinariesIndexing {
             allowFulltextUpdating();
         }
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         assertEquals(0, jobDocs());
         assertEquals(0, indexedDocs());
         assertFalse(DownloadBlobGuard.isEnable());
@@ -220,7 +210,7 @@ public class TestSQLBinariesIndexing {
         }
 
         // check copy is indexed also
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         assertEquals(0, jobDocs());
         assertEquals(2, indexedDocs());
 
@@ -229,7 +219,7 @@ public class TestSQLBinariesIndexing {
         doc.getAdapter(BlobHolder.class).setBlob(Blobs.createBlob("other"));
         session.saveDocument(doc);
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
 
         assertEquals(1, indexedDocs());
     }
@@ -249,7 +239,7 @@ public class TestSQLBinariesIndexing {
             allowFulltextUpdating();
         }
 
-        waitForFulltextIndexing();
+        txFeature.nextTransaction();
         assertEquals(2, indexedDocs());
     }
 

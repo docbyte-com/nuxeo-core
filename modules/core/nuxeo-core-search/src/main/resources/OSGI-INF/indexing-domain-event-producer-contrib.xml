@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.indexing">
+
+  <extension target="org.nuxeo.ecm.core.event.EventServiceComponent" point="domainEventProducer">
+    <domainEventProducer name="indexingDomain" class="org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer">
+      <stream name="source/indexing" partitions="${nuxeo.search.indexing.defaultPartitions:=4}" codec="avro" />
+    </domainEventProducer>
+  </extension>
+
+</component>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,20 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.platform.commandline.executor.service;
+
+import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.logging.log4j.LogManager;
@@ -40,7 +45,6 @@ import org.nuxeo.ecm.platform.commandline.executor.service.executors.Executor;
 import org.nuxeo.ecm.platform.commandline.executor.service.executors.ShellExecutor;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -62,121 +66,112 @@ public class CommandLineExecutorComponent extends DefaultComponent implements Co
 
     public static final String DEFAULT_EXECUTOR = "ShellExecutor";
 
-    protected Map<String, CommandLineDescriptor> commandDescriptors = new HashMap<>();
+    protected EnvironmentDescriptor env;
 
-    protected EnvironmentDescriptor env = new EnvironmentDescriptor();
+    protected Map<String, EnvironmentDescriptor> envDescriptors;
 
-    protected Map<String, EnvironmentDescriptor> envDescriptors = new HashMap<>();
+    protected Map<String, CommandTester> testers;
 
-    protected Map<String, CommandTester> testers = new HashMap<>();
+    protected Map<String, CommandLineDescriptor> commandDescriptors;
 
-    protected Map<String, Executor> executors = new HashMap<>();
+    protected Map<String, CommandAvailability> commandAvailabilities;
 
-    // @since 11.5
-    protected boolean useTimeout;
-
-    @Override
-    public void activate(ComponentContext context) {
-        commandDescriptors = new HashMap<>();
-        env = new EnvironmentDescriptor();
-        testers = new HashMap<>();
-        executors = new HashMap<>();
-
-    }
+    protected Map<String, Executor> executors;
 
     @Override
     public void start(ComponentContext context) {
         super.start(context);
-        executors.put(DEFAULT_EXECUTOR, new ShellExecutor(useTimeout));
+        env = getDescriptor(EP_ENV, UNIQUE_DESCRIPTOR_ID);
+        envDescriptors = this.<EnvironmentDescriptor> getDescriptors(EP_ENV)
+                             .stream()
+                             // filter out global env
+                             .filter(descriptor -> isNotEmpty(descriptor.getName()))
+                             .<EnvironmentDescriptor> mapMulti((descriptor, consumer) -> {
+                                 for (String command : descriptor.getName().split(",")) {
+                                     consumer.accept(descriptor.withName(command));
+                                 }
+                             })
+                             .collect(Collectors.groupingBy(EnvironmentDescriptor::getName,
+                                     Collectors.collectingAndThen(Collectors.toList(),
+                                             list -> list.stream()
+                                                         .reduce(new EnvironmentDescriptor(),
+                                                                 EnvironmentDescriptor::merge))));
+        testers = this.<CommandTesterDescriptor> getDescriptors(EP_CMDTESTER)
+                      .stream()
+                      .collect(Collectors.toMap(CommandTesterDescriptor::getName, descriptor -> {
+                          try {
+                              return descriptor.getTesterClass().getDeclaredConstructor().newInstance();
+                          } catch (ReflectiveOperationException e) {
+                              throw new RuntimeException("Unable to instantiate tester: " + descriptor.getName(), e);
+                          }
+                      }));
+        commandDescriptors = this.<CommandLineDescriptor> getDescriptors(EP_CMD)
+                                 .stream()
+                                 .filter(CommandLineDescriptor::isEnabled)
+                                 .collect(Collectors.toMap(CommandLineDescriptor::getName, Function.identity()));
+        // compute the command availabilities
+        commandAvailabilities = new HashMap<>();
+        var testerCache = new HashMap<String, CommandTestResult>();
+        for (var descriptor : commandDescriptors.values()) {
+            String testerName = defaultIfNull(descriptor.getTester(), DEFAULT_TESTER);
+            var tester = testers.get(testerName);
+            if (tester == null) {
+                log.error("Unable to find tester: {}, command will not be available: {}", testerName, name);
+                commandAvailabilities.put(descriptor.getName(),
+                        new CommandAvailability("Unable to find tester: " + testerName));
+            } else {
+                var testResult = testerCache.computeIfAbsent(
+                        testerName + '-' + descriptor.getCommand() + '-' + descriptor.getTestParametersString(),
+                        k -> tester.test(descriptor));
+                if (testResult.succeed()) {
+                    commandAvailabilities.put(descriptor.getName(), new CommandAvailability());
+                } else {
+                    commandAvailabilities.put(descriptor.getName(), new CommandAvailability(
+                            descriptor.getInstallationDirective(), testResult.getErrorMessage()));
+                }
+            }
+        }
+        // logs about non available commands
+        commandAvailabilities.entrySet()
+                             .stream()
+                             .filter(entry -> !entry.getValue().isAvailable())
+                             .collect(Collectors.groupingBy(
+                                     // group by shell command
+                                     entry -> commandDescriptors.get(entry.getKey()).getCommand(),
+                                     // reduce the nuxeo commands with the first error & installation messages
+                                     Collectors.reducing(new NuxeoCommandsWithMessages(),
+                                             entry -> new NuxeoCommandsWithMessages(entry.getValue().getErrorMessage(),
+                                                     entry.getValue().getInstallMessage(), List.of(entry.getKey())),
+                                             NuxeoCommandsWithMessages::merge)))
+                             .forEach((shellCommand, nuxeoCommandsWithMessages) -> log.warn(
+                                     "Shell command: {} is not available, the following Nuxeo commands won't be available: [{}], ({} - {})",
+                                     () -> shellCommand,
+                                     () -> String.join(", ", nuxeoCommandsWithMessages.nuxeoCommands()),
+                                     nuxeoCommandsWithMessages::errorMessage,
+                                     nuxeoCommandsWithMessages::installationDirective));
+        // check the timeout command
+        var useTimeout = commandAvailabilities.getOrDefault("timeout",
+                new CommandAvailability("No timeout shell command available")).isAvailable();
+        if (!useTimeout || SystemUtils.IS_OS_WINDOWS) {
+            // Windows comes with a TIMEOUT.exe command but for different purpose
+            useTimeout = false;
+            log.warn("There is no timeout command available, command executions won't be time-boxed.");
+        }
+        executors = Map.of(DEFAULT_EXECUTOR, new ShellExecutor(useTimeout));
     }
 
     @Override
-    public void deactivate(ComponentContext context) {
-        commandDescriptors = null;
+    public void stop(ComponentContext context) {
         env = null;
+        envDescriptors = null;
         testers = null;
+        commandDescriptors = null;
+        commandAvailabilities = null;
         executors = null;
     }
 
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (EP_ENV.equals(extensionPoint)) {
-            EnvironmentDescriptor desc = (EnvironmentDescriptor) contribution;
-            String name = desc.getName();
-            if (name == null) {
-                env.merge(desc);
-            } else {
-                for (String envName : name.split(",")) {
-                    if (envDescriptors.containsKey(envName)) {
-                        envDescriptors.get(envName).merge(desc);
-                    } else {
-                        envDescriptors.put(envName, desc);
-                    }
-                }
-            }
-        } else if (EP_CMD.equals(extensionPoint)) {
-            CommandLineDescriptor desc = (CommandLineDescriptor) contribution;
-            String name = desc.getName();
+    // Service interface
 
-            log.debug("Registering command: {}", name);
-
-            if (!desc.isEnabled()) {
-                commandDescriptors.remove(name);
-                log.info("Command configured to not be enabled: {}", name);
-                return;
-            }
-
-            String testerName = desc.getTester();
-            if (testerName == null) {
-                testerName = DEFAULT_TESTER;
-                log.debug("Using default tester for command: {}", name);
-            }
-
-            CommandTester tester = testers.get(testerName);
-            boolean cmdAvailable = false;
-            if (tester == null) {
-                log.error("Unable to find tester: {}, command will not be available: {}", testerName, name);
-            } else {
-                log.debug("Using tester: {} for command: {}", testerName, name);
-                CommandTestResult testResult = tester.test(desc);
-                cmdAvailable = testResult.succeed();
-                if (cmdAvailable) {
-                    log.info("Registered command: {}", name);
-                } else {
-                    desc.setInstallErrorMessage(testResult.getErrorMessage());
-                    log.warn("Command not available: {} ({}. {})", () -> name, desc::getInstallErrorMessage,
-                            desc::getInstallationDirective);
-                }
-                if ("timeout".equals(name)) {
-                    useTimeout = cmdAvailable;
-                    if (!useTimeout || SystemUtils.IS_OS_WINDOWS) {
-                        // Windows comes with a TIMEOUT.exe command but for different purpose
-                        useTimeout = false;
-                        log.warn("There is no timeout command available, command executions won't be time-boxed.");
-                    }
-                }
-            }
-            desc.setAvailable(cmdAvailable);
-            commandDescriptors.put(name, desc);
-        } else if (EP_CMDTESTER.equals(extensionPoint)) {
-            CommandTesterDescriptor desc = (CommandTesterDescriptor) contribution;
-            CommandTester tester;
-            try {
-                tester = (CommandTester) desc.getTesterClass().getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
-                throw new RuntimeException(e);
-            }
-            testers.put(desc.getName(), tester);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-    }
-
-    /*
-     * Service interface
-     */
     @Override
     public ExecResult execCommand(String commandName, CmdParameters params) throws CommandNotAvailable {
         CommandAvailability availability = getCommandAvailability(commandName);
@@ -196,33 +191,20 @@ public class CommandLineExecutorComponent extends DefaultComponent implements Co
         if (!commandDescriptors.containsKey(commandName)) {
             return new CommandAvailability(commandName + " is not a registered command");
         }
-
-        CommandLineDescriptor desc = commandDescriptors.get(commandName);
-        if (desc.isAvailable()) {
-            return new CommandAvailability();
-        } else {
-            return new CommandAvailability(desc.getInstallationDirective(), desc.getInstallErrorMessage());
-        }
+        return commandAvailabilities.get(commandName);
     }
 
     @Override
     public List<String> getRegistredCommands() {
-        List<String> cmds = new ArrayList<>();
-        cmds.addAll(commandDescriptors.keySet());
-        return cmds;
+        return new ArrayList<>(commandDescriptors.keySet());
     }
 
     @Override
     public List<String> getAvailableCommands() {
-        List<String> cmds = new ArrayList<>();
-
-        for (String cmdName : commandDescriptors.keySet()) {
-            CommandLineDescriptor cmd = commandDescriptors.get(cmdName);
-            if (cmd.isAvailable()) {
-                cmds.add(cmdName);
-            }
-        }
-        return cmds;
+        return commandDescriptors.keySet()
+                                 .stream()
+                                 .filter(command -> commandAvailabilities.get(command).isAvailable())
+                                 .toList();
     }
 
     @Override
@@ -247,4 +229,16 @@ public class CommandLineExecutorComponent extends DefaultComponent implements Co
         return params;
     }
 
+    record NuxeoCommandsWithMessages(String errorMessage, String installationDirective, List<String> nuxeoCommands) {
+        public NuxeoCommandsWithMessages() {
+            this(null, null, List.of());
+        }
+
+        public NuxeoCommandsWithMessages merge(NuxeoCommandsWithMessages other) {
+            var errorMessage = defaultIfNull(this.errorMessage, other.errorMessage);
+            var installationDirective = defaultIfNull(this.installationDirective, other.installationDirective);
+            var nuxeoCommands = union(this.nuxeoCommands, other.nuxeoCommands);
+            return new NuxeoCommandsWithMessages(errorMessage, installationDirective, nuxeoCommands);
+        }
+    }
 }

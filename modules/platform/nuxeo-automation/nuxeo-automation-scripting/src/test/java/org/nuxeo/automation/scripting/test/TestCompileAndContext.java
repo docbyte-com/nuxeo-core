@@ -34,10 +34,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
 import javax.script.Compilable;
 import javax.script.CompiledScript;
 import javax.script.ScriptContext;
+
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Ignore;

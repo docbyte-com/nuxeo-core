@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@
  */
 package org.nuxeo.template.api.descriptor;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,14 +29,13 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.template.api.TemplateProcessor;
 
 @XObject("templateProcessor")
-public class TemplateProcessorDescriptor {
+public class TemplateProcessorDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(TemplateProcessorDescriptor.class);
-
-    protected TemplateProcessor processor;
 
     @XNode("@name")
     protected String name;
@@ -57,22 +59,11 @@ public class TemplateProcessorDescriptor {
     @XNodeList(value = "supportedExtension", type = ArrayList.class, componentType = String.class)
     protected List<String> supportedExtensions = new ArrayList<>();
 
-    public boolean init() {
-        if (getProcessor() == null) {
-            return false;
-        }
-        return true;
-    }
+    protected TemplateProcessor processor;
 
-    public TemplateProcessor getProcessor() {
-        if (processor == null) {
-            try {
-                processor = (TemplateProcessor) className.getDeclaredConstructor().newInstance();
-            } catch (ReflectiveOperationException e) {
-                log.error("Unable to instantiate Processor", e);
-            }
-        }
-        return processor;
+    @Override
+    public String getId() {
+        return name;
     }
 
     public String getName() {
@@ -88,14 +79,6 @@ public class TemplateProcessorDescriptor {
         return className;
     }
 
-    public List<String> getSupportedMimeTypes() {
-        return supportedMimeTypes;
-    }
-
-    public List<String> getSupportedExtensions() {
-        return supportedExtensions;
-    }
-
     public boolean isDefaultProcessor() {
         return defaultProcessor;
     }
@@ -104,35 +87,37 @@ public class TemplateProcessorDescriptor {
         return enabled;
     }
 
-    @Override
-    public TemplateProcessorDescriptor clone() {
-
-        TemplateProcessorDescriptor clone = new TemplateProcessorDescriptor();
-        clone.enabled = enabled;
-        clone.supportedExtensions = supportedExtensions;
-        clone.supportedMimeTypes = supportedMimeTypes;
-        clone.className = className;
-        clone.processor = processor;
-        clone.defaultProcessor = defaultProcessor;
-        clone.label = label;
-        clone.name = name;
-
-        return clone;
+    public List<String> getSupportedMimeTypes() {
+        return supportedMimeTypes;
     }
 
-    public void merge(TemplateProcessorDescriptor srcTpd) {
-        defaultProcessor = srcTpd.defaultProcessor;
-        if (srcTpd.className != null) {
-            className = srcTpd.className;
+    public List<String> getSupportedExtensions() {
+        return supportedExtensions;
+    }
+
+    public TemplateProcessor getProcessor() {
+        if (processor == null) {
+            try {
+                processor = (TemplateProcessor) className.getDeclaredConstructor().newInstance();
+            } catch (ReflectiveOperationException e) {
+                log.error("Unable to instantiate Processor", e);
+            }
         }
-        if (srcTpd.label != null) {
-            label = srcTpd.label;
-        }
-        if (srcTpd.supportedExtensions != null && srcTpd.supportedExtensions.size() > 0) {
-            supportedExtensions = srcTpd.supportedExtensions;
-        }
-        if (srcTpd.supportedMimeTypes != null && srcTpd.supportedMimeTypes.size() > 0) {
-            supportedMimeTypes = srcTpd.supportedMimeTypes;
-        }
+        return processor;
+    }
+
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (TemplateProcessorDescriptor) o;
+        var merged = new TemplateProcessorDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.label = defaultIfBlank(other.label, label);
+        merged.className = defaultIfNull(other.className, className);
+        merged.defaultProcessor = other.defaultProcessor;
+        merged.enabled = other.enabled;
+        merged.supportedMimeTypes = !other.supportedMimeTypes.isEmpty() ? other.supportedMimeTypes : supportedMimeTypes;
+        merged.supportedExtensions = !other.supportedExtensions.isEmpty() ? other.supportedExtensions
+                : supportedExtensions;
+        return merged;
     }
 }

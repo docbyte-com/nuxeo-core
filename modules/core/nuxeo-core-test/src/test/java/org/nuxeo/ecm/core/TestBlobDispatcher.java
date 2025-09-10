@@ -26,7 +26,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;

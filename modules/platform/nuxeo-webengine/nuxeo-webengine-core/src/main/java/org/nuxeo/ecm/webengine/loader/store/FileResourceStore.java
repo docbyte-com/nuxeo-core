@@ -122,8 +122,7 @@ public class FileResourceStore implements ResourceStore {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof FileResourceStore) {
-            FileResourceStore store = (FileResourceStore) obj;
+        if (obj instanceof FileResourceStore store) {
             return store.root.equals(root);
         }
         return false;

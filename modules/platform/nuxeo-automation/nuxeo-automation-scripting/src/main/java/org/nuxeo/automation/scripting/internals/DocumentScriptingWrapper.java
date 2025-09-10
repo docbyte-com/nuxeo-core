@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ package org.nuxeo.automation.scripting.internals;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,29 +56,21 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
 
     protected final DocumentModel doc;
 
+    @SuppressWarnings("unchecked")
     public static Object wrap(Object object, AutomationMapper mapper) {
-        if (object == null) {
-            return null;
-        }
-        if (object instanceof DocumentModel) {
-            return new DocumentScriptingWrapper(mapper, (DocumentModel) object);
-        } else if (object instanceof DocumentModelList) {
-            List<DocumentScriptingWrapper> docs = new ArrayList<>();
-            for (DocumentModel doc : (DocumentModelList) object) {
-                docs.add(new DocumentScriptingWrapper(mapper, doc));
-            }
-            return docs;
-        } else if (object instanceof Map<?, ?>) {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> m = (Map<String, Object>) object;
-            return wrap(m, mapper);
-        }
-        return object;
+        return switch (object) {
+            case DocumentModel documentModel -> new DocumentScriptingWrapper(mapper, documentModel);
+            case DocumentModelList documentModels ->
+                documentModels.stream()
+                              .map(doc -> new DocumentScriptingWrapper(mapper, doc))
+                              .collect(Collectors.toCollection(ArrayList::new));
+            case Map<?, ?> map -> wrap((Map<String, Object>) map, mapper);
+            case null, default -> object;
+        };
     }
 
     public static Map<String, Object> wrap(Map<String, Object> source, AutomationMapper mapper) {
-        return source.entrySet().stream()
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> wrap(e.getValue(), mapper)));
+        return source.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> wrap(e.getValue(), mapper)));
     }
 
     public static Object unwrap(Object object) {
@@ -89,26 +80,28 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
             result = ScriptObjectMirrors.unwrap(som);
         }
         // Second unwrap object
-        if (result instanceof DocumentScriptingWrapper) {
-            result = ((DocumentScriptingWrapper) result).getDoc();
-        } else if (result instanceof List<?>) {
-            List<?> l = (List<?>) result;
+        if (result instanceof DocumentScriptingWrapper wrapper) {
+            result = wrapper.getDoc();
+        } else if (result instanceof List<?> l) {
             // Several possible cases here:
             // - l is of type DocumentModelList or BlobList -> already in right type
             // - l is a list of DocumentScriptingWrapper -> elements need to be unwrapped into a DocumentModelList
             // - l is a list of DocumentWrapper -> l needs to be converted to DocumentModelList
             // - l is a list of Blob -> l needs to be converted to BlobList
             // - l is a list -> do nothing
-            if (l.size() > 0 && !(result instanceof DocumentModelList || result instanceof BlobList)) {
-                Object first = l.get(0);
+            if (!l.isEmpty() && !(result instanceof DocumentModelList || result instanceof BlobList)) {
+                Object first = l.getFirst();
                 if (first instanceof DocumentModel) {
-                    result = l.stream().map(DocumentModel.class::cast)
-                            .collect(Collectors.toCollection(DocumentModelListImpl::new));
+                    result = l.stream()
+                              .map(DocumentModel.class::cast)
+                              .collect(Collectors.toCollection(DocumentModelListImpl::new));
                 } else if (first instanceof Blob) {
                     result = l.stream().map(Blob.class::cast).collect(Collectors.toCollection(BlobList::new));
                 } else if (first instanceof DocumentScriptingWrapper) {
-                    result = l.stream().map(DocumentScriptingWrapper.class::cast).map(DocumentScriptingWrapper::getDoc)
-                            .collect(Collectors.toCollection(DocumentModelListImpl::new));
+                    result = l.stream()
+                              .map(DocumentScriptingWrapper.class::cast)
+                              .map(DocumentScriptingWrapper::getDoc)
+                              .collect(Collectors.toCollection(DocumentModelListImpl::new));
                 }
             }
         } else if (result instanceof Map<?, ?>) {
@@ -128,8 +121,10 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
     }
 
     public static Map<String, Object> unwrap(Map<String, Object> source) {
-        return source.entrySet().stream().filter(e -> e.getValue() != null)
-                .collect(Collectors.toMap(Map.Entry::getKey, e -> unwrap(e.getValue())));
+        return source.entrySet()
+                     .stream()
+                     .filter(e -> e.getValue() != null)
+                     .collect(Collectors.toMap(Map.Entry::getKey, e -> unwrap(e.getValue())));
     }
 
     public DocumentScriptingWrapper(AutomationMapper mapper, DocumentModel doc) {
@@ -341,27 +336,28 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
 
     @Override
     public int size() {
-        return Stream.of(getSchemas())
-                     .map(doc::getPropertyObjects)
-                     .collect(Collectors.summingInt(Collection::size));
+        return Stream.of(getSchemas()).map(doc::getPropertyObjects).mapToInt(Collection::size).sum();
     }
 
     @Override
     public Set<String> keySet() {
-        return Collections.unmodifiableSet(Stream.of(doc.getSchemas())
-                .map(name -> doc.getProperties(name).keySet().stream()).flatMap(s -> s).collect(Collectors.toSet()));
+        return Stream.of(doc.getSchemas())
+                     .flatMap(name -> doc.getProperties(name).keySet().stream())
+                     .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
     public Collection<Object> values() {
-        return Collections.unmodifiableCollection(Stream.of(doc.getSchemas())
-                .map(name -> doc.getProperties(name).values().stream()).flatMap(s -> s).collect(Collectors.toSet()));
+        return Stream.of(doc.getSchemas())
+                     .flatMap(name -> doc.getProperties(name).values().stream())
+                     .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
     public Set<Entry<String, Object>> entrySet() {
-        return Collections.unmodifiableSet(Stream.of(doc.getSchemas())
-                .flatMap(name -> doc.getProperties(name).entrySet().stream()).collect(Collectors.toSet()));
+        return Stream.of(doc.getSchemas())
+                     .flatMap(name -> doc.getProperties(name).entrySet().stream())
+                     .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -369,8 +365,8 @@ public class DocumentScriptingWrapper extends HashMap<String, Object> {
      */
     @Override
     public Object put(String key, Object value) {
-        if (value instanceof ScriptObjectMirror) {
-            return put(key, (Serializable) ScriptObjectMirrors.unwrap((ScriptObjectMirror) value));
+        if (value instanceof ScriptObjectMirror mirror) {
+            return put(key, (Serializable) ScriptObjectMirrors.unwrap(mirror));
         }
         return put(key, (Serializable) value);
     }

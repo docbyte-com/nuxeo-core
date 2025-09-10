@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,9 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.ui.web.auth.service;
+
+import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,9 +30,10 @@ import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 @XObject("specificAuthenticationChain")
-public class SpecificAuthChainDescriptor {
+public class SpecificAuthChainDescriptor implements Descriptor {
 
     public static final boolean DEFAULT_HANDLE_PROMPT_VALUE = true;
 
@@ -39,31 +41,43 @@ public class SpecificAuthChainDescriptor {
     protected String name;
 
     @XNode("@handlePrompt")
-    private boolean handlePrompt = DEFAULT_HANDLE_PROMPT_VALUE;
+    protected boolean handlePrompt = DEFAULT_HANDLE_PROMPT_VALUE;
 
     @XNodeList(value = "replacementChain/plugin", type = ArrayList.class, componentType = String.class)
-    private List<String> replacementChain;
+    protected List<String> replacementChain;
+
+    @XNodeList(value = "allowedPlugins/plugin", type = ArrayList.class, componentType = String.class)
+    protected List<String> allowedPlugins;
+
+    @XNodeList(value = "urlPatterns/url", type = ArrayList.class, componentType = String.class)
+    protected List<String> urls;
+
+    protected List<Pattern> urlPatterns;
+
+    @XNodeMap(value = "headers/header", key = "@name", type = HashMap.class, componentType = String.class)
+    protected Map<String, String> headers;
+
+    protected Map<String, Pattern> headerPatterns;
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public String getName() {
+        return name;
+    }
 
     public List<String> getReplacementChain() {
         return replacementChain;
     }
 
-    @XNodeList(value = "allowedPlugins/plugin", type = ArrayList.class, componentType = String.class)
-    private List<String> allowedPlugins;
-
     public List<String> getAllowedPlugins() {
         return allowedPlugins;
     }
-
-    @XNodeList(value = "urlPatterns/url", type = ArrayList.class, componentType = String.class)
-    private List<String> urls;
-
-    private List<Pattern> urlPatterns;
-
-    @XNodeMap(value = "headers/header", key = "@name", type = HashMap.class, componentType = String.class)
-    private Map<String, String> headers;
-
-    private Map<String, Pattern> headerPatterns;
 
     public List<Pattern> getUrlPatterns() {
         if (urlPatterns == null) {
@@ -87,7 +101,7 @@ public class SpecificAuthChainDescriptor {
     }
 
     public List<String> computeResultingChain(List<String> defaultChain) {
-        if (replacementChain != null && !replacementChain.isEmpty()) {
+        if (isNotEmpty(replacementChain)) {
             return replacementChain;
         }
 

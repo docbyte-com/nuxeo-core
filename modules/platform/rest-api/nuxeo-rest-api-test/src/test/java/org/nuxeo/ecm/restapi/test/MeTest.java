@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import static org.apache.http.HttpStatus.SC_OK;
 import static org.apache.http.HttpStatus.SC_UNAUTHORIZED;
 import static org.junit.Assert.assertEquals;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,6 +58,7 @@ public class MeTest {
     public final HttpClientTestRule httpClient = HttpClientTestRule.builder()
                                                                    .url(() -> restServerFeature.getRestApiUrl())
                                                                    .credentials("user1", PASSWORD)
+                                                                   .accept("application/json")
                                                                    .build();
 
     @Test

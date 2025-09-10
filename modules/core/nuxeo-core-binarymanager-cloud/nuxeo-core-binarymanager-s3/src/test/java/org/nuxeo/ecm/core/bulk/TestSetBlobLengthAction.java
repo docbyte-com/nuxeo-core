@@ -29,7 +29,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.time.Duration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -47,6 +47,7 @@ import org.nuxeo.ecm.core.bulk.computation.BulkScrollerComputation;
 import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -55,6 +56,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, S3BlobProviderFeature.class })
 @Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-bulk-contrib.xml")
+@BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
 public class TestSetBlobLengthAction {
 
     private static final Logger log = LogManager.getLogger(BulkScrollerComputation.class);

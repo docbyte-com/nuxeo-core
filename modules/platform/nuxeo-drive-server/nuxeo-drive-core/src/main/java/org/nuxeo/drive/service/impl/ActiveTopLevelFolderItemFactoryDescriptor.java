@@ -18,9 +18,11 @@
  */
 package org.nuxeo.drive.service.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.drive.service.FileSystemItemAdapterService;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for the {@code activeTopLevelFolderItemFactory} contributions to the
@@ -29,10 +31,15 @@ import org.nuxeo.drive.service.FileSystemItemAdapterService;
  * @author Antoine Taillefer
  */
 @XObject("activeTopLevelFolderItemFactory")
-public class ActiveTopLevelFolderItemFactoryDescriptor {
+public class ActiveTopLevelFolderItemFactoryDescriptor implements Descriptor {
 
     @XNode("")
     protected String name;
+
+    @Override
+    public String getId() {
+        return UNIQUE_DESCRIPTOR_ID;
+    }
 
     public String getName() {
         return name;
@@ -47,4 +54,11 @@ public class ActiveTopLevelFolderItemFactoryDescriptor {
         return name;
     }
 
+    @Override
+    public ActiveTopLevelFolderItemFactoryDescriptor merge(Descriptor o) {
+        var other = (ActiveTopLevelFolderItemFactoryDescriptor) o;
+        var merged = new ActiveTopLevelFolderItemFactoryDescriptor();
+        merged.name = StringUtils.defaultIfEmpty(other.name, name);
+        return merged;
+    }
 }

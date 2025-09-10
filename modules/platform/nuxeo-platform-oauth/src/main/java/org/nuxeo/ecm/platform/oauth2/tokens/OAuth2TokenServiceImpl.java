@@ -19,9 +19,11 @@
 
 package org.nuxeo.ecm.platform.oauth2.tokens;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_FORBIDDEN;
 import static java.util.Objects.requireNonNull;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static javax.servlet.http.HttpServletResponse.SC_FORBIDDEN;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
+import static org.nuxeo.ecm.platform.oauth2.bulk.GarbageCollectExpiredOAuth2TokensAction.ACTION_NAME;
 import static org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token.KEY_NUXEO_LOGIN;
 import static org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token.KEY_SERVICE_NAME;
 
@@ -29,13 +31,18 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
+import org.nuxeo.ecm.directory.scroll.DirectoryScroll;
 import org.nuxeo.ecm.platform.oauth2.enums.NuxeoOAuth2TokenType;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.DefaultComponent;
@@ -46,6 +53,8 @@ import org.nuxeo.runtime.model.DefaultComponent;
  * @since 11.1
  */
 public class OAuth2TokenServiceImpl extends DefaultComponent implements OAuth2TokenService {
+
+    private static final Logger log = LogManager.getLogger(OAuth2TokenServiceImpl.class);
 
     public static final String TOKEN_DIR = "oauth2Tokens";
 
@@ -77,6 +86,17 @@ public class OAuth2TokenServiceImpl extends DefaultComponent implements OAuth2To
     @Override
     public List<NuxeoOAuth2Token> search(String query, NuxeoPrincipal principal) {
         return findTokens(getQueryBuilder(query), principal);
+    }
+
+    @Override
+    public String garbageCollectExpiredTokens() {
+        checkPermission(requireNonNull(NuxeoPrincipal.getCurrent()));
+        BulkService bulkService = Framework.getService(BulkService.class);
+        BulkCommand.Builder builder = new BulkCommand.Builder(ACTION_NAME, String.format("SELECT * FROM %s", TOKEN_DIR),
+                SYSTEM_USERNAME).useGenericScroller().setExclusive(true).scroller(DirectoryScroll.SCROLL_NAME);
+        BulkCommand command = builder.build();
+        log.info("Starting Expired OAuth2 Tokens GC: {}", command);
+        return bulkService.submit(command);
     }
 
     protected List<NuxeoOAuth2Token> findTokens(QueryBuilder queryBuilder) {

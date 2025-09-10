@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<component name="org.nuxeo.theme.styling.tests.themeContrib">
+<component name="org.nuxeo.web.resources.tests.contrib">
 
   <extension target="org.nuxeo.ecm.platform.WebResources" point="resources">
 

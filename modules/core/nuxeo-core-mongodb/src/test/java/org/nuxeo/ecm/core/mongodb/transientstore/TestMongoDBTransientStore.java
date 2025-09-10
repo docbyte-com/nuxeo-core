@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ package org.nuxeo.ecm.core.mongodb.transientstore;
 
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite.SuiteClasses;
+import org.nuxeo.ecm.core.transientstore.TransientStorageComplianceFixture;
 import org.nuxeo.runtime.test.runner.ContributableFeaturesRunner;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.transientstore.test.TransientStorageComplianceFixture;
 
 /**
  * @since 2021.30

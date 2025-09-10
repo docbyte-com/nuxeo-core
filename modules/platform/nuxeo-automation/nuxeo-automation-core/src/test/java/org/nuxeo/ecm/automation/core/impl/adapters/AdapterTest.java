@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
@@ -39,19 +40,17 @@ import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.core.impl.adapters.helper.AbsoluteDocumentRef;
 import org.nuxeo.ecm.automation.core.impl.adapters.helper.TypeAdapterHelper;
 import org.nuxeo.ecm.automation.core.util.StringList;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.IdRef;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.ecm.core.test.MultiRepositoryFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(AutomationCoreFeature.class)
-@Deploy("org.nuxeo.ecm.automation.core:test-other-repository-contrib.xml")
+@Features({ AutomationCoreFeature.class, MultiRepositoryFeature.class })
 public class AdapterTest {
 
     @Inject
@@ -60,6 +59,8 @@ public class AdapterTest {
     @Inject
     protected CoreSession session;
 
+    @Inject
+    @Named("other")
     protected CoreSession sessionOther;
 
     protected DocumentModel documentModel;
@@ -75,8 +76,6 @@ public class AdapterTest {
 
     @Before
     public void initRepo() throws Exception {
-        sessionOther = CoreInstance.getCoreSession("other");
-
         ctx = new OperationContext(session);
 
         documentModel = session.createDocumentModel("/", "src", "Folder");

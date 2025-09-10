@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.core.management.test.probes;
 
 import static org.junit.Assert.assertEquals;
@@ -28,6 +27,8 @@ import static org.junit.Assert.fail;
 import static org.nuxeo.ecm.core.management.probes.ProbeManagerImpl.DEFAULT_HEALTH_CHECK_INTERVAL_SECONDS_PROPERTY;
 
 import java.util.Collection;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -45,8 +46,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
-
-import com.google.inject.Inject;
 
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, LogFeature.class })

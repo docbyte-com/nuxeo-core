@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,17 @@ package org.nuxeo.ecm.core.storage.sql;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.common.test.configuration.ThirdPartyUnderTest.STORAGE_SQL_DB_POSTGRESQL;
+import static org.nuxeo.runtime.datasource.DataSourceFeature.DATABASE_VALUE;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +71,6 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 import org.nuxeo.ecm.core.blob.binary.BinaryManagerStatus;
-import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.query.QueryFilter;
 import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.query.sql.model.SQLQuery;
@@ -78,8 +78,10 @@ import org.nuxeo.ecm.core.storage.sql.coremodel.SQLRepositoryService;
 import org.nuxeo.ecm.core.storage.sql.jdbc.JDBCConnection;
 import org.nuxeo.ecm.core.storage.sql.jdbc.dialect.Dialect;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.datasource.IgnoreIfNotH2;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
 @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-backend-core-types-contrib.xml")
@@ -96,23 +98,19 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testRootNode() throws Exception {
+    public void testRootNode() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         assertNotNull(root);
-        if (DatabaseHelper.DATABASE instanceof DatabaseOracle) {
+        if (repositoryFeature.isOracle()) {
             assertNull(root.getName()); // For Oracle empty strings are equivalent to NULL
         } else {
             assertEquals("", root.getName());
         }
         assertEquals("/", session.getPath(root));
         assertEquals("Root", root.getSimpleProperty("ecm:primaryType").getString());
-        try {
-            root.getSimpleProperty("tst:title");
-            fail("Property should not exist");
-        } catch (PropertyNotFoundException e) {
-            // ok
-        }
+        // property should not exist
+        assertThrows(PropertyNotFoundException.class, () -> root.getSimpleProperty("tst:title"));
         session.save();
         session.close();
     }
@@ -121,7 +119,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
      * The root node fragments must correctly be refetched when they are invalidated.
      */
     @Test
-    public void testRootNodeInvalidation() throws Exception {
+    public void testRootNodeInvalidation() {
         Session session = repository.getConnection();
         Serializable rootNodeId = session.getRootNode().getId();
         Session session2 = repository.getConnection();
@@ -161,7 +159,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-schema-reservedfieldname.xml")
-    public void testSchemaWithReservedFieldName() throws Exception {
+    public void testSchemaWithReservedFieldName() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "DocReservedFieldName", false);
@@ -187,16 +185,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testChildren() throws Exception {
+    public void testChildren() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
-
-        try {
-            session.addChildNode(root, "foo", null, "not_a_type", false);
-            fail("Should not allow illegal type");
-        } catch (IllegalArgumentException e) {
-            // ok
-        }
 
         // root doc /foo
         Node nodefoo = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -253,7 +244,16 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testChildrenRemoval() throws Exception {
+    public void testChildrenDoesNotAllowIllegalType() {
+        Session session = repository.getConnection();
+        Node root = session.getRootNode();
+
+        assertThrows(IllegalArgumentException.class,
+                () -> session.addChildNode(root, "foo", null, "not_a_type", false));
+    }
+
+    @Test
+    public void testChildrenRemoval() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Serializable fooId = session.addChildNode(root, "foo", null, "TestDoc", false).getId();
@@ -278,7 +278,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testChildrenRemoval2() throws Exception {
+    public void testChildrenRemoval2() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node foo = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -289,7 +289,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testChildrenRemoval3() throws Exception {
+    public void testChildrenRemoval3() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node foo = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -301,15 +301,17 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testRecursiveRemoval() throws Exception {
-        int depth = DatabaseHelper.DATABASE.getRecursiveRemovalDepthLimit();
-        if (depth == 0) {
-            // no limit
-            depth = 70;
+    public void testRecursiveRemoval() {
+        int depth = 70;
+        if (repositoryFeature.isMySQL()) {
+            // Stupid MySQL limitations:
+            // "Cascading operations may not be nested more than 15 levels deep."
+            // "Currently, triggers are not activated by cascaded foreign key actions."
+            // Use a bit less that 15 to cater for complex properties
+            depth = 13;
         }
         Session session = repository.getConnection();
-        Node root = session.getRootNode();
-        Node node = root;
+        Node node = session.getRootNode();
         Serializable[] ids = new Serializable[depth];
         for (int i = 0; i < depth; i++) {
             node = session.addChildNode(node, String.valueOf(i), null, "TestDoc", false);
@@ -330,10 +332,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     // same as above but without opening a new session
     @Test
-    public void testRecursiveRemoval2() throws Exception {
+    public void testRecursiveRemoval2() {
         Session session = repository.getConnection();
-        Node root = session.getRootNode();
-        Node node = root;
+        Node node = session.getRootNode();
         int depth = 5;
         Serializable[] ids = new Serializable[depth];
         for (int i = 0; i < depth; i++) {
@@ -353,7 +354,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     // wider depth of tree
     @Test
-    public void testRecursiveRemoval3() throws Exception {
+    public void testRecursiveRemoval3() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node base = session.addChildNode(root, "base", null, "TestDoc", false);
@@ -407,7 +408,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBasics() throws Exception {
+    public void testBasics() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -426,8 +427,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertNotNull(nodea.getSimpleProperty("tst:created").getValue());
         String[] subjects = nodea.getCollectionProperty("tst:subjects").getStrings();
         String[] tags = nodea.getCollectionProperty("tst:tags").getStrings();
-        assertEquals(Arrays.asList("a", "b", "c"), Arrays.asList(subjects));
-        assertEquals(Arrays.asList("1", "2"), Arrays.asList(tags));
+        assertEquals(List.of("a", "b", "c"), List.of(subjects));
+        assertEquals(List.of("1", "2"), List.of(tags));
 
         session.save();
 
@@ -460,12 +461,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertEquals(Long.valueOf(1234567891234L), nodea.getSimpleProperty("tst:count").getValue());
         subjects = nodea.getCollectionProperty("tst:subjects").getStrings();
         tags = nodea.getCollectionProperty("tst:tags").getStrings();
-        assertEquals(Arrays.asList("z", "c"), Arrays.asList(subjects));
-        assertEquals(Arrays.asList("3"), Arrays.asList(tags));
-
-        // delete the node
-        // session.removeNode(nodea);
-        // session.save();
+        assertEquals(List.of("z", "c"), List.of(subjects));
+        assertEquals(List.of("3"), List.of(tags));
     }
 
     /**
@@ -474,7 +471,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
      * @since 9.3
      */
     @Test
-    public void testDateWithTimeZone() throws Exception {
+    public void testDateWithTimeZone() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -518,7 +515,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testArrayUpdate() throws Exception {
+    public void testArrayUpdate() {
         Session session = repository.getConnection();
         Node node = session.addChildNode(session.getRootNode(), "doc", null, "TestDoc", false);
         node.setCollectionProperty("tst:subjects", new String[] { "a" });
@@ -535,7 +532,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         // check
         String[] subjects = node.getCollectionProperty("tst:subjects").getStrings();
-        assertEquals(Arrays.asList("a", "b", "c", "c"), Arrays.asList(subjects));
+        assertEquals(List.of("a", "b", "c", "c"), List.of(subjects));
 
         // remove elements from the end of the array
         node.setCollectionProperty("tst:subjects", new String[] { "a", "b", "c" });
@@ -548,7 +545,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         // check
         subjects = node.getCollectionProperty("tst:subjects").getStrings();
-        assertEquals(Arrays.asList("a", "b", "c"), Arrays.asList(subjects));
+        assertEquals(List.of("a", "b", "c"), List.of(subjects));
     }
 
     @Test
@@ -626,6 +623,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
                     updateArray();
                     return;
                 } catch (ConcurrentUpdateException e) {
+                    // may be expected
                 }
                 // retry after flushing caches and making new database state visible
                 ((SessionImpl) session).clearCaches();
@@ -647,7 +645,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
             // read
             String[] subjects = node.getCollectionProperty("tst:subjects").getStrings();
             // append
-            List<String> l = new ArrayList<>(Arrays.asList(subjects));
+            List<String> l = new ArrayList<>(List.of(subjects));
             l.add("x");
             String[] newSubjects = l.toArray(new String[0]);
             node.setCollectionProperty("tst:subjects", newSubjects);
@@ -668,7 +666,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-restriction-contrib.xml")
-    public void testSmallText() throws Exception {
+    public void testSmallText() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "Restriction", false);
@@ -686,16 +684,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-restriction-big-contrib.xml")
-    public void testBigText() throws Exception {
+    public void testBigText() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "RestrictionBig", false);
-        StringBuilder sb = new StringBuilder();
         int size = 10000; // from testrestrictionbig.xsd
-        for (int i = 0; i < size - 1; i++) {
-            sb.append("x");
-        }
-        String bigstring = sb.toString();
+        String bigstring = "x".repeat(size - 1);
         nodea.setSimpleProperty("restrbg:bigstring", bigstring);
         session.save();
 
@@ -709,7 +703,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testClobText() throws Exception {
+    public void testClobText() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -739,7 +733,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testPropertiesSameName() throws Exception {
+    public void testPropertiesSameName() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -758,7 +752,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBinary() throws Exception {
+    public void testBinary() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -780,28 +774,15 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertEquals(data, value);
     }
 
-    // assumes one read will read everything
-    protected String readAllBytes(InputStream in) throws IOException {
-        if (!(in instanceof BufferedInputStream)) {
-            in = new BufferedInputStream(in);
-        }
-        int len = in.available();
-        byte[] bytes = new byte[len];
-        int read = in.read(bytes);
-        assertEquals(len, read);
-        assertEquals(-1, in.read()); // EOF
-        return new String(bytes, "ISO-8859-1");
-    }
-
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "windows doesn't have enough time granularity for such a test")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "windows doesn't have enough time granularity for such a test")
     public void testBinaryGC() throws Exception {
         SQLRepositoryService sqlRepositoryService = Framework.getService(SQLRepositoryService.class);
 
         Session session = repository.getConnection();
 
         // store some binaries
-        for (String str : Arrays.asList("ABC", "DEF", "GHI", "JKL")) {
+        for (String str : List.of("ABC", "DEF", "GHI", "JKL")) {
             addBinary(session, str, str);
             addBinary(session, str, str + "2");
         }
@@ -873,9 +854,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertFalse(gc.isInProgress());
         gc.start();
         assertTrue(gc.isInProgress());
-        repository.markReferencedBlobs((key, repositoryName) -> {
-            gc.mark(key);
-        });
+        repository.markReferencedBlobs((key, repositoryName) -> gc.mark(key));
         if (moreWork == 1) {
             // while GC is in progress
             // add a new binary
@@ -891,7 +870,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testACLs() throws Exception {
+    public void testACLs() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         CollectionProperty prop = root.getCollectionProperty(Model.ACL_PROP);
@@ -915,20 +894,20 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     /** ACL bigger than VARCHAR limit for databases. */
     @Test
-    public void testBigACLs() throws Exception {
-        if (!(DatabaseHelper.DATABASE instanceof DatabasePostgreSQL //
-                || DatabaseHelper.DATABASE instanceof DatabaseOracle)) {
+    public void testBigACLs() {
+        if (!(repositoryFeature.isPostgreSQL() //
+                || repositoryFeature.isOracle())) {
             return;
         }
         testBigACLs("foo100", 100); // len 2500-1
         testBigACLs("foo161", 161); // len 4025-1 failed on Oracle
         // TODO XXX test bigger ACL on PostgreSQL
-        if (DatabaseHelper.DATABASE instanceof DatabaseOracle) {
+        if (repositoryFeature.isOracle()) {
             testBigACLs("foo1400", 1400); // len 35000-1
         }
     }
 
-    protected void testBigACLs(String name, int n) throws Exception {
+    protected void testBigACLs(String name, int n) {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         root.getCollectionProperty(Model.ACL_PROP).setValue(new ACLRow[0]);
@@ -1050,7 +1029,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         }
     }
 
-    public void XXX_TODO_testConcurrentModification() throws Exception {
+    public void XXX_TODO_testConcurrentModification() {
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
         Node node1 = session1.addChildNode(root1, "foo", null, "TestDoc", false);
@@ -1079,16 +1058,11 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session1.save();
         assertEquals("mama", title1.getString());
         assertEquals("glop", title2.getString());
-        try {
-            session2.save();
-            fail("expected ConcurrentModificationException");
-        } catch (ConcurrentModificationException e) {
-            // expected
-        }
+        assertThrows(ConcurrentModificationException.class, session2::save);
     }
 
     @Test
-    public void testConcurrentNameCreation() throws Exception {
+    public void testConcurrentNameCreation() {
         // two docs with same name (possible at this low level)
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1112,7 +1086,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testConcurrentComplexPropCreation() throws Exception {
+    public void testConcurrentComplexPropCreation() {
         // two docs with same name (possible at this low level)
         Session session = repository.getConnection();
         Node root = session.getRootNode();
@@ -1136,7 +1110,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testConcurrentComplexListCreation() throws Exception {
+    public void testConcurrentComplexListCreation() {
         // two docs with same name (possible at this low level)
         Session session = repository.getConnection();
         Node root = session.getRootNode();
@@ -1160,7 +1134,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testConcurrentCollectionPosCreation() throws Exception {
+    public void testConcurrentCollectionPosCreation() {
         // two docs with same name (possible at this low level)
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1194,23 +1168,19 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testDeadlockDetection() throws Exception {
+    public void testDeadlockDetection() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         session.addChildNode(root, "doc", null, "TestDoc", false);
         session.save();
         DeadlockTestJob r1 = new DeadlockTestJob("foo1");
         DeadlockTestJob r2 = new DeadlockTestJob("foo2");
-        try {
-            LockStepJob.run(r1, r2);
-            fail("Expected ConcurrentUpdateStorageException");
-        } catch (RuntimeException e) {
-            Throwable[] suppressed = e.getSuppressed();
-            assertNotNull(suppressed);
-            assertTrue(suppressed[0].toString(), suppressed[0] instanceof ConcurrentUpdateException);
-            // the message does not reveal database-level info
-            assertEquals("Concurrent update", suppressed[0].getMessage());
-        }
+        var e = assertThrows(RuntimeException.class, () -> LockStepJob.run(r1, r2));
+        Throwable[] suppressed = e.getSuppressed();
+        assertNotNull(suppressed);
+        assertTrue(suppressed[0].toString(), suppressed[0] instanceof ConcurrentUpdateException);
+        // the message does not reveal database-level info
+        assertEquals("Concurrent update", suppressed[0].getMessage());
     }
 
     protected class DeadlockTestJob extends LockStepJob {
@@ -1225,8 +1195,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         public void job() throws Exception {
             TransactionHelper.startTransaction();
             try {
-                Session session = repository.getConnection();
-                try {
+                try (Session session = repository.getConnection()) {
                     Node root = session.getRootNode();
                     Node node = session.getChildNode(root, "doc", false);
                     if (thread(1)) {
@@ -1243,8 +1212,6 @@ public class TestSQLBackend extends SQLBackendTestCase {
                         node.setSimpleProperty("tst:title", "t2"); // TESTSCHEMA
                     }
                     session.save();
-                } finally {
-                    session.close();
                 }
             } finally {
                 TransactionHelper.setTransactionRollbackOnly();
@@ -1253,7 +1220,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         }
     }
 
-    public void TODOtestConcurrentUpdate() throws Exception {
+    public void TODOtestConcurrentUpdate() {
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
         Node node1 = session1.addChildNode(root1, "foo", null, "TestDoc", false);
@@ -1280,7 +1247,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionChildrenInvalidationAdd() throws Exception {
+    public void testCrossSessionChildrenInvalidationAdd() {
         // in first session, create base folder
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1304,7 +1271,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionChildrenInvalidationRemove() throws Exception {
+    public void testCrossSessionChildrenInvalidationRemove() {
         // in first session, create base folder and doc
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1332,7 +1299,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionChildrenInvalidationMove() throws Exception {
+    public void testCrossSessionChildrenInvalidationMove() {
         // in first session, create base folders and doc
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1364,7 +1331,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionChildrenInvalidationCopy() throws Exception {
+    public void testCrossSessionChildrenInvalidationCopy() {
         // in first session, create base folders and doc
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1396,7 +1363,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionVersionsInvalidationAdd() throws Exception {
+    public void testCrossSessionVersionsInvalidationAdd() {
         // in first session, create base folder
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1419,7 +1386,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionVersionsInvalidationRemove() throws Exception {
+    public void testCrossSessionVersionsInvalidationRemove() {
         // in first session, create base folder and version
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
@@ -1442,7 +1409,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionProxiesInvalidationAdd() throws Exception {
+    public void testCrossSessionProxiesInvalidationAdd() {
         assumeTrue(isProxiesEnabled());
 
         // in first session, create base stuff
@@ -1470,7 +1437,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionProxiesInvalidationRemove() throws Exception {
+    public void testCrossSessionProxiesInvalidationRemove() {
         assumeTrue(isProxiesEnabled());
 
         // in first session, create base stuff
@@ -1500,7 +1467,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCrossSessionACLInvalidation() throws Exception {
+    public void testCrossSessionACLInvalidation() {
         // init repo and root ACL
         Session session1 = repository.getConnection();
         session1.close();
@@ -1534,7 +1501,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     // get a session from
     @Test
     @Ignore
-    public void testFulltextJobIdInvalidation() throws Exception {
+    public void testFulltextJobIdInvalidation() {
         Session session1 = repository.getConnection();
         Node root1 = session1.getRootNode();
         Node node1 = session1.addChildNode(root1, "foo", null, "TestDoc", false);
@@ -1570,7 +1537,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testOrdered() throws Exception {
+    public void testOrdered() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node fold = session.addChildNode(root, "fold", null, "OFolder", false);
@@ -1582,36 +1549,36 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.save();
         // check order
         List<Node> children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("a", "b", "c", "d", "e"), getNames(children));
+        assertEquals(List.of("a", "b", "c", "d", "e"), getNames(children));
 
         // reorder self
         session.orderBefore(fold, docb, docb);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("a", "b", "c", "d", "e"), getNames(children));
+        assertEquals(List.of("a", "b", "c", "d", "e"), getNames(children));
         // reorder up
         session.orderBefore(fold, docd, docb);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("a", "d", "b", "c", "e"), getNames(children));
+        assertEquals(List.of("a", "d", "b", "c", "e"), getNames(children));
         // reorder first
         session.orderBefore(fold, docc, doca);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("c", "a", "d", "b", "e"), getNames(children));
+        assertEquals(List.of("c", "a", "d", "b", "e"), getNames(children));
         // reorder last
         session.orderBefore(fold, docd, null);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("c", "a", "b", "e", "d"), getNames(children));
+        assertEquals(List.of("c", "a", "b", "e", "d"), getNames(children));
         // reorder down
         session.orderBefore(fold, doca, docd);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("c", "b", "e", "a", "d"), getNames(children));
+        assertEquals(List.of("c", "b", "e", "a", "d"), getNames(children));
         // reorder out of range
         session.orderBefore(fold, doca, doce);
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("c", "b", "a", "e", "d"), getNames(children));
+        assertEquals(List.of("c", "b", "a", "e", "d"), getNames(children));
     }
 
     @Test
-    public void testMove() throws Exception {
+    public void testMove() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node foldera = session.addChildNode(root, "folder_a", null, "TestDoc", false);
@@ -1662,7 +1629,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
      * Test that lots of moves don't break internal datastructures.
      */
     @Test
-    public void testMoveMany() throws Exception {
+    public void testMoveMany() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         ArrayList<Node> nodes = new ArrayList<>();
@@ -1706,9 +1673,6 @@ public class TestSQLBackend extends SQLBackendTestCase {
             }
         }
         session.save();
-
-        // dumpGraph(graph);
-        // dumpDescendants(buildDescendants(graph, root.getId().toString()));
     }
 
     private static void addEdge(List<String[]> graph, String p, String c) {
@@ -1771,23 +1735,17 @@ public class TestSQLBackend extends SQLBackendTestCase {
         Node folderc = session.addChildNode(root, "folder_c", null, "TestDoc", false);
         session.save();
 
+        NuxeoException e;
+        String msg;
         // cannot copy under itself
-        try {
-            session.copy(foldera, nodea, "abc");
-            fail();
-        } catch (NuxeoException e) {
-            String msg = e.getMessage();
-            assertTrue(msg, msg.contains("Cannot copy a node under itself"));
-        }
+        e = assertThrows(NuxeoException.class, () -> session.copy(foldera, nodea, "abc"));
+        msg = e.getMessage();
+        assertTrue(msg, msg.contains("Cannot copy a node under itself"));
 
         // cannot copy to name that already exists
-        try {
-            session.copy(foldera, folderb, "node_b");
-            fail();
-        } catch (NuxeoException e) {
-            String msg = e.getMessage();
-            assertTrue(msg, msg.contains("Destination name already exists"));
-        }
+        e = assertThrows(NuxeoException.class, () -> session.copy(foldera, folderb, "node_b"));
+        msg = e.getMessage();
+        assertTrue(msg, msg.contains("Destination name already exists"));
 
         // do normal copy
         Node foldera2 = session.copy(foldera, folderb, "yo");
@@ -1806,8 +1764,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
         String[] subjectsa2 = nodea2.getCollectionProperty("tst:subjects").getStrings();
         nodea.setCollectionProperty("tst:subjects", new String[] { "foo" });
         String[] subjectsa = nodea.getCollectionProperty("tst:subjects").getStrings();
-        assertEquals(Arrays.asList("foo"), Arrays.asList(subjectsa));
-        assertEquals(Arrays.asList("a", "b", "c"), Arrays.asList(subjectsa2));
+        assertEquals(List.of("foo"), List.of(subjectsa));
+        assertEquals(List.of("a", "b", "c"), List.of(subjectsa2));
         // complex children are there too
         Node nodeac2 = session.getChildNode(nodea2, "node_a_complex", true);
         assertNotNull(nodeac2);
@@ -1823,7 +1781,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCopyOrdered() throws Exception {
+    public void testCopyOrdered() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node fold = session.addChildNode(root, "fold", null, "OFolder", false);
@@ -1832,17 +1790,17 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.save();
         // check order
         List<Node> children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("a", "b"), getNames(children));
+        assertEquals(List.of("a", "b"), getNames(children));
 
         // copy a as c, should be positioned last
         session.copy(doca, fold, "c");
         session.copy(docb, fold, "d");
         children = session.getChildren(fold, null, false);
-        assertEquals(Arrays.asList("a", "b", "c", "d"), getNames(children));
+        assertEquals(List.of("a", "b", "c", "d"), getNames(children));
     }
 
     @Test
-    public void testVersioning() throws Exception {
+    public void testVersioning() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node foldera = session.addChildNode(root, "folder_a", null, "TestDoc", false);
@@ -1900,8 +1858,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
          */
         session.restore(nodea, version);
         assertEquals("hello world", nodea.getSimpleProperty("tst:title").getString());
-        assertEquals(Arrays.asList("a", "b", "c"),
-                Arrays.asList(nodea.getCollectionProperty("tst:subjects").getStrings()));
+        assertEquals(List.of("a", "b", "c"), List.of(nodea.getCollectionProperty("tst:subjects").getStrings()));
         Node nodeac3 = session.getChildNode(nodea, "node_a_complex", true);
         assertNotNull(nodeac3);
         SimpleProperty sp = nodeac3.getSimpleProperty("tst:title");
@@ -1918,7 +1875,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     // NXP-12912: disabled because failing randomly
     @Ignore
     @Test
-    public void testVersionFetching() throws Exception {
+    public void testVersionFetching() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node folder = session.addChildNode(root, "folder", null, "TestDoc", false);
@@ -1948,14 +1905,14 @@ public class TestSQLBackend extends SQLBackendTestCase {
         // get list
         list = session.getVersions(node.getId());
         assertEquals(1, list.size());
-        assertEquals(ver2.getId(), list.get(0).getId());
+        assertEquals(ver2.getId(), list.getFirst().getId());
 
         // copy version
         // session.copy(ver1, null, "bar"); not possible right now
     }
 
     @Test
-    public void testVersionCopy() throws Exception {
+    public void testVersionCopy() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node foldera = session.addChildNode(root, "foldera", null, "TestDoc", false);
@@ -1985,7 +1942,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxies() throws Exception {
+    public void testProxies() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2016,7 +1973,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         // from versionable
         List<Node> proxies = session.getProxies(nodea, null);
         assertEquals(1, proxies.size());
-        assertEquals(proxy, proxies.get(0));
+        assertEquals(proxy, proxies.getFirst());
         proxies = session.getProxies(nodea, folderb);
         assertEquals(1, proxies.size());
         proxies = session.getProxies(nodea, foldera);
@@ -2024,7 +1981,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         // from version
         proxies = session.getProxies(version, null);
         assertEquals(1, proxies.size());
-        assertEquals(proxy, proxies.get(0));
+        assertEquals(proxy, proxies.getFirst());
         proxies = session.getProxies(version, folderb);
         assertEquals(1, proxies.size());
         proxies = session.getProxies(version, foldera);
@@ -2035,7 +1992,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         // from proxy
         proxies = session.getProxies(proxy, null);
         assertEquals(1, proxies.size());
-        assertEquals(proxy, proxies.get(0));
+        assertEquals(proxy, proxies.getFirst());
         proxies = session.getProxies(proxy, folderb);
         assertEquals(1, proxies.size());
         proxies = session.getProxies(proxy, foldera);
@@ -2043,7 +2000,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxyFetching() throws Exception {
+    public void testProxyFetching() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2102,7 +2059,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxyDeepRemoval() throws Exception {
+    public void testProxyDeepRemoval() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2135,12 +2092,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertEquals(1, list.size());
 
         // remove target is forbidden while proxy still exists
-        try {
-            session.removeNode(ver);
-        } catch (DocumentExistsException e) {
-            String msg = e.getMessage();
-            assertTrue(msg, msg.contains("is the target of proxy"));
-        }
+        var e = assertThrows(DocumentExistsException.class, () -> session.removeNode(ver));
+        String msg = e.getMessage();
+        assertTrue(msg, msg.contains("is the target of proxy"));
 
         // remove last proxy
         session.removeNode(proxy3);
@@ -2151,7 +2105,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxyDeepCopy() throws Exception {
+    public void testProxyDeepCopy() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2181,18 +2135,18 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxySchemas() throws Exception {
+    public void testProxySchemas() {
         doTestProxySchemas(false);
     }
 
     @Test
     // deploy another contrib where TestDoc4 also has the proxy schema
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-backend-core-types-contrib-2.xml")
-    public void testProxySchemasShadowing() throws Exception {
+    public void testProxySchemasShadowing() {
         doTestProxySchemas(true);
     }
 
-    protected void doTestProxySchemas(boolean shadow) throws Exception {
+    protected void doTestProxySchemas(boolean shadow) {
         assumeTrue(isProxiesEnabled());
 
         String type;
@@ -2273,7 +2227,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxyQueryStartsWith() throws Exception {
+    public void testProxyQueryStartsWith() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2294,7 +2248,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testProxyQueryProxyProp() throws Exception {
+    public void testProxyQueryProxyProp() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2324,26 +2278,26 @@ public class TestSQLBackend extends SQLBackendTestCase {
         sql = String.format("SELECT * FROM TestDoc WHERE ecm:proxyTargetId = '%s' AND ecm:isProxy = 1", ver.getId());
         res = session.query(sql, QueryFilter.EMPTY, false);
         assertEquals(1, res.size());
-        assertEquals(proxy.getId(), res.get(0));
+        assertEquals(proxy.getId(), res.getFirst());
         sql = String.format("SELECT * FROM TestDoc WHERE ecm:proxyVersionableId = '%s' AND ecm:isProxy = 1",
                 node.getId());
         res = session.query(sql, QueryFilter.EMPTY, false);
         assertEquals(1, res.size());
-        assertEquals(proxy.getId(), res.get(0));
+        assertEquals(proxy.getId(), res.getFirst());
 
         // query all
         sql = String.format("SELECT * FROM TestDoc WHERE ecm:proxyTargetId = '%s'", ver.getId());
         res = session.query(sql, QueryFilter.EMPTY, false);
         assertEquals(1, res.size());
-        assertEquals(proxy.getId(), res.get(0));
+        assertEquals(proxy.getId(), res.getFirst());
         sql = String.format("SELECT * FROM TestDoc WHERE ecm:proxyVersionableId = '%s'", node.getId());
         res = session.query(sql, QueryFilter.EMPTY, false);
         assertEquals(1, res.size());
-        assertEquals(proxy.getId(), res.get(0));
+        assertEquals(proxy.getId(), res.getFirst());
     }
 
     private static void assertSameSet(Collection<Node> actual, Node... expected) {
-        assertEquals(idSet(Arrays.asList(expected)), idSet(actual));
+        assertEquals(idSet(List.of(expected)), idSet(actual));
     }
 
     private static Set<Serializable> idSet(Collection<Node> nodes) {
@@ -2355,7 +2309,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testDelete() throws Exception {
+    public void testDelete() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node nodea = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -2399,7 +2353,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBulkUpdates() throws Exception {
+    public void testBulkUpdates() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
 
@@ -2448,9 +2402,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBulkFetch() throws Exception {
-        Session session = repository.getConnection();
-        Model model = ((SessionImpl) session).getModel();
+    public void testBulkFetch() {
+        SessionImpl session = repository.getConnection();
+        Model model = session.getModel();
 
         // fragments that are always present
         Set<String> alwaysFragments = new HashSet<>();
@@ -2460,24 +2414,24 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         // check computed prefetch info
         HashSet<String> expectedFragments;
-        expectedFragments = new HashSet<>(Arrays.asList("testschema", "acls", "versions", "tst:bignotes"));
+        expectedFragments = new HashSet<>(List.of("testschema", "acls", "versions", "tst:bignotes"));
         expectedFragments.addAll(alwaysFragments);
         if (!useArrayColumns()) {
-            expectedFragments.addAll(Arrays.asList("tst:tags", "tst:subjects"));
+            expectedFragments.addAll(List.of("tst:tags", "tst:subjects"));
         }
         assertEquals(expectedFragments, model.getTypePrefetchedFragments("TestDoc"));
 
-        expectedFragments = new HashSet<>(Arrays.asList("testschema2", "acls", "versions"));
+        expectedFragments = new HashSet<>(List.of("testschema2", "acls", "versions"));
         expectedFragments.addAll(alwaysFragments);
         if (!useArrayColumns()) {
-            expectedFragments.addAll(Arrays.asList("tst2:bignotes", "tst2:counts", "tst2:dates", "tst2:subjects"));
+            expectedFragments.addAll(List.of("tst2:bignotes", "tst2:counts", "tst2:dates", "tst2:subjects"));
         }
         assertEquals(expectedFragments, model.getTypePrefetchedFragments("TestDoc2"));
 
-        expectedFragments = new HashSet<>(Arrays.asList("testschema", "acls", "versions", "tst:bignotes"));
+        expectedFragments = new HashSet<>(List.of("testschema", "acls", "versions", "tst:bignotes"));
         expectedFragments.addAll(alwaysFragments);
         if (!useArrayColumns()) {
-            expectedFragments.addAll(Arrays.asList("tst:tags", "tst:subjects"));
+            expectedFragments.addAll(List.of("tst:tags", "tst:subjects"));
         }
         assertEquals(expectedFragments, model.getTypePrefetchedFragments("TestDoc3"));
 
@@ -2503,7 +2457,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.close();
         session = repository.getConnection();
 
-        List<Node> nodes = session.getNodesByIds(Arrays.asList(node1.getId(), node2.getId()));
+        List<Node> nodes = session.getNodesByIds(List.of(node1.getId(), node2.getId()));
 
         assertEquals(2, nodes.size());
         node1 = nodes.get(0);
@@ -2514,8 +2468,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
             node1 = node2;
             node2 = n;
         }
-        assertEquals(Arrays.asList("a", "b"), Arrays.asList(node1.getCollectionProperty("tst:subjects").getStrings()));
-        assertEquals(Arrays.asList("foo"), Arrays.asList(node1.getCollectionProperty("tst:tags").getStrings()));
+        assertEquals(List.of("a", "b"), List.of(node1.getCollectionProperty("tst:subjects").getStrings()));
+        assertEquals(List.of("foo"), List.of(node1.getCollectionProperty("tst:tags").getStrings()));
         aclProp = node1.getCollectionProperty(Model.ACL_PROP);
         ACLRow[] acls = (ACLRow[]) aclProp.getValue();
         assertEquals(1, acls.length);
@@ -2529,7 +2483,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBulkFetchProxies() throws Exception {
+    public void testBulkFetchProxies() {
         assumeTrue(isProxiesEnabled());
 
         Session session = repository.getConnection();
@@ -2550,13 +2504,13 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.close();
         session = repository.getConnection();
 
-        session.getNodesByIds(Arrays.asList(node0.getId(), proxy1.getId(), proxy2.getId()));
+        session.getNodesByIds(List.of(node0.getId(), proxy1.getId(), proxy2.getId()));
 
         // check logs by hand to see that data fragments are bulk fetched
     }
 
     @Test
-    public void testBulkFetchMany() throws Exception {
+    public void testBulkFetchMany() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node1 = session.addChildNode(root, "n1", null, "TestDoc", false);
@@ -2599,13 +2553,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
         }
     }
 
-    protected void waitForIndexing() {
-        Framework.getService(EventService.class).waitForAsyncCompletion();
-        DatabaseHelper.DATABASE.sleepForFulltext();
-    }
-
     @Test
-    public void testFulltextDisabled() throws Exception {
+    public void testFulltextDisabled() {
         // repository is already configured with fulltext disabled
         Session session = repository.getConnection();
         Node root = session.getRootNode();
@@ -2624,7 +2573,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testRelation() throws Exception {
+    public void testRelation() {
         PartialList<Serializable> res;
 
         Session session = repository.getConnection();
@@ -2654,7 +2603,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinAPI() throws Exception {
+    public void testMixinAPI() {
         PartialList<Serializable> res;
         Session session = repository.getConnection();
         Node root = session.getRootNode();
@@ -2690,12 +2639,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertTrue(node.hasMixinType("Orderable"));
         assertEquals(2, node.getMixinTypes().length);
 
-        try {
-            session.addMixinType(node, "nosuchmixin");
-            fail();
-        } catch (IllegalArgumentException e) {
-            // ok
-        }
+        assertThrows(IllegalArgumentException.class, () -> session.addMixinType(node, "nosuchmixin"));
         assertEquals(2, node.getMixinTypes().length);
 
         assertTrue(session.removeMixinType(node, "Aged"));
@@ -2721,7 +2665,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinIncludedInPrimaryType() throws Exception {
+    public void testMixinIncludedInPrimaryType() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "DocWithAge", false);
@@ -2747,19 +2691,14 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinAddRemove() throws Exception {
+    public void testMixinAddRemove() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
         session.save();
 
         // mixin not there
-        try {
-            node.getSimpleProperty("age:age");
-            fail();
-        } catch (PropertyNotFoundException e) {
-            // ok
-        }
+        assertThrows(PropertyNotFoundException.class, () -> node.getSimpleProperty("age:age"));
 
         // add
         session.addMixinType(node, "Aged");
@@ -2773,17 +2712,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.save();
 
         // mixin not there anymore
-        try {
-            node.getSimpleProperty("age:age");
-            fail();
-        } catch (PropertyNotFoundException e) {
-            // ok
-        }
+        assertThrows(PropertyNotFoundException.class, () -> node.getSimpleProperty("age:age"));
     }
 
     // mixin on doc with same schema in primary type does no harm
     @Test
-    public void testMixinAddRemove2() throws Exception {
+    public void testMixinAddRemove2() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "DocWithAge", false);
@@ -2802,7 +2736,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinWithSamePropertyName() throws Exception {
+    public void testMixinWithSamePropertyName() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -2818,7 +2752,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinCopy() throws Exception {
+    public void testMixinCopy() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -2832,12 +2766,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
         SimpleProperty p = copy.getSimpleProperty("age:age");
         assertEquals("123", p.getValue());
         CollectionProperty p2 = copy.getCollectionProperty("age:nicknames");
-        assertEquals(Arrays.asList("bar", "gee"), Arrays.asList(p2.getValue()));
+        assertEquals(List.of("bar", "gee"), List.of(p2.getValue()));
     }
 
     // copy of a facet that holds only a complex list
     @Test
-    public void testMixinCopyComplexList() throws Exception {
+    public void testMixinCopyComplexList() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -2854,7 +2788,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testMixinCopyDeep() throws Exception {
+    public void testMixinCopyDeep() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
 
@@ -2874,11 +2808,11 @@ public class TestSQLBackend extends SQLBackendTestCase {
         SimpleProperty p = copy.getSimpleProperty("age:age");
         assertEquals("123", p.getValue());
         CollectionProperty p2 = copy.getCollectionProperty("age:nicknames");
-        assertEquals(Arrays.asList("bar", "gee"), Arrays.asList(p2.getValue()));
+        assertEquals(List.of("bar", "gee"), List.of(p2.getValue()));
     }
 
     @Test
-    public void testMixinQueryContent() throws Exception {
+    public void testMixinQueryContent() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node node = session.addChildNode(root, "foo", null, "TestDoc", false);
@@ -2892,7 +2826,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testLocking() throws Exception {
+    public void testLocking() {
         Session session = repository.getConnection();
         LockManager lockManager = session.getLockManager();
         Node root = session.getRootNode();
@@ -2946,7 +2880,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     protected static void runParallelLocking(Serializable nodeId, Repository repository1, Repository repository2)
             throws Throwable {
         // unexplained failures have been observed with h2, we suspect an h2 bug
-        assumeTrue(DatabaseHelper.DATABASE instanceof DatabasePostgreSQL);
+        assumeTrue(DATABASE_VALUE.equals(STORAGE_SQL_DB_POSTGRESQL));
 
         CyclicBarrier barrier = new CyclicBarrier(2);
         CountDownLatch firstReady = new CountDownLatch(1);
@@ -3070,7 +3004,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCacheInvalidations() throws Exception {
+    public void testCacheInvalidations() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Session s2 = repository.getConnection();
@@ -3106,7 +3040,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
      */
     @Test
     @Ignore("slow")
-    public void testCacheInvalidationsUnlimitedGrowth() throws Exception {
+    public void testCacheInvalidationsUnlimitedGrowth() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Session s2 = repository.getConnection();
@@ -3128,9 +3062,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     protected static void assertSessionInvalidations(Session session, boolean all, int modified, int deleted) {
-        SoftRefCachingMapper mapper = (SoftRefCachingMapper) ((SessionImpl) session).getMapper();
+        SoftRefCachingMapper mapper = (SoftRefCachingMapper) session.getMapper();
         VCSInvalidations invalidations = mapper.cacheQueue.queue;
-        assertTrue(all == invalidations.all);
+        assertEquals(all, invalidations.all);
         if (modified == -1) {
             if (invalidations.modified != null) {
                 // if() prevents NPE when computing the message
@@ -3149,7 +3083,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testCacheInvalidationsPropagatorLeak() throws Exception {
+    public void testCacheInvalidationsPropagatorLeak() {
         List<?> queues = repository.invalidationsPropagator.queues;
         assertEquals(0, queues.size());
         Session session = repository.getConnection();
@@ -3218,7 +3152,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         session.save();
 
-        return Arrays.asList(docId);
+        return List.of(docId);
     }
 
     protected static String FROM_WHERE = " FROM TestDoc WHERE ecm:isProxy = 0 AND ";
@@ -3228,7 +3162,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     protected static String SELECT_TITLE_WHERE = "SELECT tst:title" + FROM_WHERE;
 
     @Test
-    public void testQueryComplexMakeDoc() throws Exception {
+    public void testQueryComplexMakeDoc() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3262,7 +3196,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryComplexWhere() throws Exception {
+    public void testQueryComplexWhere() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3372,7 +3306,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryComplexPrefix() throws Exception {
+    public void testQueryComplexPrefix() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
         String clause;
@@ -3384,13 +3318,9 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertEquals(oneDoc, res);
 
         // use of prefix is mandatory if defined
-        try {
-            clause = "owner/firstname = 'Bruce'";
-            session.query(SELECT_WHERE + clause, QueryFilter.EMPTY, false);
-            fail("Should fail on missing prefix");
-        } catch (Exception e) {
-            assertEquals("No such property: owner/firstname", e.getMessage());
-        }
+        var e = assertThrows(Exception.class,
+                () -> session.query(SELECT_WHERE + "owner/firstname = 'Bruce'", QueryFilter.EMPTY, false));
+        assertEquals("No such property: owner/firstname", e.getMessage());
 
         // schema without a prefix
         clause = "animal/race = 'dog'";
@@ -3404,7 +3334,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryComplexReturned() throws Exception {
+    public void testQueryComplexReturned() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3427,7 +3357,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:friends/*/lastname"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("Lennon", "Smith")), set);
+        assertEquals(new HashSet<>(List.of("Lennon", "Smith")), set);
         it.close();
 
         // SELECT p.firstname, p.lastname
@@ -3448,13 +3378,13 @@ public class TestSQLBackend extends SQLBackendTestCase {
             ln.add((String) map.get("tst:friends/*1/lastname"));
         }
         assertEquals(Collections.singleton("John"), fn);
-        assertEquals(new HashSet<>(Arrays.asList("Lennon", "Smith")), ln);
+        assertEquals(new HashSet<>(List.of("Lennon", "Smith")), ln);
         it.close();
 
     }
 
     @Test
-    public void testQueryComplexListElement() throws Exception {
+    public void testQueryComplexListElement() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3512,7 +3442,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*1"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "moo")), set);
+        assertEquals(new HashSet<>(List.of("foo", "moo")), set);
         it.close();
 
         clause = "tst:subjects/* LIKE '%oo'";
@@ -3525,7 +3455,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "moo", "bar")), set);
+        assertEquals(new HashSet<>(List.of("foo", "moo", "bar")), set);
         it.close();
 
         // WHAT
@@ -3536,12 +3466,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
         for (Map<String, Serializable> map : it) {
             set.add((String) map.get("tst:subjects/*"));
         }
-        assertEquals(new HashSet<>(Arrays.asList("foo", "bar", "moo")), set);
+        assertEquals(new HashSet<>(List.of("foo", "bar", "moo")), set);
         it.close();
     }
 
     @Test
-    public void testQueryComplexOrderBy() throws Exception {
+    public void testQueryComplexOrderBy() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3579,16 +3509,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
         res = session.query(SELECT_WHERE + clause, QueryFilter.EMPTY, false);
         assertEquals(oneDoc, res);
 
+        QueryParseException e;
         // SELECT * statement cannot ORDER BY array or complex list element
-        clause = "tst:subjects/*1 = 'foo' ORDER BY tst:subjects/*1";
-        try {
-            session.query(SELECT_WHERE + clause, QueryFilter.EMPTY, false);
-            fail();
-        } catch (QueryParseException e) {
-            String expected = "For SELECT * the ORDER BY columns cannot use wildcard indexes";
-            assertEquals(expected, e.getMessage());
-        }
-        assertEquals(oneDoc, res);
+        e = assertThrows(QueryParseException.class,
+                () -> session.query(SELECT_WHERE + "tst:subjects/*1 = 'foo' ORDER BY tst:subjects/*1",
+                        QueryFilter.EMPTY, false));
+        assertEquals("For SELECT * the ORDER BY columns cannot use wildcard indexes", e.getMessage());
 
         clause = "tst:title = 'hello world' ORDER BY tst:subjects/*1";
         it = session.queryAndFetch("SELECT tst:title" + FROM_WHERE + clause, "NXQL", QueryFilter.EMPTY);
@@ -3596,13 +3522,12 @@ public class TestSQLBackend extends SQLBackendTestCase {
         it.close();
 
         // same with DISTINCT, cannot work
-        try {
-            session.queryAndFetch("SELECT DISTINCT tst:title" + FROM_WHERE + clause, "NXQL", QueryFilter.EMPTY);
-            fail();
-        } catch (QueryParseException e) {
-            String expected = "For SELECT DISTINCT the ORDER BY columns must be in the SELECT list, missing: [tst:subjects/*1]";
-            assertEquals(expected, e.getMessage());
-        }
+        e = assertThrows(QueryParseException.class,
+                () -> session.queryAndFetch(
+                        "SELECT DISTINCT tst:title" + FROM_WHERE + "tst:title = 'hello world' ORDER BY tst:subjects/*1",
+                        "NXQL", QueryFilter.EMPTY));
+        String expected = "For SELECT DISTINCT the ORDER BY columns must be in the SELECT list, missing: [tst:subjects/*1]";
+        assertEquals(expected, e.getMessage());
 
         // ok if ORDER BY column added to SELECT columns
         it = session.queryAndFetch("SELECT DISTINCT tst:title, tst:subjects/*1" + FROM_WHERE + clause, "NXQL",
@@ -3617,7 +3542,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
         for (Map<String, Serializable> map : it) {
             list.add((String) map.get("tst:subjects/*1"));
         }
-        assertEquals(Arrays.asList("bar", "foo", "moo"), list);
+        assertEquals(List.of("bar", "foo", "moo"), list);
         it.close();
 
         clause = "tst:title = 'hello world' ORDER BY tst:subjects/*1";
@@ -3627,7 +3552,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryComplexOrderByProxies() throws Exception {
+    public void testQueryComplexOrderByProxies() {
         Session session = repository.getConnection();
         List<Serializable> oneDoc = makeComplexDoc(session);
 
@@ -3640,7 +3565,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryComplexOr() throws Exception {
+    public void testQueryComplexOr() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
 
@@ -3720,27 +3645,26 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryAggregatesErrors() throws Exception {
+    public void testQueryAggregatesErrors() {
         Session session = repository.getConnection();
-        try {
-            session.queryAndFetch("SELECT tst:title FROM TestDoc WHERE COUNT(tst:title) = 1", "NXQL",
-                    QueryFilter.EMPTY);
-            fail("Should fail");
-        } catch (QueryParseException e) {
-            String msg = e.getMessage();
-            assertTrue(msg, msg.contains("Function not supported in WHERE clause"));
-        }
-        try {
-            session.queryAndFetch("SELECT COUNT(*) FROM TestDoc", "NXQL", QueryFilter.EMPTY);
-            fail("Should fail");
-        } catch (QueryParseException e) {
-            String msg = e.getMessage();
-            assertTrue(msg, msg.contains("Syntax error"));
-        }
+
+        QueryParseException e;
+        String msg;
+
+        e = assertThrows(QueryParseException.class,
+                () -> session.queryAndFetch("SELECT tst:title FROM TestDoc WHERE COUNT(tst:title) = 1", "NXQL",
+                        QueryFilter.EMPTY));
+        msg = e.getMessage();
+        assertTrue(msg, msg.contains("Function not supported in WHERE clause"));
+
+        e = assertThrows(QueryParseException.class,
+                () -> session.queryAndFetch("SELECT COUNT(*) FROM TestDoc", "NXQL", QueryFilter.EMPTY));
+        msg = e.getMessage();
+        assertTrue(msg, msg.contains("Syntax error"));
     }
 
     @Test
-    public void testQueryAggregates() throws Exception {
+    public void testQueryAggregates() {
         IterableQueryResult it;
         Map<String, Serializable> map;
 
@@ -3785,7 +3709,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testQueryAncestorId() throws Exception {
+    public void testQueryAncestorId() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node folder1 = session.addChildNode(root, "folder1", null, "Folder", false);
@@ -3810,7 +3734,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testPath() throws Exception {
+    public void testPath() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
 
@@ -3827,13 +3751,13 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session.close();
         session = repository.getConnection();
 
-        List<Node> nodes = session.getNodesByIds(Arrays.asList(gee.getId(), moo.getId()));
+        List<Node> nodes = session.getNodesByIds(List.of(gee.getId(), moo.getId()));
         assertEquals("/foo/bar/gee", nodes.get(0).getPath());
         assertEquals("/foo/moo", nodes.get(1).getPath());
     }
 
     @Test
-    public void testNormalizedName() throws Exception {
+    public void testNormalizedName() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
 
@@ -3845,14 +3769,14 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         // Add a document with a non normalized name
         Node doc = session.addChildNode(root, originalName, null, "TestDoc", false);
-        assertFalse(originalName.equals(doc.getName()));
+        assertNotEquals(originalName, doc.getName());
 
         assertTrue(session.hasChildNode(root, normalizedName, false));
     }
 
     @Test
-    public void testPathCached() throws Exception {
-        Session session = repository.getConnection();
+    public void testPathCached() {
+        SessionImpl session = repository.getConnection();
         Node root = session.getRootNode();
         Node foo = session.addChildNode(root, "foo", null, "TestDoc", false);
         Node bar = session.addChildNode(foo, "bar", null, "TestDoc", false);
@@ -3864,8 +3788,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
         assertEquals("/foo/bar", node.getPath());
 
         // clear context, the mapper cache should still be used
-        ((SessionImpl) session).context.pristine.clear();
-        JDBCConnection jdbc = (JDBCConnection) ((SoftRefCachingMapper) ((SessionImpl) session).getMapper()).mapper;
+        session.context.pristine.clear();
+        JDBCConnection jdbc = (JDBCConnection) ((SoftRefCachingMapper) session.getMapper()).mapper;
         jdbc.countExecutes = true;
         jdbc.executeCount = 0;
 
@@ -3875,7 +3799,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
     }
 
     @Test
-    public void testPathDeep() throws Exception {
+    public void testPathDeep() {
         Session session = repository.getConnection();
         Node root = session.getRootNode();
         Node r1 = session.addChildNode(root, "r1", null, "TestDoc", false);
@@ -3892,14 +3816,14 @@ public class TestSQLBackend extends SQLBackendTestCase {
         session = repository.getConnection();
 
         // fetch last
-        List<Node> nodes = session.getNodesByIds(Arrays.asList(last1.getId(), last2.getId()));
+        List<Node> nodes = session.getNodesByIds(List.of(last1.getId(), last2.getId()));
         assertEquals("/r1/node0/node1/node2/node3/node4" + "/node5/node6/node7/node8/node9", nodes.get(0).getPath());
         assertEquals("/r2/node0/node1/node2/node3/node4" + "/node5/node6/node7/node8/node9", nodes.get(1).getPath());
     }
 
     @Test
     public void testParallelPrepareUserReadAcls() throws Throwable {
-        assumeTrue(!(DatabaseHelper.DATABASE instanceof DatabaseOracle)); // NXP-18684
+        assumeTrue(!(repositoryFeature.isOracle())); // NXP-18684
 
         Session session = repository.getConnection();
         Node root = session.getRootNode();
@@ -3970,9 +3894,7 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
         @Override
         public void run() {
-            Session session = null;
-            try {
-                session = repository.getConnection();
+            try (Session session = repository.getConnection()) {
                 if (ready != null) {
                     ready.countDown();
                     ready = null;
@@ -3984,9 +3906,6 @@ public class TestSQLBackend extends SQLBackendTestCase {
                 t.printStackTrace();
                 throwable = t;
             } finally {
-                if (session != null) {
-                    session.close();
-                }
                 // error recovery
                 // still count down as main thread is awaiting us
                 if (ready != null) {
@@ -4002,9 +3921,8 @@ public class TestSQLBackend extends SQLBackendTestCase {
 
     @Test
     @Deploy("org.nuxeo.ecm.core.storage.sql.test.tests:OSGI-INF/test-h2-reserved-keywords-contrib.xml")
+    @ConditionalIgnore(condition = IgnoreIfNotH2.class, cause = "This only tests name collisions with reserved keywords against an H2 database.")
     public void testH2TableNameCollisionAvoidance() {
-        assumeTrue("This only tests name collisions with reserved keywords against an H2 database.",
-                DatabaseHelper.DATABASE instanceof DatabaseH2);
         // nothing to do, deployment is enough
     }
 

@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
     <artifactId>nuxeo-server</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo</groupId>
@@ -42,10 +42,6 @@
       <exclusions>
         <!-- pulled by nuxeo-runtime, used by the ConfigurationService, unneeded -->
         <exclusion>
-          <groupId>com.fasterxml.jackson.core</groupId>
-          <artifactId>jackson-databind</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>com.fasterxml.jackson.dataformat</groupId>
           <artifactId>jackson-dataformat-properties</artifactId>
         </exclusion>
@@ -75,18 +71,12 @@
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-jcl</artifactId>
-      <scope>compile</scope>
-    </dependency>
-    <dependency>
       <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
       <artifactId>nuxeo-runtime-log4j</artifactId>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
       <artifactId>commons-io</artifactId>
-      <scope>compile</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
@@ -97,25 +87,32 @@
       <artifactId>commons-codec</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.validation</groupId>
-      <artifactId>validation-api</artifactId>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-json</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
     </dependency>
     <dependency>
-      <groupId>jakarta.xml.bind</groupId>
-      <artifactId>jakarta.xml.bind-api</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sun.xml.bind</groupId>
-      <artifactId>jaxb-impl</artifactId>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-test</artifactId>
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-test</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.skyscreamer</groupId>
@@ -123,20 +120,32 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-assertj3</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.awaitility</groupId>
       <artifactId>awaitility</artifactId>
       <scope>test</scope>
     </dependency>
-
-    <!-- for StatusServletClient javadoc -->
-    <dependency>
-      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
-      <artifactId>nuxeo-core-management</artifactId>
-      <scope>provided</scope>
-    </dependency>
   </dependencies>
 
   <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <configuration>
+            <ignoredUnusedDeclaredDependencies combine.children="append">
+              <!-- ignore because used by log4j with reflection -->
+              <artifact>cloud.docbyte.nuxeo.lib.runtime:nuxeo-runtime-log4j</artifact>
+            </ignoredUnusedDeclaredDependencies>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
     <plugins>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>

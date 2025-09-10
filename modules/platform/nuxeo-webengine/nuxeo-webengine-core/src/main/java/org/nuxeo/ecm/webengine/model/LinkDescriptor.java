@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.nuxeo.common.xmap.annotation.XNode;
@@ -162,7 +163,7 @@ public class LinkDescriptor implements Cloneable, LinkHandler {
         if (type == ResourceType.ROOT_TYPE_NAME && adapter == ResourceType.ROOT_TYPE_NAME && facets == null) {
             return true;
         }
-        if (facets != null && facets.length > 0) {
+        if (facets != null) {
             for (String facet : facets) {
                 if (!context.hasFacet(facet)) {
                     return false;
@@ -241,7 +242,7 @@ public class LinkDescriptor implements Cloneable, LinkHandler {
                 Set<String> set = new HashSet<>();
                 set.addAll(Arrays.asList(facets));
                 set.addAll(Arrays.asList(fragment.facets));
-                facets = set.toArray(new String[set.size()]);
+                facets = set.toArray(String[]::new);
             }
         }
         if (fragment.handlerClass != null) {
@@ -270,9 +271,8 @@ public class LinkDescriptor implements Cloneable, LinkHandler {
         if (obj == null) {
             return false;
         }
-        if (obj instanceof LinkDescriptor) {
-            LinkDescriptor ld = (LinkDescriptor) obj;
-            return id.equals(ld.id) && Utils.streq(fragment, ld.fragment);
+        if (obj instanceof LinkDescriptor ld) {
+            return id.equals(ld.id) && Objects.equals(fragment, ld.fragment);
         }
         return false;
     }

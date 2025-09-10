@@ -51,11 +51,15 @@
       <description>Test the repository by fetching the root document</description>
     </probe>
 
+    <probe name="streamStatus" class="org.nuxeo.runtime.stream.StreamProbe">
+      <label>Stream probe</label>
+    </probe>
   </extension>
 
    <extension target="org.nuxeo.ecm.core.management.CoreManagementComponent" point="healthCheck">
      <probe name="runtimeStatus" enabled="true"/>
      <probe name="repositoryStatus" enabled="true"/>
+     <probe name="streamStatus" enabled="${nuxeo.stream.health.check.enabled:=true}" />
   </extension>
 
 </component>

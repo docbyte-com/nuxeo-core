@@ -26,12 +26,12 @@ public class NuxeoLauncherException extends RuntimeException {
 
     private final int exitCode;
 
-    protected NuxeoLauncherException(String message, int exitCode) {
+    public NuxeoLauncherException(String message, int exitCode) {
         super(message);
         this.exitCode = exitCode;
     }
 
-    protected NuxeoLauncherException(String message, int exitCode, Throwable cause) {
+    public NuxeoLauncherException(String message, int exitCode, Throwable cause) {
         super(message, cause);
         this.exitCode = exitCode;
     }

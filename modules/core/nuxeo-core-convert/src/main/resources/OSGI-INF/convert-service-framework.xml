@@ -23,6 +23,7 @@
       This extension can be used to configure conversion service
     </documentation>
     <object class="org.nuxeo.ecm.core.convert.extension.GlobalConfigDescriptor"/>
+    <object class="org.nuxeo.ecm.core.convert.extension.ConvertCacheDescriptor"/>
   </extension-point>
 
 </component>

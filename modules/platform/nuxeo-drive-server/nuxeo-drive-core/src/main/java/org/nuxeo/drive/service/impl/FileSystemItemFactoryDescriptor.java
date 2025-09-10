@@ -18,6 +18,8 @@
  */
 package org.nuxeo.drive.service.impl;
 
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +31,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.drive.service.FileSystemItemAdapterService;
 import org.nuxeo.drive.service.FileSystemItemFactory;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for factories contributed to the {@code fileSystemItemFactory} extension point of the
@@ -37,7 +40,8 @@ import org.nuxeo.ecm.core.api.NuxeoException;
  * @author Antoine Taillefer
  */
 @XObject("fileSystemItemFactory")
-public class FileSystemItemFactoryDescriptor implements Serializable, Comparable<FileSystemItemFactoryDescriptor> {
+public class FileSystemItemFactoryDescriptor
+        implements Serializable, Comparable<FileSystemItemFactoryDescriptor>, Descriptor {
 
     private static final long serialVersionUID = 1L;
 
@@ -57,8 +61,12 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
     protected Class<? extends FileSystemItemFactory> factoryClass;
 
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
-    protected Map<String, String> parameters = new HashMap<>(); // NOSONAR, serialization is actually performed by
-                                                                // SerializationUtils#clone during merge/clone
+    protected Map<String, String> parameters = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -76,6 +84,10 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
         return docType;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setDocType(String docType) {
         this.docType = docType;
     }
@@ -88,10 +100,18 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
         this.facet = facet;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public Class<? extends FileSystemItemFactory> getFactoryClass() {
         return factoryClass;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setFactoryClass(Class<? extends FileSystemItemFactory> factoryClass) {
         this.factoryClass = factoryClass;
     }
@@ -100,6 +120,10 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
         return parameters;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public String getParameter(String name) {
         return parameters.get(name);
     }
@@ -108,6 +132,10 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
         this.parameters = parameters;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setParameter(String name, String value) {
         parameters.put(name, value);
     }
@@ -135,6 +163,21 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
     }
 
     @Override
+    public FileSystemItemFactoryDescriptor merge(Descriptor o) {
+        var other = (FileSystemItemFactoryDescriptor) o;
+        var merged = new FileSystemItemFactoryDescriptor();
+
+        merged.name = name; // we merge based on name, so no need for merging it
+        merged.order = other.order > 0 ? other.order : order;
+        merged.docType = defaultIfEmpty(other.docType, docType);
+        merged.facet = defaultIfEmpty(other.facet, facet);
+        merged.factoryClass = other.factoryClass != null ? other.factoryClass : factoryClass;
+        merged.parameters.putAll(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return Objects.equals(this, obj);
     }
@@ -156,5 +199,4 @@ public class FileSystemItemFactoryDescriptor implements Serializable, Comparable
         }
         return orderDiff;
     }
-
 }

@@ -50,10 +50,6 @@ public interface DocumentModel extends Serializable {
 
     int REFRESH_STATE = 1; // "small" state (life cycle, lock, versioning)
 
-    /** @deprecated since 10.1, has no effect. */
-    @Deprecated
-    int REFRESH_PREFETCH = 4;
-
     int REFRESH_ACP_IF_LOADED = 8; // refresh now only if already loaded
 
     int REFRESH_ACP_LAZY = 16; // refresh later in lazy mode
@@ -804,29 +800,6 @@ public interface DocumentModel extends Serializable {
      * @return the source id as a string.
      */
     String getSourceId();
-
-    /**
-     * Checks if a property is prefetched.
-     *
-     * @param xpath the property xpath
-     * @return {@code true} if it is prefetched
-     * @since 5.5
-     * @deprecated since 10.1, will always return {@code false}
-     */
-    @Deprecated
-    boolean isPrefetched(String xpath);
-
-    /**
-     * Checks if a property is prefetched.
-     *
-     * @param schemaName the schema name
-     * @param name the property name
-     * @return {@code true} if it is prefetched
-     * @since 5.5
-     * @deprecated since 10.1, will always return {@code false}
-     */
-    @Deprecated
-    boolean isPrefetched(String schemaName, String name);
 
     /**
      * Used to set lifecycle state along with prefetching other properties.

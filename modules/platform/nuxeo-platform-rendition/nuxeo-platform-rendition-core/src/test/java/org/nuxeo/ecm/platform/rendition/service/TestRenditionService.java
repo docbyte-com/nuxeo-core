@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ import java.util.concurrent.CyclicBarrier;
 import java.util.stream.Collectors;
 import java.util.zip.ZipInputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -81,19 +81,20 @@ import org.nuxeo.ecm.core.schema.FacetNames;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.StorageConfiguration;
-import org.nuxeo.ecm.core.work.api.Work;
 import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.rendition.Rendition;
 import org.nuxeo.ecm.platform.rendition.extension.RenditionProvider;
 import org.nuxeo.ecm.platform.rendition.impl.LazyRendition;
 import org.nuxeo.ecm.platform.rendition.lazy.AbstractRenditionBuilderWork;
+import org.nuxeo.ecm.platform.test.NuxeoLoginFeature;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.HotDeployer;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
 
@@ -101,7 +102,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  * @author <a href="mailto:troger@nuxeo.com">Thomas Roger</a>
  */
 @RunWith(FeaturesRunner.class)
-@Features(RenditionFeature.class)
+@Features({ RenditionFeature.class, NuxeoLoginFeature.class })
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-rendition-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.core:test-lazy-rendition-contrib.xml")
 public class TestRenditionService {
@@ -198,7 +199,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doPDFRendition() {
         DocumentModel file = createBlobFile();
 
@@ -236,7 +237,7 @@ public class TestRenditionService {
 
     // NXP-27078
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doPDFRenditionOnChainedConverter() {
         // assert the markdown converter is a chained one
         ConverterDescriptor md2pdf = ConversionServiceImpl.getConverterDescriptor("md2pdf");
@@ -269,7 +270,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void doRenditionVersioning() {
         DocumentModel file = createBlobFile();
 
@@ -659,7 +660,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void testRenderAProxyDocument() throws IOException {
         DocumentModel file = createBlobFile();
         DocumentRef fileRef = file.getRef();
@@ -708,7 +709,7 @@ public class TestRenditionService {
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldNotCreateANewVersionForACheckedInDocument() {
         DocumentModel file = createBlobFile();
 
@@ -778,7 +779,7 @@ public class TestRenditionService {
 
     @Test
     @SuppressWarnings("unchecked")
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldRemoveFilesBlobsOnARendition() {
         DocumentModel fileDocument = createBlobFile();
 
@@ -1196,7 +1197,7 @@ public class TestRenditionService {
      * @since 10.3
      */
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
     public void shouldNonAdminPublishRendition() {
         DocumentModel file = createBlobFile();
         DocumentModel section = session.createDocumentModel("/", "section", "Section");

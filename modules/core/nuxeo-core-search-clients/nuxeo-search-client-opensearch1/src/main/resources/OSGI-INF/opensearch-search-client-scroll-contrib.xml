@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.client.opensearch1.scroll.contrib" version="1.0">
+  <extension point="scroll" target="org.nuxeo.ecm.core.scroll.service">
+    <!-- deprecated since 2025.0, use opensearch scroller instead -->
+    <scroll type="document" name="elastic" class="org.nuxeo.ecm.core.search.SearchServiceScroll">
+      <option name="searchIndex">enhanced</option>
+    </scroll>
+  </extension>
+</component>

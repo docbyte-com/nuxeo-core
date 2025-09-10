@@ -31,12 +31,15 @@ import org.nuxeo.runtime.model.DefaultComponent;
  * Descriptor to configure / contribute a Backend for Audit service
  *
  * @author tiry
+ * @deprecated since 2025.0, use {@link org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor} instead
  */
+@SuppressWarnings("removal")
 @XObject("backend")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class AuditBackendDescriptor {
 
     @XNode("@class")
-    protected Class<? extends AuditBackend> klass = DefaultAuditBackend.class;
+    protected Class<? extends AuditBackend<?>> klass = DefaultAuditBackend.class;
 
     @XNode("require")
     String requiredComponent;
@@ -45,7 +48,8 @@ public class AuditBackendDescriptor {
         if (StringUtils.isEmpty(requiredComponent)) {
             return 1000;
         }
-        return ((DefaultComponent)Framework.getRuntime().getComponent(requiredComponent)).getApplicationStartedOrder()+1;
+        return ((DefaultComponent) Framework.getRuntime().getComponent(requiredComponent)).getApplicationStartedOrder()
+                + 1;
     }
 
     public Class<? extends AuditBackend> getKlass() {
@@ -54,7 +58,8 @@ public class AuditBackendDescriptor {
 
     public AuditBackend newInstance(NXAuditEventsService component) {
         try {
-            return klass.getDeclaredConstructor(NXAuditEventsService.class, AuditBackendDescriptor.class).newInstance(component, this);
+            return klass.getDeclaredConstructor(NXAuditEventsService.class, AuditBackendDescriptor.class)
+                        .newInstance(component, this);
         } catch (ReflectiveOperationException cause) {
             throw new RuntimeException("Cannot create audit backend of type " + klass.getName(), cause);
         }

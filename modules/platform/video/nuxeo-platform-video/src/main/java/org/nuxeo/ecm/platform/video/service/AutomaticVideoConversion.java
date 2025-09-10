@@ -19,8 +19,11 @@
 
 package org.nuxeo.ecm.platform.video.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object representing a registered automatic video conversion on the {@link VideoService}.
@@ -31,7 +34,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 5.5
  */
 @XObject("automaticVideoConversion")
-public class AutomaticVideoConversion implements Cloneable, Comparable<AutomaticVideoConversion> {
+public class AutomaticVideoConversion implements Cloneable, Comparable<AutomaticVideoConversion>, Descriptor {
 
     @XNode("@name")
     private String name;
@@ -41,6 +44,11 @@ public class AutomaticVideoConversion implements Cloneable, Comparable<Automatic
 
     @XNode("@order")
     private int order = 0;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -54,6 +62,10 @@ public class AutomaticVideoConversion implements Cloneable, Comparable<Automatic
         this.enabled = enabled;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public int getOrder() {
         return order;
     }
@@ -73,4 +85,13 @@ public class AutomaticVideoConversion implements Cloneable, Comparable<Automatic
         return cmp;
     }
 
+    @Override
+    public AutomaticVideoConversion merge(Descriptor o) {
+        var other = (AutomaticVideoConversion) o;
+        var merged = new AutomaticVideoConversion();
+        merged.name = name; // we merged based on name, so no need for merging name
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.order = defaultIfNull(other.order, order);
+        return merged;
+    }
 }

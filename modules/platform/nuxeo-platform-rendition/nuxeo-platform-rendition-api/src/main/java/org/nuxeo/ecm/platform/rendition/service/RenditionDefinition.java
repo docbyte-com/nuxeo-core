@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,15 +23,18 @@ package org.nuxeo.ecm.platform.rendition.service;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.platform.rendition.extension.RenditionProvider;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Definition of a rendition.
@@ -39,7 +42,7 @@ import org.nuxeo.ecm.platform.rendition.extension.RenditionProvider;
  * @since 5.4.1
  */
 @XObject("renditionDefinition")
-public class RenditionDefinition {
+public class RenditionDefinition implements Descriptor {
 
     public static final String DEFAULT_SOURCE_DOCUMENT_MODIFICATION_DATE_PROPERTY_NAME = "dc:modified";
 
@@ -55,6 +58,11 @@ public class RenditionDefinition {
 
     @XNode("@name")
     protected String name;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -229,7 +237,7 @@ public class RenditionDefinition {
      * @since 7.10
      */
     public String getSourceDocumentModificationDatePropertyName() {
-        return StringUtils.defaultString(sourceDocumentModificationDatePropertyName,
+        return defaultIfBlank(sourceDocumentModificationDatePropertyName,
                 DEFAULT_SOURCE_DOCUMENT_MODIFICATION_DATE_PROPERTY_NAME);
     }
 
@@ -273,77 +281,27 @@ public class RenditionDefinition {
         return variantPolicy;
     }
 
-    /** Empty constructor. */
-    public RenditionDefinition() {
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (RenditionDefinition) o;
+        var merged = new RenditionDefinition();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.cmisName = defaultIfBlank(other.cmisName, cmisName);
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.label = defaultIfBlank(other.label, label);
+        merged.icon = defaultIfBlank(other.icon, icon);
+        merged.kind = defaultIfBlank(other.kind, kind);
+        merged.operationChain = defaultIfBlank(other.operationChain, operationChain);
+        merged.allowEmptyBlob = defaultIfNull(other.allowEmptyBlob, allowEmptyBlob);
+        merged.visible = defaultIfNull(other.visible, visible);
+        merged.providerClass = defaultIfNull(other.providerClass, providerClass);
+        merged.contentType = defaultIfBlank(other.contentType, contentType);
+        merged.filterIds = new ArrayList<>(emptyIfNull(filterIds));
+        merged.filterIds.addAll(emptyIfNull(other.filterIds));
+        merged.sourceDocumentModificationDatePropertyName = defaultIfBlank(
+                other.sourceDocumentModificationDatePropertyName, sourceDocumentModificationDatePropertyName);
+        merged.storeByDefault = defaultIfNull(other.storeByDefault, storeByDefault);
+        merged.variantPolicy = defaultIfBlank(other.variantPolicy, variantPolicy);
+        return merged;
     }
-
-    /**
-     * Copy constructor.
-     *
-     * @since 7.10
-     */
-    public RenditionDefinition(RenditionDefinition other) {
-        name = other.name;
-        cmisName = other.cmisName;
-        enabled = other.enabled;
-        label = other.label;
-        icon = other.icon;
-        kind = other.kind;
-        operationChain = other.operationChain;
-        allowEmptyBlob = other.allowEmptyBlob;
-        visible = other.visible;
-        providerClass = other.providerClass;
-        contentType = other.contentType;
-        filterIds = other.filterIds == null ? null : new ArrayList<>(other.filterIds);
-        sourceDocumentModificationDatePropertyName = other.sourceDocumentModificationDatePropertyName;
-        storeByDefault = other.storeByDefault;
-        variantPolicy = other.variantPolicy;
-    }
-
-    /** @since 7.10 */
-    public void merge(RenditionDefinition other) {
-        if (other.cmisName != null) {
-            cmisName = other.cmisName;
-        }
-        if (other.enabled != null) {
-            enabled = other.enabled;
-        }
-        if (other.label != null) {
-            label = other.label;
-        }
-        if (other.icon != null) {
-            icon = other.icon;
-        }
-        if (other.operationChain != null) {
-            operationChain = other.operationChain;
-        }
-        if (other.allowEmptyBlob != null) {
-            allowEmptyBlob = other.allowEmptyBlob;
-        }
-        if (other.visible != null) {
-            visible = other.visible;
-        }
-        if (other.providerClass != null) {
-            providerClass = other.providerClass;
-        }
-        if (other.contentType != null) {
-            contentType = other.contentType;
-        }
-        if (other.filterIds != null) {
-            if (filterIds == null) {
-                filterIds = new ArrayList<>();
-            }
-            filterIds.addAll(other.filterIds);
-        }
-        if (other.sourceDocumentModificationDatePropertyName != null) {
-            sourceDocumentModificationDatePropertyName = other.sourceDocumentModificationDatePropertyName;
-        }
-        if (other.storeByDefault != null) {
-            storeByDefault = other.storeByDefault;
-        }
-        if (other.variantPolicy != null) {
-            variantPolicy = other.variantPolicy;
-        }
-    }
-
 }

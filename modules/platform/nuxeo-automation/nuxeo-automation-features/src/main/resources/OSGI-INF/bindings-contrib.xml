@@ -1,6 +1,5 @@
 <component name="org.nuxeo.ecm.core.automation.features.bindings">
-  <extension target="org.nuxeo.ecm.automation.server.AutomationServer"
-    point="bindings">
+  <extension target="org.nuxeo.ecm.automation.server.AutomationServer" point="bindings">
     <!-- don't allow direct access to Audit log -->
     <binding name="Audit.Query">
       <administrator>true</administrator>
@@ -22,6 +21,12 @@
       <administrator>true</administrator>
     </binding>
     <binding name="Metrics.Stop">
+      <administrator>true</administrator>
+    </binding>
+    <binding name="Search.Index">
+      <administrator>true</administrator>
+    </binding>
+    <binding name="Search.WaitForIndexing">
       <administrator>true</administrator>
     </binding>
   </extension>

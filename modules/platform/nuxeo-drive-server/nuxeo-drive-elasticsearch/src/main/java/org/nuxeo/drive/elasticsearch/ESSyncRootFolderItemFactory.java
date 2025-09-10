@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.FolderItem;
 import org.nuxeo.drive.service.impl.DefaultSyncRootFolderItemFactory;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.elasticsearch.ElasticSearchConstants;
+import org.nuxeo.ecm.core.search.SearchIndexingService;
+import org.nuxeo.ecm.core.search.SearchService;
+import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchSearchClient;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -35,10 +37,14 @@ public class ESSyncRootFolderItemFactory extends DefaultSyncRootFolderItemFactor
     @Override
     protected FileSystemItem adaptDocument(DocumentModel doc, boolean forceParentItem, FolderItem parentItem,
             boolean relaxSyncRootConstraint, boolean getLockInfo) {
-        if (Framework.isBooleanPropertyFalse(ElasticSearchConstants.ES_ENABLED_PROPERTY)) {
-            return super.adaptDocument(doc, forceParentItem, parentItem, relaxSyncRootConstraint, getLockInfo);
-        } else {
+        var searchService = Framework.getService(SearchService.class);
+        var defaultSearchClient = Framework.getService(SearchIndexingService.class)
+                                           .getClient(searchService.getSearchIndex(searchService.getDefaultIndexName())
+                                                                   .client());
+        if (defaultSearchClient instanceof OpenSearchSearchClient) {
             return new ESSyncRootFolderItem(name, parentItem, doc, relaxSyncRootConstraint, getLockInfo);
+        } else {
+            return super.adaptDocument(doc, forceParentItem, parentItem, relaxSyncRootConstraint, getLockInfo);
         }
     }
 

@@ -22,13 +22,6 @@
         <view id="edit_detail" value="edit_detail_view" />
         <view id="metadata" value="metadata_view" />
       </views>
-      <layouts mode="any">
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="create">
-        <layout>dublincore</layout>
-        <layout>file</layout>
-      </layouts>
       <actions>
         <action>action_id1</action>
         <action>action_id2</action>
@@ -56,28 +49,6 @@
     </type>
 
     <type id="MyHiddenDocType" />
-
-    <type id="DocTypeWithLayout">
-      <label>doc type with layout</label>
-      <layouts mode="any">
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="create">
-        <layout>dublincore</layout>
-        <layout>file</layout>
-      </layouts>
-    </type>
-
-    <type id="DocTypeTestLayoutOverride">
-      <label>doc type with layout to override</label>
-      <layouts mode="any">
-        <layout>dublincore</layout>
-      </layouts>
-      <layouts mode="create">
-        <layout>dublincore</layout>
-        <layout>file</layout>
-      </layouts>
-    </type>
 
   </extension>
 

@@ -1,0 +1,85 @@
+/*
+ * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Contributors:
+ *     Guillaume Renard
+ */
+
+package org.nuxeo.ecm.restapi.server.management;
+
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.ACTION_NAME;
+import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.DRY_RUN_PARAM;
+import static org.nuxeo.ecm.core.action.GarbageCollectOrphanBlobsAction.RECORDS_PARAM;
+import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
+
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
+import org.nuxeo.ecm.core.blob.scroll.RepositoryBlobScroll;
+import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand;
+import org.nuxeo.ecm.core.bulk.message.BulkCommand.Builder;
+import org.nuxeo.ecm.core.bulk.message.BulkStatus;
+import org.nuxeo.ecm.webengine.model.WebObject;
+import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
+import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
+import org.nuxeo.runtime.api.Framework;
+
+/**
+ * Endpoint to manage the blobs.
+ *
+ * @since 2023
+ */
+@WebObject(type = ManagementObject.MANAGEMENT_OBJECT_PREFIX + "blobs")
+@Produces(APPLICATION_JSON)
+public class BlobsObject extends AbstractResource<ResourceTypeImpl> {
+
+    private static final Logger log = LogManager.getLogger(BlobsObject.class);
+
+    /**
+     * Garbage collect the orphaned blobs.
+     */
+    @DELETE
+    @Path("orphaned")
+    public BulkStatus garbageCollectBlobs(@QueryParam(value = DRY_RUN_PARAM) boolean dryRun,
+            @QueryParam(value = "queryLimit") long queryLimit, @QueryParam(value = RECORDS_PARAM) boolean records) {
+        String repository = ctx.getCoreSession().getRepositoryName();
+        BulkService bulkService = Framework.getService(BulkService.class);
+        Builder builder = new Builder(ACTION_NAME, repository,
+                SYSTEM_USERNAME).repository(repository)
+                                .useGenericScroller()
+                                .param(DRY_RUN_PARAM, dryRun)
+                                .param(RECORDS_PARAM, records)
+                                .setExclusive(true)
+                                .scroller(RepositoryBlobScroll.SCROLL_NAME);
+        if (queryLimit > 0) {
+            builder.queryLimit(queryLimit);
+        }
+        BulkCommand command = builder.build();
+        log.warn("Starting Blobs Full GC: {}", command);
+        try {
+            String commandId = bulkService.submit(command);
+            return bulkService.getStatus(commandId);
+        } catch (IllegalStateException e) {
+            throw new ConcurrentUpdateException(e.getMessage(), e);
+        }
+    }
+}

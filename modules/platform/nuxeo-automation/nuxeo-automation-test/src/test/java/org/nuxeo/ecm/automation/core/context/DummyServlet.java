@@ -22,10 +22,10 @@ import java.io.File;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.Blob;
@@ -43,19 +43,19 @@ public class DummyServlet extends HttpServlet {
         String path = req.getPathInfo();
 
         switch (path) {
-        case "/string":
-            resp.getWriter().write("dummy");
-            resp.getWriter().flush();
-            break;
-        case "/stringblob":
-            downloadBlob(req, resp, Blobs.createBlob("dummy string blob"));
-            break;
-        case "/blob":
-            File docFile = FileUtils.getResourceFileFromContext("hello.doc");
-            downloadBlob(req, resp, Blobs.createBlob(docFile));
-            break;
-        default:
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
+            case "/string":
+                resp.getWriter().write("dummy");
+                resp.getWriter().flush();
+                break;
+            case "/stringblob":
+                downloadBlob(req, resp, Blobs.createBlob("dummy string blob"));
+                break;
+            case "/blob":
+                File docFile = FileUtils.getResourceFileFromContext("hello.doc");
+                downloadBlob(req, resp, Blobs.createBlob(docFile));
+                break;
+            default:
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Internal Server Error");
         }
     }
 

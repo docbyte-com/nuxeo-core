@@ -17,13 +17,13 @@
  *     Funsho David
  *
  */
-
 package org.nuxeo.ecm.platform.audit.io;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -38,13 +38,15 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.core.util.Base64;
 
 /**
  * Deserializer class for extended info from a JSON object
  *
  * @since 9.3
+ * @deprecated since 2025, use {@link org.nuxeo.audit.io.LogEntryJsonReader} with help of nuxeo-core-io instead
  */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class ExtendedInfoDeserializer extends JsonDeserializer<ExtendedInfo> {
 
     @Override
@@ -54,35 +56,35 @@ public class ExtendedInfoDeserializer extends JsonDeserializer<ExtendedInfo> {
         JsonNode node = mapper.readTree(jp);
         Serializable value;
         switch (node.getNodeType()) {
-        case STRING:
-            value = node.textValue();
-            try {
-                value = Date.from(Instant.parse((String) value));
-            } catch (DateTimeParseException e) {
-                // ignore
-            }
-            break;
-        case BOOLEAN:
-            value = node.booleanValue();
-            break;
-        case NUMBER:
-            value = node.numberValue();
-            if (value instanceof Integer) {
-                // convert it to long, it is the original type and json can't differentiate int and long
-                value = Long.valueOf((Integer) value);
-            }
-            break;
-        case BINARY:
-            value = SerializationUtils.deserialize(Base64.decode(node.binaryValue()));
-            break;
-        case ARRAY:
-            value = (Serializable) mapper.convertValue(node, List.class);
-            break;
-        case OBJECT:
-            value = (Serializable) mapper.convertValue(node, Map.class);
-            break;
-        default:
-            throw new UnsupportedOperationException("Error when deserializing type: " + node.getNodeType());
+            case STRING:
+                value = node.textValue();
+                try {
+                    value = Date.from(Instant.parse((String) value));
+                } catch (DateTimeParseException e) {
+                    // ignore
+                }
+                break;
+            case BOOLEAN:
+                value = node.booleanValue();
+                break;
+            case NUMBER:
+                value = node.numberValue();
+                if (value instanceof Integer) {
+                    // convert it to long, it is the original type and json can't differentiate int and long
+                    value = Long.valueOf((Integer) value);
+                }
+                break;
+            case BINARY:
+                value = SerializationUtils.deserialize(Base64.getDecoder().decode(node.binaryValue()));
+                break;
+            case ARRAY:
+                value = (Serializable) mapper.convertValue(node, List.class);
+                break;
+            case OBJECT:
+                value = (Serializable) mapper.convertValue(node, Map.class);
+                break;
+            default:
+                throw new UnsupportedOperationException("Error when deserializing type: " + node.getNodeType());
         }
         return Framework.getService(AuditLogger.class).newExtendedInfo(value);
     }

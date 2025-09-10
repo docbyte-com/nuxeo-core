@@ -31,7 +31,7 @@ import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.xml.bind.DatatypeConverter;
+import jakarta.xml.bind.DatatypeConverter;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 

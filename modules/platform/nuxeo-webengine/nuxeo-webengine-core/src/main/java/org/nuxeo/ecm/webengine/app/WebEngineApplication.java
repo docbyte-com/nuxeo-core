@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,12 +21,14 @@ package org.nuxeo.ecm.webengine.app;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import jakarta.ws.rs.core.Application;
 
+import org.nuxeo.ecm.webengine.model.io.BlobReader;
 import org.nuxeo.ecm.webengine.model.io.BlobWriter;
 import org.nuxeo.ecm.webengine.model.io.DocumentBlobHolderWriter;
 import org.nuxeo.ecm.webengine.model.io.DownloadContextBlobHolderWriter;
 import org.nuxeo.ecm.webengine.model.io.FileWriter;
+import org.nuxeo.ecm.webengine.model.io.MultivaluedMapProvider;
 import org.nuxeo.ecm.webengine.model.io.ScriptFileWriter;
 import org.nuxeo.ecm.webengine.model.io.TemplateViewWriter;
 import org.nuxeo.ecm.webengine.model.io.TemplateWriter;
@@ -39,23 +41,22 @@ import org.nuxeo.ecm.webengine.model.io.URLWriter;
  */
 public class WebEngineApplication extends Application {
 
-    public WebEngineApplication() {
-    }
-
     @Override
-    public Set<Object> getSingletons() {
-        Set<Object> result = new HashSet<>();
-        result.add(new WebEngineExceptionMapper());
-        result.add(new TemplateWriter());
-        result.add(new ScriptFileWriter());
-        result.add(new DocumentBlobHolderWriter());
-        result.add(new DownloadContextBlobHolderWriter());
-        result.add(new BlobWriter());
-        result.add(new FileWriter());
-        result.add(new URLWriter());
-        result.add(new TemplateViewWriter());
-        result.add(new JsonNuxeoExceptionWriter());
+    public Set<Class<?>> getClasses() {
+        var result = new HashSet<Class<?>>();
+        result.add(BlobReader.class);
+        result.add(WebEngineExceptionMapper.class);
+        result.add(TemplateWriter.class);
+        result.add(ScriptFileWriter.class);
+        result.add(DocumentBlobHolderWriter.class);
+        result.add(DownloadContextBlobHolderWriter.class);
+        result.add(BlobWriter.class);
+        result.add(FileWriter.class);
+        result.add(URLWriter.class);
+        result.add(TemplateViewWriter.class);
+        result.add(JsonNuxeoExceptionWriter.class);
+        result.add(HtmlNuxeoExceptionWriter.class);
+        result.add(MultivaluedMapProvider.class);
         return result;
     }
-
 }

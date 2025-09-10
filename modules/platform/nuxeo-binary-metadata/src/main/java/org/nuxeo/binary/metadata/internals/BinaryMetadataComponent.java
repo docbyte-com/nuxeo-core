@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,14 @@
  */
 package org.nuxeo.binary.metadata.internals;
 
+import static org.nuxeo.binary.metadata.api.BinaryMetadataConstants.METADATA_MAPPING_EP;
+import static org.nuxeo.binary.metadata.api.BinaryMetadataConstants.METADATA_PROCESSORS_EP;
+import static org.nuxeo.binary.metadata.api.BinaryMetadataConstants.METADATA_RULES_EP;
+
+import java.util.Comparator;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.binary.metadata.api.BinaryMetadataConstants;
@@ -25,7 +33,6 @@ import org.nuxeo.binary.metadata.api.BinaryMetadataService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.management.metrics.MetricInvocationHandler;
 import org.nuxeo.runtime.model.ComponentContext;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.DefaultComponent;
 
 /**
@@ -37,52 +44,27 @@ public class BinaryMetadataComponent extends DefaultComponent {
 
     private static final Logger log = LogManager.getLogger(BinaryMetadataComponent.class);
 
-    protected BinaryMetadataService metadataService = new BinaryMetadataServiceImpl(this);
-
-    protected final MetadataMappingRegistry mappingRegistry = new MetadataMappingRegistry();
-
-    protected final MetadataProcessorRegistry processorRegistry = new MetadataProcessorRegistry();
-
-    protected final MetadataRuleRegistry ruleRegistry = new MetadataRuleRegistry();
-
-    @Override
-    public void activate(ComponentContext context) {
-        super.activate(context);
-        if (Boolean.valueOf(Framework.getProperty(BinaryMetadataConstants.BINARY_METADATA_MONITOR,
-                Boolean.toString(log.isTraceEnabled())))) {
-            metadataService = MetricInvocationHandler.newProxy(metadataService, BinaryMetadataService.class);
-        }
-    }
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (BinaryMetadataConstants.METADATA_MAPPING_EP.equals(extensionPoint)) {
-            mappingRegistry.addContribution((MetadataMappingDescriptor) contribution);
-        } else if (BinaryMetadataConstants.METADATA_RULES_EP.equals(extensionPoint)) {
-            ruleRegistry.addContribution((MetadataRuleDescriptor) contribution);
-        } else if (BinaryMetadataConstants.METADATA_PROCESSORS_EP.equals(extensionPoint)) {
-            processorRegistry.addContribution((MetadataProcessorDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point: {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if (BinaryMetadataConstants.METADATA_MAPPING_EP.equals(extensionPoint)) {
-            mappingRegistry.removeContribution((MetadataMappingDescriptor) contribution);
-        } else if (BinaryMetadataConstants.METADATA_RULES_EP.equals(extensionPoint)) {
-            ruleRegistry.removeContribution((MetadataRuleDescriptor) contribution);
-        } else if (BinaryMetadataConstants.METADATA_PROCESSORS_EP.equals(extensionPoint)) {
-            processorRegistry.removeContribution((MetadataProcessorDescriptor) contribution);
-        } else {
-            log.error("Unknown extension point: {}", extensionPoint);
-        }
-    }
+    protected BinaryMetadataService metadataService;
 
     @Override
     public void start(ComponentContext context) {
-        ruleRegistry.handleApplicationStarted();
+        var metadataMappings = this.<MetadataMappingDescriptor> getDescriptors(METADATA_MAPPING_EP)
+                                   .stream()
+                                   .collect(Collectors.toMap(MetadataMappingDescriptor::getId, Function.identity()));
+        var metadataProcessors = this.<MetadataProcessorDescriptor> getDescriptors(METADATA_PROCESSORS_EP)
+                                     .stream()
+                                     .collect(Collectors.toMap(MetadataProcessorDescriptor::getId,
+                                             MetadataProcessorDescriptor::getProcessor));
+        var metadataRules = this.<MetadataRuleDescriptor> getDescriptors(METADATA_RULES_EP)
+                                .stream()
+                                .sorted(Comparator.comparing(MetadataRuleDescriptor::getOrder,
+                                        Comparator.nullsLast(Comparator.naturalOrder())))
+                                .toList();
+        metadataService = new BinaryMetadataServiceImpl(metadataMappings, metadataProcessors, metadataRules);
+        if (Boolean.parseBoolean(Framework.getProperty(BinaryMetadataConstants.BINARY_METADATA_MONITOR,
+                Boolean.toString(log.isTraceEnabled())))) {
+            metadataService = MetricInvocationHandler.newProxy(metadataService, BinaryMetadataService.class);
+        }
     }
 
     @Override

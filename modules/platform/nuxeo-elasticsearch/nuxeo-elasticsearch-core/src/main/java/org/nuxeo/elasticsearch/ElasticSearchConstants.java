@@ -20,70 +20,6 @@ package org.nuxeo.elasticsearch;
 
 public final class ElasticSearchConstants {
 
-    public static final String AGG_INCLUDE_PROP = "include";
-
-    public static final String AGG_SIZE_PROP = "size";
-
-    public static final String AGG_MIN_DOC_COUNT_PROP = "minDocCount";
-
-    public static final String AGG_EXCLUDE_PROP = "exclude";
-
-    public static final String AGG_ORDER_PROP = "order";
-
-    public static final String AGG_INTERVAL_PROP = "interval";
-
-    public static final String AGG_EXTENDED_BOUND_MAX_PROP = "extendedBoundsMax";
-
-    public static final String AGG_EXTENDED_BOUND_MIN_PROP = "extendedBoundsMin";
-
-    public static final String AGG_FORMAT_PROP = "format";
-
-    public static final String AGG_TIME_ZONE_PROP = "timeZone";
-
-    public static final String AGG_PRE_ZONE_PROP = "preZone";
-
-    public static final String AGG_ORDER_COUNT_DESC = "count desc";
-
-    public static final String AGG_ORDER_COUNT_ASC = "count asc";
-
-    public static final String AGG_ORDER_TERM_DESC = "term desc";
-
-    public static final String AGG_ORDER_TERM_ASC = "term asc";
-
-    public static final String AGG_ORDER_KEY_DESC = "key desc";
-
-    public static final String AGG_ORDER_KEY_ASC = "key asc";
-
-    public static final String AGG_TYPE_TERMS = "terms";
-
-    public static final String AGG_CARDINALITY = "cardinality";
-
-    public static final String AGG_COUNT = "count";
-
-    public static final String AGG_SUM = "sum";
-
-    public static final String AGG_AVG = "avg";
-
-    public static final String AGG_MAX = "max";
-
-    public static final String AGG_MIN = "min";
-
-    public static final String AGG_MISSING = "missing";
-
-    public static final String AGG_TYPE_SIGNIFICANT_TERMS = "significant_terms";
-
-    public static final String AGG_TYPE_RANGE = "range";
-
-    public static final String AGG_TYPE_DATE_RANGE = "date_range";
-
-    public static final String AGG_TYPE_HISTOGRAM = "histogram";
-
-    public static final String AGG_TYPE_DATE_HISTOGRAM = "date_histogram";
-
-    public static final String ID_FIELD = "_id";
-
-    public static final String FULLTEXT_FIELD = "all_field";
-
     /**
      * Elasticsearch type name used to index Nuxeo documents
      */
@@ -94,49 +30,11 @@ public final class ElasticSearchConstants {
      */
     public static final String ENTRY_TYPE = "entry";
 
-    /**
-     * Elasticsearch type name used for the UID sequencer index
-     */
-    public static final String SEQ_ID_TYPE = "seqId";
-
-    public static final String ACL_FIELD = "ecm:acl";
-
-    public static final String PATH_FIELD = "ecm:path";
-
-    public static final String CHILDREN_FIELD = "ecm:path.children";
-
     public static final String BINARYTEXT_FIELD = "ecm:binarytext";
 
     public static final String ALL_FIELDS = "*";
 
     public static final String ES_ENABLED_PROPERTY = "elasticsearch.enabled";
-
-    public static final String FETCH_DOC_FROM_ES_PROPERTY = "elasticsearch.fetchDocFromEs";
-
-    public static final String REINDEX_BUCKET_READ_PROPERTY = "elasticsearch.reindex.bucketReadSize";
-
-    public static final String REINDEX_BUCKET_WRITE_PROPERTY = "elasticsearch.reindex.bucketWriteSize";
-
-    public static final String REINDEX_ON_STARTUP_PROPERTY = "elasticsearch.reindex.onStartup";
-
-    public static final String INDEX_BULK_MAX_SIZE_PROPERTY = "elasticsearch.index.bulkMaxSize";
-
-    public static final String DISABLE_AUTO_INDEXING = "disableAutoIndexing";
-
-    public static final String ES_SYNC_INDEXING_FLAG = "ESSyncIndexing";
-
-    public static final String REINDEX_USING_CHILDREN_TRAVERSAL_PROPERTY = "elasticsearch.reindex.useChildrenTraversal";
-
-    /** @since 2021.21 */
-    public static final String RECURSIVE_INDEXING_USING_BULK_SERVICE_PROPERTY = "elasticsearch.index.recursive.bulkService";
-
-    /** @since 7.4 */
-    public static final String INDEXING_QUEUE_ID = "elasticSearchIndexing";
-
-    public static final String EPOCH_MILLIS_FORMAT = "epoch_millis";
-
-    /** @since 10.2 */
-    public static final String ES_SCORE_FIELD = "_score";
 
     private ElasticSearchConstants() {
     }

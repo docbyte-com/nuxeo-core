@@ -21,7 +21,7 @@ package org.nuxeo.ecm.platform.preview.io;
 
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.DummyBlobProvider;

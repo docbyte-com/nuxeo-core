@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo SA (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,12 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.MethodRule;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.URIUtils;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
+import org.nuxeo.functionaltests.LogTestWatchman;
 import org.nuxeo.functionaltests.RestTestRule;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
@@ -37,6 +39,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class ITRestAPITest {
+
+    @Rule
+    public MethodRule watchman = new LogTestWatchman();
 
     @Rule
     public final RestTestRule restHelper = new RestTestRule();

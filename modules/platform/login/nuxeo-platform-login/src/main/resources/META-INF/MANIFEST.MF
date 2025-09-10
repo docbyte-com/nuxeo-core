@@ -10,8 +10,7 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-Vendor: Nuxeo
 Bundle-Version: 0.0.0.SNAPSHOT
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- javax.security.auth,
+Import-Package: javax.security.auth,
  javax.security.auth.callback,
  javax.security.auth.login,
  javax.security.auth.spi,

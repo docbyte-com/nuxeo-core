@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,15 +31,14 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 /**
  * @since 11.4
  */
-@Features({ CoreFeature.class, DirectoryFeature.class })
-@Deploy("org.nuxeo.ecm.core.cache")
-@Deploy("org.nuxeo.ecm.core.mimetype")
 @Deploy("org.nuxeo.ecm.platform.oauth")
 @Deploy("org.nuxeo.ecm.default.config")
 @Deploy("org.nuxeo.ecm.platform.query.api:OSGI-INF/pageprovider-framework.xml")
+@Deploy("org.nuxeo.ecm.platform.web.common")
 @Deploy("org.nuxeo.ecm.liveconnect")
 @Deploy("org.nuxeo.ecm.liveconnect.test:OSGI-INF/test-box-config.xml")
 @Deploy("org.nuxeo.ecm.liveconnect.test:OSGI-INF/test-googledrive-config.xml")
+@Features({ CoreFeature.class, DirectoryFeature.class })
 public class LiveConnectFeature implements RunnerFeature {
 
     // same as in test XML contrib

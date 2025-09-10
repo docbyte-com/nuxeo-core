@@ -43,6 +43,12 @@ public interface VideoService {
     List<String> getAvailableVideoConversionsNames();
 
     /**
+     * @return the list of video conversions configured to run automatically
+     * @since 2025.0
+     */
+    List<String> getAutomaticVideoConversionsNames();
+
+    /**
      * Launch an asynchronously video conversion of the given {@code doc}.
      *
      * @param doc the video document to be converted
@@ -79,7 +85,6 @@ public interface VideoService {
      * @return a {@code TranscodedVideo} object of the converted video.
      */
     TranscodedVideo convert(Video originalVideo, String conversionName);
-
 
     /**
      * Returns the status of the video conversion with the given conversion name on the given document.

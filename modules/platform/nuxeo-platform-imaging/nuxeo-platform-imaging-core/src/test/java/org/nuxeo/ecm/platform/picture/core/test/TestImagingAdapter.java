@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2007-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
 package org.nuxeo.ecm.platform.picture.core.test;
 
@@ -28,7 +26,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.Calendar;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.io.FilenameUtils;
 import org.junit.Test;
@@ -45,13 +43,13 @@ import org.nuxeo.ecm.platform.picture.api.PictureView;
 import org.nuxeo.ecm.platform.picture.api.PictureViewImpl;
 import org.nuxeo.ecm.platform.picture.api.adapters.MultiviewPicture;
 import org.nuxeo.ecm.platform.picture.api.adapters.PictureResourceAdapter;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 @RepositoryConfig(cleanup = Granularity.METHOD)
 public class TestImagingAdapter {
 

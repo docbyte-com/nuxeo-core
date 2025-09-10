@@ -26,16 +26,19 @@ import java.awt.geom.Rectangle2D;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.cos.COSName;
 import org.apache.pdfbox.multipdf.Overlay;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.PDPageContentStream.AppendMode;
 import org.apache.pdfbox.pdmodel.PDResources;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
+import org.apache.pdfbox.util.Matrix;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CloseableFile;
@@ -66,27 +69,28 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
         extendedGraphicsState.setNonStrokingAlphaConstant((float) properties.getAlphaColor());
         COSName transparentStateName = COSName.getPDFName("TransparentState");
 
-        try (PDDocument pdfDoc = PDDocument.load(input.getStream())) {
+        try (PDDocument pdfDoc = Loader.loadPDF(input.getFile())) {
 
             PDFont font = PDFUtils.getStandardType1Font(properties.getFontFamily());
             float watermarkWidth = (float) (font.getStringWidth(text) * properties.getFontSize() / 1000f);
-            int[] rgb = PDFUtils.hex255ToRGB(properties.getHex255Color());
+            float[] rgb = PDFUtils.hex255ToRGBFloat(properties.getHex255Color());
 
             for (PDPage page : pdfDoc.getDocumentCatalog().getPages()) {
                 PDRectangle pageSize = page.getMediaBox();
                 PDResources resources = page.getResources();
                 resources.put(transparentStateName, extendedGraphicsState);
 
-                try (PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page, true, true, true)) {
+                try (PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page, AppendMode.APPEND, true,
+                        true)) {
                     contentStream.beginText();
                     contentStream.setFont(font, (float) properties.getFontSize());
                     contentStream.appendRawCommands("/TransparentState gs\n");
                     contentStream.setNonStrokingColor(rgb[0], rgb[1], rgb[2]);
                     Point2D position = computeTranslationVector(pageSize.getWidth(), watermarkWidth,
                             pageSize.getHeight(), properties.getFontSize(), properties);
-                    contentStream.setTextRotation(Math.toRadians(properties.getRotation()), position.getX(),
-                            position.getY());
-                    contentStream.drawString(text);
+                    contentStream.setTextMatrix(Matrix.getRotateInstance(Math.toRadians(properties.getRotation()),
+                            (float) position.getX(), (float) position.getY()));
+                    contentStream.showText(text);
                     contentStream.endText();
                 }
             }
@@ -107,7 +111,7 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
         extendedGraphicsState.setNonStrokingAlphaConstant((float) properties.getAlphaColor());
         COSName transparentStateName = COSName.getPDFName("TransparentState");
 
-        try (PDDocument pdfDoc = PDDocument.load(input.getStream()); //
+        try (PDDocument pdfDoc = Loader.loadPDF(input.getFile()); //
                 CloseableFile image = watermark.getCloseableFile()) {
             PDImageXObject ximage = PDImageXObject.createFromFileByContent(image.getFile(), pdfDoc);
 
@@ -116,9 +120,10 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
                 PDResources resources = page.getResources();
                 resources.put(transparentStateName, extendedGraphicsState);
 
-                try (PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page, true, true)) {
+                try (PDPageContentStream contentStream = new PDPageContentStream(pdfDoc, page, AppendMode.APPEND,
+                        true)) {
                     contentStream.appendRawCommands("/TransparentState gs\n");
-                    contentStream.endMarkedContentSequence();
+                    contentStream.endMarkedContent();
 
                     double watermarkWidth = ximage.getWidth() * properties.getScale();
                     double watermarkHeight = ximage.getHeight() * properties.getScale();
@@ -138,13 +143,14 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
 
     @Override
     public Blob overlayPDF(Blob input, Blob overlayBlob) {
-        try (PDDocument pdfDoc = PDDocument.load(input.getStream());
-                PDDocument pdfOverlayDoc = PDDocument.load(overlayBlob.getStream())) {
-            Overlay overlay = new Overlay();
-            overlay.setInputPDF(pdfDoc);
-            overlay.setAllPagesOverlayPDF(pdfOverlayDoc);
-            overlay.overlay(Map.of());
-            return saveInTempFile(pdfDoc);
+        try (PDDocument pdfDoc = Loader.loadPDF(input.getFile());
+                PDDocument pdfOverlayDoc = Loader.loadPDF(overlayBlob.getFile())) {
+            try (Overlay overlay = new Overlay()) {
+                overlay.setInputPDF(pdfDoc);
+                overlay.setAllPagesOverlayPDF(pdfOverlayDoc);
+                overlay.overlay(Map.of());
+                return saveInTempFile(pdfDoc);
+            }
         } catch (IOException e) {
             throw new NuxeoException(e);
         }
@@ -195,10 +201,10 @@ public class PDFTransformationServiceImpl extends DefaultComponent implements PD
         return new Point2D.Double(xTranslation, yTranslation);
     }
 
-    protected Blob saveInTempFile(PDDocument PdfDoc) throws IOException {
+    protected Blob saveInTempFile(PDDocument pdfDoc) throws IOException {
         Blob blob = Blobs.createBlobWithExtension(".pdf"); // creates a tracked temporary file
         blob.setMimeType(MIME_TYPE);
-        PdfDoc.save(blob.getFile());
+        pdfDoc.save(blob.getFile());
         return blob;
     }
 

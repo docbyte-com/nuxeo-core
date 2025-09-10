@@ -20,15 +20,16 @@
 
 package org.nuxeo.connect.client.we;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
 
 import org.nuxeo.ecm.admin.NuxeoCtlManager;
 import org.nuxeo.ecm.webengine.model.Access;
 import org.nuxeo.ecm.webengine.model.Resource;
+import org.nuxeo.ecm.webengine.model.Template;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.ModuleRoot;
 
@@ -69,9 +70,9 @@ public class ConnectClientRoot extends ModuleRoot {
     @GET
     @Produces("text/html")
     @Path(value = "restartView")
-    public Object restartServerView() {
+    public Response restartServerView() {
         if (getContext().getPrincipal().isAdministrator()) {
-            return getView("serverRestart").arg("nuxeoctl", new NuxeoCtlManager());
+            return Response.ok(getView("serverRestart").arg("nuxeoctl", new NuxeoCtlManager())).build();
         } else {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -80,7 +81,7 @@ public class ConnectClientRoot extends ModuleRoot {
     @GET
     @Produces("text/html")
     @Path(value = "registerInstanceCallback")
-    public Object registerInstanceCallback(@QueryParam("ConnectRegistrationToken") String token) {
+    public Template registerInstanceCallback(@QueryParam("ConnectRegistrationToken") String token) {
         return getView("registerInstanceCallback").arg("token", token);
     }
 }

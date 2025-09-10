@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.core.search.scroll.contrib" version="1.0">
+  <require>org.nuxeo.ecm.core.scroll.contrib.default</require>
+  <extension point="scroll" target="org.nuxeo.ecm.core.scroll.service">
+    <scroll type="document" name="search" default="true" class="org.nuxeo.ecm.core.search.SearchServiceScroll">
+      <option name="searchIndex">${nuxeo.search.client.default.scroller.index.name:=repository}</option>
+    </scroll>
+  </extension>
+</component>

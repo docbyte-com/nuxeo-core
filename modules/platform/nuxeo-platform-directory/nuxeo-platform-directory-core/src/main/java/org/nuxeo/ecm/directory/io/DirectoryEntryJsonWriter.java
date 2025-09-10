@@ -19,8 +19,8 @@
 
 package org.nuxeo.ecm.directory.io;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static java.util.Locale.ENGLISH;
-import static javax.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
 import static org.nuxeo.ecm.core.io.registry.MarshallingConstants.MAX_DEPTH_PARAM;
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
@@ -31,7 +31,7 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,10 +84,15 @@ public interface Aggregate<B extends Bucket> {
     /**
      * Gets the field name as defined in Nuxeo.
      * <p>
-     * In Nuxeo the separator for a complex type is the `/` character, in a case where our {@link Aggregate} implementation defines a field
-     * as `file:content.mime-type`, this method should return `file:content/mime-type`.
+     * In Nuxeo the separator for a complex type is the `/` character, in a case where our {@link Aggregate}
+     * implementation defines a field as `file:content.mime-type`, this method should return `file:content/mime-type`.
      *
      * @since 11.1
+     * @deprecated since 2025.0, since the SearchService introduction, aggregate fields are always in Nuxeo format, use
+     *             {@link #getField()} instead
      */
-    String getXPathField();
+    @Deprecated(since = "2025.0", forRemoval = true)
+    default String getXPathField() {
+        return getField();
+    };
 }

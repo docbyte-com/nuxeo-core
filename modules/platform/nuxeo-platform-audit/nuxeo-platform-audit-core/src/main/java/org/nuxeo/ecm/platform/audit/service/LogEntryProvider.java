@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Function;
 
-import javax.persistence.EntityManager;
-import javax.persistence.Query;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.audit.api.query.AuditQueryException;
+import org.nuxeo.audit.api.query.DateRangeParser;
 import org.nuxeo.ecm.core.query.sql.model.Literals;
 import org.nuxeo.ecm.core.query.sql.model.MultiExpression;
 import org.nuxeo.ecm.core.query.sql.model.Operand;
@@ -42,10 +45,15 @@ import org.nuxeo.ecm.core.query.sql.model.Predicate;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.query.sql.model.Reference;
 import org.nuxeo.ecm.platform.audit.api.LogEntry;
-import org.nuxeo.ecm.platform.audit.api.query.AuditQueryException;
-import org.nuxeo.ecm.platform.audit.api.query.DateRangeParser;
+import org.nuxeo.ecm.platform.audit.api.LogEntryList2;
 import org.nuxeo.ecm.platform.audit.impl.LogEntryImpl;
+import org.nuxeo.ecm.platform.query.api.PageProvider;
 
+/**
+ * @deprecated since 2025.0, {@link org.nuxeo.audit.service.AuditBackend} has all necessary APIs
+ */
+@SuppressWarnings("removal")
+@Deprecated(since = "2025.0", forRemoval = true)
 public class LogEntryProvider implements BaseLogEntryProvider {
 
     private static final Logger log = LogManager.getLogger(LogEntryProvider.class);
@@ -83,10 +91,10 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     }
 
     protected List<?> doPublishIfEntries(List<?> entries) {
-        if (entries == null || entries.size() == 0) {
+        if (CollectionUtils.isEmpty(entries)) {
             return entries;
         }
-        Object entry = entries.get(0);
+        Object entry = entries.getFirst();
         if (entry instanceof LogEntry) {
             for (Object logEntry : entries) {
                 doPublish((LogEntry) logEntry);
@@ -101,7 +109,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
     }
 
     protected LogEntry doPublish(LogEntry entry) {
-        if (entry.getExtendedInfos() != null) {
+        if (entry != null && entry.getExtendedInfos() != null) {
             entry.getExtendedInfos().size(); // force lazy loading
         }
         return entry;
@@ -109,8 +117,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#addLogEntry(org
-     * .nuxeo.ecm.platform.audit.api.LogEntry)
+     * @see org.nuxeo.audit.service.LogEntryProvider#addLogEntry(org .nuxeo.ecm.platform.audit.api.LogEntry)
      */
     @Override
     public void addLogEntry(LogEntry entry) {
@@ -132,7 +139,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#getLogEntryByID (long)
+     * @see org.nuxeo.audit.service.LogEntryProvider#getLogEntryByID (long)
      */
     public LogEntry getLogEntryByID(long id) {
         log.debug("getLogEntriesFor() logID: {}", id);
@@ -141,7 +148,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#nativeQueryLogs (java.lang.String, int, int)
+     * @see org.nuxeo.audit.service.LogEntryProvider#nativeQueryLogs (java.lang.String, int, int)
      */
     @SuppressWarnings("unchecked")
     public List<LogEntry> nativeQueryLogs(String whereClause, int pageNb, int pageSize) {
@@ -157,7 +164,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#nativeQuery(java .lang.String, int, int)
+     * @see org.nuxeo.audit.service.LogEntryProvider#nativeQuery(java .lang.String, int, int)
      */
     public List<?> nativeQuery(String queryString, int pageNb, int pageSize) {
         Query query = em.createQuery(queryString);
@@ -170,8 +177,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#nativeQuery(java .lang.String, java.util.Map, int,
-     * int)
+     * @see org.nuxeo.audit.service.LogEntryProvider#nativeQuery(java .lang.String, java.util.Map, int, int)
      */
     public List<?> nativeQuery(String queryString, Map<String, Object> params, int pageNb, int pageSize) {
         if (pageSize <= 0) {
@@ -236,9 +242,19 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             if (operator == Operator.IN) {
                 queryStr.append("("); // parentheses needed in old HQL for IN
             }
-            queryStr.append(":");
-            queryStr.append(param);
-            params.put(param, value);
+            if (operator == Operator.BETWEEN) {
+                var values = (List<ZonedDateTime>) value;
+                queryStr.append(":").append(param).append("Start");
+                // The ZonedDateTime representation is not compatible with Hibernate query
+                params.put(param + "Start", Date.from(values.getFirst().toInstant()));
+                queryStr.append(" AND ");
+                queryStr.append(":").append(param).append("End");
+                // The ZonedDateTime representation is not compatible with Hibernate query
+                params.put(param + "End", Date.from(values.getLast().toInstant()));
+            } else {
+                queryStr.append(":").append(param);
+                params.put(param, value);
+            }
             if (operator == Operator.IN) {
                 queryStr.append(")");
             }
@@ -257,14 +273,15 @@ public class LogEntryProvider implements BaseLogEntryProvider {
         }
         // if firstOrder == false then there's at least one order
         if (!firstOrder) {
-            if (orders.get(0).isDescending) {
+            if (orders.getFirst().isDescending) {
                 queryStr.append(" DESC");
             } else {
                 queryStr.append(" ASC");
             }
         }
 
-        Query query = em.createQuery(queryStr.toString());
+        String queryString = queryStr.toString();
+        Query query = em.createQuery(queryString);
         params.forEach(query::setParameter);
 
         // add offset clause
@@ -277,7 +294,18 @@ public class LogEntryProvider implements BaseLogEntryProvider {
             query.setMaxResults((int) limit);
         }
 
-        return doPublish(query.getResultList());
+        List<LogEntry> resultList = doPublish(query.getResultList());
+
+        // now compute total size
+        long totalSize = PageProvider.UNKNOWN_SIZE;
+        if (builder.countTotal()) {
+            Query countQuery = em.createQuery("select count(log.id) " + queryString.replaceAll(" ORDER BY.*$", ""));
+            params.forEach(countQuery::setParameter);
+            countQuery.setMaxResults(20);
+            totalSize = (long) countQuery.getResultList().getFirst();
+        }
+
+        return new LogEntryList2(resultList, totalSize);
     }
 
     /**
@@ -292,7 +320,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#queryLogs(java. lang.String[], java.lang.String)
+     * @see org.nuxeo.audit.service.LogEntryProvider#queryLogs(java. lang.String[], java.lang.String)
      */
     @SuppressWarnings("unchecked")
     public List<LogEntry> queryLogs(String[] eventIds, String dateRange) {
@@ -328,7 +356,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#queryLogsByPage (java.lang.String[], java.lang.String,
+     * @see org.nuxeo.audit.service.LogEntryProvider#queryLogsByPage (java.lang.String[], java.lang.String,
      * java.lang.String[], java.lang.String, int, int)
      */
     public List<LogEntry> queryLogsByPage(String[] eventIds, String dateRange, String[] categories, String path,
@@ -345,7 +373,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#queryLogsByPage (java.lang.String[], java.util.Date,
+     * @see org.nuxeo.audit.service.LogEntryProvider#queryLogsByPage (java.lang.String[], java.util.Date,
      * java.lang.String[], java.lang.String, int, int)
      */
     @SuppressWarnings("unchecked")
@@ -406,7 +434,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#removeEntries(java .lang.String, java.lang.String)
+     * @see org.nuxeo.audit.service.LogEntryProvider#removeEntries(java .lang.String, java.lang.String)
      */
     @Override
     @SuppressWarnings("unchecked")
@@ -428,7 +456,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#countEventsById (java.lang.String)
+     * @see org.nuxeo.audit.service.LogEntryProvider#countEventsById (java.lang.String)
      */
     public Long countEventsById(String eventId) {
         Query query = em.createNamedQuery("LogEntry.countEventsById");
@@ -438,7 +466,7 @@ public class LogEntryProvider implements BaseLogEntryProvider {
 
     /*
      * (non-Javadoc)
-     * @see org.nuxeo.ecm.platform.audit.service.LogEntryProvider#findEventIds()
+     * @see org.nuxeo.audit.service.LogEntryProvider#findEventIds()
      */
     @SuppressWarnings("unchecked")
     public List<String> findEventIds() {

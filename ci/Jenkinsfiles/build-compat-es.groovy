@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-library identifier: "platform-ci-shared-library@v0.0.32"
+library identifier: "platform-ci-shared-library@v0.0.53"
 
 boolean isNuxeoTag() {
   return NUXEO_BRANCH =~ /^v.*$/
@@ -28,7 +28,7 @@ def checkParameters() {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   options {
     timeout(time: 8, unit: 'HOURS')
@@ -85,7 +85,6 @@ pipeline {
               mvn ${MAVEN_CLI_ARGS} -V -T2C \
                 -DskipTests \
                 -Dcustom.environment=${REPOSITORY_BACKEND} \
-                -Dcustom.environment.log.dir=target-${REPOSITORY_BACKEND} \
                 install
             """
           }
@@ -100,8 +99,6 @@ pipeline {
       }
       steps {
         script {
-          def kafkaHost = "${TEST_KAFKA_K8S_OBJECT}.${TEST_NAMESPACE}.${TEST_SERVICE_DOMAIN_SUFFIX}:${TEST_KAFKA_PORT}"
-
           def commitSha = env.SCM_REF
           if (isNuxeoTag()) {
             // retrieve the promoted build sha
@@ -122,9 +119,9 @@ pipeline {
                   sh """
                     cat ci/mvn/nuxeo-test-${REPOSITORY_BACKEND}.properties \
                       ci/mvn/nuxeo-test-elasticsearch.properties \
+                      ci/mvn/nuxeo-test-kafka.properties \
                       > ci/mvn/nuxeo-test-${REPOSITORY_BACKEND}.properties~gen
 
-                    DOMAIN=${TEST_SERVICE_DOMAIN_SUFFIX} \
                     envsubst < ci/mvn/nuxeo-test-${REPOSITORY_BACKEND}.properties~gen > ${HOME}/nuxeo-test-${REPOSITORY_BACKEND}.properties
                   """
                   // run unit tests:
@@ -136,9 +133,6 @@ pipeline {
                     mvn ${MAVEN_CLI_ARGS} -Prelease \
                       -rf :nuxeo-core-parent \
                       -Dcustom.environment=${REPOSITORY_BACKEND} \
-                      -Dcustom.environment.log.dir=target-${REPOSITORY_BACKEND} \
-                      -Dnuxeo.test.core=${REPOSITORY_BACKEND} \
-                      -Pkafka -Dkafka.bootstrap.servers=${kafkaHost} \
                       test
                   """
                   retry(2) {

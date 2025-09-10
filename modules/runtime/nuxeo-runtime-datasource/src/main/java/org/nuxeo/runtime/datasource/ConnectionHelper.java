@@ -105,9 +105,9 @@ public class ConnectionHelper {
             return DataSourceHelper.getDataSource(dataSourceName, noSharing);
         } catch (NamingException e) {
             if (Framework.isTestModeSet()) {
-                String url = Framework.getProperty("nuxeo.test.vcs.url");
-                String user = Framework.getProperty("nuxeo.test.vcs.user");
-                String password = Framework.getProperty("nuxeo.test.vcs.password");
+                String url = Framework.getProperty("nuxeo.test.sql.url");
+                String user = Framework.getProperty("nuxeo.test.sql.user");
+                String password = Framework.getProperty("nuxeo.test.sql.password");
                 if (url != null && user != null) {
                     return new DataSourceFromUrl(url, user, password); // driver?
                 }

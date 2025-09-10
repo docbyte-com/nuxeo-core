@@ -34,7 +34,7 @@ public class Or implements Guard {
     protected Guard[] perms;
 
     public Or(Collection<Guard> guards) {
-        this(guards.toArray(new Guard[guards.size()]));
+        this(guards.toArray(Guard[]::new));
     }
 
     public Or(Guard... guards) {

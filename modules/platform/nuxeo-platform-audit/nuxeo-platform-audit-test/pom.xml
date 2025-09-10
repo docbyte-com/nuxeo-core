@@ -1,0 +1,194 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+    <artifactId>nuxeo-platform-audit-parent</artifactId>
+    <version>2025.2-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>nuxeo-platform-audit-test</artifactId>
+  <name>Nuxeo Platform Audit Service - Test Framework</name>
+
+  <dependencies>
+    <!-- Java specifications -->
+    <dependency>
+      <groupId>jakarta.inject</groupId>
+      <artifactId>jakarta.inject-api</artifactId>
+    </dependency>
+
+    <!-- Libraries -->
+    <dependency>
+      <groupId>org.apache.commons</groupId>
+      <artifactId>commons-lang3</artifactId>
+    </dependency>
+
+    <!-- Nuxeo dependencies -->
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
+      <artifactId>nuxeo-common-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-mongodb</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-core</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-mongodb</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-mongodb</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-sql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-audit-sql</artifactId>
+      <type>test-jar</type>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-directory-test</artifactId>
+      <scope>compile</scope>
+    </dependency>
+
+    <!-- Test libraries -->
+
+    <!-- Nuxeo test libraries -->
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
+      <artifactId>nuxeo-common</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
+      <artifactId>nuxeo-stream</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime-stream</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-bulk</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-event</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-io</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
+      <artifactId>nuxeo-core-query</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-query-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-usermanager</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <configuration>
+            <ignoredUnusedDeclaredDependencies combine.children="append">
+              <!-- dependencies wrongly detected by the plugin -->
+              <!-- no occurrences in java code but deploy by Nuxeo runtime -->
+              <artifact>org.nuxeo.runtime:nuxeo-runtime-opensearch1-embed</artifact>
+              <artifact>org.nuxeo.ecm.platform:nuxeo-platform-audit-mongodb</artifact>
+              <artifact>org.nuxeo.ecm.platform:nuxeo-platform-audit-opensearch1</artifact>
+              <artifact>org.nuxeo.ecm.platform:nuxeo-platform-audit-sql</artifact>
+              <!-- no occurrences in java code but transitive dependencies of a test-jar -->
+              <artifact>org.nuxeo.runtime:nuxeo-runtime-mongodb:test-jar</artifact>
+              <artifact>org.nuxeo.runtime:nuxeo-runtime-opensearch1:test-jar</artifact>
+              <artifact>org.nuxeo.runtime:nuxeo-runtime-opensearch1-embed:test-jar</artifact>
+              <artifact>org.nuxeo.ecm.platform:nuxeo-platform-directory-test</artifact>
+            </ignoredUnusedDeclaredDependencies>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+  </build>
+</project>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBind
 import java.time.Instant;
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.servlet.http.Cookie;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.Cookie;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,10 +43,10 @@ import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.api.login.UserIdentificationInfo;
 import org.nuxeo.ecm.platform.auth.saml.key.KeyManagerFeature;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletRequest;
-import org.nuxeo.ecm.platform.auth.saml.mock.MockHttpServletResponse;
 import org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletRequest;
+import org.nuxeo.ecm.platform.web.common.MockHttpServletResponse;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.opensaml.saml.saml2.core.AuthnRequest;
@@ -91,7 +91,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
 
         var expected = new ExpectedSAMLMessage<>(
                 """
-                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="null://null/core/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
+                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="http://localhost:8080/core/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
                           <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://localhost:8080/login</saml2:Issuer>
                           <saml2p:NameIDPolicy Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"/>
                         </saml2p:AuthnRequest>
@@ -110,7 +110,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
         assertTrue(loginURL.startsWith("http://dummy/SSORedirect"));
         var expected = new ExpectedSAMLMessage<>(
                 """
-                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="null://null/core/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
+                        <saml2p:AuthnRequest xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol" AssertionConsumerServiceURL="http://localhost:8080/core/home.html" Destination="http://dummy/SSORedirect" ID="%s" IssueInstant="%s" Version="2.0">
                           <saml2:Issuer xmlns:saml2="urn:oasis:names:tc:SAML:2.0:assertion">http://localhost:8080/login</saml2:Issuer>
                           <saml2p:NameIDPolicy Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified" xmlns:saml2p="urn:oasis:names:tc:SAML:2.0:protocol"/>
                         </saml2p:AuthnRequest>
@@ -150,8 +150,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
                         <saml:Audience>http://localhost:8080/login</saml:Audience>
                       </saml:AudienceRestriction>
                     </saml:Conditions>
-                    <saml:AuthnStatement AuthnInstant=""
-                                         SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
+                    <saml:AuthnStatement SessionIndex="s2008f616d6f2b777082bbf1a8a135d1a9f3d53501">
                       <saml:AuthnContext>
                         <saml:AuthnContextClassRef>urn:oasis:names:tc:SAML:2.0:ac:classes:PasswordProtectedTransport
                         </saml:AuthnContextClassRef>
@@ -163,7 +162,6 @@ public class SAMLAuthenticatorWithKeyManagerTest {
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
-                                                   .withAttributes()
                                                    .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
                                                    .whenGetParameterThenReturn("RelayState", "/relay");
         var responseHandler = MockHttpServletResponse.init();
@@ -194,7 +192,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
                                                    .whenGetParameterThenReturn(SAML_REQUEST, encodedSamlRequest)
-                                                   .withGetCookieThenReturn(SAML_SESSION_KEY,
+                                                   .whenGetCookieThenReturn(SAML_SESSION_KEY,
                                                            "sessionId|user@dummy|format");
         var responseHandler = MockHttpServletResponse.init();
 
@@ -205,7 +203,7 @@ public class SAMLAuthenticatorWithKeyManagerTest {
     @Test
     public void testLogoutRequest() {
         var requestHandler = MockHttpServletRequest.init()
-                                                   .withGetCookieThenReturn(SAML_SESSION_KEY,
+                                                   .whenGetCookieThenReturn(SAML_SESSION_KEY,
                                                            "sessionId|user@dummy|format");
         var responseHandler = MockHttpServletResponse.init();
 

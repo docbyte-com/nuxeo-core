@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  *
  * Contributors:
  *     Thomas Roger
- *
  */
 package org.nuxeo.ecm.webengine.app;
 
@@ -24,21 +23,28 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
+import jakarta.inject.Singleton;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 
 /**
  * @since 9.3
  */
+@Singleton
 @Provider
-@Produces(MediaType.APPLICATION_JSON)
+@Produces({ MediaType.APPLICATION_JSON, MediaType.WILDCARD })
 public class JsonNuxeoExceptionWriter implements MessageBodyWriter<NuxeoException> {
+
+    @Context
+    protected HttpServletResponse response;
 
     @Override
     public long getSize(NuxeoException arg0, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType arg4) {
@@ -54,6 +60,11 @@ public class JsonNuxeoExceptionWriter implements MessageBodyWriter<NuxeoExceptio
     public void writeTo(NuxeoException nuxeoException, Class<?> arg1, Type arg2, Annotation[] arg3, MediaType mediaType,
             MultivaluedMap<String, Object> arg5, OutputStream outputStream)
             throws IOException, WebApplicationException {
+        // the ContentType header is not set when errors occurred during routing resolution since Jersey 2.x upgrade
+        // this occurs if Jersey doesn't find a route or if a method returning a sub resource throws an exception
+        if (response.getContentType() == null) {
+            response.setContentType(MediaType.APPLICATION_JSON);
+        }
         JsonWebengineWriter.writeException(outputStream, nuxeoException, mediaType);
     }
 

@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.service.AuditComponent">
+
+  <implementation class="org.nuxeo.audit.service.AuditComponent" />
+
+  <service>
+    <provide interface="org.nuxeo.audit.service.AuditBackend" />
+    <provide interface="org.nuxeo.audit.service.AuditService" />
+  </service>
+
+
+  <extension-point name="event">
+    <documentation>
+      This service registers auditable events.
+      <p />
+      Registered events are dummy strings for now.
+      <p />
+      This service is used to filter auditable events from the JMS topic based
+      on their names. The following XML snipset give figures out how the default
+      event types are selected for auditing.
+
+      <programlisting>
+        <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
+          <event name="documentCreated" />
+          <event name="documentCreatedByCopy" />
+          <event name="documentDuplicated" />
+          <event name="documentMoved" />
+          <event name="documentRemoved" />
+          <event name="documentModified" />
+          <event name="documentLocked" />
+          <event name="documentUnlocked" />
+          <event name="documentSecurityUpdated" />
+          <event name="lifecycle_transition_event" />
+          <event name="documentTrashed" />
+          <event name="documentUntrashed" />
+        </extension>
+      </programlisting>
+    </documentation>
+
+    <object class="org.nuxeo.audit.service.extension.EventDescriptor" />
+  </extension-point>
+
+  <extension-point name="extendedInfo">
+    <documentation>
+      This service registered extended info mappings.
+      <p />
+      This service is used to evaluate EL expression using document as context
+      registering results into a map indexed by names.
+    </documentation>
+
+    <object class="org.nuxeo.audit.service.extension.ExtendedInfoDescriptor" />
+  </extension-point>
+
+  <extension-point name="adapter">
+
+    <documentation>
+      register the adapter that will be injected in EL context
+    </documentation>
+
+    <object class="org.nuxeo.audit.service.extension.AdapterDescriptor" />
+  </extension-point>
+
+  <extension-point name="backendFactory">
+    <documentation>
+      Allows to register a backend implementation for the Audit Service
+    </documentation>
+
+    <object class="org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor" />
+  </extension-point>
+
+</component>

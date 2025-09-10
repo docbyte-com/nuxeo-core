@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.platform.ui.web.auth.service;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>

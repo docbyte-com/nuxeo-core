@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,9 +27,12 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.junit.runners.model.TestClass;
+import org.nuxeo.common.function.ThrowableConsumer;
+import org.nuxeo.runtime.RuntimeServiceException;
 
 import com.google.inject.Module;
 
@@ -48,10 +51,10 @@ class FeaturesLoader {
 
         protected RunnerFeature feature;
 
-        Holder(Class<? extends RunnerFeature> aType) throws ReflectiveOperationException {
-            type = aType;
-            testClass = new TestClass(aType);
-            feature = aType.getDeclaredConstructor().newInstance();
+        Holder(Class<? extends RunnerFeature> type, RunnerFeature feature) {
+            this.type = type;
+            this.testClass = new TestClass(type);
+            this.feature = feature;
         }
 
         @Override
@@ -81,9 +84,7 @@ class FeaturesLoader {
     }
 
     protected <T> List<T> reversed(List<T> list) {
-        List<T> reversed = new ArrayList<>(list);
-        Collections.reverse(reversed);
-        return reversed;
+        return new ArrayList<>(list).reversed();
     }
 
     protected boolean contains(Class<? extends RunnerFeature> aType) {
@@ -98,27 +99,49 @@ class FeaturesLoader {
                 loadFeature(new HashSet<>(), cl);
             }
         }
-
     }
 
-    protected void loadFeature(HashSet<Class<?>> cycles, Class<? extends RunnerFeature> clazz) throws Exception {
+    protected void loadFeature(Set<Class<?>> cycles, Class<? extends RunnerFeature> clazz) throws Exception {
         if (index.containsKey(clazz)) {
             return;
         }
-        if (cycles.contains(clazz)) {
+        if (!cycles.add(clazz)) {
             throw new IllegalStateException("Cycle detected in features dependencies of " + clazz);
         }
-        cycles.add(clazz);
         // load required features from annotation
-        List<Features> annos = FeaturesRunner.getScanner().getAnnotations(clazz, Features.class);
-        for (Features anno : annos) {
-            for (Class<? extends RunnerFeature> cl : anno.value()) {
-                loadFeature(cycles, cl);
+        try {
+            List<Features> annos = FeaturesRunner.getScanner().getAnnotations(clazz, Features.class);
+            for (Features anno : annos) {
+                for (Class<? extends RunnerFeature> cl : anno.value()) {
+                    loadFeature(cycles, cl);
+                }
             }
+        } catch (TypeNotPresentException e) {
+            throw new RuntimeServiceException(e.getMessage() + ", a test-jar dependency is probably missing", e);
         }
-        final Holder actual = new Holder(clazz);
+        var dynamicFeaturesLoader = new DynamicFeaturesLoader();
+        // instantiate the feature and store it in the loader context
+        Holder actual = new Holder(clazz, instantiateFeature(clazz, dynamicFeaturesLoader));
+        // load the features added dynamically
+        dynamicFeaturesLoader.features.forEach(ThrowableConsumer.asConsumer(f -> loadFeature(cycles, f)));
+        // finally fill loader state
         holders.add(actual);
         index.put(clazz, actual);
+    }
+
+    protected RunnerFeature instantiateFeature(Class<? extends RunnerFeature> clazz,
+            DynamicFeaturesLoader dynamicFeaturesLoader) throws ReflectiveOperationException {
+        RunnerFeature feature;
+        try {
+            var constructor = clazz.getDeclaredConstructor(DynamicFeaturesLoader.class);
+            constructor.setAccessible(true);
+            feature = constructor.newInstance(dynamicFeaturesLoader);
+        } catch (NoSuchMethodException e) {
+            var constructor = clazz.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            feature = constructor.newInstance();
+        }
+        return feature;
     }
 
     public <T extends RunnerFeature> T getFeature(Class<T> aType) {

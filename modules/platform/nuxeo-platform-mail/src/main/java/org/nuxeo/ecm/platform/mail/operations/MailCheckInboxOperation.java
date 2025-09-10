@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.platform.mail.operations;
 
+import jakarta.mail.MessagingException;
+
 import org.nuxeo.ecm.automation.core.Constants;
 import org.nuxeo.ecm.automation.core.annotations.Context;
 import org.nuxeo.ecm.automation.core.annotations.Operation;
@@ -25,8 +27,6 @@ import org.nuxeo.ecm.automation.core.annotations.OperationMethod;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.platform.mail.utils.MailCoreHelper;
-
-import javax.mail.MessagingException;
 
 /**
  * Checks for unread emails in the inbox of an Email Folder.

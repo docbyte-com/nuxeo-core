@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,34 @@
  * Contributors:
  *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.picture.core.test;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.platform.picture.api.ImageInfo;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageConverter;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageCropper;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageCropperAndResizer;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageIdentifier;
 import org.nuxeo.ecm.platform.picture.magick.utils.ImageResizer;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
-@Deploy("org.nuxeo.ecm.platform.commandline.executor")
-@Deploy("org.nuxeo.ecm.platform.convert")
+@Features(ImagingCoreFeature.class)
 public class TestMagickExecutors {
 
     private static final String TMP_FILE_PREFIX = TestMagickExecutors.class.getName() + "_";
@@ -59,8 +56,8 @@ public class TestMagickExecutors {
 
         assertNotNull(info);
         assertEquals("JPEG", info.getFormat());
-        assertFalse(info.getWidth() == 0);
-        assertFalse(info.getHeight() == 0);
+        assertNotEquals(0, info.getWidth());
+        assertNotEquals(0, info.getHeight());
         assertTrue(info.getColorSpace().endsWith("RGB"));
 
         System.out.print(info);
@@ -150,7 +147,7 @@ public class TestMagickExecutors {
         ImageConverter.convert(file.getAbsolutePath(), out.getAbsolutePath());
 
         assertEquals("pdf", FilenameUtils.getExtension(out.getAbsolutePath()));
-        try (PDDocument doc = PDDocument.load(out)) {
+        try (PDDocument doc = Loader.loadPDF(out)) {
             assertNotNull(doc);
         }
 

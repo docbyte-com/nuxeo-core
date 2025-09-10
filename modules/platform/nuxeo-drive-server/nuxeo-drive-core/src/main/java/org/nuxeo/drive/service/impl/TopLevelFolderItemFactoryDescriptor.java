@@ -18,6 +18,8 @@
  */
 package org.nuxeo.drive.service.impl;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,6 +28,7 @@ import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.drive.service.FileSystemItemAdapterService;
 import org.nuxeo.drive.service.TopLevelFolderItemFactory;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * XMap descriptor for factories contributed to the {@code topLevelFolderItemFactory} extension point of the
@@ -34,13 +37,22 @@ import org.nuxeo.drive.service.TopLevelFolderItemFactory;
  * @author Antoine Taillefer
  */
 @XObject("topLevelFolderItemFactory")
-public class TopLevelFolderItemFactoryDescriptor {
+public class TopLevelFolderItemFactoryDescriptor implements Descriptor {
 
     @XNode("@class")
     protected Class<? extends TopLevelFolderItemFactory> factoryClass;
 
     @XNodeMap(value = "parameters/parameter", key = "@name", type = HashMap.class, componentType = String.class)
     protected Map<String, String> parameters = new HashMap<>();
+
+    @Override
+    public String getId() {
+        return getName();
+    }
+
+    public String getName() {
+        return factoryClass.getName();
+    }
 
     public TopLevelFolderItemFactory getFactory() throws ReflectiveOperationException {
         TopLevelFolderItemFactory factory = factoryClass.getDeclaredConstructor().newInstance();
@@ -49,10 +61,18 @@ public class TopLevelFolderItemFactoryDescriptor {
         return factory;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public Class<? extends TopLevelFolderItemFactory> getFactoryClass() {
         return factoryClass;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setFactoryClass(Class<? extends TopLevelFolderItemFactory> factoryClass) {
         this.factoryClass = factoryClass;
     }
@@ -61,6 +81,10 @@ public class TopLevelFolderItemFactoryDescriptor {
         return parameters;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public String getparameter(String name) {
         return parameters.get(name);
     }
@@ -69,12 +93,23 @@ public class TopLevelFolderItemFactoryDescriptor {
         this.parameters = parameters;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setParameter(String name, String value) {
         parameters.put(name, value);
     }
 
-    public String getName() {
-        return factoryClass.getName();
+    @Override
+    public TopLevelFolderItemFactoryDescriptor merge(Descriptor o) {
+        var other = (TopLevelFolderItemFactoryDescriptor) o;
+        var merged = new TopLevelFolderItemFactoryDescriptor();
+
+        merged.factoryClass = defaultIfNull(other.factoryClass, factoryClass);
+        merged.parameters.putAll(parameters);
+        merged.parameters.putAll(other.parameters);
+        return merged;
     }
 
     @Override
@@ -92,5 +127,4 @@ public class TopLevelFolderItemFactoryDescriptor {
     public int hashCode() {
         return factoryClass.getName().hashCode();
     }
-
 }

@@ -21,13 +21,14 @@
 
 package org.nuxeo.ecm.webengine.model.impl;
 
+import java.util.Objects;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.ecm.webengine.loader.ClassProxy;
 import org.nuxeo.ecm.webengine.loader.StaticClassProxy;
 import org.nuxeo.ecm.webengine.model.ResourceType;
-import org.nuxeo.ecm.webengine.model.Utils;
 import org.nuxeo.ecm.webengine.model.WebAdapter;
 
 /**
@@ -102,7 +103,7 @@ public class AdapterDescriptor extends TypeDescriptor {
         }
         if (obj.getClass() == AdapterDescriptor.class) { // don't use instanceof in an overridden equals() method
             AdapterDescriptor td = (AdapterDescriptor) obj;
-            return type.equals(td.type) && Utils.streq(fragment, td.fragment);
+            return type.equals(td.type) && Objects.equals(fragment, td.fragment);
         }
         return false;
     }

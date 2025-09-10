@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,51 +22,52 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Factory binding descriptor. Immutable.
  */
 @XObject(value = "factoryBinding")
-public class FactoryBindingDescriptor {
+public class FactoryBindingDescriptor implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(FactoryBindingDescriptor.class);
 
     @XNode("@name")
-    private String name;
+    protected String name;
 
     /** @since 2021.16 */
     @XNode("@enabled")
-    private boolean enabled = true;
+    protected boolean enabled = true;
 
     @XNode("@factoryName")
-    private String factoryName;
+    protected String factoryName;
 
     @XNode("@targetType")
-    private String targetType;
+    protected String targetType;
 
     @XNode("@targetFacet")
-    private String targetFacet;
+    protected String targetFacet;
 
     @XNode("@append")
-    private Boolean append = Boolean.FALSE;
+    protected Boolean append = Boolean.FALSE;
 
     @XNodeMap(value = "option", key = "@name", type = HashMap.class, componentType = String.class)
-    private Map<String, String> options;
+    protected Map<String, String> options;
 
     @XNodeList(value = "template/templateItem", type = ArrayList.class, componentType = TemplateItemDescriptor.class)
-    private List<TemplateItemDescriptor> template;
+    protected List<TemplateItemDescriptor> template;
 
     // Declared as ArrayList to be serializable.
     @XNodeList(value = "acl/ace", type = ArrayList.class, componentType = ACEDescriptor.class)
-    private List<ACEDescriptor> rootAcl;
+    protected List<ACEDescriptor> rootAcl;
 
     public FactoryBindingDescriptor() {
         // default constructor
@@ -75,15 +76,9 @@ public class FactoryBindingDescriptor {
         this.rootAcl = new ArrayList<>();
     }
 
-    public FactoryBindingDescriptor(FactoryBindingDescriptor toCopy) {
-        this.enabled = toCopy.enabled;
-        this.name = toCopy.name;
-        this.factoryName = toCopy.factoryName;
-        this.targetType = toCopy.targetType;
-        this.targetFacet = toCopy.targetFacet;
-        this.options = new HashMap<>(toCopy.options);
-        this.template = toCopy.template.stream().map(TemplateItemDescriptor::new).collect(Collectors.toList());
-        this.rootAcl = toCopy.rootAcl.stream().map(ACEDescriptor::new).collect(Collectors.toList());
+    @Override
+    public String getId() {
+        return ObjectUtils.defaultIfNull(targetType, targetFacet);
     }
 
     /** @since 2021.16 */
@@ -143,24 +138,30 @@ public class FactoryBindingDescriptor {
         this.append = append;
     }
 
-    public void merge(FactoryBindingDescriptor src) {
-        enabled = src.enabled;
-        if (Boolean.TRUE.equals(src.getAppend())) {
-            log.info("FactoryBinding: {} is merging with: {}", name, src.getName());
+    @Override
+    public Descriptor merge(Descriptor o) {
+        var other = (FactoryBindingDescriptor) o;
+        var merged = new FactoryBindingDescriptor();
+        merged.enabled = other.enabled;
+        if (Boolean.TRUE.equals(other.getAppend())) {
+            log.info("FactoryBinding: {} is merging with: {}", name, other.getName());
+            merged.factoryName = factoryName;
+            merged.name = name;
+            merged.targetType = targetType;
+            merged.targetFacet = targetFacet;
+            merged.options.putAll(options);
+            merged.rootAcl.addAll(rootAcl);
+            merged.template.addAll(template);
         } else {
             // this needs to be overridden by src
-            factoryName = src.getFactoryName();
-            name = src.getName();
-            targetType = src.getTargetType();
-            targetFacet = src.getTargetFacet();
-            append = Boolean.FALSE;
-            options.clear();
-            rootAcl.clear();
-            template.clear();
+            merged.factoryName = other.factoryName;
+            merged.name = other.name;
+            merged.targetType = other.targetType;
+            merged.targetFacet = other.targetFacet;
         }
-        options.putAll(src.getOptions());
-        rootAcl.addAll(src.getRootAcl());
-        template.addAll(src.getTemplate());
+        merged.options.putAll(other.options);
+        merged.rootAcl.addAll(other.rootAcl);
+        merged.template.addAll(other.template);
+        return merged;
     }
-
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,27 +20,23 @@ package org.nuxeo.ecm.directory.sql;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assume.assumeTrue;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.common.test.configuration.ThirdPartyUnderTest;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.core.storage.sql.DatabaseHelper;
-import org.nuxeo.ecm.core.test.CoreFeature;
-import org.nuxeo.ecm.core.test.StorageConfiguration;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
+import org.nuxeo.runtime.datasource.DataSourceFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -54,15 +50,10 @@ public class TestSQLQueryBuilder {
     protected static final String USER_DIR = "userDirectory";
 
     @Inject
-    protected CoreFeature coreFeature;
+    protected DataSourceFeature dataSourceFeature;
 
     @Inject
     protected DirectoryService directoryService;
-
-    @Before
-    public void before() {
-        assumeTrue("Ignored for non-VCS", coreFeature.getStorageConfiguration().isVCS());
-    }
 
     public Session getSession() throws Exception {
         return directoryService.open(USER_DIR);
@@ -93,8 +84,7 @@ public class TestSQLQueryBuilder {
             SQLQueryBuilder builder = new SQLQueryBuilder(getDirectory());
             builder.visitMultiExpression(queryBuilder.predicate());
             String expected;
-            StorageConfiguration storageConfiguration = coreFeature.getStorageConfiguration();
-            if (storageConfiguration.isVCSH2()) {
+            if (dataSourceFeature.isH2()) {
                 expected = "((NOT ((\"username\" = ?) OR (\"username\" = ?)))" //
                         + " AND (\"intField\" > ?)" //
                         + " AND (\"booleanField\" <> ?)" //
@@ -107,7 +97,7 @@ public class TestSQLQueryBuilder {
                         + " AND (\"company\" IN (?, ?))" //
                         + " AND (\"company\" NOT IN (?, ?))" //
                         + " AND (\"username\" IS NULL ))";
-            } else if (storageConfiguration.isVCSPostgreSQL()) {
+            } else if (dataSourceFeature.isPostgreSQL()) {
                 expected = "((NOT ((\"username\" = ?) OR (\"username\" = ?)))" //
                         + " AND (\"intField\" > ?)" //
                         + " AND (\"booleanField\" <> ?)" //
@@ -120,7 +110,7 @@ public class TestSQLQueryBuilder {
                         + " AND (\"company\" IN (?, ?))" //
                         + " AND (\"company\" NOT IN (?, ?))" //
                         + " AND (\"username\" IS NULL ))";
-            } else if (storageConfiguration.isVCSMySQL()) {
+            } else if (dataSourceFeature.isMySQL()) {
                 expected = "((NOT ((`username` = ?) OR (`username` = ?)))" //
                         + " AND (`intField` > ?)" //
                         + " AND (`booleanField` <> ?)" //
@@ -133,7 +123,7 @@ public class TestSQLQueryBuilder {
                         + " AND (`company` IN (?, ?))" //
                         + " AND (`company` NOT IN (?, ?))" //
                         + " AND (`username` IS NULL ))";
-            } else if (storageConfiguration.isVCSOracle()) {
+            } else if (dataSourceFeature.isOracle()) {
                 expected = "((NOT ((\"username\" = ?) OR (\"username\" = ?)))" //
                         + " AND (\"intField\" > ?)" //
                         + " AND (\"booleanField\" <> ?)" //
@@ -146,7 +136,7 @@ public class TestSQLQueryBuilder {
                         + " AND (\"company\" IN (?, ?))" //
                         + " AND (\"company\" NOT IN (?, ?))" //
                         + " AND (\"username\" IS NULL ))";
-            } else if (storageConfiguration.isVCSSQLServer()) {
+            } else if (dataSourceFeature.isSQLServer()) {
                 expected = "((NOT (([username] = ?) OR ([username] = ?)))" //
                         + " AND ([intField] > ?)" //
                         + " AND ([booleanField] <> ?)" //
@@ -160,10 +150,10 @@ public class TestSQLQueryBuilder {
                         + " AND ([company] NOT IN (?, ?))" //
                         + " AND ([username] IS NULL ))";
             } else {
-                expected = "Unknown VCS backend: " + DatabaseHelper.DATABASE.getClass().getSimpleName();
+                expected = "Unknown VCS backend: " + ThirdPartyUnderTest.STORAGE_SQL_DB_VALUE;
             }
             assertEquals(expected, builder.clause.toString());
-            assertEqualsNormalized(Arrays.asList( //
+            assertEqualsNormalized(List.of( //
                     "user_1", "Administrator", //
                     Long.valueOf(123), //
                     Boolean.TRUE, //

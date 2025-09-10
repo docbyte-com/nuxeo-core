@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.runners.model.FrameworkMethod;
+import org.nuxeo.ecm.core.search.client.opensearch1.OpenSearchCoreSearchFeature;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
@@ -32,7 +33,6 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.LogFeature;
 import org.nuxeo.runtime.test.runner.LoggerLevel;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -44,9 +44,12 @@ import org.opensearch.gateway.DanglingIndicesState;
 /**
  * @since 11.1
  */
+@Deploy("org.nuxeo.ecm.core.management")
+@Deploy("org.nuxeo.ecm.platform.query.api")
 @Deploy("org.nuxeo.elasticsearch.core")
-@Deploy("org.nuxeo.elasticsearch.core:elasticsearch-test-contrib.xml")
-@Features({ CoreFeature.class })
+@Deploy("org.nuxeo.elasticsearch.core.test:elasticsearch-test-contrib.xml")
+@Deploy("org.nuxeo.elasticsearch.core.test:elastic-search-core-management-tests-component.xml")
+@Features({ CoreFeature.class, OpenSearchCoreSearchFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
 // remove WARN on deprecated on [ignore_throttled] parameter
 @LoggerLevel(klass = RestClient.class, level = "ERROR")

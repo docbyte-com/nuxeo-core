@@ -26,24 +26,21 @@ import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_PAGE
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_SORT_BY;
 import static com.unboundid.scim2.common.utils.ApiConstants.QUERY_PARAMETER_SORT_ORDER;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.platform.usermanager.UserManager;
-import org.nuxeo.ecm.webengine.WebEngine;
-import org.nuxeo.ecm.webengine.app.DefaultContext;
 import org.nuxeo.ecm.webengine.model.WebContext;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.scim.v2.api.ScimV2MappingService;
 import org.nuxeo.scim.v2.api.ScimV2QueryContext;
 
-import com.sun.jersey.api.core.HttpContext;
 import com.unboundid.scim2.common.ScimResource;
 import com.unboundid.scim2.common.exceptions.ForbiddenException;
 import com.unboundid.scim2.common.exceptions.ScimException;
 import com.unboundid.scim2.common.messages.ListResponse;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 
 /**
  * @since 2023.14
@@ -58,12 +55,10 @@ public abstract class ScimV2BaseUMObject {
 
     protected final WebContext webContext;
 
-    protected ScimV2BaseUMObject(HttpContext httpContext) {
+    protected ScimV2BaseUMObject(WebContext webContext) {
         this.mappingService = Framework.getService(ScimV2MappingService.class);
         this.um = Framework.getService(UserManager.class);
-        this.webContext = WebEngine.getActiveContext();
-        // as we're out of WebEngine we need to manually set HttpContext
-        ((DefaultContext) this.webContext).setJerseyContext(null, httpContext);
+        this.webContext = webContext;
         // compute base url of the current resource
         var pathAnnotation = getClass().getAnnotation(Path.class);
         var serverBaseURL = webContext.getServerURL().append(webContext.getUrlPath()).toString(); // http://localhost:8080/nuxeo/scim/v2/Users/foo

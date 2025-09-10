@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.ecm.platform.signature.core;
 
 import org.nuxeo.directory.test.DirectoryFeature;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -28,9 +29,7 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  *
  * @since 10.1
  */
-@Features(DirectoryFeature.class)
-@Deploy("org.nuxeo.common")
-@Deploy("org.nuxeo.ecm.automation.core")
+@Features({ AutomationCoreFeature.class, DirectoryFeature.class })
 @Deploy("org.nuxeo.ecm.platform.signature.core")
 @Deploy("org.nuxeo.ecm.platform.signature.core.test")
 public class SignatureCoreFeature implements RunnerFeature {

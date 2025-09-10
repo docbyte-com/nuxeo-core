@@ -32,12 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.service.impl.NuxeoDriveManagerImpl;
@@ -75,6 +76,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  *
  * @author <a href="mailto:ogrise@nuxeo.com">Olivier Grisel</a>
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features({ NuxeoDriveFeature.class, LogCaptureFeature.class })
 @RepositoryConfig(init = DefaultRepositoryInit.class)

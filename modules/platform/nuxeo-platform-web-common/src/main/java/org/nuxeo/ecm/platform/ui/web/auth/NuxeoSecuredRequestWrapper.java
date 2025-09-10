@@ -23,9 +23,9 @@ package org.nuxeo.ecm.platform.ui.web.auth;
 
 import java.security.Principal;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpSession;
 
 public class NuxeoSecuredRequestWrapper extends HttpServletRequestWrapper {
 

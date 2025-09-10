@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -123,6 +123,18 @@ public class SAMLAuthenticationProvider
         }
 
         // Initialize the OpenSAML library
+        initOpenSAML();
+
+        processorFactory = new SAMLProcessorFactory(parameters);
+
+        // contribute icon and link to the Login Screen
+        if (StringUtils.isNotBlank(parameters.get("name"))) {
+            LoginScreenHelper.registerSingleProviderLoginScreenConfig(parameters.get("name"), parameters.get("icon"),
+                    null, parameters.get("label"), parameters.get("description"), this);
+        }
+    }
+
+    protected static void initOpenSAML() {
         try {
             // don't use InitializationService.initialize
             // because it tries to configure MetricRegistry for version 4.x whereas we have 5.x
@@ -134,15 +146,6 @@ public class SAMLAuthenticationProvider
             new DecryptionParserPoolInitializer().init();
         } catch (InitializationException e) {
             throw new NuxeoException("Failed to initialize OpenSAML library", e);
-        }
-
-        processorFactory = new SAMLProcessorFactory(parameters);
-        ;
-
-        // contribute icon and link to the Login Screen
-        if (StringUtils.isNotBlank(parameters.get("name"))) {
-            LoginScreenHelper.registerSingleProviderLoginScreenConfig(parameters.get("name"), parameters.get("icon"),
-                    null, parameters.get("label"), parameters.get("description"), this);
         }
     }
 

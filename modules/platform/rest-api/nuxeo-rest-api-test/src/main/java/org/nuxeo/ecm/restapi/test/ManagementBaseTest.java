@@ -30,7 +30,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.json.JSONException;
 import org.junit.Rule;

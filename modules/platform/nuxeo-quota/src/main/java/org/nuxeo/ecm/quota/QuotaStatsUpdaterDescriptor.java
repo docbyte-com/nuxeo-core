@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
  * Contributors:
  *     Thomas Roger <troger@nuxeo.com>
  */
-
 package org.nuxeo.ecm.quota;
+
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor object for registering {@link org.nuxeo.ecm.quota.QuotaStatsUpdater}s.
@@ -29,7 +32,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 5.5
  */
 @XObject("quotaStatsUpdater")
-public class QuotaStatsUpdaterDescriptor {
+public class QuotaStatsUpdaterDescriptor implements Descriptor {
 
     @XNode("@name")
     protected String name;
@@ -46,55 +49,40 @@ public class QuotaStatsUpdaterDescriptor {
     @XNode("@descriptionLabel")
     protected String descriptionLabel;
 
-    public String getName() {
+    @Override
+    public String getId() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public String getName() {
+        return name;
     }
 
     public boolean isEnabled() {
         return enabled;
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled = enabled;
-    }
-
     public Class<? extends QuotaStatsUpdater> getQuotaStatsUpdaterClass() {
         return quotaStatsUpdaterClass;
-    }
-
-    public void setQuotaStatsUpdaterClass(Class<? extends QuotaStatsUpdater> quotaStatsUpdaterClass) {
-        this.quotaStatsUpdaterClass = quotaStatsUpdaterClass;
     }
 
     public String getLabel() {
         return label;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
-    }
-
     public String getDescriptionLabel() {
         return descriptionLabel;
     }
 
-    public void setDescriptionLabel(String descriptionLabel) {
-        this.descriptionLabel = descriptionLabel;
-    }
-
     @Override
-    public QuotaStatsUpdaterDescriptor clone() {
-        QuotaStatsUpdaterDescriptor clone = new QuotaStatsUpdaterDescriptor();
-        clone.setName(getName());
-        clone.setEnabled(isEnabled());
-        clone.setQuotaStatsUpdaterClass(getQuotaStatsUpdaterClass());
-        clone.setLabel(getLabel());
-        clone.setDescriptionLabel(getDescriptionLabel());
-        return clone;
+    public Descriptor merge(Descriptor o) {
+        var other = (QuotaStatsUpdaterDescriptor) o;
+        var merged = new QuotaStatsUpdaterDescriptor();
+        merged.name = name; // we merge based on name, so no name merging needed
+        merged.enabled = other.enabled;
+        merged.quotaStatsUpdaterClass = defaultIfNull(other.quotaStatsUpdaterClass, quotaStatsUpdaterClass);
+        merged.label = defaultIfBlank(other.label, label);
+        merged.descriptionLabel = defaultIfBlank(other.descriptionLabel, descriptionLabel);
+        return merged;
     }
-
 }

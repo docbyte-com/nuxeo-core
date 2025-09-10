@@ -31,9 +31,8 @@ object ScnCreateFolders {
         feed(folders)
           .feed(Feeders.users)
           .exec(NuxeoRest.createDocument())
-          .doIf(session => Redis.markFolderCreated(session)) {
-            exec()
-          }.pause(pause)
+          .exec(session => Redis.markFolderCreated(session))
+          .pause(pause)
       }
     ).feed(Feeders.admins).exec(NuxeoRest.waitForAsyncJobs())
   }

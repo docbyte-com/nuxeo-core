@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,8 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Contributors:
  */
 package org.nuxeo.ecm.user.center.profile;
 
@@ -21,7 +19,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -36,8 +33,10 @@ import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.event.EventService;
+import org.nuxeo.ecm.core.storage.mem.IgnoreIfDBSMemRepository;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -54,10 +53,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 public class TestUserProfileImporterOk extends AbstractUserProfileImporterTest {
 
     @Test
+    // we use hot redeploy, which restarts the repository, so DBS Mem (which has no persistence) cannot be used
+    @ConditionalIgnore(condition = IgnoreIfDBSMemRepository.class, cause = "Cannot test on DBS Mem")
     public void userProfileImportsShouldSucceed() throws Exception {
-        // we use hot redeploy, which restarts the repository, so DBS Mem (which has no persistence) cannot be used
-        assumeFalse("Cannot test on DBS Mem", coreFeature.getStorageConfiguration().isDBSMem());
-
         assertNotNull(userProfileService);
 
         Framework.getService(EventService.class).waitForAsyncCompletion();

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,8 +64,8 @@ public class TestSQLBackendNoProxies extends TestSQLBackend {
     }
 
     @Test
-    public void testQueryReturnsNoProxies() throws Exception {
-        assumeTrue(!(DatabaseHelper.DATABASE instanceof DatabasePostgreSQL)); // NXP-24842
+    public void testQueryReturnsNoProxies() {
+        assumeTrue(!repositoryFeature.isPostgreSQL()); // NXP-24842
 
         // create proxy through repo 2, which allows proxies
         // second repo with proxies allowed

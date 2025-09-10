@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,11 @@
  *
  * Contributors:
  *     Anahide Tchertchian
- *
  */
-
 package org.nuxeo.ecm.directory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -313,6 +310,7 @@ public abstract class BaseSession implements Session, EntrySource {
      * @return the directory entry
      * @since 11.1
      */
+    @SuppressWarnings("deprecation")
     public static DocumentModel createEntryModel(String schema, String id, Map<String, Object> values,
             boolean readOnly) {
         DocumentModelImpl entry = new DocumentModelImpl(schema, id, null, null, null, new String[] { schema },
@@ -388,7 +386,7 @@ public abstract class BaseSession implements Session, EntrySource {
         String idFieldName = directory.getSchemaFieldMap().get(getIdField()).getName().getPrefixedName();
         DocumentModelList result = query(Collections.singletonMap(idFieldName, id), Collections.emptySet(),
                 Collections.emptyMap(), true);
-        return result.isEmpty() ? null : result.get(0);
+        return result.isEmpty() ? null : result.getFirst();
     }
 
     @Override
@@ -448,7 +446,7 @@ public abstract class BaseSession implements Session, EntrySource {
                         "Directory: {} cannot update field: {} for entry: {}: this field is associated with more than one reference",
                         getDirectory().getName(), referenceFieldName, docModel.getId());
             } else {
-                Reference reference = references.get(0);
+                Reference reference = references.getFirst();
                 List<String> targetIds = toStringList(docModel.getProperty(schemaName, referenceFieldName));
                 if (reference.getClass() == referenceClass) {
                     reference.setTargetIdsForSource(docModel.getId(), targetIds, this);
@@ -462,15 +460,12 @@ public abstract class BaseSession implements Session, EntrySource {
 
     @SuppressWarnings("unchecked")
     public static List<String> toStringList(Object value) {
-        if (value == null) {
-            return null;
-        } else if (value instanceof List) {
-            return (List<String>) value;
-        } else if (value instanceof Object[]) {
-            return (List<String>) (List<?>) Arrays.asList((Object[]) value);
-        } else {
-            throw new NuxeoException("Cannot convert to List<String>: " + value);
-        }
+        return switch (value) {
+            case List<?> list -> (List<String>) list;
+            case Object[] objects -> (List<String>) (List<?>) List.of(objects);
+            case null -> null;
+            default -> throw new NuxeoException("Cannot convert to List<String>: " + value);
+        };
     }
 
     @Override
@@ -632,7 +627,7 @@ public abstract class BaseSession implements Session, EntrySource {
         } else {
             // query is an OR multiexpression
             queryBuilder.filter(
-                    new MultiExpression(Operator.AND, new ArrayList<>(Arrays.asList(predicate, multiExpression))));
+                    new MultiExpression(Operator.AND, new ArrayList<>(List.of(predicate, multiExpression))));
         }
         return queryBuilder;
     }

@@ -34,7 +34,7 @@ public class And implements Guard {
     protected Guard[] perms;
 
     public And(Collection<Guard> guards) {
-        this(guards.toArray(new Guard[guards.size()]));
+        this(guards.toArray(Guard[]::new));
     }
 
     public And(Guard... perms) {

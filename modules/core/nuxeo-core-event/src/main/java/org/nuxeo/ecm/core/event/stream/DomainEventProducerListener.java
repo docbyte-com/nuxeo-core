@@ -22,11 +22,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.naming.NamingException;
-import javax.transaction.RollbackException;
-import javax.transaction.Status;
-import javax.transaction.Synchronization;
-import javax.transaction.SystemException;
-import javax.transaction.TransactionManager;
+
+import jakarta.transaction.RollbackException;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.SystemException;
+import jakarta.transaction.TransactionManager;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -35,6 +36,7 @@ import org.nuxeo.ecm.core.event.EventListener;
 import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.lib.stream.computation.Record;
 import org.nuxeo.lib.stream.computation.StreamManager;
+import org.nuxeo.lib.stream.log.LogOffset;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.stream.StreamService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -110,7 +112,11 @@ public class DomainEventProducerListener implements EventListener, Synchronizati
             log.debug("Writing domain events");
             StreamManager streamManager = streamService.getStreamManager();
             String stream = producer.getStream();
-            records.forEach(record -> streamManager.append(stream, record));
+            List<LogOffset> offsets = records.stream().map(record -> streamManager.append(stream, record)).toList();
+            log.debug("Calling postCommitHook on DEP: {} record key: {}, offsets {}", producer::getName,
+                    () -> records.getFirst().getKey(), () -> offsets);
+            producer.postCommitHook(offsets);
+            log.debug("postCommitHook completed");
         }
     }
 

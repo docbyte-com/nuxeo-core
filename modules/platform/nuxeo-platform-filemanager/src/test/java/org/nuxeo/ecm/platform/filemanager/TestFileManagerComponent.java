@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,23 +15,21 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id: JOOoConvertPluginImpl.java 18651 2007-05-13 20:28:53Z sfermigier $
  */
-
 package org.nuxeo.ecm.platform.filemanager;
 
 import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.filemanager.service.FileManagerService;
 import org.nuxeo.ecm.platform.filemanager.service.extension.FileImporter;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -39,9 +37,13 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.core.mimetype")
 @Deploy("org.nuxeo.ecm.platform.filemanager")
 @Deploy("org.nuxeo.ecm.platform.filemanager:nxfilemanager-test-contribs.xml")
+@BlacklistComponent("filemanager.core.listener.unicity") // needs EventServiceComponent
+// needs PageProviderService
+@BlacklistComponent("org.nuxeo.ecm.platform.filemanager.service.FileManagerService.PageProviders")
+@BlacklistComponent("filemanager.core.listener.icon") // needs EventServiceComponent
+@BlacklistComponent("filemanager.core.listener.digest") // needs EventServiceComponent
 public class TestFileManagerComponent {
     @Inject
     protected FileManager fileManager;

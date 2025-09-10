@@ -24,6 +24,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -37,6 +38,10 @@ import org.nuxeo.runtime.test.runner.RuntimeFeature;
 @RunWith(FeaturesRunner.class)
 @Features({ RuntimeFeature.class })
 @Deploy("org.nuxeo.ecm.automation.core")
+@BlacklistComponent("org.nuxeo.ecm.core.operation.OperationServiceComponent") // needs ServerLocator
+@BlacklistComponent("org.nuxeo.ecm.core.automation.coreContrib") // needs OperationServiceComponent
+@BlacklistComponent("org.nuxeo.ecm.core.automation.marshallers") // needs MarshallerRegistry
+@BlacklistComponent("org.nuxeo.ecm.automation.core.impl.workmanager") // needs WorkManager
 public class PropertiesValueTrimmingCustomContributionTest extends PropertiesTestAbstract {
 
     @Deploy("org.nuxeo.ecm.automation.core:OSGI-INF/test-properties-contrib.xml")

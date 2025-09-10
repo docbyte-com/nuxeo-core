@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.Serializable;
@@ -33,8 +33,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +50,7 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -77,6 +78,9 @@ public class TestCoreDirectory {
 
     @Inject
     protected CoreFeature coreFeature;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Inject
     @Named(CoreDirectoryFeature.CORE_DIRECTORY_NAME)
@@ -167,7 +171,7 @@ public class TestCoreDirectory {
     @Test
     @Ignore
     public void testCreateFromModel() {
-        DocumentModel entry = BaseSession.createEntryModel(null, SCHEMA_NAME, null, null);
+        DocumentModel entry = BaseSession.createEntryModel(SCHEMA_NAME, null, null);
         String id = "newId";
         entry.setPropertyValue(UID_FIELD, id);
 
@@ -178,11 +182,7 @@ public class TestCoreDirectory {
 
         // create one with existing same id, must fail
         entry.setProperty(USER_SCHEMA_NAME, USERNAME_FIELD, CoreDirectoryInit.DOC_ID_USER1);
-        try {
-            entry = dirSession.createEntry(entry);
-            fail("Should raise an error, entry already exists");
-        } catch (DirectoryException e) {
-        }
+        assertThrows(DirectoryException.class, () -> dirSession.createEntry(entry));
     }
 
     @Test
@@ -196,7 +196,7 @@ public class TestCoreDirectory {
         DocumentModelList users = dirSession.query(usernamefilter);
         assertEquals(1, users.size());
 
-        coreFeature.getStorageConfiguration().sleepForFulltext();
+        txFeature.nextTransaction();
 
         Set<String> fulltext = new HashSet<>();
         fulltext.add("username");

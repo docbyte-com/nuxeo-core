@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nuno Cunha <ncunha@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.comment.impl;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -29,7 +28,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;

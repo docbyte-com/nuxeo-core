@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,12 @@ import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -187,7 +185,7 @@ public class ExifToolProcessor implements BinaryMetadataProcessor {
         List<Map<String, Object>> resultList = jacksonMapper.readValue(jsonOutput,
                 new TypeReference<List<Map<String, Object>>>() {
                 });
-        Map<String, Object> resultMap = resultList.get(0);
+        Map<String, Object> resultMap = resultList.getFirst();
         // Remove the SourceFile metadata injected automatically by ExifTool.
         resultMap.remove(META_NON_USED_SOURCE_FILE);
         parseDates(resultMap);
@@ -219,20 +217,16 @@ public class ExifToolProcessor implements BinaryMetadataProcessor {
         return metadataList.stream().map(tag -> "-" + tag).collect(Collectors.toList());
     }
 
-    @SuppressWarnings("unchecked")
     protected List<String> getCommandTags(Map<String, Object> metadataMap) {
         List<String> commandTags = new ArrayList<>();
         for (Map.Entry<String, Object> metadata : metadataMap.entrySet()) {
             String tag = metadata.getKey();
             Object metadataValue = metadata.getValue();
-            if (metadataValue instanceof Collection) {
-                commandTags.addAll(buildCommandTagsFromCollection(tag, (Collection<Object>) metadataValue));
-            } else if (metadataValue instanceof Object[]) {
-                commandTags.addAll(buildCommandTagsFromCollection(tag, Arrays.asList((Object[]) metadataValue)));
-            } else if (metadataValue instanceof Calendar) {
-                commandTags.add(buildCommandTagFromDate(tag, ((Calendar) metadataValue).getTime()));
-            } else {
-                commandTags.add(buildCommandTag(tag, metadataValue));
+            switch (metadataValue) {
+                case Collection<?> collection -> commandTags.addAll(buildCommandTagsFromCollection(tag, collection));
+                case Object[] objects -> commandTags.addAll(buildCommandTagsFromCollection(tag, List.of(objects)));
+                case Calendar calendar -> commandTags.add(buildCommandTagFromDate(tag, calendar.getTime()));
+                case null, default -> commandTags.add(buildCommandTag(tag, metadataValue));
             }
         }
         return commandTags;
@@ -242,13 +236,13 @@ public class ExifToolProcessor implements BinaryMetadataProcessor {
      * @since 8.3
      */
     private String buildCommandTag(String tag, Object value) {
-        return "-" + tag + "=" + Objects.toString(value);
+        return "-" + tag + "=" + value;
     }
 
     /**
      * @since 8.3
      */
-    private List<String> buildCommandTagsFromCollection(String tag, Collection<Object> values) {
+    private List<String> buildCommandTagsFromCollection(String tag, Collection<?> values) {
         return values.isEmpty() ? Collections.singletonList("-" + tag + "=")
                 : values.stream().map(val -> buildCommandTag(tag, val)).collect(Collectors.toList());
     }

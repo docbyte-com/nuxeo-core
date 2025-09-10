@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -34,33 +34,30 @@ import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.core.util.Properties;
-import org.nuxeo.ecm.automation.server.jaxrs.batch.BatchManager;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.io.upload.batch.BatchManager;
 import org.nuxeo.ecm.platform.picture.api.PictureView;
 import org.nuxeo.ecm.platform.picture.api.adapters.MultiviewPicture;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.ecm.platform.picture.operation.CreatePicture;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
-@Deploy("org.nuxeo.ecm.automation.server")
-@Deploy("org.nuxeo.ecm.platform.query.api")
+@Features(ImagingCoreFeature.class)
 public class CreatePictureTest {
 
     @Inject
-    AutomationService service;
+    protected AutomationService service;
 
     @Inject
-    CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    BatchManager batchManager;
+    protected BatchManager batchManager;
 
     protected OperationContext ctx;
 
@@ -84,21 +81,16 @@ public class CreatePictureTest {
         String batchId = batchManager.initBatch();
         batchManager.addBlob(batchId, "1", source, fileName, mimeType);
 
-        StringBuilder fakeJSON = new StringBuilder("{ ");
-        fakeJSON.append(" \"type\" : \"blob\"")
-                .append(", \"length\" : ")
-                .append(source.getLength())
-                .append(", \"mime-type\" : \"")
-                .append(mimeType)
-                .append("\"")
-                .append(", \"name\" : \"")
-                .append(fileName)
-                .append("\"")
-                .append(", \"upload-batch\" : \"")
-                .append(batchId)
-                .append("\"")
-                .append(", \"upload-fileId\" : \"1\" ")
-                .append("}");
+        String fakeJSON = """
+                {
+                  "type": "blob",
+                  "length": %s,
+                  "mime-type": "%s",
+                  "name": "%s",
+                  "upload-batch": "%s",
+                  "upload-fileId": "1"
+                }
+                """.formatted(source.getLength(), mimeType, fileName, batchId);
 
         DocumentModel root = session.getRootDocument();
 
@@ -106,22 +98,19 @@ public class CreatePictureTest {
 
         Properties properties = new Properties();
         properties.put("dc:title", "MySuperPicture");
-        properties.put(CreatePicture.PICTURE_FIELD, fakeJSON.toString());
+        properties.put(CreatePicture.PICTURE_FIELD, fakeJSON);
 
         Properties templates = new Properties();
 
         for (int i = 1; i < 5; i++) {
-            StringBuilder sb = new StringBuilder("{");
-            sb.append("\"description\": \"Desc ")
-              .append(i)
-              .append("\",")
-              .append("\"title\": \"Title")
-              .append(i)
-              .append("\",")
-              .append("\"maxsize\":")
-              .append(i * 100)
-              .append("}");
-            templates.put("thumb" + i, sb.toString());
+            String thumb = """
+                    {
+                      "description": "Desc %s",
+                      "title": "Title %s",
+                      "maxsize": %s
+                    }
+                    """.formatted(i, i, i * 100);
+            templates.put("thumb" + i, thumb);
         }
 
         Map<String, Object> params = new HashMap<>();
@@ -137,7 +126,7 @@ public class CreatePictureTest {
         assertEquals(4, mvp.getViews().length);
 
         for (int i = 1; i < 4; i++) {
-            String title = "Title" + i;
+            String title = "Title " + i;
 
             PictureView pv = mvp.getView(title);
             assertNotNull(pv);
@@ -145,8 +134,6 @@ public class CreatePictureTest {
             Blob content = pv.getBlob();
             // Just test if we have a blob
             assertNotNull(content);
-
-            // TODO: Check size ??
         }
     }
 

@@ -1,2 +1,2 @@
-<component name="org.nuxeo.ecm.platform.importer.service.jaxrs.contrib">
+<component name="org.nuxeo.ecm.platform.importer.service.rest.contrib">
 </component>

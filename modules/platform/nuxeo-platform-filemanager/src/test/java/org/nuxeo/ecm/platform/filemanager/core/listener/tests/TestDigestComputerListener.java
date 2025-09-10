@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,17 +15,14 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.filemanager.core.listener.tests;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,15 +30,14 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.platform.filemanager")
+@Features(FileManagerFeature.class)
 @Deploy("org.nuxeo.ecm.platform.filemanager:OSGI-INF/nxfilemanager-digest-contrib.xml")
 public class TestDigestComputerListener {
 
@@ -64,14 +60,14 @@ public class TestDigestComputerListener {
     }
 
     @Test
-    public void testDigest() throws Exception {
+    public void testDigest() {
         DocumentModel file = createFileDocument();
         Blob blob = (Blob) file.getProperty("file", "content");
         assertNotNull(blob);
 
         String digest = blob.getDigest();
         assertNotNull(digest);
-        assertFalse("".equals(digest));
+        assertFalse(digest.isEmpty());
         assertEquals("CJz5xUykO51gRRCIQadZ9dL20NPDd/O0yVBEgP13Skg=", digest);
     }
 

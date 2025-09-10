@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  *
  * Contributors:
  *     Guillaume Renard <grenard@nuxeo.com>
- *
  */
 package org.nuxeo.ecm.platform.rendition.service;
 
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Descriptor for the default rendition of a document.
@@ -28,7 +28,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 9.3
  */
 @XObject("defaultRendition")
-public class DefaultRenditionDescriptor {
+public class DefaultRenditionDescriptor implements Descriptor {
 
     public static final String DEFAULT_SCRIPT_LANGUAGE = "JavaScript";
 
@@ -49,6 +49,11 @@ public class DefaultRenditionDescriptor {
 
     @XNode("script@language")
     protected String scriptLanguage;
+
+    @Override
+    public String getId() {
+        return script;
+    }
 
     public String getScript() {
         return script;

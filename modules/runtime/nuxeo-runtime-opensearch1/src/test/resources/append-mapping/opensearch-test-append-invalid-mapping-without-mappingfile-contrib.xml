@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.opensearch.test.append.invalid.mapping.without.mappingfile.contained.contrib">
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="index">
+    <index name="nxutest-mapping">
+      <mapping append="true">
+        {
+          "properties": {
+            "note:note": {
+              "type": "integer"
+            }
+          }
+        }
+      </mapping>
+    </index>
+  </extension>
+</component>

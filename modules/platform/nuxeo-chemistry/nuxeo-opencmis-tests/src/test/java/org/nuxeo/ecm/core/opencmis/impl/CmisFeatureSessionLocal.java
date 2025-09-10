@@ -18,8 +18,8 @@
  */
 package org.nuxeo.ecm.core.opencmis.impl;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.enums.CmisVersion;
@@ -47,7 +47,6 @@ public class CmisFeatureSessionLocal extends CmisFeatureSession {
     private static final int THRESHOLD = 4 * 1024 * 1024;
 
     private static final int MAX_SIZE = -1;
-
 
     @Override
     public void configure(FeaturesRunner runner, Binder binder) {

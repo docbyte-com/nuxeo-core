@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assume.assumeFalse;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -37,11 +36,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.adapter.FileItem;
@@ -66,11 +65,11 @@ import org.nuxeo.ecm.core.api.security.ACE;
 import org.nuxeo.ecm.core.api.security.ACL;
 import org.nuxeo.ecm.core.api.security.ACP;
 import org.nuxeo.ecm.core.api.security.SecurityConstants;
-import org.nuxeo.ecm.core.storage.sql.DatabaseHelper;
-import org.nuxeo.ecm.core.storage.sql.DatabaseMySQL;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.userworkspace.api.UserWorkspaceService;
+import org.nuxeo.runtime.datasource.IgnoreIfMySQL;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -88,9 +87,11 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
  *
  * @author Antoine Taillefer
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features(NuxeoDriveAutomationFeature.class)
 @Deploy("org.nuxeo.drive.core:OSGI-INF/nuxeodrive-hierarchy-userworkspace-contrib.xml")
+@ConditionalIgnore(condition = IgnoreIfMySQL.class, cause = "NXP-15969: temporarily ignore under MySQL")
 public class TestUserWorkspaceHierarchy {
 
     protected static final String CONTENT_PREFIX = "The content of file ";
@@ -111,10 +112,10 @@ public class TestUserWorkspaceHierarchy {
 
     protected static final String USER_1 = "user1";
 
-    protected static final TypeReference<List<DefaultSyncRootFolderItem>> LIST_DEFAULT_SYNC_ROOT_FOLDER_ITEM = new TypeReference<List<DefaultSyncRootFolderItem>>() {
+    protected static final TypeReference<List<DefaultSyncRootFolderItem>> LIST_DEFAULT_SYNC_ROOT_FOLDER_ITEM = new TypeReference<>() {
     };
 
-    protected static final TypeReference<List<DocumentBackedFileItem>> LIST_DOCUMENT_BACKED_FILE_ITEM = new TypeReference<List<DocumentBackedFileItem>>() {
+    protected static final TypeReference<List<DocumentBackedFileItem>> LIST_DOCUMENT_BACKED_FILE_ITEM = new TypeReference<>() {
     };
 
     @Inject
@@ -170,12 +171,6 @@ public class TestUserWorkspaceHierarchy {
     protected HttpAutomationSession clientSession1;
 
     protected ObjectMapper mapper;
-
-    @BeforeClass
-    public static void checkBackend() {
-        // NXP-15969: temporarily ignore under MySQL
-        assumeFalse(DatabaseHelper.DATABASE instanceof DatabaseMySQL);
-    }
 
     /**
      * Initializes the test hierarchy.

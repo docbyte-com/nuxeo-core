@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.Directory;
+import org.nuxeo.ecm.directory.DirectoryCoreFeature;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -36,13 +37,10 @@ import com.google.inject.Binder;
 import com.google.inject.Provider;
 import com.google.inject.name.Names;
 
-@Features(CoreFeature.class)
-@RepositoryConfig(init = CoreDirectoryInit.class)
-@Deploy("org.nuxeo.ecm.directory.api")
-@Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.directory.types.contrib")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/types-config.xml")
 @Deploy("org.nuxeo.ecm.directory.core.tests:core/core-directory-config.xml")
+@Features({ CoreFeature.class, DirectoryCoreFeature.class })
+@RepositoryConfig(init = CoreDirectoryInit.class)
 public class CoreDirectoryFeature implements RunnerFeature {
 
     public static final String CORE_DIRECTORY_NAME = "userCoreDirectory";

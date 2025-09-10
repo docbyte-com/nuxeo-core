@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,12 +25,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.api.CoreInstance;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
@@ -38,16 +36,11 @@ import org.nuxeo.ecm.platform.routing.api.DocumentRoute;
 import org.nuxeo.ecm.platform.routing.api.DocumentRoutingService;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphNode;
 import org.nuxeo.ecm.platform.routing.core.impl.GraphRoute;
-import org.nuxeo.ecm.webengine.test.WebEngineFeatureCore;
 import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 11.4
  */
-@RunWith(FeaturesRunner.class)
-@Features({ WorkflowFeature.class, WebEngineFeatureCore.class })
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-document-routing-activation-filters.xml")
 public class WorkflowActivationFilterTest extends AbstractGraphRouteTest {
 
@@ -91,27 +84,6 @@ public class WorkflowActivationFilterTest extends AbstractGraphRouteTest {
     public void testWorkflowIsRunnable() {
         setRoute("testWorkflowIsRunnable", "test_wf_pass", session);
         List<DocumentRoute> runnables = routing.getRunnableWorkflows(session, List.of(doc.getId()));
-        assertEquals(1, runnables.size());
-    }
-
-    /**
-     * NXP-31351
-     */
-    @Test
-    @Deploy("org.nuxeo.ecm.platform.routing.core.test:OSGI-INF/test-document-routing-multi-repository-contrib.xml")
-    public void testWorkflowIsRunnableMultiRepo() {
-        setRoute("testWorkflowIsRunnable", "test_wf_pass", session);
-        List<DocumentRoute> runnables = routing.getRunnableWorkflows(session, List.of(doc.getId()));
-        assertEquals(1, runnables.size());
-
-        // Create another doc in the other repository
-        CoreSession otherRepositorySession = CoreInstance.getCoreSession("other");
-        DocumentModel doc2 = session.createDocumentModel("/", "file2", "File");
-        doc2 = otherRepositorySession.createDocument(doc2);
-        setRoute("testWorkflowIsRunnable", "test_wf_pass", otherRepositorySession);
-
-        // Check we are able to retrieve the workflow model from the other repository
-        runnables = routing.getRunnableWorkflows(otherRepositorySession, List.of(doc2.getId()));
         assertEquals(1, runnables.size());
     }
 

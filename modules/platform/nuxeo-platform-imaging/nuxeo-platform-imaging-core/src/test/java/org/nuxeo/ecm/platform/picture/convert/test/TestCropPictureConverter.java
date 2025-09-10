@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,14 @@
  */
 package org.nuxeo.ecm.platform.picture.convert.test;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.convert.api.ConversionService;
 import org.nuxeo.ecm.core.convert.api.ConverterCheckResult;
 import org.nuxeo.ecm.platform.picture.api.ImagingConvertConstants;
-import org.nuxeo.ecm.platform.picture.core.ImagingFeature;
+import org.nuxeo.ecm.platform.picture.core.ImagingCoreFeature;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -34,7 +35,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  * @author Vincent Vergnolle
  */
 @RunWith(FeaturesRunner.class)
-@Features(ImagingFeature.class)
+@Features(ImagingCoreFeature.class)
 public class TestCropPictureConverter {
 
     @Test
@@ -42,6 +43,6 @@ public class TestCropPictureConverter {
         ConverterCheckResult check = Framework.getService(ConversionService.class)
                                               .isConverterAvailable(ImagingConvertConstants.OPERATION_CROP);
 
-        Assert.assertTrue(check.isAvailable());
+        assertTrue(check.isAvailable());
     }
 }

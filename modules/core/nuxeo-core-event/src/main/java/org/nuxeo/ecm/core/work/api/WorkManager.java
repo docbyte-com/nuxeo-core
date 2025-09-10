@@ -248,46 +248,7 @@ public interface WorkManager {
      * @param workId the id of the work to find
      * @return the work state, or {@code null} if not found
      * @since 5.8
+     * @apiNote not a reliable way of orchestrating Works
      */
-    @Deprecated
     State getWorkState(String workId);
-
-    /**
-     * Finds a work instance.
-     *
-     * @param workId the id of the work to find
-     * @param state the state defining the state to look into, {@link State#SCHEDULED SCHEDULED}, {@link State#RUNNING
-     *            RUNNING}, or {@code null} for non-completed
-     * @return the found work instance, or {@code null} if not found
-     * @since 7.3
-     * @deprecated since 10.2 not scalable
-     */
-    @Deprecated
-    Work find(String workId, State state);
-
-    /**
-     * Lists the work instances in a given queue in a defined state.
-     *
-     * @param queueId the queue id
-     * @param state the state defining the state to look into, {@link State#SCHEDULED SCHEDULED}, {@link State#RUNNING
-     *            RUNNING}, or {@code null} for non-completed
-     * @return the list of work instances in the given state
-     * @deprecated since 10.2 not scalable
-     */
-    @Deprecated
-    List<Work> listWork(String queueId, State state);
-
-    /**
-     * Lists the work ids in a given queue in a defined state.
-     *
-     * @param queueId the queue id
-     * @param state the state defining the state to look into, {@link State#SCHEDULED SCHEDULED}, {@link State#RUNNING
-     *            RUNNING}, or {@code null} for non-completed
-     * @return the list of work ids in the given state
-     * @since 5.8
-     * @deprecated since 10.2 not scalable
-     */
-    @Deprecated
-    List<String> listWorkIds(String queueId, State state);
-
 }

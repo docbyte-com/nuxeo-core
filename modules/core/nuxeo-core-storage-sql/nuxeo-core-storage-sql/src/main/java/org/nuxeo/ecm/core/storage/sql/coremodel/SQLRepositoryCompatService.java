@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.storage.sql.coremodel;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.storage.sql.RepositoryDescriptor;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentInstance;
@@ -41,7 +42,7 @@ public class SQLRepositoryCompatService extends DefaultComponent {
         if (XP_REPOSITORY.equals(xpoint)) {
             addContribution((RepositoryDescriptor) contrib);
         } else {
-            throw new RuntimeException("Unknown extension point: " + xpoint);
+            throw new NuxeoException("Unknown extension point: " + xpoint);
         }
     }
 
@@ -50,7 +51,7 @@ public class SQLRepositoryCompatService extends DefaultComponent {
         if (XP_REPOSITORY.equals(xpoint)) {
             removeContribution((RepositoryDescriptor) contrib);
         } else {
-            throw new RuntimeException("Unknown extension point: " + xpoint);
+            throw new NuxeoException("Unknown extension point: " + xpoint);
         }
     }
 
@@ -60,13 +61,13 @@ public class SQLRepositoryCompatService extends DefaultComponent {
                 cdesc.name);
         RepositoryDescriptor descriptor = getRepositoryDescriptor(cdesc);
         SQLRepositoryService sqlRepositoryService = Framework.getService(SQLRepositoryService.class);
-        sqlRepositoryService.addContribution(descriptor);
+        sqlRepositoryService.registerContribution(descriptor, XP_REPOSITORY, null);
     }
 
     protected void removeContribution(RepositoryDescriptor cdesc) {
         RepositoryDescriptor descriptor = getRepositoryDescriptor(cdesc);
         SQLRepositoryService sqlRepositoryService = Framework.getService(SQLRepositoryService.class);
-        sqlRepositoryService.removeContribution(descriptor);
+        sqlRepositoryService.unregisterContribution(descriptor, XP_REPOSITORY, null);
     }
 
     protected RepositoryDescriptor getRepositoryDescriptor(RepositoryDescriptor cdesc) {

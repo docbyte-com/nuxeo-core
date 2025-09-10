@@ -15,8 +15,7 @@ Bundle-Version: 0.0.0.SNAPSHOT
 Nuxeo-Component: OSGI-INF/commandline-framework.xml,
  OSGI-INF/commandline-default-contrib.xml
 Bundle-ManifestVersion: 2
-Import-Package: javax.annotation;version="1.0",
- org.apache.commons.logging,
+Import-Package: org.apache.commons.logging,
  org.nuxeo.common.utils,
  org.nuxeo.common.xmap.annotation,
  org.nuxeo.ecm.core;api=split,

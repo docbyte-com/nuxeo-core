@@ -6,7 +6,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.docker</groupId>
     <artifactId>nuxeo-docker-images</artifactId>
-    <version>2023.17-SNAPSHOT</version>
+    <version>2025.2-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-docker-image</artifactId>
@@ -55,12 +55,12 @@
           <verbose>true</verbose>
           <images>
             <image>
-              <name>nuxeo/nuxeo:2023.x</name>
+              <name>nuxeo/nuxeo:2025.x</name>
               <build>
                 <args>
                   <BUILD_TAG>local-nuxeo-nuxeo</BUILD_TAG>
                   <SCM_REF>local</SCM_REF>
-                  <VERSION>2023</VERSION>
+                  <VERSION>2025.x</VERSION>
                   <BUILD_DIR>target-${custom.environment}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
@@ -68,6 +68,11 @@
                   <platforms>
                     <platform>${docker.platforms}</platform>
                   </platforms>
+                  <secret>
+                    <files>
+                      <nuxeo-public>${basedir}/nuxeo-public.repo</nuxeo-public>
+                    </files>
+                  </secret>
                 </buildx>
               </build>
             </image>

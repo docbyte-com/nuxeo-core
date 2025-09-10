@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,15 +18,21 @@
  */
 package org.nuxeo.ecm.automation.core.events;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.collections4.ListUtils.emptyIfNull;
+import static org.apache.commons.collections4.ListUtils.union;
+import static org.apache.commons.collections4.SetUtils.emptyIfNull;
+import static org.apache.commons.collections4.SetUtils.union;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.getIfBlank;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.mvel2.CompileException;
@@ -41,12 +47,13 @@ import org.nuxeo.ecm.core.api.Filter;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.impl.ShallowDocumentModel;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @author <a href="mailto:bs@nuxeo.com">Bogdan Stefanescu</a>
  */
 @XObject("handler")
-public class EventHandler {
+public class EventHandler implements Descriptor {
 
     private static final Logger log = LogManager.getLogger(EventHandler.class);
 
@@ -101,83 +108,38 @@ public class EventHandler {
     protected String condition;
 
     @XNode("filters/condition")
-    protected void _setCondition(String expr) {
-        condition = convertExpr(expr);
+    protected void _setCondition(String condition) {
+        this.condition = condition.replaceAll("&lt;", "<") //
+                                  .replaceAll("&gt;", ">") //
+                                  .replaceAll("&amp;", "&");
     }
 
     /** @since 2021.16 */
     @XNode("@enabled")
     protected boolean enabled = true;
 
-    protected String convertExpr(String expr) {
-        String res = expr.replaceAll("&lt;", "<");
-        res = res.replaceAll("&gt;", ">");
-        res = res.replaceAll("&amp;", "&");
-        return res;
-    }
-
-    public EventHandler() {
-    }
-
-    public EventHandler(String eventId, String chainId) {
-        this(Collections.singleton(eventId), chainId);
-    }
-
-    public EventHandler(Set<String> eventId, String chainId) {
-        events = eventId;
-        this.chainId = chainId;
+    @Override
+    public String getId() {
+        return getIfBlank(id, () -> {
+            var result = chainId;
+            if (isNotEmpty(events)) {
+                result += "_" + String.join("_", events);
+            }
+            log.debug("An EventHandler without id has been contributed. Generated id: {} ", id);
+            return result;
+        });
     }
 
     public Set<String> getEvents() {
         return events;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public String getChainId() {
         return chainId;
     }
 
-    public void setPostCommit(boolean isPostCommit) {
-        this.isPostCommit = isPostCommit;
-    }
-
     public boolean isPostCommit() {
         return isPostCommit;
-    }
-
-    public void setAttributeFilter(Filter attribute) {
-        this.attribute = attribute;
-    }
-
-    public void setIsAdministrator(Boolean isAdministrator) {
-        this.isAdministrator = isAdministrator;
-    }
-
-    public void setMemberOf(List<String> groups) {
-        memberOf = groups;
-    }
-
-    public void setPathStartsWith(String pathStartsWith) {
-        this.pathStartsWith = pathStartsWith;
-    }
-
-    public void setDoctypes(Set<String> doctypes) {
-        this.doctypes = doctypes;
-    }
-
-    public void setFacet(String facet) {
-        this.facet = facet;
-    }
-
-    public void setLifeCycle(String[] lifeCycle) {
-        this.lifeCycle = lifeCycle;
-    }
-
-    public void setChainId(String chainId) {
-        this.chainId = chainId;
     }
 
     /**
@@ -187,13 +149,6 @@ public class EventHandler {
      */
     public String getCondition() {
         return condition;
-    }
-
-    /**
-     * @since 5.9.1
-     */
-    public void setCondition(String condition) {
-        this.condition = condition;
     }
 
     public String getFacet() {
@@ -304,7 +259,7 @@ public class EventHandler {
          * The following are not evaluated in quick mode, as we need a full DocumentModelImpl to evaluate most
          * expressions.
          */
-        if (!org.apache.commons.lang3.StringUtils.isBlank(condition)) {
+        if (!isBlank(condition)) {
             Expression expr = Scripting.newExpression(condition);
             try {
                 if (!Boolean.TRUE.equals(expr.eval(ctx))) {
@@ -319,71 +274,24 @@ public class EventHandler {
         return true;
     }
 
-    /** @since 2021.16 */
+    /** @since 2025.0 */
     @Override
-    public EventHandler clone() {
-        EventHandler clone = new EventHandler();
-        clone.id = id;
-        clone.chainId = chainId;
-        clone.isPostCommit = isPostCommit;
-        if (events != null) {
-            clone.events = new HashSet<>(events);
-        }
-        if (doctypes != null) {
-            clone.doctypes = new HashSet<>(doctypes);
-        }
-        clone.facet = facet;
-        if (lifeCycle != null) {
-            clone.lifeCycle = Arrays.copyOf(lifeCycle, lifeCycle.length);
-        }
-        clone.pathStartsWith = pathStartsWith;
-        clone.attribute = attribute;
-        if (memberOf != null) {
-            clone.memberOf = new ArrayList<>(memberOf);
-        }
-        clone.isAdministrator = isAdministrator;
-        clone.condition = condition;
-        clone.enabled = enabled;
-        return clone;
-    }
-
-    /** @since 2021.16 */
-    public void merge(EventHandler other) {
-        if (!StringUtils.isBlank(other.chainId)) {
-            chainId = other.chainId;
-        }
-        isPostCommit = other.isPostCommit;
-        events = mergeCollections(events, other.events, new HashSet<>());
-        doctypes = mergeCollections(doctypes, other.doctypes, new HashSet<>());
-        if (StringUtils.isNotBlank(other.facet)) {
-            facet = other.facet;
-        }
-        if (other.lifeCycle != null) {
-            lifeCycle = other.lifeCycle;
-        }
-        if (StringUtils.isNotBlank(other.pathStartsWith)) {
-            pathStartsWith = other.pathStartsWith;
-        }
-        if (other.attribute != null) {
-            attribute = other.attribute;
-        }
-        memberOf = mergeCollections(memberOf, other.memberOf, new ArrayList<>());
-        if (other.isAdministrator != null) {
-            isAdministrator = other.isAdministrator;
-        }
-        if (StringUtils.isNotBlank(other.condition)) {
-            condition = other.condition;
-        }
-        enabled = other.enabled;
-    }
-
-    protected <C extends Collection<V>, V> C mergeCollections(C collection, C otherCollection, C newCollection) {
-        if (collection != null) {
-            newCollection.addAll(collection);
-        }
-        if (otherCollection != null) {
-            newCollection.addAll(otherCollection);
-        }
-        return newCollection;
+    public Descriptor merge(Descriptor o) {
+        var other = (EventHandler) o;
+        var merged = new EventHandler();
+        merged.id = id; // we merge based on id, so no name merging needed
+        merged.chainId = defaultIfBlank(other.chainId, chainId);
+        merged.isPostCommit = other.isPostCommit;
+        merged.events = union(emptyIfNull(events), emptyIfNull(other.events));
+        merged.doctypes = union(emptyIfNull(doctypes), emptyIfNull(other.doctypes));
+        merged.facet = defaultIfBlank(other.facet, facet);
+        merged.lifeCycle = defaultIfNull(other.lifeCycle, lifeCycle);
+        merged.pathStartsWith = defaultIfBlank(other.pathStartsWith, pathStartsWith);
+        merged.attribute = defaultIfNull(other.attribute, attribute);
+        merged.memberOf = union(emptyIfNull(memberOf), emptyIfNull(other.memberOf));
+        merged.isAdministrator = defaultIfNull(other.isAdministrator, isAdministrator);
+        merged.condition = defaultIfBlank(other.condition, condition);
+        merged.enabled = other.enabled;
+        return merged;
     }
 }

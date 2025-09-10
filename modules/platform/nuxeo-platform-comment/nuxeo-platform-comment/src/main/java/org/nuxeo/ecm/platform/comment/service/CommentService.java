@@ -23,21 +23,15 @@ package org.nuxeo.ecm.platform.comment.service;
 
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_ID;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_PROPERTY;
-import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_RELATION;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STATE_SECURED;
 import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STEP_PROPERTY_TO_SECURED;
-import static org.nuxeo.ecm.platform.comment.api.CommentConstants.MIGRATION_STEP_RELATION_TO_PROPERTY;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.platform.comment.api.CommentManager;
 import org.nuxeo.ecm.platform.comment.impl.BridgeCommentManager;
-import org.nuxeo.ecm.platform.comment.impl.CommentManagerImpl;
 import org.nuxeo.ecm.platform.comment.impl.PropertyCommentManager;
 import org.nuxeo.ecm.platform.comment.impl.TreeCommentManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.migration.MigrationService;
-import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
 
@@ -46,50 +40,13 @@ import org.nuxeo.runtime.model.DefaultComponent;
  */
 public class CommentService extends DefaultComponent {
 
-    private static final Logger log = LogManager.getLogger(CommentService.class);
-
     public static final String ID = "org.nuxeo.ecm.platform.comment.service.CommentService";
 
     /** @since 10.3 */
     public static final ComponentName NAME = new ComponentName(ID);
 
-    public static final String VERSIONING_EXTENSION_POINT_RULES = "rules";
-
     // @GuardedBy("this")
     protected volatile CommentManager commentManager;
-
-    private CommentServiceConfig config;
-
-    @Override
-    public void registerContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        if ("config".equals(extensionPoint)) {
-            config = (CommentServiceConfig) contribution;
-            log.debug("registered service config: {}", config);
-        } else {
-            log.warn("unknown extension point: {}", extensionPoint);
-        }
-    }
-
-    @Override
-    public void unregisterContribution(Object contribution, String extensionPoint, ComponentInstance contributor) {
-        // do nothing
-    }
-
-    /**
-     * @deprecated since 11.1, it's unused and {@link CommentManagerImpl} is deprecated
-     */
-    @Deprecated(since = "11.1")
-    public CommentManager getCommentManager() {
-        log.debug("getCommentManager");
-        if (commentManager == null) {
-            commentManager = new CommentManagerImpl(config);
-        }
-        return commentManager;
-    }
-
-    public CommentServiceConfig getConfig() {
-        return config;
-    }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -116,18 +73,14 @@ public class CommentService extends DefaultComponent {
         }
         if (status.isRunning()) {
             String step = status.getStep();
-            if (MIGRATION_STEP_RELATION_TO_PROPERTY.equals(step)) {
-                return new BridgeCommentManager(new CommentManagerImpl(config), new PropertyCommentManager());
-            } else if (MIGRATION_STEP_PROPERTY_TO_SECURED.equals(step)) {
+            if (MIGRATION_STEP_PROPERTY_TO_SECURED.equals(step)) {
                 return new BridgeCommentManager(new PropertyCommentManager(), new TreeCommentManager());
             } else {
                 throw new IllegalStateException("Unknown migration step: " + step);
             }
         } else {
             String state = status.getState();
-            if (MIGRATION_STATE_RELATION.equals(state)) {
-                return new CommentManagerImpl(config);
-            } else if (MIGRATION_STATE_PROPERTY.equals(state)) {
+            if (MIGRATION_STATE_PROPERTY.equals(state)) {
                 return new PropertyCommentManager();
             } else if (MIGRATION_STATE_SECURED.equals(state)) {
                 return new TreeCommentManager();

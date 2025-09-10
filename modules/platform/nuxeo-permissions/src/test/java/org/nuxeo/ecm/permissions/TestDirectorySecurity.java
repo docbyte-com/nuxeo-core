@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2016-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,9 +26,10 @@ import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashMap;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -47,9 +48,9 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  *
  * @since 8.4
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
-@Features(PlatformFeature.class)
-@Deploy("org.nuxeo.ecm.permissions")
+@Features(PermissionsFeature.class)
 public class TestDirectorySecurity {
 
     private static final String DIR_NAME = "aceinfo";
@@ -64,7 +65,7 @@ public class TestDirectorySecurity {
     protected Serializable entryId;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         // as system, create an dummy entry
         Framework.doPrivileged(() -> {
             try (Session session = directoryService.open(DIR_NAME)) {

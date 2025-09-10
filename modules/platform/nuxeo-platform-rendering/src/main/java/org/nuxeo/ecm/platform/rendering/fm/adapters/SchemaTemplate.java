@@ -55,13 +55,7 @@ public class SchemaTemplate extends PropertyWrapper implements TemplateHashModel
     @Override
     public TemplateModel get(String name) throws TemplateModelException {
         try {
-            if (doc.isPrefetched(schemaName, name)) {
-                // simple value already available, don't load DocumentPart
-                return wrapper.wrap(doc.getProperty(schemaName, name));
-            } else {
-                // use normal Property lookup in Part
-                return wrap(doc.getPropertyObject(schemaName, name));
-            }
+            return wrap(doc.getPropertyObject(schemaName, name));
         } catch (PropertyException e) {
             throw new TemplateModelException(e);
         }

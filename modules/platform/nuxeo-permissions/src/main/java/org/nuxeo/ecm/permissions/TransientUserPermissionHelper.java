@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.permissions;
 
 import org.nuxeo.ecm.core.api.CoreInstance;
@@ -60,16 +59,6 @@ public class TransientUserPermissionHelper {
 
     private TransientUserPermissionHelper() {
         // helper class
-    }
-
-    /**
-     * @deprecated since 10.3. Use {@link #addToken(String)} instead.
-     */
-    @Deprecated
-    public static String acquireToken(String username, DocumentModel doc, String permission) {
-        addToken(username);
-        // return value was never used anyway
-        return null;
     }
 
     /**

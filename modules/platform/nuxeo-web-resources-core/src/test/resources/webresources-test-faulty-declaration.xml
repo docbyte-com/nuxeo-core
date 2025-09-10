@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<component name="org.nuxeo.theme.styling.tests.themeContrib.override">
+<component name="org.nuxeo.web.resources.tests.contrib.override">
 
   <extension target="org.nuxeo.ecm.platform.WebResources" point="bundles">
 

@@ -30,6 +30,10 @@
       <LevelMatchFilter level="DEBUG" />
       <PatternLayout pattern="${consoleLayout}" />
     </Console>
+    <Console name="CONSOLE-TRACE" target="SYSTEM_OUT">
+      <LevelMatchFilter level="TRACE" />
+      <PatternLayout pattern="${consoleLayout}" />
+    </Console>
     <File name="FILE" fileName="${sys:custom.environment.log.dir:-target}/trace.log" append="false">
       <ThresholdFilter level="DEBUG" onMatch="ACCEPT" />
       <PatternLayout pattern="%d{DEFAULT} [%t] %-5p [%c{1}] %m%n" />

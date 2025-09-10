@@ -1,0 +1,13 @@
+<instance>
+  <packages>
+    <package>
+      <supportsHotReload>false</supportsHotReload>
+      <dependencies>dependency-1</dependencies>
+    </package>
+    <package>
+      <supportsHotReload>false</supportsHotReload>
+      <dependencies>dependency-1</dependencies>
+      <dependencies>dependency-2</dependencies>
+    </package>
+  </packages>
+</instance>

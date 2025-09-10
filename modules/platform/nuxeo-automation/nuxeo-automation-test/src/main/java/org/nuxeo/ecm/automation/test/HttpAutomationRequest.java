@@ -33,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
@@ -50,12 +49,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMultipart;
-
 import org.apache.commons.collections4.IteratorUtils;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.ConnectionClosedException;
 import org.apache.http.Header;
@@ -71,12 +65,16 @@ import org.apache.http.impl.client.RedirectLocations;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
-import org.nuxeo.ecm.automation.jaxrs.io.InputStreamDataSource;
-import org.nuxeo.ecm.automation.jaxrs.io.SharedFileInputStream;
+import org.apache.tomcat.util.http.fileupload.FileItem;
+import org.apache.tomcat.util.http.fileupload.FileItemFactory;
+import org.apache.tomcat.util.http.fileupload.FileItemHeaders;
+import org.apache.tomcat.util.http.fileupload.FileUpload;
+import org.apache.tomcat.util.http.fileupload.FileUploadException;
+import org.apache.tomcat.util.http.fileupload.UploadContext;
+import org.apache.tomcat.util.http.fileupload.disk.DiskFileItemFactory;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.NuxeoException;
-import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -401,11 +399,11 @@ public class HttpAutomationRequest {
         }
     }
 
-    protected Blob getBlob(BodyPart part) throws IOException, MessagingException {
-        String mimeType = part.getHeader("Content-Type")[0];
+    protected Blob getBlob(FileItem item) throws IOException {
+        String mimeType = item.getContentType();
         String encoding = null;
-        String contentDisposition = part.getHeader("Content-Disposition")[0];
-        try (InputStream stream = part.getInputStream()) {
+        String contentDisposition = item.getHeaders().getHeader("Content-Disposition");
+        try (InputStream stream = item.getInputStream()) {
             return getBlob(stream, mimeType, encoding, contentDisposition);
         }
     }
@@ -414,26 +412,15 @@ public class HttpAutomationRequest {
         HttpEntity entity = response.getEntity();
         String contentType = entity.getContentType().getValue();
         assertTrue(contentType, contentType.startsWith("multipart/mixed"));
-        // we need to copy first the stream into a file otherwise it may happen that
-        // javax.mail fail to receive some parts
-        // perhaps the stream is no more available when javax.mail need it?
-        File tmp = Framework.createTempFile("multipart", ".tmp");
-        try (InputStream stream = entity.getContent()) {
-            FileUtils.copyInputStreamToFile(stream, tmp);
-            // get the input from the saved file
-            try (InputStream sfin = new SharedFileInputStream(tmp)) {
-                MimeMultipart mp = new MimeMultipart(new InputStreamDataSource(sfin, contentType));
-                List<Blob> blobs = new ArrayList<>();
-                for (int i = 0; i < mp.getCount(); i++) {
-                    BodyPart part = mp.getBodyPart(i);
-                    blobs.add(getBlob(part));
-                }
-                return blobs;
-            } catch (MessagingException e) {
-                throw new IOException(e);
+        try {
+            var blobs = new ArrayList<Blob>();
+            var items = new HttpEntityMultipartHandler(new DiskFileItemFactory()).parseEntity(entity);
+            for (var item : items) {
+                blobs.add(getBlob(item));
             }
-        } finally {
-            tmp.delete(); // NOSONAR
+            return blobs;
+        } catch (FileUploadException e) {
+            throw new IOException(e);
         }
     }
 
@@ -657,4 +644,59 @@ public class HttpAutomationRequest {
         }
     }
 
+    /**
+     * Even if the library is about upload, we can make it work for download.
+     * 
+     * @since 2025.0
+     */
+    protected static class HttpEntityMultipartHandler extends FileUpload {
+
+        public HttpEntityMultipartHandler(FileItemFactory fileItemFactory) {
+            super();
+            setFileItemFactory(fileItemFactory);
+        }
+
+        public List<FileItem> parseEntity(HttpEntity entity) throws FileUploadException {
+            return parseRequest(new HttpEntityContext(entity));
+        }
+
+        @Override
+        public String getFieldName(FileItemHeaders headers) {
+            // there's no field name in the response as it is not a form-data
+            // but the library requires it to parse the request
+            return "blob";
+        }
+    }
+
+    /**
+     * @since 2025.0
+     */
+    protected static class HttpEntityContext implements UploadContext {
+
+        protected final HttpEntity entity;
+
+        public HttpEntityContext(HttpEntity entity) {
+            this.entity = entity;
+        }
+
+        @Override
+        public String getCharacterEncoding() {
+            return entity.getContentEncoding() == null ? UTF_8.toString() : entity.getContentEncoding().getValue();
+        }
+
+        @Override
+        public String getContentType() {
+            return entity.getContentType().getValue();
+        }
+
+        @Override
+        public long contentLength() {
+            return entity.getContentLength();
+        }
+
+        @Override
+        public InputStream getInputStream() throws IOException {
+            return entity.getContent();
+        }
+    }
 }

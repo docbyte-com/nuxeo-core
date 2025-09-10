@@ -18,11 +18,13 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static org.apache.commons.io.output.NullOutputStream.NULL_OUTPUT_STREAM;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.blob.s3.S3BlobStoreConfiguration.DELIMITER;
+import static org.nuxeo.ecm.blob.s3.S3Utils.sanitizeETag;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
+import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.OFF;
+import static software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus.ON;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,12 +32,14 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
+import java.util.concurrent.CompletionException;
 
+import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -61,36 +65,21 @@ import org.nuxeo.ecm.core.model.Repository;
 import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.runtime.api.Framework;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.SdkBaseException;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.BucketVersioningConfiguration;
-import com.amazonaws.services.s3.model.CopyObjectRequest;
-import com.amazonaws.services.s3.model.EncryptedPutObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectMetadataRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ListObjectsRequest;
-import com.amazonaws.services.s3.model.ListVersionsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.ObjectLockLegalHold;
-import com.amazonaws.services.s3.model.ObjectLockLegalHoldStatus;
-import com.amazonaws.services.s3.model.ObjectLockRetention;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.RestoreObjectRequest;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.amazonaws.services.s3.model.S3VersionSummary;
-import com.amazonaws.services.s3.model.SSEAlgorithm;
-import com.amazonaws.services.s3.model.SSEAwsKeyManagementParams;
-import com.amazonaws.services.s3.model.SetObjectLegalHoldRequest;
-import com.amazonaws.services.s3.model.SetObjectRetentionRequest;
-import com.amazonaws.services.s3.model.StorageClass;
-import com.amazonaws.services.s3.model.VersionListing;
-import com.amazonaws.services.s3.transfer.Copy;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.Upload;
-import com.amazonaws.services.s3.transfer.model.CopyResult;
-import com.amazonaws.services.s3.transfer.model.UploadResult;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.exception.SdkServiceException;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.Copy;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
+import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
+import software.amazon.encryption.s3.S3EncryptionClientException;
 
 /**
  * Blob storage in S3.
@@ -108,7 +97,7 @@ public class S3BlobStore extends AbstractBlobStore {
 
     protected final S3BlobStoreConfiguration config;
 
-    protected final AmazonS3 amazonS3;
+    protected final S3Client amazonS3;
 
     protected final String bucketName;
 
@@ -129,12 +118,6 @@ public class S3BlobStore extends AbstractBlobStore {
 
     protected final BinaryGarbageCollector gc;
 
-    /** @deprecated since 11.5 */
-    @Deprecated
-    public S3BlobStore(String name, S3BlobStoreConfiguration config, KeyStrategy keyStrategy) {
-        this(null, name, config, keyStrategy);
-    }
-
     /** @since 11.5 */
     public S3BlobStore(String blobProviderId, String name, S3BlobStoreConfiguration config, KeyStrategy keyStrategy) {
         super(blobProviderId, name, keyStrategy);
@@ -150,25 +133,20 @@ public class S3BlobStore extends AbstractBlobStore {
         gc = new S3BlobGarbageCollector();
     }
 
-    public S3BlobStore getS3BinaryManager() {
-        return S3BlobStore.this;
-    }
-
-    protected static boolean isMissingKey(AmazonServiceException e) {
-        return e.getStatusCode() == 404 || "NoSuchKey".equals(e.getErrorCode()) || "Not Found".equals(e.getMessage());
-    }
-
-    protected static boolean isNotImplemented(AmazonServiceException e) {
-        return e.getStatusCode() == 501 || "NotImplemented".equals(e.getErrorCode());
+    protected static boolean isMissingKey(SdkException e) {
+        return (e instanceof SdkServiceException sse && sse.statusCode() == 404)
+                || (e instanceof S3EncryptionClientException
+                && e.getCause() instanceof SdkServiceException sdkServiceException
+                && sdkServiceException.statusCode() == 404);
     }
 
     protected boolean isBucketVersioningEnabled() {
         try {
-            BucketVersioningConfiguration v = amazonS3.getBucketVersioningConfiguration(bucketName);
+            GetBucketVersioningResponse response = amazonS3.getBucketVersioning(b -> b.bucket(bucketName));
             // if versioning is suspended, created objects won't have versions
-            return v.getStatus().equals(BucketVersioningConfiguration.ENABLED);
-        } catch (AmazonServiceException e) {
-            if (isNotImplemented(e)) {
+            return response.status().equals(BucketVersioningStatus.ENABLED);
+        } catch (SdkServiceException e) {
+            if (e.statusCode() == 501) {
                 // minio does not implement versioning
                 log.warn("Versioning not implemented for bucket: {}: {}", () -> bucketName, e::getMessage);
                 log.debug(e, e);
@@ -199,9 +177,9 @@ public class S3BlobStore extends AbstractBlobStore {
     protected boolean supportsAsyncDigest() {
         RepositoryService repositoryService = Framework.getService(RepositoryService.class);
         return repositoryService.getRepositoryNames()
-                                .stream()
-                                .map(repositoryService::getRepository)
-                                .allMatch(this::supportsAsyncDigest);
+                .stream()
+                .map(repositoryService::getRepository)
+                .allMatch(this::supportsAsyncDigest);
     }
 
     protected boolean supportsAsyncDigest(Repository repository) {
@@ -232,7 +210,7 @@ public class S3BlobStore extends AbstractBlobStore {
                     // otherwise use blob file directly
                     if (blobWriteContext.writeObserver != null) {
                         // but we must still run the writes through the write observer
-                        transfer(blobWriteContext, NULL_OUTPUT_STREAM);
+                        transfer(blobWriteContext, NullOutputStream.INSTANCE);
                     }
                     file = blobFile.toPath();
                     fileTraceSource = "Nuxeo";
@@ -277,7 +255,7 @@ public class S3BlobStore extends AbstractBlobStore {
         long t0 = 0;
         if (log.isDebugEnabled()) {
             t0 = System.currentTimeMillis();
-            log.debug("Writing s3://" + bucketName + "/" + bucketKey);
+            log.debug("Writing s3://{}/{}", bucketName, bucketKey);
         }
 
         if (getKeyStrategy().useDeDuplication() && bucketKeyExists(bucketKey)) {
@@ -288,70 +266,56 @@ public class S3BlobStore extends AbstractBlobStore {
             }
         }
 
-        PutObjectRequest putObjectRequest;
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        if (config.useClientSideEncryption) {
-            // client-side encryption
-            putObjectRequest = new EncryptedPutObjectRequest(bucketName, bucketKey, file.toFile());
-        } else {
-            // server-side encryption
-            putObjectRequest = new PutObjectRequest(bucketName, bucketKey, file.toFile());
+        UploadFileRequest.Builder uploadFileRequestBuilder = UploadFileRequest.builder().putObjectRequest(b -> {
+            b.bucket(bucketName).key(bucketKey);
             if (config.useServerSideEncryption) {
                 if (isNotBlank(config.serverSideKMSKeyID)) {
                     // SSE-KMS
-                    SSEAwsKeyManagementParams params = new SSEAwsKeyManagementParams(config.serverSideKMSKeyID);
-                    putObjectRequest.setSSEAwsKeyManagementParams(params);
+                    b.ssekmsKeyId(config.serverSideKMSKeyID);
                 } else {
                     // SSE-S3
-                    objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
+                    b.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString());
                 }
-                // TODO SSE-C
             }
-        }
-        setMetadata(objectMetadata, blobContext);
-        putObjectRequest.setMetadata(objectMetadata);
+            setMetadata(b, blobContext);
+        }).addTransferListener(LoggingTransferListener.create()).source(file);
         logTrace(fileTraceSource, "->", null, "write " + Files.size(file) + " bytes");
         logTrace("hnote right: " + bucketKey);
-        Upload upload = config.transferManager.upload(putObjectRequest);
         try {
-            UploadResult uploadResult = upload.waitForUploadResult();
+            FileUpload fileUpload = config.transferManager.uploadFile(uploadFileRequestBuilder.build());
+            CompletedFileUpload uploadResult = fileUpload.completionFuture().join();
             // if we don't want to use versions, ignore them even though the bucket may be versioned
-            String versionId = useVersion ? uploadResult.getVersionId() : null;
+            String versionId = useVersion ? uploadResult.response().versionId() : null;
             if (log.isDebugEnabled()) {
                 long dtms = System.currentTimeMillis() - t0;
-                log.debug("Wrote s3://" + bucketName + "/" + bucketKey + " in " + dtms + "ms");
+                log.debug("Wrote s3://{}/{} in {}ms", bucketName, bucketKey, dtms);
             }
             if (versionId != null) {
                 logTrace("<--", "v=" + versionId);
             }
             return versionId;
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new NuxeoException(e);
-        } catch (SdkBaseException e) {
-            // catch SdkBaseException and not just AmazonServiceException
+        } catch (CompletionException e) {
             throw new NuxeoException("Failed to write blob: " + key, e);
         }
     }
 
-    protected void setMetadata(ObjectMetadata objectMetadata, BlobContext blobContext) {
+    protected void setMetadata(PutObjectRequest.Builder builder, BlobContext blobContext) {
         if (blobContext != null) {
             Blob blob = blobContext.blob;
             String filename = blob.getFilename();
             if (filename != null) {
                 String contentDisposition = RFC2231.encodeContentDisposition(filename, false, null);
-                objectMetadata.setContentDisposition(contentDisposition);
+                builder.contentDisposition(contentDisposition);
             }
             String contentType = DownloadHelper.getContentTypeHeader(blob);
-            objectMetadata.setContentType(contentType);
+            builder.contentType(contentType);
         }
         if (config.metadataAddUsername) {
             NuxeoPrincipal principal = NuxeoPrincipal.getCurrent();
             if (principal != null && !(principal instanceof SystemPrincipal)) {
                 String username = principal.getActingUser();
                 if (username != null) {
-                    Map<String, String> userMetadata = Collections.singletonMap(USER_METADATA_USERNAME, username);
-                    objectMetadata.setUserMetadata(userMetadata);
+                    builder.metadata(Collections.singletonMap(USER_METADATA_USERNAME, username));
                 }
             }
         }
@@ -388,12 +352,24 @@ public class S3BlobStore extends AbstractBlobStore {
         String debugObject = "s3://" + bucketName + "/" + debugKey;
         try {
             log.debug("Reading {}", debugObject);
-            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, bucketKey, versionId);
-            if (byteRange != null) {
-                getObjectRequest.setRange(byteRange.getStart(), byteRange.getEnd());
+
+            GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(bucketKey);
+
+            if (versionId != null) {
+                requestBuilder.versionId(versionId);
             }
-            return OptionalOrUnknown.of(amazonS3.getObject(getObjectRequest).getObjectContent());
-        } catch (AmazonServiceException e) {
+
+            if (byteRange != null) {
+                requestBuilder.range("bytes=" + byteRange.getStart() + "-" + byteRange.getEnd());
+            }
+
+            GetObjectRequest getObjectRequest = requestBuilder.build();
+            ResponseInputStream<GetObjectResponse> objectInputStream = amazonS3.getObject(getObjectRequest);
+
+            return OptionalOrUnknown.of(objectInputStream);
+        } catch (SdkException e) {
             if (isMissingKey(e)) {
                 log.debug("Blob {} does not exist", debugObject);
                 return OptionalOrUnknown.missing();
@@ -413,105 +389,103 @@ public class S3BlobStore extends AbstractBlobStore {
     }
 
     protected boolean bucketKeyHasDefaultStorageClass(String bucketKey) {
-        GetObjectMetadataRequest request = new GetObjectMetadataRequest(config.bucketName, bucketKey);
-        ObjectMetadata metadata;
+        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                .bucket(config.bucketName)
+                .key(bucketKey)
+                .build();
         try {
-            metadata = config.amazonS3.getObjectMetadata(request);
-        } catch (AmazonServiceException e) {
-            if (!isMissingKey(e)) {
-                log.error("Failed to get information on blob: {}", bucketKey, e);
+            String storageClass = amazonS3.headObject(headObjectRequest).storageClassAsString();
+            return storageClass == null; // null is the standard storage class for s3
+        } catch (SdkException e) {
+            if (isMissingKey(e)) {
+                return false;
             }
-            return false;
+            throw e;
         }
-        String storageClass = metadata.getStorageClass();
-        return storageClass == null; // null is the standard storage class for s3
     }
 
     protected boolean bucketKeyExists(String bucketKey) {
         logTrace("-->", "doesObjectExist");
         logTrace("hnote right: " + bucketKey);
-        boolean exists = amazonS3.doesObjectExist(bucketName, bucketKey);
-        if (exists) {
-            log.debug("Blob s3://{}/{} already exists", bucketName, bucketKey);
+        try {
+            amazonS3.headObject(b -> b.bucket(config.bucketName).key(bucketKey));
             logTrace("<--", "exists");
-        } else {
-            logTrace("<--", "missing");
+            return true;
+        } catch (SdkException e) {
+            if (isMissingKey(e)) {
+                logTrace("<--", "missing"); // NOSONAR
+                return false;
+            }
+            throw e;
         }
-        return exists;
     }
 
     /** @return object length, or -1 if missing */
     protected long lengthOfBlob(String key) {
         String bucketKey = bucketKey(key);
+        logTrace("-->", "getObjectMetadata");
+        logTrace("hnote right: " + bucketKey);
+        HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
+                .bucket(config.bucketName)
+                .key(bucketKey)
+                .build();
         try {
-            logTrace("-->", "getObjectMetadata");
-            logTrace("hnote right: " + bucketKey);
-            ObjectMetadata metadata = amazonS3.getObjectMetadata(bucketName, bucketKey);
-            long length = metadata.getContentLength();
-            logTrace("<--", "exists (" + length + " bytes)");
-            return length;
-        } catch (AmazonServiceException e) {
+            return amazonS3.headObject(headObjectRequest).contentLength();
+        } catch (SdkException e) {
             if (isMissingKey(e)) {
-                logTrace("<--", "missing");
-            } else {
-                log.warn("Cannot get length of: s3://" + bucketName + "/" + bucketKey, e);
+                log.debug("Failed to get information on blob: {}", key, e);
+                // don't crash for a missing blob, even though it means the storage is corrupted
+                return -1;
             }
-            return -1;
+            throw e;
         }
     }
 
     @Override
     public void clear() {
         logTrace("group ClearBucket");
-        ObjectListing list = null;
-        long n = 0;
-        do {
-            if (list == null) {
-                logTrace("->", "listObjects");
-                ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName)
-                                                                                .withPrefix(bucketPrefix);
-                if (config.getSubDirsDepth() == 0) {
-                    // use delimiter to avoid useless listing of objects in "subdirectories"
-                    listObjectsRequest.setDelimiter(DELIMITER);
-                }
-                list = amazonS3.listObjects(listObjectsRequest);
-            } else {
-                list = amazonS3.listNextBatchOfObjects(list);
-            }
-            for (S3ObjectSummary summary : list.getObjectSummaries()) {
-                amazonS3.deleteObject(bucketName, summary.getKey());
-                n++;
-            }
-        } while (list.isTruncated());
-        if (n > 0) {
-            logTrace("loop " + n + " objects");
-            logTrace("->", "deleteObject");
-            logTrace("end");
+        // No need to paginate, clear is used for tests purpose
+        ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder().bucket(bucketName).prefix(bucketPrefix);
+        if (config.getSubDirsDepth() == 0) {
+            // use delimiter to avoid useless listing of objects in "subdirectories"
+            builder.delimiter(DELIMITER);
         }
-        VersionListing vlist = null;
-        long vn = 0;
-        do {
-            if (vlist == null) {
-                logTrace("->", "listVersions");
-                ListVersionsRequest listVersionsRequest = new ListVersionsRequest().withBucketName(bucketName)
-                                                                                   .withPrefix(bucketPrefix);
-                if (config.getSubDirsDepth() == 0) {
-                    listVersionsRequest.setDelimiter(DELIMITER);
-                }
-                vlist = amazonS3.listVersions(listVersionsRequest);
-            } else {
-                vlist = amazonS3.listNextBatchOfVersions(vlist);
+        logTrace("->", "listObjects");
+        ListObjectsV2Request listReq = builder.build();
 
-            }
-            for (S3VersionSummary vsummary : vlist.getVersionSummaries()) {
-                amazonS3.deleteVersion(bucketName, vsummary.getKey(), vsummary.getVersionId());
-                vn++;
-            }
-        } while (vlist.isTruncated());
-        if (vn > 0) {
-            logTrace("loop " + vn + " versions");
-            logTrace("->", "deleteVersion");
-            logTrace("end");
+        final List<ObjectIdentifier> keys = amazonS3.listObjectsV2Paginator(listReq)
+                .stream()
+                .flatMap(r -> r.contents().stream())
+                .map(c -> ObjectIdentifier.builder().key(c.key()).build())
+                .toList();
+
+        if (!keys.isEmpty()) {
+            DeleteObjectsRequest multiObjectDeleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucketName)
+                    .delete(d -> d.objects(keys))
+                    .build();
+            amazonS3.deleteObjects(multiObjectDeleteRequest);
+        }
+        ListObjectVersionsRequest.Builder vbuilder = ListObjectVersionsRequest.builder()
+                .bucket(bucketName)
+                .prefix(bucketPrefix);
+        if (config.getSubDirsDepth() == 0) {
+            // use delimiter to avoid useless listing of objects in "subdirectories"
+            builder.delimiter(DELIMITER);
+        }
+        ListObjectVersionsRequest listObjectVersionsRequest = vbuilder.build();
+        logTrace("->", "listVersions");
+        final List<ObjectIdentifier> vKeys = amazonS3.listObjectVersionsPaginator(listObjectVersionsRequest)
+                .stream()
+                .flatMap(r -> r.versions().stream())
+                .map(c -> ObjectIdentifier.builder().key(c.key()).build())
+                .toList();
+        if (!vKeys.isEmpty()) {
+            DeleteObjectsRequest multiObjectDeleteRequest = DeleteObjectsRequest.builder()
+                    .bucket(bucketName)
+                    .delete(d -> d.objects(vKeys))
+                    .build();
+            amazonS3.deleteObjects(multiObjectDeleteRequest);
         }
         logTrace("end");
     }
@@ -540,38 +514,45 @@ public class S3BlobStore extends AbstractBlobStore {
         String bucketKey = bucketKey(objectKey);
         String debugKey = bucketKey + (versionId == null ? "" : "@" + versionId);
         String debugObject = "s3://" + bucketName + "/" + debugKey;
-        try {
-            log.debug("Reading {}", debugObject);
-            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, bucketKey, versionId);
-            if (byteRange != null) {
-                getObjectRequest.setRange(byteRange.getStart(), byteRange.getEnd());
-            }
-            long t0 = System.currentTimeMillis();
-            Download download = config.transferManager.download(getObjectRequest, dest.toFile());
-            download.waitForCompletion();
-            long dtms = System.currentTimeMillis() - t0;
-
-            logTrace("<-", "read " + Files.size(dest) + " bytes");
-            logTrace("hnote right: " + debugKey);
-            log.debug("Read {} in {} ms", debugObject, dtms);
-            if (logs3dl.isDebugEnabled()) {
-                String message = String.format("Read %s (%d bytes) in %.3f s", debugObject, Files.size(dest),
-                        dtms / 1000.0);
-                logs3dl.debug(message, new Exception("DEBUGGING STACK TRACE"));
-            }
-            return true;
-        } catch (AmazonServiceException e) {
-            if (isMissingKey(e)) {
-                logTrace("<--", "missing");
-                logTrace("hnote right: " + debugKey);
-                log.debug("Blob {} does not exist", debugObject);
-                return false;
-            }
-            throw new IOException(e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new NuxeoException(e);
+        log.debug("Reading {}", debugObject);
+        GetObjectRequest.Builder objectRequestBuilder = GetObjectRequest.builder()
+                .bucket(bucketName)
+                .key(bucketKey)
+                .versionId(versionId);
+        if (byteRange != null) {
+            objectRequestBuilder.range(byteRange.toHtmlHeader());
         }
+        long t0 = System.currentTimeMillis();
+        try {
+            FileDownload downloadFile = config.transferManager.downloadFile(
+                    DownloadFileRequest.builder()
+                            .getObjectRequest(objectRequestBuilder.build())
+                            .destination(dest)
+                            .build());
+            downloadFile.completionFuture().join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof SdkException sdkException) {
+                if (isMissingKey(sdkException)) {
+                    logTrace("<--", "missing");
+                    logTrace("hnote right: " + debugKey);
+                    log.debug("Blob {} does not exist", debugObject);
+                    return false;
+                }
+                throw e;
+            }
+        }
+
+        long dtms = System.currentTimeMillis() - t0;
+
+        logTrace("<-", "read " + Files.size(dest) + " bytes");
+        logTrace("hnote right: " + debugKey);
+        log.debug("Read {} in {} ms", debugObject, dtms);
+        if (logs3dl.isDebugEnabled()) {
+            String message = String.format("Read %s (%d bytes) in %.3f s", debugObject, Files.size(dest),
+                    dtms / 1000.0);
+            logs3dl.debug(message, new Exception("DEBUGGING STACK TRACE"));
+        }
+        return true;
     }
 
     @Override
@@ -584,41 +565,34 @@ public class S3BlobStore extends AbstractBlobStore {
     public String copyOrMoveBlob(String key, BlobStore sourceStore, String sourceKey, boolean atomicMove)
             throws IOException {
         BlobStore unwrappedSourceStore = sourceStore.unwrap();
-        if (unwrappedSourceStore instanceof S3BlobStore srcS3Store) {
-            if (!config.useClientSideEncryption && !srcS3Store.config.useClientSideEncryption) {
-                // attempt direct S3-level copy
-                try {
-                    String returnedKey = copyOrMoveBlob(key, srcS3Store, sourceKey, atomicMove);
-                    if (returnedKey != null) {
-                        return returnedKey;
-                    }
-                } catch (AmazonServiceException e) {
-                    if (isMissingKey(e)) {
-                        logTrace("<--", "missing");
-                        // source not found
-                        return null;
-                    }
-                    throw new IOException(e);
+        if (unwrappedSourceStore instanceof S3BlobStore srcS3Store && !config.useClientSideEncryption
+                && !srcS3Store.config.useClientSideEncryption) {
+            // attempt direct S3-level copy
+            try {
+                String returnedKey = copyOrMoveBlob(key, srcS3Store, sourceKey, atomicMove);
+                if (returnedKey != null) {
+                    return returnedKey;
                 }
+            } catch (SdkException e) {
+                if (isMissingKey(e)) {
+                    logTrace("<--", "missing");
+                    // source not found
+                    return null;
+                }
+                throw new IOException(e);
             }
             // fall through if not copied
         }
-        return copyOrMoveBlobGeneric(key, sourceStore, sourceKey, atomicMove);
-    }
 
-    /** @deprecated since 11.5, use {@link #copyOrMoveBlob(String, S3BlobStore, String, boolean)} instead */
-    @Deprecated
-    protected boolean copyBlob(String key, S3BlobStore sourceBlobStore, String sourceKey, boolean move)
-            throws AmazonServiceException { // NOSONAR
-        return copyOrMoveBlob(key, sourceBlobStore, sourceKey, move) != null;
+        return copyOrMoveBlobGeneric(key, sourceStore, sourceKey, atomicMove);
     }
 
     /**
      * @return {@code null} if generic copy is needed
-     * @throws AmazonServiceException if the source is missing
+     * @throws AwsServiceException if the source is missing
      */
     protected String copyOrMoveBlob(String key, S3BlobStore sourceBlobStore, String sourceKey, boolean move)
-            throws AmazonServiceException { // NOSONAR
+            throws S3Exception { // NOSONAR
         sourceKey = getBlobKeyReplacement(sourceKey);
         String sourceObjectKey;
         String sourceVersionId;
@@ -636,8 +610,8 @@ public class S3BlobStore extends AbstractBlobStore {
         if (key == null) {
             // fast digest compute or trigger async digest computation
             String digest;
-            if (keyStrategy instanceof KeyStrategyDigest
-                    && ((KeyStrategyDigest) keyStrategy).digestAlgorithm.equals("MD5") //
+            if (keyStrategy instanceof KeyStrategyDigest keyStrategyDigest
+                    && keyStrategyDigest.digestAlgorithm.equals("MD5") //
                     && (digest = sourceBlobStore.getMD5DigestFromETag(sourceBucketKey)) != null) {
                 // we have a usable MD5 digest
                 key = digest;
@@ -653,8 +627,7 @@ public class S3BlobStore extends AbstractBlobStore {
         long t0 = 0;
         if (log.isDebugEnabled()) {
             t0 = System.currentTimeMillis();
-            log.debug("Copying s3://" + sourceBucketName + "/" + sourceBucketKey + " to s3://" + bucketName + "/"
-                    + bucketKey);
+            log.debug("Copying s3://{}/{} to s3://{}/{}", sourceBucketName, sourceBucketKey, bucketName, bucketKey);
         }
 
         if (getKeyStrategy().useDeDuplication() && bucketKeyExists(bucketKey)) {
@@ -671,18 +644,15 @@ public class S3BlobStore extends AbstractBlobStore {
                     bucketKey, move);
             if (log.isDebugEnabled()) {
                 long dtms = System.currentTimeMillis() - t0;
-                log.debug("Copied s3://" + sourceBucketName + "/" + sourceBucketKey + " to s3://" + bucketName + "/"
-                        + bucketKey + " in " + dtms + "ms");
+                log.debug("Copied s3://{}/{} to s3://{}/{} in {}ms", sourceBucketName, sourceBucketKey, bucketName,
+                        bucketKey, dtms);
             }
             return versionId == null ? key : key + VER_SEP + versionId;
-        } catch (AmazonServiceException e) {
-            if (isMissingKey(e)) {
-                throw e; // dealt with by the caller
-            }
+        } catch (CompletionException e) {
             logTrace("<--", "ERROR");
             String message = "Direct copy failed from s3://" + sourceBucketName + "/" + sourceBucketKey + " to s3://"
                     + bucketName + "/" + bucketKey;
-            log.warn(message + ", falling back to slow copy: " + e.getMessage());
+            log.warn("{}, falling back to slow copy: {}", message, e.getMessage());
             log.debug(message, e);
             return null;
         }
@@ -695,64 +665,48 @@ public class S3BlobStore extends AbstractBlobStore {
      */
     protected String getMD5DigestFromETag(String bucketKey) {
         // check if source ETag is applicable
-        ObjectMetadata metadata = amazonS3.getObjectMetadata(bucketName, bucketKey);
-        String eTag = metadata.getETag();
+        HeadObjectResponse response;
+        response = amazonS3.headObject(b -> b.key(bucketKey).bucket(config.bucketName));
+        String eTag = sanitizeETag(response.eTag());
         // with multipart uploaded the ETag is not a digest
         if (eTag.contains("-")) {
             return null;
         }
         // with SSE-KMS the ETag is not the MD5 of the object data
-        if (SSEAlgorithm.KMS.getAlgorithm().equals(metadata.getSSEAlgorithm())) {
+        if (ServerSideEncryption.AWS_KMS == response.serverSideEncryption()) {
             return null;
         }
         // ok the ETag is an MD5 digest
         return eTag;
     }
 
-    /**
-     * @deprecated since 11.5, use
-     *             {@link #copyOrMoveBlob(S3BlobStoreConfiguration, String, String, S3BlobStoreConfiguration, String, boolean)}
-     *             instead
-     */
-    @Deprecated
-    protected void copyBlob(S3BlobStoreConfiguration sourceConfig, String sourceKey,
-            S3BlobStoreConfiguration destinationConfig, String destinationKey, boolean move) {
-        copyOrMoveBlob(sourceConfig, sourceKey, null, destinationConfig, destinationKey, move);
-    }
-
     /** Returns the version id, or {@code null}. */
     protected String copyOrMoveBlob(S3BlobStoreConfiguration sourceConfig, String sourceKey, String sourceVersionId,
-            S3BlobStoreConfiguration destinationConfig, String destinationKey, boolean move) {
-        CopyObjectRequest copyObjectRequest = new CopyObjectRequest(sourceConfig.bucketName, sourceKey, sourceVersionId,
-                destinationConfig.bucketName, destinationKey);
-        if (destinationConfig.useServerSideEncryption) {
-            // server-side encryption
-            if (isNotBlank(destinationConfig.serverSideKMSKeyID)) {
-                // SSE-KMS
-                SSEAwsKeyManagementParams params = new SSEAwsKeyManagementParams(destinationConfig.serverSideKMSKeyID);
-                copyObjectRequest.setSSEAwsKeyManagementParams(params);
-            } else {
-                // SSE-S3
-                ObjectMetadata newObjectMetadata = new ObjectMetadata();
-                newObjectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-                // CopyCallable.populateMetadataWithEncryptionParams will get the rest from the source
-                copyObjectRequest.setNewObjectMetadata(newObjectMetadata);
-            }
-            // TODO SSE-C
-        }
+                                    S3BlobStoreConfiguration destinationConfig, String destinationKey, boolean move) {
         logTrace("->", "copyObject");
         logTrace("hnote right: " + sourceKey + (sourceVersionId == null ? "" : "@" + sourceVersionId) + " to "
                 + destinationKey);
-        Copy copy = destinationConfig.transferManager.copy(copyObjectRequest, sourceConfig.amazonS3, null);
-        CopyResult copyResult;
-        try {
-            copyResult = copy.waitForCopyResult();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new NuxeoException(e);
-        }
+        Copy copy = destinationConfig.transferManager.copy(cb -> cb.copyObjectRequest(b -> {
+            b.sourceBucket(sourceConfig.bucketName)
+                    .sourceKey(sourceKey)
+                    .sourceVersionId(sourceVersionId)
+                    .destinationBucket(destinationConfig.bucketName)
+                    .destinationKey(destinationKey);
+            if (destinationConfig.useServerSideEncryption) {
+                // server-side encryption
+                if (isNotBlank(destinationConfig.serverSideKMSKeyID)) {
+                    // SSE-KMS
+                    b.ssekmsKeyId(config.serverSideKMSKeyID);
+                } else {
+                    // SSE-S3
+                    b.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString());
+                }
+            }
+        }));
+        CompletedCopy completedCopy = copy.completionFuture().join();
+
         // if we don't want to use versions, ignore them even though the bucket may be versioned
-        String versionId = useVersion ? copyResult.getVersionId() : null;
+        String versionId = useVersion ? completedCopy.response().versionId() : null;
         logTrace("<--", "copied");
         if (versionId != null) {
             logTrace("hnote right: v=" + versionId);
@@ -760,16 +714,9 @@ public class S3BlobStore extends AbstractBlobStore {
         if (move) {
             logTrace("->", "deleteObject");
             logTrace("hnote right: " + sourceKey);
-            amazonS3.deleteObject(sourceConfig.bucketName, sourceKey);
+            amazonS3.deleteObject(b -> b.bucket(sourceConfig.bucketName).key(sourceKey));
         }
         return versionId;
-    }
-
-    /** @deprecated since 11.5, use {@link #copyOrMoveBlobGeneric(String, BlobStore, String, boolean)} instead */
-    @Deprecated
-    protected boolean copyBlobGeneric(String key, BlobStore sourceStore, String sourceKey, boolean atomicMove)
-            throws IOException {
-        return copyOrMoveBlobGeneric(key, sourceStore, sourceKey, atomicMove) != null;
     }
 
     protected String copyOrMoveBlobGeneric(String key, BlobStore sourceStore, String sourceKey, boolean atomicMove)
@@ -829,69 +776,66 @@ public class S3BlobStore extends AbstractBlobStore {
         String bucketKey = bucketKey(objectKey);
         try {
             if (config.s3RetentionEnabled) {
-                if (blobUpdateContext.updateRetainUntil != null) {
-                    if (versionId == null) {
-                        throw new IOException("Cannot set retention on non-versioned blob");
-                    }
-                    Calendar retainUntil = blobUpdateContext.updateRetainUntil.retainUntil;
-                    Date retainUntilDate = retainUntil == null ? null : retainUntil.getTime();
-                    ObjectLockRetention retention = new ObjectLockRetention();
-                    retention.withMode(config.retentionMode) //
-                             .withRetainUntilDate(retainUntilDate);
-                    SetObjectRetentionRequest request = new SetObjectRetentionRequest();
-                    request.withBucketName(bucketName) //
-                           .withKey(bucketKey)
-                           .withVersionId(versionId)
-                           .withRetention(retention);
-                    logTrace("->", "setObjectRetention");
-                    logTrace("hnote right: " + bucketKey + "@" + versionId);
-                    logTrace("rnote right: " + (retainUntil == null ? "null" : retainUntil.toInstant().toString()));
-                    amazonS3.setObjectRetention(request);
-                }
                 if (blobUpdateContext.updateLegalHold != null) {
                     if (versionId == null) {
                         throw new IOException("Cannot set legal hold on non-versioned blob");
                     }
                     boolean hold = blobUpdateContext.updateLegalHold.hold;
-                    ObjectLockLegalHoldStatus status = hold ? ObjectLockLegalHoldStatus.ON
-                            : ObjectLockLegalHoldStatus.OFF;
-                    ObjectLockLegalHold legalHold = new ObjectLockLegalHold().withStatus(status);
-                    SetObjectLegalHoldRequest request = new SetObjectLegalHoldRequest();
-                    request.withBucketName(bucketName) //
-                           .withKey(bucketKey)
-                           .withVersionId(versionId)
-                           .withLegalHold(legalHold);
+                    ObjectLockLegalHoldStatus status = hold ? ON : OFF;
                     logTrace("->", "setObjectLegalHold");
                     logTrace("hnote right: " + bucketKey + "@" + versionId);
                     logTrace("rnote right: " + status.toString());
-                    amazonS3.setObjectLegalHold(request);
+                    amazonS3.putObjectLegalHold(pb -> pb.bucket(bucketName)
+                            .key(bucketKey)
+                            .versionId(versionId)
+                            .legalHold(b -> b.status(status)));
+                }
+                if (blobUpdateContext.updateRetainUntil != null) {
+                    if (versionId == null) {
+                        throw new IOException("Cannot set retention on non-versioned blob");
+                    }
+                    Calendar retainUntil = blobUpdateContext.updateRetainUntil.retainUntil;
+                    Instant retainUntilInstant = retainUntil == null ? null : retainUntil.toInstant();
+                    logTrace("->", "setObjectRetention");
+                    logTrace("hnote right: " + bucketKey + "@" + versionId);
+                    logTrace("rnote right: " + (retainUntil == null ? "null" : retainUntil.toInstant().toString()));
+                    amazonS3.putObjectRetention(
+                            pb -> pb.bucket(bucketName)
+                                    .key(bucketKey)
+                                    .versionId(versionId)
+                                    .retention(b -> b.mode(config.retentionMode).retainUntilDate(retainUntilInstant)));
                 }
             }
             if (blobUpdateContext.coldStorageClass != null) {
-                StorageClass storageClass = blobUpdateContext.coldStorageClass.inColdStorage ? StorageClass.Glacier
-                        : StorageClass.Standard;
-                CopyObjectRequest copyObjectRequest = new CopyObjectRequest(bucketName, bucketKey, bucketName,
-                        bucketKey).withSourceVersionId(versionId).withStorageClass(storageClass);
+                StorageClass storageClass = blobUpdateContext.coldStorageClass.inColdStorage ? StorageClass.GLACIER
+                        : StorageClass.STANDARD;
                 logTrace("->", "updateStorageClass");
                 logTrace("hnote right: " + bucketKey + "@" + versionId);
                 logTrace("rnote right: " + storageClass);
-                config.transferManager.copy(copyObjectRequest, amazonS3, null);
+                Copy copy = config.transferManager.copy(cb -> cb.copyObjectRequest(b -> {
+                    b.sourceBucket(bucketName)
+                            .sourceKey(bucketKey)
+                            .destinationBucket(bucketName)
+                            .destinationKey(bucketKey)
+                            .storageClass(storageClass)
+                            .sourceVersionId(versionId);
+                }));
+                copy.completionFuture().join();
                 // No need to waitForCopyResult when changing storage class
             }
             if (blobUpdateContext.restoreForDuration != null) {
                 Duration duration = blobUpdateContext.restoreForDuration.duration;
                 // round up duration to days
                 int days = (int) duration.plusDays(1).minusSeconds(1).toDays();
-                RestoreObjectRequest request = new RestoreObjectRequest(bucketName, bucketKey, days).withVersionId(
-                        versionId);
-                amazonS3.restoreObjectV2(request);
+                amazonS3.restoreObject(b -> b.bucket(bucketName)
+                        .key(bucketKey)
+                        .versionId(versionId)
+                        .restoreRequest(rrb -> rrb.days(days)));
             }
-        } catch (AmazonServiceException e) {
+        } catch (SdkException e) {
             if (isMissingKey(e)) {
                 logTrace("<--", "missing");
-                if (log.isDebugEnabled()) {
-                    log.debug("Blob s3://" + bucketName + "/" + bucketKey + " does not exist");
-                }
+                log.debug("Blob s3://{}/{} does not exist", bucketName, bucketKey);
             }
             throw new IOException(e);
         }
@@ -914,17 +858,17 @@ public class S3BlobStore extends AbstractBlobStore {
             if (versionId == null) {
                 logTrace("->", "deleteObject");
                 logTrace("hnote right: " + bucketKey);
-                amazonS3.deleteObject(bucketName, bucketKey);
+                amazonS3.deleteObject(b -> b.bucket(bucketName).key(bucketKey));
             } else {
                 logTrace("->", "deleteVersion");
                 logTrace("hnote right: " + bucketKey + "@" + versionId);
-                amazonS3.deleteVersion(bucketName, bucketKey, versionId);
+                amazonS3.deleteObject(b -> b.bucket(bucketName).key(bucketKey).versionId(versionId));
             }
-        } catch (AmazonServiceException e) {
+        } catch (SdkException e) {
             if (isMissingKey(e)) {
                 logTrace("<--", "missing");
             } else {
-                log.warn("Cannot delete: s3://" + bucketName + "/" + bucketKey + "@" + versionId, e);
+                log.warn("Cannot delete: s3://{}/{}@{}", bucketName, bucketKey, versionId, e);
             }
         }
     }
@@ -951,43 +895,35 @@ public class S3BlobStore extends AbstractBlobStore {
             // list S3 objects in the bucket
             boolean useDeDuplication = keyStrategy.useDeDuplication();
             toDelete = new HashSet<>();
-            ObjectListing list = null;
             int prefixLength = bucketPrefix.length();
             logTrace("->", "listObjects on " + getId());
-            do {
-                if (list == null) {
-                    ListObjectsRequest listObjectsRequest = new ListObjectsRequest().withBucketName(bucketName)
-                                                                                    .withPrefix(bucketPrefix);
-                    if (config.getSubDirsDepth() == 0) {
-                        // use delimiter to avoid useless listing of objects in "subdirectories"
-                        listObjectsRequest.setDelimiter(DELIMITER);
-                    }
-                    list = amazonS3.listObjects(listObjectsRequest);
-                } else {
-                    list = amazonS3.listNextBatchOfObjects(list);
+            ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .prefix(bucketPrefix);
+            if (config.getSubDirsDepth() == 0) {
+                // use delimiter to avoid useless listing of objects in "subdirectories"
+                builder.delimiter(DELIMITER);
+            }
+            ListObjectsV2Request listReq = builder.build();
+
+            amazonS3.listObjectsV2Paginator(listReq).stream().flatMap(r -> r.contents().stream()).forEach(content -> {
+                String path = content.key().substring(prefixLength);
+                String key = config.getSubDirsDepth() == 0 ? path : pathStrategy.getKeyForPath(path);
+                if (key == null) {
+                    return;
                 }
-                for (S3ObjectSummary summary : list.getObjectSummaries()) {
-                    String path = summary.getKey().substring(prefixLength);
-                    // do not use pathStrategy when subDirsDepth=0 - NXP-30632
-                    String key = config.getSubDirsDepth() == 0 ? path : pathStrategy.getKeyForPath(path);
-                    if (key == null) {
-                        continue;
-                    }
-                    if (useDeDuplication) {
-                        if (!((KeyStrategyDigest) keyStrategy).isValidDigest(key)) {
-                            // ignore files that cannot be digests, for safety
-                            continue;
-                        }
-                    }
-                    long length = summary.getSize();
-                    status.sizeBinaries += length;
-                    status.numBinaries++;
-                    toDelete.add(key);
-                    if (toDelete.size() % WARN_OBJECTS_THRESHOLD == 0) {
-                        log.warn("Listing {} in progress, {} objects ...", getId(), toDelete.size());
-                    }
+                if (useDeDuplication && !((KeyStrategyDigest) keyStrategy).isValidDigest(key)) {
+                    // ignore files that cannot be digests, for safety
+                    return;
                 }
-            } while (list.isTruncated());
+                long length = content.size();
+                status.sizeBinaries += length;
+                status.numBinaries++;
+                toDelete.add(key);
+                if (toDelete.size() % WARN_OBJECTS_THRESHOLD == 0) {
+                    log.warn("Listing {} in progress, {} objects ...", getId(), toDelete.size());
+                }
+            });
             logTrace("<--", status.numBinaries + " objects");
             if (toDelete.size() >= WARN_OBJECTS_THRESHOLD) {
                 log.warn("Listing {} completed, {} objects.", getId(), toDelete.size());

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Log4j Configuration - For more configuration information and examples see https://logging.apache.org/log4j/2.x/ -->
+<!-- Warning: This is an example on how to use the Nuxeo Stream Appender, this is not a production configuration -->
+<Configuration monitorInterval="30">
+  <Appenders>
+
+    <Console name="CONSOLE-ORIGINAL" target="SYSTEM_OUT">
+      <ThresholdFilter level="INFO" onMatch="ACCEPT" />
+      <PatternLayout pattern="${consoleLayout}" />
+    </Console>
+    <Rewrite name="CONSOLE">
+      <AppenderRef ref="CONSOLE-ORIGINAL"/>
+      <MaskSensitiveData />
+    </Rewrite>
+
+    <!-- Nuxeo Stream Appender -->
+    <NuxeoStreamAppender name="STREAM-ORIGINAL" prefix="nuxeo-" stream="source/log4j" partitions="4" nodeId="nuxeo1">
+      <Property name="bootstrap.servers">kafka:9092</Property>
+      <Property name="default.replication.factor">-1</Property>
+      <Property name="delivery.timeout.ms">120000</Property>
+      <Property name="acks">1</Property>
+      <Property name="client.id">log4j</Property>
+    </NuxeoStreamAppender>
+    <Rewrite name="STREAM">
+      <AppenderRef ref="STREAM-ORIGINAL"/>
+      <MaskSensitiveData />
+    </Rewrite>
+
+  </Appenders>
+  <Loggers>
+    <Root level="warn">
+      <AppenderRef ref="CONSOLE" />
+      <AppenderRef ref="STREAM" />
+    </Root>
+  </Loggers>
+</Configuration>

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
+import static org.nuxeo.ecm.core.storage.sql.VCSRepositoryFeature.ID_TYPE_VALUE;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -31,7 +32,7 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -45,7 +46,7 @@ public class TestSQLBackendUpgrade extends SQLBackendTestCase {
 
     @BeforeClass
     public static void checkAssumptions() {
-        assumeTrue(!"sequence".equals(DatabaseHelper.DEF_ID_TYPE));
+        assumeTrue(!"sequence".equals(ID_TYPE_VALUE));
     }
 
     @Inject
@@ -67,10 +68,8 @@ public class TestSQLBackendUpgrade extends SQLBackendTestCase {
         super.tearDown();
     }
 
-    private static final List<String> TEST_PROPERTIES = Arrays.asList(
-            RepositoryImpl.TEST_UPGRADE_VERSIONS,
-            RepositoryImpl.TEST_UPGRADE_LAST_CONTRIBUTOR,
-            RepositoryImpl.TEST_UPGRADE_LOCKS);
+    private static final List<String> TEST_PROPERTIES = Arrays.asList(RepositoryImpl.TEST_UPGRADE_VERSIONS,
+            RepositoryImpl.TEST_UPGRADE_LAST_CONTRIBUTOR, RepositoryImpl.TEST_UPGRADE_LOCKS);
 
     protected void setUpTestProp(String prop) {
         for (String p : TEST_PROPERTIES) {
@@ -94,7 +93,7 @@ public class TestSQLBackendUpgrade extends SQLBackendTestCase {
     }
 
     @Test
-    public void testBasicsUpgrade() throws Exception {
+    public void testBasicsUpgrade() {
         setUpTestProp("");
 
         Session session = repository.getConnection();

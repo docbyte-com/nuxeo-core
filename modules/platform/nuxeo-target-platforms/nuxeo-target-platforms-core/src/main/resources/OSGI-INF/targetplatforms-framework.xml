@@ -2,8 +2,6 @@
 
 <component name="org.nuxeo.targetplatforms.core.framework">
 
-  <require>org.nuxeo.ecm.core.CoreExtensions</require>
-
   <implementation
     class="org.nuxeo.targetplatforms.core.service.TargetPlatformServiceImpl" />
 

@@ -16,7 +16,7 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.32"
+library identifier: "platform-ci-shared-library@v0.0.53"
 
 boolean isNuxeoReleaseTag() {
   return NUXEO_BRANCH =~ /^v\d+\.\d+$/
@@ -32,7 +32,7 @@ def getJavadocVersion(currentVersion) {
 
 pipeline {
   agent {
-    label 'jenkins-nuxeo-package-lts-2023'
+    label 'jenkins-nuxeo-package-lts-2025'
   }
   environment {
     NUXEO_BRANCH = "${params.NUXEO_BRANCH}"

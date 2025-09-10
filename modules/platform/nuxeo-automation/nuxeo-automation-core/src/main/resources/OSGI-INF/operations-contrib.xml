@@ -77,23 +77,7 @@
     <operation class="org.nuxeo.ecm.automation.core.operations.document.SaveDocument"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.execution.SaveSession"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentLifeCycle">
-      <widgets>
-        <widget name="value" type="codearea">
-          <labels>
-            <label mode="any">Transition</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">lifecycle</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>value</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentLifeCycle"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentACE"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.document.AddPermission"/>
@@ -109,97 +93,17 @@
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.RemoveFacet"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.AddItemToListProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.AddItemToListProperty"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.RemoveItemFromListProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.RemoveItemFromListProperty"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.CopySchema"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.ResetSchema">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.ResetSchema"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentProperty"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.RemoveProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.RemoveProperty"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.RemoveProxies"/>
     <operation
@@ -210,60 +114,12 @@
         class="org.nuxeo.ecm.automation.core.operations.document.PublishDocument"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.MultiPublishDocument"/>
-    <operation class="org.nuxeo.ecm.automation.core.operations.blob.GetDocumentBlob">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
-    <operation class="org.nuxeo.ecm.automation.core.operations.blob.GetDocumentBlobs">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+    <operation class="org.nuxeo.ecm.automation.core.operations.blob.GetDocumentBlob"/>
+    <operation class="org.nuxeo.ecm.automation.core.operations.blob.GetDocumentBlobs"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.blob.GetAllDocumentBlobs"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentBlob">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+         class="org.nuxeo.ecm.automation.core.operations.document.SetDocumentBlob"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.BulkDownload"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.PostBlob"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.BlobToPDF"/>
@@ -273,58 +129,10 @@
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.BlobToFile"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.CreateBlob"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.blob.CreateZip"/>
-    <operation class="org.nuxeo.ecm.automation.core.operations.blob.AttachBlob">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
-    <operation class="org.nuxeo.ecm.automation.core.operations.blob.SetBlobFileName">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+    <operation class="org.nuxeo.ecm.automation.core.operations.blob.AttachBlob"/>
+    <operation class="org.nuxeo.ecm.automation.core.operations.blob.SetBlobFileName"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.RemoveDocumentBlob">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.RemoveDocumentBlob"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.stack.PushBlob"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.stack.PushBlobList"/>
     <operation class="org.nuxeo.ecm.automation.core.operations.stack.PopBlob"/>
@@ -350,45 +158,13 @@
 
     <!-- From presales toolkit -->
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.AddEntryToMultiValuedProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.AddEntryToMultiValuedProperty"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.CreateProxyLive"/>
     <operation
         class="org.nuxeo.ecm.automation.core.operations.document.GetLiveDocument"/>
     <operation
-        class="org.nuxeo.ecm.automation.core.operations.document.RemoveEntryOfMultiValuedProperty">
-      <widgets>
-        <widget name="xpath" type="codearea">
-          <labels>
-            <label mode="any">XPath</label>
-          </labels>
-          <properties mode="any">
-            <property name="language">xpath</property>
-            <property name="width">100%</property>
-            <property name="height">100%</property>
-          </properties>
-          <fields>
-            <field>xpath</field>
-          </fields>
-        </widget>
-      </widgets>
-    </operation>
+        class="org.nuxeo.ecm.automation.core.operations.document.RemoveEntryOfMultiValuedProperty"/>
 
     <!-- Business Operations -->
     <operation

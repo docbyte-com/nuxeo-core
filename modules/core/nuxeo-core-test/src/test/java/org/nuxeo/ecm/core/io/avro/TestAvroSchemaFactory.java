@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
@@ -54,33 +52,26 @@ import org.nuxeo.ecm.core.schema.types.ListType;
 import org.nuxeo.ecm.core.schema.types.SchemaImpl;
 import org.nuxeo.ecm.core.schema.types.Type;
 import org.nuxeo.ecm.core.schema.types.primitives.StringType;
+import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.avro.AvroService;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
 
 /**
  * @since 10.2
  */
 @RunWith(FeaturesRunner.class)
-@Features(RuntimeFeature.class)
-@Deploy("org.nuxeo.ecm.core")
-@Deploy("org.nuxeo.ecm.core.io")
-@Deploy("org.nuxeo.ecm.core.schema")
-@Deploy("org.nuxeo.runtime.stream")
+@Features(CoreFeature.class)
 public class TestAvroSchemaFactory {
 
-    protected static Collection<String> FORBIDDEN = Arrays.asList("-", "__tutu__", "-gru__du__buk-");
+    protected static List<String> FORBIDDEN = List.of("-", "__tutu__", "-gru__du__buk-");
 
     protected static final String FIELD = "field";
 
-    protected static final Map<String, String> TYPES_MAPPING = new HashMap<>();
-
-    static {
-        TYPES_MAPPING.put("date", "timestamp-millis");
-        TYPES_MAPPING.put("binary", "bytes");
-    }
+    protected static final Map<String, String> TYPES_MAPPING = Map.of( //
+            "date", "timestamp-millis", //
+            "binary", "bytes");
 
     @Inject
     public AvroService service;
@@ -212,7 +203,7 @@ public class TestAvroSchemaFactory {
                 deepAssert((ComplexType) nuxeoF.getType(), getSchema(avroF.schema()));
             } else {
                 String actualAvroTypeName = getActualAvroNameType(avroF);
-                String actualNuxeoTypeName = getActuelNuxeoNameType(nuxeoF.getType());
+                String actualNuxeoTypeName = getActualNuxeoNameType(nuxeoF.getType());
                 assertEquals(actualNuxeoTypeName, actualAvroTypeName);
             }
         }
@@ -220,8 +211,7 @@ public class TestAvroSchemaFactory {
 
     protected String getActualAvroNameType(Field avroF) {
         Schema schema = getSchema(avroF.schema());
-        String actualAvroTypeName = schema.getLogicalType() != null
-                ? schema.getLogicalType().getName()
+        String actualAvroTypeName = schema.getLogicalType() != null ? schema.getLogicalType().getName()
                 : schema.getName();
         if (actualAvroTypeName.equals("array") || actualAvroTypeName.equals("list")) {
             actualAvroTypeName = schema.getElementType().getName();
@@ -229,12 +219,11 @@ public class TestAvroSchemaFactory {
         return actualAvroTypeName;
     }
 
-    protected String getActuelNuxeoNameType(Type type) {
+    protected String getActualNuxeoNameType(Type type) {
         if (type.isListType()) {
             ListType list = (ListType) type;
             Type fieldType = list.getFieldType();
-            String fieldTypeName = fieldType.getName().contains("anonymous")
-                    ? fieldType.getSuperType().getName()
+            String fieldTypeName = fieldType.getName().contains("anonymous") ? fieldType.getSuperType().getName()
                     : fieldType.getName();
             return TYPES_MAPPING.getOrDefault(fieldTypeName, fieldTypeName);
         } else {
@@ -246,7 +235,7 @@ public class TestAvroSchemaFactory {
         // this is the value Avro is using
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(fileName);
                 BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
-            return reader.lines().collect(Collectors.joining(System.getProperty("line.separator")));
+            return reader.lines().collect(Collectors.joining(System.lineSeparator()));
         }
     }
 

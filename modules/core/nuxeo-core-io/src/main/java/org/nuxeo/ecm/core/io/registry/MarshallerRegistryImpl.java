@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.registry;
 
 import java.lang.reflect.Type;
@@ -30,7 +29,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListSet;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.apache.logging.log4j.LogManager;
@@ -139,22 +138,14 @@ public class MarshallerRegistryImpl extends DefaultComponent implements Marshall
         if (inspector.isWriter()) {
             writers.add(inspector);
             for (MediaType mediaType : inspector.getSupports()) {
-                Set<MarshallerInspector> inspectors = writersByMediaType.get(mediaType);
-                if (inspectors == null) {
-                    inspectors = new ConcurrentSkipListSet<>();
-                    writersByMediaType.put(mediaType, inspectors);
-                }
+                var inspectors = writersByMediaType.computeIfAbsent(mediaType, k -> new ConcurrentSkipListSet<>());
                 inspectors.add(inspector);
             }
         }
         if (inspector.isReader()) {
             readers.add(inspector);
             for (MediaType mediaType : inspector.getSupports()) {
-                Set<MarshallerInspector> inspectors = readersByMediaType.get(mediaType);
-                if (inspectors == null) {
-                    inspectors = new ConcurrentSkipListSet<>();
-                    readersByMediaType.put(mediaType, inspectors);
-                }
+                var inspectors = readersByMediaType.computeIfAbsent(mediaType, k -> new ConcurrentSkipListSet<>());
                 inspectors.add(inspector);
             }
         }
@@ -281,9 +272,7 @@ public class MarshallerRegistryImpl extends DefaultComponent implements Marshall
             result.putAll(searchAllCandidates(ctx, marshalledClazz, genericType, mediatype, customs));
         }
         result.putAll(searchAllCandidates(ctx, marshalledClazz, genericType, mediatype, wildcards));
-        List<Marshaller<T>> resultList = new ArrayList<>(result.values());
-        Collections.reverse(resultList);
-        return resultList;
+        return new ArrayList<>(result.values()).reversed();
     }
 
     @SuppressWarnings("unchecked")

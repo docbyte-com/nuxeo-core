@@ -21,8 +21,8 @@
 
 package org.nuxeo.ecm.platform.el;
 
-import javax.el.ELContext;
-import javax.el.ExpressionFactory;
+import jakarta.el.ELContext;
+import jakarta.el.ExpressionFactory;
 
 public class ExpressionEvaluator {
 

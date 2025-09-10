@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.core.convert.service;
 
 import static org.junit.Assert.assertEquals;
@@ -27,11 +26,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.core.convert.tests.ConvertFeature;
+import org.nuxeo.ecm.core.convert.ConvertFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
@@ -41,8 +40,7 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
  */
 @RunWith(FeaturesRunner.class)
 @Features(ConvertFeature.class)
-@Deploy("org.nuxeo.ecm.core.mimetype")
-@Deploy("org.nuxeo.ecm.core.convert:OSGI-INF/converters-test-contrib6.xml")
+@Deploy("org.nuxeo.ecm.core.convert.tests:OSGI-INF/converters-test-contrib6.xml")
 public class TestMimeTypeTranslationHelper {
 
     @Inject

@@ -75,7 +75,7 @@
             <property name="size">10</property>
           </properties>
         </aggregate>
-        <aggregate id="common_size_agg" type="range" parameter="file:content.length">
+        <aggregate id="common_size_agg" type="range" parameter="file:content/length">
           <field schema="default_search" name="common_size_agg" />
           <ranges>
             <range key="tiny" to="102400"/>
@@ -141,7 +141,7 @@
             <property name="size">10</property>
           </properties>
         </aggregate>
-        <aggregate id="common_size_agg" type="range" parameter="file:content.length">
+        <aggregate id="common_size_agg" type="range" parameter="file:content/length">
           <field schema="default_search" name="common_size_agg" />
           <ranges>
             <range key="tiny" to="102400"/>
@@ -182,7 +182,7 @@
       <pageSize>20</pageSize>
     </coreQueryPageProvider>
 
-    <coreQueryPageProvider name="expired_search" class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider">
+    <searchServicePageProvider name="expired_search">
       <trackUsage>true</trackUsage>
       <property name="maxResults">DEFAULT_NAVIGATION_RESULTS</property>
       <searchDocumentType>ExpiredSearch</searchDocumentType>
@@ -225,7 +225,7 @@
           <clause>ecm:currentLifeCycleState = 'approved'</clause>
         </quickFilter>
       </quickFilters>
-    </coreQueryPageProvider>
+    </searchServicePageProvider>
 
   </extension>
 

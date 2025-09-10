@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.chemistry.opencmis.commons.data.CacheHeaderContentStream;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;

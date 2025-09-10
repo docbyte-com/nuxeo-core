@@ -67,7 +67,7 @@ public abstract class TypeConvertor<T> {
         return (TypeConvertor<T>) result;
     }
 
-    public static final TypeConvertor<Boolean> BOOLEAN = new TypeConvertor<Boolean>() {
+    public static final TypeConvertor<Boolean> BOOLEAN = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Boolean.class;
@@ -85,7 +85,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Integer> INTEGER = new TypeConvertor<Integer>() {
+    public static final TypeConvertor<Integer> INTEGER = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Integer.class;
@@ -101,7 +101,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Long> LONG = new TypeConvertor<Long>() {
+    public static final TypeConvertor<Long> LONG = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Long.class;
@@ -117,7 +117,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Float> FLOAT = new TypeConvertor<Float>() {
+    public static final TypeConvertor<Float> FLOAT = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Float.class;
@@ -133,7 +133,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Double> DOUBLE = new TypeConvertor<Double>() {
+    public static final TypeConvertor<Double> DOUBLE = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Double.class;
@@ -149,7 +149,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Date> DATE = new TypeConvertor<Date>() {
+    public static final TypeConvertor<Date> DATE = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Date.class;
@@ -165,7 +165,7 @@ public abstract class TypeConvertor<T> {
         }
     };
 
-    public static final TypeConvertor<Class<?>> CLASS = new TypeConvertor<Class<?>>() {
+    public static final TypeConvertor<Class<?>> CLASS = new TypeConvertor<>() {
         @Override
         public Class<?> getType() {
             return Class.class;

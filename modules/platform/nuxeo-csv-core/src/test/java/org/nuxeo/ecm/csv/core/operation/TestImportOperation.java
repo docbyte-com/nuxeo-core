@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,16 @@
 package org.nuxeo.ecm.csv.core.operation;
 
 import static junit.framework.TestCase.assertNotNull;
+import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.DOCS_VALUES_WITH_SPACES;
+import static org.nuxeo.ecm.csv.core.TestCSVImporterTrim.doAssertDescription;
 
-import java.io.File;
-import java.util.HashMap;
+import java.time.Duration;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,11 +39,12 @@ import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
+import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.impl.blob.FileBlob;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.transientstore.TransientStoreFeature;
 import org.nuxeo.ecm.csv.core.CSVImportResult;
 import org.nuxeo.ecm.csv.core.CSVImportStatus;
 import org.nuxeo.ecm.platform.test.PlatformFeature;
@@ -47,18 +52,13 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.transaction.TransactionHelper;
-import org.nuxeo.transientstore.test.TransientStoreFeature;
-
-import com.google.inject.Inject;
 
 /**
  * @since 8.10
  */
 @RunWith(FeaturesRunner.class)
-@Features({ PlatformFeature.class, CoreFeature.class, TransientStoreFeature.class })
+@Features({ AutomationCoreFeature.class, PlatformFeature.class, TransientStoreFeature.class })
 @Deploy("org.nuxeo.ecm.csv.core")
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.types")
 @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-types-contrib.xml")
 @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-ui-types-contrib.xml")
@@ -69,12 +69,10 @@ public class TestImportOperation {
     private static final String DOCS_OK_CSV = "docs_ok_big.csv";
 
     @Inject
-    private CoreSession session;
+    protected CoreSession session;
 
     @Inject
-    AutomationService service;
-
-    OperationChain chain;
+    protected AutomationService service;
 
     protected DocumentModel testFolder;
 
@@ -90,43 +88,69 @@ public class TestImportOperation {
     }
 
     @Test
-    public void testImportOperation() throws OperationException, InterruptedException {
-        Map<String, Object> params = new HashMap<>();
-        params.put("path", testFolder.getPathAsString());
+    public void testImportOperationTrimByDefault() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
 
-        chain = new OperationChain("test-chain");
+    @Test
+    public void testImportOperationDoNotTrimByParam() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", false);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationDoNotTrimByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), false);
+    }
+
+    @Test
+    @Deploy("org.nuxeo.ecm.csv.core:OSGI-INF/test-do-not-trim-contrib.xml")
+    public void testImportOperationTrimByParamButNotByProperty() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString(), "trim", true);
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_VALUES_WITH_SPACES));
+        doTestImportOperation(params, blob, 0, 0, 2, 2);
+        doAssertDescription(session, testFolder.getRef(), true);
+    }
+
+    @Test
+    public void testImportOperation() throws OperationException {
+        Map<String, Object> params = Map.of("path", testFolder.getPathAsString());
+        Blob blob = new FileBlob(FileUtils.getResourceFileFromContext(DOCS_OK_CSV));
+        doTestImportOperation(params, blob, 0, 0, 336, 336);
+    }
+
+    public void doTestImportOperation(Map<String, Object> params, Blob input, int expectedErrorCount,
+            int expectedSkippedCount, int expectedSuccessCount, int expectedTotalCount) throws OperationException {
+        var chain = new OperationChain("test-chain");
         chain.add(CSVImportOperation.ID).from(params);
 
         OperationContext ctx = new OperationContext(session);
-        File csv = FileUtils.getResourceFileFromContext(DOCS_OK_CSV);
-        Blob blob = new FileBlob(csv);
-        ctx.setInput(blob);
+        ctx.setInput(input);
 
         String importId = (String) service.run(ctx, chain);
 
         assertNotNull(importId);
 
-        boolean completed = false;
-        long start = System.currentTimeMillis();
-        long end = start + TIMEOUT_SECONDS * 1000;
-        do {
-            if (System.currentTimeMillis() > end) {
-                fail(String.format("CSV could not complete after %d seconds", TIMEOUT_SECONDS));
-            }
-            chain = new OperationChain("test-chain");
-            chain.add(CSVImportStatusOperation.ID);
+        await().pollInterval(Duration.ofMillis(100)).atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS).until(() -> {
+            var statusChain = new OperationChain("test-chain");
+            statusChain.add(CSVImportStatusOperation.ID);
 
-            ctx = new OperationContext(session);
-            ctx.setInput(importId);
+            var context = new OperationContext(session);
+            context.setInput(importId);
 
-            CSVImportStatus status = (CSVImportStatus) service.run(ctx, chain);
-
+            var status = (CSVImportStatus) service.run(context, statusChain);
             assertNotNull(status);
-            completed = status.isComplete();
-            if (!completed) {
-                Thread.sleep(100);
-            }
-        } while (!completed);
+            return status.isComplete();
+        });
 
         chain = new OperationChain("test-chain");
         chain.add(CSVImportResultOperation.ID);
@@ -137,9 +161,9 @@ public class TestImportOperation {
         CSVImportResult result = (CSVImportResult) service.run(ctx, chain);
 
         assertNotNull(result);
-        assertEquals(0, result.getErrorLineCount());
-        assertEquals(0, result.getSkippedLineCount());
-        assertEquals(336, result.getSuccessLineCount());
-        assertEquals(336, result.getTotalLineCount());
+        assertEquals(expectedErrorCount, result.getErrorLineCount());
+        assertEquals(expectedSkippedCount, result.getSkippedLineCount());
+        assertEquals(expectedSuccessCount, result.getSuccessLineCount());
+        assertEquals(expectedTotalCount, result.getTotalLineCount());
     }
 }

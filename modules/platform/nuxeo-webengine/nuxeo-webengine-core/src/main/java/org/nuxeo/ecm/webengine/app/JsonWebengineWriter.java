@@ -19,14 +19,14 @@
  */
 package org.nuxeo.ecm.webengine.app;
 
-import static javax.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+import static jakarta.servlet.http.HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.webengine.JsonFactoryManager;
@@ -51,7 +51,7 @@ public class JsonWebengineWriter {
     }
 
     private static JsonGenerator createGenerator(OutputStream out) throws IOException {
-        return getFactory().createJsonGenerator(out, JsonEncoding.UTF8);
+        return getFactory().createGenerator(out, JsonEncoding.UTF8);
     }
 
     /**
@@ -85,6 +85,13 @@ public class JsonWebengineWriter {
         }
         jg.writeEndObject();
         jg.flush();
+    }
+
+    /**
+     * @since 2025.0
+     */
+    protected static String getExceptionMessage(NuxeoException e) {
+        return JsonWebengineWriter.getExceptionMessage(e.getMessage(), e.getStatusCode());
     }
 
     /**

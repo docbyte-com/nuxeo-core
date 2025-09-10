@@ -22,7 +22,7 @@ package org.nuxeo.ecm.directory.sql;
 import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.directory.BaseDirectoryDescriptor.CREATE_TABLE_POLICY_ON_MISSING_COLUMNS;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

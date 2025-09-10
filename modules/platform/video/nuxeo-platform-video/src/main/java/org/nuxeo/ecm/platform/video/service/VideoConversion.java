@@ -19,8 +19,11 @@
 
 package org.nuxeo.ecm.platform.video.service;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * Object representing a registered video conversion on the {@link VideoService} .
@@ -29,7 +32,7 @@ import org.nuxeo.common.xmap.annotation.XObject;
  * @since 5.5
  */
 @XObject("videoConversion")
-public class VideoConversion implements Cloneable {
+public class VideoConversion implements Cloneable, Descriptor {
 
     @XNode("@name")
     private String name;
@@ -54,6 +57,11 @@ public class VideoConversion implements Cloneable {
      */
     @XNode("@renditionVisible")
     private Boolean renditionVisible;
+
+    @Override
+    public String getId() {
+        return name;
+    }
 
     public String getName() {
         return name;
@@ -87,6 +95,10 @@ public class VideoConversion implements Cloneable {
         return renditionVisible == null || renditionVisible;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public boolean isRenditionVisibleSet() {
         return renditionVisible != null;
     }
@@ -95,14 +107,26 @@ public class VideoConversion implements Cloneable {
         return rendition == null || rendition;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public boolean isRenditionSet() {
         return rendition != null;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setRendition(Boolean rendition) {
         this.rendition = rendition;
     }
 
+    /**
+     * @deprecated since 2025.0 seems unused
+     */
+    @Deprecated(since = "2025.0")
     public void setRenditionVisible(Boolean renditionVisible) {
         this.renditionVisible = renditionVisible;
     }
@@ -112,4 +136,17 @@ public class VideoConversion implements Cloneable {
         return (VideoConversion) super.clone();
     }
 
+    @Override
+    public VideoConversion merge(Descriptor o) {
+        var other = (VideoConversion) o;
+        var merged = new VideoConversion();
+        merged.name = name; // we merged based on name, so no need for merging name
+        merged.converter = defaultIfNull(other.converter, converter);
+        merged.height = defaultIfNull(other.height, height);
+        merged.enabled = defaultIfNull(other.enabled, enabled);
+        merged.rendition = defaultIfNull(other.rendition, rendition);
+        merged.renditionVisible = defaultIfNull(other.renditionVisible, renditionVisible);
+
+        return merged;
+    }
 }

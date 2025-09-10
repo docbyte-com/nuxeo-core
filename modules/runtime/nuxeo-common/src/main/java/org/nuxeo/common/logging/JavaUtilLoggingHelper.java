@@ -68,6 +68,7 @@ public class JavaUtilLoggingHelper {
             activeHandler.setLevel(threshold);
             rootLogger.addHandler(activeHandler);
             rootLogger.setLevel(threshold);
+            rootLogger.setUseParentHandlers(false); // disable additivity to fully control logs with Log4j
             log.info("Redirecting java.util.logging to Apache Log4j, threshold is {}", threshold);
         } catch (SecurityException e) {
             log.error("Handler setup failed", e);

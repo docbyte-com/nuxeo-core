@@ -92,15 +92,12 @@ public class PermissionService implements PostfixExpression.Visitor {
 
     @Override
     public Object createOperation(Token token, Object lparam, Object rparam) {
-        switch (token.type) {
-        case PostfixExpression.AND:
-            return new And((Guard) lparam, (Guard) rparam);
-        case PostfixExpression.OR:
-            return new Or((Guard) lparam, (Guard) rparam);
-        case PostfixExpression.NOT:
-            return new Not((Guard) lparam);
-        }
-        throw new IllegalStateException("Supported ops are: AND, OR and NOT");
+        return switch (token.type) {
+            case PostfixExpression.AND -> new And((Guard) lparam, (Guard) rparam);
+            case PostfixExpression.OR -> new Or((Guard) lparam, (Guard) rparam);
+            case PostfixExpression.NOT -> new Not((Guard) lparam);
+            default -> throw new IllegalStateException("Supported ops are: AND, OR and NOT");
+        };
     }
 
     @Override
@@ -110,22 +107,16 @@ public class PermissionService implements PostfixExpression.Visitor {
         if (p > -1) {
             String key = name.substring(0, p).trim();
             String value = name.substring(p + 1).trim();
-            if ("user".equals(key)) {
-                return new UserGuard(value);
-            } else if ("group".equals(key)) {
-                return new GroupGuard(value);
-            } else if ("isAdministrator".equals(key)) {
-                return new IsAdministratorGuard(value);
-            } else if ("type".equals(key)) {
-                return new TypeGuard(value);
-            } else if ("facet".equals(key)) {
-                return new FacetGuard(value);
-            } else if ("schema".equals(key)) {
-                return new SchemaGuard(value);
-            } else if ("permission".equals(key)) {
-                return new PermissionGuard(value);
-            }
-            throw new IllegalArgumentException("Invalid argument: " + name);
+            return switch (key) {
+                case "user" -> new UserGuard(value);
+                case "group" -> new GroupGuard(value);
+                case "isAdministrator" -> new IsAdministratorGuard(value);
+                case "type" -> new TypeGuard(value);
+                case "facet" -> new FacetGuard(value);
+                case "schema" -> new SchemaGuard(value);
+                case "permission" -> new PermissionGuard(value);
+                default -> throw new IllegalArgumentException("Invalid argument: " + name);
+            };
         } else {
             Guard guard = guards.get(token.name);
             if (guard == null) { // assume a built-in permission name

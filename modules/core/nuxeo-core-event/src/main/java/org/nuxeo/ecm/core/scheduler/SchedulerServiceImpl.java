@@ -43,6 +43,7 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.cluster.ClusterService;
 import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.DefaultComponent;
+import org.nuxeo.runtime.model.Descriptor;
 import org.nuxeo.runtime.model.Extension;
 import org.nuxeo.runtime.model.RuntimeContext;
 import org.nuxeo.runtime.services.config.ConfigurationService;
@@ -82,11 +83,14 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
      */
     public static final Duration CLUSTER_START_DELAY_DEFAULT = Duration.ofSeconds(5);
 
+    /**
+     * @since 2025.0
+     */
+    public static final String SCHEDULE_XP = "schedule";
+
     protected RuntimeContext context;
 
     protected Scheduler scheduler;
-
-    protected final ScheduleExtensionRegistry registry = new ScheduleExtensionRegistry();
 
     /**
      * @since 7.10
@@ -95,6 +99,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     @Override
     public void activate(ComponentContext context) {
+        super.activate(context);
         log.debug("Activate");
         this.context = context.getRuntimeContext();
     }
@@ -136,7 +141,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
         Set<JobKey> jobs = scheduler.getJobKeys(matcher);
         try {
             scheduler.deleteJobs(new ArrayList<>(jobs)); // raise a lock error in case of concurrencies
-            for (Schedule each : registry.getSchedules()) {
+            for (Schedule each : this.<ScheduleImpl> getDescriptors(SCHEDULE_XP)) {
                 registerSchedule(each);
             }
         } catch (LockException cause) {
@@ -160,6 +165,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     @Override
     public void deactivate(ComponentContext context) {
+        super.deactivate(context);
         log.debug("Deactivate");
         shutdownScheduler();
     }
@@ -207,7 +213,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     @Override
     public void unregisterExtension(Extension extension) {
-        // do nothing to do ;
+        // nothing to do:
         // clean up will be done when service is activated
         // see https://jira.nuxeo.com/browse/NXP-7303
     }
@@ -223,12 +229,12 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     @Override
     public void registerSchedule(Schedule schedule, Map<String, Serializable> parameters) {
-        registry.addContribution(schedule);
+        register(SCHEDULE_XP, (Descriptor) schedule);
         if (scheduler == null) {
             return;
         }
-        Schedule contributed = registry.getSchedule(schedule);
-        if (contributed != null) {
+        Schedule contributed = getDescriptor(SCHEDULE_XP, schedule.getId());
+        if (contributed != null && contributed.isEnabled()) {
             schedule(contributed, parameters);
         } else {
             unschedule(schedule.getId());
@@ -241,9 +247,6 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
         EventJobFactory jobFactory = schedule.getJobFactory();
         JobDetail job = jobFactory.buildJob(schedule, parameters).build();
         Trigger trigger = jobFactory.buildTrigger(schedule).build();
-
-        // This is useful when testing to avoid multiple threads:
-        // trigger = new SimpleTrigger(schedule.getId(), "nuxeo");
 
         try {
             try {
@@ -265,11 +268,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
     @Override
     public boolean unregisterSchedule(String id) {
         log.info("Unregistering schedule with id: {}", id);
-        Schedule schedule = registry.getSchedule(id);
-        if (schedule == null) {
-            return false;
-        }
-        registry.removeContribution(schedule, true);
+        unregister(SCHEDULE_XP, getDescriptor(SCHEDULE_XP, id));
         return unschedule(id);
     }
 
@@ -285,8 +284,6 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     protected boolean unschedule(String id, JobKey jobKey) {
         if (jobKey == null) {
-            // shouldn't happen but let's be robust
-            log.warn("Unscheduling null jobKey for id: {}", id);
             return false;
         }
         try {
@@ -304,7 +301,7 @@ public class SchedulerServiceImpl extends DefaultComponent implements SchedulerS
 
     @Override
     public List<Schedule> getSchedules() {
-        return List.of(registry.getSchedules().toArray(Schedule[]::new));
+        return List.of(this.<ScheduleImpl> getDescriptors(SCHEDULE_XP).toArray(Schedule[]::new));
     }
 
     @Override

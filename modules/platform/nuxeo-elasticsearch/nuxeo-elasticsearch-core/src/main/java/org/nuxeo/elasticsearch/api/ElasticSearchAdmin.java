@@ -22,8 +22,8 @@ package org.nuxeo.elasticsearch.api;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
+import org.nuxeo.runtime.opensearch1.client.OpenSearchClient;
 import org.opensearch.client.Client;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -40,7 +40,7 @@ public interface ElasticSearchAdmin {
      *
      * @since 5.9.3
      */
-    ESClient getClient();
+    OpenSearchClient getClient();
 
     /**
      * Initialize Elasticsearch indexes. Setup the index settings and mapping for each index that has been registered.
@@ -78,10 +78,9 @@ public interface ElasticSearchAdmin {
     void dropAndInitRepositoryIndex(String repositoryName, boolean syncAlias);
 
     /**
-     * Creates a new index for the repository applying the mapping and settings.
-     * Update the write alias to point to this new index.
-     * The search alias is updated to the new index only for the initial creation.
-     * Otherwise, there are two write indexes until an explicit call to {@link #syncSearchAndWriteAlias(String)}.
+     * Creates a new index for the repository applying the mapping and settings. Update the write alias to point to this
+     * new index. The search alias is updated to the new index only for the initial creation. Otherwise, there are two
+     * write indexes until an explicit call to {@link #syncSearchAndWriteAlias(String)}.
      *
      * @since 2021.12
      */
@@ -147,13 +146,6 @@ public interface ElasticSearchAdmin {
     void syncSearchAndWriteAlias(String searchIndexName);
 
     /**
-     * Returns true if there are indexing activities scheduled or running.
-     *
-     * @since 5.9.5
-     */
-    boolean isIndexingInProgress();
-
-    /**
      * A {@link java.util.concurrent.Future} that accepts callback on completion when all the indexing worker are done.
      *
      * @since 7.2
@@ -216,46 +208,10 @@ public interface ElasticSearchAdmin {
     void optimizeIndex(String indexName);
 
     /**
-     * Returns the number of indexing worker scheduled waiting to be executed.
-     *
-     * @since 7.1
-     */
-    long getPendingWorkerCount();
-
-    /**
-     * Returns the number of indexing worker that are currently running.
-     *
-     * @since 7.1
-     */
-    long getRunningWorkerCount();
-
-    /**
-     * Returns the total number of command processed by Elasticsearch for this Nuxeo instance. Useful for test
-     * assertion.
-     *
-     * @since 5.9.4
-     */
-    int getTotalCommandProcessed();
-
-    /**
-     * Returns true if the Elasticsearch is embedded with Nuxeo, sharing the same JVM.
-     *
-     * @since 7.2
-     */
-    boolean isEmbedded();
-
-    /**
      * When true use an external version for Elasticsearch document, this enable an optimistic concurrency control
      * ensuring that an older version of a document never overwrites a newer version.
      *
      * @since 8.3
      */
     boolean useExternalVersion();
-
-    /**
-     * Returns the hint by the Elasticsearch operator name.
-     *
-     * @since 11.1
-     */
-    Optional<ESHintQueryBuilder> getHintByOperator(String name);
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,6 +53,10 @@ public abstract class SuperKeyedRegistry<K, V> {
 
     public SuperKeyedRegistry() {
         registry = new HashMap<>();
+    }
+
+    public SuperKeyedRegistry(Map<? extends K, ? extends V> registry) {
+        this.registry = new HashMap<>(registry);
     }
 
     public void put(K key, V value) {

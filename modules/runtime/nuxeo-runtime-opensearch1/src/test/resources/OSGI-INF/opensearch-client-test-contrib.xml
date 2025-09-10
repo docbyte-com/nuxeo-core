@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- same component name than opensearch-client-embed-test-contrib.xml to avoid weird runtime behavior -->
+<component name="org.nuxeo.runtime.opensearch1.client.test.contrib">
+
+  <extension target="org.nuxeo.runtime.opensearch1.OpenSearchComponent" point="client">
+    <client id="default">
+      <server>${nuxeo.test.opensearch1.servers}</server>
+    </client>
+  </extension>
+
+</component>

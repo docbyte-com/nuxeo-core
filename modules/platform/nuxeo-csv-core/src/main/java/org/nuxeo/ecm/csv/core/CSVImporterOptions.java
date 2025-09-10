@@ -36,6 +36,11 @@ public class CSVImporterOptions implements Serializable {
 
     public static final String LEGACY_DATE_FORMAT_PROP = "nuxeo.csv.import.legacyDateFormat";
 
+    /**
+     * @since 2025.0
+     */
+    public static final String TRIM_PROP = "nuxeo.csv.import.trim";
+
     public static final String LEGACY_DATE_FORMAT = "MM/dd/yyyy";
 
     public static final CSVImporterOptions DEFAULT_OPTIONS = new Builder().build();
@@ -53,6 +58,8 @@ public class CSVImporterOptions implements Serializable {
         private Character commentMarker;
 
         private Character escapeCharacter = '\\';
+
+        private boolean trim = !Framework.getService(ConfigurationService.class).isBooleanFalse(TRIM_PROP);
 
         private boolean updateExisting = true;
 
@@ -91,6 +98,12 @@ public class CSVImporterOptions implements Serializable {
             return this;
         }
 
+        /** @since 2025.0 */
+        public Builder trim(boolean trim) {
+            this.trim = trim;
+            return this;
+        }
+
         public Builder updateExisting(boolean updateExisting) {
             this.updateExisting = updateExisting;
             return this;
@@ -123,10 +136,9 @@ public class CSVImporterOptions implements Serializable {
         }
 
         public CSVImporterOptions build() {
-            return new CSVImporterOptions(CSVImporterDocumentFactory, dateFormat, listSeparatorRegex, commentMarker,
-                    escapeCharacter, updateExisting, checkAllowedSubTypes, sendEmail, batchSize, importMode,
-                    computeTotalThresholdSize);
+            return new CSVImporterOptions(this);
         }
+
     }
 
     public enum ImportMode {
@@ -147,6 +159,8 @@ public class CSVImporterOptions implements Serializable {
 
     protected final boolean updateExisting;
 
+    protected final boolean trim;
+
     protected final boolean checkAllowedSubTypes;
 
     protected final boolean sendEmail;
@@ -155,7 +169,10 @@ public class CSVImporterOptions implements Serializable {
 
     protected final long computeTotalThresholdSize;
 
-    /** @deprecated since 11.5, use builder instead */
+    /**
+     * @deprecated since 11.5, use {@link Builder#build()} instead
+     */
+    @Deprecated(since = "11.5", forRemoval = true)
     protected CSVImporterOptions(CSVImporterDocumentFactory CSVImporterDocumentFactory, String dateFormat,
             String listSeparatorRegex, boolean updateExisting, boolean checkAllowedSubTypes, boolean sendEmail,
             int batchSize, ImportMode importMode) {
@@ -165,8 +182,9 @@ public class CSVImporterOptions implements Serializable {
 
     /**
      * @since 7.2
-     * @deprecated since 11.5, use builder instead
+     * @deprecated since 11.5, use {@link Builder#build()} instead
      */
+    @Deprecated(since = "11.5", forRemoval = true)
     protected CSVImporterOptions(CSVImporterDocumentFactory CSVImporterDocumentFactory, String dateFormat,
             String listSeparatorRegex, Character escapeCharacter, boolean updateExisting, boolean checkAllowedSubTypes,
             boolean sendEmail, int batchSize, ImportMode importMode) {
@@ -176,7 +194,9 @@ public class CSVImporterOptions implements Serializable {
 
     /**
      * @since 8.3
+     * @deprecated since 2025.0, use {@link Builder#build()} instead
      */
+    @Deprecated(since = "2025.0", forRemoval = true)
     protected CSVImporterOptions(CSVImporterDocumentFactory CSVImporterDocumentFactory, String dateFormat,
             String listSeparatorRegex, Character commentMarker, Character escapeCharacter, boolean updateExisting,
             boolean checkAllowedSubTypes, boolean sendEmail, int batchSize, ImportMode importMode,
@@ -188,11 +208,28 @@ public class CSVImporterOptions implements Serializable {
         this.commentMarker = commentMarker;
         this.escapeCharacter = escapeCharacter;
         this.updateExisting = updateExisting;
+        this.trim = true;
         this.checkAllowedSubTypes = checkAllowedSubTypes;
         this.sendEmail = sendEmail;
         this.batchSize = batchSize;
         this.importMode = importMode;
         this.computeTotalThresholdSize = computeTotalThresholdSize;
+    }
+
+    protected CSVImporterOptions(Builder builder) {
+        this.CSVImporterDocumentFactory = builder.CSVImporterDocumentFactory;
+        this.CSVImporterDocumentFactory.setImporterOptions(this);
+        this.dateFormat = computeDateFormat(builder.dateFormat);
+        this.listSeparatorRegex = builder.listSeparatorRegex;
+        this.commentMarker = builder.commentMarker;
+        this.escapeCharacter = builder.escapeCharacter;
+        this.updateExisting = builder.updateExisting;
+        this.trim = builder.trim;
+        this.checkAllowedSubTypes = builder.checkAllowedSubTypes;
+        this.sendEmail = builder.sendEmail;
+        this.batchSize = builder.batchSize;
+        this.importMode = builder.importMode;
+        this.computeTotalThresholdSize = builder.computeTotalThresholdSize;
     }
 
     protected DateFormat computeDateFormat(String dateFormat) {
@@ -227,6 +264,13 @@ public class CSVImporterOptions implements Serializable {
 
     public boolean updateExisting() {
         return updateExisting;
+    }
+
+    /**
+     * @since 2025.0
+     */
+    public boolean trim() {
+        return trim;
     }
 
     public boolean checkAllowedSubTypes() {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.nuxeo.runtime.test.runner;
 
 import java.security.InvalidParameterException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentManager;
 
@@ -86,8 +87,8 @@ public class HotDeployer {
     }
 
     /**
-     * Deploy the given list of contributions. The format is bundleId[:componentPath]. If no component path is
-     * specified then the bundle identified by the bundleId part will be deployed. If a componentPath is given
+     * Deploy the given list of contributions. The format is bundleId[:componentPath]. If no component path is specified
+     * then the bundle identified by the bundleId part will be deployed. If a componentPath is given
      * {@link RuntimeHarness#deployContrib(String,String)} will be used to deploy the contribution.
      */
     public void deploy(String... contribs) throws Exception {
@@ -172,7 +173,7 @@ public class HotDeployer {
         }
 
         public void undeploy(String... contribs) throws Exception {
-            if (contribs != null && contribs.length > 0) {
+            if (ArrayUtils.isNotEmpty(contribs)) {
                 for (String contrib : contribs) {
                     int i = contrib.indexOf(':');
                     if (i == -1) {
@@ -186,17 +187,11 @@ public class HotDeployer {
         }
 
         public void deploy(String... contribs) throws Exception {
-            if (contribs != null && contribs.length > 0) {
+            if (ArrayUtils.isNotEmpty(contribs)) {
                 for (String contrib : contribs) {
                     int i = contrib.indexOf(':');
                     if (i > -1) {
-                        String bundleId = contrib.substring(0, i);
-                        if (bundleId.startsWith("@")) {
-                            bundleId = bundleId.substring(1);
-                            harness.deployTestContrib(bundleId, contrib.substring(i + 1));
-                        } else {
-                            harness.deployContrib(bundleId, contrib.substring(i + 1));
-                        }
+                        harness.deployContrib(contrib.substring(0, i), contrib.substring(i + 1));
                     } else {
                         harness.deployBundle(contrib);
                     }

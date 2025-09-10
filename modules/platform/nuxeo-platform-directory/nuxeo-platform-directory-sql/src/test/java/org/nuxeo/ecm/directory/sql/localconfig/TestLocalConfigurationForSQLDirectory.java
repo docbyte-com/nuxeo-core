@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,13 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.directory.sql.localconfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.nuxeo.ecm.directory.localconfiguration.DirectoryConfigurationConstants.DIRECTORY_CONFIGURATION_FIELD;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -49,9 +46,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, SQLDirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.directory")
-@Deploy("org.nuxeo.ecm.directory.sql")
-@Deploy("org.nuxeo.ecm.directory.types.contrib")
 // override user schema with intField & dateField
 @Deploy("org.nuxeo.ecm.directory.sql.tests:test-sql-directories-schema-override.xml")
 @Deploy("org.nuxeo.ecm.directory.sql.tests:test-sql-directories-bundle.xml")
@@ -65,7 +59,7 @@ public class TestLocalConfigurationForSQLDirectory {
     @Inject
     protected CoreSession session;
 
-    DocumentModel workspace;
+    protected DocumentModel workspace;
 
     @Before
     public void setUp() throws Exception {

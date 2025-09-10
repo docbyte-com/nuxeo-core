@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,18 @@
  * Contributors:
  *     Thomas Roger
  */
-
 package org.nuxeo.ecm.automation.core.operations.users;
 
 import java.io.Serializable;
-import java.util.Collections;
+import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoGroup;
 import org.nuxeo.ecm.core.test.CoreFeature;
@@ -44,10 +44,8 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  * @since 11.1
  */
 @RunWith(FeaturesRunner.class)
-@Features(DirectoryFeature.class)
+@Features({ AutomationFeaturesFeature.class, DirectoryFeature.class })
 @RepositoryConfig(cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.automation.core")
-@Deploy("org.nuxeo.ecm.automation.features")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.automation.features:test-user-directories-contrib.xml")
 @Deploy("org.nuxeo.ecm.automation.features:test-usermanager-powerusers.xml")
@@ -76,7 +74,7 @@ public abstract class AbstractTestWithPowerUser {
         DocumentModel user = userManager.getBareUserModel();
         user.setPropertyValue("user:username", "leela");
         user.setPropertyValue("user:password", "pwd");
-        user.setPropertyValue("user:groups", (Serializable) Collections.singletonList("powerusers"));
+        user.setPropertyValue("user:groups", (Serializable) List.of("powerusers"));
         userManager.createUser(user);
 
         // simple user with no group
@@ -92,7 +90,7 @@ public abstract class AbstractTestWithPowerUser {
             userManager.deleteGroup("subgroup");
         }
         NuxeoGroup group = new NuxeoGroupImpl("subgroup");
-        group.setParentGroups(Collections.singletonList(ADMINISTRATORS_GROUP));
+        group.setParentGroups(List.of(ADMINISTRATORS_GROUP));
         userManager.createGroup(group.getModel());
 
         txFeature.nextTransaction();

@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.After;
 import org.junit.Before;
@@ -50,6 +50,8 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, AutomationFeature.class })
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
 public class TestTagOperations {
 
     private static final String TAG_1 = "1";

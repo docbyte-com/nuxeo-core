@@ -19,13 +19,14 @@
 
 package org.nuxeo.ecm.platform.ui.web.keycloak;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.io.IOException;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.catalina.connector.Request;
 import org.apache.http.HttpHost;
@@ -44,8 +45,10 @@ import org.apache.logging.log4j.Logger;
 import org.keycloak.adapters.AdapterDeploymentContext;
 import org.keycloak.adapters.KeycloakDeployment;
 import org.keycloak.adapters.NodesRegistrationManagement;
-import org.keycloak.adapters.tomcat.CatalinaHttpFacade;
+import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
+import org.keycloak.common.util.KeycloakUriBuilder;
 import org.nuxeo.common.Environment;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.platform.ui.web.auth.LoginScreenHelper;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
 import org.nuxeo.runtime.api.Framework;
@@ -100,7 +103,7 @@ public class KeycloakAuthenticatorProvider {
 
         resolvedDeployment = DeploymentResult.getKeycloakDeployment();
         Request request = deploymentResult.getRequest();
-        CatalinaHttpFacade facade = deploymentResult.getFacade();
+        OIDCServletHttpFacade facade = deploymentResult.getFacade();
 
         nodesRegistrationManagement.tryRegister(resolvedDeployment);
 
@@ -123,35 +126,64 @@ public class KeycloakAuthenticatorProvider {
         return resolvedDeployment;
     }
 
+    protected KeycloakUriBuilder logoutQueryParam(KeycloakUriBuilder builder, String clientId, String redirectTo,
+            String idTokenHint) {
+        if (isNotBlank(clientId)) {
+            builder = builder.replaceQueryParam(CLIENT_ID_PARAM, clientId);
+        }
+        if (isNotBlank(redirectTo)) {
+            builder = builder.replaceQueryParam(POST_LOGOUT_REDIRECT_URI_PARAM, redirectTo);
+        }
+        if (isNotBlank(idTokenHint)) {
+            builder = builder.replaceQueryParam(ID_TOKEN_HINT_PARAM, idTokenHint);
+        }
+        return builder;
+    }
+
     protected String getLogoutUri(Request request) {
+        KeycloakUriBuilder builder = resolvedDeployment.getLogoutUrl();
         String redirectTo = VirtualHostHelper.getBaseURL(request) + LoginScreenHelper.getStartupPagePath();
-        return resolvedDeployment.getLogoutUrl()
-                                 .queryParam(POST_LOGOUT_REDIRECT_URI_PARAM, redirectTo)
-                                 .queryParam(ID_TOKEN_HINT_PARAM, getIdTokenHint())
-                                 .build()
-                                 .toString();
+        if (isNotBlank(getSecret())) {
+            var tokenHint = getIdTokenHint();
+            if (isNotBlank(tokenHint)) {
+                return logoutQueryParam(builder, null, redirectTo, tokenHint).build().toString();
+            }
+        }
+        return logoutQueryParam(builder, getClientId(), redirectTo, null).build().toString();
     }
 
     protected String getIdTokenHint() {
-        var secret = (String) resolvedDeployment.getResourceCredentials().get(RESOURCE_SECRET_KEY);
         var post = new HttpPost(resolvedDeployment.getTokenUrl());
         var params = List.of( //
-                new BasicNameValuePair(CLIENT_ID_PARAM, resolvedDeployment.getResourceName()),
-                new BasicNameValuePair(CLIENT_SECRET_PARAM, secret),
+                new BasicNameValuePair(CLIENT_ID_PARAM, getClientId()),
+                new BasicNameValuePair(CLIENT_SECRET_PARAM, getSecret()),
                 new BasicNameValuePair(GRANT_TYPE_PARAM, GRANT_TYPE_CLIENT_CREDENTIALS),
                 new BasicNameValuePair(SCOPE_PARAM, TOKEN_SCOPE_OPENID));
 
         try (CloseableHttpClient httpClient = buildHttpClient()) {
             post.setEntity(new UrlEncodedFormEntity(params));
             try (CloseableHttpResponse response = httpClient.execute(post)) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                // don't try to parse JSON response if not OK
+                if (statusCode != SC_OK) {
+                    throw new NuxeoException("Status code not OK: " + statusCode, statusCode);
+                }
                 var jsonToken = mapper.readValue(response.getEntity().getContent(), KeycloakToken.class);
                 return jsonToken.idToken();
             }
-        } catch (IOException e) {
+        } catch (IOException | NuxeoException e) {
             log.error("Error while fetching Keycloak id token hint: {}", e::getMessage);
             log.debug(e, e);
             return "";
         }
+    }
+
+    protected String getClientId() {
+        return resolvedDeployment.getResourceName();
+    }
+
+    protected String getSecret() {
+        return (String) resolvedDeployment.getResourceCredentials().get(RESOURCE_SECRET_KEY);
     }
 
     protected CloseableHttpClient buildHttpClient() {

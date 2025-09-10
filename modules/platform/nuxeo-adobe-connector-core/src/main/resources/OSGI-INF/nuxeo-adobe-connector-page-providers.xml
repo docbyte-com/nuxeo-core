@@ -5,8 +5,7 @@
       Adobe CC Connector rely on those page providers. Most of them are duplicated from default contributed pp in order to be overridden and to ensure all Adobe CC clients behave the same.
     -->
   <extension target="org.nuxeo.ecm.platform.query.api.PageProviderService" point="providers">
-    <genericPageProvider class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-                         name="adobe-connector-all-images">
+    <searchServicePageProvider name="adobe-connector-all-images">
       <trackUsage>true</trackUsage>
       <property name="coreSession">#{documentManager}</property>
       <whereClause>
@@ -19,9 +18,8 @@
       </whereClause>
       <searchDocumentType>adobe-connector-all-images_pp</searchDocumentType>
       <pageSize>10</pageSize>
-    </genericPageProvider>
-    <genericPageProvider class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-                         name="adobe-connector-browse">
+    </searchServicePageProvider>
+    <searchServicePageProvider name="adobe-connector-browse">
       <trackUsage>true</trackUsage>
       <property name="coreSession">#{documentManager}</property>
       <pattern quoteParameters="false">
@@ -29,9 +27,8 @@
         AND ecm:isVersion = 0 AND ecm:isTrashed = 0
       </pattern>
       <pageSize>10</pageSize>
-    </genericPageProvider>
-    <genericPageProvider class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-                         name="adobe-connector-other_primary">
+    </searchServicePageProvider>
+    <searchServicePageProvider name="adobe-connector-other_primary">
       <trackUsage>true</trackUsage>
       <property name="coreSession">#{documentManager}</property>
       <pattern quoteParameters="false">
@@ -39,9 +36,8 @@
         AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isVersion = 0 AND ecm:isTrashed = 0)
       </pattern>
       <pageSize>10</pageSize>
-    </genericPageProvider>
-    <genericPageProvider class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-                         name="adobe-connector-other_secondary">
+    </searchServicePageProvider>
+    <searchServicePageProvider name="adobe-connector-other_secondary">
       <trackUsage>true</trackUsage>
       <property name="coreSession">#{documentManager}</property>
       <pattern quoteParameters="false">
@@ -49,9 +45,8 @@
         collectionMember:collectionIds/* = '?' AND ecm:isTrashed = 0)
       </pattern>
       <pageSize>10</pageSize>
-    </genericPageProvider>
-    <genericPageProvider class="org.nuxeo.elasticsearch.provider.ElasticSearchNxqlPageProvider"
-                         name="adobe-connector-search">
+    </searchServicePageProvider>
+    <searchServicePageProvider name="adobe-connector-search">
       <trackUsage>true</trackUsage>
       <property name="coreSession">#{documentManager}</property>
       <whereClause>
@@ -78,7 +73,7 @@
         </quickFilter>
       </quickFilters>
       <pageSize>10</pageSize>
-    </genericPageProvider>
+    </searchServicePageProvider>
   </extension>
 
 </component>

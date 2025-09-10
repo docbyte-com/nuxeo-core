@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  * Contributors:
  * Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.platform.rendition.publisher;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -47,17 +46,17 @@ import org.nuxeo.ecm.core.event.EventService;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
-import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.publisher.api.PublicationNode;
 import org.nuxeo.ecm.platform.publisher.api.PublicationTree;
 import org.nuxeo.ecm.platform.publisher.api.PublishedDocument;
 import org.nuxeo.ecm.platform.publisher.api.PublisherService;
 import org.nuxeo.ecm.platform.publisher.impl.core.SimpleCorePublishedDocument;
 import org.nuxeo.ecm.platform.publisher.task.CoreProxyWithWorkflowFactory;
-import org.nuxeo.runtime.test.runner.ConditionalIgnoreRule;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
+import org.nuxeo.runtime.test.runner.IgnoreIfWindows;
 
 /**
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
@@ -65,8 +64,6 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @RunWith(FeaturesRunner.class)
 @Features({ CoreFeature.class, DirectoryFeature.class })
 @RepositoryConfig(init = RenditionPublicationRepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.core.convert.api")
-@Deploy("org.nuxeo.ecm.core.convert")
 @Deploy("org.nuxeo.ecm.core.convert.plugins")
 @Deploy("org.nuxeo.ecm.platform.convert")
 @Deploy("org.nuxeo.ecm.platform.query.api")
@@ -77,14 +74,13 @@ import org.nuxeo.runtime.test.runner.FeaturesRunner;
 @Deploy("org.nuxeo.ecm.platform.versioning.api")
 @Deploy("org.nuxeo.ecm.platform.versioning")
 @Deploy("org.nuxeo.ecm.relations")
-@Deploy("org.nuxeo.ecm.relations.jena")
+@Deploy("org.nuxeo.ecm.relations.default.config")
 @Deploy("org.nuxeo.ecm.platform.publisher")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.task.core")
 @Deploy("org.nuxeo.ecm.platform.task.testing")
 @Deploy("org.nuxeo.ecm.platform.rendition.publisher")
 @Deploy("org.nuxeo.ecm.actions")
-@Deploy("org.nuxeo.ecm.platform.rendition.publisher:relations-default-jena-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.rendition.publisher:test-sql-directories-contrib.xml")
 public class TestRenditionPublicationWFReject {
 
@@ -93,9 +89,6 @@ public class TestRenditionPublicationWFReject {
 
     @Inject
     protected PublisherService publisherService;
-
-    @Inject
-    protected DirectoryService directoryService;
 
     @Inject
     protected EventService eventService;
@@ -108,7 +101,7 @@ public class TestRenditionPublicationWFReject {
     protected CoreFeature coreFeature;
 
     @Before
-    public void initPublishTestCase() throws Exception {
+    public void initPublishTestCase() {
         if (doc2Publish != null) {
             session.removeChildren(session.getRootDocument().getRef());
             eventService.waitForAsyncCompletion();
@@ -123,7 +116,7 @@ public class TestRenditionPublicationWFReject {
         }
     }
 
-    private DocumentModel createDocumentToPublish() throws Exception {
+    private DocumentModel createDocumentToPublish() {
         DocumentModel wsRoot = session.getDocument(new PathRef("/default-domain/workspaces"));
 
         DocumentModel ws = session.createDocumentModel(wsRoot.getPathAsString(), "ws1", "Workspace");
@@ -143,7 +136,7 @@ public class TestRenditionPublicationWFReject {
         return doc2Publish;
     }
 
-    private void initializeACP() throws Exception {
+    private void initializeACP() {
 
         DocumentModel root = session.getRootDocument();
         ACP acp = session.getACP(root.getRef());
@@ -178,24 +171,24 @@ public class TestRenditionPublicationWFReject {
         session.save();
     }
 
-    private void changeUser(String userName) throws Exception {
+    private void changeUser(String userName) {
         session = coreFeature.getCoreSession(userName);
         session.save(); // synch with previous
     }
 
     @Test
-    @ConditionalIgnoreRule.Ignore(condition = ConditionalIgnoreRule.IgnoreWindows.class, cause = "NXP-26757")
-    public void testRejectRenditionPublication() throws Exception {
+    @ConditionalIgnore(condition = IgnoreIfWindows.class, cause = "NXP-26757")
+    public void testRejectRenditionPublication() {
 
         changeUser("myuser1");
-        String defaultTreeName = publisherService.getAvailablePublicationTree().get(0);
+        String defaultTreeName = publisherService.getAvailablePublicationTree().getFirst();
         PublicationTree treeUser1 = publisherService.getPublicationTree(defaultTreeName, session, factoryParams);
 
         List<PublicationNode> nodes = treeUser1.getChildrenNodes();
         assertEquals(1, nodes.size());
-        assertEquals("Section1", nodes.get(0).getTitle());
+        assertEquals("Section1", nodes.getFirst().getTitle());
 
-        PublicationNode targetNode = nodes.get(0);
+        PublicationNode targetNode = nodes.getFirst();
 
         PublishedDocument publishedDocument = treeUser1.publish(doc2Publish, targetNode,
                 Collections.singletonMap(RENDITION_NAME_PARAMETER_KEY, "pdf"));
@@ -211,11 +204,11 @@ public class TestRenditionPublicationWFReject {
         // myuser2 can see it, it's the validator
         changeUser("myuser2");
         PublicationTree treeUser2 = publisherService.getPublicationTree(defaultTreeName, session, factoryParams);
-        List<PublishedDocument> publishedDocuments = treeUser2.getExistingPublishedDocument(new DocumentLocationImpl(
-                doc2Publish));
+        List<PublishedDocument> publishedDocuments = treeUser2.getExistingPublishedDocument(
+                new DocumentLocationImpl(doc2Publish));
         assertEquals(1, publishedDocuments.size());
 
-        publishedDocument = publishedDocuments.get(0);
+        publishedDocument = publishedDocuments.getFirst();
         assertTrue(publishedDocument.isPending());
 
         assertTrue(treeUser2.canManagePublishing(publishedDocument));

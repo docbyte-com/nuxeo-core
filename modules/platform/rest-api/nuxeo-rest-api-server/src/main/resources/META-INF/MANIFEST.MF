@@ -4,10 +4,11 @@ Bundle-Name: nuxeo-restapi-server
 Bundle-SymbolicName: org.nuxeo.ecm.platform.restapi.server;singleton:=true
 Bundle-Vendor: Nuxeo
 Bundle-Version: 1.0.0
-Nuxeo-WebModule: org.nuxeo.ecm.restapi.server.jaxrs.APIModule;name=api;extends=automation;package=org/nuxeo/ecm/restapi/server/jaxrs;headless=true
+Nuxeo-WebModule: org.nuxeo.ecm.restapi.server.APIModule;name=api;extends=automation;package=org/nuxeo/ecm/restapi/server;headless=true
 Nuxeo-Component: OSGI-INF/docviewurl-service-contrib.xml,
  OSGI-INF/auth-contrib.xml,
  OSGI-INF/searchadapter-pp-contrib.xml,
  OSGI-INF/json-enrichers-contrib.xml,
+ OSGI-INF/management-search-pageprovider-contrib.xml,
  OSGI-INF/rest-api-service-contrib.xml
 Nuxeo-AllowOverride: true

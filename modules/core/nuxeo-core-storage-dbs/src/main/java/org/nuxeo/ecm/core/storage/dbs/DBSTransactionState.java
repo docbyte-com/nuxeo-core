@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,14 @@ package org.nuxeo.ecm.core.storage.dbs;
 
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static org.nuxeo.ecm.core.api.AbstractSession.isFulltextValueABlobKey;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.BROWSE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.EVERYONE;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.READ_VERSION;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.SYSTEM_USERNAME;
 import static org.nuxeo.ecm.core.api.security.SecurityConstants.UNSUPPORTED_ACL;
+import static org.nuxeo.ecm.core.storage.BaseDocument.FULLTEXT_BINARYTEXT_PROP;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.INITIAL_CHANGE_TOKEN;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.INITIAL_SYS_CHANGE_TOKEN;
 import static org.nuxeo.ecm.core.storage.dbs.DBSDocument.KEY_ACE_GRANT;
@@ -131,8 +133,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
     private static final String KEY_UNDOLOG_CREATE = "__UNDOLOG_CREATE__\0\0";
 
     /** Keys used when computing Read ACLs. */
-    protected static final Set<String> READ_ACL_RECURSION_KEYS = new HashSet<>(
-            Arrays.asList(KEY_READ_ACL, KEY_ACP, KEY_IS_VERSION, KEY_VERSION_SERIES_ID, KEY_PARENT_ID, KEY_ANCESTOR_IDS));
+    protected static final Set<String> READ_ACL_RECURSION_KEYS = new HashSet<>(Arrays.asList(KEY_READ_ACL, KEY_ACP,
+            KEY_IS_VERSION, KEY_VERSION_SERIES_ID, KEY_PARENT_ID, KEY_ANCESTOR_IDS));
 
     public static final String READ_ACL_ASYNC_ENABLED_PROPERTY = "nuxeo.core.readacl.async.enabled";
 
@@ -681,7 +683,7 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
      * itself (not the ancestors, needed for ACL inheritance and for which caching is useful).
      */
     public void updateReadACLs(Collection<String> docIds) {
-        docIds.forEach(id -> updateDocumentReadAclsNoCache(id));
+        docIds.forEach(this::updateDocumentReadAclsNoCache);
     }
 
     /**
@@ -721,6 +723,7 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
 
     /**
      * Gets the Read ACL (flat list of users having browse permission, including inheritance) on a document.
+     *
      * @deprecated since 2021.39 use {@link #materializedKeys(State)} instead
      */
     @Deprecated
@@ -731,8 +734,10 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
 
     /**
      * Returns materialized keys for a state:
-     * - Read ACL (flat list of users having browse permission, including inheritance) on a document
-     * - Ancestor ids
+     * <ul>
+     * <li>Read ACL (flat list of users having browse permission, including inheritance) on a document
+     * <li>Ancestor ids
+     * </ul>
      */
     protected State materializedKeys(State state) {
         State ret = new State(2);
@@ -760,8 +765,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                 if (aclList != null) {
                     for (Serializable aclSer : aclList) {
                         State aclMap = (State) aclSer;
-                        @SuppressWarnings("unchecked") List<Serializable> aceList = (List<Serializable>) aclMap.get(
-                                KEY_ACL);
+                        @SuppressWarnings("unchecked")
+                        List<Serializable> aceList = (List<Serializable>) aclMap.get(KEY_ACL);
                         for (Serializable aceSer : aceList) {
                             State aceMap = (State) aceSer;
                             String username = (String) aceMap.get(KEY_ACE_USER);
@@ -771,7 +776,8 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                             if (replaceReadVersionPermission && READ_VERSION.equals(permission)) {
                                 permission = READ;
                             }
-                            if (TRUE.equals(granted) && browsePermissions.contains(permission) && (status == null || status == 1)) {
+                            if (TRUE.equals(granted) && browsePermissions.contains(permission)
+                                    && (status == null || status == 1)) {
                                 racls.add(username);
                             }
                             if (FALSE.equals(granted)) {
@@ -803,10 +809,10 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         // sort to have canonical order
         List<String> racl = new ArrayList<>(racls);
         Collections.sort(racl);
-        ret.put(KEY_READ_ACL, racl.toArray(new String[racl.size()]));
+        ret.put(KEY_READ_ACL, racl.toArray(String[]::new));
         if (!ret.containsKey(KEY_ANCESTOR_IDS)) {
             // versions are placeless
-            ret.put(KEY_ANCESTOR_IDS, ancestors.toArray(new String[ancestors.size()]));
+            ret.put(KEY_ANCESTOR_IDS, ancestors.toArray(String[]::new));
         }
         return ret;
     }
@@ -1167,23 +1173,23 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
      */
     protected boolean isProxySpecific(String key, SchemaManager schemaManager) {
         switch (key) {
-        // these are placeful stuff
-        case KEY_SYS_CHANGE_TOKEN:
-        case KEY_CHANGE_TOKEN:
-        case KEY_ID:
-        case KEY_PARENT_ID:
-        case KEY_ANCESTOR_IDS:
-        case KEY_NAME:
-        case KEY_POS:
-        case KEY_ACP:
-        case KEY_READ_ACL:
-            // these are proxy-specific
-        case KEY_IS_PROXY:
-        case KEY_PROXY_TARGET_ID:
-        case KEY_PROXY_VERSION_SERIES_ID:
-        case KEY_IS_VERSION:
-        case KEY_PROXY_IDS:
-            return true;
+            // these are placeful stuff
+            case KEY_SYS_CHANGE_TOKEN:
+            case KEY_CHANGE_TOKEN:
+            case KEY_ID:
+            case KEY_PARENT_ID:
+            case KEY_ANCESTOR_IDS:
+            case KEY_NAME:
+            case KEY_POS:
+            case KEY_ACP:
+            case KEY_READ_ACL:
+                // these are proxy-specific
+            case KEY_IS_PROXY:
+            case KEY_PROXY_TARGET_ID:
+            case KEY_PROXY_VERSION_SERIES_ID:
+            case KEY_IS_VERSION:
+            case KEY_PROXY_IDS:
+                return true;
         }
         int p = key.indexOf(':');
         if (p == -1) {
@@ -1274,6 +1280,10 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
                 if (i == size - 1) {
                     // end of path
                     if (value instanceof String) {
+                        if (FULLTEXT_BINARYTEXT_PROP.equals(path.get(i)) && !isFulltextValueABlobKey((String) value)) {
+                            // ecm:fulltextBinary value is not an expected blob key, probably residual fulltext skip it
+                            continue;
+                        }
                         blobKeys.add((String) value);
                     } else if (value instanceof Object[]) {
                         // array of naked blob keys (no current use case)
@@ -1464,16 +1474,12 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         }
 
         protected void findDirtyPaths(Object value, String path) {
-            if (value instanceof Object[]) {
-                findDirtyPaths((Object[]) value, path);
-            } else if (value instanceof List) {
-                findDirtyPaths((List<?>) value, path);
-            } else if (value instanceof ListDiff) {
-                findDirtyPaths((ListDiff) value, path);
-            } else if (value instanceof State) {
-                findDirtyPaths((State) value, path);
-            } else {
-                paths.add(path);
+            switch (value) {
+                case Object[] objects -> findDirtyPaths(objects, path);
+                case List<?> list -> findDirtyPaths(list, path);
+                case ListDiff listDiff -> findDirtyPaths(listDiff, path);
+                case State state -> findDirtyPaths(state, path);
+                case null, default -> paths.add(path);
             }
         }
 
@@ -1492,15 +1498,14 @@ public class DBSTransactionState implements LockManager, AutoCloseable {
         }
 
         protected void findDirtyPaths(ListDiff value, String path) {
-            String newPath = path;
             if (value.diff != null) {
-                findDirtyPaths(value.diff, newPath);
+                findDirtyPaths(value.diff, path);
             }
             if (value.rpush != null) {
-                findDirtyPaths(value.rpush, newPath);
+                findDirtyPaths(value.rpush, path);
             }
             if (value.pull != null) {
-                findDirtyPaths(value.pull, newPath);
+                findDirtyPaths(value.pull, path);
             }
         }
 

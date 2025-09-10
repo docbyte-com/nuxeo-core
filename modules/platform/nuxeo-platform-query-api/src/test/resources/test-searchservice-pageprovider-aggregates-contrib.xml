@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider.aggregates.test">
+
+  <extension point="providers" target="org.nuxeo.ecm.platform.query.api.PageProviderService">
+
+    <searchServicePageProvider name="aggregates_1">
+      <property name="coreSession">#{documentManager}</property>
+      <property name="maxResults">10000</property>
+      <pageSize>20</pageSize>
+      <pattern>SELECT * FROM Document</pattern>
+      <aggregates>
+        <aggregate id="source" parameter="dc:source" type="terms">
+          <field name="source_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="trashed" parameter="ecm:isTrashed" type="terms">
+          <field name="trashed_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">2</property>
+          </properties>
+        </aggregate>
+        <aggregate id="coverage" parameter="dc:coverage" type="terms">
+          <field name="coverage_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="nature" parameter="dc:nature" type="terms">
+          <field name="nature_agg" schema="advanced_search" />
+          <properties>
+            <property name="size">5</property>
+          </properties>
+        </aggregate>
+        <aggregate id="size" parameter="file:content/length" type="range">
+          <field name="size_agg" schema="advanced_search" />
+          <ranges>
+            <range key="small" to="2048" />
+            <range from="2048" key="medium" to="6144" />
+            <range from="6144" key="big" />
+          </ranges>
+        </aggregate>
+        <aggregate id="created" parameter="dc:created" type="date_range">
+          <field name="created_agg" schema="advanced_search" />
+          <properties>
+            <property name="format">MM-yyy</property>
+          </properties>
+          <dateRanges>
+            <dateRange key="long_time_ago" toDate="now-10w" />
+            <dateRange fromDate="now-10w" key="some_time_ago" toDate="now-3w" />
+            <dateRange fromDate="now-3w" key="last_month" />
+          </dateRanges>
+        </aggregate>
+        <aggregate id="size_histo" parameter="file:content/length" type="histogram">
+          <field name="size_histo_agg" schema="advanced_search" />
+          <properties>
+            <property name="interval">1024</property>
+            <property name="extendedBoundsMin">0</property>
+            <property name="extendedBoundsMax">1234567</property>
+            <property name="minDocCount">1</property>
+            <property name="order">key asc</property>
+          </properties>
+        </aggregate>
+        <aggregate id="created_histo" parameter="dc:created" type="date_histogram">
+          <field name="created_histo_agg" schema="advanced_search" />
+          <properties>
+            <property name="interval">week</property>
+            <property name="format">dd-MM-yyy</property>
+            <property name="extendedBoundsMin">now-1m</property>
+            <property name="extendedBoundsMax">now</property>
+            <property name="minDocCount">1</property>
+            <property name="timeZone">-02:00</property>
+            <property name="preZone">-00:42</property>
+            <!-- property name="order">count desc</property-->
+          </properties>
+        </aggregate>
+      </aggregates>
+    </searchServicePageProvider>
+
+  </extension>
+
+</component>

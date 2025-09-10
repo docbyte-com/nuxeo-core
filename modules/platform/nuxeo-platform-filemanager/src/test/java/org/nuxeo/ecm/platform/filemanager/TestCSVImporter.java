@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2009 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.filemanager;
 
 import static org.junit.Assert.assertEquals;
@@ -28,7 +25,7 @@ import static org.junit.Assert.assertSame;
 import java.io.File;
 import java.util.zip.ZipFile;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,22 +36,18 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.PathRef;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.platform.filemanager.api.FileImporterContext;
 import org.nuxeo.ecm.platform.filemanager.api.FileManager;
 import org.nuxeo.ecm.platform.filemanager.service.extension.CSVZipImporter;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreFeature.class)
+@Features(FileManagerFeature.class)
 @RepositoryConfig(init = RepositoryInit.class, cleanup = Granularity.METHOD)
-@Deploy("org.nuxeo.ecm.platform.types")
-@Deploy("org.nuxeo.ecm.platform.filemanager")
 public class TestCSVImporter {
 
     @Inject
@@ -68,7 +61,7 @@ public class TestCSVImporter {
         return new File(FileUtils.getResourcePathFromContext("test-data/testCSVArchive.zip"));
     }
 
-    public void createTestDocuments() throws Exception {
+    public void createTestDocuments() {
         wsRoot = coreSession.getDocument(new PathRef("/default-domain/workspaces"));
 
         DocumentModel ws = coreSession.createDocumentModel(wsRoot.getPathAsString(), "ws1", "Workspace");

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,13 @@ package org.nuxeo.ecm.automation.core;
 import org.nuxeo.common.xmap.annotation.XContent;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
  * @since 5.7.3 The Automation Filter declaration.
  */
 @XObject("filter")
-public class AutomationFilterDescriptor {
+public class AutomationFilterDescriptor implements Descriptor {
 
     @XNode("@id")
     protected String id;
@@ -36,11 +37,12 @@ public class AutomationFilterDescriptor {
     @XContent
     protected String value;
 
-    public String getValue() {
-        return value;
-    }
-
+    @Override
     public String getId() {
         return id;
+    }
+
+    public String getValue() {
+        return value;
     }
 }

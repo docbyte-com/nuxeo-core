@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,10 +20,6 @@
 package org.nuxeo.runtime.test.runner;
 
 import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.List;
-import java.util.Properties;
 import java.util.Set;
 
 import org.nuxeo.osgi.OSGiAdapter;
@@ -70,28 +66,6 @@ public interface RuntimeHarness {
     void undeployContrib(String bundle, String contrib) throws Exception;
 
     /**
-     * @deprecated since 10.1, use {@link #deployContrib(String, String)}
-     */
-    @Deprecated
-    RuntimeContext deployTestContrib(String bundle, URL contrib) throws Exception;
-
-    /**
-     * Deploys an XML contribution from outside a bundle.
-     * <p>
-     * This should be used by tests wiling to deploy test contribution as part of a real bundle.
-     * <p>
-     * The bundle owner is important since the contribution may depend on resources deployed in that bundle.
-     * <p>
-     * Note that the owner bundle MUST be an already deployed bundle.
-     *
-     * @param bundle the bundle that becomes the contribution owner
-     * @param contrib the contribution to deploy as part of the given bundle
-     * @deprecated since 10.1, use {@link #deployContrib(String, String)}
-     */
-    @Deprecated
-    RuntimeContext deployTestContrib(String bundle, String contrib) throws Exception;
-
-    /**
      * Deploys a contribution from a given bundle.
      * <p>
      * The path will be relative to the bundle root. Example: <code>
@@ -120,22 +94,7 @@ public interface RuntimeHarness {
      */
     RuntimeContext deployPartial(String bundle, Set<TargetExtensions> targetExtensions) throws Exception;
 
-    /**
-     * @deprecated since 10.2, unused and badly implemented
-     */
-    @Deprecated
-    void deployFolder(File folder, ClassLoader loader) throws Exception;
-
     void addWorkingDirectoryConfigurator(WorkingDirectoryConfigurator config);
-
-    /**
-     * Framework properties for variable injections
-     *
-     * @since 5.4.2
-     * @deprecated since 10.2, unused and useless
-     */
-    @Deprecated
-    Properties getProperties();
 
     /**
      * Runtime context for deployment
@@ -150,26 +109,5 @@ public interface RuntimeHarness {
      * @since 5.4.2
      */
     OSGiAdapter getOSGiAdapter();
-
-    /**
-     * @since 5.5
-     * @deprecated since 10.2, unused and useless
-     */
-    @Deprecated
-    boolean isRestart();
-
-    /**
-     * @since 5.5
-     * @deprecated since 10.2, unused and useless
-     */
-    @Deprecated
-    void restart() throws Exception;
-
-    /**
-     * @since 5.7
-     * @deprecated since 10.2, unused and useless
-     */
-    @Deprecated
-    List<String> getClassLoaderFiles() throws URISyntaxException;
 
 }

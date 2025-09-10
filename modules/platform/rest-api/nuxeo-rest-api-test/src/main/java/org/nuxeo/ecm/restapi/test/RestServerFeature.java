@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,9 @@
  */
 package org.nuxeo.ecm.restapi.test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import org.nuxeo.ecm.automation.test.AutomationServerFeature;
+import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.webengine.test.WebEngineFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
@@ -30,7 +30,6 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 /**
  * @since 5.7.2
  */
-@Features({ WebEngineFeature.class, AutomationServerFeature.class })
 @Deploy("org.nuxeo.ecm.automation.test")
 @Deploy("org.nuxeo.ecm.platform.url")
 @Deploy("org.nuxeo.ecm.platform.types")
@@ -38,6 +37,9 @@ import org.nuxeo.runtime.test.runner.ServletContainerFeature;
 @Deploy("org.nuxeo.ecm.platform.restapi.test")
 @Deploy("org.nuxeo.ecm.platform.restapi.server")
 @Deploy("org.nuxeo.ecm.platform.tag")
+// tags relies on it and not available when Mongodb
+@Deploy("org.nuxeo.ecm.core.storage.sql:OSGI-INF/querymaker-service.xml")
+@Features({ WebEngineFeature.class, AutomationFeature.class })
 public class RestServerFeature implements RunnerFeature {
 
     @Inject
