@@ -138,7 +138,7 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>5.5.1</mongo.java.driver.version>
+    <mongo.java.driver.version>5.6.0</mongo.java.driver.version>
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
     <kafka.version>3.9.1</kafka.version>
