@@ -52,16 +52,15 @@ public class SchemaEndPoint extends DefaultObject {
     public Schema getSchemasByNamespace(@PathParam("namespace") String namespace) {
         SchemaManager sm = Framework.getService(SchemaManager.class);
         Schema[] schemas = sm.getSchemas();
-        Schema schema = null;
         for (Schema s : schemas) {
             if (s instanceof SchemaImpl schemaImpl) {
-                Namespace ns= schemaImpl.getNamespace();
+                Namespace ns = schemaImpl.getNamespace();
                 if (namespace.equals(ns.uri)) {
-                    return schema;
+                    return s;
                 }
             }
         }
-        return schema;
+        return null;
     }
 
 }
