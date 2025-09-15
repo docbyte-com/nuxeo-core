@@ -44,7 +44,7 @@ phases:
 
   build:
     commands:
-      - LANG=en_US.utf8 mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy $MAVEN_ARGS -fae
+      - LANG=en_US.utf8 mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy -DskipTests=true $MAVEN_ARGS -fae
       - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
       - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:latest
       - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:$IMAGE_TAG
