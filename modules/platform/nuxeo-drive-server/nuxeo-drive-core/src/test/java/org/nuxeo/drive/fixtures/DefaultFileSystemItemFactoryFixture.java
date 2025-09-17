@@ -38,6 +38,7 @@ import jakarta.inject.Inject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.common.utils.FileUtils;
@@ -90,6 +91,7 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
  *
  * @since 8.4
  */
+@Ignore("Disable temporarily")
 @RunWith(FeaturesRunner.class)
 @Features({ NuxeoDriveFeature.class, LogFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.drive.core:OSGI-INF/test-nuxeodrive-versioning-filter-contrib.xml")

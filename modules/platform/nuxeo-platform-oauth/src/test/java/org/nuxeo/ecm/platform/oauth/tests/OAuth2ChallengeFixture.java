@@ -231,7 +231,7 @@ public class OAuth2ChallengeFixture {
 
         // Valid: redirect_uri parameter matching one of the registered redirect URIs starting with http://localhost
         // with localhost not part of the domain name
-        params.put(REDIRECT_URI_PARAM, "http://localhost:8080/nuxeo");
+        params.put(REDIRECT_URI_PARAM, "http://localhost:8080/core");
         try (CloseableHttpResponse cr = responseFromGetAuthorizeWith(params)) {
             assertEquals(SC_OK, cr.getStatus());
         }

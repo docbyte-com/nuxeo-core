@@ -49,7 +49,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  */
 @RunWith(FeaturesRunner.class)
 @Features(RuntimeFeature.class)
-@WithFrameworkProperty(name = PARAM_NUXEO_URL, value = "http://localhost:8080/nuxeo")
+@WithFrameworkProperty(name = PARAM_NUXEO_URL, value = "http://localhost:8080/core")
 public class TestNuxeoHostFilter {
 
     protected static final String MY_HOST_ORG = "myhost.org";

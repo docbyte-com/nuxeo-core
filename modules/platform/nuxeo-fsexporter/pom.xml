@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.io</groupId>
+  <groupId>cloud.docbyte.nuxeo.io</groupId>
   <artifactId>nuxeo-fsexporter</artifactId>
   <name>Nuxeo File System Exporter</name>
 
@@ -19,27 +19,27 @@
 
     <!-- Nuxeo dependencies -->
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-query</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.automation</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
       <artifactId>nuxeo-automation-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-collections-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-query-api</artifactId>
     </dependency>
 
@@ -62,21 +62,21 @@
 
     <!-- Nuxeo test libraries -->
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.automation</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
       <artifactId>nuxeo-automation-core</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-collections-core</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-test</artifactId>
     </dependency>
   </dependencies>

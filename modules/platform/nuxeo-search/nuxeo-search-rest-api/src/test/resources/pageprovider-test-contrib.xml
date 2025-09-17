@@ -186,6 +186,9 @@
         <predicate parameter="tcs:long" operator="=">
           <field schema="testCommonScalar" name="long" />
         </predicate>
+        <predicate parameter="pt:booleanField" operator="=">
+          <field schema="primitivetypes" name="booleanField" />
+        </predicate>
         <fixedPart>
           ecm:primaryType = 'CommonDocument'
           AND ecm:isVersion = 0

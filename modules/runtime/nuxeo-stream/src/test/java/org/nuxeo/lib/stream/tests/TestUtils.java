@@ -34,4 +34,5 @@ public class TestUtils {
         return customEnvironment == null ? DEFAULT_BUILD_DIRECTORY
                 : String.format("%s-%s", DEFAULT_BUILD_DIRECTORY, customEnvironment);
     }
+
 }

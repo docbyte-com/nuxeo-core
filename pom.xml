@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.nuxeo</groupId>
+  <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
   <version>2025.3-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -113,7 +113,13 @@
     <scala-logging.version>3.9.5</scala-logging.version>
     <scala-maven-plugin.version>4.9.5</scala-maven-plugin.version>
 
-    <nuxeo.skip.enforcer>false</nuxeo.skip.enforcer>
+    <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
+
+    <!-- Tests properties -->
+    <!-- for use integration/vcstests.xml and cloud.docbyte.nuxeo:nuxeo-ftest -->
+    <!-- (related profiles: customdb, default, pgsql, oracle10g, oracle11g, oracle12c, oracle18c, mysql, mongodb) -->
+    <nuxeo.test.core>vcs</nuxeo.test.core>
+    <nuxeo.db.host.default>localhost</nuxeo.db.host.default>
 
     <!-- for use in maven-surefire-plugin to skip only the unit tests (maven-surefire-plugin) -->
     <!-- and not skip the integration tests (maven-failsafe-plugin, ant-assembly-maven-plugin) -->
@@ -144,6 +150,7 @@
     <confluent.version>7.9.1</confluent.version>
     <metrics.version>5.0.0</metrics.version>
     <amqp.client.version>5.25.0</amqp.client.version>
+      <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.16.0</prometheus.client.version>
     <protobuf.java.version>4.31.0</protobuf.java.version>
@@ -154,7 +161,7 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-ecm</artifactId>
         <type>zip</type>
         <classifier>tools</classifier>
@@ -162,204 +169,204 @@
       </dependency>
       <!-- Nuxeo Common -->
       <dependency>
-        <groupId>org.nuxeo.common</groupId>
+        <groupId>cloud.docbyte.nuxeo.common</groupId>
         <artifactId>nuxeo-common-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.common</groupId>
+        <groupId>cloud.docbyte.nuxeo.common</groupId>
         <artifactId>nuxeo-common</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo Runtime -->
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-launcher-commons</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-launcher-commons</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-datasource</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-datasource</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-server</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-deploy</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-jtajca</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-aws</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-mongodb</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-kv</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-kv</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-pubsub</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-launcher</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-log4j</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-connect-standalone</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-connect-standalone</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-metrics</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-management</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-osgi</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-osgi</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-reload</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-tomcat-adapter</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-stream</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-stream</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.stream</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
         <artifactId>nuxeo-stream</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-cluster</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-cluster</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
@@ -368,12 +375,12 @@
 
 
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-migration</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.runtime</groupId>
+        <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-migration</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
@@ -382,645 +389,645 @@
 
       <!-- Nuxeo Core -->
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-api</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-bulk</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-bulk</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert-plugins</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-event</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-event</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-io</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-jtajca</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-jtajca</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mimetype</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-persistence</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-query</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-query</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-schema</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-schema</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-search</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-search</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-search-client-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-search-client-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-dbs</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-dbs</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mem</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mem</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.core</groupId>
         <artifactId>nuxeo-core-storage-sql-extensions</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql-management</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mongodb</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-cache</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-cache</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-el</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo Services -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail-amazon-ses</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-actions-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-commandline-executor</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-content-template-manager</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-convert</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-ldap</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-sql</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-sql</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-multi</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-types-contrib</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-dublincore</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-filemanager</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-filemanager</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-htmlsanitizer</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-cas2</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-cleartrust</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-deputy</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-digest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-openid</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-mod_sso</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-portal-sso</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-shibboleth</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-jwt</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-jwt</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-kerberos</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-keycloak</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-saml2</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-usermapper</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-usermapper</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-scim-v2</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-management</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth1</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-query-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendering</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-search-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-types</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-url</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-usermanager</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-versioning-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-versioning-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-web-common</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-web-common</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-invite</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-permissions</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-collections-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-collections-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
@@ -1029,509 +1036,509 @@
 
       <!-- Nuxeo Web Resources -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-wro</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo DM -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-default-config</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-webapp-types</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo WebEngine -->
       <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-base</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.webengine</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-invite</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo Features -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-admin-center-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-connect-client-wrapper</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-connect-update</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-features</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-features</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-server</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-server</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-io</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-scripting</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-scripting</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.automation</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-features-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-directory-storage</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-mongodb</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-sql</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-sql</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-rest-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-workflow</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-csv-export</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-thumbnail</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-thumbnail</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-io-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-io-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.localconf</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.localconf</groupId>
         <artifactId>nuxeo-localconf-simple</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-mail</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-notification</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-notification</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-preview-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-preview-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-publisher</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-core-listener</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-default-config</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-tag</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-test</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-automation</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-userpreferences</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-userworkspace</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-virtualnavigation-core-contrib</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.elasticsearch</groupId>
+        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
         <artifactId>nuxeo-elasticsearch-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.elasticsearch</groupId>
+        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
         <artifactId>nuxeo-elasticsearch-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-server</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-test</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-opensearch1-passthrough</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-search-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-search-rest-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-publisher</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-user-profile</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Language extensions -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang-ext</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang-ext-incomplete</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- CMIS -->
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-bindings</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-impl</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-tests</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
@@ -1539,125 +1546,125 @@
 
       <!-- Importer -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-xml-parser</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-scan</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-scan-xml-parser</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-stream</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Document Routing -->
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-default</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-test</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.routing</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-rest-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Audio -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audio-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Video -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Suggest Box -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-suggestbox-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Digital Asset Management -->
       <dependency>
-        <groupId>org.nuxeo.dam</groupId>
+        <groupId>cloud.docbyte.nuxeo.dam</groupId>
         <artifactId>nuxeo-dam</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Quota -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-quota</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Binary Metadata -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-binary-metadata</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-binary-metadata</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
@@ -1666,22 +1673,22 @@
 
       <!-- Nuxeo Platform Signature -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-config</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-core-dependencies</artifactId>
         <type>pom</type>
         <version>${nuxeo.platform.version}</version>
@@ -1689,78 +1696,78 @@
 
       <!-- Multi Tenant Management -->
       <dependency>
-        <groupId>org.nuxeo.multi.tenant</groupId>
+        <groupId>cloud.docbyte.nuxeo.multi.tenant</groupId>
         <artifactId>nuxeo-multi-tenant-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Binary Managers -->
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-common</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-common</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-s3</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-s3</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-azure</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.core</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-gcp</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Template rendering -->
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-xdocreport</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-jxls</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-deckjs</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.template.rendering</groupId>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-core-dependencies</artifactId>
         <type>pom</type>
         <version>${nuxeo.platform.version}</version>
@@ -1768,89 +1775,89 @@
 
       <!-- CSV -->
       <dependency>
-        <groupId>org.nuxeo.ecm.csv</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.csv</groupId>
         <artifactId>nuxeo-csv-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Tree snapshot -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-tree-snapshot-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo Drive -->
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core-dependencies</artifactId>
         <type>pom</type>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-elasticsearch</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-rest-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-operations</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- DMK -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-dmk-adaptor</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Easyshare -->
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-easyshare-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- DEPRECATED FS Exporter -->
       <dependency>
-        <groupId>org.nuxeo.io</groupId>
+        <groupId>cloud.docbyte.nuxeo.io</groupId>
         <artifactId>nuxeo-fsexporter</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- DuoWeb Authentication -->
       <dependency>
-        <groupId>org.nuxeo.duoweb.authentication</groupId>
+        <groupId>cloud.docbyte.nuxeo.duoweb.authentication</groupId>
         <artifactId>nuxeo-duoweb-authentication</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Live Connect -->
       <dependency>
-        <groupId>org.nuxeo.ecm.liveconnect</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.liveconnect</groupId>
         <artifactId>nuxeo-liveconnect</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.liveconnect</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.liveconnect</groupId>
         <artifactId>nuxeo-liveconnect</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
@@ -1858,48 +1865,48 @@
 
       <!-- PDF Utils -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-pdf-utils</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Target platforms -->
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-api</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-core</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-io</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-rest</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.utils</groupId>
+        <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-sample</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- JSF to Web UI -->
       <dependency>
-        <groupId>org.nuxeo.web.ui</groupId>
+        <groupId>cloud.docbyte.nuxeo.web.ui</groupId>
         <artifactId>nuxeo-jsf-to-web-ui</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
@@ -1907,45 +1914,45 @@
 
       <!-- Adobe CC Connector -->
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-adobe-connector-core</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- WOPI -->
       <dependency>
-        <groupId>org.nuxeo.ecm</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-wopi</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
 
       <!-- Nuxeo Distribution -->
       <dependency>
-        <groupId>org.nuxeo.ecm.distribution</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-nxr-server</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.distribution</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-nxr-server</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>pom</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ecm.distribution</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-server-tomcat</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-launcher</artifactId>
         <version>${nuxeo.platform.version}</version>
         <classifier>jar-with-dependencies</classifier>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.ftests</groupId>
+        <groupId>cloud.docbyte.nuxeo.ftests</groupId>
         <artifactId>nuxeo-functional-tests</artifactId>
         <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
@@ -1953,247 +1960,247 @@
 
       <!-- Packages -->
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-adobe-connector-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-amazon-s3-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-mongodb-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-opensearch1-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-sql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-storage-directory-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-cas2-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-csv-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-drive-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-duoweb-authentication-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-easyshare-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-fsexporter-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-google-storage-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-imap-connector-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-importer-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-jsf-to-web-ui-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-kerberos-authentication-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-keycloak-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-lang-ext-incomplete-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-liveconnect-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mail-amazon-ses-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mariadb-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-microsoft-azure-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mssql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-multi-tenant-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mysql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-openid-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-opensearch1-embed-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-oracle-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-quota-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-saml2-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-scan-importer-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-scim-v2-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-shibboleth-login-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-signature-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-template-rendering-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-tree-snapshot-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-uidgen-opensearch1-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-uidgen-sql-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.packages</groupId>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-wopi-package</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>zip</type>
@@ -2212,7 +2219,7 @@
         <classifier>all</classifier>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-ftest</artifactId>
         <version>${nuxeo.ftest.version}</version>
         <type>zip</type>
@@ -2784,7 +2791,7 @@
         <version>${quartz.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.nuxeo.lib.novemberain</groupId>
+        <groupId>cloud.docbyte.nuxeo.lib.novemberain</groupId>
         <artifactId>quartz-mongodb</artifactId>
         <version>${quartz.mongodb.version}</version>
         <exclusions>
@@ -3879,6 +3886,12 @@
         <groupId>io.gatling</groupId>
         <artifactId>gatling-recorder</artifactId>
         <version>${gatling.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>io.gatling</groupId>
@@ -5137,18 +5150,18 @@
               <updateReleaseInfo>true</updateReleaseInfo>
             </configuration>
           </plugin>
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-source-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>attach-sources</id>
-                <goals>
-                  <goal>jar</goal>
-                </goals>
-              </execution>
-            </executions>
-          </plugin>
+<!--          <plugin>-->
+<!--            <groupId>org.apache.maven.plugins</groupId>-->
+<!--            <artifactId>maven-source-plugin</artifactId>-->
+<!--            <executions>-->
+<!--              <execution>-->
+<!--                <id>attach-sources</id>-->
+<!--                <goals>-->
+<!--                  <goal>jar</goal>-->
+<!--                </goals>-->
+<!--              </execution>-->
+<!--            </executions>-->
+<!--          </plugin>-->
         </plugins>
       </build>
     </profile>
@@ -5213,11 +5226,11 @@
               <groups>
                 <group>
                   <title>Nuxeo Common Packages</title>
-                  <packages>org.nuxeo.common:org.nuxeo.common.*</packages>
+                  <packages>>cloud.docbyte.nuxeo.common:>cloud.docbyte.nuxeo.common.*</packages>
                 </group>
                 <group>
                   <title>Nuxeo Runtime Packages</title>
-                  <packages>org.nuxeo.runtime:org.nuxeo.runtime.*:org.nuxeo.osgi</packages>
+                  <packages>cloud.docbyte.nuxeo.runtime:org.nuxeo.runtime.*:org.nuxeo.osgi</packages>
                 </group>
                 <group>
                   <title>Nuxeo Core Packages</title>
@@ -5382,4 +5395,20 @@
       </snapshots>
     </pluginRepository>
   </pluginRepositories>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>artifacts-snapshot-docbyte-com-docbyte-mvn-snapshot</id>
+      <url>
+        https://artifacts-snapshot-docbyte-com-518241560725.d.codeartifact.eu-west-1.amazonaws.com/maven/docbyte-mvn-snapshot/
+      </url>
+    </snapshotRepository>
+    <repository>
+      <id>artifacts-beta-docbyte-com-docbyte-mvn-beta</id>
+      <url>
+        https://artifacts-beta-docbyte-com-518241560725.d.codeartifact.eu-west-1.amazonaws.com/maven/docbyte-mvn-beta/
+      </url>
+    </repository>
+
+  </distributionManagement>
 </project>

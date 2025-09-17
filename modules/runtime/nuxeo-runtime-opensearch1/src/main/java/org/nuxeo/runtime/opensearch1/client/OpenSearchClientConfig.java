@@ -76,6 +76,12 @@ public class OpenSearchClientConfig implements Descriptor {
     @XNode("keyStore")
     protected Store keyStore;
 
+    @XNode("authenticationType")
+    protected String authenticationType;
+
+    @XNode("region")
+    protected String region;
+
     @Override
     public String getId() {
         return id;
@@ -128,6 +134,14 @@ public class OpenSearchClientConfig implements Descriptor {
 
     public Optional<Store> getKeyStore() {
         return Optional.ofNullable(keyStore).filter(s -> StringUtils.isNotBlank(s.path));
+    }
+
+    public Optional<String> getAuthenticationType() {
+        return Optional.ofNullable(authenticationType).filter(StringUtils::isNotBlank);
+    }
+
+    public Optional<String> getRegion() {
+        return Optional.ofNullable(region).filter(StringUtils::isNotBlank);
     }
 
     @Override

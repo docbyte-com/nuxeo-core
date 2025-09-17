@@ -70,7 +70,7 @@ public class TestComplexTypeJSONDecoder {
 
     protected static final String OBJECT_BLOB_JSON = "{ \"data\": \"%s\" }";
 
-    protected static final String BASE_URL = "http://localhost:8080/nuxeo/";
+    protected static final String BASE_URL = "http://localhost:8080/core/";
 
     @Inject
     protected NuxeoPrincipal principal;

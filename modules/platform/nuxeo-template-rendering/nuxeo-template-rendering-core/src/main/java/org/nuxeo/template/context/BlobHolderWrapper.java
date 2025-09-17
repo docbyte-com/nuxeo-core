@@ -43,7 +43,7 @@ public class BlobHolderWrapper {
     }
 
     protected static String getContextPathProperty() {
-        return Framework.getProperty("org.nuxeo.ecm.contextPath", "/nuxeo");
+        return Framework.getProperty("org.nuxeo.ecm.contextPath", "/core");
     }
 
     public Blob getBlob() {

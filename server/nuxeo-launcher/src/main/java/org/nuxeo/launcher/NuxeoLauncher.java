@@ -294,7 +294,7 @@ public class NuxeoLauncher {
     }
 
     /** @since 5.6 */
-    private static final String DEFAULT_NUXEO_CONTEXT_PATH = "/nuxeo";
+    private static final String DEFAULT_NUXEO_CONTEXT_PATH = "/core";
 
     private static final Logger log = LogManager.getLogger(NuxeoLauncher.class);
 

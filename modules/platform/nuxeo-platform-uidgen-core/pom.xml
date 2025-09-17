@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -16,15 +16,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-persistence</artifactId>
     </dependency>
 
@@ -34,7 +34,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-test</artifactId>
       <scope>test</scope>
     </dependency>

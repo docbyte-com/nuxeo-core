@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo</groupId>
+    <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.ftests</groupId>
+  <groupId>cloud.docbyte.nuxeo.ftests</groupId>
   <artifactId>nuxeo-ftests</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Functional Tests Parent</name>
@@ -99,13 +99,13 @@
       </properties>
       <dependencies>
         <dependency>
-          <groupId>org.nuxeo.ecm.distribution</groupId>
+          <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
           <artifactId>nuxeo-server-tomcat</artifactId>
           <type>zip</type>
           <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>org.nuxeo</groupId>
+          <groupId>cloud.docbyte.nuxeo</groupId>
           <artifactId>nuxeo-ftest</artifactId>
           <scope>test</scope>
           <type>zip</type>
@@ -122,13 +122,13 @@
       </activation>
       <dependencies>
         <dependency>
-          <groupId>org.nuxeo.ecm.distribution</groupId>
+          <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
           <artifactId>nuxeo-server-tomcat</artifactId>
           <type>zip</type>
           <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>org.nuxeo</groupId>
+          <groupId>cloud.docbyte.nuxeo</groupId>
           <artifactId>nuxeo-ftest</artifactId>
           <scope>test</scope>
           <type>zip</type>

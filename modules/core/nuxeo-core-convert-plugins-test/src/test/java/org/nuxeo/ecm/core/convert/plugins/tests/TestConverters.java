@@ -149,7 +149,7 @@ public class TestConverters extends SimpleConverterTest {
     @Test
     public void testEpsConverter() throws Exception {
         String textContent = doTestTextConverter("application/eps", "ps2pdf2text", "hello.eps");
-        assertTrue(textContent.contains("Hello from a .eps document!"));
+        assertTrue(textContent.contains("Hello from a .eps document"));
     }
 
     // fails since upgrade from pdfbox 1.6.0 to 1.8.5

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -16,55 +16,55 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-usermanager</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-management</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-login</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-event</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-io</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-management</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-jtajca</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-url</artifactId>
     </dependency>
 
@@ -89,7 +89,7 @@
       <artifactId>metrics-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-metrics</artifactId>
     </dependency>
     <dependency>
@@ -114,7 +114,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>
@@ -125,7 +125,7 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-management-jtajca</artifactId>
       <scope>test</scope>
     </dependency>

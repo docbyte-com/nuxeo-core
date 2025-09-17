@@ -119,7 +119,7 @@ public class ITOAuth2Test {
         Map<String, String> properties = new HashMap<>();
         properties.put("name", "Test Client");
         properties.put("clientId", "test-client");
-        properties.put("redirectURIs", "http://localhost:8080/nuxeo/home.html");
+        properties.put("redirectURIs", "http://localhost:8080/core/home.html");
         oauth2ClientDirectoryEntryId = restHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
     }
 
@@ -178,7 +178,7 @@ public class ITOAuth2Test {
         Map<String, String> properties = new HashMap<>();
         properties.put("name", "Test Client");
         properties.put("clientId", "test-client");
-        properties.put("redirectURIs", "http://localhost:8080/nuxeo/home.html");
+        properties.put("redirectURIs", "http://localhost:8080/core/home.html");
         restHelper.createDirectoryEntry(OAUTH2CLIENT_DIRECTORY_NAME, properties);
         errorPage = getErrorPage(testUserClient, "/oauth2/authorize?client_id=test-client&response_type=code");
         errorPage.checkDescription("More than one client registered for the 'test-client' id");
@@ -200,7 +200,7 @@ public class ITOAuth2Test {
 
         // Then send extra parameters
         Map<String, String> extraParameters = new HashMap<>();
-        extraParameters.put("redirect_uri", "http://localhost:8080/nuxeo/home.html");
+        extraParameters.put("redirect_uri", "http://localhost:8080/core/home.html");
         extraParameters.put("state", "1234");
         extraParameters.put("code_challenge", "myCodeChallenge");
         extraParameters.put("code_challenge_method", "plain");
@@ -245,7 +245,7 @@ public class ITOAuth2Test {
 
         // Simulate an invalid redirect_uri parameter
         Map<String, String> extraParameters = new HashMap<>();
-        extraParameters.put("redirect_uri", "http://localhost:8080/nuxeo/home.html");
+        extraParameters.put("redirect_uri", "http://localhost:8080/core/home.html");
         grantPage = getOAuth2GrantPageBuilder(testUserClient).extraParameters(extraParameters).build();
         grantPage.setRedirectURI("unknown");
         result = grantPage.grant();
@@ -288,7 +288,7 @@ public class ITOAuth2Test {
                                                                              .build();
         grantPage.setHttpClient(testUserLocationClient);
         String location = grantPage.getDenyLocation();
-        assertEquals("http://localhost:8080/nuxeo/home.html", URIUtils.getURIPath(location));
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
         Map<String, String> expectedParameters = new HashMap<>();
         expectedParameters.put(ERROR_PARAM, ACCESS_DENIED);
         expectedParameters.put(ERROR_DESCRIPTION_PARAM, "Access denied by the user");
@@ -304,7 +304,7 @@ public class ITOAuth2Test {
                                                                              .build();
         grantPage.setHttpClient(testUserLocationClient);
         String location = grantPage.getGrantLocation();
-        assertEquals("http://localhost:8080/nuxeo/home.html", URIUtils.getURIPath(location));
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
         Map<String, String> parameters = URIUtils.getRequestParameters(location);
         assertEquals(2, parameters.size());
         assertEquals("1234", parameters.get(STATE_PARAM));
@@ -362,7 +362,7 @@ public class ITOAuth2Test {
         String location = getLocation("/oauth2/authorize?client_id=test-client&response_type=code");
 
         // Expecting to be redirected to the client's redirect_uri with a code parameter, bypassing the grant page
-        assertEquals("http://localhost:8080/nuxeo/home.html", URIUtils.getURIPath(location));
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
         Map<String, String> queryParameters = URIUtils.getRequestParameters(location);
         assertEquals(1, queryParameters.size());
         String code = queryParameters.get("code");
@@ -386,7 +386,7 @@ public class ITOAuth2Test {
         String location = getLocation("/oauth2/authorize?client_id=test-client&response_type=code");
 
         // Expecting to be redirected to the client's redirect_uri with a code parameter, bypassing the grant page
-        assertEquals("http://localhost:8080/nuxeo/home.html", URIUtils.getURIPath(location));
+        assertEquals("http://localhost:8080/core/home.html", URIUtils.getURIPath(location));
         Map<String, String> queryParameters = URIUtils.getRequestParameters(location);
         assertEquals(1, queryParameters.size());
         String code = queryParameters.get("code");

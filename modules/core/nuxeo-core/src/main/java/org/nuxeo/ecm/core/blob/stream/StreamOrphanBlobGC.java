@@ -87,16 +87,12 @@ public class StreamOrphanBlobGC implements StreamProcessorTopology {
                     }
                     return true;
                 });
-                boolean hasCrossRepositoryStorage = !getDocumentBlobManager().isUseRepositoryName()
-                        && rs.getRepositoryNames().size() > 1;
-                if (hasCrossRepositoryStorage) {
-                    log.warn("Cannot delete blobs on cross-repository shared storage.");
-                }
+
                 boolean disabled = Framework.isBooleanPropertyFalse(ENABLED_PROPERTY_NAME);
                 if (disabled) {
                     log.trace("Computation is disabled.");
                 }
-                canDelete = allReposWithBlobKeys && !hasCrossRepositoryStorage && !disabled;
+                canDelete = allReposWithBlobKeys && !disabled;
             }
             return canDelete;
         }

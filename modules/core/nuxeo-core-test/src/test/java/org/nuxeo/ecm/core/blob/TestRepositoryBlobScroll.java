@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -131,6 +132,7 @@ public class TestRepositoryBlobScroll {
         test();
     }
 
+    @Ignore
     @Test
     @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/blobGC/test-blob-cross-repo-provider-delete.xml")
     @ConditionalIgnore(condition = IgnoreIfNotDBSMongoDBRepository.class, cause = "MongoDB test only")

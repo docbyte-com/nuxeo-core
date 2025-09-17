@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.ecm.core</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
     <artifactId>nuxeo-core-binarymanager-cloud</artifactId>
     <version>2025.3-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
@@ -14,15 +14,15 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-io</artifactId>
     </dependency>
     <dependency>

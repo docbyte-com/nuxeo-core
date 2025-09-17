@@ -129,7 +129,7 @@ Here is an example on how to launch a bulk command and get status:
 
 ```bash
 ## Run a bulk action
-curl -s -X POST 'http://localhost:8080/nuxeo/site/automation/Bulk.RunAction' -u Administrator:Administrator -H 'content-type: application/json' -d '{
+curl -s -X POST 'http://localhost:8080/core/site/automation/Bulk.RunAction' -u Administrator:Administrator -H 'content-type: application/json' -d '{
   "context": {},
   "params": {
     "action": "csvExport",
@@ -143,7 +143,7 @@ curl -s -X POST 'http://localhost:8080/nuxeo/site/automation/Bulk.RunAction' -u 
 commandId=$(cat /tmp/bulk-command.txt | jq .[] | tr -d '"')
 
 ## Ask for the command status
-curl -s -X GET "http://localhost:8080/nuxeo/api/v1/bulk/$commandId"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
+curl -s -X GET "http://localhost:8080/core/api/v1/bulk/$commandId"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
 # {
 #  "entity-type": "bulkStatus",
 #  "commandId": "e8cc059d-6b9d-480b-a6e1-b0edace6d982",
@@ -158,7 +158,7 @@ curl -s -X GET "http://localhost:8080/nuxeo/api/v1/bulk/$commandId"  -u Administ
 
 ## Wait for the completion of the command, this is only for testing purpose
 ## a normal client should poll the status regularly instead of using this call:
-curl -X POST 'http://localhost:8080/nuxeo/site/automation/Bulk.WaitForAction' -u Administrator:Administrator -H 'content-type: application/json' -d $'{
+curl -X POST 'http://localhost:8080/core/site/automation/Bulk.WaitForAction' -u Administrator:Administrator -H 'content-type: application/json' -d $'{
   "context": {},
   "params": {
     "commandId": "'"$commandId"'",
@@ -168,7 +168,7 @@ curl -X POST 'http://localhost:8080/nuxeo/site/automation/Bulk.WaitForAction' -u
 # {"entity-type":"boolean","value":true}
 
 ## Get the status again:
-curl -s -X GET "http://localhost:8080/nuxeo/api/v1/bulk/$commandId"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
+curl -s -X GET "http://localhost:8080/core/api/v1/bulk/$commandId"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
 #{
 #  "entity-type": "bulkStatus",
 #  "commandId": "e8cc059d-6b9d-480b-a6e1-b0edace6d982",
@@ -187,7 +187,7 @@ or to by pass a command that fails systematically which blocks the entire action
 
 ```
 ## Abort a command
-curl -s -X PUT "http://localhost:8080/nuxeo/api/v1/bulk/$commandId/abort"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
+curl -s -X PUT "http://localhost:8080/core/api/v1/bulk/$commandId/abort"  -u Administrator:Administrator  -H 'content-type: application/json' | jq .
 
 ```
 

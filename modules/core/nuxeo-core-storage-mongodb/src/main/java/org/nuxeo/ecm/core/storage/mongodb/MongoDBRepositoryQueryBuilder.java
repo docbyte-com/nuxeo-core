@@ -93,7 +93,7 @@ public class MongoDBRepositoryQueryBuilder extends MongoDBAbstractSearchBuilder 
 
     private static final Logger log = LogManager.getLogger(MongoDBRepositoryQueryBuilder.class);
 
-    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/\\*\\d+(/)?");
+    protected static final Pattern SLASH_WILDCARD_SLASH = Pattern.compile("/(\\\\*(\\\\d+(/)?)?)?");
 
     protected final SchemaManager schemaManager;
 

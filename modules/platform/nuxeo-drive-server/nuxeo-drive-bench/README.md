@@ -132,7 +132,7 @@ Default options: see below.
 Common options with default values:
 
     # Nuxeo target URL
-    -Durl=http://localhost:8080/nuxeo
+    -Durl=http://localhost:8080/core
     # Time in seconds to reach the target number of concurrent Nuxeo Drive clients / writers
     -Dramp=10
 

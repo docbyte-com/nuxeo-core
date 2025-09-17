@@ -32,6 +32,7 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.nuxeo.lib.stream.codec.AvroSchemaStore;
 import org.nuxeo.lib.stream.codec.FileAvroSchemaStore;
+import org.nuxeo.lib.stream.tests.TestUtils;
 
 /**
  * @since 10.3

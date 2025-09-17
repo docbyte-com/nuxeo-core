@@ -36,7 +36,7 @@ class Sim90Cleanup extends Simulation {
       }.exec(NuxeoRest.deleteGroup(Constants.GAT_GROUP_NAME))
   }
 
-  val url = System.getProperty("url", "http://localhost:8080/nuxeo")
+  val url = System.getProperty("url", "http://localhost:8080/core")
   val httpProtocol = http
     .baseUrl(url)
     .disableWarmUp

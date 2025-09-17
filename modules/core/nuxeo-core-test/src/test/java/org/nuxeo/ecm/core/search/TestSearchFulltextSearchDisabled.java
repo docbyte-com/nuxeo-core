@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -29,6 +30,7 @@ import org.nuxeo.ecm.core.query.QueryParseException;
 import org.nuxeo.ecm.core.test.FulltextSearchDisabledFeature;
 import org.nuxeo.runtime.test.runner.Features;
 
+@Ignore("Disable as depends on OpenSearch local instance")
 @Features(FulltextSearchDisabledFeature.class)
 public class TestSearchFulltextSearchDisabled extends TestSearchFulltextEnabled {
 

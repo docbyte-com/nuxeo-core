@@ -72,7 +72,7 @@ public class TestNuxeoCorsCsrfFilter {
 
     protected static final String URL_BASE = SCHEME + "://" + HOST + ":" + PORT + "/";
 
-    protected static final String CONTEXT = "/nuxeo";
+    protected static final String CONTEXT = "/core";
 
     @Inject
     protected LogCaptureFeature.Result logCaptureResult;

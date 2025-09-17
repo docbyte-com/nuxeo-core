@@ -1,7 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-directory-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -11,76 +11,76 @@
   <dependencies>
     <!-- Nuxeo dependencies -->
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common-test</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-datasource</artifactId>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-mongodb</artifactId>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-cache</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-test</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-core</artifactId>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-types-contrib</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-mongodb</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-mongodb</artifactId>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-sql</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-sql</artifactId>
       <type>test-jar</type>
       <scope>compile</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-multi</artifactId>
     </dependency>
 

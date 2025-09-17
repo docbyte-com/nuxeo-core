@@ -55,7 +55,7 @@ public class TestOauth2Client {
         assertFalse(OAuth2Client.isRedirectURIValid(" http://redirect.uri"));
         assertFalse(OAuth2Client.isRedirectURIValid("http://localhost.somecompany.com"));
         assertTrue(OAuth2Client.isRedirectURIValid("nuxeo://authorize"));
-        assertTrue(OAuth2Client.isRedirectURIValid("http://localhost:8080/nuxeo"));
+        assertTrue(OAuth2Client.isRedirectURIValid("http://localhost:8080/core"));
         assertTrue(OAuth2Client.isRedirectURIValid("https://redirect.uri"));
     }
 
@@ -67,7 +67,7 @@ public class TestOauth2Client {
         assertTrue(OAuth2Client.isRedirectURIValid(" http://redirect.uri"));
         assertTrue(OAuth2Client.isRedirectURIValid("http://localhost.somecompany.com"));
         assertTrue(OAuth2Client.isRedirectURIValid("nuxeo://authorize"));
-        assertTrue(OAuth2Client.isRedirectURIValid("http://localhost:8080/nuxeo"));
+        assertTrue(OAuth2Client.isRedirectURIValid("http://localhost:8080/core"));
         assertTrue(OAuth2Client.isRedirectURIValid("https://redirect.uri"));
     }
 
@@ -93,7 +93,7 @@ public class TestOauth2Client {
         assertEquals("Dummy", client.getName());
         assertEquals("testClient", client.getId());
         assertTrue(client.isEnabled());
-        assertEquals(Arrays.asList("https://redirect.uri", "http://localhost:8080/nuxeo", "nuxeo://authorize"),
+        assertEquals(Arrays.asList("https://redirect.uri", "http://localhost:8080/core", "nuxeo://authorize"),
                 client.getRedirectURIs());
         assertFalse(client.isAutoGrant());
 

@@ -29,6 +29,7 @@ import java.util.List;
 
 import javax.net.ssl.SSLContext;
 
+import cloud.docbyte.aws.auth.AwsRequestSigningApacheInterceptor;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
@@ -43,6 +44,9 @@ import org.opensearch.client.RequestOptions;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestClientBuilder;
 import org.opensearch.client.RestHighLevelClient;
+import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
 
 /**
  * @since 9.3
@@ -55,6 +59,9 @@ public class OpenSearchRestClientFactory implements OpenSearchClientFactory {
 
     public static final Duration DEFAULT_SOCKET_TIMEOUT = Duration.ofSeconds(20);
 
+    public static final String DEFAULT_AUTHENTICATION_TYPE = "basic";
+
+    public static final String DEFAULT_REGION = "eu-west-1";
     @Override
     public OpenSearchClient create(OpenSearchClientConfig config) {
         return createRestClient(config);
@@ -84,7 +91,16 @@ public class OpenSearchRestClientFactory implements OpenSearchClientFactory {
         return new OpenSearchRestClient(config.getId(), client);
     }
 
-    private void addClientCallback(OpenSearchClientConfig config, RestClientBuilder builder) {
+    protected void addClientCallback(OpenSearchClientConfig config, RestClientBuilder builder) {
+        String authenticationType = config.getAuthenticationType().orElse(DEFAULT_AUTHENTICATION_TYPE);
+        if ("iam".equalsIgnoreCase(authenticationType)) {
+            addIamAuthClientCallback(config, builder);
+        } else {
+            addBasicClientCallback(config, builder);
+        }
+    }
+
+    private void addBasicClientCallback(OpenSearchClientConfig config, RestClientBuilder builder) {
         BasicCredentialsProvider credentialProvider = getCredentialProvider(config);
         SSLContext sslContext = getSslContext(config);
         if (sslContext == null && credentialProvider == null) {
@@ -98,6 +114,12 @@ public class OpenSearchRestClientFactory implements OpenSearchClientFactory {
             }
             return httpClientBuilder;
         });
+    }
+
+    protected void addIamAuthClientCallback(OpenSearchClientConfig config, RestClientBuilder builder) {
+        builder.setHttpClientConfigCallback(hacb -> hacb.addInterceptorLast(
+                new AwsRequestSigningApacheInterceptor("es", Aws4Signer.create(),
+                        DefaultCredentialsProvider.builder().build(), Region.of(config.getRegion().orElse(DEFAULT_REGION))))).build();
     }
 
     protected BasicCredentialsProvider getCredentialProvider(OpenSearchClientConfig config) {

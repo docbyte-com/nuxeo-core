@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-audit-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -26,27 +26,27 @@
 
     <!-- Nuxeo dependencies -->
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-query</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-audit-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-query-api</artifactId>
     </dependency>
 
@@ -59,27 +59,27 @@
 
     <!-- Nuxeo test dependencies -->
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-audit-core</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-directory-test</artifactId>
     </dependency>
   </dependencies>
@@ -87,7 +87,7 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-opensearch1-bom</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>pom</type>

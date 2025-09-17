@@ -22,7 +22,7 @@ import scala.concurrent.duration.FiniteDuration
 
 object Parameters {
 
-  def getBaseUrl(default: String = "http://localhost:8080/nuxeo"): String = {
+  def getBaseUrl(default: String = "http://localhost:8080/core"): String = {
     System.getProperty("url", default)
   }
 

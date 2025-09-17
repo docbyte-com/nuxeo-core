@@ -6,6 +6,7 @@
   <target name="build" description="Build ${maven.project.name}">
     <property name="outdir" value="${maven.project.build.directory}" />
     <artifact:nuxeo-expand includeTestScope="true" groupPrefixes="org.nuxeo" />
+    <artifact:nuxeo-expand includeTestScope="true" groupPrefixes="cloud.docbyte.nuxeo" />
     <artifact:print output="${outdir}/dependency-tree.log" />
     <tstamp />
 
@@ -23,7 +24,7 @@
 
     <!-- Base distribution NXR -->
     <copy todir="${outdir}">
-      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-server::zip" />
+      <artifact:file key="cloud.docbyte.nuxeo.ecm.distribution:nuxeo-nxr-server::zip" />
     </copy>
 
     <!-- Nuxeo bundles -->
@@ -31,11 +32,15 @@
       <artifact:set>
         <includes>
           <artifact groupId="org.nuxeo*" />
+          <artifact groupId="cloud.docbyte.nuxeo*" />
         </includes>
         <excludes>
           <artifact groupId="org.nuxeo.build*" />
+          <artifact groupId="cloud.docbyte.nuxeo.build*" />
           <artifact groupId="org.nuxeo.lib*" />
-          <artifact groupId="org.nuxeo.packages*" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" />
+          <artifact groupId="oeg.nuxeo.packages*" />
+          <artifact groupId="cloud.docbyte.nuxeo.packages*" />
           <artifact scope="test" />
           <artifact scope="provided" />
           <artifact type="pom" />
@@ -46,8 +51,8 @@
     <copy todir="${outdir}/nxr/lib" overwrite="true">
       <artifact:set>
         <includes>
-          <artifact groupId="!org.nuxeo*" />
-          <artifact groupId="org.nuxeo.lib*" />
+          <artifact groupId="!cloud.docbyte.nuxeo*" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" />
         </includes>
         <excludes>
           <artifact scope="test" />

@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.docker</groupId>
+    <groupId>cloud.docbyte.nuxeo.docker</groupId>
     <artifactId>nuxeo-docker-images</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -15,7 +15,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.ecm.distribution</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
       <artifactId>nuxeo-server-tomcat</artifactId>
       <type>zip</type>
     </dependency>
@@ -48,7 +48,6 @@
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
             </goals>
           </execution>
         </executions>
@@ -62,6 +61,7 @@
                   <BUILD_TAG>local-nuxeo-nuxeo</BUILD_TAG>
                   <SCM_REF>local</SCM_REF>
                   <VERSION>2025.x</VERSION>
+                  <BUILD_DIR>target-${custom.environment}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
                 <buildx>

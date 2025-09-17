@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.runtime</groupId>
+    <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -13,23 +13,23 @@
   <dependencies>
 
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-cluster</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-stream</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.lib.stream</groupId>
+      <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
       <artifactId>nuxeo-stream</artifactId>
     </dependency>
     <dependency>
@@ -43,17 +43,17 @@
 
     <!-- tests -->
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-cluster</artifactId>
       <type>test-jar</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-stream</artifactId>
       <type>test-jar</type>
     </dependency>

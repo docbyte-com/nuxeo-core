@@ -137,7 +137,7 @@ public class NuxeoRepository {
 
     private static final String NUXEO_CONTEXT_PATH_PROP = "org.nuxeo.ecm.contextPath";
 
-    private static final String NUXEO_CONTEXT_PATH_DEFAULT = "/nuxeo";
+    private static final String NUXEO_CONTEXT_PATH_DEFAULT = "/core";
 
     public static final String NUXEO_READ_REMOVE = "ReadRemove";
 

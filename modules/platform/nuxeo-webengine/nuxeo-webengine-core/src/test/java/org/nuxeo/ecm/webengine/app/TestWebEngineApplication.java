@@ -186,12 +186,12 @@ public class TestWebEngineApplication {
                   <title>An error occurred</title>
                   <meta name="viewport" content="width=device-width">
 
-                  <link rel="icon" type="image/png" href="/nuxeo/icons/favicon.png" />
-                  <link rel="shortcut icon" type="image/x-icon" href="/nuxeo/icons/favicon.ico" />
+                  <link rel="icon" type="image/png" href="/core/icons/favicon.png" />
+                  <link rel="shortcut icon" type="image/x-icon" href="/core/icons/favicon.ico" />
                   <style type="text/css">
                       <!--
                       body {
-                        background: url("/nuxeo/img/error_pages/page_background.gif") repeat scroll 0 0 transparent;
+                        background: url("/core/img/error_pages/page_background.gif") repeat scroll 0 0 transparent;
                         color: #999;
                         font: normal 100%/1.5 "Lucida Grande", Arial, Verdana, sans-serif;
                         margin: 0;

@@ -53,6 +53,7 @@ public class XSDTypes {
         xsdBaseTypes.put("short", LongType.INSTANCE);
         xsdBaseTypes.put("unsignedShort", LongType.INSTANCE);
         xsdBaseTypes.put("positiveInteger", LongType.INSTANCE);
+        xsdBaseTypes.put("negativeInteger", LongType.INSTANCE);
         xsdBaseTypes.put("nonPositiveInteger", LongType.INSTANCE);
         xsdBaseTypes.put("nonNegativeInteger", LongType.INSTANCE);
         xsdBaseTypes.put("unsignedInt", LongType.INSTANCE);
@@ -62,14 +63,21 @@ public class XSDTypes {
         xsdBaseTypes.put("float", DoubleType.INSTANCE);
         xsdBaseTypes.put("date", DateType.INSTANCE);
         xsdBaseTypes.put("dateTime", DateType.INSTANCE);
+        xsdBaseTypes.put("dateTimeStamp", DateType.INSTANCE);
         xsdBaseTypes.put("time", DateType.INSTANCE);
         xsdBaseTypes.put("boolean", BooleanType.INSTANCE);
         xsdBaseTypes.put("base64Binary", BinaryType.INSTANCE);
         xsdBaseTypes.put("hexBinary", BinaryType.INSTANCE);
         xsdBaseTypes.put("duration", StringType.INSTANCE);
+        xsdBaseTypes.put("yearMonthDuration", StringType.INSTANCE);
+        xsdBaseTypes.put("dayTimeDuration", StringType.INSTANCE);
         xsdBaseTypes.put("anyType", StringType.INSTANCE);
         xsdBaseTypes.put("anySimpleType", StringType.INSTANCE);
         xsdBaseTypes.put("anyURI", StringType.INSTANCE);
+        xsdBaseTypes.put("ID", StringType.INSTANCE);
+        xsdBaseTypes.put("IDREFS", StringType.INSTANCE);
+        xsdBaseTypes.put("IDREF", StringType.INSTANCE);
+        xsdBaseTypes.put("language", StringType.INSTANCE);
     }
 
     public static SimpleType getType(String name) {

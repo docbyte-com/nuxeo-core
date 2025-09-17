@@ -3,8 +3,8 @@
 
   <extension target="org.nuxeo.ecm.platform.ec.notification.service.NotificationService" point="generalSettings">
     <settings>
-      <serverPrefix>http://localhost:8080/nuxeo/</serverPrefix>
-      <eMailSubjectPrefix>[Nuxeo]</eMailSubjectPrefix>
+      <serverPrefix>http://localhost:8080/core/</serverPrefix>
+      <eMailSubjectPrefix>[Docbyte]</eMailSubjectPrefix>
       <mailSenderName>default</mailSenderName>
     </settings>
   </extension>

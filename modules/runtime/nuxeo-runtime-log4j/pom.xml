@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.runtime</groupId>
+    <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.lib.runtime</groupId>
+  <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
   <artifactId>nuxeo-runtime-log4j</artifactId>
   <name>Nuxeo Runtime Log4j</name>
   <description>Nuxeo extensions for log4j</description>
@@ -19,13 +19,13 @@
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.lib.stream</groupId>
+      <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
       <artifactId>nuxeo-stream</artifactId>
       <scope>provided</scope>
     </dependency>
 
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common-test</artifactId>
       <scope>test</scope>
     </dependency>

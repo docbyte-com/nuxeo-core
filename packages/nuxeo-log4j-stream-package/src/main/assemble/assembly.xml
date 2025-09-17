@@ -23,7 +23,7 @@
 
     <!-- Base distribution NXR -->
     <copy todir="${outdir}">
-      <artifact:file key="org.nuxeo.ecm.distribution:nuxeo-nxr-server::zip" />
+      <artifact:file key="cloud.docbyte.nuxeo.ecm.distribution:nuxeo-nxr-server::zip" />
     </copy>
 
     <!-- Nuxeo bundles -->
@@ -31,11 +31,14 @@
       <artifact:set>
         <includes>
           <artifact groupId="org.nuxeo*" />
+            <artifact groupId="cloud.docbyte.nuxeo*" />
         </includes>
         <excludes>
           <artifact groupId="org.nuxeo.build*" />
           <artifact groupId="org.nuxeo.lib*" />
           <artifact groupId="org.nuxeo.packages*" />
+            <artifact groupId="cloud.docbyte.nuxeo.packages*" />
+            <artifact groupId="cloud.docbyte.nuxeo.lib*" />
           <artifact scope="test" />
           <artifact scope="provided" />
           <artifact type="pom" />
@@ -48,6 +51,8 @@
         <includes>
           <artifact groupId="!org.nuxeo*" />
           <artifact groupId="org.nuxeo.lib*" />
+            <artifact groupId="!cloud.docbyte.nuxeo*" />
+            <artifact groupId="cloud.docbyte.nuxeo.lib*" />
         </includes>
         <excludes>
           <artifact scope="test" />

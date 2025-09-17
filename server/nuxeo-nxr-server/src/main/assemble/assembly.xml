@@ -19,10 +19,13 @@
       <artifact:set excludeRoots="true">
         <includes>
           <artifact groupId="org.nuxeo*" scope="" type="!pom" />
+          <artifact groupId="cloud.docbyte.nuxeo*" scope="" type="!pom" />
         </includes>
         <excludes>
           <artifact groupId="org.nuxeo.lib*" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" />
           <artifact groupId="org.nuxeo.build*" />
+          <artifact groupId="cloud.docbyte.nuxeo.build*" />
         </excludes>
       </artifact:set>
     </copy>
@@ -31,8 +34,8 @@
     <copy todir="${nxr}/lib" overwrite="true">
       <artifact:set>
         <includes>
-          <artifact groupId="!org.nuxeo*" />
-          <artifact groupId="org.nuxeo.lib*" />
+          <artifact groupId="!cloud.docbyte.nuxeo*" scope="" />
+          <artifact groupId="cloud.docbyte.nuxeo.lib*" scope="" />
         </includes>
         <excludes>
           <artifact scope="test" />

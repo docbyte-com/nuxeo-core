@@ -66,23 +66,11 @@ import org.nuxeo.ecm.core.repository.RepositoryService;
 import org.nuxeo.runtime.api.Framework;
 
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
-import software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse;
-import software.amazon.awssdk.services.s3.model.GetObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
-import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
-import software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus;
-import software.amazon.awssdk.services.s3.model.PutObjectRequest;
-import software.amazon.awssdk.services.s3.model.S3Exception;
-import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
-import software.amazon.awssdk.services.s3.model.StorageClass;
+import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
@@ -148,8 +136,8 @@ public class S3BlobStore extends AbstractBlobStore {
     protected static boolean isMissingKey(SdkException e) {
         return (e instanceof SdkServiceException sse && sse.statusCode() == 404)
                 || (e instanceof S3EncryptionClientException
-                        && e.getCause() instanceof SdkServiceException sdkServiceException
-                        && sdkServiceException.statusCode() == 404);
+                && e.getCause() instanceof SdkServiceException sdkServiceException
+                && sdkServiceException.statusCode() == 404);
     }
 
     protected boolean isBucketVersioningEnabled() {
@@ -189,9 +177,9 @@ public class S3BlobStore extends AbstractBlobStore {
     protected boolean supportsAsyncDigest() {
         RepositoryService repositoryService = Framework.getService(RepositoryService.class);
         return repositoryService.getRepositoryNames()
-                                .stream()
-                                .map(repositoryService::getRepository)
-                                .allMatch(this::supportsAsyncDigest);
+                .stream()
+                .map(repositoryService::getRepository)
+                .allMatch(this::supportsAsyncDigest);
     }
 
     protected boolean supportsAsyncDigest(Repository repository) {
@@ -340,7 +328,54 @@ public class S3BlobStore extends AbstractBlobStore {
 
     @Override
     public OptionalOrUnknown<InputStream> getStream(String key) throws IOException {
-        return OptionalOrUnknown.unknown();
+        ByteRange byteRange;
+        if (allowByteRange) {
+            MutableObject<String> keyHolder = new MutableObject<>(key);
+            byteRange = getByteRangeFromKey(keyHolder);
+            key = keyHolder.getValue();
+        } else {
+            byteRange = null;
+        }
+        key = getBlobKeyReplacement(key);
+        String objectKey;
+        String versionId;
+        int seppos;
+        if (useVersion && (seppos = key.indexOf(VER_SEP)) > 0) {
+            objectKey = key.substring(0, seppos);
+            versionId = key.substring(seppos + 1);
+        } else {
+            objectKey = key;
+            versionId = null;
+        }
+        String bucketKey = bucketKey(objectKey);
+        String debugKey = bucketKey + (versionId == null ? "" : "@" + versionId);
+        String debugObject = "s3://" + bucketName + "/" + debugKey;
+        try {
+            log.debug("Reading {}", debugObject);
+
+            GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(bucketKey);
+
+            if (versionId != null) {
+                requestBuilder.versionId(versionId);
+            }
+
+            if (byteRange != null) {
+                requestBuilder.range("bytes=" + byteRange.getStart() + "-" + byteRange.getEnd());
+            }
+
+            GetObjectRequest getObjectRequest = requestBuilder.build();
+            ResponseInputStream<GetObjectResponse> objectInputStream = amazonS3.getObject(getObjectRequest);
+
+            return OptionalOrUnknown.of(objectInputStream);
+        } catch (SdkException e) {
+            if (isMissingKey(e)) {
+                log.debug("Blob {} does not exist", debugObject);
+                return OptionalOrUnknown.missing();
+            }
+            throw new IOException(e);
+        }
     }
 
     @Override
@@ -355,9 +390,9 @@ public class S3BlobStore extends AbstractBlobStore {
 
     protected boolean bucketKeyHasDefaultStorageClass(String bucketKey) {
         HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-                                                               .bucket(config.bucketName)
-                                                               .key(bucketKey)
-                                                               .build();
+                .bucket(config.bucketName)
+                .key(bucketKey)
+                .build();
         try {
             String storageClass = amazonS3.headObject(headObjectRequest).storageClassAsString();
             return storageClass == null; // null is the standard storage class for s3
@@ -391,9 +426,9 @@ public class S3BlobStore extends AbstractBlobStore {
         logTrace("-->", "getObjectMetadata");
         logTrace("hnote right: " + bucketKey);
         HeadObjectRequest headObjectRequest = HeadObjectRequest.builder()
-                                                               .bucket(config.bucketName)
-                                                               .key(bucketKey)
-                                                               .build();
+                .bucket(config.bucketName)
+                .key(bucketKey)
+                .build();
         try {
             return amazonS3.headObject(headObjectRequest).contentLength();
         } catch (SdkException e) {
@@ -419,21 +454,21 @@ public class S3BlobStore extends AbstractBlobStore {
         ListObjectsV2Request listReq = builder.build();
 
         final List<ObjectIdentifier> keys = amazonS3.listObjectsV2Paginator(listReq)
-                                                    .stream()
-                                                    .flatMap(r -> r.contents().stream())
-                                                    .map(c -> ObjectIdentifier.builder().key(c.key()).build())
-                                                    .toList();
+                .stream()
+                .flatMap(r -> r.contents().stream())
+                .map(c -> ObjectIdentifier.builder().key(c.key()).build())
+                .toList();
 
         if (!keys.isEmpty()) {
             DeleteObjectsRequest multiObjectDeleteRequest = DeleteObjectsRequest.builder()
-                                                                                .bucket(bucketName)
-                                                                                .delete(d -> d.objects(keys))
-                                                                                .build();
+                    .bucket(bucketName)
+                    .delete(d -> d.objects(keys))
+                    .build();
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         }
         ListObjectVersionsRequest.Builder vbuilder = ListObjectVersionsRequest.builder()
-                                                                              .bucket(bucketName)
-                                                                              .prefix(bucketPrefix);
+                .bucket(bucketName)
+                .prefix(bucketPrefix);
         if (config.getSubDirsDepth() == 0) {
             // use delimiter to avoid useless listing of objects in "subdirectories"
             builder.delimiter(DELIMITER);
@@ -441,15 +476,15 @@ public class S3BlobStore extends AbstractBlobStore {
         ListObjectVersionsRequest listObjectVersionsRequest = vbuilder.build();
         logTrace("->", "listVersions");
         final List<ObjectIdentifier> vKeys = amazonS3.listObjectVersionsPaginator(listObjectVersionsRequest)
-                                                     .stream()
-                                                     .flatMap(r -> r.versions().stream())
-                                                     .map(c -> ObjectIdentifier.builder().key(c.key()).build())
-                                                     .toList();
+                .stream()
+                .flatMap(r -> r.versions().stream())
+                .map(c -> ObjectIdentifier.builder().key(c.key()).build())
+                .toList();
         if (!vKeys.isEmpty()) {
             DeleteObjectsRequest multiObjectDeleteRequest = DeleteObjectsRequest.builder()
-                                                                                .bucket(bucketName)
-                                                                                .delete(d -> d.objects(vKeys))
-                                                                                .build();
+                    .bucket(bucketName)
+                    .delete(d -> d.objects(vKeys))
+                    .build();
             amazonS3.deleteObjects(multiObjectDeleteRequest);
         }
         logTrace("end");
@@ -481,9 +516,9 @@ public class S3BlobStore extends AbstractBlobStore {
         String debugObject = "s3://" + bucketName + "/" + debugKey;
         log.debug("Reading {}", debugObject);
         GetObjectRequest.Builder objectRequestBuilder = GetObjectRequest.builder()
-                                                                        .bucket(bucketName)
-                                                                        .key(bucketKey)
-                                                                        .versionId(versionId);
+                .bucket(bucketName)
+                .key(bucketKey)
+                .versionId(versionId);
         if (byteRange != null) {
             objectRequestBuilder.range(byteRange.toHtmlHeader());
         }
@@ -491,9 +526,9 @@ public class S3BlobStore extends AbstractBlobStore {
         try {
             FileDownload downloadFile = config.transferManager.downloadFile(
                     DownloadFileRequest.builder()
-                                       .getObjectRequest(objectRequestBuilder.build())
-                                       .destination(dest)
-                                       .build());
+                            .getObjectRequest(objectRequestBuilder.build())
+                            .destination(dest)
+                            .build());
             downloadFile.completionFuture().join();
         } catch (CompletionException e) {
             if (e.getCause() instanceof SdkException sdkException) {
@@ -647,16 +682,16 @@ public class S3BlobStore extends AbstractBlobStore {
 
     /** Returns the version id, or {@code null}. */
     protected String copyOrMoveBlob(S3BlobStoreConfiguration sourceConfig, String sourceKey, String sourceVersionId,
-            S3BlobStoreConfiguration destinationConfig, String destinationKey, boolean move) {
+                                    S3BlobStoreConfiguration destinationConfig, String destinationKey, boolean move) {
         logTrace("->", "copyObject");
         logTrace("hnote right: " + sourceKey + (sourceVersionId == null ? "" : "@" + sourceVersionId) + " to "
                 + destinationKey);
         Copy copy = destinationConfig.transferManager.copy(cb -> cb.copyObjectRequest(b -> {
             b.sourceBucket(sourceConfig.bucketName)
-             .sourceKey(sourceKey)
-             .sourceVersionId(sourceVersionId)
-             .destinationBucket(destinationConfig.bucketName)
-             .destinationKey(destinationKey);
+                    .sourceKey(sourceKey)
+                    .sourceVersionId(sourceVersionId)
+                    .destinationBucket(destinationConfig.bucketName)
+                    .destinationKey(destinationKey);
             if (destinationConfig.useServerSideEncryption) {
                 // server-side encryption
                 if (isNotBlank(destinationConfig.serverSideKMSKeyID)) {
@@ -751,9 +786,9 @@ public class S3BlobStore extends AbstractBlobStore {
                     logTrace("hnote right: " + bucketKey + "@" + versionId);
                     logTrace("rnote right: " + status.toString());
                     amazonS3.putObjectLegalHold(pb -> pb.bucket(bucketName)
-                                                        .key(bucketKey)
-                                                        .versionId(versionId)
-                                                        .legalHold(b -> b.status(status)));
+                            .key(bucketKey)
+                            .versionId(versionId)
+                            .legalHold(b -> b.status(status)));
                 }
                 if (blobUpdateContext.updateRetainUntil != null) {
                     if (versionId == null) {
@@ -779,11 +814,11 @@ public class S3BlobStore extends AbstractBlobStore {
                 logTrace("rnote right: " + storageClass);
                 Copy copy = config.transferManager.copy(cb -> cb.copyObjectRequest(b -> {
                     b.sourceBucket(bucketName)
-                     .sourceKey(bucketKey)
-                     .destinationBucket(bucketName)
-                     .destinationKey(bucketKey)
-                     .storageClass(storageClass)
-                     .sourceVersionId(versionId);
+                            .sourceKey(bucketKey)
+                            .destinationBucket(bucketName)
+                            .destinationKey(bucketKey)
+                            .storageClass(storageClass)
+                            .sourceVersionId(versionId);
                 }));
                 copy.completionFuture().join();
                 // No need to waitForCopyResult when changing storage class
@@ -793,9 +828,9 @@ public class S3BlobStore extends AbstractBlobStore {
                 // round up duration to days
                 int days = (int) duration.plusDays(1).minusSeconds(1).toDays();
                 amazonS3.restoreObject(b -> b.bucket(bucketName)
-                                             .key(bucketKey)
-                                             .versionId(versionId)
-                                             .restoreRequest(rrb -> rrb.days(days)));
+                        .key(bucketKey)
+                        .versionId(versionId)
+                        .restoreRequest(rrb -> rrb.days(days)));
             }
         } catch (SdkException e) {
             if (isMissingKey(e)) {
@@ -863,8 +898,8 @@ public class S3BlobStore extends AbstractBlobStore {
             int prefixLength = bucketPrefix.length();
             logTrace("->", "listObjects on " + getId());
             ListObjectsV2Request.Builder builder = ListObjectsV2Request.builder()
-                                                                       .bucket(bucketName)
-                                                                       .prefix(bucketPrefix);
+                    .bucket(bucketName)
+                    .prefix(bucketPrefix);
             if (config.getSubDirsDepth() == 0) {
                 // use delimiter to avoid useless listing of objects in "subdirectories"
                 builder.delimiter(DELIMITER);

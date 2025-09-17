@@ -50,7 +50,7 @@ public interface WebContext extends Adaptable {
      * This variable is used in a proxy setting. The proxy should send a header with this name. Webengine will assume
      * that the base path of the application is this value.
      * <p>
-     * If your application is on server localhost:8080/nuxeo/site/myapp and you proxy it via mysite.com/myapp, then the
+     * If your application is on server localhost:8080/core/site/myapp and you proxy it via mysite.com/myapp, then the
      * header should have an empty string value.
      */
     String NUXEO_WEBENGINE_BASE_PATH = "nuxeo-webengine-base-path";

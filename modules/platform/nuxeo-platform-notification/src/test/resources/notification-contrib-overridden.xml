@@ -27,7 +27,7 @@
     point="generalSettings">
 
     <settings>
-      <serverPrefix>http://${org.nuxeo.ecm.notification.serverPrefix}/nuxeo</serverPrefix>
+      <serverPrefix>http://${org.nuxeo.ecm.notification.serverPrefix}/core</serverPrefix>
       <eMailSubjectPrefix>${org.nuxeo.ecm.notification.eMailSubjectPrefix}</eMailSubjectPrefix>
       <mailSenderName>${not.existing.property}</mailSenderName>
     </settings>

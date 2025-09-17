@@ -198,6 +198,9 @@
           "logicalType" : "array"
         } ]
       }, {
+        "name" : "identifier",
+        "type" : [ "null", "string" ]
+      }, {
         "name" : "contributors",
         "type" : [ "null", {
           "type" : "array",

@@ -11,12 +11,17 @@ ARG ORACLE_LINUX_TAG=${EL_VERSION}-slim-fips
 # Build stage
 FROM azul/zulu-openjdk:21 AS builder
 
+ARG BUILD_DIR
+
+RUN echo $BASE_IMAGE
+RUN echo $BUILD_DIR
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
   procps \
   unzip \
   && rm -rf /var/lib/apt/lists/*
 
-COPY target/distrib/nuxeo-server-tomcat-*.zip /tmp/nuxeo-distribution-tomcat.zip
+COPY $BUILD_DIR/distrib/nuxeo-server-tomcat-*.zip /tmp/nuxeo-distribution-tomcat.zip
 
 ENV NUXEO_HOME=/distrib
 

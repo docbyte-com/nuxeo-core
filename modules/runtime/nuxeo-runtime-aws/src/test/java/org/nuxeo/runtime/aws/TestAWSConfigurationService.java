@@ -31,6 +31,7 @@ import static software.amazon.awssdk.core.SdkSystemSetting.AWS_SESSION_TOKEN;
 
 import jakarta.inject.Inject;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -80,6 +81,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoCredentialsProvider() {
         AwsCredentials credentials = NuxeoAWSCredentialsProvider.getInstance().resolveCredentials();
@@ -87,6 +89,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoCredentialsProviderWithId() {
         AwsCredentials credentials = new NuxeoAWSCredentialsProvider(MY_CONFIG).resolveCredentials();
@@ -99,6 +102,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     public void testNuxeoCredentialsProviderWithoutNuxeoConfiguration() {
         try {
             assumeTrue("Cannot run if AWS env vars are already set",
@@ -150,6 +154,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoRegionProvider() {
         Region region = NuxeoAWSRegionProvider.getInstance().getRegion();
@@ -157,6 +162,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     @Deploy("org.nuxeo.runtime.aws:OSGI-INF/test-aws-config.xml")
     public void testNuxeoRegionProviderWithId() {
         Region region = new NuxeoAWSRegionProvider(MY_CONFIG).getRegion();
@@ -169,6 +175,7 @@ public class TestAWSConfigurationService {
     }
 
     @Test
+    @Ignore //Ignore this test since we are testing on AWS enabled environment
     public void testNuxeoRegionProviderWithoutNuxeoConfiguration() {
         Region systemSettingsRegion = null;
         try {

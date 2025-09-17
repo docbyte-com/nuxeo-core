@@ -22,8 +22,10 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 
+import org.nuxeo.ecm.core.schema.Namespace;
 import org.nuxeo.ecm.core.schema.SchemaManager;
 import org.nuxeo.ecm.core.schema.types.Schema;
+import org.nuxeo.ecm.core.schema.types.SchemaImpl;
 import org.nuxeo.ecm.restapi.io.types.Schemas;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -43,6 +45,22 @@ public class SchemaEndPoint extends DefaultObject {
     public Schema getSchema(@PathParam("name") String name) {
         SchemaManager sm = Framework.getService(SchemaManager.class);
         return sm.getSchema(name);
+    }
+
+    @GET
+    @Path("namespace/{namespace}")
+    public Schema getSchemasByNamespace(@PathParam("namespace") String namespace) {
+        SchemaManager sm = Framework.getService(SchemaManager.class);
+        Schema[] schemas = sm.getSchemas();
+        for (Schema s : schemas) {
+            if (s instanceof SchemaImpl schemaImpl) {
+                Namespace ns = schemaImpl.getNamespace();
+                if (namespace.equals(ns.uri)) {
+                    return s;
+                }
+            }
+        }
+        return null;
     }
 
 }

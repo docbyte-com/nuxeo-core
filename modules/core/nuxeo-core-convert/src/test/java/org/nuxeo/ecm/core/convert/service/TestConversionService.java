@@ -68,7 +68,7 @@ public class TestConversionService {
         imageBlob.setFilename(filename);
         imageBlob.setMimeType("image/png");
 
-        String url = "http://localhost:8080/nuxeo/nxfile/default/3727ef6b-cf8c/files:files/0/file/" + filename;
+        String url = "http://localhost:8080/core/nxfile/default/3727ef6b-cf8c/files:files/0/file/" + filename;
         Blob blob = new StringBlob("<h1>Hello World</><img src=\"" + url + "\" />");
         blob.setMimeType("text/html");
 

@@ -103,10 +103,10 @@ public class ConfigurationGeneratorTest {
     public void testEvalDynamicProperties() {
         // IPv4
         var generator = generatorBuilder().init(true).build();
-        assertEquals("http://127.0.0.1:8080/nuxeo", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
+        assertEquals("http://127.0.0.1:8080/core", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
 
         generator = generatorBuilder().init(true).putSystemProperty(PARAM_BIND_ADDRESS, "10.213.2.105").build();
-        assertEquals("http://10.213.2.105:8080/nuxeo", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
+        assertEquals("http://10.213.2.105:8080/core", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
 
         // IPv6
         generator = generatorBuilder().init(true)
@@ -114,14 +114,14 @@ public class ConfigurationGeneratorTest {
                                       .putSystemProperty("java.net.preferIPv4Stack", "false")
                                       .putSystemProperty("java.net.preferIPv6Addresses", "true")
                                       .build();
-        assertEquals("http://[0:0:0:0:0:0:0:1]:8080/nuxeo", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
+        assertEquals("http://[0:0:0:0:0:0:0:1]:8080/core", generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
 
         generator = generatorBuilder().init(true)
                                       .putSystemProperty(PARAM_BIND_ADDRESS, "2a01:240:fe8e::226:bbff:fe09:55cd")
                                       .putSystemProperty("java.net.preferIPv4Stack", "false")
                                       .putSystemProperty("java.net.preferIPv6Addresses", "true")
                                       .build();
-        assertEquals("http://[2a01:240:fe8e:0:226:bbff:fe09:55cd]:8080/nuxeo",
+        assertEquals("http://[2a01:240:fe8e:0:226:bbff:fe09:55cd]:8080/core",
                 generator.getUserConfig().getProperty(PARAM_LOOPBACK_URL));
     }
 

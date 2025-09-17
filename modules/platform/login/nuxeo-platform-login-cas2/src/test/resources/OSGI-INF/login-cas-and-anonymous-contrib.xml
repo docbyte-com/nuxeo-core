@@ -21,12 +21,12 @@
        <parameters>
          <parameter name="ticketKey">ticket</parameter>
          <parameter name="proxyKey">proxy</parameter>
-         <parameter name="appURL">http://localhost:8080/nuxeo/nxstartup.faces</parameter>
+         <parameter name="appURL">http://localhost:8080/core/nxstartup.faces</parameter>
          <parameter name="serviceLoginURL">http://localhost:8080/cas/login</parameter>
          <parameter name="serviceValidateURL">http://localhost:8080/cas/serviceValidate</parameter>
          <parameter name="proxyValidateURL">http://localhost:8080/cas/proxyValidate</parameter>
          <parameter name="serviceKey">service</parameter>
-         <parameter name="logoutURL">http://localhost:8080/nuxeo/nxstartup.faces</parameter>
+         <parameter name="logoutURL">http://localhost:8080/core/nxstartup.faces</parameter>
          <parameter name="promptLogin">false</parameter>
          <parameter name="serviceValidatorClass">org.nuxeo.ecm.platform.ui.web.auth.cas2.MockServiceTicketValidator</parameter>
          <parameter name="proxyValidatorClass">org.nuxeo.ecm.platform.ui.web.auth.cas2.MockProxyTicketValidator</parameter>

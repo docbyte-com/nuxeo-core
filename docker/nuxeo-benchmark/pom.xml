@@ -4,7 +4,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.docker</groupId>
+    <groupId>cloud.docbyte.nuxeo.docker</groupId>
     <artifactId>nuxeo-docker-images</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -14,27 +14,27 @@
   <packaging>pom</packaging>
 
   <properties>
-    <docker.base.image>docker.platform.dev.nuxeo.com/nuxeo/nuxeo:2025.x</docker.base.image>
+    <docker.base.image>nuxeo/nuxeo:2025.x</docker.base.image>
   </properties>
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-amazon-s3-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-audit-opensearch1-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-importer-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.packages</groupId>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
       <type>zip</type>
     </dependency>
@@ -52,7 +52,7 @@
               <goal>copy-dependencies</goal>
             </goals>
             <configuration>
-              <includeGroupIds>org.nuxeo.packages</includeGroupIds>
+              <includeGroupIds>cloud.docbyte.nuxeo.packages</includeGroupIds>
               <outputDirectory>${project.build.directory}/packages</outputDirectory>
               <overWriteIfNewer>true</overWriteIfNewer>
             </configuration>
@@ -67,7 +67,6 @@
             <goals>
               <goal>build</goal>
               <goal>tag</goal>
-              <goal>push</goal>
             </goals>
           </execution>
         </executions>
@@ -81,6 +80,7 @@
                   <BUILD_TAG>local-nuxeo-nuxeo-benchmark</BUILD_TAG>
                   <SCM_REF>local</SCM_REF>
                   <VERSION>2025.x</VERSION>
+                  <BUILD_DIR>target-${custom.environment}</BUILD_DIR>
                 </args>
                 <contextDir>${basedir}</contextDir>
                 <buildx>

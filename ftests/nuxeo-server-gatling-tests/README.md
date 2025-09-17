@@ -177,7 +177,7 @@ Default options: see below
 Common options with default values:
 
     # Nuxeo target URL
-    -Durl=http://localhost:8080/nuxeo
+    -Durl=http://localhost:8080/core
     # Redis access
     -DredisHost=localhost -DredisPort=6379 -DredisDb=7 -DredisNamespace=imp
     # Number of concurrent users, default depends on simulation

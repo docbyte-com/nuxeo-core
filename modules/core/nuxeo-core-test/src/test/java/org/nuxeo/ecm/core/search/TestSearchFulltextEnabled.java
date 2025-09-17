@@ -25,6 +25,7 @@ import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.api.CoreSession;

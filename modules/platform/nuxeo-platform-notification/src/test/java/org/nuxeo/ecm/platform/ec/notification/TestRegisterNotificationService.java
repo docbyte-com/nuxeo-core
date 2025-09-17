@@ -147,14 +147,14 @@ public class TestRegisterNotificationService {
         hotDeployer.deploy("org.nuxeo.ecm.platform.notification.tests:notification-contrib.xml");
 
         // these should not be altered
-        assertEquals("http://localhost:8080/nuxeo/", getService().getServerUrlPrefix());
-        assertEquals("[Nuxeo]", getService().getEMailSubjectPrefix());
+        assertEquals("http://localhost:8080/core/", getService().getServerUrlPrefix());
+        assertEquals("[Docbyte]", getService().getEMailSubjectPrefix());
         assertEquals(DEFAULT_SENDER, getService().getMailSenderName());
 
         hotDeployer.deploy("org.nuxeo.ecm.platform.notification.tests:notification-contrib-overridden.xml");
 
         // these should be expanded
-        assertEquals("http://testServerPrefix/nuxeo", getService().getServerUrlPrefix());
+        assertEquals("http://testServerPrefix/core", getService().getServerUrlPrefix());
         assertEquals("testSubjectPrefix", getService().getEMailSubjectPrefix());
 
         // this one should not be expanded

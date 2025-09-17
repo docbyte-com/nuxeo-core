@@ -114,7 +114,7 @@ public class TestDigestAuthenticator {
         String realm = "NUXEO";
         String nonce = "MTM4MTI4ODc4NDYyNTo0ZTcxNTcyYmNmNjI1YWMxOTk4MTllM2JhOTNmOTFjMw==";
         // URI includes a comma, to check proper parsing
-        String uri = "/nuxeo/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
+        String uri = "/core/site/dav/Patricia/Documents/2/1425/AU/00/G511_Oct_09,_2013_68999.doc";
         String cnonce = "d30fb25c5345b787bccd677d1cb93bd6";
         String nc = "00000001";
         String qpop = "auth";
@@ -122,7 +122,7 @@ public class TestDigestAuthenticator {
         if (corrupted) {
             response = "0000dead0000";
         } else {
-            response = "e9b3cb9ae4a744666897781b3f8ebd5a";
+            response = "8352b014808756d6f60813d40595d5e5";
         }
         return "Digest " //
                 + "username=\"" + USERNAME + "\"," //

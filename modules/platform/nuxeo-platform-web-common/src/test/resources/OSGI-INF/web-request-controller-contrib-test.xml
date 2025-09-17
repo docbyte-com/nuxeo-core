@@ -21,25 +21,25 @@
     </filterConfig>
 
     <filterConfig name="TestServlet" transactional="true" synchonize="true">
-      <pattern>/nuxeo/TestServlet.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/TestServlet.*</pattern>
     </filterConfig>
 
     <filterConfig name="TestDefaultCacheValues" transactional="true" synchonize="true">
-      <pattern>/nuxeo/CacheDefault.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/CacheDefault.*</pattern>
     </filterConfig>
 
     <filterConfig name="TestCache" transactional="true" synchonize="true"
       cached="true" cacheTime="3000" private="true">
-      <pattern>/nuxeo/Cache.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/Cache.*</pattern>
     </filterConfig>
 
 <!-- WebEngine config
     <filterConfig name="WebEngine" transactional="true" synchonize="true">
-      <pattern>/nuxeo/site/.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/site/.*</pattern>
     </filterConfig>
 
     <filterConfig name="WebEngineResources" transactional="true" synchonize="true" grant="false">
-      <pattern>/nuxeo/site/files/.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/site/files/.*</pattern>
     </filterConfig>
 -->
 
@@ -48,7 +48,7 @@
   <extension target="org.nuxeo.ecm.platform.web.common.requestcontroller.service.RequestControllerService"
     point="corsConfig">
     <corsConfig name="minimal">
-      <pattern>/nuxeo/site/minimal/.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/site/minimal/.*</pattern>
     </corsConfig>
 
     <corsConfig name="dummy" allowGenericHttpRequests="true"
@@ -57,7 +57,7 @@
       supportedHeaders="Content-Type, X-Requested-With"
       exposedHeaders="X-Custom-1, X-Custom-2"
       supportsCredentials="false" maxAge="3600">
-      <pattern>/nuxeo/site/dummy/.*</pattern>
+      <pattern>${org.nuxeo.ecm.contextPath}/site/dummy/.*</pattern>
     </corsConfig>
   </extension>
 

@@ -1,39 +1,39 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo.ecm.platform</groupId>
+    <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.ecm</groupId>
+  <groupId>cloud.docbyte.nuxeo.ecm</groupId>
   <artifactId>nuxeo-easyshare-core</artifactId>
   <name>Nuxeo Easyshare Core</name>
   <description>Anonymous File Sharing</description>
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-notification</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.webengine</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
       <artifactId>nuxeo-webengine-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.automation</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
       <artifactId>nuxeo-automation-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-collections-core</artifactId>
     </dependency>
     <dependency>
@@ -41,12 +41,12 @@
       <artifactId>jakarta.servlet-api</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-test</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-collections-core</artifactId>
       <type>test-jar</type>
       <scope>test</scope>

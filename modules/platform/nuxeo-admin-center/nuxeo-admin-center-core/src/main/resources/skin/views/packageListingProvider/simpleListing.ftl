@@ -25,7 +25,7 @@
     newRow = newRow + "' colspan='9'><img src='${Root.path}/skin/images/big_loading.gif' alt='loading package details...'></td></tr>";
     $(newRow).insertAfter($(rowItem));
 
-    var targetUrl = "/nuxeo/site/connectClient/packages/details/" + pkgId;
+    var targetUrl = "/core/site/connectClient/packages/details/" + pkgId;
 
     $.get(targetUrl, function(data) {
       $('#pkgDetailContent' + detailIdx).html(data);

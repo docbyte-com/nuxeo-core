@@ -24,6 +24,7 @@ package org.nuxeo.ecm.core.security;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -38,6 +39,7 @@ import org.nuxeo.runtime.model.ComponentContext;
 import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentName;
 import org.nuxeo.runtime.model.DefaultComponent;
+
 
 /**
  * @author Bogdan Stefanescu
@@ -156,8 +158,13 @@ public class SecurityService extends DefaultComponent {
     public Collection<String> filterGrantedPermissions(Document doc, NuxeoPrincipal principal,
             Collection<String> permissions) {
         if (principal.isAdministrator()) {
-            if (doc.isUnderRetentionOrLegalHold() && !BaseSession.canDeleteUndeletable(principal)) {
-                permissions.remove(SecurityConstants.REMOVE);
+            if (doc.isUnderRetentionOrLegalHold()
+                    && !BaseSession.canDeleteUndeletable(principal)
+            ) {
+                permissions = permissions
+                        .stream()
+                        .filter(p -> p.equalsIgnoreCase(SecurityConstants.REMOVE))
+                        .collect(Collectors.toSet());
             }
             return permissions;
         }

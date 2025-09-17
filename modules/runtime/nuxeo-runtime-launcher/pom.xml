@@ -2,12 +2,12 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.runtime</groupId>
+    <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.lib.runtime</groupId>
+  <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
   <artifactId>nuxeo-runtime-launcher</artifactId>
   <name>Nuxeo Runtime Launcher</name>
   <description>A Java Application Launcher that enables the target application to change it's root class loader</description>

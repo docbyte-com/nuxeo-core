@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>org.nuxeo.runtime</groupId>
+    <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
@@ -43,21 +43,21 @@
 
     <!-- Nuxeo dependencies -->
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
 
     <!-- Nuxeo test dependencies -->
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
     </dependency>
   </dependencies>
@@ -65,7 +65,7 @@
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>org.nuxeo</groupId>
+        <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-opensearch1-bom</artifactId>
         <version>${nuxeo.platform.version}</version>
         <type>pom</type>

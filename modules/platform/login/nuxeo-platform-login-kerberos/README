@@ -176,7 +176,7 @@ If the client = Firefox on Windows (AD domain member), go to about:config, searc
 
 If the client = Firefox on Linux, in addition to the above, configure krb5.conf as above then get a Kerberos ticket with kinit <username>.
 
-In the browser, type http://nuxeo_server:8080/nuxeo (NOT localhost but the server's canonical name! - that you mapped to the SPN!) and… you should be authenticated!
+In the browser, type http://nuxeo_server:8080/core (NOT localhost but the server's canonical name! - that you mapped to the SPN!) and… you should be authenticated!
 
 
 

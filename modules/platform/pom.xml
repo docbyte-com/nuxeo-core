@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>org.nuxeo</groupId>
+    <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-modules</artifactId>
     <version>2025.3-SNAPSHOT</version>
   </parent>
 
-  <groupId>org.nuxeo.ecm.platform</groupId>
+  <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
   <artifactId>nuxeo-platform-parent</artifactId>
   <packaging>pom</packaging>
   <name>Nuxeo Platform Parent</name>
@@ -107,19 +107,19 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.nuxeo.common</groupId>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.core</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
       <artifactId>nuxeo-core-test</artifactId>
     </dependency>
   </dependencies>
@@ -132,10 +132,10 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <configuration>
             <ignoredUnusedDeclaredDependencies combine.children="append">
-              <artifact>org.nuxeo.common:nuxeo-common</artifact>
-              <artifact>org.nuxeo.runtime:nuxeo-runtime</artifact>
-              <artifact>org.nuxeo.runtime:nuxeo-runtime-test</artifact>
-              <artifact>org.nuxeo.ecm.core:nuxeo-core-test</artifact>
+              <artifact>cloud.docbyte.nuxeo.common:nuxeo-common</artifact>
+              <artifact>cloud.docbyte.nuxeo.runtime:nuxeo-runtime</artifact>
+              <artifact>cloud.docbyte.nuxeo.runtime:nuxeo-runtime-test</artifact>
+              <artifact>cloud.docbyte.nuxeo.ecm.core:nuxeo-core-test</artifact>
             </ignoredUnusedDeclaredDependencies>
           </configuration>
         </plugin>
