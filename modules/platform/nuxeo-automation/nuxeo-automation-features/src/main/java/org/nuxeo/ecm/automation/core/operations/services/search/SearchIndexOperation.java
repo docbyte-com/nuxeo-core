@@ -34,8 +34,10 @@ import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.CoreSession;
+import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
+import org.nuxeo.ecm.core.query.sql.NXQL;
 import org.nuxeo.ecm.core.search.SearchIndexingService;
 import org.nuxeo.runtime.api.Framework;
 
@@ -56,6 +58,19 @@ public class SearchIndexOperation {
 
     @Context
     protected OperationContext ctx;
+
+    /**
+     * @since 2025.3
+     */
+    @OperationMethod
+    public Blob run(DocumentModel doc) throws IOException {
+        checkAccess();
+        String commandId = submitBulkCommand(String.format("Select * From Document where %s = '%s' or %s = '%s'", //
+                NXQL.ECM_UUID, doc.getId(), //
+                NXQL.ECM_ANCESTORID, doc.getId()));
+        log.warn("Submitted index command: {} to index document {}.", commandId, doc.getId());
+        return Blobs.createJSONBlobFromValue(Map.of("commandId", commandId));
+    }
 
     @OperationMethod
     public Blob run() throws IOException {

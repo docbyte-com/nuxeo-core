@@ -16,7 +16,7 @@
  * Contributors:
  *     Antoine Taillefer <antoine.taillefer@hyland.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.53"
+library identifier: "platform-ci-shared-library@v0.0.65"
 
 GITHUB_WORKFLOW_DOCKER_SCAN = 'docker-image-scan.yaml'
 NUXEO_BRANCH = "${params.NUXEO_BRANCH}"
@@ -63,18 +63,20 @@ pipeline {
   }
 
   post {
-    success {
+    always {
       script {
-        if (!hudson.model.Result.SUCCESS.toString().equals(currentBuild.getPreviousBuild()?.getResult())) {
-          nxSlack.success(message: "Successfully scanned Nuxeo Docker image `${IMAGE_NAME}`: ${RUN_DISPLAY_URL}")
-        }
-      }
-    }
-    unsuccessful {
-      script {
-        if (![hudson.model.Result.ABORTED.toString(), hudson.model.Result.NOT_BUILT.toString()].contains(currentBuild.result)) {
-          nxSlack.error(message: "Failed to scan Nuxeo Docker image `${IMAGE_NAME}`: ${RUN_DISPLAY_URL}")
-        }
+        currentBuild.description = "Scan ${IMAGE_NAME}"
+        nxUtils.callIfBuildRecoverOrFail({
+          nxTeams.success(
+            message: "Successfully scanned Nuxeo Docker image `${IMAGE_NAME}`",
+            changes: true,
+          )}, {
+          nxTeams.error(
+            message: "Failed to scan Nuxeo Docker image `${IMAGE_NAME}`",
+            changes: true,
+            culprits: true,
+          )}
+        )
       }
     }
   }

@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
-  <version>2025.2-SNAPSHOT</version>
+  <version>2025.3-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Nuxeo ECM Projects</name>
   <description>Nuxeo ECM Platform and related components.</description>
@@ -56,7 +56,7 @@
     <!-- <license.useMissingFile>true</license.useMissingFile> -->
     <!-- <license.missingFile>src/main/license/THIRD-PARTY.properties</license.missingFile> -->
 
-    <nuxeo.platform.version>2025.2-SNAPSHOT</nuxeo.platform.version>
+    <nuxeo.platform.version>2025.3-SNAPSHOT</nuxeo.platform.version>
     <nuxeo.distribution.name>lts</nuxeo.distribution.name>
     <nuxeo.platform.javadoc.version>${project.version}</nuxeo.platform.javadoc.version>
 
@@ -67,14 +67,14 @@
     <ant.assembly.version>2.1.7</ant.assembly.version>
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
-    <tomcat.version>10.1.40</tomcat.version>
+    <tomcat.version>10.1.44</tomcat.version>
     <opensearch1.version>1.3.20</opensearch1.version>
-    <netty.version>4.2.0.Final</netty.version>
-    <netty.boringssl.version>2.0.70.Final</netty.boringssl.version>
+    <netty.version>4.2.1.Final</netty.version>
+    <netty.boringssl.version>2.0.72.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>7.0.0</guice.version>
-    <jersey.version>3.1.10</jersey.version>
+    <jersey.version>3.1.11</jersey.version>
     <chemistry.opencmis.version>2.0.0</chemistry.opencmis.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
@@ -83,18 +83,18 @@
     <jxls.version>3.0.0</jxls.version>
     <keycloak.version>25.0.3</keycloak.version>
     <xdocreport.version>2.1.0</xdocreport.version>
-    <google.http.client.version>1.47.0</google.http.client.version>
+    <google.http.client.version>1.47.1</google.http.client.version>
     <google.oauth.client.version>1.39.0</google.oauth.client.version>
-    <google.api.client.version>2.7.2</google.api.client.version>
+    <google.api.client.version>2.8.0</google.api.client.version>
     <google.api.drive.version>v2-rev20201130-1.31.0</google.api.drive.version>
     <box.api.version>1.1.0</box.api.version>
-    <pdfbox.version>3.0.4</pdfbox.version>
+    <pdfbox.version>3.0.5</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.31.31</aws.version>
-    <gcp.version>2.52.0</gcp.version>
+    <aws.version>2.31.50</aws.version>
+    <gcp.version>2.52.3</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
-    <jackson.bom.version>2.19.0</jackson.bom.version>
-    <bouncycastle.version>1.80</bouncycastle.version>
+    <jackson.bom.version>2.19.2</jackson.bom.version>
+    <bouncycastle.version>1.81</bouncycastle.version>
     <avro.version>1.12.0</avro.version>
     <restlet.version>2.4.4</restlet.version>
     <jmock.version>2.13.1</jmock.version>
@@ -143,18 +143,18 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>5.4.0</mongo.java.driver.version>
+    <mongo.java.driver.version>5.5.0</mongo.java.driver.version>
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
-    <kafka.version>3.9.0</kafka.version>
-    <confluent.version>7.9.0</confluent.version>
+    <kafka.version>3.9.1</kafka.version>
+    <confluent.version>7.9.1</confluent.version>
     <metrics.version>5.0.0</metrics.version>
     <amqp.client.version>5.25.0</amqp.client.version>
       <maven.surefire.version>2.22.2</maven.surefire.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.16.0</prometheus.client.version>
-    <protobuf.java.version>4.30.2</protobuf.java.version>
-    <opensaml.version>5.1.4</opensaml.version>
+    <protobuf.java.version>4.31.0</protobuf.java.version>
+    <opensaml.version>5.1.6</opensaml.version>
     <quartz.version>2.5.0</quartz.version>
   </properties>
 
@@ -2380,12 +2380,12 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-exec</artifactId>
-        <version>1.4.0</version>
+        <version>1.5.0</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.19.0</version>
+        <version>2.20.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2411,7 +2411,7 @@
       <dependency>
         <groupId>commons-beanutils</groupId>
         <artifactId>commons-beanutils</artifactId>
-        <version>1.10.1</version>
+        <version>1.11.0</version>
         <exclusions>
           <exclusion>
             <groupId>commons-collections</groupId>
@@ -2455,7 +2455,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.18.0</version>
+        <version>1.19.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2470,7 +2470,7 @@
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.9.0</version>
+        <version>1.10.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2749,7 +2749,7 @@
       <dependency>
         <groupId>com.github.librepdf</groupId>
         <artifactId>openpdf</artifactId>
-        <version>2.0.3</version>
+        <version>2.4.0</version>
       </dependency>
       <dependency>
         <groupId>org.freemarker</groupId>
@@ -2867,7 +2867,7 @@
       <dependency>
         <groupId>org.dom4j</groupId>
         <artifactId>dom4j</artifactId>
-        <version>2.1.4</version>
+        <version>2.2.0</version>
       </dependency>
       <dependency>
         <groupId>org.yaml</groupId>
@@ -2882,19 +2882,19 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.5</version>
+        <version>42.7.7</version>
       </dependency>
       <!-- fix transitive dependency of org.postgresql:postgresql to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.49.2</version>
+        <version>3.49.5</version>
       </dependency>
 
       <dependency>
         <groupId>com.mysql</groupId>
         <artifactId>mysql-connector-j</artifactId>
-        <version>9.3.0</version>
+        <version>9.4.0</version>
       </dependency>
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
@@ -3030,7 +3030,7 @@
       <dependency>
         <groupId>org.codehaus.groovy</groupId>
         <artifactId>groovy-jsr223</artifactId>
-        <version>3.0.24</version>
+        <version>3.0.25</version>
       </dependency>
       <dependency>
         <groupId>org.mvel</groupId>
@@ -3117,7 +3117,7 @@
       <dependency>
         <groupId>com.fasterxml.woodstox</groupId>
         <artifactId>woodstox-core</artifactId>
-        <version>7.1.0</version>
+        <version>7.1.1</version>
       </dependency>
 
       <dependency>
@@ -3452,7 +3452,7 @@
       <dependency>
         <groupId>org.owasp.esapi</groupId>
         <artifactId>esapi</artifactId>
-        <version>2.6.0.0</version>
+        <version>2.6.1.0</version>
         <exclusions>
           <exclusion>
             <groupId>xml-apis</groupId>
@@ -3481,7 +3481,7 @@
       <dependency>
         <groupId>org.wso2.scim2.testsuite</groupId>
         <artifactId>org.wso2.scim2.testsuite.core</artifactId>
-        <version>1.1-NX01</version>
+        <version>1.1-NX02</version>
         <scope>test</scope>
         <exclusions>
           <!-- banned -->
@@ -3527,7 +3527,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.17.0</version>
+        <version>5.19.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3735,12 +3735,12 @@
       <dependency>
         <groupId>software.amazon.encryption.s3</groupId>
         <artifactId>amazon-s3-encryption-client-java</artifactId>
-        <version>3.3.2</version>
+        <version>3.3.5</version>
       </dependency>
       <dependency>
         <groupId>software.amazon.awssdk.crt</groupId>
         <artifactId>aws-crt</artifactId>
-        <version>0.38.1</version>
+        <version>0.38.3</version>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
@@ -3773,12 +3773,12 @@
       <dependency>
         <groupId>com.google.http-client</groupId>
         <artifactId>google-http-client-gson</artifactId>
-        <version>1.46.3</version>
+        <version>1.47.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-api</artifactId>
-        <version>1.72.0</version>
+        <version>1.75.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -3824,7 +3824,7 @@
       <dependency>
         <groupId>org.ops4j.pax.url</groupId>
         <artifactId>pax-url-aether</artifactId>
-        <version>2.6.16</version>
+        <version>2.6.17</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3835,7 +3835,7 @@
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.179</version>
+        <version>4.8.181</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -3855,7 +3855,7 @@
       <dependency>
         <groupId>org.xmlunit</groupId>
         <artifactId>xmlunit-assertj3</artifactId>
-        <version>2.10.0</version>
+        <version>2.10.3</version>
         <scope>test</scope>
       </dependency>
 
@@ -4084,7 +4084,7 @@
       <dependency>
         <groupId>org.apache.thrift</groupId>
         <artifactId>libthrift</artifactId>
-        <version>0.21.0</version>
+        <version>0.22.0</version>
       </dependency>
       <!-- transitive dependency of opencensus-exporter-trace-datadog to upgrade -->
       <dependency>
@@ -4165,14 +4165,14 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.48.2</version>
+        <version>1.52.1</version>
       </dependency>
 
       <!-- Nashorn -->
       <dependency>
         <groupId>org.openjdk.nashorn</groupId>
         <artifactId>nashorn-core</artifactId>
-        <version>15.6</version>
+        <version>15.7</version>
       </dependency>
       <!-- fix transitive dependencies of org.openjdk.nashorn:nashorn-core to avoid multiple versions in dependency graph -->
       <dependency>
@@ -4826,7 +4826,7 @@
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>12.1.1</version>
+          <version>12.1.3</version>
           <!-- run manually with mvn -nsu -Pdistrib org.owasp:dependency-check-maven:aggregate -->
           <!-- report file is in target/dependency-check-report.html -->
           <configuration>
@@ -4844,7 +4844,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>2.5.0</version>
+          <version>2.6.0</version>
           <configuration>
             <!-- <generateBundle>true</generateBundle> -->
             <!-- <verbose>true</verbose> -->
@@ -5045,7 +5045,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>3.5.0</version>
+          <version>3.5.1</version>
         </plugin>
         <plugin>
           <groupId>io.fabric8</groupId>

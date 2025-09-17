@@ -1,17 +1,9 @@
 # Nuxeo external translations
 
-This module contains community-created translations, as well as some basic
-tools to help manage these translations.
+This module contains community-created translations.
 
-## How to update an existing translation?
-
-If you want to participate to the translation process, please read the
-[How to translate the Nuxeo Platform](http://doc.nuxeo.com/x/dAQz)
-page.
-
-The rest of this README is for developers that are maintaining this
-module according to Crowdin translation files. Note there is some
-[tooling used to handle this module](https://github.com/nuxeo/tools-nuxeo-crowdin/).
+This README is for developers that are maintaining this
+module according to Crowdin translation files.
 
 ## WARNING
 
@@ -27,7 +19,7 @@ changes are still needed on maintenance branches.
 
 1. Set the new language as a new target language on Crowdin, and download the corresponding file.
 
-  Rename this translation file to `messages_xx_XX.properties`, where `xx_XX` is the 4 letters codename for your language, and reference it in the `crowdin.ini` file.
+  Rename this translation file to `messages_xx_XX.properties`, where `xx_XX` is the 4 letters codename for your language.
 
 2. Create a Nuxeo Bundle and put your file under
 

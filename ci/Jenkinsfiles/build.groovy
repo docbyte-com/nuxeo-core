@@ -17,7 +17,7 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.53"
+library identifier: "platform-ci-shared-library@v0.0.65"
 
 dockerNamespace = 'nuxeo'
 repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
@@ -800,24 +800,9 @@ pipeline {
   post {
     always {
       script {
+        nxUtils.setBuildDescription()
         nxJira.updateIssues()
-      }
-    }
-    success {
-      script {
-        currentBuild.description = "Build ${VERSION}"
-        if (!nxUtils.isPullRequest()
-          && !hudson.model.Result.SUCCESS.toString().equals(currentBuild.getPreviousBuild()?.getResult())) {
-          nxSlack.success(message: "Successfully built nuxeo/nuxeo-lts ${BRANCH_NAME} #${BUILD_NUMBER}: ${BUILD_URL}")
-        }
-      }
-    }
-    unsuccessful {
-      script {
-        if (!nxUtils.isPullRequest()
-          && ![hudson.model.Result.ABORTED.toString(), hudson.model.Result.NOT_BUILT.toString()].contains(currentBuild.result)) {
-          nxSlack.error(message: "Failed to build nuxeo/nuxeo-lts ${BRANCH_NAME} #${BUILD_NUMBER}: ${BUILD_URL}")
-        }
+        nxUtils.notifyBuildStatusIfNecessary()
       }
     }
   }

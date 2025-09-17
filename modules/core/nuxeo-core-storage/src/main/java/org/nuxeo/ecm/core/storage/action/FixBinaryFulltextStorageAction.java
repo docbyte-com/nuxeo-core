@@ -83,7 +83,7 @@ public class FixBinaryFulltextStorageAction implements StreamProcessorTopology {
                     continue;
                 }
                 String fulltext = (String) doc.getPropertyValue("ecm:fulltextBinary");
-                if (AbstractSession.isFulltextValueABlobKey(fulltext)) {
+                if (fulltext == null || AbstractSession.isFulltextValueABlobKey(fulltext)) {
                     delta.incrementSkipCount();
                     continue;
                 }

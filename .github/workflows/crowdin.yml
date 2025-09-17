@@ -1,0 +1,70 @@
+# Workflow that triggers the synchronization of Crowdin translations
+name: Crowdin
+
+on:
+  # Make workflow reusable, to be called by the scheduled crowdin workflow in the default branch
+  workflow_call:
+
+  # Sync when a commit is done on the reference branches
+  push:
+    branches: ["2025"]
+    paths:
+      - 'modules/platform/nuxeo-platform-lang/src/main/resources/web/nuxeo.war/WEB-INF/classes/messages_en_US.properties'
+
+jobs:
+  crowdin:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: 2025
+
+      - name: Copy messages
+        run: |
+          cd modules/platform/nuxeo-platform-lang-ext
+          echo "## DO NOT EDIT FOLLOWING LINE" > src/main/resources/crowdin/messages.properties
+          cat ../nuxeo-platform-lang/src/main/resources/web/nuxeo.war/WEB-INF/classes/messages_en_US.properties >> src/main/resources/crowdin/messages.properties
+
+      - name: Crowdin Action
+        id: crowdin-sync
+        uses: crowdin/github-action@v2.10.0
+        with:
+          dryrun_action: false
+          # Disable 'git checkout "${GITHUB_REF#refs/heads/}"'
+          skip_ref_checkout: true
+
+          # Tokens
+          project_id: ${{ secrets.CROWDIN_PROJECT_ID }}
+          token: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
+
+          # Load external configuration file (to support translation rename)
+          config: crowdin-conf.yml
+
+          # Upload sources for translation
+          upload_sources: true
+
+          # Auto-approve reference sentences we are pushing (english)
+          auto_approve_imported: true
+
+          # Name of the branch where to merge the translations
+          localization_branch_name: crowdin-translations-update-lts-2025
+          pull_request_base_branch_name: 2025
+          create_pull_request: true
+          pull_request_title: New Crowdin translations by GitHub Action (lts-2025)
+
+          # Automatically download all the new translations
+          download_translations: true
+
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Auto-merge PR
+        if: steps.crowdin-sync.outputs.pull_request_url
+        run: |
+          gh pr --repo $GITHUB_REPOSITORY merge "$PR_URL" --auto --rebase
+          gh pr --repo $GITHUB_REPOSITORY review --approve "$PR_URL"
+        env:
+          PR_URL: ${{ steps.crowdin-sync.outputs.pull_request_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
