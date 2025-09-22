@@ -52,7 +52,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(FeaturesRunner.class)
-@Features(AutomationFeaturesFeature.class)
+@Features({ CoreSearchFeature.class, AutomationFeaturesFeature.class })
 @Deploy("org.nuxeo.ecm.automation.features.tests:test-indexAndRefresh-chain-contrib.xml")
 public class TestSearchAutomation {
 
