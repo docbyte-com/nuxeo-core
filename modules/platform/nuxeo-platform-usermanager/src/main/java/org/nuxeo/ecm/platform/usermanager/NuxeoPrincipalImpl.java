@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2014 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.logging.log4j.LogManager;
@@ -75,6 +76,7 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
 
     public DocumentModel model;
 
+    @SuppressWarnings("deprecation")
     public DataModel dataModel;
 
     public String origUserName;
@@ -111,6 +113,7 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
         this.isAdministrator = isAdministrator;
     }
 
+    @SuppressWarnings("deprecation") // for getDataModel
     protected NuxeoPrincipalImpl(NuxeoPrincipalImpl other) {
         config = other.config;
         try {
@@ -135,6 +138,21 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
 
     public UserConfig getConfig() {
         return config;
+    }
+
+    @Override
+    public String getName() {
+        try {
+            return (String) dataModel.getData(config.nameKey);
+        } catch (PropertyException e) {
+            return null;
+        }
+    }
+
+    // impossible to modify the name - it is PK
+    @Override
+    public void setName(String name) {
+        dataModel.setData(config.nameKey, name);
     }
 
     @Override
@@ -179,40 +197,16 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
         dataModel.setData(config.lastNameKey, lastName);
     }
 
-    // impossible to modify the name - it is PK
+    @Deprecated // since at least 2009
     @Override
-    public void setName(String name) {
-        dataModel.setData(config.nameKey, name);
+    public List<String> getRoles() {
+        return new ArrayList<>(roles);
     }
 
     @Override
     public void setRoles(List<String> roles) {
         this.roles.clear();
         this.roles.addAll(roles);
-    }
-
-    @Override
-    public void setGroups(List<String> groups) {
-        if (virtualGroups != null && !virtualGroups.isEmpty()) {
-            List<String> groupsToWrite = new ArrayList<>();
-            for (String group : groups) {
-                if (!virtualGroups.contains(group)) {
-                    groupsToWrite.add(group);
-                }
-            }
-            dataModel.setData(config.groupsKey, groupsToWrite);
-        } else {
-            dataModel.setData(config.groupsKey, groups);
-        }
-    }
-
-    @Override
-    public String getName() {
-        try {
-            return (String) dataModel.getData(config.nameKey);
-        } catch (PropertyException e) {
-            return null;
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -232,15 +226,19 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
         return groups;
     }
 
-    @Deprecated
     @Override
-    public List<String> getRoles() {
-        return new ArrayList<>(roles);
-    }
-
-    @Override
-    public void setPassword(String password) {
-        dataModel.setData(config.passwordKey, password);
+    public void setGroups(List<String> groups) {
+        if (virtualGroups != null && !virtualGroups.isEmpty()) {
+            List<String> groupsToWrite = new ArrayList<>();
+            for (String group : groups) {
+                if (!virtualGroups.contains(group)) {
+                    groupsToWrite.add(group);
+                }
+            }
+            dataModel.setData(config.groupsKey, groupsToWrite);
+        } else {
+            dataModel.setData(config.groupsKey, groups);
+        }
     }
 
     @Override
@@ -252,8 +250,8 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     }
 
     @Override
-    public String toString() {
-        return (String) dataModel.getData(config.nameKey);
+    public void setPassword(String password) {
+        dataModel.setData(config.passwordKey, password);
     }
 
     @Override
@@ -288,6 +286,7 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     /**
      * Sets model and recomputes all groups.
      */
+    @SuppressWarnings("deprecation")
     public void setModel(DocumentModel model, boolean updateAllGroups) {
         this.model = model;
         dataModel = model.getDataModels().values().iterator().next();
@@ -314,12 +313,11 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     public void updateAllGroups() {
         UserManager userManager = Framework.getService(UserManager.class);
         Set<String> checkedGroups = new HashSet<>();
-        List<String> groupsToProcess = new ArrayList<>();
         List<String> resultingGroups = new ArrayList<>();
-        groupsToProcess.addAll(getGroups());
+        List<String> groupsToProcess = new ArrayList<>(getGroups());
 
         while (!groupsToProcess.isEmpty()) {
-            String groupName = groupsToProcess.remove(0);
+            String groupName = groupsToProcess.removeFirst();
             if (!checkedGroups.contains(groupName)) {
                 checkedGroups.add(groupName);
                 NuxeoGroup nxGroup = null;
@@ -424,12 +422,6 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     }
 
     @Override
-    public int hashCode() {
-        String name = getName();
-        return name == null ? 0 : name.hashCode();
-    }
-
-    @Override
     public String getOriginatingUser() {
         return origUserName;
     }
@@ -452,6 +444,16 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
 
     protected NuxeoPrincipal cloneTransferable() {
         return new TransferableClone(this);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(getName());
+    }
+
+    @Override
+    public String toString() {
+        return (String) dataModel.getData(config.nameKey);
     }
 
     /**

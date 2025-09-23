@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,13 @@ package org.nuxeo.ecm.directory;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import jakarta.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -254,7 +255,7 @@ public abstract class BaseSession implements Session, EntrySource {
      * @since 5.2M4
      * @deprecated since 11.1, sessionId is unused
      */
-    @Deprecated
+    @Deprecated(since = "11.1", forRemoval = true)
     public static DocumentModel createEntryModel(String sessionId, String schema, String id, Map<String, Object> values)
             throws PropertyException {
         return createEntryModel(schema, id, values, false);
@@ -292,7 +293,7 @@ public abstract class BaseSession implements Session, EntrySource {
      * @since 5.3.1
      * @deprecated since 11.1, sessionId is unused
      */
-    @Deprecated
+    @Deprecated(since = "11.1", forRemoval = true)
     public static DocumentModel createEntryModel(String sessionId, String schema, String id, Map<String, Object> values,
             boolean readOnly) throws PropertyException {
         return createEntryModel(schema, id, values, readOnly);
@@ -310,14 +311,14 @@ public abstract class BaseSession implements Session, EntrySource {
      * @return the directory entry
      * @since 11.1
      */
-    @SuppressWarnings("deprecation")
+    @SuppressWarnings("deprecation") // for DataModel
     public static DocumentModel createEntryModel(String schema, String id, Map<String, Object> values,
             boolean readOnly) {
         DocumentModelImpl entry = new DocumentModelImpl(schema, id, null, null, null, new String[] { schema },
                 new HashSet<>(), null, false, null, null, null);
         DataModel dataModel;
         if (values == null) {
-            values = Collections.emptyMap();
+            values = Map.of();
         }
         dataModel = new DataModelImpl(schema, values);
         entry.addDataModel(dataModel);
@@ -365,12 +366,7 @@ public abstract class BaseSession implements Session, EntrySource {
     }
 
     @Override
-    public DocumentModel getEntry(String id) {
-        return getEntry(id, true);
-    }
-
-    @Override
-    public DocumentModel getEntry(String id, boolean fetchReferences) {
+    public DocumentModel getEntry(@Nullable String id, boolean fetchReferences) {
         if (!hasPermission(SecurityConstants.READ)) {
             return null;
         }
@@ -382,10 +378,12 @@ public abstract class BaseSession implements Session, EntrySource {
     }
 
     @Override
-    public DocumentModel getEntryFromSource(String id, boolean fetchReferences) {
+    public DocumentModel getEntryFromSource(@Nullable String id, boolean fetchReferences) {
+        if (StringUtils.isBlank(id)) {
+            return null;
+        }
         String idFieldName = directory.getSchemaFieldMap().get(getIdField()).getName().getPrefixedName();
-        DocumentModelList result = query(Collections.singletonMap(idFieldName, id), Collections.emptySet(),
-                Collections.emptyMap(), true);
+        DocumentModelList result = query(Map.of(idFieldName, id), Set.of(), Map.of(), fetchReferences);
         return result.isEmpty() ? null : result.getFirst();
     }
 
@@ -556,7 +554,7 @@ public abstract class BaseSession implements Session, EntrySource {
 
     @Override
     public DocumentModelList query(Map<String, Serializable> filter) {
-        return query(filter, Collections.emptySet());
+        return query(filter, Set.of());
     }
 
     @Override
@@ -578,7 +576,7 @@ public abstract class BaseSession implements Session, EntrySource {
 
     @Override
     public List<String> getProjection(Map<String, Serializable> filter, String columnName) {
-        return getProjection(filter, Collections.emptySet(), columnName);
+        return getProjection(filter, Set.of(), columnName);
     }
 
     @Override

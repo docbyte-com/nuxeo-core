@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Florent Guillaume
- *
  */
-
 package org.nuxeo.ecm.platform.usermanager;
 
 import static org.junit.Assert.assertEquals;
@@ -66,7 +64,7 @@ public class TestNuxeoPrincipalImpl {
 
     @Test
     public void testCopyConstructorContextData() {
-        DocumentModel userModel = BaseSession.createEntryModel(null, "user", null, null);
+        DocumentModel userModel = BaseSession.createEntryModel("user", null, null);
         userModel.putContextData("readonly", true);
         NuxeoPrincipalImpl a = new NuxeoPrincipalImpl("foo");
         a.setModel(userModel);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ public class CommentJsonWriter extends ExtensibleEntityJsonWriter<Comment> {
         PartialList<Comment> comments = commentManager.getComments(session, entity.getId(), 1L, 0L, false);
         jg.writeNumberField(COMMENT_NUMBER_OF_REPLIES_FIELD, comments.totalSize());
         if (!comments.isEmpty()) {
-            jg.writeStringField(COMMENT_LAST_REPLY_DATE_FIELD, comments.get(0).getCreationDate().toString());
+            jg.writeStringField(COMMENT_LAST_REPLY_DATE_FIELD, comments.getFirst().getCreationDate().toString());
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Florent Guillaume
- *
- * $Id: MemoryDirectorySession.java 30374 2008-02-20 16:31:28Z gracinet $
  */
-
 package org.nuxeo.ecm.directory.memory;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
@@ -141,6 +138,7 @@ public class MemoryDirectorySession extends BaseSession {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // for DataModel
     protected List<String> updateEntryWithoutReferences(DocumentModel docModel) {
         checkClose();
         String id = docModel.getId();
@@ -207,7 +205,7 @@ public class MemoryDirectorySession extends BaseSession {
             map.remove(passwordField);
         }
         try {
-            return createEntryModel(null, directory.getSchema(), id, map, isReadOnly());
+            return createEntryModel(directory.getSchema(), id, map, isReadOnly());
         } catch (PropertyException e) {
             throw new DirectoryException(e);
         }
@@ -338,13 +336,6 @@ public class MemoryDirectorySession extends BaseSession {
         }
         // apply query limits
         return applyQueryLimits(ids, limit, offset);
-    }
-
-    @Override
-    public DocumentModel createEntry(DocumentModel entry) {
-        checkClose();
-        Map<String, Object> fieldMap = entry.getProperties(directory.getSchema());
-        return createEntry(fieldMap);
     }
 
     @Override

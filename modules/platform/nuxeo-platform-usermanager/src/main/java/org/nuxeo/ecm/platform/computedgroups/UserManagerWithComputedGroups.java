@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Thierry Delprat
- *
  */
-
 package org.nuxeo.ecm.platform.computedgroups;
 
 import java.io.Serializable;
@@ -69,8 +67,7 @@ public class UserManagerWithComputedGroups extends UserManagerImpl {
     protected NuxeoPrincipal makePrincipal(DocumentModel userEntry, boolean anonymous, List<String> groups) {
 
         NuxeoPrincipal principal = super.makePrincipal(userEntry, anonymous, groups);
-        if (activateComputedGroup() && principal instanceof NuxeoPrincipalImpl) {
-            NuxeoPrincipalImpl nuxPrincipal = (NuxeoPrincipalImpl) principal;
+        if (activateComputedGroup() && principal instanceof NuxeoPrincipalImpl nuxPrincipal) {
 
             List<String> vGroups = getService().computeGroupsForUser(nuxPrincipal);
 
@@ -216,7 +213,7 @@ public class UserManagerWithComputedGroups extends UserManagerImpl {
 
         String schemaName = getGroupSchemaName();
         String id = getGroupIdField();
-        DocumentModel groupDoc = BaseSession.createEntryModel(null, schemaName, grpName, null);
+        DocumentModel groupDoc = BaseSession.createEntryModel(schemaName, grpName, null);
 
         groupDoc.setProperty(schemaName, getGroupMembersField(), grp.getMemberUsers());
         groupDoc.setProperty(schemaName, id, grp.getName());

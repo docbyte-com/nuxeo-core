@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.directory.io;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -41,7 +40,6 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.model.Property;
 import org.nuxeo.ecm.core.io.marshallers.json.ExtensibleEntityJsonWriter;
 import org.nuxeo.ecm.core.io.marshallers.json.OutputStreamWithJsonWriter;
-import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentPropertiesJsonReader;
 import org.nuxeo.ecm.core.io.marshallers.json.enrichers.AbstractJsonEnricher;
 import org.nuxeo.ecm.core.io.registry.Writer;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
@@ -76,7 +74,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
  *   "directoryName": "DIRECTORY_NAME", <- use it to update an existing document
  *   "properties": {
  *     <- entry properties depending on the directory schema (password fields are hidden)
- *     <- format is managed by {@link DocumentPropertiesJsonReader}
+ *     <- format is managed by {@link org.nuxeo.ecm.core.io.marshallers.json.document.DocumentPropertiesJsonReader}
  *   }
  *             <-- contextParameters if there are enrichers activated
  *             <-- additional property provided by extend() method
@@ -135,8 +133,7 @@ public class DirectoryEntryJsonWriter extends ExtensibleEntityJsonWriter<Directo
                 Property property = document.getProperty(fieldName.getPrefixedName());
                 boolean managed = false;
                 Object value = property.getValue();
-                if (value instanceof String && StringUtils.isNotEmpty((String) value)) {
-                    String valueString = (String) value;
+                if (value instanceof String valueString && StringUtils.isNotEmpty(valueString)) {
                     String localName = fieldName.getLocalName();
                     if (fetched.contains(localName)) {
                         // try to fetch a referenced entry (parent for example)

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,7 @@
  * Contributors:
  *     George Lefter
  *     Funsho David
- *
  */
-
 package org.nuxeo.directory.test;
 
 import static org.junit.Assert.assertEquals;
@@ -30,7 +28,6 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,7 +100,7 @@ public abstract class AbstractDirectoryTest {
                 calendar.get(Calendar.SECOND), 0);
     }
 
-    public static void assertCalendarEquals(Calendar expected, Calendar actual) throws Exception {
+    public static void assertCalendarEquals(Calendar expected, Calendar actual) {
         if (expected.equals(actual)) {
             return;
         }
@@ -123,10 +120,10 @@ public abstract class AbstractDirectoryTest {
     }
 
     @Test
-    public void testReference() throws Exception {
+    public void testReference() {
         List<Reference> references = directoryService.getDirectory(GROUP_DIR).getReferences("members");
         assertEquals(1, references.size());
-        Reference membersRef = references.get(0);
+        Reference membersRef = references.getFirst();
 
         // test initial configuration
         List<String> administrators = membersRef.getTargetIdsForSource("administrators");
@@ -142,7 +139,7 @@ public abstract class AbstractDirectoryTest {
         assertTrue(administrators.contains("user_1"));
 
         // reading the same link should not duplicate it
-        membersRef.addLinks("administrators", Arrays.asList("user_1", "user_2"));
+        membersRef.addLinks("administrators", List.of("user_1", "user_2"));
 
         administrators = membersRef.getTargetIdsForSource("administrators");
         assertEquals(3, administrators.size());
@@ -164,13 +161,13 @@ public abstract class AbstractDirectoryTest {
 
         // read references with the set* methods
 
-        membersRef.setTargetIdsForSource("administrators", Arrays.asList("user_1", "user_2"));
+        membersRef.setTargetIdsForSource("administrators", List.of("user_1", "user_2"));
         administrators = membersRef.getTargetIdsForSource("administrators");
         assertEquals(2, administrators.size());
         assertTrue(administrators.contains("user_1"));
         assertTrue(administrators.contains("user_2"));
 
-        membersRef.setTargetIdsForSource("administrators", Arrays.asList("user_1", "Administrator"));
+        membersRef.setTargetIdsForSource("administrators", List.of("user_1", "Administrator"));
         administrators = membersRef.getTargetIdsForSource("administrators");
         assertEquals(2, administrators.size());
         assertTrue(administrators.contains("user_1"));
@@ -200,7 +197,7 @@ public abstract class AbstractDirectoryTest {
             map.put("password", "pass_0");
             map.put("intField", 5L);
             map.put("dateField", getCalendar(1982, 3, 25, 16, 30, 47, 0));
-            map.put("groups", Arrays.asList("members", "administrators"));
+            map.put("groups", List.of("members", "administrators"));
             DocumentModel dm = session.createEntry(map);
             assertNotNull(dm);
 
@@ -262,7 +259,7 @@ public abstract class AbstractDirectoryTest {
             map.put("password", "pass_0");
             map.put("intField", 5L);
             map.put("dateField", getCalendar(1982, 3, 25, 16, 30, 47, 0));
-            map.put("groups", Arrays.asList("members", "administrators"));
+            map.put("groups", List.of("members", "administrators"));
             DirectoryException e = assertThrows("Should not be possible to create an entry without id",
                     DirectoryException.class, () -> session.createEntry(map));
             assertEquals("Missing id", e.getMessage());
@@ -319,7 +316,7 @@ public abstract class AbstractDirectoryTest {
             dm.setProperty(SCHEMA, "password", "pass_2");
             dm.setProperty(SCHEMA, "intField", 2L);
             dm.setProperty(SCHEMA, "dateField", getCalendar(2001, 2, 3, 4, 5, 6, 7));
-            dm.setProperty(SCHEMA, "groups", Arrays.asList("administrators", "members"));
+            dm.setProperty(SCHEMA, "groups", List.of("administrators", "members"));
             session.updateEntry(dm);
         }
 
@@ -435,7 +432,7 @@ public abstract class AbstractDirectoryTest {
             assertNotNull(entry);
 
             // update an entry
-            entry.setPropertyValue("user:whateverProperty", (Serializable) Arrays.asList("members"));
+            entry.setPropertyValue("user:whateverProperty", (Serializable) List.of("members"));
             session.updateEntry(entry);
         }
     }
@@ -449,7 +446,7 @@ public abstract class AbstractDirectoryTest {
             filter.put("firstName", "f");
             DocumentModelList list = session.query(filter);
             assertEquals(1, list.size());
-            DocumentModel docModel = list.get(0);
+            DocumentModel docModel = list.getFirst();
             assertNotNull(docModel);
             assertEquals("user_1", docModel.getProperty(SCHEMA, "username"));
             assertEquals("f", docModel.getProperty(SCHEMA, "firstName"));
@@ -461,7 +458,7 @@ public abstract class AbstractDirectoryTest {
 
             list = session.query(filter, null, null, true);
             assertEquals(1, list.size());
-            docModel = list.get(0);
+            docModel = list.getFirst();
             assertNotNull(docModel);
             assertEquals("user_1", docModel.getProperty(SCHEMA, "username"));
             assertEquals("f", docModel.getProperty(SCHEMA, "firstName"));
@@ -488,7 +485,7 @@ public abstract class AbstractDirectoryTest {
             for (DocumentModel docModel : list) {
                 usernames.add((String) docModel.getProperty(SCHEMA, "username"));
             }
-            Set<String> expectedUsernames = new HashSet<>(Arrays.asList("user_1", "user_3"));
+            Set<String> expectedUsernames = new HashSet<>(List.of("user_1", "user_3"));
             assertEquals(expectedUsernames, usernames);
         }
     }
@@ -512,7 +509,7 @@ public abstract class AbstractDirectoryTest {
             filter.put("username", "admini");
             DocumentModelList list = session.query(filter, filter.keySet());
             assertEquals(1, list.size());
-            DocumentModel dm = list.get(0);
+            DocumentModel dm = list.getFirst();
             assertEquals("Administrator", dm.getProperty(SCHEMA, "username"));
         }
     }
@@ -601,7 +598,7 @@ public abstract class AbstractDirectoryTest {
     }
 
     protected static void assertIds(DocumentModelList list, List<String> ids, String... expected) {
-        Set<String> expectedIds = new HashSet<>(Arrays.asList(expected));
+        Set<String> expectedIds = new HashSet<>(List.of(expected));
         assertEquals(expectedIds, new HashSet<>(ids));
         Set<String> fromList = list.stream()
                                    .map(doc -> (String) doc.getProperty(SCHEMA, "username"))
@@ -696,7 +693,7 @@ public abstract class AbstractDirectoryTest {
     public void testCreateFromModel() throws Exception {
         try (Session session = getSession()) {
             String schema = "user";
-            DocumentModel entry = BaseSession.createEntryModel(null, schema, null, null);
+            DocumentModel entry = BaseSession.createEntryModel(schema, null, null);
             entry.setProperty("user", "username", "yo");
 
             assertNull(session.getEntry("yo"));
@@ -711,6 +708,7 @@ public abstract class AbstractDirectoryTest {
                 session.getEntry("Administrator");
                 fail("Should raise an error, entry already exists");
             } catch (DirectoryException e) {
+                // expected
             }
         }
     }
@@ -726,7 +724,7 @@ public abstract class AbstractDirectoryTest {
     @Ignore
     @Test
     @Deploy("org.nuxeo.ecm.directory.sql.tests:test-sql-directories-alteration-config.xml")
-    public void testColumnCreation() throws Exception {
+    public void testColumnCreation() {
         AbstractDirectory dirtmp1 = null;
         AbstractDirectory dirtmp2 = null;
 
@@ -737,7 +735,7 @@ public abstract class AbstractDirectoryTest {
             try (Session session = dirtmp1.getSession()) {
 
                 String schema1 = "tmpschema1";
-                DocumentModel entry = BaseSession.createEntryModel(null, schema1, null, null);
+                DocumentModel entry = BaseSession.createEntryModel(schema1, null, null);
                 entry.setProperty(schema1, "id", "john");
                 entry.setProperty(schema1, "label", "monLabel");
 
@@ -801,7 +799,7 @@ public abstract class AbstractDirectoryTest {
             // password not returned by query
             List<DocumentModel> docs = session.query(Collections.singletonMap("username", username));
             assertEquals(1, docs.size());
-            dm = docs.get(0);
+            dm = docs.getFirst();
             pw = (String) dm.getProperty(SCHEMA, "password");
             assertNull(pw);
 
@@ -819,7 +817,7 @@ public abstract class AbstractDirectoryTest {
             // password returned by query
             List<DocumentModel> docs = session.query(Collections.singletonMap("username", username));
             assertEquals(1, docs.size());
-            dm = docs.get(0);
+            dm = docs.getFirst();
             pw = (String) dm.getProperty(SCHEMA, "password");
             assertFalse(StringUtils.isBlank(pw)); // hashed password
             PasswordHelper.verifyPassword(password, pw);

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ public class TestMemoryDirectory {
 
     @Test
     public void testCreateFromModel() {
-        entry = BaseSession.createEntryModel(null, SCHEMA_NAME, null, null);
+        entry = BaseSession.createEntryModel(SCHEMA_NAME, null, null);
         entry.setProperty(SCHEMA_NAME, "i", "yo");
 
         assertNull(dir.getEntry("yo"));
@@ -192,7 +192,7 @@ public class TestMemoryDirectory {
         String id = "no-such-entry";
         Map<String, Object> map = new HashMap<>();
         map.put("i", id);
-        DocumentModel entry = BaseSession.createEntryModel(null, SCHEMA_NAME, id, map);
+        DocumentModel entry = BaseSession.createEntryModel(SCHEMA_NAME, id, map);
         try {
             dir.updateEntry(entry);
         } catch (DirectoryException de) {
@@ -248,7 +248,7 @@ public class TestMemoryDirectory {
         entries = dir.query(filter);
         assertEquals(1, entries.size());
 
-        e = entries.get(0);
+        e = entries.getFirst();
         assertEquals("1", e.getId());
         assertEquals("BCD", e.getProperty(SCHEMA_NAME, "b"));
 
@@ -256,7 +256,7 @@ public class TestMemoryDirectory {
         filter.put("bobo", "bibi");
         entries = dir.query(filter);
         assertEquals(1, entries.size());
-        assertEquals("1", entries.get(0).getId());
+        assertEquals("1", entries.getFirst().getId());
 
         // two criteria
         filter.clear();
@@ -265,7 +265,7 @@ public class TestMemoryDirectory {
         entries = dir.query(filter);
         assertEquals(1, entries.size());
 
-        e = entries.get(0);
+        e = entries.getFirst();
         assertEquals("1", e.getId());
         assertNull(e.getProperty(SCHEMA_NAME, "pw"));
 
@@ -433,17 +433,17 @@ public class TestMemoryDirectory {
         // simple query
         list = dir.getProjection(Map.of("a", "AAA"), "b");
         assertEquals(1, list.size());
-        assertEquals("BCD", list.get(0));
+        assertEquals("BCD", list.getFirst());
 
         // add unknown field
         list = dir.getProjection(Map.of("a", "AAA", "bobo", "bibi"), "a");
         assertEquals(1, list.size());
-        assertEquals("AAA", list.get(0));
+        assertEquals("AAA", list.getFirst());
 
         // two criteria
         list = dir.getProjection(Map.of("a", "AAA", "b", "BCD"), "a");
         assertEquals(1, list.size());
-        assertEquals("AAA", list.get(0));
+        assertEquals("AAA", list.getFirst());
 
         // query not matching although each criterion matches one entry
         list = dir.getProjection(Map.of("a", "AAA", "b", "BCD", "pw", "guess"), "a");
@@ -615,8 +615,8 @@ public class TestMemoryDirectory {
         assertNotNull(dir);
         List<Directory> dirs = service.getDirectories();
         assertEquals(1, dirs.size());
-        assertNotNull(dirs.get(0));
-        assertEquals(dir, dirs.get(0));
+        assertNotNull(dirs.getFirst());
+        assertEquals(dir, dirs.getFirst());
 
         service.unregisterDirectoryDescriptor(descr);
         dir = service.getDirectory("mydir");

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 package org.nuxeo.directory.mongodb;
 
 import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
+import static java.util.Comparator.naturalOrder;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_ID;
 import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_SEQ;
@@ -26,7 +27,6 @@ import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_SEQ
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,7 +36,11 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.Nullable;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -80,6 +84,8 @@ import com.mongodb.client.result.UpdateResult;
  */
 public class MongoDBSession extends BaseSession {
 
+    private static final Logger log = LogManager.getLogger(MongoDBSession.class);
+
     protected static final MongoDBRepositoryConverter CONVERTER = new MongoDBRepositoryConverter();
 
     public MongoDBSession(MongoDBDirectory directory) {
@@ -92,10 +98,15 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    public DocumentModel getEntryFromSource(String id, boolean fetchReferences) {
+    public DocumentModel getEntryFromSource(@Nullable String id, boolean fetchReferences) {
+        if (id == null) {
+            log.atWarn()
+               .withThrowable(log.isDebugEnabled() ? new Throwable("Debug stacktrace") : null)
+               .log("Try to get an entry from a null id");
+            return null;
+        }
         String idFieldName = getPrefixedIdField();
-        DocumentModelList result = doQuery(Collections.singletonMap(idFieldName, id), Collections.emptySet(),
-                Collections.emptyMap(), fetchReferences, 1, 0, false);
+        DocumentModelList result = doQuery(Map.of(idFieldName, id), Set.of(), Map.of(), fetchReferences, 1, 0, false);
 
         if (result.isEmpty()) {
             return null;
@@ -190,7 +201,7 @@ public class MongoDBSession extends BaseSession {
         } catch (MongoWriteException e) {
             throw new DirectoryException(e);
         }
-        return createEntryModel(null, schemaName, String.valueOf(fieldMap.get(idFieldName)), fieldMap, isReadOnly());
+        return createEntryModel(schemaName, String.valueOf(fieldMap.get(idFieldName)), fieldMap, isReadOnly());
     }
 
     protected Object convertToType(Object value, Type type) {
@@ -357,7 +368,7 @@ public class MongoDBSession extends BaseSession {
                         targetIds = reference.getTargetIdsForSource(doc.getId());
                     }
                     targetIds = new ArrayList<>(targetIds);
-                    Collections.sort(targetIds);
+                    targetIds.sort(naturalOrder());
                     String fieldName = reference.getFieldName();
                     targetIdsMap.computeIfAbsent(fieldName, key -> new ArrayList<>()).addAll(targetIds);
                 }
@@ -476,7 +487,7 @@ public class MongoDBSession extends BaseSession {
                             targetIds = reference.getTargetIdsForSource(docModel.getId());
                         }
                         targetIds = new ArrayList<>(targetIds);
-                        Collections.sort(targetIds);
+                        targetIds.sort(naturalOrder());
                         String fieldName = reference.getFieldName();
                         targetIdsMap.computeIfAbsent(fieldName, key -> new ArrayList<>()).addAll(targetIds);
                     }
@@ -505,7 +516,7 @@ public class MongoDBSession extends BaseSession {
     @Override
     public List<String> queryIds(QueryBuilder queryBuilder) {
         if (!hasPermission(SecurityConstants.READ)) {
-            return Collections.emptyList();
+            return List.of();
         }
         if (FieldDetector.hasField(queryBuilder.predicate(), getPasswordField())
                 || FieldDetector.hasField(queryBuilder.predicate(), getPrefixedPasswordField())) {
@@ -634,7 +645,7 @@ public class MongoDBSession extends BaseSession {
             idFieldName = getIdField();
         }
         String id = String.valueOf(fieldMap.get(idFieldName));
-        return createEntryModel(null, schemaName, id, fieldMap, isReadOnly());
+        return createEntryModel(schemaName, id, fieldMap, isReadOnly());
     }
 
     protected String getIdFromState(State state) {

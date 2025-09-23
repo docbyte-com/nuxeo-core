@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,6 @@ import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.PasswordHelper;
 import org.nuxeo.ecm.directory.Reference;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Collections2;
 
@@ -94,24 +93,17 @@ public class CoreDirectorySession extends BaseSession {
             }
         }
 
-        StringBuilder sbQuery = new StringBuilder("SELECT * FROM ");
-        sbQuery.append(docType);
-        sbQuery.append(" WHERE ");
-        sbQuery.append(getDirectory().getField(schemaIdField).getName().getPrefixedName());
-        sbQuery.append(" = '");
-        sbQuery.append(id);
-        sbQuery.append("' AND ecm:path STARTSWITH '");
-        sbQuery.append(createPath);
-        sbQuery.append("'");
+        String sbQuery = "SELECT * FROM %s WHERE %s = '%s' AND ecm:path STARTSWITH '%s'".formatted(docType,
+                getPrefixedFieldName(schemaIdField), id, createPath);
 
-        DocumentModelList listDoc = coreSession.query(sbQuery.toString());
+        DocumentModelList listDoc = coreSession.query(sbQuery);
         // TODO : deal with references
         if (!listDoc.isEmpty()) {
             // Should have only one
             if (listDoc.size() > 1) {
                 log.warn("Found more than one result in getEntry, the first result only will be returned");
             }
-            DocumentModel docResult = listDoc.get(0);
+            DocumentModel docResult = listDoc.getFirst();
             if (isReadOnly()) {
                 BaseSession.setReadOnlyEntry(docResult);
             }
@@ -181,7 +173,8 @@ public class CoreDirectorySession extends BaseSession {
         return docModel;
     }
 
-    protected void setReferenceTargetIds(DocumentModel docModel, DocumentModel targetHolderDoc, String referenceFieldName) {
+    protected void setReferenceTargetIds(DocumentModel docModel, DocumentModel targetHolderDoc,
+            String referenceFieldName) {
         for (Reference reference : directory.getReferences(referenceFieldName)) {
             List<String> targetIds = toStringList(targetHolderDoc.getProperty(schemaName, referenceFieldName));
             reference.setTargetIdsForSource(docModel.getId(), targetIds);
@@ -189,6 +182,7 @@ public class CoreDirectorySession extends BaseSession {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // for DataModel
     public void updateEntry(DocumentModel docModel) {
         if (isReadOnly()) {
             log.warn("The directory: {} is in read-only mode, could not update entry.", directory::getName);
@@ -291,19 +285,12 @@ public class CoreDirectorySession extends BaseSession {
             }
 
         }
-        if (hasFilter && filter.size() > 0 && fulltext.size() > 0) {
+        if (hasFilter && !filter.isEmpty() && !fulltext.isEmpty()) {
             sbQuery.append(" AND ");
         }
-        if (fulltext.size() > 0) {
+        if (!fulltext.isEmpty()) {
 
-            Collection<String> fullTextValues = Collections2.transform(fulltext, new Function<String, String>() {
-
-                @Override
-                public String apply(String key) {
-                    return (String) filter.get(key);
-                }
-
-            });
+            Collection<String> fullTextValues = Collections2.transform(fulltext, key -> (String) filter.get(key));
             sbQuery.append("ecm:fulltext");
             sbQuery.append(" = ");
             sbQuery.append("'");
@@ -312,7 +299,7 @@ public class CoreDirectorySession extends BaseSession {
         }
 
         if ((createPath != null && !createPath.isEmpty())) {
-            if (filter.size() > 0 || fulltext.size() > 0) {
+            if (!filter.isEmpty() || !fulltext.isEmpty()) {
                 sbQuery.append(" AND ");
             }
             sbQuery.append(" ecm:path STARTSWITH '");

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1109,14 +1109,14 @@ public class SQLSession extends BaseSession {
 
     protected Serializable fieldValueForWrite(Object value, Column column) {
         ColumnSpec spec = column.getType().spec;
-        if (value instanceof String) {
+        if (value instanceof String string) {
             if (spec == ColumnSpec.LONG || spec == ColumnSpec.AUTOINC) {
                 // allow storing string into integer/long key
-                return Long.valueOf((String) value);
+                return Long.valueOf(string);
             }
             if (column.getKey().equals(getPasswordField())) {
                 // hash password if not already hashed
-                String password = (String) value;
+                String password = string;
                 if (!PasswordHelper.isHashed(password)) {
                     password = PasswordHelper.hashPassword(password, passwordHashAlgorithm);
                 }
@@ -1125,8 +1125,8 @@ public class SQLSession extends BaseSession {
         } else if (value instanceof Number) {
             if (spec == ColumnSpec.LONG || spec == ColumnSpec.AUTOINC) {
                 // canonicalize to Long
-                if (value instanceof Integer) {
-                    return Long.valueOf(((Integer) value).longValue());
+                if (value instanceof Integer integer) {
+                    return Long.valueOf((integer).longValue());
                 }
             } else if (spec == ColumnSpec.STRING) {
                 // allow storing number in string field

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,8 +300,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
     public void testGetEntryWithLdapTreeRef() {
         assumeTrue(isExternalServer());
         LDAPDirectory unitDir = (LDAPDirectory) dirService.getDirectory("unitDirectory");
-        try (Session session = groupDir.getSession();
-                Session unitSession = unitDir.getSession()) {
+        try (Session session = groupDir.getSession(); Session unitSession = unitDir.getSession()) {
             DocumentModel entry = session.getEntry("subgroup");
             assertNotNull(entry);
             assertEquals("subgroup", entry.getId());
@@ -521,8 +520,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
     @Test
     public void testUpdateEntry() throws Exception {
         assumeTrue(isExternalServer());
-        try (Session session = userDir.getSession();
-                Session groupSession = groupDir.getSession()) {
+        try (Session session = userDir.getSession(); Session groupSession = groupDir.getSession()) {
             DocumentModel entry = session.getEntry("user1");
             assertNotNull(entry);
 
@@ -667,8 +665,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
     @Test
     public void testUpdateEntry4() throws Exception {
         assumeTrue(isExternalServer());
-        try (Session userSession = userDir.getSession();
-                Session groupSession = groupDir.getSession()) {
+        try (Session userSession = userDir.getSession(); Session groupSession = groupDir.getSession()) {
             DocumentModel entry = groupSession.getEntry("readonlygroup1");
             assertNotNull(entry);
 
@@ -1103,7 +1100,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
         assumeTrue(isExternalServer());
         try (Session dir = userDir.getSession()) {
             String schema = "user";
-            DocumentModel entry = BaseSession.createEntryModel(null, schema, null, null);
+            DocumentModel entry = BaseSession.createEntryModel(schema, null, null);
             entry.setProperty(schema, "username", "omar");
             // XXX: some values are mandatory on real LDAP
             entry.setProperty(schema, "password", "sesame");

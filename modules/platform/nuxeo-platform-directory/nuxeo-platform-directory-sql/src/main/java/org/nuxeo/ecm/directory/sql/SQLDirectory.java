@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import jakarta.transaction.Synchronization;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -151,7 +152,7 @@ public class SQLDirectory extends AbstractDirectory {
         try (Connection sqlConnection = getConnection()) {
             dialect = Dialect.createDialect(sqlConnection, null);
             // setup table and fields maps
-            String tableName = descriptor.tableName == null ? descriptor.name : descriptor.tableName;
+            String tableName = ObjectUtils.getIfNull(descriptor.tableName, descriptor.name);
             table = SQLHelper.addTable(tableName, dialect, useNativeCase());
             SchemaManager schemaManager = Framework.getService(SchemaManager.class);
             schema = schemaManager.getSchema(getSchema());

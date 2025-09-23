@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,20 +15,18 @@
  *
  * Contributors:
  *     Florent Guillaume
- *
  */
-
 package org.nuxeo.ecm.directory.multi;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -98,7 +96,7 @@ public class TestMultiDirectory {
         desc1 = new MemoryDirectoryDescriptor();
         desc1.name = "dir1";
         desc1.schemaName = "schema1";
-        desc1.schemaSet = new HashSet<>(Arrays.asList("uid", "password", "foo"));
+        desc1.schemaSet = new HashSet<>(List.of("uid", "password", "foo"));
         desc1.idField = "uid";
         desc1.passwordField = "password";
         directoryService.registerDirectoryDescriptor(desc1);
@@ -121,7 +119,7 @@ public class TestMultiDirectory {
         desc2 = new MemoryDirectoryDescriptor();
         desc2.name = "dir2";
         desc2.schemaName = "schema2";
-        desc2.schemaSet = new HashSet<>(Arrays.asList("id", "bar"));
+        desc2.schemaSet = new HashSet<>(List.of("id", "bar"));
         desc2.idField = "id";
         desc2.passwordField = null;
         directoryService.registerDirectoryDescriptor(desc2);
@@ -142,7 +140,7 @@ public class TestMultiDirectory {
         desc3 = new MemoryDirectoryDescriptor();
         desc3.name = "dir3";
         desc3.schemaName = "schema3";
-        desc3.schemaSet = new HashSet<>(Arrays.asList("uid", "thepass", "thefoo", "thebar"));
+        desc3.schemaSet = new HashSet<>(List.of("uid", "thepass", "thefoo", "thebar"));
         desc3.idField = "uid";
         desc3.passwordField = "thepass";
         directoryService.registerDirectoryDescriptor(desc3);
@@ -208,11 +206,11 @@ public class TestMultiDirectory {
                 Session dir3 = memdir3.getSession()) {
 
             // multi-subdir create
-            Map<String, Object> map = new HashMap<>();
-            map.put("uid", "5");
-            map.put("thefoo", "foo5");
-            map.put("thebar", "bar5");
-            DocumentModel entry = dir.createEntry(map);
+            var map1 = new HashMap<String, Object>();
+            map1.put("uid", "5");
+            map1.put("thefoo", "foo5");
+            map1.put("thebar", "bar5");
+            DocumentModel entry = dir.createEntry(map1);
             assertEquals("5", entry.getProperty("schema3", "uid"));
             assertEquals("foo5", entry.getProperty("schema3", "thefoo"));
             assertEquals("bar5", entry.getProperty("schema3", "thebar"));
@@ -232,13 +230,10 @@ public class TestMultiDirectory {
             assertNull(dir3.getEntry("5"));
 
             // create another with colliding id
-            map = new HashMap<>();
-            map.put("uid", "5");
-            try {
-                entry = dir.createEntry(map);
-                fail("Should raise an error, entry already exists");
-            } catch (DirectoryException e) {
-            }
+            var map2 = new HashMap<String, Object>();
+            map1.put("uid", "5");
+            assertThrows("Should raise an error, entry already exists", DirectoryException.class,
+                    () -> dir.createEntry(map2));
         }
     }
 
@@ -431,14 +426,14 @@ public class TestMultiDirectory {
         filter.put("thefoo", "foo1");
         entries = dir.query(filter);
         assertEquals(1, entries.size());
-        e = entries.get(0);
+        e = entries.getFirst();
         assertEquals("1", e.getId());
         assertEquals("bar1", e.getProperty("schema3", "thebar"));
         // simple source
         filter.put("thefoo", "foo3");
         entries = dir.query(filter);
         assertEquals(1, entries.size());
-        e = entries.get(0);
+        e = entries.getFirst();
         assertEquals("3", e.getId());
         assertEquals("bar3", e.getProperty("schema3", "thebar"));
 
@@ -447,7 +442,7 @@ public class TestMultiDirectory {
         filter.put("thebar", "bar1");
         entries = dir.query(filter);
         assertEquals(1, entries.size());
-        e = entries.get(0);
+        e = entries.getFirst();
         assertEquals("1", e.getId());
         assertEquals("foo1", e.getProperty("schema3", "thefoo"));
         assertEquals("bar1", e.getProperty("schema3", "thebar"));
@@ -615,7 +610,7 @@ public class TestMultiDirectory {
     }
 
     protected static void assertIds(DocumentModelList list, List<String> ids, String... expected) {
-        Set<String> expectedIds = new HashSet<>(Arrays.asList(expected));
+        Set<String> expectedIds = new HashSet<>(List.of(expected));
         assertEquals(expectedIds, new HashSet<>(ids));
         Set<String> fromList = list.stream()
                                    .map(doc -> (String) doc.getProperty("schema3", "uid"))
@@ -641,13 +636,13 @@ public class TestMultiDirectory {
         // empty filter means everything (like getEntries)
         list = dir.getProjection(filter, "uid");
         Collections.sort(list);
-        assertEquals(Arrays.asList("1", "2", "3", "4"), list);
+        assertEquals(List.of("1", "2", "3", "4"), list);
         list = dir.getProjection(filter, "thefoo");
         Collections.sort(list);
-        assertEquals(Arrays.asList("foo1", "foo2", "foo3", "foo4"), list);
+        assertEquals(List.of("foo1", "foo2", "foo3", "foo4"), list);
         list = dir.getProjection(filter, "thebar");
         Collections.sort(list);
-        assertEquals(Arrays.asList("bar1", "bar2", "bar3", "bar4"), list);
+        assertEquals(List.of("bar1", "bar2", "bar3", "bar4"), list);
 
         // XXX test projection on unknown column
 
@@ -664,29 +659,29 @@ public class TestMultiDirectory {
         // source with two subdirs
         filter.put("thefoo", "foo1");
         list = dir.getProjection(filter, "uid");
-        assertEquals(Arrays.asList("1"), list);
+        assertEquals(List.of("1"), list);
         list = dir.getProjection(filter, "thefoo");
-        assertEquals(Arrays.asList("foo1"), list);
+        assertEquals(List.of("foo1"), list);
         list = dir.getProjection(filter, "thebar");
-        assertEquals(Arrays.asList("bar1"), list);
+        assertEquals(List.of("bar1"), list);
         // simple source
         filter.put("thefoo", "foo3");
         list = dir.getProjection(filter, "uid");
-        assertEquals(Arrays.asList("3"), list);
+        assertEquals(List.of("3"), list);
         list = dir.getProjection(filter, "thefoo");
-        assertEquals(Arrays.asList("foo3"), list);
+        assertEquals(List.of("foo3"), list);
         list = dir.getProjection(filter, "thebar");
-        assertEquals(Arrays.asList("bar3"), list);
+        assertEquals(List.of("bar3"), list);
 
         // query matching two subdirectories in one source
         filter.put("thefoo", "foo1");
         filter.put("thebar", "bar1");
         list = dir.getProjection(filter, "uid");
-        assertEquals(Arrays.asList("1"), list);
+        assertEquals(List.of("1"), list);
         list = dir.getProjection(filter, "thefoo");
-        assertEquals(Arrays.asList("foo1"), list);
+        assertEquals(List.of("foo1"), list);
         list = dir.getProjection(filter, "thebar");
-        assertEquals(Arrays.asList("bar1"), list);
+        assertEquals(List.of("bar1"), list);
 
         // query not matching although each subdirectory in the source matches
         filter.put("thefoo", "foo1");
@@ -710,12 +705,12 @@ public class TestMultiDirectory {
         filter.put("thefoo", "matchme");
         list = dir.getProjection(filter, "uid");
         Collections.sort(list);
-        assertEquals(Arrays.asList("1", "3"), list);
+        assertEquals(List.of("1", "3"), list);
         list = dir.getProjection(filter, "thefoo");
-        assertEquals(Arrays.asList("matchme", "matchme"), list);
+        assertEquals(List.of("matchme", "matchme"), list);
         list = dir.getProjection(filter, "thebar");
         Collections.sort(list);
-        assertEquals(Arrays.asList("bar1", "bar3"), list);
+        assertEquals(List.of("bar1", "bar3"), list);
     }
 
     @Test
@@ -730,11 +725,8 @@ public class TestMultiDirectory {
 
         // create one with existing same id, must fail
         entry.setProperty("schema3", "uid", "1");
-        try {
-            dir.createEntry(entry);
-            fail("Should raise an error, entry already exists");
-        } catch (DirectoryException e) {
-        }
+        assertThrows("Should raise an error, entry already exists", DirectoryException.class,
+                () -> dir.createEntry(entry));
     }
 
     @Test

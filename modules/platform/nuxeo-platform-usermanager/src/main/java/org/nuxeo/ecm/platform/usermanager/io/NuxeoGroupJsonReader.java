@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.usermanager.io;
 
 import static org.nuxeo.ecm.core.io.marshallers.json.document.DocumentPropertiesJsonReader.DEFAULT_SCHEMA_NAME;
@@ -140,8 +139,9 @@ public class NuxeoGroupJsonReader extends EntityJsonReader<NuxeoGroup> {
             ParameterizedType genericType = TypeUtils.parameterize(List.class, Property.class);
             try (Closeable resource = ctx.wrap().with(DEFAULT_SCHEMA_NAME, groupConfig.schemaName).open()) {
                 List<Property> properties = readEntity(List.class, genericType, propsNode);
-                properties.stream().filter(p -> !excludedProperties.contains(p.getName())).forEach(
-                        p -> groupModel.setPropertyValue(p.getName(), p.getValue()));
+                properties.stream()
+                          .filter(p -> !excludedProperties.contains(p.getName()))
+                          .forEach(p -> groupModel.setPropertyValue(p.getName(), p.getValue()));
             }
         }
     }

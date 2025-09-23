@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -185,7 +185,7 @@ public class OAuth2Client {
      * @since 11.1
      */
     public static DocumentModel fromOAuth2Client(OAuth2Client oAuth2Client) {
-        return BaseSession.createEntryModel(null, OAUTH2CLIENT_SCHEMA, null, toMap(oAuth2Client));
+        return BaseSession.createEntryModel(OAUTH2CLIENT_SCHEMA, null, toMap(oAuth2Client));
     }
 
     /**

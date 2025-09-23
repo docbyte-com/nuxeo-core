@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     Florent Guillaume
- *
- * $Id: MultiDirectorySession.java 29556 2008-01-23 00:59:39Z jcarsique $
  */
-
 package org.nuxeo.ecm.directory.multi;
 
 import java.io.Serializable;
@@ -796,12 +793,6 @@ public class MultiDirectorySession extends BaseSession {
             }
         }
         return results;
-    }
-
-    @Override
-    public DocumentModel createEntry(DocumentModel entry) {
-        Map<String, Object> fieldMap = entry.getProperties(schemaName);
-        return createEntry(fieldMap);
     }
 
     @SuppressWarnings("resource") // dirInfo session must not be closed

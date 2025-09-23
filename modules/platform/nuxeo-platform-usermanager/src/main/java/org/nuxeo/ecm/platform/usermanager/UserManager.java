@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -404,7 +404,7 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
      * @since 5.4.2
      * @param perm the permission
      * @param acp The access control policy of the document
-     * @return the list of user ids
+     * @return the array of user ids
      */
     String[] getUsersForPermission(String perm, ACP acp);
 

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- *
  */
-
 package org.nuxeo.ecm.platform.usermanager;
 
 import java.util.List;
@@ -128,6 +126,12 @@ public class NuxeoGroupImpl implements NuxeoGroup {
     }
 
     @Override
+    public int hashCode() {
+        String name = getName();
+        return name == null ? 0 : name.hashCode();
+    }
+
+    @Override
     public boolean equals(Object other) {
         if (other == this) {
             return true;
@@ -138,12 +142,6 @@ public class NuxeoGroupImpl implements NuxeoGroup {
             return Objects.equals(name, otherName);
         }
         return false;
-    }
-
-    @Override
-    public int hashCode() {
-        String name = getName();
-        return name == null ? 0 : name.hashCode();
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2007 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,15 +15,15 @@
  *
  * Contributors:
  *     Nuxeo - initial API and implementation
- * $Id$
  */
-
 package org.nuxeo.ecm.directory;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import jakarta.annotation.Nullable;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -42,13 +42,13 @@ public interface Session extends AutoCloseable {
 
     /**
      * Retrieves a directory entry using its id.
-     * <p>
-     * TODO what happens when the entry is not found? return null if not found?
      *
      * @param id the entry id
      * @return a DocumentModel representing the entry
      */
-    DocumentModel getEntry(String id);
+    default DocumentModel getEntry(@Nullable String id) {
+        return getEntry(id, true);
+    }
 
     /**
      * Retrieves a directory entry using its id.
@@ -57,7 +57,7 @@ public interface Session extends AutoCloseable {
      * @param fetchReferences boolean stating if references have to be fetched
      * @return a DocumentModel representing the entry
      */
-    DocumentModel getEntry(String id, boolean fetchReferences);
+    DocumentModel getEntry(@Nullable String id, boolean fetchReferences);
 
     /**
      * Creates an entry in a directory.
@@ -93,12 +93,6 @@ public interface Session extends AutoCloseable {
      * @throws UnsupportedOperationException if the directory does not support entry deleting
      */
     void deleteEntry(String id);
-
-    /*
-     * FIXME: Parses a query string and create a query object for this directory.
-     * @param query the query string to parse @return a new query object @throws QueryException if the query cannot be
-     * parsed maybe not needed public SQLQuery createQuery(String query) throws QueryException;
-     */
 
     /**
      * Executes a simple query. The conditions will be 'AND'-ed. Search is done with exact match.

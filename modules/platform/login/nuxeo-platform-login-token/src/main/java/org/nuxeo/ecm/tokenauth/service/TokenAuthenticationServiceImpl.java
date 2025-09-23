@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,7 +186,7 @@ public class TokenAuthenticationServiceImpl implements TokenAuthenticationServic
                     log.debug(
                             "Found token for the (userName, applicationName, deviceId) triplet: ('{}', '{}', '{}'), returning it.",
                             userName, applicationName, deviceId);
-                    DocumentModel tokenModel = tokens.get(0);
+                    DocumentModel tokenModel = tokens.getFirst();
                     return tokenModel.getId();
                 }
 
@@ -248,7 +248,7 @@ public class TokenAuthenticationServiceImpl implements TokenAuthenticationServic
     protected DocumentModel getBareAuthTokenModel(DirectoryService directoryService) {
 
         String directorySchema = directoryService.getDirectorySchema(DIRECTORY_NAME);
-        return BaseSession.createEntryModel(null, directorySchema, null, null);
+        return BaseSession.createEntryModel(directorySchema, null, null);
     }
 
 }

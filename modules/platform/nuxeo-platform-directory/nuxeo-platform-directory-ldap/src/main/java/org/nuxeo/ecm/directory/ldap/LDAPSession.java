@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  *
  * Contributors:
  *     Olivier Grisel
- *
  */
-
 package org.nuxeo.ecm.directory.ldap;
 
 import java.io.IOException;
@@ -53,6 +51,7 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 import javax.naming.ldap.InitialLdapContext;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -144,7 +143,6 @@ public class LDAPSession extends BaseSession {
         fieldMap = new HashMap<>(fieldMap);
 
         LDAPDirectoryDescriptor descriptor = getDirectory().getDescriptor();
-        List<String> referenceFieldList = new LinkedList<>();
         try {
             String dn = String.format("%s=%s,%s", rdnAttribute, fieldMap.get(rdnField), descriptor.getCreationBaseDn());
             Attributes attrs = new BasicAttributes();
@@ -176,17 +174,14 @@ public class LDAPSession extends BaseSession {
                     attrs.put(attr);
                 } else if (getDirectory().isReference(fieldId)) {
                     List<org.nuxeo.ecm.directory.Reference> references = directory.getReferences(fieldId);
-                    if (references.size() > 1) {
-                        // not supported
-                    } else {
-                        org.nuxeo.ecm.directory.Reference reference = references.get(0);
+                    if (references.size() == 1) { // only supported option
+                        org.nuxeo.ecm.directory.Reference reference = references.getFirst();
                         if (reference instanceof LDAPReference) {
                             attr = new BasicAttribute(((LDAPReference) reference).getStaticAttributeId());
                             attr.add(descriptor.getEmptyRefMarker());
                             attrs.put(attr);
                         }
                     }
-                    referenceFieldList.add(fieldId);
                 } else if (LDAPDirectory.DN_SPECIAL_ATTRIBUTE_KEY.equals(backendFieldId)) {
                     // ignore special DN field
                     log.warn("field: {} is mapped to read only DN field: ignored", fieldId);
@@ -449,15 +444,15 @@ public class LDAPSession extends BaseSession {
                     currentFilter.append(backendFieldName).append("=");
                     if (fulltext.contains(fieldName)) {
                         switch (substringMatchType) {
-                        case subinitial:
-                            currentFilter.append("{").append(index).append("}*");
-                            break;
-                        case subfinal:
-                            currentFilter.append("*{").append(index).append("}");
-                            break;
-                        case subany:
-                            currentFilter.append("*{").append(index).append("}*");
-                            break;
+                            case subinitial:
+                                currentFilter.append("{").append(index).append("}*");
+                                break;
+                            case subfinal:
+                                currentFilter.append("*{").append(index).append("}");
+                                break;
+                            case subany:
+                                currentFilter.append("*{").append(index).append("}*");
+                                break;
                         }
                     } else {
                         currentFilter.append("{").append(index).append("}");
@@ -671,7 +666,7 @@ public class LDAPSession extends BaseSession {
         if ("string".equals(typeName)) {
             return trimmedValue;
         } else if ("integer".equals(typeName) || "long".equals(typeName)) {
-            if ("".equals(trimmedValue)) {
+            if (StringUtils.isBlank(trimmedValue)) {
                 return defaultValue;
             }
             try {
@@ -706,7 +701,7 @@ public class LDAPSession extends BaseSession {
                 }
             }
         } else if ("date".equals(typeName)) {
-            if ("".equals(trimmedValue)) {
+            if (StringUtils.isBlank(trimmedValue)) {
                 return defaultValue;
             }
             try {
@@ -835,22 +830,20 @@ public class LDAPSession extends BaseSession {
         }
         for (String fieldName : directory.getSchemaFieldMap().keySet()) {
             List<org.nuxeo.ecm.directory.Reference> references = directory.getReferences(fieldName);
-            if (references != null && references.size() > 0) {
+            if (CollectionUtils.isNotEmpty(references)) {
                 if (fetchReferences) {
                     Map<String, List<String>> referencedIdsMap = new HashMap<>();
                     for (org.nuxeo.ecm.directory.Reference reference : references) {
                         // reference resolution
                         List<String> referencedIds;
-                        if (reference instanceof LDAPReference) {
+                        if (reference instanceof LDAPReference ldapReference) {
                             // optim: use the current LDAPSession directly to
                             // provide the LDAP reference with the needed backend entries
-                            LDAPReference ldapReference = (LDAPReference) reference;
                             referencedIds = ldapReference.getLdapTargetIds(attributes);
-                        } else if (reference instanceof LDAPTreeReference) {
+                        } else if (reference instanceof LDAPTreeReference ldapReference) {
                             // TODO: optimize using the current LDAPSession
                             // directly to provide the LDAP reference with the
                             // needed backend entries (needs to implement getLdapTargetIds)
-                            LDAPTreeReference ldapReference = (LDAPTreeReference) reference;
                             referencedIds = ldapReference.getTargetIdsForSource(entryId);
                         } else {
                             referencedIds = reference.getTargetIdsForSource(entryId);
@@ -913,7 +906,7 @@ public class LDAPSession extends BaseSession {
     @Override
     public boolean authenticate(String username, String password) {
 
-        if (password == null || "".equals(password.trim())) {
+        if (StringUtils.isBlank(password)) {
             // never use anonymous bind as a way to authenticate a user in
             // Nuxeo EP
             return false;

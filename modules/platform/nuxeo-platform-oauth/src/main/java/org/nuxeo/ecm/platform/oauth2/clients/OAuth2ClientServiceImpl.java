@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -113,7 +113,7 @@ public class OAuth2ClientServiceImpl extends DefaultComponent implements OAuth2C
             Map<String, Serializable> filter = Collections.singletonMap("clientId", clientId);
             DocumentModelList docs = session.query(filter);
             if (docs.size() == 1) {
-                return docs.get(0);
+                return docs.getFirst();
             } else if (docs.size() > 1) {
                 throw new NuxeoException(String.format("More than one client registered for the '%s' id", clientId));
             }
