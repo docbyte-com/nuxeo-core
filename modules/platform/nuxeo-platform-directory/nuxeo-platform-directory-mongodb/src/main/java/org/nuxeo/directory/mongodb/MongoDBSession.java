@@ -202,7 +202,7 @@ public class MongoDBSession extends BaseSession {
         } catch (MongoWriteException e) {
             throw new DirectoryException(e);
         }
-        return createEntryModel(schemaName, String.valueOf(fieldMap.get(idFieldName)), fieldMap, isReadOnly());
+        return createEntryModel(String.valueOf(fieldMap.get(idFieldName)), fieldMap);
     }
 
     protected Object convertToType(Object value, Type type) {
@@ -646,7 +646,7 @@ public class MongoDBSession extends BaseSession {
             idFieldName = getIdField();
         }
         String id = String.valueOf(fieldMap.get(idFieldName));
-        return createEntryModel(schemaName, id, fieldMap, isReadOnly());
+        return createEntryModel(id, fieldMap);
     }
 
     protected String getIdFromState(State state) {

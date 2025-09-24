@@ -34,7 +34,6 @@ import org.nuxeo.ecm.core.api.DocumentModelComparator;
 import org.nuxeo.ecm.core.api.DocumentModelList;
 import org.nuxeo.ecm.core.api.model.InvalidPropertyValueException;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
-import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Session;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.platform.shibboleth.computedgroups.ELGroupComputerHelper;
@@ -60,7 +59,7 @@ public class ShibbolethGroupHelper {
      * @since 2025.0
      */
     public static DocumentModel getBareGroupModel() {
-        return BaseSession.createEntryModel(ShibbolethConstants.SHIBBOLETH_SCHEMA);
+        return getDirectoryService().getDirectory(ShibbolethConstants.SHIBBOLETH_DIRECTORY).createBareDocumentModel();
     }
 
     /**

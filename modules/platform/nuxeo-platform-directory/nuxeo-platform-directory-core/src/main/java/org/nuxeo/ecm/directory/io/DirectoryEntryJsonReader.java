@@ -42,7 +42,6 @@ import org.nuxeo.ecm.core.io.marshallers.json.EntityJsonReader;
 import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentPropertiesJsonReader;
 import org.nuxeo.ecm.core.io.registry.context.WrappedContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
-import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryEntryResolver;
 import org.nuxeo.ecm.directory.Session;
@@ -83,7 +82,6 @@ public class DirectoryEntryJsonReader extends EntityJsonReader<DirectoryEntry> {
     protected DirectoryEntry readEntity(JsonNode jn) throws IOException {
         String directoryName = getStringField(jn, "directoryName");
         Directory directory = directoryService.getDirectory(directoryName);
-        String schema = directory.getSchema();
 
         try (Session session = directory.getSession()) {
             DocumentModel entry = null;
@@ -100,7 +98,7 @@ public class DirectoryEntryJsonReader extends EntityJsonReader<DirectoryEntry> {
                     entry = session.getEntry(id);
                 }
                 if (entry == null) {
-                    entry = BaseSession.createEntryModel(schema, id, new HashMap<>());
+                    entry = session.createEntryModel(id, new HashMap<>());
                 }
                 ParameterizedType genericType = TypeUtils.parameterize(List.class, Property.class);
                 try (Closeable resource = openWrappedContext(directory)) {

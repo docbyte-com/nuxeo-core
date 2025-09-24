@@ -52,7 +52,6 @@ import org.nuxeo.ecm.core.test.annotations.Granularity;
 import org.nuxeo.ecm.core.test.annotations.RepositoryConfig;
 import org.nuxeo.ecm.directory.AbstractDirectory;
 import org.nuxeo.ecm.directory.BaseDirectoryDescriptor;
-import org.nuxeo.ecm.directory.BaseSession;
 import org.nuxeo.ecm.directory.Directory;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.directory.PasswordHelper;
@@ -694,8 +693,7 @@ public abstract class AbstractDirectoryTest {
     @Test
     public void testCreateFromModel() throws Exception {
         try (Session session = getSession()) {
-            String schema = "user";
-            DocumentModel entry = BaseSession.createEntryModel(schema, null, null);
+            DocumentModel entry = session.createEntryModel();
             entry.setProperty("user", "username", "yo");
 
             assertNull(session.getEntry("yo"));
@@ -737,7 +735,7 @@ public abstract class AbstractDirectoryTest {
             try (Session session = dirtmp1.getSession()) {
 
                 String schema1 = "tmpschema1";
-                DocumentModel entry = BaseSession.createEntryModel(schema1, null, null);
+                DocumentModel entry = session.createEntryModel();
                 entry.setProperty(schema1, "id", "john");
                 entry.setProperty(schema1, "label", "monLabel");
 

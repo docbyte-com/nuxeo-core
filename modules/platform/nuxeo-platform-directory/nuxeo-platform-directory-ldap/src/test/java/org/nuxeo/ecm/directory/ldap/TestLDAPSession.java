@@ -1102,7 +1102,7 @@ public class TestLDAPSession extends LDAPDirectoryTestCase {
         assumeTrue(isExternalServer());
         try (Session dir = userDir.getSession()) {
             String schema = "user";
-            DocumentModel entry = BaseSession.createEntryModel(schema, null, null);
+            DocumentModel entry = dir.createEntryModel();
             entry.setProperty(schema, "username", "omar");
             // XXX: some values are mandatory on real LDAP
             entry.setProperty(schema, "password", "sesame");

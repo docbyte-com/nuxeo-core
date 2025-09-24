@@ -205,7 +205,7 @@ public class MemoryDirectorySession extends BaseSession {
             map.remove(passwordField);
         }
         try {
-            return createEntryModel(directory.getSchema(), id, map, isReadOnly());
+            return createEntryModel(id, map);
         } catch (PropertyException e) {
             throw new DirectoryException(e);
         }

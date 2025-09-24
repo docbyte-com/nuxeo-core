@@ -210,7 +210,7 @@ public class SQLSession extends BaseSession {
 
         String id = String.valueOf(fieldMap.get(idFieldName));
         try {
-            return BaseSession.createEntryModel(schemaName, id, fieldMap, isReadOnly());
+            return createEntryModel(id, fieldMap);
         } catch (PropertyException e) {
             log.error(e, e);
             return null;
