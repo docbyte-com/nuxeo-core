@@ -19,6 +19,7 @@
  */
 package org.nuxeo.directory.test;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -26,6 +27,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.nuxeo.ecm.directory.api.DirectoryConstants.SYSTEM_SCHEMA;
 
 import java.io.Serializable;
 import java.util.Calendar;
@@ -39,6 +41,7 @@ import java.util.stream.Collectors;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -203,6 +206,7 @@ public abstract class AbstractDirectoryTest {
             assertEquals("user_0", dm.getId());
 
             String[] schemaNames = dm.getSchemas();
+            schemaNames = ArrayUtils.removeElement(schemaNames, SYSTEM_SCHEMA); // remove system schema if present
             assertEquals(1, schemaNames.length);
 
             assertEquals(SCHEMA, schemaNames[0]);
@@ -230,6 +234,7 @@ public abstract class AbstractDirectoryTest {
             assertEquals("user_0", dm.getId());
 
             String[] schemaNames = dm.getSchemas();
+            schemaNames = ArrayUtils.removeElement(schemaNames, SYSTEM_SCHEMA); // remove system schema if present
             assertEquals(1, schemaNames.length);
 
             assertEquals(SCHEMA, schemaNames[0]);
@@ -702,14 +707,10 @@ public abstract class AbstractDirectoryTest {
 
             // create one with existing same id, must fail
             entry.setProperty("user", "username", "Administrator");
-            try {
-                assertTrue(session.hasEntry("Administrator"));
-                entry = session.createEntry(entry);
-                session.getEntry("Administrator");
-                fail("Should raise an error, entry already exists");
-            } catch (DirectoryException e) {
-                // expected
-            }
+            assertTrue(session.hasEntry("Administrator"));
+            var e = assertThrows(DirectoryException.class, () -> session.createEntry(entry));
+            assertEquals("Entry with id Administrator already exists in directory userDirectory", e.getMessage());
+            assertEquals(SC_CONFLICT, e.getStatusCode());
         }
     }
 
@@ -828,11 +829,10 @@ public abstract class AbstractDirectoryTest {
     public void shouldFailWhenCreateDuplicateEntries() {
         try (Session session = directoryService.open("continentDirectory")) {
             Map<String, Object> continent = Map.of("id", "middle-earth", "label", "Middle Earth");
-            List<Map<String, Object>> entries = List.of(continent, continent);
-            entries.forEach(session::createEntry);
-            fail("Should raise a DirectoryException");
-        } catch (DirectoryException de) {
-            assertEquals("Entry with id middle-earth already exists in directory continentDirectory", de.getMessage());
+            session.createEntry(continent);
+            var e = assertThrows(DirectoryException.class, () -> session.createEntry(continent));
+            assertEquals("Entry with id middle-earth already exists in directory continentDirectory", e.getMessage());
+            assertEquals(SC_CONFLICT, e.getStatusCode());
         }
     }
 }

@@ -30,6 +30,9 @@
  */
 package org.nuxeo.ecm.platform.usermanager;
 
+import static org.nuxeo.ecm.directory.api.DirectoryConstants.SYSTEM_ID_PROPERTY;
+import static org.nuxeo.ecm.directory.api.DirectoryConstants.SYSTEM_SCHEMA;
+
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 import java.security.Principal;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.DataModel;
@@ -138,6 +142,17 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
 
     public UserConfig getConfig() {
         return config;
+    }
+
+    /**
+     * @since 2025.9
+     */
+    @Override
+    public String getId() {
+        if (model.hasSchema(SYSTEM_SCHEMA)) {
+            return (String) ObjectUtils.getIfNull(model.getPropertyValue(SYSTEM_ID_PROPERTY), this::getName);
+        }
+        return getName();
     }
 
     @Override
@@ -289,7 +304,9 @@ public class NuxeoPrincipalImpl implements NuxeoPrincipal {
     @SuppressWarnings("deprecation")
     public void setModel(DocumentModel model, boolean updateAllGroups) {
         this.model = model;
-        dataModel = model.getDataModels().values().iterator().next();
+        dataModel = ObjectUtils.getIfNull(model.getDataModel(config.schemaName),
+                // TODO check if it is really needed after a potential constructor rework?
+                () -> model.getDataModels().values().iterator().next());
         if (updateAllGroups) {
             updateAllGroups();
         }

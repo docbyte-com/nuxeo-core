@@ -177,10 +177,10 @@ public class MemoryDirectorySession extends BaseSession {
 
     @Override
     @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
-    protected void doDeleteEntryWithoutReferences(String id) {
+    protected void doDeleteEntryWithoutReferences(String entryId) {
         checkClose();
-        checkDeleteConstraints(id);
-        data.remove(id);
+        checkDeleteConstraints(entryId);
+        data.remove(entryId);
     }
 
     @Override
@@ -198,17 +198,17 @@ public class MemoryDirectorySession extends BaseSession {
     }
 
     @Override
-    public void deleteEntry(String id) {
+    public void deleteEntry(String idOrSysId) {
         checkClose();
         checkPermission(SecurityConstants.WRITE);
-        deleteEntryWithoutReferences(id);
+        deleteEntryWithoutReferences(idOrSysId);
     }
 
     @Override
-    public DocumentModel getEntry(String id, boolean fetchReferences) {
+    public DocumentModel getEntry(String idOrSysId, boolean fetchReferences) {
         checkClose();
         // XXX no references here
-        Map<String, Object> map = data.get(id);
+        Map<String, Object> map = data.get(idOrSysId);
         if (map == null) {
             return null;
         }
@@ -217,7 +217,7 @@ public class MemoryDirectorySession extends BaseSession {
             map.remove(passwordField);
         }
         try {
-            return createEntryModel(id, map);
+            return createEntryModel(idOrSysId, map);
         } catch (PropertyException e) {
             throw new DirectoryException(e);
         }
@@ -353,9 +353,9 @@ public class MemoryDirectorySession extends BaseSession {
     }
 
     @Override
-    public boolean hasEntry(String id) {
+    public boolean hasEntry(String idOrSysId) {
         checkClose();
-        return data.containsKey(id);
+        return data.containsKey(idOrSysId);
     }
 
 }

@@ -82,11 +82,11 @@ public class CoreDirectorySession extends BaseSession {
     }
 
     @Override
-    public DocumentModel getEntry(String id, boolean fetchReferences) {
+    public DocumentModel getEntry(String idOrSysId, boolean fetchReferences) {
         if (UUID_FIELD.equals(getIdField())) {
-            IdRef ref = new IdRef(id);
+            IdRef ref = new IdRef(idOrSysId);
             if (coreSession.exists(ref)) {
-                DocumentModel document = coreSession.getDocument(new IdRef(id));
+                DocumentModel document = coreSession.getDocument(new IdRef(idOrSysId));
                 return docType.equals(document.getType()) ? document : null;
             } else {
                 return null;
@@ -94,7 +94,7 @@ public class CoreDirectorySession extends BaseSession {
         }
 
         String sbQuery = "SELECT * FROM %s WHERE %s = '%s' AND ecm:path STARTSWITH '%s'".formatted(docType,
-                getPrefixedFieldName(schemaIdField), id, createPath);
+                getPrefixedFieldName(schemaIdField), idOrSysId, createPath);
 
         DocumentModelList listDoc = coreSession.query(sbQuery);
         // TODO : deal with references
@@ -137,7 +137,7 @@ public class CoreDirectorySession extends BaseSession {
 
     @Override
     @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
-    protected void doDeleteEntryWithoutReferences(String id) {
+    protected void doDeleteEntryWithoutReferences(String entryId) {
         // TODO once references are implemented
         throw new UnsupportedOperationException();
     }
@@ -242,15 +242,15 @@ public class CoreDirectorySession extends BaseSession {
     }
 
     @Override
-    public void deleteEntry(String id) {
+    public void deleteEntry(String idOrSysId) {
         if (isReadOnly()) {
             log.warn("The directory: {} is in read-only mode, could not delete entry.", directory::getName);
         } else {
-            if (id == null) {
+            if (idOrSysId == null) {
                 throw new DirectoryException("Can not update entry with a null id ");
             } else {
-                checkDeleteConstraints(id);
-                DocumentModel docModel = getEntry(id);
+                checkDeleteConstraints(idOrSysId);
+                DocumentModel docModel = getEntry(idOrSysId);
                 if (docModel != null) {
                     coreSession.removeDocument(docModel.getRef());
                 }
@@ -367,7 +367,7 @@ public class CoreDirectorySession extends BaseSession {
     }
 
     @Override
-    public boolean hasEntry(String id) {
-        return getEntry(id) != null;
+    public boolean hasEntry(String idOrSysId) {
+        return getEntry(idOrSysId) != null;
     }
 }

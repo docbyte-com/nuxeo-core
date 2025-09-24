@@ -30,6 +30,7 @@ import jakarta.ws.rs.QueryParam;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.nuxeo.ecm.directory.Directory;
+import org.nuxeo.ecm.directory.api.DirectoryConstants;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.DefaultObject;
@@ -58,7 +59,7 @@ public class DirectoryRootObject extends DefaultObject {
         return Framework.getService(DirectoryService.class)
                         .getDirectories()
                         .stream()
-                        .filter(Predicate.not(dir -> dir.getTypes().contains(DirectoryService.SYSTEM_DIRECTORY_TYPE)))
+                        .filter(Predicate.not(dir -> dir.getTypes().contains(DirectoryConstants.SYSTEM_DIRECTORY_TYPE)))
                         .filter(CollectionUtils.isEmpty(types) ? truePredicate()
                                 : dir -> CollectionUtils.containsAny(types, dir.getTypes()))
                         .toList();

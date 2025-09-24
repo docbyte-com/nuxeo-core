@@ -30,6 +30,7 @@ import java.util.List;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
@@ -81,6 +82,7 @@ public class NuxeoPrincipalJsonReader extends EntityJsonReader<NuxeoPrincipal> {
 
     @Override
     protected NuxeoPrincipal readEntity(JsonNode jn) throws IOException {
+        // id could be the sys:id or the username
         String id = getStringField(jn, "id");
         DocumentModel userDoc = null;
         if (id != null) {
@@ -103,7 +105,8 @@ public class NuxeoPrincipalJsonReader extends EntityJsonReader<NuxeoPrincipal> {
                 }
             }
         }
-        NuxeoPrincipal principal = new NuxeoPrincipalImpl(id);
+        String principalName = String.valueOf(userDoc.getPropertyValue(userManager.getUserConfig().nameKey));
+        NuxeoPrincipal principal = new NuxeoPrincipalImpl(StringUtils.defaultIfBlank(principalName, id));
         principal.setModel(userDoc);
         return principal;
     }
