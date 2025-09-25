@@ -42,6 +42,11 @@ import org.nuxeo.runtime.model.DefaultComponent;
  */
 public class OpenIDConnectProviderRegistryImpl extends DefaultComponent implements OpenIDConnectProviderRegistry {
 
+    @Override
+    public int getApplicationStartedOrder() {
+        return 2000;
+    }
+
     protected static final Logger log = LogManager.getLogger(OpenIDConnectProviderRegistryImpl.class);
 
     public static final String PROVIDER_EP = "providers";
