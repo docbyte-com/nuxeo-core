@@ -21,13 +21,12 @@ package org.nuxeo.ecm.restapi.server.management;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
 import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
 
-import java.util.List;
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
@@ -36,6 +35,7 @@ import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
@@ -61,6 +61,9 @@ public class TestSearchObject extends ManagementBaseTest {
 
     @Inject
     protected SearchService searchService;
+
+    @Inject
+    protected BulkService bulkService;
 
     @Inject
     protected CoreSearchFeature coreSearchFeature;
@@ -181,10 +184,16 @@ public class TestSearchObject extends ManagementBaseTest {
 
         // Check the indexing status: at this step the indexing is launched but we are not sure about the exactly
         // value of its progress status
-        assertFalse(List.of("UNKNOWN", "ABORTED").contains(jsonNode.get("state").asText()));
+        assertBulkStatusScheduled(jsonNode);
 
         // Wait until the end of the ES indexing and then assert our expected indexed documents
-        txFeature.nextTransaction();
+        var commandId = jsonNode.get("commandId").asText();
+        try {
+            assertTrue("Bulk action didn't finish", bulkService.await(commandId, Duration.ofMinutes(1)));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
         forceRefresh();
         var response = searchService.search(SearchQuery.builder(GET_ALL_DOCUMENTS_QUERY, coreSession).build());
         assertEquals(expectedHits, response.getHitsCount());
