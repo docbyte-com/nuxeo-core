@@ -18,7 +18,6 @@
  */
 package org.nuxeo.directory.mongodb;
 
-import static jakarta.servlet.http.HttpServletResponse.SC_CONFLICT;
 import static java.util.Comparator.naturalOrder;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.nuxeo.directory.mongodb.MongoDBSerializationHelper.MONGODB_ID;
@@ -36,11 +35,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import jakarta.annotation.Nullable;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -85,8 +80,6 @@ import com.mongodb.client.result.UpdateResult;
  */
 public class MongoDBSession extends BaseSession {
 
-    private static final Logger log = LogManager.getLogger(MongoDBSession.class);
-
     protected static final MongoDBRepositoryConverter CONVERTER = new MongoDBRepositoryConverter();
 
     public MongoDBSession(MongoDBDirectory directory) {
@@ -99,36 +92,24 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    public DocumentModel getEntryFromSource(@Nullable String id, boolean fetchReferences) {
-        if (id == null) {
-            log.atWarn()
-               .withThrowable(log.isDebugEnabled() ? new Throwable("Debug stacktrace") : null)
-               .log("Try to get an entry from a null id");
-            return null;
-        }
-        String idFieldName = getPrefixedIdField();
-        DocumentModelList result = doQuery(Map.of(idFieldName, id), Set.of(), Map.of(), fetchReferences, 1, 0, false);
+    protected DocumentModel createEntryWithoutReferences(Map<String, Object> fieldMap) {
+        fieldMap = new HashMap<>(fieldMap); // be sure it is modifiable
+        // generate id if auto increment is turned on
+        if (autoincrementId) {
+            Document filter = MongoDBSerializationHelper.fieldMapToBson(MONGODB_ID, directoryName);
+            Bson update = Updates.inc(MONGODB_SEQ, 1L);
+            FindOneAndUpdateOptions options = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
+            Long longId = getCountersCollection().findOneAndUpdate(filter, update, options).getLong(MONGODB_SEQ);
 
-        if (result.isEmpty()) {
-            return null;
+            String idFieldName = getPrefixedIdField();
+            fieldMap.put(idFieldName, longId);
         }
-
-        DocumentModel docModel = result.getFirst();
-        if (isMultiTenant()) {
-            // check that the entry is from the current tenant, or no tenant
-            // at all
-            if (!checkEntryTenantId((String) docModel.getProperty(schemaName, TENANT_ID_FIELD))) {
-                return null;
-            }
-        }
-        return docModel;
+        return super.createEntryWithoutReferences(fieldMap);
     }
 
     @Override
-    protected DocumentModel createEntryWithoutReferences(Map<String, Object> fieldMap) {
-        // Make a copy of fieldMap to avoid modifying it
-        fieldMap = new HashMap<>(fieldMap);
-
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+    protected DocumentModel doCreateEntryWithoutReferences(Map<String, Object> fieldMap) {
         // Filter out reference fields for creation as we keep it in a different collection
         Map<String, Object> newDocMap = fieldMap.entrySet()
                                                 .stream()
@@ -136,49 +117,7 @@ public class MongoDBSession extends BaseSession {
                                                 .collect(HashMap::new, (m, v) -> m.put(v.getKey(), v.getValue()),
                                                         HashMap::putAll);
         Map<String, Field> schemaFieldMap = directory.getSchemaFieldMap();
-        String idFieldName = getPrefixedIdField();
-        String id;
-        if (autoincrementId) {
-            Document filter = MongoDBSerializationHelper.fieldMapToBson(MONGODB_ID, directoryName);
-            Bson update = Updates.inc(MONGODB_SEQ, 1L);
-            FindOneAndUpdateOptions options = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
-            Long longId = getCountersCollection().findOneAndUpdate(filter, update, options).getLong(MONGODB_SEQ);
-            fieldMap.put(idFieldName, longId);
-            newDocMap.put(idFieldName, longId);
-            id = String.valueOf(longId);
-        } else {
-            Object rawId = fieldMap.get(idFieldName);
-            if (rawId == null) {
-                throw new DirectoryException("Missing id");
-            }
-            id = String.valueOf(rawId);
-            if (StringUtils.isBlank(id)) {
-                throw new DirectoryException("Missing id");
-            }
-        }
-
-        if (isMultiTenant()) {
-            String tenantId = getCurrentTenantId();
-            if (StringUtils.isNotBlank(tenantId)) {
-                fieldMap.put(TENANT_ID_FIELD, tenantId);
-                newDocMap.put(TENANT_ID_FIELD, tenantId);
-                if (computeMultiTenantId) {
-                    id = computeMultiTenantDirectoryId(tenantId, id);
-                    fieldMap.put(idFieldName, id);
-                    newDocMap.put(idFieldName, id);
-                }
-            }
-        }
-
-        // Check if the entry already exists
-        if (hasEntry0(id)) {
-            throw new DirectoryException(
-                    String.format("Entry with id %s already exists in directory %s", id, directory.getName()),
-                    SC_CONFLICT);
-        }
-
         try {
-
             for (Map.Entry<String, Field> entry : schemaFieldMap.entrySet()) {
                 Field field = entry.getValue();
                 if (field != null) {
@@ -202,7 +141,9 @@ public class MongoDBSession extends BaseSession {
         } catch (MongoWriteException e) {
             throw new DirectoryException(e);
         }
-        return createEntryModel(String.valueOf(fieldMap.get(idFieldName)), fieldMap);
+        String idFieldName = getPrefixedIdField();
+        String id = String.valueOf(fieldMap.get(idFieldName));
+        return createEntryModel(id, fieldMap);
     }
 
     protected Object convertToType(Object value, Type type) {
@@ -224,7 +165,8 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    protected List<String> updateEntryWithoutReferences(DocumentModel docModel) {
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+    protected List<String> doUpdateEntryWithoutReferences(DocumentModel docModel) {
         Map<String, Object> fieldMap = new HashMap<>();
         List<String> referenceFieldList = new LinkedList<>();
 
@@ -300,7 +242,8 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    public void deleteEntryWithoutReferences(String id) {
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+    public void doDeleteEntryWithoutReferences(String id) {
         try {
             String idFieldName = getPrefixedIdField();
             Object idFieldValue = convertToType(id, getIdFieldType());
@@ -663,20 +606,8 @@ public class MongoDBSession extends BaseSession {
         return isBlank(tenantId) || isBlank(entryTenantId) || tenantId.equals(entryTenantId);
     }
 
-    protected String getPrefixedIdField() {
-        Field idField = directory.getSchemaFieldMap().get(getIdField());
-        if (idField == null) {
-            return null;
-        }
-        return idField.getName().getPrefixedName();
-    }
-
     protected String getPrefixedPasswordField() {
-        Field passwordField = directory.getSchemaFieldMap().get(getPasswordField());
-        if (passwordField == null) {
-            return null;
-        }
-        return passwordField.getName().getPrefixedName();
+        return getPrefixedFieldName(getPasswordField());
     }
 
     protected Type getIdFieldType() {
