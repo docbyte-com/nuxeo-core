@@ -102,6 +102,7 @@
     <wro4j.version>2.1.1</wro4j.version>
     <xalan.version>2.7.3</xalan.version>
     <scim.v2.sdk.version>3.2.0</scim.v2.sdk.version>
+    <jaxb.version>4.0.6</jaxb.version>
 
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
@@ -2363,7 +2364,12 @@
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
         <artifactId>jaxb-impl</artifactId>
-        <version>4.0.6</version>
+        <version>${jaxb.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sun.xml.bind</groupId>
+        <artifactId>jaxb-core</artifactId>
+        <version>${jaxb.version}</version>
       </dependency>
       <dependency>
         <groupId>jakarta.xml.ws</groupId>
