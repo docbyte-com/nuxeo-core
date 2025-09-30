@@ -18,10 +18,11 @@
  */
 package org.nuxeo.ecm.platform.routing.test;
 
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_FACTORY;
+import static org.nuxeo.audit.AuditCoreFeatureTest.DEFAULT_AUDIT_BACKEND_PROPERTY;
 import static org.nuxeo.ecm.platform.routing.core.listener.DocumentRoutingEscalationListener.EXECUTE_ESCALATION_RULE_EVENT;
 import static org.nuxeo.ecm.platform.routing.core.listener.DocumentRoutingWorkflowInstancesCleanup.CLEANUP_WORKFLOW_EVENT_NAME;
 
-import org.nuxeo.audit.test.AuditFeature;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
 import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
@@ -31,6 +32,7 @@ import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 @Deploy("org.nuxeo.ecm.platform.content.template")
 @Deploy("org.nuxeo.ecm.platform.usermanager")
@@ -42,7 +44,9 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-sql-directories-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-graph-operations-contrib.xml")
 @Deploy("org.nuxeo.ecm.platform.routing.core:OSGI-INF/test-graph-types-contrib.xml")
-@Features({ AuditFeature.class, AutomationFeature.class, FileManagerFeature.class })
+@Deploy("org.nuxeo.ecm.platform.audit")
+@WithFrameworkProperty(name = DEFAULT_AUDIT_BACKEND_PROPERTY, value = DEFAULT_AUDIT_BACKEND_FACTORY)
+@Features({ AutomationFeature.class, FileManagerFeature.class })
 public class WorkflowFeature implements RunnerFeature {
 
     @Override
