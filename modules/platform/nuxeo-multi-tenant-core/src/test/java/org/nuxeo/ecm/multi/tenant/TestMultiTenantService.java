@@ -162,7 +162,8 @@ public class TestMultiTenantService {
         assertEquals(newDomain.getName(), newDomain.getPropertyValue(TENANT_ID_PROPERTY));
 
         try (Session session = directoryService.open(TENANTS_DIRECTORY)) {
-            DocumentModelList docs = session.query(new QueryBuilder(), false);
+            @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+            DocumentModelList docs = session.query(new QueryBuilder());
             assertEquals(2, docs.size());
             // order from directory is not fixed
             if (docs.get(0).getPropertyValue("tenant:id").equals("newDomain")) {
@@ -190,7 +191,8 @@ public class TestMultiTenantService {
         assertNotNull(acl);
 
         try (Session session = directoryService.open(TENANTS_DIRECTORY)) {
-            DocumentModelList docs = session.query(new QueryBuilder(), false);
+            @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+            DocumentModelList docs = session.query(new QueryBuilder());
             assertEquals(1, docs.size());
             DocumentModel doc = docs.getFirst();
             assertEquals(domain.getName(), doc.getPropertyValue("tenant:id"));

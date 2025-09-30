@@ -50,6 +50,7 @@ import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.core.schema.types.Field;
 import org.nuxeo.ecm.directory.BaseDirectoryDescriptor.SubstringMatchType;
 import org.nuxeo.ecm.directory.api.DirectoryDeleteConstraint;
+import org.nuxeo.ecm.directory.api.DirectoryQueryBuilder;
 import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.runtime.api.Framework;
 
@@ -382,9 +383,17 @@ public abstract class BaseSession implements Session, EntrySource {
         if (StringUtils.isBlank(id)) {
             return null;
         }
-        String idFieldName = directory.getSchemaFieldMap().get(getIdField()).getName().getPrefixedName();
-        DocumentModelList result = query(Map.of(idFieldName, id), Set.of(), Map.of(), fetchReferences);
+        var queryBuilder = new QueryBuilder().predicate(Predicates.eq(getIdField(), id)).limit(1);
+        DocumentModelList result = doQuery(
+                createQueryBuilderWithConfiguredFiltering(queryBuilder, true).fetchReferences(fetchReferences));
         return result.isEmpty() ? null : result.getFirst();
+    }
+
+    @Override
+    public boolean hasEntry(String id) {
+        var queryBuilder = new DirectoryQueryBuilder();
+        queryBuilder.predicate(Predicates.eq(getIdField(), id)).limit(1);
+        return !doQueryIds(queryBuilder).isEmpty();
     }
 
     @Override
@@ -575,6 +584,87 @@ public abstract class BaseSession implements Session, EntrySource {
     }
 
     @Override
+    @SuppressWarnings("removal") // on deprecation cleanup, move this method to Session interface
+    public DocumentModelList query(QueryBuilder queryBuilder, boolean fetchReferences) {
+        return query(new DirectoryQueryBuilder(queryBuilder).fetchReferences(fetchReferences));
+    }
+
+    /**
+     * @since 2025.9
+     * @deprecated since 2021.x, {@link BaseSession} is providing a generic implementation, you should implement
+     *             {@link #doQuery(DirectoryQueryBuilder)} instead
+     * @implNote on deprecation removal, remove the annotations and deprecated javadoc
+     * @see #doQueryIds(DirectoryQueryBuilder)
+     */
+    @Override
+    @Deprecated(since = "2021.x") // annotation to remove
+    @SuppressWarnings("deprecation") // annotation to remove
+    public DocumentModelList query(QueryBuilder queryBuilder) {
+        return doQuery(createQueryBuilderWithConfiguredFiltering(queryBuilder));
+    }
+
+    /**
+     * @since 2025.9
+     * @deprecated since 2021.x, {@link BaseSession} is providing a generic implementation, you should implement
+     *             {@link #doQueryIds(DirectoryQueryBuilder)} instead
+     * @implNote on deprecation removal, remove the annotations and deprecated javadoc
+     * @see #doQueryIds(DirectoryQueryBuilder)
+     */
+    @Override
+    @Deprecated(since = "2021.x") // annotation to remove
+    public List<String> queryIds(QueryBuilder queryBuilder) {
+        return doQueryIds(createQueryBuilderWithConfiguredFiltering(queryBuilder));
+    }
+
+    /**
+     * Turns the given {@link QueryBuilder} to a {@link DirectoryQueryBuilder} to ease some access to directories
+     * specificities, such as {@link DirectoryQueryBuilder#fetchReferences()}.
+     * <p>
+     * Also, adds additional filters based on directory setup, such as {@link #TENANT_ID_FIELD tenantId}.
+     *
+     * @since 2025.9
+     */
+    protected DirectoryQueryBuilder createQueryBuilderWithConfiguredFiltering(QueryBuilder queryBuilder) {
+        return createQueryBuilderWithConfiguredFiltering(queryBuilder, false);
+    }
+
+    /**
+     * Turns the given {@link QueryBuilder} to a {@link DirectoryQueryBuilder} to ease some access to directories
+     * specificities, such as {@link DirectoryQueryBuilder#fetchReferences()}.
+     * <p>
+     * Also, adds additional filters based on directory setup, such as {@link #TENANT_ID_FIELD tenantId}.
+     *
+     * @param includeNoTenant whether the entry without tenant should be included in response
+     * @since 2025.9
+     */
+    protected DirectoryQueryBuilder createQueryBuilderWithConfiguredFiltering(QueryBuilder queryBuilder,
+            boolean includeNoTenant) {
+        var directoryQueryBuilder = new DirectoryQueryBuilder(queryBuilder);
+        // add tenant id if setup
+        String tenantId = getCurrentTenantId();
+        if (isMultiTenant() && StringUtils.isNotBlank(tenantId)) {
+            // predicates to add
+            Predicate predicate = Predicates.eq(TENANT_ID_FIELD, tenantId);
+            if (includeNoTenant) {
+                predicate = Predicates.or(predicate, Predicates.isnull(TENANT_ID_FIELD));
+            }
+
+            // add to query
+            MultiExpression multiExpression = directoryQueryBuilder.predicate();
+            if (multiExpression.predicates.isEmpty()) {
+                directoryQueryBuilder.predicate(predicate);
+            } else if (multiExpression.operator == Operator.AND || multiExpression.predicates.size() == 1) {
+                directoryQueryBuilder.and(predicate);
+            } else {
+                // query is an OR multiexpression
+                directoryQueryBuilder.filter(
+                        new MultiExpression(Operator.AND, new ArrayList<>(List.of(predicate, multiExpression))));
+            }
+        }
+        return directoryQueryBuilder;
+    }
+
+    @Override
     public List<String> getProjection(Map<String, Serializable> filter, String columnName) {
         return getProjection(filter, Set.of(), columnName);
     }
@@ -602,7 +692,10 @@ public abstract class BaseSession implements Session, EntrySource {
      * Adds the tenant id to the query if needed.
      *
      * @since 10.3
+     * @deprecated since 2025.9, not useful anymore since introduction of
+     *             {@link #createQueryBuilderWithConfiguredFiltering(QueryBuilder)}
      */
+    @Deprecated(since = "2025.9", forRemoval = true)
     protected QueryBuilder addTenantId(QueryBuilder queryBuilder) {
         if (!isMultiTenant()) {
             return queryBuilder;
@@ -646,6 +739,32 @@ public abstract class BaseSession implements Session, EntrySource {
 
     /** To be implemented for specific deletion. */
     protected abstract void deleteEntryWithoutReferences(String id);
+
+    /**
+     * To be implemented for specific querying.
+     * 
+     * @deprecated since 2021.x, the method will remain on deprecation cleanup
+     * @implNote on deprecation removal, turn this method abstract, remove the annotations and the deprecated javadoc
+     * @see #query(QueryBuilder)
+     */
+    @Deprecated(since = "2021.x") // annotation to remove
+    @SuppressWarnings("DeprecatedIsStillUsed") // annotation to remove
+    protected DocumentModelList doQuery(DirectoryQueryBuilder queryBuilder) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    /**
+     * To be implemented for specific querying.
+     * 
+     * @deprecated since 2021.x, the method remains for use, but it will be turned abstract
+     * @implNote on deprecation removal, turn this method abstract, remove the annotations and the deprecated javadoc
+     * @see #queryIds(QueryBuilder)
+     */
+    @Deprecated(since = "2021.x") // annotation to remove
+    @SuppressWarnings("DeprecatedIsStillUsed") // annotation to remove
+    protected List<String> doQueryIds(DirectoryQueryBuilder queryBuilder) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
 
     /**
      * Visitor for a query to check if it contains a reference to a given field.

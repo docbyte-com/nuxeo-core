@@ -66,6 +66,7 @@ import org.nuxeo.ecm.directory.OperationNotAllowedException;
 import org.nuxeo.ecm.directory.PasswordHelper;
 import org.nuxeo.ecm.directory.Reference;
 import org.nuxeo.ecm.directory.Session;
+import org.nuxeo.ecm.directory.api.DirectoryQueryBuilder;
 
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.FindIterable;
@@ -437,7 +438,8 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    public DocumentModelList query(QueryBuilder queryBuilder, boolean fetchReferences) {
+    @SuppressWarnings("deprecation") // annotation to remove
+    protected DocumentModelList doQuery(DirectoryQueryBuilder queryBuilder) {
         if (!hasPermission(SecurityConstants.READ)) {
             return new DocumentModelListImpl();
         }
@@ -446,7 +448,6 @@ public class MongoDBSession extends BaseSession {
                 || FieldDetector.hasField(queryBuilder.predicate(), passwordFieldName)) {
             throw new DirectoryException("Cannot filter on password");
         }
-        queryBuilder = addTenantId(queryBuilder);
 
         MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(CONVERTER, queryBuilder);
         builder.walk();
@@ -477,7 +478,7 @@ public class MongoDBSession extends BaseSession {
                 }
                 DocumentModel docModel = fieldMapToDocumentModel(fieldMap);
 
-                if (fetchReferences) {
+                if (queryBuilder.fetchReferences()) {
                     Map<String, List<String>> targetIdsMap = new HashMap<>();
                     for (Reference reference : directory.getReferences()) {
                         List<String> targetIds;
@@ -514,7 +515,8 @@ public class MongoDBSession extends BaseSession {
     }
 
     @Override
-    public List<String> queryIds(QueryBuilder queryBuilder) {
+    @SuppressWarnings("deprecation") // annotation to remove
+    protected List<String> doQueryIds(DirectoryQueryBuilder queryBuilder) {
         if (!hasPermission(SecurityConstants.READ)) {
             return List.of();
         }
@@ -522,7 +524,6 @@ public class MongoDBSession extends BaseSession {
                 || FieldDetector.hasField(queryBuilder.predicate(), getPrefixedPasswordField())) {
             throw new DirectoryException("Cannot filter on password");
         }
-        queryBuilder = addTenantId(queryBuilder);
 
         MongoDBDirectoryQueryBuilder builder = new MongoDBDirectoryQueryBuilder(CONVERTER, queryBuilder);
         builder.walk();

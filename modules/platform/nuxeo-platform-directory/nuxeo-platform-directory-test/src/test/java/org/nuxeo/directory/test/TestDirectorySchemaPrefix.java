@@ -136,18 +136,37 @@ public class TestDirectorySchemaPrefix {
     @Test
     public void testQueryWithBuilder() throws Exception {
         try (Session session = getSession()) {
-            // everything (empty predicates)
-            QueryBuilder queryBuilder = new QueryBuilder();
-            checkQueryResult(session, queryBuilder, "Administrator", "user_1", "user_3");
-
-            // cannot filter on password
-            DirectoryException e;
-            var passwordQueryBuilder = new QueryBuilder().predicate(Predicates.eq("password", "pw"));
-            e = assertThrows(DirectoryException.class, () -> session.query(passwordQueryBuilder, false));
-            assertEquals("Cannot filter on password", e.getMessage());
-            e = assertThrows(DirectoryException.class, () -> session.queryIds(passwordQueryBuilder));
-            assertEquals("Cannot filter on password", e.getMessage());
+            QueryBuilder queryBuilder = new QueryBuilder().predicate(Predicates.eq("username", "user_1"))
+                                                          .and(Predicates.eq("firstName", "f"))
+                                                          .limit(1);
+            @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+            DocumentModelList list = session.query(queryBuilder);
+            DocumentModel docModel = list.getFirst();
+            assertEquals("user_1", docModel.getProperty(SCHEMA, "username"));
+            assertEquals("f", docModel.getProperty(SCHEMA, "firstName"));
         }
     }
 
+    @Test
+    public void testQueryWithBuilderMatchAll() throws Exception {
+        try (Session session = getSession()) {
+            // everything (empty predicates)
+            QueryBuilder queryBuilder = new QueryBuilder();
+            checkQueryResult(session, queryBuilder, "Administrator", "user_1", "user_3");
+        }
+    }
+
+    @Test
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
+    public void testQueryFailOnPassword() throws Exception {
+        try (Session session = getSession()) {
+            // cannot filter on password
+            DirectoryException e;
+            var queryBuilder = new QueryBuilder().predicate(Predicates.eq("password", "pw"));
+            e = assertThrows(DirectoryException.class, () -> session.query(queryBuilder));
+            assertEquals("Cannot filter on password", e.getMessage());
+            e = assertThrows(DirectoryException.class, () -> session.queryIds(queryBuilder));
+            assertEquals("Cannot filter on password", e.getMessage());
+        }
+    }
 }
