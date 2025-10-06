@@ -139,7 +139,7 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>5.6.0</mongo.java.driver.version>
+    <mongo.java.driver.version>5.6.1</mongo.java.driver.version>
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
     <kafka.version>3.9.1</kafka.version>
@@ -4165,7 +4165,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.53.0</version>
+        <version>1.54.0</version>
       </dependency>
 
       <!-- Nashorn -->
@@ -5038,7 +5038,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>3.6.0</version>
+          <version>3.6.1</version>
         </plugin>
         <plugin>
           <groupId>io.fabric8</groupId>
