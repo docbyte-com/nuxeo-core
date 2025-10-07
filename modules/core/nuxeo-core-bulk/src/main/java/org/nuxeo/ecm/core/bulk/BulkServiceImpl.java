@@ -114,17 +114,17 @@ public class BulkServiceImpl implements BulkService, Synchronization {
     public static final String PRODUCE_IMMEDIATE_OPTION = "produceImmediate";
 
     // How long we keep the command and its status in the kv store once completed
-    public static final long COMPLETED_TTL_SECONDS = 3_600;
+    public static final long COMPLETED_TTL_SECONDS = Duration.ofHours(1).getSeconds();
 
     // How long we keep the command and its status in the kv store once aborted
-    public static final long ABORTED_TTL_SECONDS = 43_200;
+    public static final long ABORTED_TTL_SECONDS = Duration.ofHours(12).getSeconds();
 
     // @since 11.5
     // How long we keep the command and its status in the kv store once completed with an error
-    public static final long COMPLETED_IN_ERROR_TTL_SECONDS = 86_400;
+    public static final long COMPLETED_IN_ERROR_TTL_SECONDS = Duration.ofDays(1).getSeconds();
 
     // How long we keep the exclusive bulk command
-    protected static final long EXCLUSIVE_TTL_SECONDS = 86_400;
+    protected static final long EXCLUSIVE_TTL_SECONDS = Duration.ofDays(1).getSeconds();
 
     // @since 11.3
     protected final AtomicLong externalScrollerCounter = new AtomicLong();
