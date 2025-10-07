@@ -4070,6 +4070,13 @@
         <groupId>io.jaegertracing</groupId>
         <artifactId>jaeger-thrift</artifactId>
         <version>1.8.1</version>
+        <exclusions>
+          <!-- conflicting with software.amazon.awssdk:annotations -->
+          <exclusion>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>com.squareup.okhttp3</groupId>
