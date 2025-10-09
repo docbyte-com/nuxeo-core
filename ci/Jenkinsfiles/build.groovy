@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,9 @@
  */
 library identifier: "platform-ci-shared-library@v0.0.75"
 
-dockerNamespace = 'nuxeo'
-repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
-testEnvironments = [
+def dockerNamespace = 'nuxeo'
+def repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
+def testEnvironments = [
   'dev',
   'mongodb',
   'postgresql',
@@ -39,13 +39,8 @@ String getMavenFailArgs() {
   return (nxUtils.isPullRequest() && pullRequest.labels.contains('failatend')) ? '--fail-at-end' : ' '
 }
 
-String getMavenJavadocArgs() {
-  // set Xmx/Xms to 1g for javadoc command, to avoid the pod being OOMKilled with an exit code 137
-  return nxUtils.isPullRequest() ? ' ' : '-Pjavadoc  -DadditionalJOption=-J-Xmx1g -DadditionalJOption=-J-Xms1g'
-}
-
 String getCurrentVersion() {
-  return readMavenPom().getVersion();
+  return readMavenPom().getVersion()
 }
 
 void runFunctionalTests(String baseDir, String tier) {
@@ -568,7 +563,7 @@ pipeline {
         script {
           def stages = [:]
           for (env in testEnvironments) {
-            stages["Run ${env} unit tests"] = buildUnitTestStage(env);
+            stages["Run ${env} unit tests"] = buildUnitTestStage(env)
           }
           parallel stages
         }
