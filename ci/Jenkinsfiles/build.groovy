@@ -19,6 +19,12 @@
  */
 library identifier: "platform-ci-shared-library@v0.0.75"
 
+// we can not allocate directly the variable, we have to use an `if` to make Jenkins Groovy working
+def abortPrevious = false
+if (nxUtils.isPullRequest()) {
+  abortPrevious = true
+}
+
 def dockerNamespace = 'nuxeo'
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
 def testEnvironments = [
@@ -199,7 +205,7 @@ pipeline {
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
-    disableConcurrentBuilds(abortPrevious: true)
+    disableConcurrentBuilds(abortPrevious: abortPrevious)
     githubProjectProperty(projectUrlStr: repositoryUrl)
     timeout(time: 12, unit: 'HOURS')
   }
