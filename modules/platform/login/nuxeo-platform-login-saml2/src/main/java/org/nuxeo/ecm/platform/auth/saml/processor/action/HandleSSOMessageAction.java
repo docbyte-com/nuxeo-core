@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.platform.auth.saml.processor.action;
 
+import static org.nuxeo.ecm.platform.auth.saml.SAMLConstants.HTTP_ATTRIBUTE_SAML_CREDENTIAL;
+
 import jakarta.validation.constraints.NotNull;
 
 import org.nuxeo.ecm.platform.auth.saml.SAMLCredential;
@@ -52,6 +54,6 @@ public class HandleSSOMessageAction extends AbstractConditionalProfileAction {
         var localEntityId = inboundMessageContext.ensureSubcontext(SAMLSelfEntityContext.class).getEntityId();
         var credential = new SAMLCredential(nameID, sessionIndexes, remoteEntityId, relayState, attributes,
                 localEntityId);
-        request.setAttribute("SAMLCredential", credential);
+        request.setAttribute(HTTP_ATTRIBUTE_SAML_CREDENTIAL, credential);
     }
 }
