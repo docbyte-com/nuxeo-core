@@ -213,7 +213,6 @@ public class SAMLSecondaryAuthenticatorTest {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
-        // TODO check url
         String url = "http://localhost:8080/login";
         var samlResponse = """
                 <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"

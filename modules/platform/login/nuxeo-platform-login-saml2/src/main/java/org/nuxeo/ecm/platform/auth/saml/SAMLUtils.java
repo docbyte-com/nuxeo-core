@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public final class SAMLUtils {
 
     @SuppressWarnings("unchecked")
     public static <T extends SAMLObject> T buildSAMLObject(QName qName) {
-        return (T) ConfigurationService.get(XMLObjectProviderRegistry.class)
+        return (T) ConfigurationService.ensure(XMLObjectProviderRegistry.class)
                                        .getBuilderFactory()
                                        .ensureBuilder(qName)
                                        .buildObject(qName);
@@ -92,7 +92,7 @@ public final class SAMLUtils {
         if (credential.getSessionIndexes() == null || credential.getSessionIndexes().isEmpty()) {
             return Optional.empty();
         }
-        String sessionId = credential.getSessionIndexes().get(0);
+        String sessionId = credential.getSessionIndexes().getFirst();
         String nameValue = credential.getNameID().getValue();
         String nameFormat = defaultIfBlank(credential.getNameID().getFormat(), NameIDType.UNSPECIFIED);
         return Optional.of(new SAMLSessionCookie(sessionId, nameValue, nameFormat));
