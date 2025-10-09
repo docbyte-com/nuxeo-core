@@ -17,6 +17,8 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
+import groovy.transform.Field
+
 library identifier: "platform-ci-shared-library@v0.0.75"
 
 // we can not allocate directly the variable, we have to use an `if` to make Jenkins Groovy working
@@ -25,7 +27,7 @@ if (nxUtils.isPullRequest()) {
   abortPrevious = true
 }
 
-def dockerNamespace = 'nuxeo'
+@Field def DOCKER_NAMESPACE = 'nuxeo'
 def repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
 def testEnvironments = [
   'dev',
@@ -79,7 +81,7 @@ void dockerRun(String image, String command, String user = null) {
 }
 
 void dockerPushFixedVersion(String imageName) {
-  String fullImageName = "${dockerNamespace}/${imageName}"
+  String fullImageName = "${DOCKER_NAMESPACE}/${imageName}"
   String fixedVersionInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${VERSION}"
   String latestInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${DOCKER_TAG}"
 
@@ -89,7 +91,7 @@ void dockerPushFixedVersion(String imageName) {
 }
 
 void dockerDeploy(String dockerRegistry, String imageName) {
-  String fullImageName = "${dockerNamespace}/${imageName}"
+  String fullImageName = "${DOCKER_NAMESPACE}/${imageName}"
   String fixedVersionInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${VERSION}"
   String fixedVersionPublicImage = "${dockerRegistry}/${fullImageName}:${VERSION}"
   String latestPublicImage = "${dockerRegistry}/${fullImageName}:${DOCKER_TAG}"
@@ -441,7 +443,7 @@ pipeline {
                 ----------------------------------------
                 """
                 script {
-                  image = "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  image = "${DOCKER_REGISTRY}/${DOCKER_NAMESPACE}/${NUXEO_IMAGE_NAME}:${VERSION}"
                   echo "Test ${image}"
                   dockerPull(image)
                   echo 'Run image as root (0)'
@@ -470,7 +472,7 @@ pipeline {
             container('maven') {
               nxWithGitHubStatus(context: 'docker/scan', message: 'Scan Docker image') {
                 script {
-                  def imageName = "${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  def imageName = "${DOCKER_NAMESPACE}/${NUXEO_IMAGE_NAME}:${VERSION}"
                   echo """
                   ----------------------------------------
                   Scan Docker image
@@ -504,7 +506,7 @@ pipeline {
           script {
             def parameters = [
               string(name: 'NUXEO_BRANCH', value: "${CHANGE_BRANCH}"),
-              string(name: 'NUXEO_DOCKER_IMAGE', value: "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_BENCHMARK_IMAGE_NAME}:${VERSION}"),
+              string(name: 'NUXEO_DOCKER_IMAGE', value: "${DOCKER_REGISTRY}/${DOCKER_NAMESPACE}/${NUXEO_BENCHMARK_IMAGE_NAME}:${VERSION}"),
               booleanParam(name: 'INSTALL_NEEDED_PACKAGES', value: false),
             ]
             echo """
