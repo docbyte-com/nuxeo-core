@@ -91,7 +91,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.5</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.35.3</aws.version>
+    <aws.version>2.35.5</aws.version>
     <gcp.version>2.58.1</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.0</jackson.bom.version>
@@ -143,7 +143,7 @@
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
     <kafka.version>3.9.1</kafka.version>
-    <confluent.version>7.9.3</confluent.version>
+    <confluent.version>7.9.4</confluent.version>
     <metrics.version>5.0.5</metrics.version>
     <amqp.client.version>5.26.0</amqp.client.version>
     <opencensus.version>0.31.1</opencensus.version>
@@ -3841,7 +3841,7 @@
       <dependency>
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
-        <version>4.8.181</version>
+        <version>4.8.184</version>
       </dependency>
 
       <!-- dmk adaptor -->
@@ -4086,7 +4086,7 @@
       <dependency>
         <groupId>com.squareup.okio</groupId>
         <artifactId>okio-jvm</artifactId>
-        <version>3.16.0</version>
+        <version>3.16.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.thrift</groupId>
