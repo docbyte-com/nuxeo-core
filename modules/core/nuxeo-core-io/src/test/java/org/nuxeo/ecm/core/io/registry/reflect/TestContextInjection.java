@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.registry.reflect;
 
 import static org.junit.Assert.assertNotNull;
@@ -52,14 +51,14 @@ public class TestContextInjection {
     private final RenderingContext ctx = RenderingContext.CtxBuilder.get();
 
     @Test
-    public void noInjectionIfNoAnnotation() throws Exception {
+    public void noInjectionIfNoAnnotation() {
         MarshallerInspector inspector = new MarshallerInspector(NoInjectionMarshaller.class);
         NoInjectionMarshaller instance = inspector.getInstance(ctx);
         assertNull(instance.ctx);
     }
 
     @Test
-    public void ifNullContextInjectEmptyContext() throws Exception {
+    public void ifNullContextInjectEmptyContext() {
         MarshallerInspector inspector = new MarshallerInspector(SingletonMarshaller.class);
         SingletonMarshaller instance = inspector.getInstance(null);
         assertNotNull(instance.ctx);
@@ -67,7 +66,7 @@ public class TestContextInjection {
     }
 
     @Test
-    public void ifThreadSafeContextInjectDelegateContext() throws Exception {
+    public void ifThreadSafeContextInjectDelegateContext() {
         ThreadSafeRenderingContext tsCtx = new ThreadSafeRenderingContext();
         tsCtx.configureThread(ctx);
         MarshallerInspector inspector = new MarshallerInspector(EachTimeMarshaller.class);
@@ -77,7 +76,7 @@ public class TestContextInjection {
     }
 
     @Test
-    public void injectInEachTimeInstance() throws Exception {
+    public void injectInEachTimeInstance() {
         MarshallerInspector inspector = new MarshallerInspector(EachTimeMarshaller.class);
         EachTimeMarshaller instance = inspector.getInstance(ctx);
         assertSame(ctx, instance.ctx);
@@ -107,7 +106,7 @@ public class TestContextInjection {
     }
 
     @Test
-    public void replaceContextInPerThreadInstance() throws Exception {
+    public void replaceContextInPerThreadInstance() {
         final MarshallerInspector inspector = new MarshallerInspector(PerThreadMarshaller.class);
         PerThreadMarshaller instance1 = inspector.getInstance(ctx);
         RenderingContext ctx2 = RenderingContext.CtxBuilder.get();
@@ -125,8 +124,7 @@ public class TestContextInjection {
         ThreadSafeRenderingContext safeCtx = (ThreadSafeRenderingContext) instance1.ctx;
         assertNotNull(safeCtx.getDelegate());
         assertSame(ctx, safeCtx.getDelegate());
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-        try {
+        try (ExecutorService executor = Executors.newSingleThreadExecutor()) {
             // in a different thread, it should be a different instance but same context
             Future<?> future = executor.submit(() -> {
                 SingletonMarshaller instance2 = inspector.getInstance(ctx);
@@ -138,13 +136,11 @@ public class TestContextInjection {
             });
             executor.shutdown();
             future.get(10, TimeUnit.SECONDS);
-        } finally {
-            executor.shutdownNow();
         }
     }
 
     @Test
-    public void replaceContextInSingletonInstance() throws Exception {
+    public void replaceContextInSingletonInstance() {
         final MarshallerInspector inspector = new MarshallerInspector(SingletonMarshaller.class);
         SingletonMarshaller instance1 = inspector.getInstance(ctx);
         RenderingContext ctx2 = RenderingContext.CtxBuilder.get();
@@ -156,7 +152,7 @@ public class TestContextInjection {
     }
 
     @Test
-    public void inheritInjection() throws Exception {
+    public void inheritInjection() {
         MarshallerInspector inspector = new MarshallerInspector(InheritMarshaller.class);
         InheritMarshaller instance = inspector.getInstance(ctx);
         assertSame(ctx, instance.ctx);
