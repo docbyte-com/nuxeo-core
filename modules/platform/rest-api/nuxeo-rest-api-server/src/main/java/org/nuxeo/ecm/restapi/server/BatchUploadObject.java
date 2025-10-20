@@ -249,6 +249,9 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
             if (StringUtils.isNotEmpty(fileName)) {
                 fileName = URLDecoder.decode(fileName, UTF_8);
             }
+            if (requestBodyFile.contains("../") || requestBodyFile.contains("..\\")) {
+                throw new SecurityException("Invalid file path");
+            }
             File file = new File(requestBodyFile);
             Blob blob = new FileBlob(file, true);
 
