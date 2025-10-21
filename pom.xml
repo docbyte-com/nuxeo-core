@@ -3795,7 +3795,7 @@
       <dependency>
         <groupId>com.azure</groupId>
         <artifactId>azure-storage-blob</artifactId>
-        <version>12.31.3</version>
+        <version>12.32.0</version>
       </dependency>
 
       <dependency>
@@ -4147,7 +4147,7 @@
       <dependency>
         <groupId>com.google.code.externalsortinginjava</groupId>
         <artifactId>externalsortinginjava</artifactId>
-        <version>0.6.2</version>
+        <version>0.6.5</version>
       </dependency>
 
       <dependency>
