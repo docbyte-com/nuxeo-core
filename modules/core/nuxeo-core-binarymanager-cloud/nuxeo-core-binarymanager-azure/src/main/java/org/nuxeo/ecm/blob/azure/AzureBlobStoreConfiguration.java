@@ -19,7 +19,7 @@
 package org.nuxeo.ecm.blob.azure;
 
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.RECORD;
-import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStricMode;
+import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStrictMode;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -167,7 +167,7 @@ public class AzureBlobStoreConfiguration extends CloudBlobStoreConfiguration {
             } else {
                 // Azure does not have a default object retention policy unlike s3
                 // we can only rely on Nuxeo platform setting
-                retentionMode = isRetentionStricMode() ? BlobImmutabilityPolicyMode.LOCKED
+                retentionMode = isRetentionStrictMode() ? BlobImmutabilityPolicyMode.LOCKED
                         : BlobImmutabilityPolicyMode.UNLOCKED;
             }
         } else {
