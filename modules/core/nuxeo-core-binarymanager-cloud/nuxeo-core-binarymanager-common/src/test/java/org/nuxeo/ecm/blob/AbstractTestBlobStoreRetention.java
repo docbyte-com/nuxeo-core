@@ -20,7 +20,6 @@ package org.nuxeo.ecm.blob;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.api.CoreSession.RETAIN_UNTIL_INDETERMINATE;
 
 import java.io.IOException;
@@ -44,6 +43,7 @@ import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.BlacklistComponent;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -54,6 +54,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 @RunWith(FeaturesRunner.class)
 @Features(CoreFeature.class)
 @BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
+@ConditionalIgnore(condition = IgnoreIfStorageRetentionDisabled.class)
 public abstract class AbstractTestBlobStoreRetention<T extends CloudBlobStoreConfiguration, S extends CloudBlobKey<T>> {
 
     @Inject
@@ -90,7 +91,6 @@ public abstract class AbstractTestBlobStoreRetention<T extends CloudBlobStoreCon
 
     @Before
     public void setUp() {
-        assumeTrue("Cannot run test without retention enabled", getConfig().retentionEnabled);
         // Create a document with blob
         doc = session.createDocumentModel("/", "document", "File");
         doc.setPropertyValue("file:content", (Serializable) Blobs.createBlob("A retainable content"));
@@ -105,10 +105,6 @@ public abstract class AbstractTestBlobStoreRetention<T extends CloudBlobStoreCon
 
     @After
     public void tearDown() {
-        if (!getConfig().retentionEnabled) {
-            // Nothing to wait for
-            return;
-        }
         try {
             // remove hold
             removeLegalHold();

@@ -30,9 +30,9 @@ import java.util.Map;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.ecm.blob.CloudBlobProvider;
 import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobStore;
-import org.nuxeo.ecm.core.blob.BlobStoreBlobProvider;
 import org.nuxeo.ecm.core.blob.CachingBlobStore;
 import org.nuxeo.ecm.core.blob.CachingConfiguration;
 import org.nuxeo.ecm.core.blob.DigestConfiguration;
@@ -54,13 +54,11 @@ import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
  *
  * @since 2023.6
  */
-public class AzureBlobProvider extends BlobStoreBlobProvider {
+public class AzureBlobProvider extends CloudBlobProvider<AzureBlobStoreConfiguration> {
 
     public static final String STORE_SCROLL_NAME = "azureBlobScroll";
 
     protected DigestConfiguration digestConfiguration;
-
-    protected AzureBlobStoreConfiguration config;
 
     @Override
     public void close() {
@@ -69,7 +67,6 @@ public class AzureBlobProvider extends BlobStoreBlobProvider {
 
     @Override
     protected BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException {
-        config = new AzureBlobStoreConfiguration(properties);
         digestConfiguration = new DigestConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
         KeyStrategy keyStrategy = getKeyStrategy();
         BlobStore store = new AzureBlobStore(blobProviderId, "azureStorage", config, keyStrategy);
