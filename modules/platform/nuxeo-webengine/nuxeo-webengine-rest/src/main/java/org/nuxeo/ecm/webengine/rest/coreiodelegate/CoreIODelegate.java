@@ -20,6 +20,8 @@ package org.nuxeo.ecm.webengine.rest.coreiodelegate;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static org.nuxeo.ecm.core.io.marshallers.NuxeoMediaType.TEXT_CSV;
+import static org.nuxeo.ecm.core.io.marshallers.NuxeoMediaType.TEXT_D2;
+import static org.nuxeo.ecm.core.io.marshallers.NuxeoMediaType.TEXT_PLANT_UML;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -49,7 +51,7 @@ import org.nuxeo.ecm.platform.web.common.RequestContext;
  */
 @Singleton
 @Provider
-@Produces({ APPLICATION_JSON, TEXT_CSV })
+@Produces({ APPLICATION_JSON, TEXT_CSV, TEXT_D2, TEXT_PLANT_UML })
 public class CoreIODelegate extends PartialCoreIODelegate implements Feature {
 
     @Override
