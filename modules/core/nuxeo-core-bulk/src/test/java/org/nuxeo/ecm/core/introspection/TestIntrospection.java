@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,21 +18,19 @@
  */
 package org.nuxeo.ecm.core.introspection;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
+import static org.nuxeo.common.test.ModuleUnderTest.getClassLoaderResourceAsString;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.nuxeo.ecm.core.bulk.introspection.StreamIntrospectionConverter;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -41,8 +39,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class TestIntrospection {
 
     @Test
-    public void testPumlConversion() throws Exception {
-        String json = readFile("data/introspection.json");
+    public void testPumlConversion() {
+        String json = getClassLoaderResourceAsString("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String puml = convert.getPuml();
         assertTrue(puml.contains("@startuml"));
@@ -50,66 +48,61 @@ public class TestIntrospection {
     }
 
     @Test
-    public void testPumlConversionSimple() throws Exception {
-        String json = readFile("data/simple.json");
+    public void testPumlConversionSimple() {
+        String json = getClassLoaderResourceAsString("data/simple.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String puml = convert.getPuml();
-        assertEquals(readFile("data/simple.puml"), puml);
+        assertEquals(getClassLoaderResourceAsString("data/simple.puml"), puml);
     }
 
     @Test
-    public void testScaleUp() throws Exception {
-        String in = readFile("data/introspection-cluster.json");
+    public void testScaleUp() {
+        String in = getClassLoaderResourceAsString("data/introspection-cluster.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
         String out = convert.getActivity(1678439100);
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-up.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-up.json", out);
     }
 
     @Test
-    public void testScaleWithoutMetrics() throws Exception {
-        String in = readFile("data/introspection-cluster.json");
+    public void testScaleWithoutMetrics() {
+        String in = getClassLoaderResourceAsString("data/introspection-cluster.json");
         // rename the metrics array so no metrics will be found
         in = in.replace("\"metrics\": [", "\"no-metrics\": [");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
         String out = convert.getActivity(1678439100);
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-no-data.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-no-data.json", out);
     }
 
     @Test
-    public void testScaleIdle() throws Exception {
-        String in = readFile("data/introspection-cluster-idle.json");
+    public void testScaleIdle() {
+        String in = getClassLoaderResourceAsString("data/introspection-cluster-idle.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
         String out = convert.getActivity(1678439100);
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-idle.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-idle.json", out);
         // activity for a given timestamp in the future discards old metrics
         out = convert.getActivity(1778439100);
-        assertEquals(mapper.readTree(readFile("data/scale-no-data.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-no-data.json", out);
     }
 
     @Test
-    public void testScaleConstantLoad() throws Exception {
-        String in = readFile("data/introspection-cluster-constant.json");
+    public void testScaleConstantLoad() {
+        String in = getClassLoaderResourceAsString("data/introspection-cluster-constant.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(in);
         String out = convert.getActivity(1709562437);
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-constant.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-constant.json", out);
     }
 
     @Test
-    public void testScaleConstantLoad2() throws Exception {
-        String json = readFile("data/introspection-cluster-constant2.json");
+    public void testScaleConstantLoad2() {
+        String json = getClassLoaderResourceAsString("data/introspection-cluster-constant2.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String out = convert.getActivity(1756647244);
-        ObjectMapper mapper = new ObjectMapper();
-        assertEquals(mapper.readTree(readFile("data/scale-constant2.json")), mapper.readTree(out));
+        assertJsonEquals("data/scale-constant2.json", out);
     }
 
     @Test
-    public void testStreams() throws Exception {
-        String json = readFile("data/introspection.json");
+    public void testStreams() {
+        String json = getClassLoaderResourceAsString("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String streams = convert.getStreams();
         assertTrue(streams, streams.contains("bulk/command"));
@@ -130,8 +123,8 @@ public class TestIntrospection {
     }
 
     @Test
-    public void testConsumers() throws Exception {
-        String json = readFile("data/introspection.json");
+    public void testConsumers() {
+        String json = getClassLoaderResourceAsString("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String consumers = convert.getConsumers("bulk/command");
         assertTrue(consumers.contains("bulk/scroller"));
@@ -141,8 +134,8 @@ public class TestIntrospection {
     }
 
     @Test
-    public void testD2Conversion() throws Exception {
-        String json = readFile("data/introspection.json");
+    public void testD2Conversion() {
+        String json = getClassLoaderResourceAsString("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String d2 = convert.getD2();
         assertTrue(d2.contains("# Stream Introspection"));
@@ -151,16 +144,16 @@ public class TestIntrospection {
     }
 
     @Test
-    public void testD2ConversionSimple() throws Exception {
-        String json = readFile("data/simple.json");
+    public void testD2ConversionSimple() {
+        String json = getClassLoaderResourceAsString("data/simple.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String d2 = convert.getD2();
-        assertEquals(readFile("data/simple.d2"), d2);
+        assertEquals(getClassLoaderResourceAsString("data/simple.d2"), d2);
     }
 
     @Test
-    public void generateExpectedD2Output() throws Exception {
-        String json = readFile("data/simple.json");
+    public void generateExpectedD2Output() {
+        String json = getClassLoaderResourceAsString("data/simple.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
         String d2 = convert.getD2(null, true);
         // System.out.println("Generated D2 content:");
@@ -168,8 +161,8 @@ public class TestIntrospection {
     }
 
     @Test
-    public void testD2ConversionWithFiltering() throws Exception {
-        String json = readFile("data/introspection.json");
+    public void testD2ConversionWithFiltering() {
+        String json = getClassLoaderResourceAsString("data/introspection.json");
         StreamIntrospectionConverter convert = new StreamIntrospectionConverter(json);
 
         // Test without filtering
@@ -194,10 +187,15 @@ public class TestIntrospection {
         assertFalse(d2WithBothFilters.contains("bulk_"));
     }
 
-    protected String readFile(String path) throws IOException {
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(path)) {
-            return IOUtils.toString(is, UTF_8);
+    protected static void assertJsonEquals(String resourcePath, String actual) {
+        ObjectMapper mapper = new ObjectMapper();
+        String expected = getClassLoaderResourceAsString(resourcePath);
+        try {
+            String prettyExpected = mapper.readTree(expected).toPrettyString();
+            String prettyActual = mapper.readTree(actual).toPrettyString();
+            assertEquals(prettyExpected, prettyActual);
+        } catch (JsonProcessingException e) {
+            throw new AssertionError("Unable to prettify JSON", e);
         }
     }
-
 }

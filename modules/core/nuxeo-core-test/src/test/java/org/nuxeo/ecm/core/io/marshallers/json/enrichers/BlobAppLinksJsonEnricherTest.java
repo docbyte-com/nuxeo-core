@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,10 @@
  * Contributors:
  *     Nelson Silva <nsilva@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json.enrichers;
+
+import java.io.IOException;
+import java.io.Serializable;
 
 import jakarta.inject.Inject;
 
@@ -39,9 +41,6 @@ import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-
-import java.io.IOException;
-import java.io.Serializable;
 
 @Features(CoreFeature.class)
 @Deploy("org.nuxeo.ecm.core.test.tests:OSGI-INF/test-dummy-blob-provider.xml")

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -251,7 +251,10 @@ public class StreamIntrospectionComputation extends AbstractComputation {
                                        .map(json -> json.get("nodeId").asText())
                                        .collect(Collectors.toList());
         toRemove.forEach(metrics::remove);
-        Set<String> toKeep = metrics.values().stream().map(json -> json.get("nodeId").asText()).collect(Collectors.toSet());
+        Set<String> toKeep = metrics.values()
+                                    .stream()
+                                    .map(json -> json.get("nodeId").asText())
+                                    .collect(Collectors.toSet());
         if (!toRemove.isEmpty()) {
             log.warn("Node(s) removed from the cluster: {}, alive: {}.", toRemove, toKeep);
         } else {

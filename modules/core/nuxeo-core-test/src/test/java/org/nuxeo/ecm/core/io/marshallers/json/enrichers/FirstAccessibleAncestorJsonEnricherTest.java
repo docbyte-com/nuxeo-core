@@ -16,7 +16,6 @@
  * Contributors:
  *     Guillaume Renard
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json.enrichers;
 
 import jakarta.inject.Inject;

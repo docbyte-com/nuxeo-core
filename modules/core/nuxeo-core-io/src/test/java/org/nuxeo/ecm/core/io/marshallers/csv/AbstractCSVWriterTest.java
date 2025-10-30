@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2018-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,10 +16,10 @@
  * Contributors:
  *     Funsho David
  */
-
 package org.nuxeo.ecm.core.io.marshallers.csv;
 
 import static org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter.TEXT_CSV_TYPE;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Type;
@@ -82,8 +82,7 @@ public abstract class AbstractCSVWriterTest<WriterClass extends Writer<Marshalle
         this(writerClass, marshalledClass, marshalledClass);
     }
 
-    public AbstractCSVWriterTest(Class<WriterClass> writerClass, Class<?> marshalledClass,
-            Type marshalledGenericType) {
+    public AbstractCSVWriterTest(Class<WriterClass> writerClass, Class<?> marshalledClass, Type marshalledGenericType) {
         super();
         this.writerClass = writerClass;
         this.marshalledClass = marshalledClass;
@@ -117,6 +116,5 @@ public abstract class AbstractCSVWriterTest<WriterClass extends Writer<Marshalle
     public CSVAssert csvAssert(MarshalledType object, RenderingContext ctx) throws IOException {
         return CSVAssert.on(asCsv(object, ctx));
     }
-
 
 }

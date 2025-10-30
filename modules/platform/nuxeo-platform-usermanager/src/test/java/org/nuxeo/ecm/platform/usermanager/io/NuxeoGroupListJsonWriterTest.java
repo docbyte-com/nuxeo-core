@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.platform.usermanager.io;
 
 import java.util.Arrays;
@@ -37,8 +36,8 @@ import org.nuxeo.runtime.test.runner.Features;
 @Features(DirectoryFeature.class)
 @Deploy("org.nuxeo.ecm.platform.usermanager")
 @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanagerimpl/directory-config.xml")
-public class NuxeoGroupListJsonWriterTest extends
-        AbstractJsonWriterTest.External<NuxeoGroupListJsonWriter, List<NuxeoGroup>> {
+public class NuxeoGroupListJsonWriterTest
+        extends AbstractJsonWriterTest.External<NuxeoGroupListJsonWriter, List<NuxeoGroup>> {
 
     public NuxeoGroupListJsonWriterTest() {
         super(NuxeoGroupListJsonWriter.class, List.class, TypeUtils.parameterize(List.class, NuxeoGroup.class));

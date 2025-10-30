@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json.validation;
 
 import java.util.ArrayList;
@@ -30,8 +29,8 @@ import org.nuxeo.ecm.core.schema.types.constraints.Constraint;
 import org.nuxeo.ecm.core.schema.types.constraints.NotNullConstraint;
 import org.nuxeo.ecm.core.schema.types.constraints.PatternConstraint;
 
-public class ConstraintListJsonWriterTest extends
-        AbstractJsonWriterTest.Local<ConstraintListJsonWriter, List<Constraint>> {
+public class ConstraintListJsonWriterTest
+        extends AbstractJsonWriterTest.Local<ConstraintListJsonWriter, List<Constraint>> {
 
     public ConstraintListJsonWriterTest() {
         super(ConstraintListJsonWriter.class, List.class, TypeUtils.parameterize(List.class, Constraint.class));

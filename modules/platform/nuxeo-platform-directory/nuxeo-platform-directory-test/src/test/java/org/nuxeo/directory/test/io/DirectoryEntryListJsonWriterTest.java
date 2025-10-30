@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,6 @@ import jakarta.inject.Inject;
 
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
@@ -39,12 +38,10 @@ import org.nuxeo.ecm.directory.api.DirectoryService;
 import org.nuxeo.ecm.directory.io.DirectoryEntryListJsonWriter;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 9.2
  */
-@RunWith(FeaturesRunner.class)
 @Features(DirectoryFeature.class)
 @Deploy("org.nuxeo.ecm.directory.tests:test-directory-resolver-contrib.xml")
 public class DirectoryEntryListJsonWriterTest

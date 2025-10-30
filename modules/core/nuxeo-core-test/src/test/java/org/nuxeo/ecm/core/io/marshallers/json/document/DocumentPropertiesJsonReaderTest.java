@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,8 @@ public class DocumentPropertiesJsonReaderTest
         String propertiesJson = "{ \"dc:title\": \"A note\",\n" + //
                 "  \"note:note\": \"note content\" }";
 
-        DocumentPropertiesJsonReader reader = registry.getInstance(CtxBuilder.get(), DocumentPropertiesJsonReader.class);
+        DocumentPropertiesJsonReader reader = registry.getInstance(CtxBuilder.get(),
+                DocumentPropertiesJsonReader.class);
         List<Property> properties;
         try (JsonParser jp = JsonFactoryProvider.get().createParser(propertiesJson)) {
             JsonNode jn = jp.readValueAsTree();
@@ -81,7 +82,8 @@ public class DocumentPropertiesJsonReaderTest
                 "\"tst2:dates\":[\"2018-02-20T23:00:00.000Z\",\"2018-02-04T23:00:00.000Z\"]," + //
                 "\"dc:created\": \"2018-02-20T23:00:00.000Z\" }";
 
-        DocumentPropertiesJsonReader reader = registry.getInstance(CtxBuilder.get(),DocumentPropertiesJsonReader.class);
+        DocumentPropertiesJsonReader reader = registry.getInstance(CtxBuilder.get(),
+                DocumentPropertiesJsonReader.class);
         List<Property> properties;
         try (JsonParser jp = JsonFactoryProvider.get().createParser(propertiesJson)) {
             JsonNode jn = jp.readValueAsTree();

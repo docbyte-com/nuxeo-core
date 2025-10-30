@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,7 +116,7 @@ public class AuditTest {
                       assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
 
                       // Parse the http response to retrieve the csv records
-                      CSVParser csvParser = new CSVParser(new InputStreamReader(response.getEntityInputStream()),
+                      CSVParser csvParser = CSVParser.parse(new InputStreamReader(response.getEntityInputStream()),
                               CSVFormat.DEFAULT);
                       List<CSVRecord> records = csvParser.getRecords();
 
@@ -143,7 +143,7 @@ public class AuditTest {
                   .executeAndConsume(new JsonNodeHandler(), node -> {
                       List<JsonNode> nodes = getLogEntries(node);
                       assertEquals(1, nodes.size());
-                      assertEquals("documentModified", nodes.get(0).get("eventId").asText());
+                      assertEquals("documentModified", nodes.getFirst().get("eventId").asText());
                   });
 
         httpClient.buildGetRequest("/id/" + doc.getId() + "/@" + AuditAdapter.NAME)

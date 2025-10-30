@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class StreamObject extends AbstractResource<ResourceTypeImpl> {
     }
 
     /**
-     * @deprecated since 2022.21 use {@link StreamObject#doGet(String, String, Boolean)} with format=puml instead.
+     * @deprecated since 2021.21 use {@link StreamObject#doGet(String, String, Boolean)} with format=puml instead.
      */
     @Deprecated
     @GET
