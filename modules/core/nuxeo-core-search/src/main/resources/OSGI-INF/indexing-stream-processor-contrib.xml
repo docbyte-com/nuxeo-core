@@ -5,7 +5,8 @@
     <action name="indexing" defaultScroller="repository" inputStream="bulk/indexing" bucketSize="250" batchSize="25"
       enabled="${nuxeo.search.indexing.enabled:=true}" />
     <action name="indexingBackground" defaultScroller="repository" inputStream="bulk/indexingBackground"
-      bucketSize="1000" batchSize="25" exclusive="true" enabled="${nuxeo.search.indexing.enabled:=true}" />
+      bucketSize="1000" batchSize="25" exclusive="true" enabled="${nuxeo.search.indexing.enabled:=true}"
+      validationClass="org.nuxeo.ecm.core.search.index.IndexingBackgroundValidation" />
   </extension>
 
   <extension target="org.nuxeo.runtime.stream.service" point="streamProcessor">
