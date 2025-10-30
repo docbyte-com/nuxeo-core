@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
@@ -141,6 +142,35 @@ public class TestSearchObject extends ManagementBaseTest {
                   .addQueryParameter("query", query)
                   .addQueryParameter("queryLimit", "2")
                   .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 2));
+    }
+
+    @Test
+    public void shouldRunIndexingWithSpecificIndex() {
+        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
+        // Create new documents without indexing them
+        createDocuments();
+        String query = "SELECT * FROM Document'";
+        // Unknown index got 400 reply
+        httpClient.buildPostRequest("/management/search/reindex")
+                  .addQueryParameter("query", query)
+                  .addQueryParameter("index", "unknown")
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
+
+        // reindex only repository which does nothing, no doc indexed
+        httpClient.buildPostRequest("/management/search/reindex")
+                  .addQueryParameter("query", query)
+                  .addQueryParameter("index", "repository")
+                  .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 0));
+
+        // reindex only repository and enhanced, this time we should have 2 docs
+        httpClient.buildPostRequest("/management/search/reindex")
+                  .addQueryParameter("query", query)
+                  .addQueryParameter("queryLimit", "2")
+                  .addQueryParameter("index", "repository")
+                  .addQueryParameter("index", "enhanced")
+                  .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 2));
+
     }
 
     @Test

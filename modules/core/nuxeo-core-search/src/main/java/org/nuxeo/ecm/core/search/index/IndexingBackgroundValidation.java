@@ -31,7 +31,7 @@ import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.runtime.api.Framework;
 
 /**
- * @since 2025.12
+ * @since 2025.11
  */
 public class IndexingBackgroundValidation extends AbstractBulkActionValidation {
 

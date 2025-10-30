@@ -56,7 +56,7 @@ public class IndexingBackgroundAction implements StreamProcessorTopology {
             super(name);
         }
 
-        /** @since 2025.12 */
+        /** @since 2025.11 */
         public static final String INDEXES_PARAM = "indexes";
 
         @Override

@@ -86,8 +86,8 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
     @POST
     @Path("reindex")
     public BulkStatus doIndexing(@QueryParam("query") String query,
-            @QueryParam("queryLimit") @DefaultValue("-1") Long queryLimit) {
-        return performIndexing(query, queryLimit);
+            @QueryParam("queryLimit") @DefaultValue("-1") Long queryLimit, @QueryParam("index") List<String> indexes) {
+        return performIndexing(query, queryLimit, indexes);
     }
 
     /**
@@ -98,11 +98,11 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
     @POST
     @Path("{documentId}/reindex")
     public BulkStatus doIndexingOnDocument(@PathParam("documentId") String documentId,
-            @QueryParam("queryLimit") @DefaultValue("-1") Long queryLimit) {
+            @QueryParam("queryLimit") @DefaultValue("-1") Long queryLimit, @QueryParam("index") List<String> indexes) {
         String query = String.format("Select * From Document where %s = '%s' or %s = '%s'", //
                 NXQL.ECM_UUID, documentId, //
                 NXQL.ECM_ANCESTORID, documentId);
-        return performIndexing(query, queryLimit);
+        return performIndexing(query, queryLimit, indexes);
     }
 
     /**
@@ -121,23 +121,23 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
     }
 
     /**
-     * @deprecated since 2025.8 use {@link #performIndexing(String, long)} instead
+     * @deprecated since 2025.8 use {@link #performIndexing(String, long, List<String>)} instead
      */
     @Deprecated(since = "2025.8", forRemoval = true)
     protected BulkStatus performIndexing(String query) {
-        return performIndexing(query, -1);
+        return performIndexing(query, -1, null);
     }
 
     /**
      * Performs indexing on documents matching the optional NXQL query.
      */
-    protected BulkStatus performIndexing(String query, long queryLimit) {
+    protected BulkStatus performIndexing(String query, long queryLimit, List<String> indexes) {
         String repository = ctx.getCoreSession().getRepositoryName();
         var searchIndexingService = Framework.getService(SearchIndexingService.class);
         BulkService bulkService = Framework.getService(BulkService.class);
         try {
-            String commandId = isBlank(query) ? searchIndexingService.reindexRepository(repository)
-                    : searchIndexingService.reindexDocuments(repository, query, queryLimit);
+            String commandId = isBlank(query) ? searchIndexingService.reindexRepository(repository, indexes)
+                    : searchIndexingService.reindexDocuments(repository, query, queryLimit, indexes);
             return bulkService.getStatus(commandId);
         } catch (IllegalStateException e) {
             throw new ConcurrentUpdateException(e.getMessage(), e);
