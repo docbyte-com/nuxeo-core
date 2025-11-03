@@ -21,6 +21,7 @@ package org.nuxeo.ecm.restapi.server.management;
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
+import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
@@ -37,6 +38,7 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.bulk.BulkService;
+import org.nuxeo.ecm.core.search.SearchIndex;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
@@ -185,6 +187,29 @@ public class TestSearchObject extends ManagementBaseTest {
                                .forEach(searchIndex -> checkAssert(jsonNode,
                                        searchIndex.client() + '/' + searchIndex.index()));
                   });
+    }
+
+    @Test
+    public void testCheckSearchOnSpecificIndexes() {
+        // default all indexes
+        httpClient.buildGetRequest("/management/search/checkSearch")
+                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        // explicit index
+        String anIndex = Framework.getService(SearchService.class)
+                                  .getIndexNames(coreSession.getRepositoryName())
+                                  .stream()
+                                  .map(searchService::getSearchIndex)
+                                  .map(SearchIndex::index)
+                                  .findFirst()
+                                  .orElseThrow(() -> new IllegalStateException("No index found"));
+        httpClient.buildGetRequest("/management/search/checkSearch")
+                  .addQueryParameter("index", anIndex)
+                  .executeAndConsume(new HttpStatusCodeHandler(), status -> assertEquals(SC_OK, status.intValue()));
+        // unknown
+        httpClient.buildGetRequest("/management/search/checkSearch")
+                  .addQueryParameter("index", "unknown")
+                  .executeAndConsume(new HttpStatusCodeHandler(),
+                          status -> assertEquals(SC_BAD_REQUEST, status.intValue()));
     }
 
     protected void checkAssert(JsonNode response, String searchIndex) {

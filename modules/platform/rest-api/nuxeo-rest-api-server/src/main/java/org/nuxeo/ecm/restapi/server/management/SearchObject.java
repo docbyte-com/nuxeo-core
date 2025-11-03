@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.restapi.server.management;
 
+import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
 import static jakarta.servlet.http.HttpServletResponse.SC_REQUEST_TIMEOUT;
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 import static java.lang.Math.max;
@@ -41,6 +42,7 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.core.api.ConcurrentUpdateException;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -149,7 +151,8 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
      */
     @GET
     @Path("checkSearch")
-    public String checkSearch(@QueryParam("nxql") String nxql, @QueryParam("pageSize") Long pageSize) {
+    public String checkSearch(@QueryParam("nxql") String nxql, @QueryParam("pageSize") Long pageSize,
+            @QueryParam("index") List<String> indexes) {
         if (nxql == null || nxql.isBlank()) {
             nxql = DEFAULT_CHECK_SEARCH_NXQL;
         }
@@ -158,10 +161,19 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
         }
         SearchService service = Framework.getService(SearchService.class);
         String repository = ctx.getCoreSession().getRepositoryName();
-        var indexes = service.getIndexNames(repository);
+        var repoIndexes = service.getIndexNames(repository);
+        List<String> checkIndexes;
+        if (CollectionUtils.isEmpty(indexes)) {
+            checkIndexes = repoIndexes;
+        } else {
+            if (indexes.stream().filter(index -> !repoIndexes.contains(index)).count() > 0) {
+                throw new NuxeoException("Unexisting index submitted for repository: " + repository, SC_BAD_REQUEST);
+            }
+            checkIndexes = indexes;
+        }
         Map<String, Serializable> ret = new HashMap<>();
         ret.put("query", nxql);
-        for (String index : indexes) {
+        for (String index : checkIndexes) {
             var searchIndex = service.getSearchIndex(index);
             Map<String, Serializable> map = extractResultInfo(searchIndex, nxql, pageSize);
             ret.put("order", map.get("order"));
