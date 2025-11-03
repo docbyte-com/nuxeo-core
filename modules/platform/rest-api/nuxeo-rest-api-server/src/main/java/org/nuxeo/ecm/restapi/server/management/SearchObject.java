@@ -60,6 +60,7 @@ import org.nuxeo.ecm.platform.query.nxql.SearchServicePageProvider;
 import org.nuxeo.ecm.webengine.model.WebObject;
 import org.nuxeo.ecm.webengine.model.impl.AbstractResource;
 import org.nuxeo.ecm.webengine.model.impl.ResourceTypeImpl;
+import org.nuxeo.runtime.RuntimeServiceException;
 import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -142,7 +143,11 @@ public class SearchObject extends AbstractResource<ResourceTypeImpl> {
                     : searchIndexingService.reindexDocuments(repository, query, queryLimit, indexes);
             return bulkService.getStatus(commandId);
         } catch (IllegalStateException e) {
+            // exclusive bulk command
             throw new ConcurrentUpdateException(e.getMessage(), e);
+        } catch (RuntimeServiceException e) {
+            // unable to drop the index, security reason or alias
+            throw new NuxeoException(e.getMessage(), SC_BAD_REQUEST);
         }
     }
 

@@ -230,26 +230,18 @@ public class OpenSearchRestClient implements OpenSearchClient {
         log.trace("Dropping index: {}", indexName);
         try {
             long timeoutSeconds = timeout.toSeconds();
-            Response response = client.getLowLevelClient()
-                                      .performRequest(
-                                              new Request("DELETE", String.format("/%s?master_timeout=%ds&timeout=%ds",
-                                                      indexName, timeoutSeconds, timeoutSeconds)));
-            int code = response.getStatusLine().getStatusCode();
-            if (code != HttpStatus.SC_OK) {
-                throw new IllegalStateException(String.format("Deleting: %s returns: %s", indexName, response));
-            }
+            client.getLowLevelClient()
+                  .performRequest(new Request("DELETE", String.format("/%s?master_timeout=%ds&timeout=%ds", indexName,
+                          timeoutSeconds, timeoutSeconds)));
         } catch (IOException e) {
-            if (e.getMessage() != null && e.getMessage().contains("illegal_argument_exception")) {
-                // when trying to delete an alias, throws the same exception as the transport client
-                throw new IllegalArgumentException(e);
-            }
             if (e instanceof ResponseException re) {
                 if (re.getResponse().getStatusLine().getStatusCode() == HttpStatus.SC_NOT_FOUND) {
                     log.info("Index: {} not found, nothing to drop", indexName);
                     return;
                 }
             }
-            throw new RuntimeServiceException(e);
+            log.warn("Fail to drop index: {}, {}", indexName, e.getMessage());
+            throw new RuntimeServiceException("Fail to drop index: " + indexName, e);
         }
         log.trace("Index: {} dropped", indexName);
     }
