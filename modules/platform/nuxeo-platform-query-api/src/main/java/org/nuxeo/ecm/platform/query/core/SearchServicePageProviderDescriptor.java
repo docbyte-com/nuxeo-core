@@ -62,7 +62,11 @@ public class SearchServicePageProviderDescriptor extends BasePageProviderDescrip
 
     @Override
     public SearchServicePageProviderDescriptor clone() {
-        return (SearchServicePageProviderDescriptor) super.cloneDescriptor();
+        SearchServicePageProviderDescriptor clone = (SearchServicePageProviderDescriptor) super.cloneDescriptor();
+        clone.scroller = scroller;
+        clone.searchClient = searchClient;
+        clone.searchIndexes = List.copyOf(searchIndexes);
+        return clone;
     }
 
 }
