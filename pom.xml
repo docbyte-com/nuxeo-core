@@ -91,7 +91,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.37.3</aws.version>
+    <aws.version>2.37.4</aws.version>
     <gcp.version>2.59.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
@@ -145,7 +145,7 @@
     <kafka.version>3.9.1</kafka.version>
     <confluent.version>7.9.4</confluent.version>
     <metrics.version>5.0.5</metrics.version>
-    <amqp.client.version>5.27.0</amqp.client.version>
+    <amqp.client.version>5.27.1</amqp.client.version>
     <opencensus.version>0.31.1</opencensus.version>
     <prometheus.client.version>0.16.0</prometheus.client.version>
     <protobuf.java.version>4.33.0</protobuf.java.version>
@@ -2894,7 +2894,7 @@
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.51.1</version>
+        <version>3.52.0</version>
       </dependency>
 
       <dependency>
@@ -4172,7 +4172,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.54.0</version>
+        <version>1.55.0</version>
       </dependency>
 
       <!-- Nashorn -->
