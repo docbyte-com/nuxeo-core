@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -219,7 +219,7 @@ public class MimetypeRegistryService extends DefaultComponent implements Mimetyp
 
             // Only take into account the first possibility.
             var possibilities = new ArrayList<MagicMatch>(match.getSubMatches());
-            var possibility = possibilities.isEmpty() ? null : possibilities.get(0);
+            var possibility = possibilities.isEmpty() ? null : possibilities.getFirst();
             MagicMatch m = requireNonNullElse(possibility, match);
             String mimeType = m.getMimeType();
 

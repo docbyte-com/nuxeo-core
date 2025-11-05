@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.convert.extension;
 
 import static java.util.Objects.requireNonNullElse;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 
 import java.nio.file.Path;
 import java.time.Duration;
@@ -91,10 +92,10 @@ public class ConvertCacheDescriptor implements Descriptor {
     public Descriptor merge(Descriptor o) {
         var other = (ConvertCacheDescriptor) o;
         var merged = new ConvertCacheDescriptor();
-        merged.enabled = other.enabled != null ? other.enabled : enabled;
-        merged.directory = other.directory != null ? other.directory : directory;
-        merged.gcRate = other.gcRate != null ? other.gcRate : gcRate;
-        merged.maxSizeKB = other.maxSizeKB != null ? other.maxSizeKB : maxSizeKB;
+        merged.enabled = getIfNull(other.enabled, enabled);
+        merged.directory = getIfNull(other.directory, directory);
+        merged.gcRate = getIfNull(other.gcRate, gcRate);
+        merged.maxSizeKB = getIfNull(other.maxSizeKB, maxSizeKB);
         return merged;
     }
 }

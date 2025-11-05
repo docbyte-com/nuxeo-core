@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -788,7 +788,7 @@ public class KeyValueBlobTransientStore implements TransientStoreProvider {
         String json = kvs.getString(key + DOT_PARAMINFO);
         List<String> parameters = jsonToList(json);
         if (parameters != null) {
-            parameters.stream().forEach(parameter -> {
+            parameters.forEach(parameter -> {
                 String k = key + DOT_PARAM_DOT + parameter;
                 kvs.setTTL(k, releaseTTL);
                 kvs.setTTL(k + FORMAT, releaseTTL);

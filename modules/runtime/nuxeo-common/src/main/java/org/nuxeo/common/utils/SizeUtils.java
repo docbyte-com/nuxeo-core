@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,27 +59,27 @@ public class SizeUtils {
         }
         long mul;
         switch (unit) {
-        case 'k':
-        case 'K':
-            mul = KB;
-            break;
-        case 'm':
-        case 'M':
-            mul = MB;
-            break;
-        case 'g':
-        case 'G':
-            mul = GB;
-            break;
-        case 't':
-        case 'T':
-            mul = TB;
-            break;
-        default:
-            if (!Character.isDigit(unit)) {
-                throw new NumberFormatException(string);
-            }
-            mul = 1;
+            case 'k':
+            case 'K':
+                mul = KB;
+                break;
+            case 'm':
+            case 'M':
+                mul = MB;
+                break;
+            case 'g':
+            case 'G':
+                mul = GB;
+                break;
+            case 't':
+            case 'T':
+                mul = TB;
+                break;
+            default:
+                if (!Character.isDigit(unit)) {
+                    throw new NumberFormatException(string);
+                }
+                mul = 1;
         }
         if (mul != 1) {
             digits = digits.substring(0, digits.length() - 1);

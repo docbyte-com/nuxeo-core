@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,6 +141,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
                 CopyWriter writer = storage.copy(Storage.CopyRequest.newBuilder()
                                                                     .setSource(srcGsKey.blobId())
                                                                     .setTarget(gsKey.blobId())
+                                                                    .setMegabytesCopiedPerChunk((long) chunkSize / 1024 / 1024)
                                                                     .build());
                 Blob blob = writer.getResult();
                 if (blob != null) {
