@@ -96,7 +96,7 @@ public class GoogleStorageBlobStoreConfiguration extends CloudBlobStoreConfigura
     public GoogleStorageBlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         String projectId = getProperty(PROJECT_ID_PROPERTY);
-        Path credentialsPath = Path.of(getProperty(GOOGLE_APPLICATION_CREDENTIALS, GCP_JSON_FILE));
+        Path credentialsPath = Path.of(getOptionalProperty(GOOGLE_APPLICATION_CREDENTIALS).orElse(GCP_JSON_FILE));
         if (!credentialsPath.isAbsolute()) {
             credentialsPath = Environment.getDefault().getConfig().toPath().resolve(credentialsPath);
         }
@@ -118,10 +118,10 @@ public class GoogleStorageBlobStoreConfiguration extends CloudBlobStoreConfigura
             b = storage.create(BucketInfo.of(bucketName));
         }
         bucket = b;
-        chunkSize = getIntProperty(UPLOAD_CHUNK_SIZE_PROPERTY, DEFAULT_UPLOAD_CHUNK_SIZE);
+        chunkSize = getOptionalIntegerProperty(UPLOAD_CHUNK_SIZE_PROPERTY).orElse(DEFAULT_UPLOAD_CHUNK_SIZE);
         allowByteRange = getBooleanProperty(ALLOW_BYTE_RANGE);
 
-        String bp = getProperty(BUCKET_PREFIX_PROPERTY, EMPTY);
+        String bp = getOptionalProperty(BUCKET_PREFIX_PROPERTY).orElse(EMPTY);
         if (!isBlank(bp) && !bp.endsWith(DELIMITER)) {
             log.warn("Google bucket prefix ({}): {} should end with '{}': added automatically.", BUCKET_PREFIX_PROPERTY,
                     bp, DELIMITER);

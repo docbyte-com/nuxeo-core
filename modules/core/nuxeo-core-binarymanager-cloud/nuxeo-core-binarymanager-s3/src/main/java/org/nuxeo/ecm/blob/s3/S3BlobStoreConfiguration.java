@@ -398,8 +398,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             useServerSideEncryption = false;
             serverSideKMSKeyID = null;
         }
-        minimumPartSizeInBytes = getLongProperty(MINIMUM_UPLOAD_PART_SIZE_PROPERTY, MINIMUM_UPLOAD_PART_SIZE_DEFAULT);
-        multipartUploadThreshold = getLongProperty(MULTIPART_UPLOAD_THRESHOLD_PROPERTY,
+        minimumPartSizeInBytes = getOptionalLongProperty(MINIMUM_UPLOAD_PART_SIZE_PROPERTY).orElse(
+                MINIMUM_UPLOAD_PART_SIZE_DEFAULT);
+        multipartUploadThreshold = getOptionalLongProperty(MULTIPART_UPLOAD_THRESHOLD_PROPERTY).orElse(
                 MULTIPART_UPLOAD_THRESHOLD_DEFAULT);
         maxConcurrency = getIntProperty(CONCURRENCY_MAX_PROPERTY);
         targetThroughputInGbps = getLongProperty(TARGET_THROUGHPUT_IN_GBPS_PROPERTY);
@@ -663,7 +664,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * @since 2021.11
      * @deprecated since 2025.0, unused
      */
-    @Deprecated(since = "2025.0")
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static long getMultipartCopyPartSize() {
         // backward compatibility with configuration service property
         ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
@@ -679,7 +680,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /**
      * @since 2021.11
+     * @deprecated since 2025.11, use {@link #getOptionalLongProperty(String)} instead
      */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public static long getLongProperty(String key, long defaultValue) {
         var value = Framework.getProperty(key);
         if (value == null) {
@@ -850,7 +853,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     }
 
     protected S3TransferManager createTransferManager() {
-        int threadPoolSize = getIntProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY,
+        int threadPoolSize = getOptionalIntegerProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY).orElse(
                 TRANSFER_MANAGER_THREAD_POOL_SIZE_DEFAULT);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(0, threadPoolSize, 60, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(1_000),

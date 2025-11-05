@@ -20,6 +20,7 @@ package org.nuxeo.ecm.core.blob;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Map;
 
 import org.nuxeo.common.utils.SizeUtils;
@@ -40,9 +41,15 @@ public class CachingConfiguration extends PropertyBasedConfiguration {
 
     public static final String DEFAULT_CACHE_SIZE = "100 mb";
 
-    public static final String DEFAULT_CACHE_COUNT = "10000";
+    public static final long DEFAULT_CACHE_COUNT_LONG = 10000L;
 
-    public static final String DEFAULT_CACHE_MIN_AGE = "3600"; // 1h
+    @Deprecated(since = "2025.11", forRemoval = true)
+    public static final String DEFAULT_CACHE_COUNT = String.valueOf(DEFAULT_CACHE_COUNT_LONG);
+
+    public static final Duration DEFAULT_CACHE_MIN_AGE_DURATION = Duration.ofHours(1);
+
+    @Deprecated(since = "2025.11", forRemoval = true)
+    public static final String DEFAULT_CACHE_MIN_AGE = String.valueOf(DEFAULT_CACHE_MIN_AGE_DURATION.toSeconds());
 
     public final Path dir;
 
@@ -55,12 +62,10 @@ public class CachingConfiguration extends PropertyBasedConfiguration {
     public CachingConfiguration(String systemPropertyPrefix, Map<String, String> properties) throws IOException {
         super(systemPropertyPrefix, properties);
         dir = Framework.createTempDirectory("nxbincache.");
-        String maxSizeProp = getProperty(CACHE_SIZE_PROPERTY, DEFAULT_CACHE_SIZE);
-        String maxCountProp = getProperty(CACHE_COUNT_PROPERTY, DEFAULT_CACHE_COUNT);
-        String minAgeProp = getProperty(CACHE_MIN_AGE_PROPERTY, DEFAULT_CACHE_MIN_AGE);
+        String maxSizeProp = getOptionalProperty(CACHE_SIZE_PROPERTY).orElse(DEFAULT_CACHE_SIZE);
         maxSize = SizeUtils.parseSizeInBytes(maxSizeProp);
-        maxCount = Long.parseLong(maxCountProp);
-        minAge = Long.parseLong(minAgeProp);
+        maxCount = getOptionalLongProperty(CACHE_COUNT_PROPERTY).orElse(DEFAULT_CACHE_COUNT_LONG);
+        minAge = getOptionalLongProperty(CACHE_MIN_AGE_PROPERTY).orElseGet(DEFAULT_CACHE_MIN_AGE_DURATION::toSeconds);
     }
 
     public CachingConfiguration(Path dir, long maxSize, long maxCount, long minAge) {

@@ -49,10 +49,15 @@ public class PropertyBasedConfiguration {
 
     /** Gets a string property. */
     public String getProperty(String propertyName) {
-        return getProperty(propertyName, null);
+        return getOptionalProperty(propertyName).orElse(null);
     }
 
-    /** Gets a string property, or the given default if undefined or blank. */
+    /**
+     * Gets a string property, or the given default if undefined or blank.
+     * 
+     * @deprecated since 2025.11, use {@link #getOptionalProperty} instead
+     */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public String getProperty(String propertyName, String defaultValue) {
         return getOptionalProperty(propertyName).orElse(defaultValue);
     }
@@ -64,14 +69,16 @@ public class PropertyBasedConfiguration {
 
     /** Gets an integer property, or -1 if undefined or blank. */
     public int getIntProperty(String key) {
-        return getIntProperty(key, -1);
+        return getOptionalIntegerProperty(key).orElse(-1);
     }
 
     /**
      * Gets an integer property, or the given default if undefined or blank.
      *
      * @since 2023.5
+     * @deprecated since 2025.11, use {@link #getOptionalIntegerProperty} instead
      */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public int getIntProperty(String key, int defaultValue) {
         return getOptionalIntegerProperty(key).orElse(defaultValue);
     }
