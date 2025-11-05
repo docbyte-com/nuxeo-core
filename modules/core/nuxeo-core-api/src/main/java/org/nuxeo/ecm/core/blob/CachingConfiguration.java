@@ -23,7 +23,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
 
-import org.nuxeo.common.utils.SizeUtils;
+import org.nuxeo.common.utils.ByteSize;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -39,6 +39,10 @@ public class CachingConfiguration extends PropertyBasedConfiguration {
 
     public static final String CACHE_MIN_AGE_PROPERTY = "cacheminage";
 
+    public static final ByteSize DEFAULT_CACHE_BYTE_SIZE = ByteSize.ofMebibytes(100);
+
+    /** @deprecated since 2025.11, use {@link #DEFAULT_CACHE_BYTE_SIZE} instead. */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public static final String DEFAULT_CACHE_SIZE = "100 mb";
 
     public static final long DEFAULT_CACHE_COUNT_LONG = 10000L;
@@ -62,8 +66,9 @@ public class CachingConfiguration extends PropertyBasedConfiguration {
     public CachingConfiguration(String systemPropertyPrefix, Map<String, String> properties) throws IOException {
         super(systemPropertyPrefix, properties);
         dir = Framework.createTempDirectory("nxbincache.");
-        String maxSizeProp = getOptionalProperty(CACHE_SIZE_PROPERTY).orElse(DEFAULT_CACHE_SIZE);
-        maxSize = SizeUtils.parseSizeInBytes(maxSizeProp);
+        maxSize = getOptionalProperty(CACHE_SIZE_PROPERTY).map(ByteSize::parse)
+                                                          .orElse(DEFAULT_CACHE_BYTE_SIZE)
+                                                          .toBytes();
         maxCount = getOptionalLongProperty(CACHE_COUNT_PROPERTY).orElse(DEFAULT_CACHE_COUNT_LONG);
         minAge = getOptionalLongProperty(CACHE_MIN_AGE_PROPERTY).orElseGet(DEFAULT_CACHE_MIN_AGE_DURATION::toSeconds);
     }
