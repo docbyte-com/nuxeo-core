@@ -135,7 +135,7 @@ public class GlobalConfigDescriptor {
             }
         }
         if (diskCacheSize != null) {
-            descriptor.maxSizeKB = diskCacheSize.longValue();
+            descriptor.setMaxSizeKB(diskCacheSize.longValue());
         }
         return descriptor;
     }

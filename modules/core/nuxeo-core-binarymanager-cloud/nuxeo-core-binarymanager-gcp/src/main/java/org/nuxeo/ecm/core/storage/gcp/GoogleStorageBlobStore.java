@@ -38,6 +38,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.utils.ByteSize;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.AbstractBlobGarbageCollector;
 import org.nuxeo.ecm.core.blob.AbstractBlobStore;
@@ -78,7 +79,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     protected final Storage storage;
 
-    protected final int chunkSize;
+    protected final ByteSize chunkSize;
 
     protected final boolean allowByteRange;
 
@@ -141,7 +142,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
                 CopyWriter writer = storage.copy(Storage.CopyRequest.newBuilder()
                                                                     .setSource(srcGsKey.blobId())
                                                                     .setTarget(gsKey.blobId())
-                                                                    .setMegabytesCopiedPerChunk((long) chunkSize / 1024 / 1024)
+                                                                    .setMegabytesCopiedPerChunk(chunkSize.toMebibytes())
                                                                     .build());
                 Blob blob = writer.getResult();
                 if (blob != null) {

@@ -207,7 +207,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
      */
     @Deprecated(since = "2025.0", forRemoval = true)
     public static int getMaxCacheSizeInKB() {
-        return (int) getConversionService().getConvertCacheDescriptor().getMaxSizeKB();
+        return (int) getConversionService().getConvertCacheDescriptor().getMaxSize().toKibibytes();
     }
 
     /**
@@ -615,8 +615,8 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         gcExecutor = Executors.newSingleThreadScheduledExecutor(
                 ThreadFactories.newThreadFactory("Nuxeo-Convert-GC", true));
         long rateInSeconds = cacheDescriptor.getGcRate().toSeconds();
-        gcExecutor.scheduleAtFixedRate(new ConversionCacheGCTask(cacheDescriptor.getMaxSizeKB()), rateInSeconds,
-                rateInSeconds, TimeUnit.SECONDS);
+        gcExecutor.scheduleAtFixedRate(new ConversionCacheGCTask(cacheDescriptor.getMaxSize().toKibibytes()),
+                rateInSeconds, rateInSeconds, TimeUnit.SECONDS);
     }
 
     public void endGC() {

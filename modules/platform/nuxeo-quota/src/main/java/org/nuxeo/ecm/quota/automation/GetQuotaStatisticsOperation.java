@@ -20,7 +20,6 @@ package org.nuxeo.ecm.quota.automation;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -89,10 +88,7 @@ public class GetQuotaStatisticsOperation {
     }
 
     QuotaStat toQuotaStat(QuotaDisplayValue quotaDisplayValue, String headerLabelKey, Locale locale) {
-        NumberFormat nf = NumberFormat.getInstance(locale);
-        nf.setMaximumFractionDigits(2);
-        var label = getI18nLabel(headerLabelKey, locale) + ":" + nf.format(quotaDisplayValue.getValueInUnit()) + " "
-                + getI18nLabel(quotaDisplayValue.getUnit(), locale);
+        var label = getI18nLabel(headerLabelKey, locale) + ":" + quotaDisplayValue.format(locale);
         return new QuotaStat(quotaDisplayValue.getValue(), label);
     }
 
