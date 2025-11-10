@@ -91,8 +91,8 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.38.1</aws.version>
-    <gcp.version>2.59.0</gcp.version>
+    <aws.version>2.38.2</aws.version>
+    <gcp.version>2.60.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
     <bouncycastle.version>1.82</bouncycastle.version>
@@ -2380,7 +2380,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.20.0</version>
+        <version>2.21.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -3139,7 +3139,7 @@
       <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
-        <version>2.43.0</version>
+        <version>2.44.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
