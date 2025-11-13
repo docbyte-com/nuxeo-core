@@ -91,7 +91,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.38.3</aws.version>
+    <aws.version>2.38.4</aws.version>
     <gcp.version>2.60.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
@@ -4814,7 +4814,7 @@
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>12.1.8</version>
+          <version>12.1.9</version>
           <!-- run manually with mvn -nsu -Pdistrib org.owasp:dependency-check-maven:aggregate -->
           <!-- report file is in target/dependency-check-report.html -->
           <configuration>
