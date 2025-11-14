@@ -65,7 +65,9 @@ public class SearchServicePageProviderDescriptor extends BasePageProviderDescrip
         SearchServicePageProviderDescriptor clone = (SearchServicePageProviderDescriptor) super.cloneDescriptor();
         clone.scroller = scroller;
         clone.searchClient = searchClient;
-        clone.searchIndexes = List.copyOf(searchIndexes);
+        if (searchIndexes != null) {
+            clone.searchIndexes = List.copyOf(searchIndexes);
+        }
         return clone;
     }
 
