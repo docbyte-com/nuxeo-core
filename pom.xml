@@ -150,7 +150,7 @@
     <prometheus.client.version>0.16.0</prometheus.client.version>
     <protobuf.java.version>4.33.1</protobuf.java.version>
     <opensaml.version>5.1.6</opensaml.version>
-    <quartz.version>2.5.1</quartz.version>
+    <quartz.version>2.5.0</quartz.version>
   </properties>
 
   <dependencyManagement>
