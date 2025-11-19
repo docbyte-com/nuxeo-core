@@ -91,7 +91,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.38.7</aws.version>
+    <aws.version>2.38.8</aws.version>
     <gcp.version>2.60.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
@@ -111,9 +111,9 @@
     <org.slf4j.version>1.7.36</org.slf4j.version>
     <gatling.version>3.12.0</gatling.version>
     <gatling-plugin.version>4.11.0</gatling-plugin.version>
-    <scala.version>2.13.17</scala.version>
+    <scala.version>2.13.18</scala.version>
     <scala-logging.version>3.9.6</scala-logging.version>
-    <scala-maven-plugin.version>4.9.6</scala-maven-plugin.version>
+    <scala-maven-plugin.version>4.9.7</scala-maven-plugin.version>
 
     <nuxeo.skip.enforcer>false</nuxeo.skip.enforcer>
 
@@ -3772,7 +3772,7 @@
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-api</artifactId>
-        <version>1.76.0</version>
+        <version>1.77.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
@@ -5038,7 +5038,7 @@
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.47.0</version>
+          <version>0.48.0</version>
           <extensions>true</extensions>
         </plugin>
       </plugins>
