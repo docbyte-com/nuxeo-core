@@ -18,7 +18,7 @@
  */
 package org.nuxeo.ecm.core.io.marshallers.csv;
 
-import static org.nuxeo.ecm.core.io.marshallers.csv.AbstractCSVWriter.TEXT_CSV_TYPE;
+import static org.nuxeo.ecm.core.io.marshallers.NuxeoMediaType.TEXT_CSV_TYPE;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
