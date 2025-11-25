@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,14 +92,12 @@ public class RuntimeInstrospection {
     }
 
     protected static SimplifiedBundleInfo getBundleSimplifiedInfo(Bundle bundle) {
-        if (!(bundle instanceof BundleImpl)) {
+        if (!(bundle instanceof BundleImpl nxBundle)) {
             return null;
         }
-        BundleImpl nxBundle = (BundleImpl) bundle;
         BundleFile file = nxBundle.getBundleFile();
         File jarFile = null;
-        if (file instanceof JarBundleFile) {
-            JarBundleFile jar = (JarBundleFile) file;
+        if (file instanceof JarBundleFile jar) {
             jarFile = jar.getFile();
         }
         if (jarFile == null || jarFile.isDirectory()) {
