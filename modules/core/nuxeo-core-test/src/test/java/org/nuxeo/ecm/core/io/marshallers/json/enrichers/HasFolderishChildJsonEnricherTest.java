@@ -42,10 +42,6 @@ import org.nuxeo.runtime.transaction.TransactionHelper;
 public class HasFolderishChildJsonEnricherTest
         extends AbstractJsonWriterTest.Local<DocumentModelJsonWriter, DocumentModel> {
 
-    public HasFolderishChildJsonEnricherTest() {
-        super(DocumentModelJsonWriter.class, DocumentModel.class);
-    }
-
     @Inject
     private CoreSession session;
 

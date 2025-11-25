@@ -57,10 +57,6 @@ public class TaskWriterActionContextTest extends AbstractJsonWriterTest.External
     @Inject
     protected CoreSession session;
 
-    public TaskWriterActionContextTest() {
-        super(TaskWriter.class, Task.class);
-    }
-
     @Test
     public void shouldEvaluateTaskActionAvailabilityBasedOnWorkflowVars() throws IOException {
         assertCorrectAction(false, "validate");

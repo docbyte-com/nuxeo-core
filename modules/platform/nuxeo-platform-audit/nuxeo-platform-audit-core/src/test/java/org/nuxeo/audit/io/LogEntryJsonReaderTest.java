@@ -36,10 +36,6 @@ import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonReaderTest;
  */
 public class LogEntryJsonReaderTest extends AbstractJsonReaderTest.Local<LogEntryJsonReader, LogEntry> {
 
-    public LogEntryJsonReaderTest() {
-        super(LogEntryJsonReader.class, LogEntry.class);
-    }
-
     @Test
     public void testDefault() throws Exception {
         String entryString = """

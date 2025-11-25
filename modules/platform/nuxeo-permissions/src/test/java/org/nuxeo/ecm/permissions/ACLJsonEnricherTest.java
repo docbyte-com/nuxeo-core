@@ -63,10 +63,6 @@ public class ACLJsonEnricherTest extends AbstractJsonWriterTest.Local<DocumentMo
 
     private ACE ace3;
 
-    public ACLJsonEnricherTest() {
-        super(DocumentModelJsonWriter.class, DocumentModel.class);
-    }
-
     @Before
     public void before() {
         DocumentModel root = session.getDocument(new PathRef("/"));

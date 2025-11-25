@@ -31,10 +31,6 @@ import org.nuxeo.runtime.test.runner.Features;
 @Features(CoreFeature.class)
 public class FacetJsonWriterTest extends AbstractJsonWriterTest.Local<FacetJsonWriter, CompositeType> {
 
-    public FacetJsonWriterTest() {
-        super(FacetJsonWriter.class, CompositeType.class);
-    }
-
     @Inject
     private SchemaManager schemaManager;
 

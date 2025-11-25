@@ -48,10 +48,6 @@ public class DocumentModelJsonWriterMultiRepositoryTest
     @Named("other")
     protected CoreSession otherSession;
 
-    public DocumentModelJsonWriterMultiRepositoryTest() {
-        super(DocumentModelJsonWriter.class, DocumentModel.class);
-    }
-
     // NXP-30615
     @Test
     public void testMultiRepo() throws IOException {
