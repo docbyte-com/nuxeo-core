@@ -29,6 +29,12 @@
       <artifactId>nuxeo-core-binarymanager-common</artifactId>
     </dependency>
 
+    <!-- Test libraries -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+    </dependency>
+
     <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>org.nuxeo.ecm.core</groupId>
