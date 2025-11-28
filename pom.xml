@@ -3844,6 +3844,12 @@
         <artifactId>jsonassert</artifactId>
         <version>1.5.3</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>com.vaadin.external.google</groupId>
+            <artifactId>android-json</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
