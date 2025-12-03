@@ -2375,7 +2375,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-exec</artifactId>
-        <version>1.5.0</version>
+        <version>1.6.0</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
@@ -2882,7 +2882,7 @@
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.52.0</version>
+        <version>3.52.1</version>
       </dependency>
 
       <dependency>
