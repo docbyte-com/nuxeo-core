@@ -38,7 +38,7 @@ public class AnnotationReader extends ClassVisitor {
     protected String cname;
 
     public AnnotationReader(Set<String> annotations) {
-        super(Opcodes.ASM8);
+        super(Opcodes.ASM9);
         results = new ArrayList<>();
         this.annotations = annotations;
     }
