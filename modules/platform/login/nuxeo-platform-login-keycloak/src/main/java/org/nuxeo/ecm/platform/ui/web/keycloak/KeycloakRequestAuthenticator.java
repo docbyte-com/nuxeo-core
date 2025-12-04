@@ -41,13 +41,13 @@ import org.keycloak.adapters.servlet.OIDCServletHttpFacade;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.tomcat.CatalinaCookieTokenStore;
-import org.nuxeo.shaded.keycloak.adapters.tomcat.CatalinaSessionTokenStore;
 import org.keycloak.adapters.tomcat.CatalinaUserSessionManagement;
 import org.keycloak.adapters.tomcat.GenericPrincipalFactory;
-import org.nuxeo.shaded.keycloak.adapters.tomcat.KeycloakAuthenticatorValve;
 import org.keycloak.enums.TokenStore;
 import org.keycloak.representations.AccessToken;
 import org.nuxeo.ecm.platform.web.common.vh.VirtualHostHelper;
+import org.nuxeo.shaded.keycloak.adapters.tomcat.CatalinaSessionTokenStore;
+import org.nuxeo.shaded.keycloak.adapters.tomcat.KeycloakAuthenticatorValve;
 
 /**
  * @since 7.4
@@ -92,7 +92,7 @@ public class KeycloakRequestAuthenticator extends RequestAuthenticator {
         if (loginConfig == null) {
             return false;
         }
-        LoginConfig config = (LoginConfig) loginConfig;
+        LoginConfig config = loginConfig;
         if (config.getErrorPage() == null) {
             return false;
         }
