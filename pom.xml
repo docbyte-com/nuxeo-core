@@ -91,7 +91,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.40.3</aws.version>
+    <aws.version>2.40.4</aws.version>
     <gcp.version>2.60.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
@@ -139,7 +139,7 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>5.6.1</mongo.java.driver.version>
+    <mongo.java.driver.version>5.6.2</mongo.java.driver.version>
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
     <kafka.version>3.9.1</kafka.version>
@@ -2395,7 +2395,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.14.0</version>
+        <version>1.15.0</version>
       </dependency>
       <!-- Keep the dependency for external libraries -->
       <dependency>
@@ -4167,7 +4167,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.56.1</version>
+        <version>1.56.2</version>
       </dependency>
 
       <!-- Nashorn -->
