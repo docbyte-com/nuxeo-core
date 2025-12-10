@@ -91,7 +91,11 @@ public class CapabilitiesServiceImpl extends DefaultComponent implements Capabil
 
     @Override
     public void registerCapabilities(String name, Supplier<Map<String, Object>> supplier) {
-        capabilitiesSuppliers.put(name, supplier);
+        capabilitiesSuppliers.merge(name, supplier, (old, curr) -> () -> {
+            var oldMap = new LinkedHashMap<>(old.get());
+            oldMap.putAll(curr.get());
+            return oldMap;
+        });
     }
 
     @Override
