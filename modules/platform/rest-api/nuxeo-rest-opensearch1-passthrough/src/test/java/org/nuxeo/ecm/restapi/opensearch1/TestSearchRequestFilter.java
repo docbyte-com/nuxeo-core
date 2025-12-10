@@ -32,16 +32,12 @@ import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.impl.UserPrincipal;
-import org.nuxeo.ecm.core.search.client.opensearch1.IgnoreIfNotOpenSearchSearchClient;
-import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.restapi.opensearch1.filter.DefaultSearchRequestFilter;
-import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 @RunWith(FeaturesRunner.class)
-@Features(CoreSearchFeature.class)
-@ConditionalIgnore(condition = IgnoreIfNotOpenSearchSearchClient.class)
+@Features(OpenSearchPassthroughFeature.class)
 public class TestSearchRequestFilter {
 
     private static final String INDICES = "nxutest";

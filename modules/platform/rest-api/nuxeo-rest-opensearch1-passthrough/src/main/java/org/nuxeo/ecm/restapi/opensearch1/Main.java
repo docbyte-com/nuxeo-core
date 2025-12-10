@@ -18,6 +18,8 @@
  */
 package org.nuxeo.ecm.restapi.opensearch1;
 
+import static org.nuxeo.ecm.restapi.opensearch1.OpenSearchPassthroughComponent.PASSTHROUGH_ELASTICSEARCH_ENABLED_PROPERTY;
+
 import java.io.IOException;
 
 import jakarta.annotation.Nonnull;
@@ -232,6 +234,9 @@ public class Main extends ModuleRoot {
     }
 
     protected String getWithRestClient(String endpoint, String payload) {
+        if (!Framework.isBooleanPropertyTrue(PASSTHROUGH_ELASTICSEARCH_ENABLED_PROPERTY)) {
+            throw new IllegalArgumentException("ElasticSearch passthrough is disabled");
+        }
         OpenSearchRestClient client = (OpenSearchRestClient) Framework.getService(OpenSearchClientService.class)
                                                                       .getClient("search/default");
         Request request = new Request("GET", endpoint);
