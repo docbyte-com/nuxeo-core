@@ -94,7 +94,7 @@ public class TestSearchRequestFilter {
     public void testUriSearch() {
         DefaultSearchRequestFilter filter = new DefaultSearchRequestFilter();
         filter.init(getNonAdminCoreSession(), INDICES, "size=2&q=dc%5C%3Atitle:Workspaces", null);
-        assertEquals(filter.getUrl(), "/nxutest/_search?size=2");
+        assertEquals("/nxutest/_search?size=2", filter.getUrl());
         assertEquals(minifyPayload("""
                 {
                   "query": {
@@ -127,7 +127,7 @@ public class TestSearchRequestFilter {
         DefaultSearchRequestFilter filter = new DefaultSearchRequestFilter();
         filter.init(getNonAdminCoreSession(), INDICES,
                 "q=dc\\:title:Workspaces&pretty&df=dc:title&default_operator=AND", null);
-        assertEquals(filter.getUrl(), "/nxutest/_search?pretty");
+        assertEquals("/nxutest/_search?pretty", filter.getUrl());
         assertEquals(minifyPayload("""
                 {
                   "query": {

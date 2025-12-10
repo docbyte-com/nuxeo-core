@@ -20,7 +20,7 @@ package org.nuxeo.ecm.restapi.opensearch1;
 
 import java.io.IOException;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.Nonnull;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -58,13 +58,8 @@ import org.opensearch.client.Response;
 @Path("/es")
 @WebObject(type = "es")
 public class Main extends ModuleRoot {
+
     private static final Logger log = LogManager.getLogger(Main.class);
-
-    private static final String DEFAULT_ES_BASE_URL = "http://localhost:9200/";
-
-    private static final String ES_BASE_URL_PROPERTY = "elasticsearch.httpReadOnly.baseUrl";
-
-    private String esBaseUrl;
 
     public Main() {
         super();
@@ -117,7 +112,7 @@ public class Main extends ModuleRoot {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated(since = "11.4", forRemoval = true)
     public String searchWithPayload(@PathParam("indices") String indices, @PathParam("types") String types,
-            @Context UriInfo uriInf, MultivaluedMap<String, String> formParams) throws IOException, JSONException {
+            @Context UriInfo uriInf, MultivaluedMap<String, String> formParams) throws JSONException {
         return doSearchWithPayload(indices, types, uriInf.getRequestUri().getRawQuery(),
                 formParams.keySet().iterator().next());
     }
@@ -132,7 +127,7 @@ public class Main extends ModuleRoot {
     @Produces(MediaType.APPLICATION_JSON)
     @Deprecated(since = "11.4", forRemoval = true)
     public String searchWithPost(@PathParam("indices") String indices, @PathParam("types") String types,
-            @Context UriInfo uriInf, String payload) throws IOException, JSONException {
+            @Context UriInfo uriInf, String payload) throws JSONException {
         return doSearchWithPayload(indices, types, uriInf.getRequestUri().getRawQuery(), payload);
     }
 
@@ -223,14 +218,8 @@ public class Main extends ModuleRoot {
         return getDocument(indices, documentId, uriInf);
     }
 
-    protected String getElasticsearchBaseUrl() {
-        if (esBaseUrl == null) {
-            esBaseUrl = Framework.getProperty(ES_BASE_URL_PROPERTY, DEFAULT_ES_BASE_URL);
-        }
-        return esBaseUrl;
-    }
-
-    public @NotNull NuxeoPrincipal getPrincipal() {
+    @Nonnull
+    public NuxeoPrincipal getPrincipal() {
         NuxeoPrincipal principal = ctx.getPrincipal();
         if (principal == null) {
             throw new IllegalArgumentException("No principal found");

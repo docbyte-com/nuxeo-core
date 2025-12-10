@@ -24,7 +24,7 @@ import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.Nonnull;
 
 import org.json.JSONException;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -101,7 +101,8 @@ public abstract class AbstractSearchRequestFilterImpl implements SearchRequestFi
     }
 
     @Override
-    public @NotNull String getUrl() {
+    @Nonnull
+    public String getUrl() {
         if (url == null) {
             url = "/" + indices + "/_search";
             if (rawQuery != null) {
