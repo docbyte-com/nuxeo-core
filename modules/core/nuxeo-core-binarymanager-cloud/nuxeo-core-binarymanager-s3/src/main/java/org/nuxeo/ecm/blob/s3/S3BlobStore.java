@@ -286,10 +286,11 @@ public class S3BlobStore extends AbstractBlobStore {
             if (config.useServerSideEncryption) {
                 if (isNotBlank(config.serverSideKMSKeyID)) {
                     // SSE-KMS
-                    b.ssekmsKeyId(config.serverSideKMSKeyID);
+                    b.serverSideEncryption(ServerSideEncryption.AWS_KMS).ssekmsKeyId(config.serverSideKMSKeyID);
+
                 } else {
                     // SSE-S3
-                    b.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString());
+                    b.serverSideEncryption(ServerSideEncryption.AES256);
                 }
             }
             setMetadata(b, blobContext);
