@@ -23,13 +23,13 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 import software.amazon.awssdk.services.s3.model.StorageClass;
 
 /**
- * @since 2025.8
+ * @since 2025.13
  */
-@WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "INTELLIGENT_TIERING")
-public class TestS3IntelligentTieringBlobStore extends TestS3BlobStore {
+@WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "GLACIER_IR")
+public class TestS3GlacierInstantRetrieval extends TestAbstractS3StorageClass {
 
     @Override
     protected StorageClass expectedStorageClass() {
-        return StorageClass.INTELLIGENT_TIERING;
+        return StorageClass.GLACIER_IR;
     }
 }

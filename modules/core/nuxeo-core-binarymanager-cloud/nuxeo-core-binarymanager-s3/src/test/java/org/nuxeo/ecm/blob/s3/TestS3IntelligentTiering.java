@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,22 @@
  * limitations under the License.
  *
  * Contributors:
- *     Florent Guillaume
+ *     Guillaume Renard
  */
 package org.nuxeo.ecm.blob.s3;
 
-import org.nuxeo.ecm.core.blob.TestAbstractBlobStoreWithOptimizedCopy;
-import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
-@Features(S3BlobProviderFeature.class)
-public abstract class TestS3BlobStoreAbstract extends TestAbstractBlobStoreWithOptimizedCopy {
+import software.amazon.awssdk.services.s3.model.StorageClass;
 
+/**
+ * @since 2025.8
+ */
+@WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "INTELLIGENT_TIERING")
+public class TestS3IntelligentTiering extends TestAbstractS3StorageClass {
+
+    @Override
+    protected StorageClass expectedStorageClass() {
+        return StorageClass.INTELLIGENT_TIERING;
+    }
 }

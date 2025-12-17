@@ -296,7 +296,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /** @since 2025.8 */
     public static final List<StorageClass> SUPPORTED_STORAGE_CLASS = List.of(StorageClass.STANDARD,
-            StorageClass.INTELLIGENT_TIERING);
+            StorageClass.INTELLIGENT_TIERING, StorageClass.GLACIER_IR, StorageClass.STANDARD_IA,
+            StorageClass.ONEZONE_IA);
 
     public final CloudFrontConfiguration cloudFront;
 
