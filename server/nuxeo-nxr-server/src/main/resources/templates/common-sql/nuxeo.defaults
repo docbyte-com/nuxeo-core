@@ -9,3 +9,7 @@ nuxeo.datasource.properties.validationQuery=${nuxeo.db.validationQuery:=}
 # NXP-29853 workaround for DBCP-568
 nuxeo.datasource.properties.cacheState=false
 nuxeo.datasource.properties.accessToUnderlyingConnectionAllowed=true
+
+## Startup checks configuration
+nuxeo.datasource.checker.properties.user=${nuxeo.db.user}
+nuxeo.datasource.checker.properties.password=${nuxeo.db.password}
