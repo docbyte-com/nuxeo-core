@@ -93,8 +93,8 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.40.9</aws.version>
-    <gcp.version>2.60.0</gcp.version>
+    <aws.version>2.40.10</aws.version>
+    <gcp.version>2.61.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.20.1</jackson.bom.version>
     <bouncycastle.version>1.83</bouncycastle.version>
@@ -2902,7 +2902,7 @@
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>3.5.6</version>
+        <version>3.5.7</version>
       </dependency>
       <!-- Informative declarations, Oracle drivers are not publicly available. -->
       <dependency>
@@ -3628,7 +3628,7 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
 
       <dependency>
@@ -3738,7 +3738,7 @@
       <dependency>
         <groupId>software.amazon.encryption.s3</groupId>
         <artifactId>amazon-s3-encryption-client-java</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.0</version>
       </dependency>
       <dependency>
         <groupId>software.amazon.awssdk.crt</groupId>
@@ -4209,22 +4209,22 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-analysis</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-commons</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-tree</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-util</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
