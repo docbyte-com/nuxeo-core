@@ -109,7 +109,7 @@
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
     <org.ops4j.pax.version>4.14.0</org.ops4j.pax.version>
-    <org.apache.log4j.version>2.25.2</org.apache.log4j.version>
+    <org.apache.log4j.version>2.25.3</org.apache.log4j.version>
     <org.slf4j.version>1.7.36</org.slf4j.version>
     <gatling.version>3.12.0</gatling.version>
     <gatling-plugin.version>4.11.0</gatling-plugin.version>
@@ -2485,7 +2485,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
-        <version>2.13.0-NX02</version>
+        <version>2.14.0-NX01</version>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -3731,7 +3731,7 @@
       <dependency>
         <groupId>org.apache.xbean</groupId>
         <artifactId>xbean-naming</artifactId>
-        <version>4.28</version>
+        <version>4.29</version>
       </dependency>
 
       <dependency>
