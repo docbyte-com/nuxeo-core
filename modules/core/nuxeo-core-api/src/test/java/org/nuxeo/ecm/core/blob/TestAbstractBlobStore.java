@@ -228,13 +228,20 @@ public abstract class TestAbstractBlobStore {
         // check content
         assertBlob(key1, FOO);
 
-        bs.deleteBlob(key1);
+        await().pollDelay(delayBetweenOperation())
+               .atMost(Duration.ofSeconds(2))
+               .untilAsserted(() -> bs.deleteBlob(key1));
+
         // check deleted
         assertNoBlob(key1);
         // check delete is idempotent
-        await().pollDelay(Duration.ofMillis(200))
-               .atMost(Duration.ofMillis(500))
+        await().pollDelay(delayBetweenOperation())
+               .atMost(Duration.ofSeconds(2))
                .untilAsserted(() -> bs.deleteBlob(key1));
+    }
+
+    protected Duration delayBetweenOperation() {
+        return Duration.ofMillis(100);
     }
 
     @Test

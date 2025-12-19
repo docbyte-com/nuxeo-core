@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,26 @@
  * limitations under the License.
  *
  * Contributors:
- *     Florent Guillaume
+ *     Guillaume Renard
  */
 package org.nuxeo.ecm.core.storage.gcp;
 
-import org.nuxeo.runtime.test.runner.Deploy;
+import java.time.Duration;
+
+import org.nuxeo.ecm.core.blob.TestAbstractBlobStoreWithOptimizedCopy;
+import org.nuxeo.runtime.test.runner.Features;
 
 /**
- * @since 2025.8
+ * @since 2025.13
  */
-@Deploy("org.nuxeo.ecm.core.storage.gcp.tests:OSGI-INF/test-google-storage-record.xml")
-public class TestGoogleStorageBlobStoreRecord extends TestAbstractGoogleStorageBlobStore {
+@Features(GoogleStorageBlobProviderFeature.class)
+public class TestAbstractGoogleStorageBlobStore extends TestAbstractBlobStoreWithOptimizedCopy {
 
+    /**
+     * GCS has a hard limit on 1 mutation operation per second per key.
+     */
+    @Override
+    protected Duration delayBetweenOperation() {
+        return Duration.ofSeconds(1);
+    }
 }
