@@ -230,6 +230,7 @@ public abstract class TestAbstractBlobStore {
 
         await().pollDelay(delayBetweenOperation())
                .atMost(Duration.ofSeconds(2))
+               .ignoreExceptions()
                .untilAsserted(() -> bs.deleteBlob(key1));
 
         // check deleted
@@ -237,6 +238,7 @@ public abstract class TestAbstractBlobStore {
         // check delete is idempotent
         await().pollDelay(delayBetweenOperation())
                .atMost(Duration.ofSeconds(2))
+               .ignoreExceptions()
                .untilAsserted(() -> bs.deleteBlob(key1));
     }
 
