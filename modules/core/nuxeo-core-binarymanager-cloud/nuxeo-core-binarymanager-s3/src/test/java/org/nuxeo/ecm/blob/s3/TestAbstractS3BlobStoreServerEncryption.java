@@ -16,7 +16,7 @@
  * Contributors:
  *     Guillaume Renard
  */
-package org.nuxeo.ecm.blob.s3.crypt.server;
+package org.nuxeo.ecm.blob.s3;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,8 +27,6 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.ecm.blob.s3.S3BlobProvider;
-import org.nuxeo.ecm.blob.s3.S3BlobProviderFeature;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.blob.BlobContext;
 import org.nuxeo.ecm.core.blob.BlobManager;

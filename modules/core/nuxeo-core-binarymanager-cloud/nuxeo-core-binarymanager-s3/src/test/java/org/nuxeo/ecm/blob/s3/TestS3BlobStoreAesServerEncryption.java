@@ -16,7 +16,7 @@
  * Contributors:
  *     Guillaume Renard
  */
-package org.nuxeo.ecm.blob.s3.crypt.server;
+package org.nuxeo.ecm.blob.s3;
 
 import org.nuxeo.runtime.test.runner.Deploy;
 
