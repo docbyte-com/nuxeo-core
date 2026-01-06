@@ -58,10 +58,14 @@ public abstract class TestAbstractS3StorageClass {
 
     protected BlobStore bs;
 
+    protected final StorageClass expectedStorageClass;
+
     @Rule
     public TemporaryFolder temporary = new TemporaryFolder();
 
-    protected abstract StorageClass expectedStorageClass();
+    public TestAbstractS3StorageClass(StorageClass expectedStorageClass) {
+        this.expectedStorageClass = expectedStorageClass;
+    }
 
     @Before
     public void setUp() throws IOException {
@@ -74,7 +78,7 @@ public abstract class TestAbstractS3StorageClass {
         var s3Key = new S3BlobKey(config, key);
         HeadObjectResponse response = config.amazonS3.headObject(
                 HeadObjectRequest.builder().bucket(config.bucketName).key(s3Key.bucketKey()).build());
-        assertEquals(expectedStorageClass(), response.storageClass());
+        assertEquals(expectedStorageClass, response.storageClass());
     }
 
     @Test

@@ -28,8 +28,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 @WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "STANDARD_IA")
 public class TestS3StandardIA extends TestAbstractS3StorageClass {
 
-    @Override
-    protected StorageClass expectedStorageClass() {
-        return StorageClass.STANDARD_IA;
+    public TestS3StandardIA() {
+        super(StorageClass.STANDARD_IA);
     }
 }

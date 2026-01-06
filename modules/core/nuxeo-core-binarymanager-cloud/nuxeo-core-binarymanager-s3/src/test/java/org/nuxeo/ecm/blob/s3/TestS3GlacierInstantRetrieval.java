@@ -28,8 +28,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 @WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "GLACIER_IR")
 public class TestS3GlacierInstantRetrieval extends TestAbstractS3StorageClass {
 
-    @Override
-    protected StorageClass expectedStorageClass() {
-        return StorageClass.GLACIER_IR;
+    public TestS3GlacierInstantRetrieval() {
+        super(StorageClass.GLACIER_IR);
     }
 }

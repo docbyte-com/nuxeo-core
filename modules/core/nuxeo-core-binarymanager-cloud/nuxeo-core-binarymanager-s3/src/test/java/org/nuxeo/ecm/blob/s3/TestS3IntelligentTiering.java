@@ -28,8 +28,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 @WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "INTELLIGENT_TIERING")
 public class TestS3IntelligentTiering extends TestAbstractS3StorageClass {
 
-    @Override
-    protected StorageClass expectedStorageClass() {
-        return StorageClass.INTELLIGENT_TIERING;
+    public TestS3IntelligentTiering() {
+        super(StorageClass.INTELLIGENT_TIERING);
     }
 }

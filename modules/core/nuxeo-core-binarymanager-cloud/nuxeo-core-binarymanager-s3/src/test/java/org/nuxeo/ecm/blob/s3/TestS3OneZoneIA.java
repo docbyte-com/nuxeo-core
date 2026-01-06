@@ -28,8 +28,7 @@ import software.amazon.awssdk.services.s3.model.StorageClass;
 @WithFrameworkProperty(name = "nuxeo.test.s3storage.storageClass", value = "ONEZONE_IA")
 public class TestS3OneZoneIA extends TestAbstractS3StorageClass {
 
-    @Override
-    protected StorageClass expectedStorageClass() {
-        return StorageClass.ONEZONE_IA;
+    public TestS3OneZoneIA() {
+        super(StorageClass.ONEZONE_IA);
     }
 }
