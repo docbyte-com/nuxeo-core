@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json.document;
 
 import static org.nuxeo.ecm.automation.core.util.PaginableDocumentModelList.CODEC_PARAMETER_NAME;
@@ -50,8 +49,7 @@ public class DocumentModelListJsonWriter extends DefaultListJsonWriter<DocumentM
 
     @Override
     public void write(List<DocumentModel> docs, JsonGenerator jg) throws IOException {
-        if (docs instanceof PaginableDocumentModelList) {
-            PaginableDocumentModelList paginable = (PaginableDocumentModelList) docs;
+        if (docs instanceof PaginableDocumentModelList paginable) {
             String codecName = paginable.getDocumentLinkBuilder();
             try (Closeable resource = ctx.wrap().with(CODEC_PARAMETER_NAME, codecName).open()) {
                 super.write(docs, jg);

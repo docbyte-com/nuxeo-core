@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Nicolas Chapurlat <nchapurlat@nuxeo.com>
  */
-
 package org.nuxeo.ecm.core.io.marshallers.json;
 
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON_TYPE;
@@ -130,8 +129,7 @@ public abstract class DefaultListJsonWriter<EntityType> extends AbstractJsonWrit
     }
 
     private void writePaginationInfos(List<EntityType> list, JsonGenerator jg) throws IOException {
-        if (list instanceof Paginable) {
-            Paginable<?> paginable = (Paginable<?>) list;
+        if (list instanceof Paginable<?> paginable) {
             jg.writeBooleanField("isPaginable", true);
             jg.writeNumberField("resultsCount", paginable.getResultsCount());
             jg.writeNumberField("pageSize", paginable.getPageSize());
@@ -180,8 +178,7 @@ public abstract class DefaultListJsonWriter<EntityType> extends AbstractJsonWrit
                 }
                 jg.writeEndArray();
             }
-        } else if (list instanceof PartialList) {
-            PartialList<EntityType> partial = (PartialList<EntityType>) list;
+        } else if (list instanceof PartialList<EntityType> partial) {
             jg.writeNumberField("totalSize", partial.totalSize());
         }
     }
