@@ -124,7 +124,7 @@ public class NuxeoGroupJsonWriter extends ExtensibleEntityJsonWriter<NuxeoGroup>
     private UserManager userManager;
 
     public NuxeoGroupJsonWriter() {
-        super(ENTITY_TYPE, NuxeoGroup.class);
+        super(ENTITY_TYPE);
     }
 
     @Override

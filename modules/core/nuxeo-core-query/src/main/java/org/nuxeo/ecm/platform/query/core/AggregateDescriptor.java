@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.nuxeo.common.utils.ReflectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
@@ -110,9 +111,7 @@ public class AggregateDescriptor implements AggregateDefinition {
 
     @Override
     public List<AggregateRangeDateDefinition> getDateRanges() {
-        @SuppressWarnings("unchecked")
-        List<AggregateRangeDateDefinition> ret = (List<AggregateRangeDateDefinition>) (List<?>) aggregateDateRanges;
-        return ret;
+        return ReflectUtils.downgradeCast(aggregateDateRanges);
     }
 
     @Override
@@ -132,9 +131,7 @@ public class AggregateDescriptor implements AggregateDefinition {
 
     @Override
     public List<AggregateRangeDefinition> getRanges() {
-        @SuppressWarnings("unchecked")
-        List<AggregateRangeDefinition> ret = (List<AggregateRangeDefinition>) (List<?>) aggregateRanges;
-        return ret;
+        return ReflectUtils.downgradeCast(aggregateRanges);
     }
 
     @Override

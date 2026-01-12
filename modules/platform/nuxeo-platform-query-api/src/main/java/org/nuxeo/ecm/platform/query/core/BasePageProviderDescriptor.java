@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.nuxeo.common.utils.ReflectUtils;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XNodeMap;
@@ -155,7 +156,7 @@ public abstract class BasePageProviderDescriptor {
      * @since 8.4
      */
     public List<QuickFilter> getQuickFilters() {
-        return (List<QuickFilter>) (List<?>) quickFilters;
+        return ReflectUtils.downgradeCast(quickFilters);
     }
 
     public boolean isSortable() {

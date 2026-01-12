@@ -116,7 +116,7 @@ public class AggregateJsonWriter extends ExtensibleEntityJsonWriter<Aggregate> {
     private SchemaManager schemaManager;
 
     public AggregateJsonWriter() {
-        super(ENTITY_TYPE, Aggregate.class);
+        super(ENTITY_TYPE);
     }
 
     @SuppressWarnings("unchecked")

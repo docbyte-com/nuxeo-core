@@ -39,7 +39,7 @@ public class CapabilitiesJsonWriter extends ExtensibleEntityJsonWriter<Capabilit
     public static final String ENTITY_TYPE = "capabilities";
 
     public CapabilitiesJsonWriter() {
-        super(ENTITY_TYPE, Capabilities.class);
+        super(ENTITY_TYPE);
     }
 
     @Override

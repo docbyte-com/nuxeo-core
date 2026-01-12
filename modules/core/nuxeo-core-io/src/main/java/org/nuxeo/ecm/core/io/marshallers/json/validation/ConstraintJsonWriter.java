@@ -66,7 +66,7 @@ public class ConstraintJsonWriter extends ExtensibleEntityJsonWriter<Constraint>
     public static final String ENTITY_TYPE = "validation_constraint";
 
     public ConstraintJsonWriter() {
-        super(ENTITY_TYPE, Constraint.class);
+        super(ENTITY_TYPE);
     }
 
     @Override
