@@ -1,7 +1,7 @@
 #!/bin/bash
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-docker-compose --file $SCRIPT_DIR/docker-compose.yaml up -d
+docker-compose --file $SCRIPT_DIR/docker-compose.yaml up -d  --wait
 
 echo "nuxeo.test.opensearch1.servers=http://localhost:9200" >> ~/nuxeo-test-mongodb.properties
 echo "nuxeo.test.search=opensearch1" >> ~/nuxeo-test-mongodb.properties
