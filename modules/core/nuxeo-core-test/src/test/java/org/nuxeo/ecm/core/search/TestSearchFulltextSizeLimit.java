@@ -36,6 +36,7 @@ import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.impl.blob.StringBlob;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.runtime.opensearch1.embed.OpenSearchEmbedFeature;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -47,7 +48,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 2025.8
  */
 @RunWith(FeaturesRunner.class)
-@Features(CoreSearchFeature.class)
+@Features({CoreSearchFeature.class, OpenSearchEmbedFeature.class})
 @WithFrameworkProperty(name = MAX_FULLTEXT_SIZE_FIELD, value = "21")
 public class TestSearchFulltextSizeLimit {
 
