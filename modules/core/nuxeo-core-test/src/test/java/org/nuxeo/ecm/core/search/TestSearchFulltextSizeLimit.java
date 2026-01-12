@@ -48,7 +48,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
  * @since 2025.8
  */
 @RunWith(FeaturesRunner.class)
-@Features({CoreSearchFeature.class, OpenSearchEmbedFeature.class})
+@Features(CoreSearchFeature.class)
 @WithFrameworkProperty(name = MAX_FULLTEXT_SIZE_FIELD, value = "21")
 public class TestSearchFulltextSizeLimit {
 
