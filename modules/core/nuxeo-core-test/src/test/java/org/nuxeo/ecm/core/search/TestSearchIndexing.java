@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,8 +29,8 @@ import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.assertIndexedNotCo
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.assertIndexedSince;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.assertNotIndexed;
 
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -42,7 +42,6 @@ import jakarta.inject.Inject;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.nuxeo.common.utils.FileUtils;
 import org.nuxeo.ecm.core.api.AbstractSession;
 import org.nuxeo.ecm.core.api.Blob;
 import org.nuxeo.ecm.core.api.Blobs;
@@ -489,7 +488,7 @@ public class TestSearchIndexing {
         List<String> ids = createADocumentWith3Versions();
         ids.forEach(id -> assertIndexedSince(id, t1));
 
-        String v3 = ids.get(ids.size() - 1);
+        String v3 = ids.getLast();
         assertIndexedContains(v3, "\"ecm:isLatestVersion\":true");
         assertIndexedContains(v3, "\"ecm:isLatestMajorVersion\":true");
         String v2 = ids.get(ids.size() - 2);
@@ -513,7 +512,7 @@ public class TestSearchIndexing {
             System.clearProperty(AbstractSession.DISABLED_ISLATESTVERSION_PROPERTY);
         }
         // isLatestVersion and isLatestMajorVersion are not updated
-        String v3 = ids.get(ids.size() - 1);
+        String v3 = ids.getLast();
         assertIndexedContains(v3, "\"ecm:isLatestVersion\":true");
         assertIndexedContains(v3, "\"ecm:isLatestMajorVersion\":true");
         String v2 = ids.get(ids.size() - 2);
@@ -530,8 +529,8 @@ public class TestSearchIndexing {
     @Test
     public void shouldIndexAfterVersionRestored() {
         List<String> ids = createADocumentWith3Versions();
-        String doc = ids.get(0);
-        String v3 = ids.get(ids.size() - 1);
+        String doc = ids.getFirst();
+        String v3 = ids.getLast();
         assertIndexedContains(v3, "\"ecm:isLatestVersion\":true");
         assertIndexedContains(v3, "\"ecm:isLatestMajorVersion\":true");
         String v2 = ids.get(ids.size() - 2);
@@ -675,16 +674,15 @@ public class TestSearchIndexing {
         DocumentModel doc = session.createDocumentModel("/folder", "file", "File");
         doc.setPropertyValue("dc:title", "File");
         // upload file blob
-        File fieldAsJsonFile = FileUtils.getResourceFileFromContext("OSGI-INF/search/blob.json");
-        try {
-            Blob fb = Blobs.createBlob(fieldAsJsonFile, "image/jpeg");
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("OSGI-INF/search/blob.json")) {
+            Blob fb = Blobs.createBlob(is, "image/jpeg");
             DocumentHelper.addBlob(doc.getProperty("file:content"), fb);
         } catch (IOException e) {
             throw new NuxeoException(e);
         }
         doc = session.createDocument(doc);
         txFeature.nextTransaction();
-        assertIndexedContains(doc.getId(), "blob.json");
+        assertIndexedContains(doc.getId(), "image/jpeg");
     }
 
     @Test

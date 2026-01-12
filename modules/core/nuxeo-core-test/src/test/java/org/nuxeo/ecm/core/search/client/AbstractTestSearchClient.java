@@ -18,17 +18,18 @@
  */
 package org.nuxeo.ecm.core.search.client;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.util.function.BiConsumer;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.search.BulkIndexingRequest;
@@ -69,12 +70,13 @@ public abstract class AbstractTestSearchClient {
         }
         String source = getSourceToIndex();
         var requestBuilder = BulkIndexingRequest.buildRequest(true);
-        try {
-            var lines = Files.readAllLines(Path.of(getClass().getClassLoader().getResource(source).toURI()));
-            for (var i = 0; i < lines.size(); i++) {
-                requestBuilder.add(IndexingRequest.upsertWithSource(String.format("%03d", i), lines.get(i)));
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream(source)) {
+            assertNotNull("Unable to read resource: " + source, is);
+            String[] lines = IOUtils.toString(is, UTF_8).split(System.lineSeparator());
+            for (int i = 0; i < lines.length; i++) {
+                requestBuilder.add(IndexingRequest.upsertWithSource(String.format("%03d", i), lines[i]));
             }
-        } catch (IOException | NullPointerException | URISyntaxException e) {
+        } catch (IOException e) {
             throw new AssertionError("Unable to populate index, an error occurred while reading file: " + source, e);
         }
         getClient().indexDocuments(requestBuilder.build(getIndex()));

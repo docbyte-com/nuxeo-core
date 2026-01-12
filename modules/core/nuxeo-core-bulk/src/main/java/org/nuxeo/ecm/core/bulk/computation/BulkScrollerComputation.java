@@ -232,7 +232,8 @@ public class BulkScrollerComputation extends AbstractComputation {
             if (bigBulkCommand) {
                 log.warn("BBC: {} for action: {} scroll done: {} items.", commandId, action, documentCount);
             }
-        } catch (IllegalArgumentException | QueryParseException | DocumentNotFoundException e) {
+        } catch (IllegalArgumentException | QueryParseException | DocumentNotFoundException
+                | UnsupportedOperationException e) {
             log.error("Invalid query results in an empty document set: {}", command, e);
             updateStatusAfterScroll(context, commandId, "Invalid query", SC_BAD_REQUEST);
         } catch (NuxeoException e) {

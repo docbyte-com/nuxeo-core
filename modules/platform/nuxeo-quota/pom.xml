@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
-    <version>2025.2-SNAPSHOT</version>
+    <version>2025.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-quota</artifactId>
@@ -70,6 +70,10 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
       <artifactId>nuxeo-automation-test</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-rest-api-test</artifactId>
     </dependency>
   </dependencies>
 

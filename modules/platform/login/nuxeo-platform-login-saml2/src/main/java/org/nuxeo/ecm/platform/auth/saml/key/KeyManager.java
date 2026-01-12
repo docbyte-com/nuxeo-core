@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,28 +18,93 @@
  */
 package org.nuxeo.ecm.platform.auth.saml.key;
 
+import static org.nuxeo.ecm.platform.auth.saml.key.KeyDescriptor.DEFAULT_NAME;
+
 import java.security.cert.X509Certificate;
+import java.util.Optional;
 import java.util.Set;
+
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.CredentialResolver;
 
+import net.shibboleth.shared.resolver.CriteriaSet;
+import net.shibboleth.shared.resolver.ResolverException;
+
 /**
- * A manager for {@link Credential}s.
+ * A manager for {@link KeyHolder}s.
  *
  * @since 6.0
  */
 public interface KeyManager extends CredentialResolver {
 
+    /**
+     * @since 2025.7
+     */
+    default Optional<KeyHolder> getKeyHolder(String name) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    /**
+     * @deprecated since 2025.7, only used internally, no replacement
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
     Credential getCredential(String keyName);
 
+    /**
+     * @deprecated since 2025.7, not used, no replacement
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
     Set<String> getAvailableCredentials();
 
+    /**
+     * @deprecated since 2025.7, not used, no replacement
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
     X509Certificate getCertificate(String alias);
 
-    Credential getSigningCredential();
+    /**
+     * @deprecated since 2025.7, first retrieve a {@link KeyHolder} with {@link #getKeyHolder(String)} and use
+     *             {@link KeyHolder#getSigningCredential()}
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    default Credential getSigningCredential() {
+        return getKeyHolder(DEFAULT_NAME).flatMap(KeyHolder::getSigningCredential).orElse(null);
+    }
 
-    Credential getEncryptionCredential();
+    /**
+     * @deprecated since 2025.7, first retrieve a {@link KeyHolder} with {@link #getKeyHolder(String)} and use
+     *             {@link KeyHolder#getEncryptionCredential()}
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    default Credential getEncryptionCredential() {
+        return getKeyHolder(DEFAULT_NAME).flatMap(KeyHolder::getEncryptionCredential).orElse(null);
+    }
 
-    Credential getTlsCredential();
+    /**
+     * @deprecated since 2025.7, first retrieve a {@link KeyHolder} with {@link #getKeyHolder(String)} and use
+     *             {@link KeyHolder#getTlsCredential()}
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    default Credential getTlsCredential() {
+        return getKeyHolder(DEFAULT_NAME).flatMap(KeyHolder::getTlsCredential).orElse(null);
+    }
+
+    /**
+     * @deprecated since 2025.7, only used internally, no replacement
+     */
+    @Nonnull
+    @Override
+    @Deprecated(since = "2025.7", forRemoval = true)
+    Iterable<Credential> resolve(@Nullable CriteriaSet criteria) throws ResolverException;
+
+    /**
+     * @deprecated since 2025.7, only used internally, no replacement
+     */
+    @Nullable
+    @Override
+    @Deprecated(since = "2025.7", forRemoval = true)
+    Credential resolveSingle(@Nullable CriteriaSet criteria) throws ResolverException;
 }

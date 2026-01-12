@@ -43,11 +43,8 @@ public class JsonWebengineWriter {
 
     public static final String SHOW_EXCEPTION_MESSAGE = "org.nuxeo.rest.exception.message.enabled";
 
-    static JsonFactoryManager jsonFactoryManager;
-
     private static JsonFactory getFactory() {
-        jsonFactoryManager = Framework.getService(JsonFactoryManager.class);
-        return jsonFactoryManager.getJsonFactory();
+        return Framework.getService(JsonFactoryManager.class).getJsonFactory();
     }
 
     private static JsonGenerator createGenerator(OutputStream out) throws IOException {
@@ -79,7 +76,7 @@ public class JsonWebengineWriter {
         jg.writeStringField("entity-type", "exception");
         jg.writeNumberField("status", statusCode);
         jg.writeStringField("message", getExceptionMessage(t.getMessage(), statusCode));
-        if (jsonFactoryManager.isStackDisplay()) {
+        if (Framework.getService(JsonFactoryManager.class).isStackDisplay()) {
             jg.writeStringField("stacktrace", getStackTraceString(t));
             jg.writeObjectField("exception", t);
         }
@@ -98,7 +95,8 @@ public class JsonWebengineWriter {
      * @since 11.5
      */
     protected static String getExceptionMessage(String exceptionMessage, int statusCode) {
-        if (statusCode < SC_INTERNAL_SERVER_ERROR || jsonFactoryManager.isStackDisplay() || Framework.isDevModeSet()) {
+        if (statusCode < SC_INTERNAL_SERVER_ERROR || Framework.getService(JsonFactoryManager.class).isStackDisplay()
+                || Framework.isDevModeSet()) {
             if (Framework.isBooleanPropertyFalse(SHOW_EXCEPTION_MESSAGE)) {
                 return "An error occured";
             }

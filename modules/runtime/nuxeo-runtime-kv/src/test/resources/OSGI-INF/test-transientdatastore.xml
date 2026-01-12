@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.ts.TransientDataStore.test" version="1.0">
+
+  <extension target="org.nuxeo.runtime.ts.TransientDataService" point="configuration">
+    <dataStore name="short-accessed">
+      <ttl policy="ACCESSED">1s</ttl>
+    </dataStore>
+    <dataStore name="short-created">
+      <!-- default policy, state it to be explicit -->
+      <ttl policy="CREATED">1s</ttl>
+    </dataStore>
+  </extension>
+
+</component>

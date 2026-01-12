@@ -53,7 +53,7 @@ public abstract class AbstractTransientBlobComputation extends AbstractComputati
             temp = Files.createTempDirectory(id);
             Framework.trackFile(temp.toFile(), temp);
         } catch (IOException e) {
-            throw new IllegalStateException("Cannot create temp directory for " + this);
+            throw new IllegalStateException("Cannot create temp directory for %s".formatted(id), e);
         }
     }
 
@@ -64,7 +64,6 @@ public abstract class AbstractTransientBlobComputation extends AbstractComputati
     public AbstractTransientBlobComputation(String name, int nbOutputStreams) {
         super(name, 1, nbOutputStreams);
     }
-
 
     protected String getTransientStoreKey(String commandId) {
         return id + commandId;

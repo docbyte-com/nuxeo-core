@@ -33,7 +33,7 @@ Nuxeo -> S3: deleteObject
 Nuxeo -> Cache_tmp: delete
 									hnote right: ${TMP4}
 Nuxeo -> S3: updateStorageClass
-									hnote right: ${TMP3}/acbd18db4cc2f85cedef654fccc4a4d8@null
+									hnote right: ${TMP3}/acbd18db4cc2f85cedef654fccc4a4d8
 									rnote right: GLACIER
 == TX end ==
 @enduml

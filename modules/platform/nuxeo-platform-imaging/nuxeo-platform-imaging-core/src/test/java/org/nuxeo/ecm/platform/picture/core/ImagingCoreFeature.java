@@ -18,23 +18,20 @@
  */
 package org.nuxeo.ecm.platform.picture.core;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static org.nuxeo.ecm.platform.picture.PictureViewsGenerationWork.CATEGORY_PICTURE_GENERATION;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_CREATED;
+import static org.nuxeo.ecm.core.api.event.DocumentEventTypes.DOCUMENT_UPDATED;
+import static org.nuxeo.ecm.platform.picture.recompute.RecomputeViewsAction.ACTION_NAME;
 
 import org.nuxeo.binary.metadata.test.BinaryMetadataFeature;
 import org.nuxeo.ecm.automation.test.AutomationFeature;
 import org.nuxeo.ecm.core.bulk.CoreBulkFeature;
-import org.nuxeo.ecm.core.work.api.WorkManager;
 import org.nuxeo.ecm.platform.filemanager.FileManagerFeature;
-import org.nuxeo.ecm.platform.picture.recompute.RecomputeViewsAction;
 import org.nuxeo.ecm.platform.preview.PreviewCoreFeature;
 import org.nuxeo.ecm.platform.rendition.service.RenditionFeature;
-import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
  * since 2025.0
@@ -61,15 +58,8 @@ public class ImagingCoreFeature implements RunnerFeature {
         // picture views have to be computed, and if so it triggers the recomputeViews Bulk Action
         // - async Bulk Action org.nuxeo.ecm.platform.picture.recompute.RecomputeViewsAction
         // so we need to first wait for the work to finish and then wait for the bulk action to finish
-        runner.getFeature(TransactionalFeature.class).addWaiter(duration -> {
-            long begin = System.currentTimeMillis();
-            if (Framework.getService(WorkManager.class)
-                         .awaitCompletion(CATEGORY_PICTURE_GENERATION, duration.toMillis(), MILLISECONDS)) {
-                var leftDuration = duration.minusMillis(System.currentTimeMillis() - begin);
-                return runner.getFeature(CoreBulkFeature.class).wait(RecomputeViewsAction.ACTION_NAME, leftDuration);
-            }
-            // work manager consumed all the permitted duration
-            return false;
-        });
+        var coreBulkFeature = runner.getFeature(CoreBulkFeature.class);
+        coreBulkFeature.addBulkCommandWaiterForListener(runner, ACTION_NAME, DOCUMENT_CREATED);
+        coreBulkFeature.addBulkCommandWaiterForListener(runner, ACTION_NAME, DOCUMENT_UPDATED);
     }
 }

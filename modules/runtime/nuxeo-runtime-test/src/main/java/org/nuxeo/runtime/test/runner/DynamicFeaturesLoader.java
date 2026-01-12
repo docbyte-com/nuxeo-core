@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,8 @@ package org.nuxeo.runtime.test.runner;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.nuxeo.runtime.RuntimeServiceException;
 
 /**
  * API that allows {@link RunnerFeature} to contribute dynamically a dependant {@link RunnerFeature} to the test
@@ -43,5 +45,21 @@ public class DynamicFeaturesLoader {
 
     public void loadFeature(Class<? extends RunnerFeature> clazz) {
         this.features.add(clazz);
+    }
+
+    /**
+     * @since 2025.4
+     */
+    public void loadFeature(String className) {
+        this.features.add(getFeatureClass(className));
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Class<? extends RunnerFeature> getFeatureClass(String className) {
+        try {
+            return (Class<? extends RunnerFeature>) Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeServiceException("The feature class: %s can not be loaded".formatted(className), e);
+        }
     }
 }

@@ -127,6 +127,47 @@ public interface KeyValueStore {
     Long getLong(String key) throws NumberFormatException; // NOSONAR
 
     /**
+     * Retrieves and removes the value associated to the key.
+     *
+     * @param key the key
+     * @return the value, or {@code null} if there is no value
+     * @since 2025.5
+     */
+    default byte[] remove(String key) {
+        var result = get(key);
+        put(key, (byte[]) null);
+        return result;
+    }
+
+    /**
+     * Retrieves and removes the value associated to the key.
+     *
+     * @param key the key
+     * @return the value, or {@code null} if there is no value
+     * @throws IllegalArgumentException if the value cannot be returned as a {@link String}
+     * @since 2025.5
+     */
+    default String removeString(String key) {
+        var result = getString(key);
+        put(key, (String) null);
+        return result;
+    }
+
+    /**
+     * Retrieves and removes the value associated to the key.
+     *
+     * @param key the key
+     * @return the value, or {@code null} if there is no value
+     * @throws NumberFormatException if the value cannot be returned as a {@link Long}
+     * @since 2025.5
+     */
+    default Long removeLong(String key) throws NumberFormatException {
+        var result = getLong(key);
+        put(key, (Long) null);
+        return result;
+    }
+
+    /**
      * Retrieves the key/value map associated with the keys.
      *
      * @param keys the keys
@@ -136,7 +177,7 @@ public interface KeyValueStore {
     Map<String, byte[]> get(Collection<String> keys);
 
     /**
-     * Retrieves the key/value map associated with the  keys.
+     * Retrieves the key/value map associated with the keys.
      *
      * @param keys the keys
      * @return the key/value map
@@ -146,7 +187,7 @@ public interface KeyValueStore {
     Map<String, String> getStrings(Collection<String> keys);
 
     /**
-     * Retrieves the key/value map associated with the  keys.
+     * Retrieves the key/value map associated with the keys.
      *
      * @param keys the keys
      * @return the key/value map

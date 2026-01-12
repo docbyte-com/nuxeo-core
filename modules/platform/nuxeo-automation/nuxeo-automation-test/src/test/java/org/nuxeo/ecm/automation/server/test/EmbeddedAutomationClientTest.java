@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -300,6 +300,14 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
                            .setInput(now)
                            .executeReturningDateEntity();
         assertEquals(now.toInstant(), i);
+    }
+
+    // NXP-33051
+    @Test
+    public void testNullInputWithoutMethod() throws Exception {
+        session.newRequest(ReturnOperation.ID) //
+               .setInput(null)
+               .execute(SC_BAD_REQUEST);
     }
 
     @Test
@@ -622,22 +630,22 @@ public class EmbeddedAutomationClientTest extends AbstractAutomationClientTest {
                          .set("pojoList", list, SimplePojo.class, type)
                          .set("whichPojo", "pojoList")
                          .executeReturningEntity(SimplePojo.class, type);
-        assertEquals(result1.getName(), "test1");
+        assertEquals("test1", result1.getName());
         result1 = session.newRequest(JSONOperationWithArrays.ID)
                          .set("pojo", new SimplePojo("nico"), SimplePojo.class, type)
                          .set("whichPojo", "pojo")
                          .executeReturningEntity(SimplePojo.class, type);
-        assertEquals(result1.getName(), "nico");
+        assertEquals("nico", result1.getName());
         result1 = session.newRequest(JSONOperationWithArrays.ID)
                          .set("pojoListList", listList, SimplePojo.class, type)
                          .set("whichPojo", "pojoListList")
                          .executeReturningEntity(SimplePojo.class, type);
-        assertEquals(result1.getName(), "test1");
+        assertEquals("test1", result1.getName());
         result1 = session.newRequest(JSONOperationWithArrays.ID)
                          .set("pojoArray", simplePojos, SimplePojo.class, type)
                          .set("whichPojo", "pojoArray")
                          .executeReturningEntity(SimplePojo.class, type);
-        assertEquals(result1.getName(), "test1");
+        assertEquals("test1", result1.getName());
         result1 = session.newRequest(JSONOperationWithArrays.ID)
                          .set("pojoArray", new SimplePojo[] {}, SimplePojo.class, type)
                          .set("whichPojo", "empty")

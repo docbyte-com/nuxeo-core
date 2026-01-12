@@ -66,6 +66,9 @@ public final class Constants {
     /** @since 11.1 */
     public static final String JWT_BEARER_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:jwt-bearer";
 
+    /** @since 2025.4 */
+    public static final String CLIENT_CREDENTIALS_GRANT_TYPE = "client_credentials";
+
     /** --------------------------- PKCE --------------------------- */
     public static final String CODE_CHALLENGE_PARAM = "code_challenge";
 

@@ -30,7 +30,7 @@ import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 /**
  * @since 2021.35
  */
-@WithFrameworkProperty(name = "metrics.streams.enabled", value = "true")
+@WithFrameworkProperty(name = StreamObject.ENABLED_OPTION, value = "true")
 public class TestStreamObject extends ManagementBaseTest {
 
     @Test

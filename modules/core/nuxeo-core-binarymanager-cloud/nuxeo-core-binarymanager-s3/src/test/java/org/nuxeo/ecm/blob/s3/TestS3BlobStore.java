@@ -21,6 +21,8 @@ package org.nuxeo.ecm.blob.s3;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
+
 import org.junit.Test;
 
 public class TestS3BlobStore extends TestS3BlobStoreAbstract {
@@ -30,6 +32,11 @@ public class TestS3BlobStore extends TestS3BlobStoreAbstract {
         assertFalse(bp.isTransactional());
         assertFalse(bp.isRecordMode());
         assertTrue(bs.getKeyStrategy().useDeDuplication());
+    }
+
+    @Test
+    public void testStorageClass() throws IOException {
+        assertStorageClass(bs.writeBlob(blobContext(ID1, FOO)));
     }
 
 }

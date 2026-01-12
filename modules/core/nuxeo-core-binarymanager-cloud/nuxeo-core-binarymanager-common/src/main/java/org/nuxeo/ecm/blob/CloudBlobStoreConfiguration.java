@@ -57,6 +57,13 @@ public abstract class CloudBlobStoreConfiguration extends AbstractBlobStoreConfi
 
     public final long directDownloadExpire;
 
+    /**
+     * Is Object Lock/Hold feature enabled by the storage.
+     *
+     * @since 2025.8
+     */
+    public boolean retentionEnabled;
+
     public CloudBlobStoreConfiguration(String systemPropertyPrefix, Map<String, String> properties) throws IOException {
         super(systemPropertyPrefix, properties);
 

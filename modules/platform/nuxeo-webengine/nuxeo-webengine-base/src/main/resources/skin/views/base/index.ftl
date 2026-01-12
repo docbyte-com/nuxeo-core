@@ -15,8 +15,7 @@ Hello <strong>${Context.principal.name}</strong>! This is the root of your web s
     </#list>
   </ul>
 </div>
-
-<#if Context.principal.isAdministrator()>
+<#if Runtime.getProperty('org.nuxeo.dev') == true && Context.principal.isAdministrator()>
 <div class="tip">
 Your web root is <pre>${env.installDir}</pre>.
 </div>

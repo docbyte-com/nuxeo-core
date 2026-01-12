@@ -265,6 +265,7 @@ public class MemAuditBackend extends AbstractAuditBackend {
     public boolean hasCapability(Capability capability) {
         return switch (capability) {
             case EXTENDED_INFO_SEARCH -> true;
+            case STARTS_WITH_PARTIAL_MATCH -> true;
         };
     }
 

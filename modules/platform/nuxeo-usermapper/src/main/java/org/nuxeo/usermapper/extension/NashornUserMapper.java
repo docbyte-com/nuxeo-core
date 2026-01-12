@@ -29,14 +29,17 @@ import java.util.Map;
 import javax.script.ScriptContext;
 import javax.script.ScriptEngine;
 
+import org.apache.commons.collections4.map.TransformedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.nuxeo.automation.scripting.api.AutomationScriptingService;
 import org.nuxeo.automation.scripting.api.AutomationScriptingService.Session;
 import org.nuxeo.automation.scripting.internals.AutomationMapper;
+import org.nuxeo.automation.scripting.internals.ScriptObjectMirrors;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.runtime.api.Framework;
+import org.openjdk.nashorn.api.scripting.ScriptObjectMirror;
 
 /**
  * {@link UserMapper} implementation using Nashorn to implement logic using JavaScript
@@ -89,9 +92,9 @@ public class NashornUserMapper extends AbstractUserMapper {
             Map<String, Serializable> userAttributes, Map<String, Serializable> profileAttributes) {
         try (Session session = Framework.getService(AutomationScriptingService.class).get((CoreSession) null)) {
             AutomationMapper mapper = session.adapt(AutomationMapper.class);
-            mapper.put("searchAttributes", searchAttributes);
-            mapper.put("profileAttributes", profileAttributes);
-            mapper.put("userAttributes", userAttributes);
+            mapper.put("searchAttributes", wrapMap(searchAttributes));
+            mapper.put("profileAttributes", wrapMap(profileAttributes));
+            mapper.put("userAttributes", wrapMap(userAttributes));
             mapper.put("userObject", userObject);
             session.run(new ByteArrayInputStream(mapperSource.getBytes(UTF_8)));
         } catch (Exception e) {
@@ -99,4 +102,16 @@ public class NashornUserMapper extends AbstractUserMapper {
         }
     }
 
+    /**
+     * This wrapper method allows to unwrap the {@link ScriptObjectMirror} coming from javascript execution.
+     */
+    @SuppressWarnings("unchecked")
+    protected Map<String, Object> wrapMap(Map<String, ?> map) {
+        return TransformedMap.transformingMap((Map<String, Object>) map, key -> key, value -> {
+            if (value instanceof ScriptObjectMirror som) {
+                return ScriptObjectMirrors.unwrap(som);
+            }
+            return value;
+        });
+    }
 }

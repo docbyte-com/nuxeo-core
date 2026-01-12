@@ -15,8 +15,8 @@ on:
 
 env:
   DOCKER_REGISTRY: ${{ inputs.internalRegistry && vars.DOCKER_REGISTRY_INTERNAL || vars.DOCKER_REGISTRY_PRIVATE }}
-  DOCKER_REGISTRY_USERNAME: ${{ inputs.internalRegistry && secrets.DOCKER_REGISTRY_INTERNAL_USERNAME || secrets.DOCKER_REGISTRY_PRIVATE_USERNAME }}
-  DOCKER_REGISTRY_PASSWORD: ${{ inputs.internalRegistry && secrets.DOCKER_REGISTRY_INTERNAL_PASSWORD || secrets.DOCKER_REGISTRY_PRIVATE_PASSWORD }}
+  DOCKER_REGISTRY_USERNAME: ${{ inputs.internalRegistry && secrets.INTERNAL_REPOSITORY_MANAGER_USERNAME || secrets.REPOSITORY_MANAGER_USERNAME }}
+  DOCKER_REGISTRY_PASSWORD: ${{ inputs.internalRegistry && secrets.INTERNAL_REPOSITORY_MANAGER_PASSWORD || secrets.REPOSITORY_MANAGER_PASSWORD }}
 
 jobs:
   scan:
@@ -40,7 +40,7 @@ jobs:
         run: docker pull ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
 
       - name: Scan Docker image with Grype - console output
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: medium
@@ -49,7 +49,7 @@ jobs:
       - name: Scan Docker image with Grype - JSON output
         if: always() # necessary as using a failure threshold in the scan step
         id: scan-json
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: medium
@@ -63,13 +63,13 @@ jobs:
       - name: Scan Docker image with Grype - SARIF output
         if: always() # necessary as using a failure threshold in the scan step
         id: scan-sarif
-        uses: anchore/scan-action@v6
+        uses: anchore/scan-action@v7
         with:
           image: ${{ env.DOCKER_REGISTRY }}/${{ inputs.imageName }}
           severity-cutoff: medium
 
       - name: Upload SARIF file
         if: always() # necessary as using a failure threshold in the scan step
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: ${{ steps.scan-sarif.outputs.sarif }}

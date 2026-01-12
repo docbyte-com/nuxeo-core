@@ -182,25 +182,33 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             SearchRequest request = new SearchRequest(indexName).scroll(keepAlive).source(search);
             request.scroll(TimeValue.timeValueMinutes(1));
 
-            org.opensearch.action.search.SearchResponse response;
-            for (response = client.search(request); //
-                    response.getHits().getHits().length > 0; //
-                    response = client.scroll(new SearchScrollRequest(response.getScrollId()).scroll(keepAlive))) {
-                // Build bulk delete request
-                BulkRequest bulkRequest = new BulkRequest();
-                for (SearchHit hit : response.getHits().getHits()) {
-                    bulkRequest.add(new DeleteRequest(hit.getIndex(), hit.getId()));
+            org.opensearch.action.search.SearchResponse response = null;
+            try {
+                for (response = client.search(request); //
+                        response.getHits().getHits().length > 0; //
+                        response = client.scroll(new SearchScrollRequest(response.getScrollId()).scroll(keepAlive))) {
+                    // Build bulk delete request
+                    BulkRequest bulkRequest = new BulkRequest();
+                    for (SearchHit hit : response.getHits().getHits()) {
+                        bulkRequest.add(new DeleteRequest(hit.getIndex(), hit.getId()));
+                    }
+                    log.debug("Bulk delete request on {} elements", bulkRequest.numberOfActions());
+                    // Run bulk delete request
+                    client.bulk(bulkRequest);
                 }
-                log.debug("Bulk delete request on {} elements", bulkRequest.numberOfActions());
-                // Run bulk delete request
-                client.bulk(bulkRequest);
+            } finally {
+                clearScrollContext(response);
             }
-            // Close the scroll
+        } catch (RuntimeServiceException e) {
+            throw new SearchClientException(e);
+        }
+    }
+
+    protected void clearScrollContext(org.opensearch.action.search.SearchResponse response) {
+        if (response != null && response.getScrollId() != null) {
             ClearScrollRequest closeScrollRequest = new ClearScrollRequest();
             closeScrollRequest.addScrollId(response.getScrollId());
             client.clearScroll(closeScrollRequest);
-        } catch (RuntimeServiceException e) {
-            throw new SearchClientException(e);
         }
     }
 

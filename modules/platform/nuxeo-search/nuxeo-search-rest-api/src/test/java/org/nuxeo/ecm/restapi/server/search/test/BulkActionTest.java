@@ -127,7 +127,7 @@ public class BulkActionTest {
                   .executeAndConsume(new JsonNodeHandler(SC_ACCEPTED), ThrowableConsumer.asConsumer(node -> {
                       String commandId = node.get("commandId").textValue();
 
-                      assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(10)));
+                      assertTrue("Bulk action didn't finish", bulkService.await(commandId, Duration.ofSeconds(10)));
 
                       BulkStatus status = bulkService.getStatus(commandId);
                       assertNotNull(status);
@@ -193,7 +193,8 @@ public class BulkActionTest {
                          .executeAndThen(new JsonNodeHandler(SC_ACCEPTED), ThrowableFunction.asFunction(node -> {
                              String commandId = node.get("commandId").textValue();
 
-                             assertTrue("Bulk action didn't finish", bulkService.await(Duration.ofSeconds(10)));
+                             assertTrue("Bulk action didn't finish",
+                                     bulkService.await(commandId, Duration.ofSeconds(10)));
 
                              BulkStatus status = bulkService.getStatus(commandId);
                              assertNotNull(status);

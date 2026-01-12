@@ -1,0 +1,10 @@
+"preserve_hierarchy": true
+"files": [
+  {
+    "source": "/modules/platform/nuxeo-platform-lang-ext/src/main/resources/crowdin/messages.properties",
+    "dest": "/messages.properties",
+    "translation": "/modules/platform/nuxeo-platform-lang-ext/src/main/resources/web/nuxeo.war/WEB-INF/classes/messages_%locale_with_underscore%.properties",
+    "translation_replace": {
+    }
+  }
+]

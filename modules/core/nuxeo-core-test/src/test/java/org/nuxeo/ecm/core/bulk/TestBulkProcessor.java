@@ -137,6 +137,14 @@ public class TestBulkProcessor {
         // invalid IN operator
         nxql = "SELECT * FROM Document WHERE ecm:primaryType IN (1, 2, 3)";
         submitAndAssertAnInvalidNXQLQuery(nxql);
+
+        // invalid query on mongo because missing quote on doc id, - is seen as SUB operation not supported on Mongo
+        nxql = "SELECT * FROM Document WHERE ecm:uuid=5e945008-c8c8-43cc-852a-08f57347a29c";
+        submitAndAssertAnInvalidNXQLQuery(nxql);
+
+        // truncated query
+        nxql = "SELECT * FROM Document WHERE ecm:uuid";
+        submitAndAssertAnInvalidNXQLQuery(nxql);
     }
 
     protected void submitAndAssertAnInvalidNXQLQuery(String nxql) throws InterruptedException {

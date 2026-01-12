@@ -14,7 +14,7 @@
  * limitations under the License.
  *
  */
-library identifier: "platform-ci-shared-library@v0.0.53"
+library identifier: "platform-ci-shared-library@v0.0.75"
 
 boolean isNuxeoTag() {
   return NUXEO_BRANCH =~ /^v.*$/
@@ -113,7 +113,7 @@ pipeline {
               echo "${REPOSITORY_BACKEND} unit tests: install external services"
               def environment = "elasticsearch${nxUtils.getMajorVersion(version: ELASTICSEARCH_IMAGE_TAG)}UnitTests"
               echo "Helmfile environment = ${environment}"
-              nxWithHelmfileDeployment(namespace: "${TEST_NAMESPACE}", environment: environment) {
+              nxWithHelmfileDeployment(namespace: "${TEST_NAMESPACE}", environment: environment, file: 'ci/helm/helmfile-elasticsearch.yaml.gotmpl') {
                 try {
                   echo "${REPOSITORY_BACKEND} unit tests: prepare env variables for Maven tests"
                   sh """
@@ -155,7 +155,17 @@ pipeline {
     unsuccessful {
       script {
         if (isNuxeoTag()) {
-          nxSlack.error(message: "Failed to test nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG} #${BUILD_NUMBER}: ${BUILD_URL}")
+          nxUtils.callIfBuildRecoverOrFail({
+            nxTeams.success(
+              message: "Successfully tested nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG}",
+              changes: true,
+            )}, {
+            nxTeams.error(
+              message: "Failed to test nuxeo/nuxeo-lts/${NUXEO_BRANCH} against Elasticsearch ${ELASTICSEARCH_IMAGE_TAG}",
+              changes: true,
+              culprits: true,
+            )}
+          )
         }
       }
     }

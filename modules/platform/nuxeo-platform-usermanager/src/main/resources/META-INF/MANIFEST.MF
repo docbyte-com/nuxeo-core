@@ -20,7 +20,8 @@ Nuxeo-Component: OSGI-INF/UserService.xml,
  OSGI-INF/usermanager-resolver-contrib.xml,
  OSGI-INF/marshallers-contrib.xml,
  OSGI-INF/usermanager-properties.xml,
- OSGI-INF/pageproviders-contrib.xml
+ OSGI-INF/pageproviders-contrib.xml,
+ OSGI-INF/transientdatastore-contrib.xml
 Bundle-ManifestVersion: 2
 Import-Package: org.apache.commons.logging,
  org.nuxeo.common.collections,

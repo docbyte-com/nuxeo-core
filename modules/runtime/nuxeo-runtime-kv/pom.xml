@@ -4,14 +4,26 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.runtime</groupId>
     <artifactId>nuxeo-runtime-parent</artifactId>
-    <version>2025.2-SNAPSHOT</version>
+    <version>2025.9-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-runtime-kv</artifactId>
   <name>Nuxeo Runtime Key/Value Storage</name>
 
   <dependencies>
+    <!-- Java specifications -->
+    <dependency>
+      <groupId>jakarta.validation</groupId>
+      <artifactId>jakarta.validation-api</artifactId>
+    </dependency>
 
+    <!-- Libraries -->
+    <dependency>
+      <groupId>net.jodah</groupId>
+      <artifactId>expiringmap</artifactId>
+    </dependency>
+
+    <!-- Nuxeo dependencies -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.common</groupId>
       <artifactId>nuxeo-common</artifactId>
@@ -21,14 +33,17 @@
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
 
+    <!-- Test libraries -->
     <dependency>
-      <groupId>net.jodah</groupId>
-      <artifactId>expiringmap</artifactId>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+      <scope>test</scope>
     </dependency>
 
+    <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-test</artifactId>
+      <artifactId>nuxeo-runtime-datasource</artifactId>
       <scope>test</scope>
     </dependency>
     <!-- for transactional tests -->
@@ -39,10 +54,8 @@
     </dependency>
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
-      <artifactId>nuxeo-runtime-datasource</artifactId>
-      <scope>test</scope>
+      <artifactId>nuxeo-runtime-test</artifactId>
     </dependency>
-
   </dependencies>
 
   <build>

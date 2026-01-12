@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-platform-parent</artifactId>
-    <version>2025.2-SNAPSHOT</version>
+    <version>2025.9-SNAPSHOT</version>
   </parent>
 
   <groupId>cloud.docbyte.nuxeo.duoweb.authentication</groupId>
@@ -21,16 +21,22 @@
       <artifactId>nuxeo-runtime</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.duosecurity</groupId>
-      <artifactId>com-duosecurity-java-client</artifactId>
-    </dependency>
-    <dependency>
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-platform-web-common</artifactId>
     </dependency>
     <dependency>
       <groupId>jakarta.servlet</groupId>
       <artifactId>jakarta.servlet-api</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.duosecurity</groupId>
+      <artifactId>duo-universal-sdk</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-platform-web-common</artifactId>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

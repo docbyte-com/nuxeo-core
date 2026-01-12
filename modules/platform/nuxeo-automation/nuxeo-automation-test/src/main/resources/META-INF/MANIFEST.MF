@@ -6,8 +6,7 @@ Bundle-SymbolicName: org.nuxeo.ecm.automation.test;singleton:=true
 Export-Package: org.nuxeo.ecm.automation.test;
 Bundle-Vendor: Nuxeo
 Bundle-ActivationPolicy: lazy
-Import-Package: net.sf.json,
- org.apache.commons.logging,
+Import-Package: org.apache.commons.logging,
  org.joda.time,
  org.joda.time.format,
  org.nuxeo.common.utils,

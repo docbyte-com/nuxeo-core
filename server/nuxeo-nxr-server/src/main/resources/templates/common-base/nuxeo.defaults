@@ -8,6 +8,8 @@ nuxeo.server.http.maxThreads=20
 nuxeo.server.http.maxHttpHeaderSize=8192
 nuxeo.server.http.acceptCount=1000
 nuxeo.server.http.connectionUploadTimeout=60000
+nuxeo.server.http.maxPartCount=50
+nuxeo.server.http.maxPartHeaderSize=512
 nuxeo.server.ajp.enabled=false
 nuxeo.server.ajp.port=8009
 nuxeo.server.ajp.secretRequired=true
@@ -26,6 +28,8 @@ nuxeo.server.hsts.enabled=true
 nuxeo.server.hsts.maxage=2592000
 nuxeo.server.hsts.includesubdomains=false
 nuxeo.server.hsts.preload=false
+
+nuxeo.startup.fail.on.missing.schema=false
 
 # whether the deprecated paths removed from Nuxeo should be forwarded to new paths
 nuxeo.forward.deprecated.path.enabled=true
@@ -115,6 +119,9 @@ nuxeo.picture.views.transaction.timeout.seconds=300
 # Explicit timeout for video generation
 nuxeo.video.transaction.timeout.seconds=600
 
+###
+# Collections
+nuxeo.collection.max.size=10000
 
 ###
 # Search Service
@@ -126,6 +133,8 @@ nuxeo.search.stream.indexingAsync.defaultConcurrency=4
 nuxeo.search.stream.indexingAsync.defaultPartitions=8
 nuxeo.search.stream.reindexing.defaultConcurrency=${nuxeo.bulk.action.reindex.index.concurrency:=4}
 nuxeo.search.stream.reindexing.defaultPartitions=${nuxeo.bulk.action.reindex.index.partitions:=8}
+
+nuxeo.search.default.fulltext.size.max=${elasticsearch.fulltext.size.max:=-1}
 
 nuxeo.search.client.default.name=repository
 nuxeo.search.client.default.scroller.index.name=repository
@@ -230,7 +239,7 @@ metrics.enabled=false
 metrics.filter.name=default
 
 ## Instrumentation
-metrics.streams.enabled=true
+metrics.streams.enabled=${metrics.enabled}
 metrics.streams.interval=60s
 metrics.jvm.enabled=true
 metrics.log4j.enabled=true
@@ -376,6 +385,15 @@ nuxeo.oauth2.garbageCollectExpiredTokens.cronExpression=0 0 2 ? * SUN
 
 # Primitive type strict validation
 nuxeo.primitive.type.strict.validation=false
+
+# Document subtype restriction
+nuxeo.subtype.restriction.enabled=false
+
+# TransientDataStore default implementation
+nuxeo.transientdatastore.default.provider.class=org.nuxeo.runtime.ts.KeyValueTransientDataStore
+# allowed policy are ACCESSED / CREATED
+nuxeo.transientdatastore.default.ttl.policy=CREATED
+nuxeo.transientdatastore.default.ttl.value=1d
 
 # UIDSequencer default implementation
 nuxeo.uidsequencer.default.class=org.nuxeo.ecm.core.uidgen.KeyValueStoreUIDSequencer

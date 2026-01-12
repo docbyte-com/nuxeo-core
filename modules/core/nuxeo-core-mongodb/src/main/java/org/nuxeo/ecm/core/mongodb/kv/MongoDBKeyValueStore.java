@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,6 +45,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 import org.bson.types.Binary;
 import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.core.mongodb.MongoDBConstants;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.kv.AbstractKeyValueStoreProvider;
 import org.nuxeo.runtime.kv.KeyValueStoreDescriptor;
@@ -82,7 +83,12 @@ public class MongoDBKeyValueStore extends AbstractKeyValueStoreProvider {
 
     public static final String COLLECTION_DEFAULT = "kv";
 
-    public static final String ID_KEY = "_id";
+    /**
+     * @deprecated since 2025.8, use {@link org.nuxeo.ecm.core.mongodb.MongoDBConstants#ID_KEY} instead
+     */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("DeprecatedIsStillUsed") // because MongoDBConstants.ID_KEY will be statically imported
+    public static final String ID_KEY = MongoDBConstants.ID_KEY;
 
     public static final String VALUE_KEY = "v";
 
@@ -234,6 +240,57 @@ public class MongoDBKeyValueStore extends AbstractKeyValueStoreProvider {
         }
         Object value = doc.get(VALUE_KEY);
         log.trace("MongoDB: GET {} = {}", key, value);
+        return value;
+    }
+
+    @Override
+    public byte[] remove(String key) {
+        Object value = removeObject(key);
+        if (value == null) {
+            return null;
+        }
+        byte[] bytes = toBytes(value);
+        if (bytes != null) {
+            return bytes;
+        }
+        throw new UnsupportedOperationException(value.getClass().getName());
+    }
+
+    @Override
+    public String removeString(String key) {
+        Object value = removeObject(key);
+        if (value == null) {
+            return null;
+        }
+        String stringValue = toString(value);
+        if (stringValue != null) {
+            return stringValue;
+        }
+        throw new IllegalArgumentException("Value is not a String for key: " + key);
+    }
+
+    @Override
+    public Long removeLong(String key) throws NumberFormatException {
+        Object value = removeObject(key);
+        if (value == null) {
+            return null;
+        }
+        Long longValue = toLong(value);
+        if (longValue != null) {
+            return longValue;
+        }
+        throw new NumberFormatException("Value is not a Long for key: " + key);
+    }
+
+    protected Object removeObject(String key) {
+        Bson filter = eq(ID_KEY, key);
+        Document doc = coll.findOneAndDelete(filter);
+        if (doc == null) {
+            log.trace("MongoDB: GET AND DELETE {} = null", key);
+            return null;
+        }
+        Object value = doc.get(VALUE_KEY);
+        log.trace("MongoDB: GET AND DELETE {} = {}", key, value);
         return value;
     }
 

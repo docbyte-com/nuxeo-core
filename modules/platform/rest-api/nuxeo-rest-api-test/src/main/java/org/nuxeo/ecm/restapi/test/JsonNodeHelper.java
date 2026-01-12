@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,6 +64,16 @@ public final class JsonNodeHelper {
         assertTrue("Exception message is not present in response", node.has("message"));
         assertTrue("Exception message is not textual", node.get("message").isTextual());
         return node.get("message").asText();
+    }
+
+    /**
+     * @since 2025.9
+     */
+    public static int getErrorStatus(JsonNode node) {
+        assertTrue(hasErrorMessage(node));
+        assertTrue("Exception status is not present in response", node.has("status"));
+        assertTrue("Exception status is not number", node.get("status").isNumber());
+        return node.get("status").asInt();
     }
 
     public static boolean hasErrorMessage(JsonNode node) {
