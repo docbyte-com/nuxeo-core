@@ -29,6 +29,11 @@ services:
         limits:
           cpus: "1"
           memory: "1024M"
+    healthcheck:
+      test: curl --silent --fail localhost:9200/_cluster/health || exit 1
+      interval: 10s
+      timeout: 30s
+      retries: 10
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
     deploy:
