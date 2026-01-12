@@ -24,11 +24,6 @@ services:
       - DISABLE_SECURITY_PLUGIN=true
     ports:
       - 9200:9200
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: "1024M"
     healthcheck:
       test: curl --silent --fail localhost:9200/_cluster/health || exit 1
       interval: 10s
