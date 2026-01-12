@@ -72,7 +72,7 @@
       <artifactId>nuxeo-automation-test</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.nuxeo.ecm.platform</groupId>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-rest-api-test</artifactId>
     </dependency>
   </dependencies>

@@ -70,7 +70,7 @@
 
     <!-- Nuxeo test libraries -->
     <dependency>
-      <groupId>org.nuxeo.runtime</groupId>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
       <artifactId>nuxeo-runtime-kv</artifactId>
       <type>test-jar</type>
     </dependency>
