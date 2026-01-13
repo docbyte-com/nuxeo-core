@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2018 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -322,9 +321,11 @@ public class LogEntryImpl implements LogEntry {
     @Transient
     @Override
     public Map<String, Object> getExtended() {
-        return extendedInfos.entrySet()
-                            .stream()
-                            .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getSerializableValue()));
+        var extended = new HashMap<String, Object>();
+        for (var entry : extendedInfos.entrySet()) {
+            extended.put(entry.getKey(), entry.getValue().getSerializableValue());
+        }
+        return extended;
     }
 
     @Override

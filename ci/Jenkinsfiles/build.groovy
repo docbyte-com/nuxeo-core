@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,11 +17,19 @@
  *     Antoine Taillefer <ataillefer@nuxeo.com>
  *     Thomas Roger <troger@nuxeo.com>
  */
-library identifier: "platform-ci-shared-library@v0.0.53"
+import groovy.transform.Field
 
-dockerNamespace = 'nuxeo'
-repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
-testEnvironments = [
+library identifier: "platform-ci-shared-library@v0.0.75"
+
+// we can not allocate directly the variable, we have to use an `if` to make Jenkins Groovy working
+def abortPrevious = false
+if (nxUtils.isPullRequest()) {
+  abortPrevious = true
+}
+
+@Field def DOCKER_NAMESPACE = 'nuxeo'
+def repositoryUrl = 'https://github.com/nuxeo/nuxeo-lts'
+def testEnvironments = [
   'dev',
   'mongodb',
   'postgresql',
@@ -39,13 +47,8 @@ String getMavenFailArgs() {
   return (nxUtils.isPullRequest() && pullRequest.labels.contains('failatend')) ? '--fail-at-end' : ' '
 }
 
-String getMavenJavadocArgs() {
-  // set Xmx/Xms to 1g for javadoc command, to avoid the pod being OOMKilled with an exit code 137
-  return nxUtils.isPullRequest() ? ' ' : '-Pjavadoc  -DadditionalJOption=-J-Xmx1g -DadditionalJOption=-J-Xms1g'
-}
-
 String getCurrentVersion() {
-  return readMavenPom().getVersion();
+  return readMavenPom().getVersion()
 }
 
 void runFunctionalTests(String baseDir, String tier) {
@@ -78,7 +81,7 @@ void dockerRun(String image, String command, String user = null) {
 }
 
 void dockerPushFixedVersion(String imageName) {
-  String fullImageName = "${dockerNamespace}/${imageName}"
+  String fullImageName = "${DOCKER_NAMESPACE}/${imageName}"
   String fixedVersionInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${VERSION}"
   String latestInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${DOCKER_TAG}"
 
@@ -88,7 +91,7 @@ void dockerPushFixedVersion(String imageName) {
 }
 
 void dockerDeploy(String dockerRegistry, String imageName) {
-  String fullImageName = "${dockerNamespace}/${imageName}"
+  String fullImageName = "${DOCKER_NAMESPACE}/${imageName}"
   String fixedVersionInternalImage = "${DOCKER_REGISTRY}/${fullImageName}:${VERSION}"
   String fixedVersionPublicImage = "${dockerRegistry}/${fullImageName}:${VERSION}"
   String latestPublicImage = "${dockerRegistry}/${fullImageName}:${DOCKER_TAG}"
@@ -128,8 +131,6 @@ def buildUnitTestStage(env) {
 
             executeUnitTestsMvnCommandWithRetry(mvnCommand, env)
           } else {
-            mvnCommand += " -Dkafka.version=3.4.1"
-
             echo "${env} unit tests: install external services"
             nxWithHelmfileDeployment(namespace: testNamespace, environment: environment) {
               // always read AWS credentials from secret in the platform namespace, even when running in platform-staging:
@@ -206,7 +207,7 @@ pipeline {
   }
   options {
     buildDiscarder(logRotator(daysToKeepStr: '60', numToKeepStr: '60', artifactNumToKeepStr: '5'))
-    disableConcurrentBuilds(abortPrevious: true)
+    disableConcurrentBuilds(abortPrevious: abortPrevious)
     githubProjectProperty(projectUrlStr: repositoryUrl)
     timeout(time: 12, unit: 'HOURS')
   }
@@ -334,10 +335,6 @@ pipeline {
             // if current version is higher than default branch (aka: version in maintenance) run formatting check
             expression { nxGitHub.getDefaultBranch().toInteger() < env.REFERENCE_BRANCH.toInteger() }
           }
-          environment {
-            // env variable defined to workaround https://github.com/diffplug/spotless/pull/2238
-            MAVEN_CLI_ARGS = "${MAVEN_CLI_ARGS} --settings /root/.m2/settings.xml -Duser.home=/home/jenkins"
-          }
           steps {
             container('maven-mongodb') {
               warnError(message: 'Formatting check has failed') {
@@ -360,6 +357,9 @@ pipeline {
     }
 
     stage('Build Docker image') {
+      options {
+        timeout(time: 45, unit: 'MINUTES')
+      }
       steps {
         container('maven') {
           nxWithGitHubStatus(context: 'docker/build', message: 'Build Docker images') {
@@ -446,7 +446,7 @@ pipeline {
                 ----------------------------------------
                 """
                 script {
-                  image = "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  image = "${DOCKER_REGISTRY}/${DOCKER_NAMESPACE}/${NUXEO_IMAGE_NAME}:${VERSION}"
                   echo "Test ${image}"
                   dockerPull(image)
                   echo 'Run image as root (0)'
@@ -475,7 +475,7 @@ pipeline {
             container('maven') {
               nxWithGitHubStatus(context: 'docker/scan', message: 'Scan Docker image') {
                 script {
-                  def imageName = "${dockerNamespace}/${NUXEO_IMAGE_NAME}:${VERSION}"
+                  def imageName = "${DOCKER_NAMESPACE}/${NUXEO_IMAGE_NAME}:${VERSION}"
                   echo """
                   ----------------------------------------
                   Scan Docker image
@@ -509,7 +509,7 @@ pipeline {
           script {
             def parameters = [
               string(name: 'NUXEO_BRANCH', value: "${CHANGE_BRANCH}"),
-              string(name: 'NUXEO_DOCKER_IMAGE', value: "${DOCKER_REGISTRY}/${dockerNamespace}/${NUXEO_BENCHMARK_IMAGE_NAME}:${VERSION}"),
+              string(name: 'NUXEO_DOCKER_IMAGE', value: "${DOCKER_REGISTRY}/${DOCKER_NAMESPACE}/${NUXEO_BENCHMARK_IMAGE_NAME}:${VERSION}"),
               booleanParam(name: 'INSTALL_NEEDED_PACKAGES', value: false),
             ]
             echo """
@@ -517,7 +517,7 @@ pipeline {
             Trigger benchmark tests with parameters: ${parameters}
             -----------------------------------------------------------
             """
-            build(
+            nxUtils.buildWrapped(
                 job: "nuxeo/lts/nuxeo-benchmark",
                 parameters: parameters,
                 wait: false
@@ -551,7 +551,6 @@ pipeline {
                       sh """
                         mvn ${MAVEN_CLI_ARGS} \
                           -Dcustom.environment=runtime \
-                          -Dkafka.version=3.4.1 \
                           install
                       """
                     }
@@ -575,7 +574,7 @@ pipeline {
         script {
           def stages = [:]
           for (env in testEnvironments) {
-            stages["Run ${env} unit tests"] = buildUnitTestStage(env);
+            stages["Run ${env} unit tests"] = buildUnitTestStage(env)
           }
           parallel stages
         }
@@ -667,11 +666,7 @@ pipeline {
           def parameters = [
             string(name: 'NUXEO_VERSION', value: "${VERSION}"),
           ]
-          if (nxUtils.isPullRequest()) {
-            parameters.add(string(name: 'NUXEO_REPOSITORY', value: "${repositoryUrl}"))
-            parameters.add(string(name: 'NUXEO_SHA', value: "${GIT_COMMIT}"))
-          }
-          build(
+          nxUtils.buildWrapped(
             job: 'nuxeo/rest-api-compatibility-tests/master',
             parameters: parameters,
             wait: false
@@ -787,7 +782,7 @@ pipeline {
           Trigger hotfix package build with parameters: ${parameters}
           -----------------------------------------------------------
           """
-          build(
+          nxUtils.buildWrapped(
             job: "nuxeo/lts/nuxeo-hf",
             parameters: parameters,
             wait: false
@@ -800,24 +795,9 @@ pipeline {
   post {
     always {
       script {
+        nxUtils.setBuildDescription()
         nxJira.updateIssues()
-      }
-    }
-    success {
-      script {
-        currentBuild.description = "Build ${VERSION}"
-        if (!nxUtils.isPullRequest()
-          && !hudson.model.Result.SUCCESS.toString().equals(currentBuild.getPreviousBuild()?.getResult())) {
-          nxSlack.success(message: "Successfully built nuxeo/nuxeo-lts ${BRANCH_NAME} #${BUILD_NUMBER}: ${BUILD_URL}")
-        }
-      }
-    }
-    unsuccessful {
-      script {
-        if (!nxUtils.isPullRequest()
-          && ![hudson.model.Result.ABORTED.toString(), hudson.model.Result.NOT_BUILT.toString()].contains(currentBuild.result)) {
-          nxSlack.error(message: "Failed to build nuxeo/nuxeo-lts ${BRANCH_NAME} #${BUILD_NUMBER}: ${BUILD_URL}")
-        }
+        nxUtils.notifyBuildStatusIfNecessary()
       }
     }
   }

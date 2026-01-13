@@ -30,6 +30,7 @@ import org.nuxeo.ecm.core.blob.CachingConfiguration;
 import org.nuxeo.ecm.core.blob.DigestConfiguration;
 import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
+import org.nuxeo.ecm.core.blob.TransactionalBlobStore;
 
 /**
  * Blob provider that stores files in Google Cloud Storage.
@@ -46,6 +47,8 @@ public class GoogleStorageBlobProvider extends BlobStoreBlobProvider {
 
     protected DigestConfiguration digestConfiguration;
 
+    protected GoogleStorageBlobStoreConfiguration config;
+
     @Override
     public void close() {
         // Do nothing
@@ -53,19 +56,34 @@ public class GoogleStorageBlobProvider extends BlobStoreBlobProvider {
 
     @Override
     protected BlobStore getBlobStore(String blobProviderId, Map<String, String> properties) throws IOException {
-        GoogleStorageBlobStoreConfiguration config = new GoogleStorageBlobStoreConfiguration(properties);
+        config = new GoogleStorageBlobStoreConfiguration(properties);
         digestConfiguration = new DigestConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
         KeyStrategy keyStrategy = getKeyStrategy();
-        if (!(keyStrategy instanceof KeyStrategyDigest ksd)) {
-            throw new UnsupportedOperationException("Google Storage Blob Provider only supports KeyStrategyDigest");
-        }
-        BlobStore store = new GoogleStorageBlobStore(blobProviderId, "googleStorage", config, ksd);
+        BlobStore store = new GoogleStorageBlobStore(blobProviderId, "googleStorage", config, keyStrategy);
         boolean caching = !config.getBooleanProperty("nocache");
         if (caching) {
             CachingConfiguration cachingConfiguration = new CachingConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
             store = new CachingBlobStore(blobProviderId, "Cache", store, cachingConfiguration);
         }
-        // XXX should we add transactional blob store support?
+
+        // maybe wrap into a transactional store
+        if (isTransactional()) {
+            BlobStore transientStore;
+            if (store.hasVersioning()) {
+                // if versioning is used, we don't need a separate transient store for transactions
+                transientStore = store;
+            } else {
+                // transient store is another S3 blob store wrapped in a caching store
+                GoogleStorageBlobStoreConfiguration transientConfig = config.withNamespace("tx");
+                transientStore = new GoogleStorageBlobStore(blobProviderId, "GCP_tmp", transientConfig, keyStrategy);
+                if (caching) {
+                    transientStore = new CachingBlobStore(blobProviderId, "Cache_tmp", transientStore,
+                            config.cachingConfiguration);
+                }
+            }
+            // transactional store
+            store = new TransactionalBlobStore(blobProviderId, store, transientStore);
+        }
         return store;
     }
 

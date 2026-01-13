@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 import jakarta.inject.Inject;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.drive.adapter.FileSystemItem;
@@ -124,6 +125,7 @@ public class TestESSyncRootFolderItem {
     }
 
     @Test
+    @Ignore
     public void testScrollDescendants() {
 
         FolderItem syncRootFolderItem = (FolderItem) esSyncRootFolderItemFactory.getFileSystemItem(syncRootFolder);

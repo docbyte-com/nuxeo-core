@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,15 +16,16 @@
  * Contributors:
  *     <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  */
-
 package org.nuxeo.ecm.quota.size;
 
-import org.nuxeo.ecm.core.api.RecoverableClientException;
+import static jakarta.servlet.http.HttpServletResponse.SC_REQUEST_ENTITY_TOO_LARGE;
+
 import org.nuxeo.ecm.core.api.DocumentModel;
+import org.nuxeo.ecm.core.api.RecoverableClientException;
 
 /**
- * Exception throws by the {@link DocumentsSizeUpdater} to enforce Quotas in case a transaction tries to add too
- * much Blobs
+ * Exception throws by the {@link DocumentsSizeUpdater} to enforce Quotas in case a transaction tries to add too much
+ * Blobs
  *
  * @author <a href="mailto:tdelprat@nuxeo.com">Tiry</a>
  * @since 5.6
@@ -40,7 +41,8 @@ public class QuotaExceededException extends RecoverableClientException {
     protected String addedDocumentID;
 
     public QuotaExceededException(DocumentModel targetDocument, String message) {
-        super(message, "label.quotaException." + message, new String[] { targetDocument.getPathAsString() });
+        super(message, "label.quotaException." + message, new String[] { targetDocument.getPathAsString() },
+                SC_REQUEST_ENTITY_TOO_LARGE);
         this.targetPath = targetDocument.getPathAsString();
     }
 
@@ -50,7 +52,7 @@ public class QuotaExceededException extends RecoverableClientException {
 
     public QuotaExceededException(String targetDocumentPath, String addedDocumentID, long quotaValue) {
         super("QuotaExceeded", "label.quotaException.QuotaExceeded",
-                new String[] { targetDocumentPath, addedDocumentID });
+                new String[] { targetDocumentPath, addedDocumentID }, SC_REQUEST_ENTITY_TOO_LARGE);
         this.quotaValue = quotaValue;
         this.addedDocumentID = addedDocumentID;
         this.targetPath = targetDocumentPath;

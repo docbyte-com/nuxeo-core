@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2015-2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2015-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,40 @@
 package org.nuxeo.ecm.platform.auth.saml;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.isBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLUtils.buildSAMLObject;
+import static org.nuxeo.ecm.platform.auth.saml.key.KeyDescriptor.DEFAULT_NAME;
 
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
+
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.utils.DurationUtils;
+import org.nuxeo.ecm.core.api.NuxeoException;
+import org.nuxeo.ecm.platform.auth.saml.key.KeyHolder;
 import org.nuxeo.ecm.platform.auth.saml.key.KeyManager;
 import org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding;
+import org.nuxeo.ecm.platform.auth.saml.user.AbstractUserResolver;
+import org.nuxeo.ecm.platform.auth.saml.user.EmailBasedUserResolver;
+import org.nuxeo.ecm.platform.auth.saml.user.UserMapperBasedResolver;
+import org.nuxeo.ecm.platform.auth.saml.user.UserResolver;
+import org.nuxeo.ecm.platform.ui.web.auth.service.PluggableAuthenticationService;
 import org.nuxeo.runtime.api.Framework;
+import org.nuxeo.usermapper.service.UserMapperService;
 import org.opensaml.saml.common.xml.SAMLConstants;
 import org.opensaml.saml.saml2.core.NameIDType;
 import org.opensaml.saml.saml2.metadata.AssertionConsumerService;
@@ -46,10 +65,13 @@ import org.opensaml.security.SecurityException;
 import org.opensaml.security.credential.Credential;
 import org.opensaml.security.credential.UsageType;
 import org.opensaml.xmlsec.config.impl.DefaultSecurityConfigurationBootstrap;
-import org.opensaml.xmlsec.keyinfo.KeyInfoGenerator;
 import org.opensaml.xmlsec.signature.KeyInfo;
 
 /**
+ * Configuration class that retrieves the SAML configuration from plugin {@link #parameters}.
+ * <p>
+ * {@code SP} refers to Service Provider (here Nuxeo) and {@code IdP} refers to Identity Provider.
+ * 
  * @since 7.3
  */
 public class SAMLConfiguration {
@@ -72,96 +94,194 @@ public class SAMLConfiguration {
 
     public static final String DEFAULT_LOGIN_BINDINGS = "HTTP-Redirect,HTTP-POST";
 
-    public static final Collection<String> nameID = Arrays.asList(NameIDType.EMAIL, NameIDType.TRANSIENT,
+    public static final Collection<String> nameID = List.of(NameIDType.EMAIL, NameIDType.TRANSIENT,
             NameIDType.PERSISTENT, NameIDType.UNSPECIFIED, NameIDType.X509_SUBJECT);
 
-    private SAMLConfiguration() {
+    protected static final String PARAMETER_ENTITY_ID = "entityId";
 
-    }
+    protected static final String PARAMETER_AUTHN_REQUESTS_SIGNED = "authnRequestsSigned";
 
-    public static String getEntityId() {
-        return Framework.getProperty(ENTITY_ID, Framework.getProperty("nuxeo.url"));
-    }
+    protected static final String PARAMETER_WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
 
-    public static List<String> getLoginBindings() {
-        Set<String> supportedBindings = Stream.of(SAMLInboundBinding.values())
-                                              .map(SAMLInboundBinding::getBindingURI)
-                                              .collect(toSet());
-        List<String> bindings = new ArrayList<>();
-        String[] suffixes = Framework.getProperty(LOGIN_BINDINGS, DEFAULT_LOGIN_BINDINGS).split(",");
-        for (String sufix : suffixes) {
-            String binding = BINDING_PREFIX + ":" + sufix;
-            if (supportedBindings.contains(binding)) {
-                bindings.add(binding);
-            } else {
-                log.warn("Unknown SAML binding: {}", binding);
-            }
-        }
-        return bindings;
-    }
+    protected static final String PARAMETER_LOGIN_BINDINGS = "loginBindings";
 
-    public static boolean getAuthnRequestsSigned() {
-        return Boolean.parseBoolean(Framework.getProperty(AUTHN_REQUESTS_SIGNED));
-    }
+    protected static final String PARAMETER_DIGEST_ALGORITHM = "DigestAlgorithm";
 
-    public static boolean getWantAssertionsSigned() {
-        return Boolean.parseBoolean(Framework.getProperty(WANT_ASSERTIONS_SIGNED));
-    }
+    protected static final String PARAMETER_SIGNATURE_ALGORITHM = "SignatureAlgorithm";
 
-    public static int getSkewTimeMillis() {
-        String skewTimeMs = Framework.getProperty(SKEW_TIME_MS);
-        return skewTimeMs != null ? Integer.parseInt(skewTimeMs) : DEFAULT_SKEW_TIME_MS;
+    protected static final String PARAMETER_SIGNATURE_MANDATORY = "signatureMandatory";
+
+    protected static final String PARAMETER_SKEW_TIME = "skewTime";
+
+    protected static final String PARAMETER_LOGIN_SCREEN_NAME = "name";
+
+    protected static final String PARAMETER_LOGIN_SCREEN_DESCRIPTION = "description";
+
+    protected static final String PARAMETER_LOGIN_SCREEN_ICON = "icon";
+
+    protected static final String PARAMETER_LOGIN_SCREEN_LABEL = "label";
+
+    protected static final String PARAMETER_KEY_HOLDER_NAME = "keyHolderName";
+
+    protected static final String PARAMETER_USER_RESOLVER_CLASS = "userResolverClass";
+
+    protected static final Class<? extends UserResolver> DEFAULT_USER_RESOLVER_CLASS = EmailBasedUserResolver.class;
+
+    protected static final Class<? extends UserResolver> USERMAPPER_USER_RESOLVER_CLASS = UserMapperBasedResolver.class;
+
+    protected final Map<String, String> parameters;
+
+    public SAMLConfiguration(Map<String, String> parameters) {
+        this.parameters = Objects.requireNonNull(parameters, "Parameters must not be null");
     }
 
     /**
-     * Returns the {@link EntityDescriptor} for the Nuxeo Service Provider
+     * The plugin defines as the default is:
+     * <ul>
+     * <li>the one not declaring {@link #PARAMETER_ENTITY_ID entityId} parameter
+     * <li>the one having the {@link #PARAMETER_ENTITY_ID entityId} parameter equals to the {@code nuxeo.conf} parameter
+     * </ul>
+     * 
+     * @return whether this plugin is the default one
      */
-    public static EntityDescriptor getEntityDescriptor(String baseURL) {
+    public boolean isDefault() {
+        String entityIdParameter = parameters.get(PARAMETER_ENTITY_ID);
+        return isBlank(entityIdParameter) || entityIdParameter.equals(getSPEntityIdFromNuxeoConf());
+    }
 
+    /**
+     * @return the SAML entityId to use for this plugin
+     * @since 2025.7
+     */
+    @Nonnull
+    public String getSPEntityId() {
+        String entityId = parameters.get(PARAMETER_ENTITY_ID);
+        if (isBlank(entityId)) {
+            entityId = getSPEntityIdFromNuxeoConf();
+        }
+        return entityId;
+    }
+
+    /**
+     * @since 2025.7
+     */
+    protected String getSPEntityIdFromNuxeoConf() {
+        return Framework.getProperty(ENTITY_ID, Framework.getProperty("nuxeo.url"));
+    }
+
+    /**
+     * @return whether the SP signed the authn requests.
+     * @since 2025.7
+     */
+    public boolean isSPAuthnRequestsSigned() {
+        return Boolean.parseBoolean(parameters.get(PARAMETER_AUTHN_REQUESTS_SIGNED))
+                || Boolean.parseBoolean(Framework.getProperty(AUTHN_REQUESTS_SIGNED, "false"));
+    }
+
+    /**
+     * @return whether the SP requires the assertions to be signed
+     * @since 2025.7
+     */
+    public boolean isSPWantAssertionsSigned() {
+        return Boolean.parseBoolean(parameters.get(PARAMETER_WANT_ASSERTIONS_SIGNED))
+                || Boolean.parseBoolean(Framework.getProperty(WANT_ASSERTIONS_SIGNED, "false"));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    public Optional<String> getSPDigestAlgorithm() {
+        return Optional.ofNullable(parameters.get(PARAMETER_DIGEST_ALGORITHM));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nonnull
+    public List<String> getSPSignatureAlgorithms() {
+        return parameters.entrySet()
+                         .stream()
+                         .filter(entry -> entry.getKey().startsWith(PARAMETER_SIGNATURE_ALGORITHM))
+                         .map(Map.Entry::getValue)
+                         .toList();
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nonnull
+    public Duration getSPSkewTime() {
+        return Optional.ofNullable(parameters.get(PARAMETER_SKEW_TIME))
+                       .map(DurationUtils::parse)
+                       .or(() -> Optional.ofNullable(Framework.getProperty(SKEW_TIME_MS))
+                                         .map(Integer::parseInt)
+                                         .map(Duration::ofMillis))
+                       .orElseGet(() -> Duration.ofMillis(DEFAULT_SKEW_TIME_MS));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    public Optional<KeyHolder> getSPKeyHolder() {
+        if (isDefault()) {
+            // fallback to the default KeyHolder configuration if the current SAML authentication provider is the
+            // default one for backward compatibility
+            String keyHolderName = parameters.getOrDefault(PARAMETER_KEY_HOLDER_NAME, DEFAULT_NAME);
+            return Framework.getService(KeyManager.class).getKeyHolder(keyHolderName);
+        } else if (parameters.containsKey(PARAMETER_KEY_HOLDER_NAME)) {
+            return Optional.of(
+                    Framework.getService(KeyManager.class)
+                             .getKeyHolder(parameters.get(PARAMETER_KEY_HOLDER_NAME))
+                             .orElseThrow(() -> new IllegalStateException(
+                                     "The KeyHolder referenced by the SAML plugin: " + this + " does not exist")));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nonnull
+    public EntityDescriptor createSPEntityDescriptor(String baseURL) {
         // Entity Descriptor
         EntityDescriptor descriptor = buildSAMLObject(EntityDescriptor.DEFAULT_ELEMENT_NAME);
         // descriptor.setID(id);
-        descriptor.setEntityID(getEntityId());
+        descriptor.setEntityID(getSPEntityId());
 
         // SPSSO Descriptor
-        descriptor.getRoleDescriptors().add(getSPSSODescriptor(baseURL));
+        descriptor.getRoleDescriptors().add(createSPSSODescriptor(baseURL));
 
         return descriptor;
     }
 
     /**
-     * Returns the {@link SPSSODescriptor} for the Nuxeo Service Provider
+     * @since 2025.7
      */
-    public static SPSSODescriptor getSPSSODescriptor(String baseURL) {
+    protected SPSSODescriptor createSPSSODescriptor(String baseURL) {
         SPSSODescriptor spDescriptor = buildSAMLObject(SPSSODescriptor.DEFAULT_ELEMENT_NAME);
-        spDescriptor.setAuthnRequestsSigned(getAuthnRequestsSigned());
-        spDescriptor.setWantAssertionsSigned(getWantAssertionsSigned());
+        spDescriptor.setAuthnRequestsSigned(isSPAuthnRequestsSigned());
+        spDescriptor.setWantAssertionsSigned(isSPWantAssertionsSigned());
         spDescriptor.addSupportedProtocol(SAMLConstants.SAML20P_NS);
 
         // Name ID
         spDescriptor.getNameIDFormats().addAll(buildNameIDFormats(nameID));
 
         // Generate key info
-        KeyManager keyManager = Framework.getService(KeyManager.class);
-        if (keyManager.getSigningCredential() != null) {
-            spDescriptor.getKeyDescriptors()
-                        .add(buildKeyDescriptor(UsageType.SIGNING,
-                                generateKeyInfoForCredential(keyManager.getSigningCredential())));
-        }
-        if (keyManager.getEncryptionCredential() != null) {
-            spDescriptor.getKeyDescriptors()
-                        .add(buildKeyDescriptor(UsageType.ENCRYPTION,
-                                generateKeyInfoForCredential(keyManager.getEncryptionCredential())));
-        }
-        if (keyManager.getTlsCredential() != null) {
-            spDescriptor.getKeyDescriptors()
-                        .add(buildKeyDescriptor(UsageType.UNSPECIFIED,
-                                generateKeyInfoForCredential(keyManager.getTlsCredential())));
-        }
+        var keyHolder = getSPKeyHolder();
+        keyHolder.flatMap(KeyHolder::getSigningCredential)
+                 .map(credential -> buildKeyDescriptor(UsageType.SIGNING, generateKeyInfoForCredential(credential)))
+                 .ifPresent(spDescriptor.getKeyDescriptors()::add);
+        keyHolder.flatMap(KeyHolder::getEncryptionCredential)
+                 .map(credential -> buildKeyDescriptor(UsageType.ENCRYPTION, generateKeyInfoForCredential(credential)))
+                 .ifPresent(spDescriptor.getKeyDescriptors()::add);
+        keyHolder.flatMap(KeyHolder::getTlsCredential)
+                 .map(credential -> buildKeyDescriptor(UsageType.UNSPECIFIED, generateKeyInfoForCredential(credential)))
+                 .ifPresent(spDescriptor.getKeyDescriptors()::add);
 
         // LOGIN
         int index = 0;
-        for (String binding : getLoginBindings()) {
+        for (String binding : getSPLoginBindings()) {
             AssertionConsumerService consumer = buildSAMLObject(AssertionConsumerService.DEFAULT_ELEMENT_NAME);
             consumer.setLocation(baseURL);
             consumer.setBinding(binding);
@@ -176,6 +296,186 @@ public class SAMLConfiguration {
         logoutService.setBinding(SAMLConstants.SAML2_POST_BINDING_URI);
         spDescriptor.getSingleLogoutServices().add(logoutService);
         return spDescriptor;
+    }
+
+    protected List<String> getSPLoginBindings() {
+        Set<String> supportedBindings = Stream.of(SAMLInboundBinding.values())
+                                              .map(SAMLInboundBinding::getBindingURI)
+                                              .collect(toSet());
+        List<String> bindings = new ArrayList<>();
+        String[] suffixes = parameters.getOrDefault(PARAMETER_LOGIN_BINDINGS,
+                Framework.getProperty(LOGIN_BINDINGS, DEFAULT_LOGIN_BINDINGS)).split(",");
+        for (String suffix : suffixes) {
+            String binding = BINDING_PREFIX + ":" + suffix;
+            if (supportedBindings.contains(binding)) {
+                bindings.add(binding);
+            } else {
+                log.warn("Unknown SAML binding: {}", binding);
+            }
+        }
+        return bindings;
+    }
+
+    /**
+     * @return the Idp metadata URI, it could either be an HTTP URL or a filesystem location
+     * @since 2025.7
+     */
+    @Nullable
+    public String getIdPMetadataUri() {
+        return parameters.get("metadata");
+    }
+
+    /**
+     * @return the timeout to use when fetching the IdP metadata
+     * @since 2025.7
+     */
+    @Nonnull
+    public Duration getIdPMetadataTimeout() {
+        return Duration.ofSeconds(Integer.parseInt(parameters.getOrDefault("timeout", "5")));
+    }
+
+    public boolean isIdPSignatureMandatory() {
+        return Boolean.parseBoolean(parameters.getOrDefault(PARAMETER_SIGNATURE_MANDATORY, "true"));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nonnull
+    public UserResolver instantiateUserResolver() {
+        String userResolverClassName = parameters.get(PARAMETER_USER_RESOLVER_CLASS);
+        Class<? extends UserResolver> userResolverClass;
+        if (isBlank(userResolverClassName)) {
+            UserMapperService ums = Framework.getService(UserMapperService.class);
+            if (ums != null) {
+                userResolverClass = USERMAPPER_USER_RESOLVER_CLASS;
+            } else {
+                userResolverClass = DEFAULT_USER_RESOLVER_CLASS;
+            }
+        } else {
+            try {
+                userResolverClass = Class.forName(userResolverClassName).asSubclass(AbstractUserResolver.class);
+            } catch (ClassNotFoundException | ClassCastException e) {
+                throw new NuxeoException("Failed to get user resolver class: " + userResolverClassName, e);
+            }
+
+        }
+        try {
+            var userResolver = userResolverClass.getConstructor().newInstance();
+            userResolver.init(parameters);
+            return userResolver;
+        } catch (ReflectiveOperationException e) {
+            throw new NuxeoException("Failed to initialize user resolver: " + userResolverClassName, e);
+        }
+    }
+
+    /**
+     * @since 2025.7
+     */
+    public boolean isLoginScreenButtonEnabled() {
+        return isNotBlank(parameters.get(PARAMETER_LOGIN_SCREEN_NAME));
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nullable
+    public String getLoginScreenName() {
+        return parameters.get(PARAMETER_LOGIN_SCREEN_NAME);
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nullable
+    public String getLoginScreenDescription() {
+        return parameters.get(PARAMETER_LOGIN_SCREEN_DESCRIPTION);
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nullable
+    public String getLoginScreenIcon() {
+        return parameters.get(PARAMETER_LOGIN_SCREEN_ICON);
+    }
+
+    /**
+     * @since 2025.7
+     */
+    @Nullable
+    public String getLoginScreenLabel() {
+        return parameters.get(PARAMETER_LOGIN_SCREEN_LABEL);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                                        // in fact "name" is voluntary not declared to remove the login page button
+                                        .append("name", parameters.get(PARAMETER_LOGIN_SCREEN_NAME))
+                                        .append("entityId", parameters.get(PARAMETER_ENTITY_ID))
+                                        .toString();
+    }
+
+    /**
+     * @deprecated since 2025.7, use {@link #getSPEntityId()} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static String getEntityId() {
+        return Framework.getProperty(ENTITY_ID, Framework.getProperty("nuxeo.url"));
+    }
+
+    /**
+     * @deprecated since 2025.7, use {@link #getSPLoginBindings()} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static List<String> getLoginBindings() {
+        return retrieveDefaultPluginConfiguration().getSPLoginBindings();
+    }
+
+    /**
+     * @deprecated since 2025.7, use {@link #isSPAuthnRequestsSigned()} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static boolean getAuthnRequestsSigned() {
+        return Boolean.parseBoolean(Framework.getProperty(AUTHN_REQUESTS_SIGNED));
+    }
+
+    /**
+     * @deprecated since 2025.7, use {@link #isSPWantAssertionsSigned()} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static boolean getWantAssertionsSigned() {
+        return Boolean.parseBoolean(Framework.getProperty(WANT_ASSERTIONS_SIGNED));
+    }
+
+    /**
+     * @deprecated since 2025.7, use {@link #getSPSkewTime()} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static int getSkewTimeMillis() {
+        String skewTimeMs = Framework.getProperty(SKEW_TIME_MS);
+        return skewTimeMs != null ? Integer.parseInt(skewTimeMs) : DEFAULT_SKEW_TIME_MS;
+    }
+
+    /**
+     * Returns the {@link EntityDescriptor} for the Nuxeo Service Provider
+     * 
+     * @deprecated since 2025.7, use {@link #createSPEntityDescriptor} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static EntityDescriptor getEntityDescriptor(String baseURL) {
+        return retrieveDefaultPluginConfiguration().createSPEntityDescriptor(baseURL);
+    }
+
+    /**
+     * Returns the {@link SPSSODescriptor} for the Nuxeo Service Provider
+     * 
+     * @deprecated since 2025.7, use {@link #createSPSSODescriptor} instead
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
+    public static SPSSODescriptor getSPSSODescriptor(String baseURL) {
+        return retrieveDefaultPluginConfiguration().createSPSSODescriptor(baseURL);
     }
 
     private static KeyDescriptor buildKeyDescriptor(UsageType type, KeyInfo key) {
@@ -201,14 +501,39 @@ public class SAMLConfiguration {
 
     private static KeyInfo generateKeyInfoForCredential(Credential credential) {
         try {
-            KeyInfoGenerator keyInfoGenerator = DefaultSecurityConfigurationBootstrap.buildBasicKeyInfoGeneratorManager()
-                                                                                     .getDefaultManager()
-                                                                                     .getFactory(credential)
-                                                                                     .newInstance();
-            return keyInfoGenerator.generate(credential);
+            return DefaultSecurityConfigurationBootstrap.buildBasicKeyInfoGeneratorManager()
+                                                        .getDefaultManager()
+                                                        .getFactory(credential)
+                                                        .newInstance()
+                                                        .generate(credential);
         } catch (SecurityException e) {
             log.error("Failed to  generate key info.");
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * Retrieves the {@link SAMLConfiguration} for the default contributed SAML plugin.
+     * <p>
+     * The plugin defines as the default is:
+     * <ul>
+     * <li>the one not declaring {@link #PARAMETER_ENTITY_ID entityId} parameter
+     * <li>the one having the {@link #PARAMETER_ENTITY_ID entityId} parameter equals to the {@code nuxeo.conf} parameter
+     * </ul>
+     *
+     * @return the {@link SAMLConfiguration} for the default contributed SAML plugin
+     * @since 2025.7
+     */
+    public static SAMLConfiguration retrieveDefaultPluginConfiguration() {
+        return Framework.getService(PluggableAuthenticationService.class)
+                        .getAuthenticatorPlugins()
+                        .stream()
+                        .filter(SAMLAuthenticationProvider.class::isInstance)
+                        .map(SAMLAuthenticationProvider.class::cast)
+                        .map(SAMLAuthenticationProvider::getConfiguration)
+                        .filter(SAMLConfiguration::isDefault)
+                        .findFirst()
+                        .orElseThrow(() -> new IllegalStateException(
+                                "No default SAML Plugin found, check your configuration"));
     }
 }

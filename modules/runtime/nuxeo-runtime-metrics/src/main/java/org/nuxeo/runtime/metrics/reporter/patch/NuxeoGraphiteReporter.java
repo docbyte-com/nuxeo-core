@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,13 +49,12 @@ public class NuxeoGraphiteReporter extends ScheduledReporter {
     protected GraphiteReporter reporter;
 
     public NuxeoGraphiteReporter(MetricRegistry registry, MetricFilter filter, GraphiteReporter reporter) {
-        super(registry, "graphite-reporter", filter, TimeUnit.SECONDS,
-                TimeUnit.SECONDS);
+        super(registry, "graphite-reporter", filter, TimeUnit.SECONDS, TimeUnit.SECONDS);
         this.reporter = reporter;
     }
 
     @Override
-    public void report(SortedMap<MetricName, Gauge> gauges, SortedMap<MetricName, Counter> counters,
+    public void report(SortedMap<MetricName, Gauge<?>> gauges, SortedMap<MetricName, Counter> counters,
             SortedMap<MetricName, Histogram> histograms, SortedMap<MetricName, Meter> meters,
             SortedMap<MetricName, Timer> timers) {
         reporter.report(graphiteMetrics(gauges), graphiteMetrics(counters), graphiteMetrics(histograms),

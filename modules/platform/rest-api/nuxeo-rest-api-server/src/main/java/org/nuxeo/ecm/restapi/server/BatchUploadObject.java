@@ -21,10 +21,11 @@
  */
 package org.nuxeo.ecm.restapi.server;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static jakarta.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static jakarta.servlet.http.HttpServletResponse.SC_GONE;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.ws.rs.core.MediaType.MULTIPART_FORM_DATA;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.nuxeo.common.utils.FileUtils.checkPathTraversal;
 
 import java.io.File;
@@ -37,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.ws.rs.DELETE;
@@ -303,6 +303,10 @@ public class BatchUploadObject extends AbstractResource<ResourceTypeImpl> {
         BatchManager bm = Framework.getService(BatchManager.class);
         String uploadedSizeDisplay = uploadedSize > -1 ? uploadedSize + "b" : "unknown size";
         Batch batch = bm.getBatch(batchId);
+        if (batch == null) {
+            // probably canceled in the meantime
+            throw new NuxeoException(String.format("BatchId: \"%s\" not found", batchId), SC_GONE);
+        }
         if (UPLOAD_TYPE_CHUNKED.equals(uploadType)) {
             log.debug("Uploading chunk [index: {} / total: {}] ({}) for file: {}", uploadChunkIndex, chunkCount,
                     uploadedSizeDisplay, fileName);

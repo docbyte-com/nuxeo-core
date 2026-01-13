@@ -22,6 +22,8 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
+import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.RECORD;
+import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStricMode;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,6 +37,7 @@ import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 import org.nuxeo.ecm.core.api.NuxeoException;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.BucketInfo;
 import com.google.cloud.storage.Storage;
@@ -86,6 +89,10 @@ public class GoogleStorageBlobStoreConfiguration extends CloudBlobStoreConfigura
 
     protected final int chunkSize;
 
+    public final BlobInfo.Retention.Mode retentionMode;
+
+    public final boolean isBucketVersioningEnabled;
+
     public GoogleStorageBlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         String projectId = getProperty(PROJECT_ID_PROPERTY);
@@ -104,7 +111,8 @@ public class GoogleStorageBlobStoreConfiguration extends CloudBlobStoreConfigura
 
         storage = StorageOptions.newBuilder().setCredentials(credentials).setProjectId(projectId).build().getService();
         bucketName = getProperty(BUCKET_NAME_PROPERTY);
-        Bucket b = storage.get(bucketName);
+        // Get all fields, such as Storage.BucketField.RETENTION_POLICY
+        Bucket b = storage.get(bucketName, Storage.BucketGetOption.fields(Storage.BucketField.values()));
         if (b == null) {
             log.debug("Creating a new bucket: {}", bucketName);
             b = storage.create(BucketInfo.of(bucketName));
@@ -127,6 +135,40 @@ public class GoogleStorageBlobStoreConfiguration extends CloudBlobStoreConfigura
             }
         }
         bucketPrefix = bp;
+        if (Boolean.parseBoolean(properties.get(RECORD))) {
+            retentionEnabled = isRetentionEnabled();
+            if (!retentionEnabled) {
+                log.warn(
+                        "Blob provider is configured for records but retention is not enabled on Google Storage bucket {}",
+                        bucketName);
+                retentionMode = null;
+            } else {
+                // Google storage does not have a default object retention policy unlike s3
+                // we can only rely on Nuxeo platform setting
+                retentionMode = isRetentionStricMode() ? BlobInfo.Retention.Mode.LOCKED
+                        : BlobInfo.Retention.Mode.UNLOCKED;
+            }
+        } else {
+            retentionEnabled = false;
+            retentionMode = null;
+        }
+        isBucketVersioningEnabled = Boolean.TRUE.equals(bucket.versioningEnabled());
+
+    }
+
+    protected boolean isRetentionEnabled() {
+        var objectRetention = bucket.getObjectRetention();
+        if (objectRetention != null) {
+            return bucket.getObjectRetention().getMode().equals(BucketInfo.ObjectRetention.Mode.ENABLED);
+        }
+        return false;
+    }
+
+    /**
+     * Returns a copy of the GoogleStorageBlobStoreConfiguration with a different namespace.
+     */
+    public GoogleStorageBlobStoreConfiguration withNamespace(String ns) throws IOException {
+        return new GoogleStorageBlobStoreConfiguration(propertiesWithNamespace(ns));
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2022-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Projections.include;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.nuxeo.ecm.core.mongodb.MongoDBConstants.SET;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -32,14 +33,12 @@ import java.io.ObjectInput;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -56,6 +55,7 @@ import org.nuxeo.ecm.core.blob.BlobManager;
 import org.nuxeo.ecm.core.blob.BlobManagerComponent;
 import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
+import org.nuxeo.ecm.core.mongodb.MongoDBConstants;
 import org.nuxeo.ecm.core.transientstore.api.MaximumTransientSpaceExceeded;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreConfig;
 import org.nuxeo.ecm.core.transientstore.api.TransientStoreProvider;
@@ -124,7 +124,12 @@ public class MongoDBTransientStore implements TransientStoreProvider {
 
     public static final String DIGEST = "digest";
 
-    public static final String ID_KEY = "_id";
+    /**
+     * @deprecated since 2025.8, use {@link org.nuxeo.ecm.core.mongodb.MongoDBConstants#ID_KEY} instead
+     */
+    @Deprecated(forRemoval = true)
+    @SuppressWarnings("DeprecatedIsStillUsed") // because MongoDBConstants.ID_KEY will be statically imported
+    public static final String ID_KEY = MongoDBConstants.ID_KEY;
 
     public static final String TTL_KEY = "ttl";
 
@@ -250,9 +255,7 @@ public class MongoDBTransientStore implements TransientStoreProvider {
             log.debug("Marking blobs from Transient storage");
             Bson filter = gt(BLOB_COUNT_KEY, 0);
             StreamSupport.stream(getColl().find(filter).projection(include(BLOBS_KEY)).spliterator(), false)
-                         .flatMap(d -> d.getList(BLOBS_KEY, Document.class)
-                                        .stream()
-                                        .map(b -> b.getString(KEY)))
+                         .flatMap(d -> d.getList(BLOBS_KEY, Document.class).stream().map(b -> b.getString(KEY)))
                          .forEach(gc::mark);
             delete = true;
         } finally {
@@ -308,7 +311,7 @@ public class MongoDBTransientStore implements TransientStoreProvider {
             update.put(PARAMS_KEY + "." + parameter, serializeValue(value));
             update.put(COMPLETED_KEY, false);
             setTTL(update, firstLevelTTL);
-            entry.put("$set", update);
+            entry.put(SET, update);
             FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions();
             opts.upsert(true).projection(include(ID_KEY));
             if (log.isTraceEnabled()) {
@@ -367,7 +370,7 @@ public class MongoDBTransientStore implements TransientStoreProvider {
             update.put(PARAMS_KEY, params);
             update.put(COMPLETED_KEY, false);
             setTTL(update, firstLevelTTL);
-            entry.put("$set", update);
+            entry.put(SET, update);
             FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions();
             opts.upsert(true).projection(include(ID_KEY));
             if (log.isTraceEnabled()) {
@@ -446,7 +449,7 @@ public class MongoDBTransientStore implements TransientStoreProvider {
             update.put(BLOB_COUNT_KEY, blobs.size());
             update.put(COMPLETED_KEY, false);
             setTTL(update, firstLevelTTL);
-            entry.put("$set", update);
+            entry.put(SET, update);
             FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions();
             opts.upsert(true).projection(include(ID_KEY));
             if (log.isTraceEnabled()) {
@@ -517,9 +520,9 @@ public class MongoDBTransientStore implements TransientStoreProvider {
         update.put(COMPLETED_KEY, completed);
         setTTL(update, firstLevelTTL);
         Document entry = new Document();
-        entry.put("$set", update);
+        entry.put(SET, update);
         FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions();
-        opts.upsert(false).returnDocument(ReturnDocument.AFTER).projection(include(COMPLETED_KEY));
+        opts.upsert(true).returnDocument(ReturnDocument.AFTER).projection(include(COMPLETED_KEY));
         Document ret = getColl().findOneAndUpdate(filter, entry, opts);
         log.trace("{} setCompleted({}, {}) -> {}", config::getName, () -> key, () -> completed, () -> ret);
     }
@@ -561,7 +564,7 @@ public class MongoDBTransientStore implements TransientStoreProvider {
         setTTL(update, secondLevelTTL);
         update.put(COMPLETED_KEY, true);
         Document entry = new Document();
-        entry.put("$set", update);
+        entry.put(SET, update);
         Bson filter = eq(ID_KEY, key);
         FindOneAndUpdateOptions opts = new FindOneAndUpdateOptions().upsert(false).projection(include(ID_KEY));
         getColl().findOneAndUpdate(filter, entry, opts);

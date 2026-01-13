@@ -20,18 +20,21 @@ package org.nuxeo.ecm.collections.core.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.List;
 
 import org.junit.Test;
+import org.nuxeo.ecm.collections.api.CollectionConstants;
 import org.nuxeo.ecm.collections.core.adapter.Collection;
 import org.nuxeo.ecm.collections.core.adapter.CollectionMember;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentRef;
 import org.nuxeo.ecm.core.api.PathRef;
 import org.nuxeo.ecm.core.api.VersioningOption;
+import org.nuxeo.runtime.test.runner.WithFrameworkProperty;
 
 /**
  * @since 5.9.3
@@ -39,7 +42,18 @@ import org.nuxeo.ecm.core.api.VersioningOption;
 public class CollectionAddRemoveTest extends CollectionTestCase {
 
     @Test
-    public void testAddOneDocToNewCollectionAndRemove() throws Exception {
+    @WithFrameworkProperty(name = CollectionConstants.COLLECTION_MAX_SIZE_PROP, value = "1")
+    public void testCollectionMaxSize() {
+        List<DocumentModel> files = createTestFiles(session, 2);
+        collectionManager.addToNewCollection(COLLECTION_NAME, COLLECTION_DESCRIPTION, files.getFirst(), session);
+        DocumentRef newCollectionRef = new PathRef(COLLECTION_FOLDER_PATH + "/" + COLLECTION_NAME);
+        assertThrows(IllegalStateException.class,
+                () -> collectionManager.addToCollection(session.getDocument(newCollectionRef), files.getLast(),
+                        session));
+    }
+
+    @Test
+    public void testAddOneDocToNewCollectionAndRemove() {
         DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
                 "Workspace");
         testWorkspace = session.createDocument(testWorkspace);
@@ -84,7 +98,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
     public void testAddRemoveDocsToDetachedCollection() {
         List<DocumentModel> files = createTestFiles(session, 2);
 
-        collectionManager.addToNewCollection(COLLECTION_NAME, COLLECTION_DESCRIPTION, files.get(0), session);
+        collectionManager.addToNewCollection(COLLECTION_NAME, COLLECTION_DESCRIPTION, files.getFirst(), session);
 
         assertTrue(session.exists(new PathRef(COLLECTION_FOLDER_PATH)));
 
@@ -95,21 +109,17 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
 
         DocumentModel collection = session.getDocument(newCollectionRef);
         collection.detach(true);
-        collectionManager.addToCollection(collection, files.get(1), session);
+        collectionManager.addToCollection(collection, files.getLast(), session);
         Collection collectionAdapter = collection.getAdapter(Collection.class);
         assertEquals(2, collectionAdapter.getCollectedDocumentIds().size());
-        collectionManager.removeFromCollection(collection, files.get(0), session);
-        collectionManager.removeFromCollection(collection, files.get(1), session);
+        collectionManager.removeFromCollection(collection, files.getFirst(), session);
+        collectionManager.removeFromCollection(collection, files.getLast(), session);
         assertEquals(0, collectionAdapter.getCollectedDocumentIds().size());
 
     }
 
     @Test
     public void testAddManyDocsToNewCollectionAndRemove() {
-        DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
-                "Workspace");
-        testWorkspace = session.createDocument(testWorkspace);
-
         List<DocumentModel> files = createTestFiles(session, 3);
 
         collectionManager.addToNewCollection(COLLECTION_NAME, COLLECTION_DESCRIPTION, files, session);
@@ -224,6 +234,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
         assertTrue(session.exists(newCollectionRef));
 
     }
+
     /**
      * Check that a copied document does not belong to the collections of the original documents.
      *
@@ -266,7 +277,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
      * @since 8.4
      */
     @Test
-    public void testAddVersionToNewCollectionAndRemove() throws Exception {
+    public void testAddVersionToNewCollectionAndRemove() {
         DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
                 "Workspace");
         testWorkspace = session.createDocument(testWorkspace);
@@ -310,7 +321,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
      * @since 8.4
      */
     @Test
-    public void testAddVProxyToNewCollectionAndRemove() throws Exception {
+    public void testAddVProxyToNewCollectionAndRemove() {
         DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
                 "Workspace");
         testWorkspace = session.createDocument(testWorkspace);
@@ -319,8 +330,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
 
         PathRef sectionsRootRef = new PathRef("/default-domain/sections");
         assertTrue(session.exists(sectionsRootRef));
-        DocumentModel sectionDoc = session.getDocument(sectionsRootRef);
-        sectionDoc = session.createDocumentModel("Section");
+        DocumentModel sectionDoc = session.createDocumentModel("Section");
         sectionDoc.setPathInfo(sectionDoc.getPathAsString(), "section1");
         sectionDoc = session.createDocument(sectionDoc);
 
@@ -361,7 +371,7 @@ public class CollectionAddRemoveTest extends CollectionTestCase {
      * NXP-22085
      */
     @Test
-    public void testAddOneDocToNewCollectionAndRemoveDontTriggerAutomaticVersioning() throws Exception {
+    public void testAddOneDocToNewCollectionAndRemoveDontTriggerAutomaticVersioning() {
         DocumentModel testWorkspace = session.createDocumentModel("/default-domain/workspaces", "testWorkspace",
                 "Workspace");
         testWorkspace = session.createDocument(testWorkspace);

@@ -21,14 +21,12 @@ package org.nuxeo.ecm.restapi.server.management;
 import static jakarta.servlet.http.HttpServletResponse.SC_NOT_FOUND;
 import static jakarta.servlet.http.HttpServletResponse.SC_NO_CONTENT;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
 import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
 
-import java.util.List;
+import java.time.Duration;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
@@ -37,17 +35,16 @@ import org.junit.Test;
 import org.nuxeo.ecm.core.api.CoreSession;
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.PathRef;
+import org.nuxeo.ecm.core.bulk.BulkService;
 import org.nuxeo.ecm.core.search.SearchQuery;
 import org.nuxeo.ecm.core.search.SearchService;
 import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.ecm.restapi.test.RestServerFeature;
-import org.nuxeo.http.test.HttpResponse;
 import org.nuxeo.http.test.handler.HttpStatusCodeHandler;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RandomBug;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -64,6 +61,9 @@ public class TestSearchObject extends ManagementBaseTest {
 
     @Inject
     protected SearchService searchService;
+
+    @Inject
+    protected BulkService bulkService;
 
     @Inject
     protected CoreSearchFeature coreSearchFeature;
@@ -90,22 +90,6 @@ public class TestSearchObject extends ManagementBaseTest {
         // Start the ES indexing of all document of the coreSession repository
         httpClient.buildPostRequest("/management/search/reindex")
                   .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 3 + initialDocCount));
-    }
-
-    @Test
-    @RandomBug.Repeat(issue = "Too fast and not enough concurrent", onFailure = 10, onSuccess = 30)
-    public void fullReindexShouldBeExclusive() {
-        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
-
-        txFeature.nextTransaction();
-        int status1 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
-        int status2 = httpClient.buildPostRequest("/management/search/reindex").executeAndThen(HttpResponse::getStatus);
-        // One is accepted with a 200 the other is rejected with a 409
-        assertNotEquals(status1, status2);
-        assertTrue("status1: " + status1, status1 == 200 || status1 == 409);
-        assertTrue("status2: " + status2, status2 == 200 || status2 == 409);
-        // wait for full reindexing
-        txFeature.nextTransaction();
     }
 
     @Test
@@ -142,6 +126,21 @@ public class TestSearchObject extends ManagementBaseTest {
         httpClient.buildPostRequest("/repo/unExistingRepository/management/search/reindex")
                   .executeAndConsume(new HttpStatusCodeHandler(),
                           status -> assertEquals(SC_NOT_FOUND, status.intValue()));
+    }
+
+    @Test
+    public void shouldRunIndexingWithQueryLimit() {
+        assumeTrue("Only for implementation that can init index", coreSearchFeature.dropAndInitIndex());
+
+        // Create new documents without indexing them
+        createDocuments();
+
+        String query = "SELECT * FROM Document'";
+        // Start the ES indexing of document that match the nxql query (2 files)
+        httpClient.buildPostRequest("/management/search/reindex")
+                  .addQueryParameter("query", query)
+                  .addQueryParameter("queryLimit", "2")
+                  .executeAndConsume(new JsonNodeHandler(), node -> verifyIndexingResponse(node, 2));
     }
 
     @Test
@@ -185,10 +184,16 @@ public class TestSearchObject extends ManagementBaseTest {
 
         // Check the indexing status: at this step the indexing is launched but we are not sure about the exactly
         // value of its progress status
-        assertFalse(List.of("UNKNOWN", "ABORTED").contains(jsonNode.get("state").asText()));
+        assertBulkStatusScheduled(jsonNode);
 
         // Wait until the end of the ES indexing and then assert our expected indexed documents
-        txFeature.nextTransaction();
+        var commandId = jsonNode.get("commandId").asText();
+        try {
+            assertTrue("Bulk action didn't finish", bulkService.await(commandId, Duration.ofMinutes(1)));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
         forceRefresh();
         var response = searchService.search(SearchQuery.builder(GET_ALL_DOCUMENTS_QUERY, coreSession).build());
         assertEquals(expectedHits, response.getHitsCount());

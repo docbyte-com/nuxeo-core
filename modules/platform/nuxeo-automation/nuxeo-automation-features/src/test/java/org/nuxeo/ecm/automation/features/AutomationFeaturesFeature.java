@@ -21,7 +21,6 @@ package org.nuxeo.ecm.automation.features;
 import org.nuxeo.ecm.automation.core.AutomationCoreFeature;
 import org.nuxeo.ecm.automation.io.AutomationIOFeature;
 import org.nuxeo.ecm.automation.server.AutomationServerFeature;
-import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.RunnerFeature;
@@ -31,7 +30,6 @@ import org.nuxeo.runtime.test.runner.RunnerFeature;
  */
 @Deploy("org.nuxeo.ecm.actions")
 @Deploy("org.nuxeo.ecm.automation.features")
-@Features({ AutomationCoreFeature.class, AutomationIOFeature.class, AutomationServerFeature.class,
-        CoreSearchFeature.class })
+@Features({ AutomationCoreFeature.class, AutomationIOFeature.class, AutomationServerFeature.class })
 public class AutomationFeaturesFeature implements RunnerFeature {
 }

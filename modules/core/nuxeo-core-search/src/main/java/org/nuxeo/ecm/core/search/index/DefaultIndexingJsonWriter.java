@@ -71,6 +71,12 @@ public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
 
     public static final String TAG_LABEL_PROP = "label";
 
+    /** @since 2025.8 */
+    public static final String MAX_FULLTEXT_SIZE_FIELD = "nuxeo.search.default.fulltext.size.max";
+
+    // @since 2025.8 not static so it can be overridden in tests
+    protected final int MAX_FULLTEXT_SIZE = Integer.parseInt(Framework.getProperty(MAX_FULLTEXT_SIZE_FIELD, "-1"));
+
     @Override
     public void writeDocument(JsonGenerator jg, DocumentModel doc) throws IOException {
         jg.writeStartObject();
@@ -201,10 +207,29 @@ public class DefaultIndexingJsonWriter implements IndexingJsonWriter {
             for (Map.Entry<String, String> item : bmap.entrySet()) {
                 String value = item.getValue();
                 if (value != null) {
-                    jg.writeStringField("ecm:" + item.getKey(), value);
+                    jg.writeStringField("ecm:" + item.getKey(), truncateFulltext(value));
                 }
             }
         }
+    }
+
+    /**
+     * @since 2025.8
+     */
+    protected String truncateFulltext(String fulltext) {
+        if (fulltext == null || MAX_FULLTEXT_SIZE <= 0 || fulltext.length() <= MAX_FULLTEXT_SIZE) {
+            return fulltext;
+        }
+        // Look backwards to find the last word boundary
+        int pos = MAX_FULLTEXT_SIZE;
+        while (pos > 0 && !Character.isWhitespace(fulltext.charAt(pos - 1))) {
+            pos--;
+        }
+        if (pos == 0) {
+            // Very long word, truncate at the limit
+            pos = MAX_FULLTEXT_SIZE;
+        }
+        return fulltext.substring(0, pos);
     }
 
     // kept separate for easy override

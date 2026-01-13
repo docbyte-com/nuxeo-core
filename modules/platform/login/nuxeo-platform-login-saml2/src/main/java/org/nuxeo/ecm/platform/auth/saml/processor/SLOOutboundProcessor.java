@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,11 +65,29 @@ public class SLOOutboundProcessor extends AbstractSAMLProcessor {
 
     protected final SAMLOutboundBinding outboundBinding;
 
+    protected final String entityId;
+
+    /**
+     * @deprecated since 2025.7, use
+     *             {@link SLOOutboundProcessor#SLOOutboundProcessor(MessageHandler, MessageHandler, SAMLOutboundBinding, SAMLConfiguration)}
+     *             instead.
+     */
+    @Deprecated(since = "2025.7", forRemoval = true)
     public SLOOutboundProcessor(MessageHandler initInboundHandler, MessageHandler outboundHandler,
             SAMLOutboundBinding outboundBinding) {
+        this(initInboundHandler, outboundHandler, outboundBinding,
+                SAMLConfiguration.retrieveDefaultPluginConfiguration());
+    }
+
+    /**
+     * @since 2025.7
+     */
+    public SLOOutboundProcessor(MessageHandler initInboundHandler, MessageHandler outboundHandler,
+            SAMLOutboundBinding outboundBinding, SAMLConfiguration configuration) {
         this.initInboundHandler = initInboundHandler;
         this.outboundHandler = outboundHandler;
         this.outboundBinding = outboundBinding;
+        this.entityId = configuration.getSPEntityId();
     }
 
     @Override
@@ -83,8 +101,8 @@ public class SLOOutboundProcessor extends AbstractSAMLProcessor {
     }
 
     protected LogoutRequest buildLogoutRequest(MessageContext ctx) {
-        var endpoint = ctx.getSubcontext(SAMLPeerEntityContext.class)
-                          .getSubcontext(SAMLEndpointContext.class)
+        var endpoint = ctx.ensureSubcontext(SAMLPeerEntityContext.class)
+                          .ensureSubcontext(SAMLEndpointContext.class)
                           .getEndpoint();
         var request = HttpServletRequestResponseContext.getRequest();
         var samlSessionCookie = getSAMLSessionCookie(request).orElseThrow(
@@ -97,7 +115,7 @@ public class SLOOutboundProcessor extends AbstractSAMLProcessor {
         logoutRequest.setDestination(endpoint.getLocation());
 
         Issuer issuer = buildSAMLObject(Issuer.DEFAULT_ELEMENT_NAME);
-        issuer.setValue(SAMLConfiguration.getEntityId());
+        issuer.setValue(entityId);
         logoutRequest.setIssuer(issuer);
         logoutRequest.setNameID(buildNameID(samlSessionCookie));
 

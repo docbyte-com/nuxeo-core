@@ -26,6 +26,7 @@ import static jakarta.servlet.http.HttpServletResponse.SC_OK;
 import static org.nuxeo.ecm.jwt.JWTClaims.CLAIM_SUBJECT;
 import static org.nuxeo.ecm.platform.oauth2.Constants.AUTHORIZATION_CODE_GRANT_TYPE;
 import static org.nuxeo.ecm.platform.oauth2.Constants.AUTHORIZATION_CODE_PARAM;
+import static org.nuxeo.ecm.platform.oauth2.Constants.CLIENT_CREDENTIALS_GRANT_TYPE;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CLIENT_ID_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CODE_CHALLENGE_METHOD_PARAM;
 import static org.nuxeo.ecm.platform.oauth2.Constants.CODE_CHALLENGE_PARAM;
@@ -62,6 +63,7 @@ import org.nuxeo.ecm.platform.oauth2.request.AuthorizationRequest;
 import org.nuxeo.ecm.platform.oauth2.request.TokenRequest;
 import org.nuxeo.ecm.platform.oauth2.tokens.NuxeoOAuth2Token;
 import org.nuxeo.ecm.platform.oauth2.tokens.OAuth2TokenStore;
+import org.nuxeo.ecm.platform.usermanager.UserManager;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -333,12 +335,7 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
             String username = authRequest.getUsername(); // NOSONAR
             getAndSendToken(response, clientId, username);
         } else if (REFRESH_TOKEN_GRANT_TYPE.equals(grantType)) {
-            OAuth2Error error = null;
-            if (StringUtils.isBlank(tokenRequest.getClientId())) {
-                error = OAuth2Error.invalidRequest("Empty client id");
-            } else if (!clientService.isValidClient(tokenRequest.getClientId(), tokenRequest.getClientSecret())) {
-                error = OAuth2Error.invalidClient("Disabled client or invalid client secret");
-            }
+            OAuth2Error error = checkValidClient(tokenRequest.getClientId(), tokenRequest.getClientSecret(), false);
 
             if (error != null) {
                 handleJsonError(error, response);
@@ -358,18 +355,8 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
             String clientId = tokenRequest.getClientId();
             String clientSecret = tokenRequest.getClientSecret();
 
-            OAuth2Error error = null;
-            if (StringUtils.isBlank(jwtToken)) {
-                error = OAuth2Error.invalidRequest("Empty assertion");
-            } else if (StringUtils.isBlank(clientId)) {
-                error = OAuth2Error.invalidRequest("Empty client id");
-            } else if (!clientService.hasClient(clientId)) {
-                error = OAuth2Error.invalidClient(String.format("Invalid client: %s", clientId));
-            } else if (!clientService.isValidClient(clientId, clientSecret)) {
-                error = OAuth2Error.invalidClient(
-                        String.format("Disabled client: %s or invalid client secret", clientId));
-            }
-
+            OAuth2Error error = StringUtils.isBlank(jwtToken) ? OAuth2Error.invalidRequest("Empty assertion")
+                    : checkValidClient(clientId, clientSecret, false);
             if (error != null) {
                 handleJsonError(error, response);
                 return;
@@ -385,30 +372,99 @@ public class NuxeoOAuth2Servlet extends HttpServlet {
             String username = (String) claims.get(CLAIM_SUBJECT);
             getAndSendToken(response, clientId, username);
 
+        } else if (CLIENT_CREDENTIALS_GRANT_TYPE.equals(grantType)) {
+            String clientId = tokenRequest.getClientId();
+            String clientSecret = tokenRequest.getClientSecret();
+
+            OAuth2Error error = checkValidClient(clientId, clientSecret, true);
+            if (error == null) {
+                error = checkClientSecret(clientSecret);
+            }
+            if (error == null) {
+                error = checkUserMatchingClient(clientId);
+            }
+
+            if (error != null) {
+                handleJsonError(error, response);
+                return;
+            }
+
+            // Our implementation maps a client to the user with the client id as username
+            // E.g.: authenticating with an access token issued by this endpoint using the "hx-automate" client id will
+            // log in the "hx-automate" user.
+            getAndSendToken(response, clientId, clientId, false);
+
         } else {
-            handleJsonError(OAuth2Error.unsupportedGrantType(
-                    String.format("Unknown %s: got \"%s\", expecting \"%s\" or \"%s\".", GRANT_TYPE_PARAM, grantType,
-                            AUTHORIZATION_CODE_GRANT_TYPE, REFRESH_TOKEN_GRANT_TYPE)),
+            handleJsonError(
+                    OAuth2Error.unsupportedGrantType(
+                            String.format("Unknown %s: got \"%s\", expecting \"%s\", \"%s\", \"%s\" or \"%s\".",
+                                    GRANT_TYPE_PARAM, grantType, AUTHORIZATION_CODE_GRANT_TYPE,
+                                    REFRESH_TOKEN_GRANT_TYPE, JWT_BEARER_GRANT_TYPE, CLIENT_CREDENTIALS_GRANT_TYPE)),
                     response);
         }
     }
 
+    protected OAuth2Error checkValidClient(String clientId, String clientSecret, boolean requireSecret) {
+        OAuth2ClientService clientService = Framework.getService(OAuth2ClientService.class);
+        if (StringUtils.isBlank(clientId)) {
+            return OAuth2Error.invalidRequest("Empty client id");
+        }
+        if (!clientService.hasClient(clientId)) {
+            return OAuth2Error.invalidClient(String.format("Unknown client: %s", clientId));
+        }
+        if (requireSecret && StringUtils.isBlank(clientService.getClient(clientId).getSecret())) {
+            log.warn("Detected invalid client: {} for OAuth 2.0 Client Credentials flow, no client secret defined",
+                    clientId);
+            return OAuth2Error.invalidClient(String.format("Invalid client: %s", clientId));
+        }
+        if (!clientService.isValidClient(clientId, clientSecret)) {
+            return OAuth2Error.invalidClient(String.format("Disabled client: %s or invalid client secret", clientId));
+        }
+        return null;
+    }
+
+    protected OAuth2Error checkClientSecret(String clientSecret) {
+        return StringUtils.isBlank(clientSecret) ? OAuth2Error.invalidRequest("Empty client secret") : null;
+    }
+
+    protected OAuth2Error checkUserMatchingClient(String clientId) {
+        return !userExists(clientId)
+                ? OAuth2Error.invalidClient(String.format("Found no user matching client: %s", clientId))
+                : null;
+    }
+
+    protected boolean userExists(String username) {
+        return Framework.doPrivileged(() -> Framework.getService(UserManager.class).getPrincipal(username) != null);
+    }
+
     protected void getAndSendToken(HttpServletResponse response, String clientId, String username) throws IOException {
+        getAndSendToken(response, clientId, username, true);
+    }
+
+    protected void getAndSendToken(HttpServletResponse response, String clientId, String username, boolean refresh)
+            throws IOException {
         NuxeoOAuth2Token token = tokenStore.getToken(clientId, username);
         if (token == null) {
-            long expirationTime = Framework.getService(ConfigurationService.class)
-                                           .getDuration(ACCESS_TOKEN_EXPIRATION_DURATION_PROPERTY)
-                                           .map(Duration::toMillis)
-                                           .orElse((long) ACCESS_TOKEN_EXPIRATION_TIME);
-            final NuxeoOAuth2Token newToken = new NuxeoOAuth2Token(expirationTime, clientId);
-            TransactionHelper.runInTransaction(() -> tokenStore.store(username, newToken));
-            token = newToken;
+            token = createToken(clientId, username, refresh);
         } else if (token.isExpired()) {
-            final String refreshToken = token.getRefreshToken();
-            token = TransactionHelper.runInTransaction(() -> tokenStore.refresh(refreshToken, clientId));
+            final NuxeoOAuth2Token expiredToken = token;
+            token = TransactionHelper.runInTransaction(() -> tokenStore.refresh(expiredToken));
         }
-
         handleTokenResponse(token, response);
+    }
+
+    protected NuxeoOAuth2Token createToken(String clientId, String username) {
+        return createToken(clientId, username, true);
+    }
+
+    protected NuxeoOAuth2Token createToken(String clientId, String username, boolean refreshToken) {
+        long expirationTime = Framework.getService(ConfigurationService.class)
+                                       .getDuration(ACCESS_TOKEN_EXPIRATION_DURATION_PROPERTY)
+                                       .map(Duration::toMillis)
+                                       .orElse((long) ACCESS_TOKEN_EXPIRATION_TIME);
+        final NuxeoOAuth2Token newToken = new NuxeoOAuth2Token(expirationTime, clientId, refreshToken);
+        TransactionHelper.runInTransaction(() -> tokenStore.store(username, newToken));
+        return newToken;
     }
 
     protected void handleTokenResponse(NuxeoOAuth2Token token, HttpServletResponse response) throws IOException {

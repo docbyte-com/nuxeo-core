@@ -19,21 +19,21 @@
 package org.nuxeo.ecm.core.storage.gcp;
 
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
+import static org.nuxeo.ecm.core.blob.KeyStrategy.VER_SEP;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
+import java.util.Calendar;
 import java.util.HashSet;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
@@ -43,16 +43,17 @@ import org.nuxeo.ecm.core.blob.AbstractBlobGarbageCollector;
 import org.nuxeo.ecm.core.blob.AbstractBlobStore;
 import org.nuxeo.ecm.core.blob.BlobContext;
 import org.nuxeo.ecm.core.blob.BlobStore;
+import org.nuxeo.ecm.core.blob.BlobUpdateContext;
 import org.nuxeo.ecm.core.blob.BlobWriteContext;
 import org.nuxeo.ecm.core.blob.ByteRange;
 import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
+import org.nuxeo.ecm.core.blob.KeyStrategyDocId;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.CopyWriter;
@@ -85,6 +86,8 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     protected final BinaryGarbageCollector gc;
 
+    protected final boolean useVersion;
+
     public GoogleStorageBlobStore(String blobProviderId, String name, GoogleStorageBlobStoreConfiguration config,
             KeyStrategy keyStrategy) {
         super(blobProviderId, name, keyStrategy);
@@ -96,11 +99,12 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
         this.allowByteRange = config.getBooleanProperty(ALLOW_BYTE_RANGE);
         this.chunkSize = config.chunkSize;
         this.gc = new GoogleStorageBlobGarbageCollector();
+        useVersion = keyStrategy instanceof KeyStrategyDocId && config.isBucketVersioningEnabled;
     }
 
     @Override
     public void clear() {
-        for (Blob blob : bucket.list().iterateAll()) {
+        for (Blob blob : bucket.list(BlobListOption.prefix(bucketPrefix)).iterateAll()) {
             blob.delete();
         }
     }
@@ -110,61 +114,58 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
         return sourceStore.unwrap() instanceof GoogleStorageBlobStore;
     }
 
-    protected Blob getBlob(String key) {
-        return bucket.get(bucketPrefix + key);
-    }
-
     @Override
     public boolean hasVersioning() {
-        // Maybe later
-        return false;
+        return useVersion;
     }
 
     @Override
     public String copyOrMoveBlob(String key, BlobStore sourceStore, String sourceKey, boolean move) throws IOException {
         BlobStore unwrappedSourceStore = sourceStore.unwrap();
-        if (unwrappedSourceStore instanceof GoogleStorageBlobStore sourceGSBlobStore) {
+        if (unwrappedSourceStore instanceof GoogleStorageBlobStore srcGSStore) {
+            if (key == null) {
+                // XXX see what is done in s3 with MD5 from Etag and async digest
+                throw new UnsupportedOperationException();
+            }
             // attempt direct GS-level copy
-            String sourceBucketName = sourceGSBlobStore.bucketName;
-            String sourceBucketKey = sourceGSBlobStore.bucketPrefix + sourceKey;
-            String bucketKey = bucketPrefix + key;
-            BlobId source = BlobId.of(sourceGSBlobStore.bucketName, sourceGSBlobStore.bucketPrefix + sourceKey);
-            BlobId target = BlobId.of(bucketName, bucketKey);
-            Storage.BlobTargetOption precondition;
-            if (storage.get(bucketName, bucketKey) == null) {
-                // For a target object that does not yet exist, set the DoesNotExist precondition.
-                // This will cause the request to fail if the object is created before the request runs.
-                precondition = Storage.BlobTargetOption.doesNotExist();
-            } else {
-                // If the destination already exists in your bucket, instead set a generation-match
-                // precondition. This will cause the request to fail if the existing object's generation
-                // changes before the request runs.
-                precondition = Storage.BlobTargetOption.generationMatch(
-                        storage.get(bucketName, bucketKey).getGeneration());
+            var srcGsKey = new GoogleStorageBlobKey(srcGSStore.config, sourceKey);
+            var gsKey = new GoogleStorageBlobKey(config, key);
+            if (getKeyStrategy().useDeDuplication()) {
+                if (bucket.get(gsKey.bucketKey()) != null) {
+                    log.debug("No need to copy, blob with digest: {} is already in GCS", key);
+                    return key;
+                }
             }
             String resultKey = null;
             try {
-                CopyWriter writer = storage.copy(
-                        Storage.CopyRequest.newBuilder().setSource(source).setTarget(target, precondition).build());
+                CopyWriter writer = storage.copy(Storage.CopyRequest.newBuilder()
+                                                                    .setSource(srcGsKey.blobId())
+                                                                    .setTarget(gsKey.blobId())
+                                                                    .build());
                 Blob blob = writer.getResult();
                 if (blob != null) {
-                    resultKey = blob.getBlobId().getName();
+                    var blobId = blob.getBlobId();
+                    if (useVersion) {
+                        resultKey = key + VER_SEP + blobId.getGeneration();
+                    } else {
+                        resultKey = key;
+                    }
                 }
             } catch (StorageException e) {
                 String message = "Direct copy failed from gs://{}/{} to gs://{}/{}, falling back to slow copy: {}";
-                log.warn(message, () -> sourceBucketName, () -> sourceBucketKey, () -> bucketName, () -> bucketKey,
-                        e::getMessage);
-                log.debug(message, () -> sourceBucketName, () -> sourceBucketKey, () -> bucketName, () -> bucketKey,
-                        () -> e);
+                log.warn(message, () -> srcGSStore.bucketName, () -> srcGSStore.bucketPrefix, () -> bucketName,
+                        gsKey::bucketKey, e::getMessage);
+                log.debug(message, () -> srcGSStore.bucketName, () -> srcGSStore.bucketPrefix, () -> bucketName,
+                        gsKey::bucketKey, () -> e);
                 if (!isMissingKey(e)) {
                     throw new IOException(e);
                 }
             }
             if (resultKey != null) {
                 if (move) {
-                    storage.delete(source);
+                    storage.delete(srcGsKey.blobId());
                 }
-                return key;
+                return resultKey;
             }
             // fall through if not copied
         }
@@ -189,17 +190,15 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
                 file = tmp;
             }
             // if the digest is not already known then save to GCS
-            String bucketKey = bucketPrefix + key;
-            Blob blob = bucket.get(bucketKey);
-            if (blob == null) {
-                try (var is = new BufferedInputStream(new FileInputStream(file.toFile()));
-                        var writer = storage.writer(BlobInfo.newBuilder(bucketName, bucketKey).build())) {
-                    int bufferLength;
-                    byte[] buffer = new byte[chunkSize];
-                    writer.setChunkSize(chunkSize);
-                    while ((bufferLength = IOUtils.read(is, buffer)) > 0) {
-                        writer.write(ByteBuffer.wrap(buffer, 0, bufferLength));
-                    }
+            var gsKey = new GoogleStorageBlobKey(config, key);
+            String resultKey;
+            if (getKeyStrategy().useDeDuplication() && bucket.get(gsKey.bucketKey()) != null) {
+                log.debug("No need to generic copy, blob with digest: {} is already in GCS", gsKey);
+                resultKey = key;
+            } else {
+                try {
+                    var uploadResult = storage.createFrom(gsKey.blobInfo(), file);
+                    resultKey = useVersion ? key + VER_SEP + uploadResult.getGeneration() : key;
                 } catch (IOException e) {
                     throw new NuxeoException(e);
                 }
@@ -207,7 +206,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
             if (atomicMove) {
                 sourceStore.deleteBlob(sourceKey);
             }
-            return key;
+            return resultKey;
         } finally {
             if (tmp != null) {
                 try {
@@ -221,7 +220,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     @Override
     public void deleteBlob(String key) {
-        storage.delete(BlobId.of(bucketName, bucketPrefix + key));
+        storage.delete(new GoogleStorageBlobKey(config, key).blobId());
     }
 
     @Override
@@ -240,7 +239,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
     }
 
     @Override
-    public OptionalOrUnknown<InputStream> getStream(String key) throws IOException {
+    public OptionalOrUnknown<InputStream> getStream(String key) {
         Blob blob = bucket.get(bucketPrefix + key);
         if (blob == null) {
             return OptionalOrUnknown.missing();
@@ -254,12 +253,13 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
         if (allowByteRange) {
             MutableObject<String> keyHolder = new MutableObject<>(key);
             byteRange = getByteRangeFromKey(keyHolder);
-            key = keyHolder.getValue();
+            key = keyHolder.get();
         } else {
             byteRange = null;
         }
-        String bucketKey = bucketPrefix + key;
-        Blob blob = bucket.get(bucketKey);
+        var blobKey = new GoogleStorageBlobKey(config, key);
+        Blob blob = blobKey.isVersioned() ? bucket.get(blobKey.bucketKey(), blobKey.generation())
+                : bucket.get(blobKey.bucketKey());
         if (blob == null) {
             return false;
         }
@@ -307,31 +307,28 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
                 }
             }
             String key = blobWriteContext.getKey(); // may depend on write observer, for example for digests
-            if (key == null) {
-                // should never happen unless an invalid WriteObserver is used in new code
-                throw new NuxeoException("Missing key");
+            var gsKey = new GoogleStorageBlobKey(config, key);
+            if (gsKey.isVersioned()) {
+                // should never happen
+                throw new NuxeoException("Invalid versioned key '%s'".formatted(gsKey));
             }
             // if the digest is not already known then save to GCS
             long t0 = System.currentTimeMillis();
-            log.debug("Storing blob with digest: {} to GCS", key);
-            String bucketKey = bucketPrefix + key;
-            if (bucket.get(bucketKey) == null) {
-                try (var is = new BufferedInputStream(new FileInputStream(file.toFile()));
-                        var writer = storage.writer(BlobInfo.newBuilder(bucketName, bucketKey).build())) {
-                    int bufferLength;
-                    byte[] buffer = new byte[chunkSize];
-                    writer.setChunkSize(chunkSize);
-                    while ((bufferLength = IOUtils.read(is, buffer)) > 0) {
-                        writer.write(ByteBuffer.wrap(buffer, 0, bufferLength));
-                    }
-                } catch (IOException e) {
-                    throw new NuxeoException(e);
+            if (getKeyStrategy().useDeDuplication()) {
+                if (bucket.get(gsKey.bucketKey()) != null) {
+                    log.debug("Blob with digest: {} is already in GCS", key);
+                    return key;
                 }
-                log.debug("Stored blob with digest: {} to GCS in {}ms", key, System.currentTimeMillis() - t0);
-            } else {
-                log.debug("Blob with digest: {} is already in GCS", key);
             }
-            return key;
+            log.debug("Storing blob with digest: {} to GCS", key);
+            try {
+                var uploadResult = storage.createFrom(gsKey.blobInfo(), file);
+                var resultKey = useVersion ? key + VER_SEP + uploadResult.getGeneration() : key;
+                log.debug("Stored blob with key: {} to GCS in {}ms", resultKey, System.currentTimeMillis() - t0);
+                return resultKey;
+            } catch (IOException e) {
+                throw new NuxeoException(e);
+            }
         } finally {
             if (tmp != null) {
                 try {
@@ -342,6 +339,42 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
             }
         }
 
+    }
+
+    @Override
+    public void writeBlobProperties(BlobUpdateContext blobUpdateContext) throws IOException {
+        String key = blobUpdateContext.key;
+        var gsKey = new GoogleStorageBlobKey(config, key);
+        try {
+            if (config.retentionEnabled) {
+                if (!gsKey.isVersioned()) {
+                    throw new IOException("Cannot set legal hold or retention on non-versioned blob");
+                }
+                Blob blob = storage.get(gsKey.blobId());
+                if (blob == null) {
+                    log.debug("Blob gs://{}/{} does not exist", bucketName, gsKey);
+                    return;
+                }
+                if (blobUpdateContext.updateLegalHold != null) {
+                    blob.toBuilder().setTemporaryHold(blobUpdateContext.updateLegalHold.hold).build().update();
+                }
+                if (blobUpdateContext.updateRetainUntil != null) {
+                    Calendar retainUntil = blobUpdateContext.updateRetainUntil.retainUntil;
+                    OffsetDateTime retainUntilTime = retainUntil == null ? null
+                            : retainUntil.toInstant().atOffset(ZoneOffset.UTC);
+                    blob.toBuilder()
+                        .setRetention(BlobInfo.Retention.newBuilder()
+                                                        .setMode(config.retentionMode)
+                                                        .setRetainUntilTime(retainUntilTime)
+                                                        .build())
+                        .build()
+                        .update();
+
+                }
+            }
+        } catch (StorageException e) {
+            throw new IOException(e);
+        }
     }
 
     protected static boolean isMissingKey(StorageException e) {

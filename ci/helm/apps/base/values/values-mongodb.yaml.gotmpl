@@ -1,0 +1,26 @@
+image:
+  repository: bitnamilegacy/mongodb
+  tag: "8.0.3-debian-12-r0"
+commonLabels: {{- toYaml .Values.global.labels | nindent 2 }}
+  dev.nuxeo.com/app: mongodb
+persistence:
+  enabled: false
+useStatefulSet: false
+auth:
+  enabled: false
+serviceAccount:
+  create: false
+resources:
+  requests:
+    cpu: "2"
+    memory: "2Gi"
+  limits:
+    memory: "2Gi"
+labels:
+  dev.nuxeo.com/resource: statefulset
+podLabels:
+  dev.nuxeo.com/resource: pod
+pdb:
+  create: true
+  minAvailable: 1
+{{- toYaml .Values.global.selectors | nindent 0 }}

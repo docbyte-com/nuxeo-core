@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,7 +90,7 @@ public class StreamMetricsReporter extends ScheduledReporter {
     }
 
     @Override
-    public void report(SortedMap<MetricName, Gauge> gauges, SortedMap<MetricName, Counter> counters,
+    public void report(SortedMap<MetricName, Gauge<?>> gauges, SortedMap<MetricName, Counter> counters,
             SortedMap<MetricName, Histogram> histograms, SortedMap<MetricName, Meter> meters,
             SortedMap<MetricName, Timer> timers) {
         StreamService service = Framework.getService(StreamService.class);
@@ -101,7 +101,7 @@ public class StreamMetricsReporter extends ScheduledReporter {
         // like for other reporters, there is no need for millisecond granularity
         long timestamp = System.currentTimeMillis() / 1000;
         ArrayNode metrics = OBJECT_MAPPER.createArrayNode();
-        for (Map.Entry<MetricName, Gauge> entry : gauges.entrySet()) {
+        for (Map.Entry<MetricName, Gauge<?>> entry : gauges.entrySet()) {
             reportGauge(metrics, entry.getKey(), entry.getValue());
         }
         for (Map.Entry<MetricName, Timer> entry : timers.entrySet()) {
@@ -137,7 +137,7 @@ public class StreamMetricsReporter extends ScheduledReporter {
             metric.put("count", value.getCount());
             metric.put("rate1m", value.getOneMinuteRate());
             metric.put("rate5m", value.getFiveMinuteRate());
-            metric.put("sum", value.getSum());
+            metric.put("sum", convertDuration(value.getSum()));
             Snapshot snapshot = value.getSnapshot();
             metric.put("max", convertDuration(snapshot.getMax()));
             metric.put("mean", convertDuration(snapshot.getMean()));

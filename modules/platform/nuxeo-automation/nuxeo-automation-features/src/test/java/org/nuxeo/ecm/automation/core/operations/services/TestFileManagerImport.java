@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.automation.core.operations.services;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -31,6 +32,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
+import org.nuxeo.ecm.automation.InvalidChainException;
 import org.nuxeo.ecm.automation.OperationContext;
 import org.nuxeo.ecm.automation.OperationException;
 import org.nuxeo.ecm.automation.features.AutomationFeaturesFeature;
@@ -64,6 +66,17 @@ public class TestFileManagerImport {
     @Before
     public void before() {
         textBlob = Blobs.createBlob("foo", "application/octet-stream", null, "foo.txt");
+    }
+
+    @Test
+    public void testFileImportWithoutInput() {
+        assertThrows(InvalidChainException.class, () -> {
+            try (OperationContext ctx = new OperationContext(session)) {
+                ctx.setInput(null);
+
+                service.run(ctx, FileManagerImport.ID);
+            }
+        });
     }
 
     @Test

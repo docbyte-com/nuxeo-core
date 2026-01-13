@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -94,14 +95,18 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
         } else {
             throw new IllegalStateException("No repository manager available to get the default repository");
         }
-        // collect clients
+        // collect clients used by contributed indexes
+        var contributedClientIds = indexes.stream().map(SearchIndexDescriptor::getClient).collect(Collectors.toSet());
         for (SearchClientDescriptor descriptor : clients) {
-            log.debug("Retrieving SearchClient: '{}' with factory: '{}", descriptor::getId,
-                    descriptor::getFactoryClass);
-            var searchClient = Framework.getService(descriptor.getFactoryClass()).getSearchClient(descriptor.getName());
-            searchClients.put(descriptor.getId(), searchClient);
-            if (!searchClient.isReady()) {
-                throw new IllegalStateException("SearchClient: " + searchClient + " is not ready.");
+            if (contributedClientIds.contains(descriptor.getId())) {
+                log.debug("Retrieving SearchClient: '{}' with factory: '{}", descriptor::getId,
+                        descriptor::getFactoryClass);
+                var searchClient = Framework.getService(descriptor.getFactoryClass())
+                                            .getSearchClient(descriptor.getName());
+                searchClients.put(descriptor.getId(), searchClient);
+                if (!searchClient.isReady()) {
+                    throw new IllegalStateException("SearchClient: " + searchClient + " is not ready.");
+                }
             }
         }
         // collect indexes
@@ -114,26 +119,11 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
             if (descriptor.isDefault() || !repoToDefaultIndex.containsKey(repo)) {
                 var previousIndex = repoToDefaultIndex.put(repo, index.index());
                 if (previousIndex != null) {
-                    log.warn("The {} is overriding {} to be the default index for repository: {}", previousIndex, index,
-                            repo);
+                    log.warn("The index: {} is overriding the index: {} to be the default for the repository: {}",
+                            index.index(), previousIndex, repo);
                 }
             }
             indexToJsonWriter.put(index.index(), descriptor.newWriterInstance());
-        }
-    }
-
-    protected void initIndexes(SearchClient client, List<SearchIndexDescriptor> indexes) {
-        for (SearchIndexDescriptor descriptor : indexes) {
-            if (!descriptor.isEnabled()) {
-                continue;
-            }
-            String repo = descriptor.getRepositoryName();
-            String index = descriptor.getId();
-            repoToIndexes.computeIfAbsent(repo, k -> new ArrayList<>()).add(index);
-            if (descriptor.isDefault() || !repoToDefaultIndex.containsKey(repo)) {
-                repoToDefaultIndex.put(repo, index);
-            }
-            indexToJsonWriter.put(index, descriptor.newWriterInstance());
         }
     }
 
@@ -306,14 +296,18 @@ public class SearchServiceImpl implements SearchService, SearchIndexingService {
     }
 
     @Override
-    public String reindexDocuments(String repository, String nxql) {
-        log.debug("Reindexing repository: {} with nxql: {}", repository, nxql);
+    public String reindexDocuments(String repository, String nxql, long queryLimit) {
+        log.debug("Reindexing repository: {} with nxql: {}, limit: {}", repository, nxql, queryLimit);
         BulkService bulkService = Framework.getService(BulkService.class);
-        String commandId = bulkService.submit(new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
-                nxql, SYSTEM_USERNAME).repository(repository).build());
+        var builder = new BulkCommand.Builder(IndexingBackgroundAction.ACTION_NAME, //
+                nxql, SYSTEM_USERNAME).repository(repository);
+        if (queryLimit > 0) {
+            builder.queryLimit(queryLimit);
+        }
+        String commandId = bulkService.submit(builder.build());
         var searchIndexes = getIndexNames(repository);
-        log.warn("Reindexing documents on repository: {} using {}, with bulk command: {} on indexes: {}", repository,
-                nxql, commandId, searchIndexes);
+        log.warn("Reindexing documents on repository: {} using: {}{}, with bulk command: {} on indexes: {}", repository,
+                nxql, queryLimit > 0 ? " limit: " + queryLimit : "", commandId, searchIndexes);
         return commandId;
     }
 

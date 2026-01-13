@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2010-2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2010-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -208,6 +208,7 @@ public class ConfigurationGenerator {
      *
      * @since 11.5
      */
+    @SuppressWarnings("resource") // not ours to close
     protected static void initLogsIfNeeded(ConfigurationHolder configHolder) {
         if (LoggerContext.getContext(false).getRootLogger().getAppenders().isEmpty()) {
             // log config is relative to home path, which is populated at initialization
@@ -301,7 +302,7 @@ public class ConfigurationGenerator {
             }
         }
         if (configHolder.getPropertyAsBoolean(PARAM_NUXEO_DEV)) {
-            log.warn("Nuxeo Dev mode is enabled");
+            log.info("Nuxeo Dev mode is enabled");
         }
     }
 

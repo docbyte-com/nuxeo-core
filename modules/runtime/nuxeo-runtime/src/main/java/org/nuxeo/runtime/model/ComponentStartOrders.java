@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2017-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2017-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,9 @@ public class ComponentStartOrders {
 
     /** @since 2025.0 */
     public static final int KV = -500;
+
+    /** @since 2025.8 */
+    public static final int TRANSIENT_DATA_STORE = -500;
 
     /**
      * Let RedisComponent start before us (Redis starts before WorkManager that starts before events).

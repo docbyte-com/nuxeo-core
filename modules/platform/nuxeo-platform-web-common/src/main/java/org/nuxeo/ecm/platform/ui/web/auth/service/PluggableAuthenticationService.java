@@ -20,8 +20,9 @@ package org.nuxeo.ecm.platform.ui.web.auth.service;
 
 import static org.nuxeo.runtime.model.Descriptor.UNIQUE_DESCRIPTOR_ID;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -200,6 +201,14 @@ public class PluggableAuthenticationService extends DefaultComponent {
         return null;
     }
 
+    /**
+     * @return all plugins contributed to the authenticators extension point
+     * @since 2025.7
+     */
+    public Collection<NuxeoAuthenticationPlugin> getAuthenticatorPlugins() {
+        return Collections.unmodifiableCollection(authenticators.values());
+    }
+
     public List<NuxeoAuthenticationPlugin> getPluginChain() {
         return authChain.stream().filter(authenticators::containsKey).map(authenticators::get).toList();
     }
@@ -219,8 +228,12 @@ public class PluggableAuthenticationService extends DefaultComponent {
     public void invalidateSession(ServletRequest request) {
         boolean done = false;
         if (!sessionManagers.isEmpty()) {
-            Iterator<NuxeoAuthenticationSessionManager> it = sessionManagers.values().iterator();
-            while (it.hasNext() && !(done = it.next().invalidateSession(request))) {
+            for (var sessionManager : sessionManagers.values()) {
+                // stop on first manager succeeding to invalidate the session
+                if (sessionManager.invalidateSession(request)) {
+                    done = true;
+                    break;
+                }
             }
         }
         if (!done) {

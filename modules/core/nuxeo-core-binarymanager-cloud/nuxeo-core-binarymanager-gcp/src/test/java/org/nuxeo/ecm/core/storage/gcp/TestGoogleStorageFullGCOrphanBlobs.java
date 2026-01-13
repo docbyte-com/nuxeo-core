@@ -20,13 +20,12 @@ package org.nuxeo.ecm.core.storage.gcp;
 
 import org.junit.Test;
 import org.nuxeo.ecm.core.bulk.AbstractTestFullGCOrphanBlobs;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
 
 /**
  * @since 2023.5
  */
-@Features({ CoreFeature.class, GoogleStorageBlobProviderFeature.class })
+@Features(GoogleStorageBlobProviderFeature.class)
 public class TestGoogleStorageFullGCOrphanBlobs extends AbstractTestFullGCOrphanBlobs {
 
     @Override

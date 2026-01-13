@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,15 @@ public class RecoverableClientException extends NuxeoException {
 
     public RecoverableClientException(String message, String localizedMessage, String[] params) {
         super(message);
+        this.localizedMessage = localizedMessage;
+        this.params = params;
+    }
+
+    /**
+     * @since 2025.9
+     */
+    public RecoverableClientException(String message, String localizedMessage, String[] params, int statusCode) {
+        super(message, statusCode);
         this.localizedMessage = localizedMessage;
         this.params = params;
     }

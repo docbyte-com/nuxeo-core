@@ -52,7 +52,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @RunWith(FeaturesRunner.class)
-@Features(AutomationFeaturesFeature.class)
+@Features({ CoreSearchFeature.class, AutomationFeaturesFeature.class })
 @Deploy("org.nuxeo.ecm.automation.features.tests:test-indexAndRefresh-chain-contrib.xml")
 public class TestSearchAutomation {
 
@@ -77,6 +77,8 @@ public class TestSearchAutomation {
     protected SearchService searchService;
 
     protected DocumentRef rootRef;
+
+    protected DocumentRef fileRef;
 
     protected OperationContext ctx;
 
@@ -103,7 +105,8 @@ public class TestSearchAutomation {
         doc = coreSession.createDocumentModel("/my-folder/", "my-file", "File");
         doc.setPropertyValue("dc:title", "A file");
         doc.putContextData(DISABLE_AUTO_INDEXING, Boolean.TRUE);
-        coreSession.createDocument(doc);
+        doc = coreSession.createDocument(doc);
+        fileRef = doc.getRef();
         coreSession.save();
         txFeature.nextTransaction();
         // nothing indexed because of disable indexing flag
@@ -156,6 +159,18 @@ public class TestSearchAutomation {
         forceRefresh();
         assertEquals(2, searchService.search(SearchQuery.builder("SELECT * from Document", coreSession).build())
                                      .getHitsCount());
+    }
+
+    @Test
+    public void testIndexingOneDoc() throws Exception {
+        ctx.setInput(fileRef);
+        Blob result = (Blob) automationService.run(ctx, SearchIndexOperation.ID);
+        String commandId = new ObjectMapper().readTree(result.getString()).get("commandId").asText();
+        boolean waitResult = bulkService.await(commandId, Duration.ofSeconds(60));
+        assertTrue("Bulk action didn't finish", waitResult);
+        var status = bulkService.getStatus(commandId);
+        assertEquals(1, status.getProcessed());
+        assertEquals(1, status.getTotal());
     }
 
 }

@@ -20,15 +20,18 @@
 package org.nuxeo.ecm.core.schema;
 
 import static java.lang.Boolean.FALSE;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * Document Type Descriptor.
@@ -43,6 +46,9 @@ import org.nuxeo.common.xmap.annotation.XObject;
  */
 @XObject("doctype")
 public class DocumentTypeDescriptor {
+
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
 
     @XNode("@name")
     public String name;
@@ -173,5 +179,12 @@ public class DocumentTypeDescriptor {
         }
 
         return this;
+    }
+
+    /**
+     * @since 2025.3
+     */
+    public String getContributingComponentName() {
+        return contributingComponent != null ? contributingComponent.getName().getName() : null;
     }
 }

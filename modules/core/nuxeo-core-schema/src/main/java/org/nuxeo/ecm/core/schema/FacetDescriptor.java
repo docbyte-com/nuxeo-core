@@ -19,16 +19,22 @@
 package org.nuxeo.ecm.core.schema;
 
 import static java.lang.Boolean.FALSE;
+import static org.nuxeo.runtime.model.XContextValues.CONTRIBUTING_COMPONENT;
 
+import org.nuxeo.common.xmap.annotation.XContext;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.ComponentInstance;
 
 /**
  * Facet Descriptor.
  */
 @XObject("facet")
 public class FacetDescriptor {
+
+    @XContext(CONTRIBUTING_COMPONENT)
+    protected ComponentInstance contributingComponent;
 
     @XNode("@name")
     public String name;
@@ -57,8 +63,14 @@ public class FacetDescriptor {
 
     @Override
     public String toString() {
-        return "Facet(" + name + (FALSE.equals(enabled) ? ",disabled," : ",")
-                + SchemaDescriptor.getSchemaNames(schemas) + ')';
+        return "Facet(" + name + (FALSE.equals(enabled) ? ",disabled," : ",") + SchemaDescriptor.getSchemaNames(schemas)
+                + ')';
     }
 
+    /**
+     * @since 2025.3
+     */
+    public String getContributingComponentName() {
+        return contributingComponent != null ? contributingComponent.getName().getName() : null;
+    }
 }

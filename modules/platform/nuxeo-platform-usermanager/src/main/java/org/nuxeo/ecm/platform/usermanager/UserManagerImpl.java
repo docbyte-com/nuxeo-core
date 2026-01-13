@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2022 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import static org.nuxeo.ecm.platform.usermanager.UserConfig.GROUPS_COLUMN;
 import java.io.Serializable;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,8 +37,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -87,6 +89,8 @@ import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.services.config.ConfigurationService;
 import org.nuxeo.runtime.services.event.Event;
 import org.nuxeo.runtime.services.event.EventService;
+import org.nuxeo.runtime.ts.TransientDataService;
+import org.nuxeo.runtime.ts.TransientDataStore;
 
 /**
  * Standard implementation of the Nuxeo UserManager.
@@ -300,6 +304,10 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         userIdField = dirService.getDirectoryIdField(userDirectoryName);
     }
 
+    protected Directory getUserDirectory() {
+        return dirService.getDirectory(userDirectoryName);
+    }
+
     @Override
     public String getUserDirectoryName() {
         return userDirectoryName;
@@ -334,6 +342,10 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         this.groupDirectoryName = groupDirectoryName;
         groupSchemaName = dirService.getDirectorySchema(groupDirectoryName);
         groupIdField = dirService.getDirectoryIdField(groupDirectoryName);
+    }
+
+    protected Directory getGroupDirectory() {
+        return dirService.getDirectory(groupDirectoryName);
     }
 
     @Override
@@ -468,7 +480,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
             String schema = dirService.getDirectorySchema(digestAuthDirectory);
             DocumentModel entry = dir.getEntry(username, true);
             if (entry == null) {
-                entry = getDigestAuthModel();
+                entry = dir.createEntryModel();
                 entry.setProperty(schema, dir.getIdField(), username);
                 entry.setProperty(schema, dir.getPasswordField(), ha1);
                 dir.createEntry(entry);
@@ -486,9 +498,12 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         }
     }
 
+    /**
+     * @deprecated since 2025.9, not used anymore
+     */
+    @Deprecated(since = "2025.0", forRemoval = true)
     protected DocumentModel getDigestAuthModel() {
-        String schema = dirService.getDirectorySchema(digestAuthDirectory);
-        return BaseSession.createEntryModel(schema);
+        return dirService.getDirectory(digestAuthDirectory).createBareDocumentModel();
     }
 
     public static String encodeDigestAuthPassword(String username, String realm, String password) {
@@ -528,9 +543,8 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected NuxeoPrincipal makeTransientPrincipal(String username) {
-        DocumentModel userEntry = BaseSession.createEntryModel(userSchemaName, username, null);
-        userEntry.setProperty(userSchemaName, userIdField, username);
-        NuxeoPrincipal principal = makePrincipal(userEntry, false, true, null);
+        DocumentModel userEntry = makeTransientUserEntry(username, null);
+        NuxeoPrincipal principal = makePrincipal(userEntry, false, null);
         String[] parts = username.split("/");
         String email = parts[1];
         principal.setFirstName(email);
@@ -539,7 +553,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected DocumentModel makeVirtualUserEntry(String id, VirtualUser user) {
-        final DocumentModel userEntry = BaseSession.createEntryModel(userSchemaName, id, null);
+        final DocumentModel userEntry = getUserDirectory().createBareDocumentModel(id, null);
         // at least fill id field
         userEntry.setProperty(userSchemaName, userIdField, id);
         for (Entry<String, Serializable> prop : user.getProperties().entrySet()) {
@@ -552,18 +566,22 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         return userEntry;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    protected DocumentModel makeTransientUserEntry(String username, Map<String, Serializable> properties) {
+        DocumentModel userEntry = getUserDirectory().createBareDocumentModel(username, (Map) properties);
+        // enforce id
+        userEntry.setProperty(userSchemaName, userIdField, username);
+        return userEntry;
+    }
+
     protected NuxeoPrincipal makePrincipal(DocumentModel userEntry) {
         return makePrincipal(userEntry, false, null);
     }
 
     protected NuxeoPrincipal makePrincipal(DocumentModel userEntry, boolean anonymous, List<String> groups) {
-        return makePrincipal(userEntry, anonymous, false, groups);
-    }
-
-    protected NuxeoPrincipal makePrincipal(DocumentModel userEntry, boolean anonymous, boolean isTransient,
-            List<String> groups) {
         boolean admin = false;
         String username = userEntry.getId();
+        boolean isTransient = NuxeoPrincipal.isTransientUsername(username);
 
         List<String> virtualGroups = new LinkedList<>();
         // Add preconfigured groups: useful for LDAP, not for anonymous users
@@ -573,6 +591,18 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         // Add additional groups: useful for virtual users
         if (groups != null && !isTransient) {
             virtualGroups.addAll(groups);
+        }
+        // Extract virtual groups from transient storage
+        if (isTransient) {
+            @SuppressWarnings("unchecked")
+            var transientGroups = (List<String>) userEntry.getProperty(userSchemaName, userConfig.groupsKey);
+            var groupsByExistence = ListUtils.emptyIfNull(transientGroups)
+                                             .stream()
+                                             .collect(Collectors.partitioningBy(getGroupIds()::contains));
+            // put back groups that exist
+            userEntry.setProperty(userSchemaName, userConfig.groupsKey, groupsByExistence.get(Boolean.TRUE));
+            // set the others as virtual groups
+            virtualGroups.addAll(groupsByExistence.get(Boolean.FALSE));
         }
         // Create a default admin if needed
         if (administratorIds != null && administratorIds.contains(username)) {
@@ -597,6 +627,16 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         return principal;
     }
 
+    /**
+     * @deprecated since 2025.8, the transient flag is deduced from the userId whether it is starting with
+     *             {@link NuxeoPrincipal#TRANSIENT_USER_PREFIX transient/}
+     */
+    @Deprecated(since = "2025.8", forRemoval = true)
+    protected NuxeoPrincipal makePrincipal(DocumentModel userEntry, boolean anonymous, boolean isTransient,
+            List<String> groups) {
+        return makePrincipal(userEntry, anonymous, groups);
+    }
+
     protected boolean useCache() {
         return principalCache != null;
     }
@@ -616,7 +656,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         if (ret == null) {
             ret = getPrincipal(username, null);
             if (ret == null) {
-                return ret;
+                return null;
             }
             ((CacheManagement) principalCache).putLocal(username, ret);
         }
@@ -630,8 +670,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public DocumentModel getBareUserModel() {
-        String schema = dirService.getDirectorySchema(userDirectoryName);
-        return BaseSession.createEntryModel(schema);
+        return getUserDirectory().createBareDocumentModel();
     }
 
     @Override
@@ -761,7 +800,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected OrderByExpr getUserOrderBy() {
-        String sortField = StringUtils.defaultString(userSortField, userIdField);
+        String sortField = StringUtils.defaultIfBlank(userSortField, userIdField);
         return OrderByExprs.asc(sortField);
     }
 
@@ -770,7 +809,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected OrderByExpr getGroupOrderBy() {
-        String sortField = StringUtils.defaultString(groupSortField, groupIdField);
+        String sortField = StringUtils.defaultIfBlank(groupSortField, groupIdField);
         return OrderByExprs.asc(sortField);
     }
 
@@ -973,20 +1012,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                 if (fieldEntry.getValue() == MatchType.SUBSTRING) {
                     Directory dir = dirService.getDirectory(dirName);
                     SubstringMatchType substringMatchType = dir.getDescriptor().getSubstringMatchType();
-                    String value;
-                    switch (substringMatchType) {
-                        case subany:
-                            value = '%' + likePattern + '%';
-                            break;
-                        case subinitial:
-                            value = likePattern + '%';
-                            break;
-                        case subfinal:
-                            value = '%' + likePattern;
-                            break;
-                        default:
-                            throw new IllegalStateException(substringMatchType.toString());
-                    }
+                    String value = switch (substringMatchType) {
+                        case subany -> '%' + likePattern + '%';
+                        case subinitial -> likePattern + '%';
+                        case subfinal -> '%' + likePattern;
+                    };
                     predicate = Predicates.ilike(key, value);
                 } else { // MatchType.EXACT
                     predicate = Predicates.eq(key, pattern);
@@ -1036,8 +1066,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public DocumentModel getBareGroupModel() {
-        String schema = dirService.getDirectorySchema(groupDirectoryName);
-        return BaseSession.createEntryModel(schema);
+        return getGroupDirectory().createBareDocumentModel();
     }
 
     @Override
@@ -1049,7 +1078,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         List<String> permissions = new ArrayList<>();
         PermissionProvider permissionProvider = Framework.getService(PermissionProvider.class);
         String[] subpermissions = permissionProvider.getSubPermissions(perm);
-        if (subpermissions == null || subpermissions.length <= 0) {
+        if (ArrayUtils.isEmpty(subpermissions)) {
             // it's a leaf
             permissions.add(perm);
             return permissions;
@@ -1107,6 +1136,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     @Override
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
     public DocumentModelList searchUsers(QueryBuilder queryBuilder, DocumentModel context) {
         Directory dir = dirService.getDirectory(userDirectoryName, context);
         try (Session session = dir.getSession()) {
@@ -1115,8 +1145,9 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                 List<DocumentModel> virtualEntries = Collections.singletonList(anonymousEntry);
                 return queryWithVirtualEntries(session, queryBuilder, virtualEntries);
             } else {
-                return session.query(queryBuilder, false);
+                return session.query(queryBuilder);
             }
+            // TODO should transient user be searchable? (imho: no)
         }
     }
 
@@ -1126,12 +1157,13 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
      *
      * @since 10.3
      */
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
     protected DocumentModelList queryWithVirtualEntries(Session session, QueryBuilder queryBuilder,
             List<DocumentModel> virtualEntries) {
         AbstractDirectory dir = (AbstractDirectory) ((BaseSession) session).getDirectory();
 
         // do the basic query
-        DocumentModelList entries = session.query(queryBuilder, false);
+        DocumentModelList entries = session.query(queryBuilder);
 
         int limit = Math.max(0, (int) queryBuilder.limit());
         int offset = Math.max(0, (int) queryBuilder.offset());
@@ -1155,7 +1187,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         // else we have to do a manual paging/sorting...
         // re-do the full query with limit/offset
         queryBuilder = new QueryBuilder(queryBuilder).limit(0).offset(0).orders(Collections.emptyList());
-        entries = session.query(queryBuilder, false);
+        entries = session.query(queryBuilder);
         // add virtual entries
         entries.addAll(virtualEntries);
         // sort
@@ -1196,10 +1228,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     @Override
+    @SuppressWarnings("deprecation") // deprecated since 2021.x, remove the annotation
     public DocumentModelList searchGroups(QueryBuilder queryBuilder, DocumentModel context) {
         queryBuilder = multiTenantManagement.groupQueryTransformer(this, queryBuilder, context);
         try (Session session = dirService.open(groupDirectoryName, context)) {
-            return session.query(queryBuilder, false);
+            return session.query(queryBuilder);
         }
     }
 
@@ -1243,16 +1276,25 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected DocumentModel getUserModel(String userName, DocumentModel context, boolean fetchReferences) {
+        userName = StringUtils.trimToNull(userName);
         if (userName == null) {
             return null;
         }
 
-        userName = userName.trim();
         // return anonymous model
         if (anonymousUser != null && userName.equals(anonymousUser.getId())) {
             return makeVirtualUserEntry(getAnonymousUserId(), anonymousUser);
         }
 
+        // return transient model
+        if (NuxeoPrincipal.isTransientUsername(userName)) {
+            var transientUser = getTransientDataStore().getAll(userName);
+            if (transientUser != null) {
+                return makeTransientUserEntry(userName, transientUser);
+            }
+        }
+
+        // query the user directory
         try (Session userDir = dirService.open(userDirectoryName, context)) {
             DocumentModel userModel = userDir.getEntry(userName, fetchReferences);
             if (userModel != null && !fetchReferences) {
@@ -1290,12 +1332,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         if (virtualUsers.containsKey(username)) {
             return makeVirtualPrincipal(virtualUsers.get(username));
         }
-        if (NuxeoPrincipal.isTransientUsername(username)) {
-            return makeTransientPrincipal(username);
-        }
         DocumentModel userModel = getUserModel(username, context, fetchReferences);
         if (userModel != null) {
             return makePrincipal(userModel);
+        } else if (NuxeoPrincipal.isTransientUsername(username)) {
+            return makeTransientPrincipal(username);
         }
         return null;
     }
@@ -1321,9 +1362,20 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         // be sure UserId does not contains any trailing spaces
         checkUserId(userModel);
 
-        try (Session userDir = dirService.open(userDirectoryName, context)) {
-            String userId = getUserId(userModel);
+        String userId = getUserId(userModel);
+        if (NuxeoPrincipal.isTransientUsername(userId)) {
+            var transientDataStore = getTransientDataStore();
+            if (transientDataStore.exists(userId)) {
+                throw new UserAlreadyExistsException();
+            }
+            @SuppressWarnings({ "unchecked", "rawtypes" }) // properties are serializable
+            var map = (Map<String, Serializable>) (Map) userModel.getProperties(userSchemaName);
+            transientDataStore.putAll(userId, map);
+            // we could return the given userModel, but let creates a new instance like in the "normal" case
+            return makeTransientUserEntry(userId, map);
+        }
 
+        try (Session userDir = dirService.open(userDirectoryName, context)) {
             // check the user does not exist
             if (userDir.hasEntry(userId)) {
                 throw new UserAlreadyExistsException();
@@ -1368,7 +1420,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
             return;
         }
         String schema = dirService.getDirectorySchema(userDirectoryName);
-        String passwordField = dirService.getDirectory(userDirectoryName).getPasswordField();
+        String passwordField = getUserDirectory().getPasswordField();
 
         Property passwordProperty = userModel.getPropertyObject(schema, passwordField);
 
@@ -1382,8 +1434,21 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public void updateUser(DocumentModel userModel, DocumentModel context) {
+        String userId = getUserId(userModel);
+        if (NuxeoPrincipal.isTransientUsername(userId)) {
+            var transientDataStore = getTransientDataStore();
+            if (!transientDataStore.exists(userId)) {
+                throw new DirectoryException("user does not exist: " + userId);
+            }
+            @SuppressWarnings({ "unchecked", "rawtypes" }) // properties are serializable
+            var map = (Map<String, Serializable>) (Map) userModel.getProperties(userSchemaName);
+            transientDataStore.putAll(userId, map);
+
+            invalidatePrincipal(userId);
+            return;
+        }
+
         try (Session userDir = dirService.open(userDirectoryName, context)) {
-            String userId = getUserId(userModel);
 
             if (!userDir.hasEntry(userId)) {
                 throw new DirectoryException("user does not exist: " + userId);
@@ -1422,6 +1487,16 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public void deleteUser(String userId, DocumentModel context) {
+        if (NuxeoPrincipal.isTransientUsername(userId)) {
+            var transientStore = getTransientDataStore();
+            if (!transientStore.exists(userId)) {
+                throw new DirectoryException("User does not exist: " + userId);
+            }
+            transientStore.removeAll(userId);
+
+            invalidatePrincipal(userId);
+            return;
+        }
         try (Session userDir = dirService.open(userDirectoryName, context)) {
             if (!userDir.hasEntry(userId)) {
                 throw new DirectoryException("User does not exist: " + userId);
@@ -1520,11 +1595,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
             // Checking if the permission contains the permission we want to
             // check (we use the security service method for coumpound
             // permissions)
-            List<String> acePermissions = getLeafPermissions(ace.getPermission());
+            Set<String> acePermissions = new HashSet<>(getLeafPermissions(ace.getPermission()));
 
             // Everything is a special permission (not compound)
             if (SecurityConstants.EVERYTHING.equals(ace.getPermission())) {
-                acePermissions = Arrays.asList(permissionProvider.getPermissions());
+                acePermissions = Set.of(permissionProvider.getPermissions());
             }
 
             if (acePermissions.containsAll(currentPermissions)) {
@@ -1606,6 +1681,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     @Override
+    public UserConfig getUserConfig() {
+        return userConfig;
+    }
+
+    @Override
     public GroupConfig getGroupConfig() {
         return groupConfig;
     }
@@ -1620,4 +1700,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         }
     }
 
+    protected static TransientDataStore getTransientDataStore() {
+        return Framework.getService(TransientDataService.class).getStore("userManager");
+    }
 }

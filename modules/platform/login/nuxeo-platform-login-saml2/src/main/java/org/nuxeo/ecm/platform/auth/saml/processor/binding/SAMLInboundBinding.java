@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ package org.nuxeo.ecm.platform.auth.saml.processor.binding;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
+import jakarta.servlet.ServletRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 import org.opensaml.messaging.decoder.servlet.HttpServletRequestMessageDecoder;
@@ -73,7 +74,7 @@ public enum SAMLInboundBinding implements SAMLBinding {
         return decoderFactory.get();
     }
 
-    protected static boolean iSAMLObjectPresent(HttpServletRequest request) {
+    public static boolean iSAMLObjectPresent(ServletRequest request) {
         return request.getParameter(SAML_REQUEST) != null || request.getParameter(SAML_RESPONSE) != null;
     }
 }

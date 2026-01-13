@@ -22,14 +22,17 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
 import org.nuxeo.ecm.restapi.test.ManagementBaseTest;
 import org.nuxeo.http.test.handler.JsonNodeHandler;
+import org.nuxeo.runtime.test.runner.Features;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @since 2021.34
  */
+@Features(CoreSearchFeature.class)
 public class TestPageProvidersObject extends ManagementBaseTest {
 
     @Test

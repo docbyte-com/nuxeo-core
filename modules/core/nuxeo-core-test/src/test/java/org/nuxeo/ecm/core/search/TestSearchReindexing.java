@@ -26,6 +26,7 @@ import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.forceRefresh;
 import static org.nuxeo.ecm.core.search.BaseCoreSearchFeature.newSearchQuery;
 import static org.nuxeo.ecm.core.search.index.IndexingDomainEventProducer.DISABLE_AUTO_INDEXING;
 
+import java.time.Duration;
 import java.util.List;
 
 import jakarta.inject.Inject;
@@ -86,7 +87,7 @@ public class TestSearchReindexing {
     protected LogCaptureFeature.Result logCaptureResult;
 
     @Test
-    public void shouldReindexDocument() {
+    public void shouldReindexDocument() throws InterruptedException {
         buildDocs();
 
         String nxql = "SELECT * FROM Document ORDER BY ecm:uuid";
@@ -101,8 +102,8 @@ public class TestSearchReindexing {
                                                .loadDocuments(session);
         assertEquals(0, docs2.totalSize());
 
-        searchIndexingService.reindexRepository(session.getRepositoryName());
-        txFeature.nextTransaction();
+        String commandId = searchIndexingService.reindexRepository(session.getRepositoryName());
+        bulkService.await(commandId, Duration.ofSeconds(30));
         forceRefresh();
 
         docs2 = searchService.search(newSearchQuery(session, nxql)).loadDocuments(session);
@@ -193,7 +194,7 @@ public class TestSearchReindexing {
     @ConsoleLogLevelThreshold("ERROR")
     // @WithFrameworkProperty(name = "elasticsearch.index.bulkMaxSize", value = "4096")
     @Ignore("TODO check bulk request size and split if necessary")
-    public void shouldReindexDocumentWithSmallBulkSize() {
+    public void shouldReindexDocumentWithSmallBulkSize() throws InterruptedException {
         shouldReindexDocument();
         List<String> events = logCaptureResult.getCaughtEventMessages();
         assertFalse("Expecting warn message", events.isEmpty());

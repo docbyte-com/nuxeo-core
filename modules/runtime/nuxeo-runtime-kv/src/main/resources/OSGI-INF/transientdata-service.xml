@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.runtime.ts.TransientDataService" version="1.0">
+
+  <documentation>
+    The Transient Data service allows registration and access to TransientDataStores
+    to store dictionary values associated to keys.
+  </documentation>
+
+  <service>
+    <provide interface="org.nuxeo.runtime.ts.TransientDataService" />
+  </service>
+
+  <implementation class="org.nuxeo.runtime.ts.TransientDataServiceImpl" />
+
+  <extension-point name="configuration">
+    <documentation>
+      Defines the implementations of the Transient Data stores:
+      <code>
+        <dataStore name="default">
+          <provider class="org.nuxeo.runtime.ts.MemTransientDataStore" />
+          <ttl policy="CREATED">1d</ttl>
+        </dataStore>
+      </code>
+      The class must implement org.nuxeo.runtime.ts.TransientDataStoreProvider and provide a constructor taking
+      org.nuxeo.runtime.ts.TransientDataStoreDescriptor as its only parameter.
+    </documentation>
+
+    <object class="org.nuxeo.runtime.ts.TransientDataStoreDescriptor" />
+  </extension-point>
+
+  <extension target="org.nuxeo.runtime.ts.TransientDataService" point="configuration">
+    <dataStore name="default">
+      <provider class="${nuxeo.transientdatastore.default.provider.class:=org.nuxeo.runtime.ts.MemTransientDataStore}"/>
+      <ttl policy="${nuxeo.transientdatastore.default.ttl.policy:=CREATED}">${nuxeo.transientdatastore.default.ttl.value:=1d}</ttl>
+    </dataStore>
+  </extension>
+
+</component>

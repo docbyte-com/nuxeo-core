@@ -1,0 +1,23 @@
+persistence:
+  enabled: true
+useStatefulSet: true
+resources:
+  requests:
+    cpu: "15"
+    memory: "56Gi"
+  limits:
+    memory: "56Gi"
+podAnnotations:
+  ad.datadoghq.com/tags: '{"service":"{{ env "SERVICE_TAG" | default "benchmark-local" }}"}'
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: dev.nuxeo.com/app
+          operator: In
+          values:
+          - kafka
+          - opensearch
+          - mongodb
+      topologyKey: "kubernetes.io/hostname"
