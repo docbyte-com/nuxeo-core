@@ -131,7 +131,7 @@
     <!-- for use in maven-surefire-plugin, maven-failsafe-plugin -->
     <it.memory.argLine>-Xmx1g</it.memory.argLine>
     <!-- for use in maven-surefire-plugin, maven-failsafe-plugin -->
-    <it.failsafe.argLine></it.failsafe.argLine>
+    <it.failsafe.argLine/>
     <it.modules.argLine>
       --add-exports=java.base/jdk.internal.ref=ALL-UNNAMED
       --add-exports=java.base/sun.nio.ch=ALL-UNNAMED
@@ -158,6 +158,7 @@
     <protobuf.java.version>4.32.1</protobuf.java.version>
     <opensaml.version>5.1.6</opensaml.version>
     <quartz.version>2.5.0</quartz.version>
+    <org-apache-logging-log4j.log4j-core.version>2.25.3</org-apache-logging-log4j.log4j-core.version>
   </properties>
 
   <dependencyManagement>
@@ -4216,6 +4217,11 @@
         <artifactId>asm-util</artifactId>
         <version>9.9</version>
       </dependency>
+      <dependency>
+        <groupId>org.apache.logging.log4j</groupId>
+        <artifactId>log4j-core</artifactId>
+        <version>${org-apache-logging-log4j.log4j-core.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -4558,8 +4564,8 @@
                 <spaces>true</spaces>
                 <spacesPerTab>4</spacesPerTab>
               </indent>
-              <removeUnusedImports />
-              <removeWildcardImports />
+              <removeUnusedImports/>
+              <removeWildcardImports/>
               <importOrder>
                 <file>nuxeo.importorder</file>
               </importOrder>
@@ -5240,7 +5246,7 @@
               <groups>
                 <group>
                   <title>Nuxeo Common Packages</title>
-                  <packages>>cloud.docbyte.nuxeo.common:>cloud.docbyte.nuxeo.common.*</packages>
+                  <packages>&gt;cloud.docbyte.nuxeo.common:&gt;cloud.docbyte.nuxeo.common.*</packages>
                 </group>
                 <group>
                   <title>Nuxeo Runtime Packages</title>
