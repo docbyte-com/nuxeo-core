@@ -29,18 +29,13 @@ phases:
       - REGISTRY_URI=518241560725.dkr.ecr.eu-west-1.amazonaws.com
       - REPOSITORY_URI=518241560725.dkr.ecr.eu-west-1.amazonaws.com/docbyte-nuxeo
       - IMAGE_TAG=${VERSION:=latest}
-      - MAVEN_ARGS=" -Prelease,distrib,docker -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Ddocker.verbose=true"
-      - mvn versions:set -DnewVersion=${VERSION} -DgenerateBackupPoms=false $MAVEN_ARGS
-      - sed -i -E "s/<nuxeo.platform.version>.*?<\/nuxeo.platform.version>/<nuxeo.platform.version>$VERSION<\/nuxeo.platform.version>/" pom.xml
-      - sed -i -E "s/<version>\\$\{nuxeo.platform.version\}<\/version>/<version>$VERSION<\/version>/" pom.xml
-      - sed -i -E "s/org.nuxeo.ecm.product.version=.*/org.nuxeo.ecm.product.version=$VERSION/" server/nuxeo-nxr-server/src/main/resources/templates/nuxeo.defaults
-      - sed -i -E "s/<version>.*?<\/version>/<version>$VERSION<\/version>/" parent/pom.xml
-
+      - export MAVEN_ARGS=" -Prelease,distrib,docker -nsu -ntp -Djdk.util.zip.disableZip64ExtraFieldValidation=true -Dnuxeo.skip.enforcer=true -Dcustom.environment=mongodb -Dcustom.environment.log.dir=target-mongodb -Dnuxeo.test.core=mongodb -Ddocker.verbose=true"
+      - ./update-version.sh
 
   build:
     commands:
-      - LANG=en_US.utf8 mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" clean deploy $MAVEN_ARGS -fae
-      - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml deploy
+      - LANG=en_US.utf8 mvn -pl "!cloud.docbyte.nuxeo.docker:nuxeo-benchmark-docker-image" $MVN_GOAL $MAVEN_ARGS -fae
+      - mvn -DskipTests=true $MAVEN_ARGS -f parent/pom.xml $MVN_GOAL
       - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:latest
       - docker tag nuxeo/nuxeo:2025.x $REPOSITORY_URI:$IMAGE_TAG
       - echo Build finished on `date`
