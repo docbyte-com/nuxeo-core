@@ -48,7 +48,7 @@ public class WebEngineTestAdapter extends DefaultAdapter {
     }
 
     @Path("/web-object")
-    public Object getWebObject() {
-        return newObject("WebEngineTestObject", origin + '/' + getClass().getSimpleName());
+    public WebEngineTestObject getWebObject() {
+        return newObject(WebEngineTestObject.class, origin + '/' + getClass().getSimpleName());
     }
 }

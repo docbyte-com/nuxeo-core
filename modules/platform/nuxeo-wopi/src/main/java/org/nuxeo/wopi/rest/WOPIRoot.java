@@ -66,7 +66,7 @@ public class WOPIRoot extends ModuleRoot {
     protected HttpHeaders httpHeaders;
 
     @Path("/files/{fileId}")
-    public Object filesResource(@PathParam("fileId") FileInfo fileInfo) {
+    public FilesEndpoint filesResource(@PathParam("fileId") FileInfo fileInfo) {
         // prefix thread name for logging purpose
         return prefixThreadName(() -> {
             // verify proof key
@@ -81,7 +81,7 @@ public class WOPIRoot extends ModuleRoot {
             CoreSession session = context.getCoreSession();
             DocumentModel doc = getDocument(session, fileInfo.docId);
             Blob blob = getBlob(doc, fileInfo.xpath);
-            return newObject("wopiFiles", session, doc, blob, fileInfo.xpath);
+            return newObject(FilesEndpoint.class, session, doc, blob, fileInfo.xpath);
         });
     }
 

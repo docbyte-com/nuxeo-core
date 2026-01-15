@@ -115,8 +115,8 @@ public class WebEngineTestRoot extends ModuleRoot {
     }
 
     @Path("/web-object")
-    public Object getWebObject() {
-        return newObject("WebEngineTestObject", getClass().getSimpleName());
+    public WebEngineTestObject getWebObject() {
+        return newObject(WebEngineTestObject.class, getClass().getSimpleName());
     }
 
     @Override
