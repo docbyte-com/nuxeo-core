@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -120,11 +120,6 @@ public class UserRootObject extends AbstractUMRootObject<NuxeoPrincipal> {
     protected PageProviderDefinition getPageProviderDefinition() {
         PageProviderService ppService = Framework.getService(PageProviderService.class);
         return ppService.getPageProviderDefinition(PAGE_PROVIDER_NAME);
-    }
-
-    @Override
-    protected Object[] getParams() {
-        return new Object[] { query };
     }
 
 }
