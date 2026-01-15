@@ -54,11 +54,15 @@ jobs:
           create_pull_request: true
           pull_request_title: New Crowdin translations by GitHub Action (lts-2025)
 
+          # configure commit author
+          github_user_name: ${{ secrets.PLATFORM_BOT_USERNAME }}
+          github_user_email: "platform+jx-bot@nuxeo.com"
+
           # Automatically download all the new translations
           download_translations: true
 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PLATFORM_BOT_TOKEN }}
 
       - name: Auto-merge PR
         if: steps.crowdin-sync.outputs.pull_request_url
