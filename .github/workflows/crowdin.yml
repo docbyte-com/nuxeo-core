@@ -67,8 +67,8 @@ jobs:
       - name: Auto-merge PR
         if: steps.crowdin-sync.outputs.pull_request_url
         run: |
-          gh pr --repo $GITHUB_REPOSITORY merge "$PR_URL" --auto --rebase
-          gh pr --repo $GITHUB_REPOSITORY review --approve "$PR_URL"
+          gh pr --repo $GITHUB_REPOSITORY merge $PR_URL --auto --rebase
+          gh pr --repo $GITHUB_REPOSITORY review --approve $PR_URL
         env:
           PR_URL: ${{ steps.crowdin-sync.outputs.pull_request_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
