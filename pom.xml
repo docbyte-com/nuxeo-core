@@ -96,7 +96,7 @@
     <aws.version>2.41.10</aws.version>
     <gcp.version>2.62.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
-    <jackson.bom.version>2.20.1</jackson.bom.version>
+    <jackson.bom.version>2.21.0</jackson.bom.version>
     <bouncycastle.version>1.83</bouncycastle.version>
     <avro.version>1.12.1</avro.version>
     <restlet.version>2.4.4</restlet.version>
@@ -4625,7 +4625,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.20.1</version>
+          <version>2.21.0</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -5075,7 +5075,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
