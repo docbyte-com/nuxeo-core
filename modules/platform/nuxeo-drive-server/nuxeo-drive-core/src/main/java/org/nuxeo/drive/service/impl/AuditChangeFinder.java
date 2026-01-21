@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,7 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 import static org.nuxeo.audit.service.AuditBackend.Capability.EXTENDED_INFO_SEARCH;
+import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.IMPACTED_USERNAME_PROPERTY;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.asc;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.desc;
@@ -53,6 +54,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.RootlessItemException;
 import org.nuxeo.drive.adapter.impl.AbstractFileSystemItem;
@@ -252,7 +254,9 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
     @Override
     public long getUpperBound() {
         var queryBuilder = new AuditQueryBuilder().order(desc(LOG_ID)).limit(1);
-        List<LogEntry> entries = Framework.getService(AuditBackend.class).queryLogs(queryBuilder);
+        List<LogEntry> entries = Framework.getService(AuditService.class)
+                                          .getAuditBackend(DEFAULT_AUDIT_BACKEND)
+                                          .queryLogs(queryBuilder);
         if (entries.isEmpty()) {
             log.debug("Found no audit log entries, returning -1");
             return -1;
@@ -291,7 +295,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                                                   .order(desc(LOG_EVENT_DATE))
                                                   .limit(limit);
         String principalName = session.getPrincipal().getName();
-        var auditBackend = Framework.getService(AuditBackend.class);
+        var auditBackend = Framework.getService(AuditService.class).getAuditBackend(DEFAULT_AUDIT_BACKEND);
         if (auditBackend.hasCapability(EXTENDED_INFO_SEARCH)) {
             // is current user
             queryBuilder.and(or(isnull(LOG_EXTENDED + '/' + IMPACTED_USERNAME_PROPERTY),

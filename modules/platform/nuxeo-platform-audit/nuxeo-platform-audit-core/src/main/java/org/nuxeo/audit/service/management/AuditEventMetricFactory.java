@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2008 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,10 @@
  */
 package org.nuxeo.audit.service.management;
 
+import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
+
 import javax.management.ObjectName;
 
-import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.api.Framework;
@@ -55,8 +56,8 @@ public class AuditEventMetricFactory implements ResourceFactory {
 
     protected void doRegisterResource(String name) {
         publisherService.registerResource(formatShortcutName(name), formatQualifiedName(name),
-                AuditEventMetricMBean.class,
-                new AuditEventMetricMBeanAdapter(Framework.getService(AuditBackend.class), name));
+                AuditEventMetricMBean.class, new AuditEventMetricMBeanAdapter(
+                        Framework.getService(AuditService.class).getAuditBackend(DEFAULT_AUDIT_BACKEND), name));
     }
 
     protected void doUnregisterResource(String name) {

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -111,6 +111,11 @@ public class AuditComponent extends DefaultComponent implements AuditService {
     @Override
     public <T> T getAdapter(Class<T> adapter) {
         if (adapter.isAssignableFrom(AuditBackend.class)) {
+            log.atWarn()
+               .withThrowable(
+                       log.isDebugEnabled() || Framework.isDevModeSet() ? new Throwable("Debug stacktrace") : null)
+               .log("Getting AuditBackend from Framework.getService is deprecated, "
+                       + "use AuditService.getAuditBackend instead, enable debug level for stacktrace");
             return adapter.cast(getAuditBackend(DEFAULT_AUDIT_BACKEND));
         }
         return super.getAdapter(adapter);
