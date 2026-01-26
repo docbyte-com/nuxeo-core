@@ -82,7 +82,7 @@
     <apache.poi.version>5.5.1</apache.poi.version>
     <jodreport.version>2.4.0</jodreport.version>
     <jxls.version>3.0.0</jxls.version>
-    <keycloak.version>26.5.1</keycloak.version>
+    <keycloak.version>26.5.2</keycloak.version>
     <keycloak.policy.enforcer.version>26.0.8</keycloak.policy.enforcer.version>
     <keycloak.adapters.version>25.0.3</keycloak.adapters.version>
     <xdocreport.version>2.1.0</xdocreport.version>
@@ -93,7 +93,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.41.13</aws.version>
+    <aws.version>2.41.14</aws.version>
     <gcp.version>2.62.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.21.0</jackson.bom.version>
@@ -115,7 +115,7 @@
     <gatling-plugin.version>4.11.0</gatling-plugin.version>
     <scala.version>2.13.18</scala.version>
     <scala-logging.version>3.9.6</scala-logging.version>
-    <scala-maven-plugin.version>4.9.8</scala-maven-plugin.version>
+    <scala-maven-plugin.version>4.9.9</scala-maven-plugin.version>
 
     <nuxeo.skip.enforcer>false</nuxeo.skip.enforcer>
 
@@ -2786,7 +2786,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.27.6</version>
+        <version>3.27.7</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -4207,7 +4207,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.58.1</version>
+        <version>1.58.2</version>
       </dependency>
 
       <!-- Nashorn -->
