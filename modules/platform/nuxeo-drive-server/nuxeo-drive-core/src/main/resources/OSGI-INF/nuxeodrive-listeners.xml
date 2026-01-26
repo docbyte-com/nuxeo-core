@@ -81,9 +81,11 @@
 
   </extension>
 
-  <extension target="org.nuxeo.audit.service.AuditComponent" point="event">
-    <event name="rootRegistered" />
-    <event name="rootUnregistered" />
+  <extension target="org.nuxeo.audit.service.AuditComponent" point="routes">
+    <route name="default">
+      <event name="rootRegistered" />
+      <event name="rootUnregistered" />
+    </route>
   </extension>
 
 </component>

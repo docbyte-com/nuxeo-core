@@ -18,9 +18,13 @@
  */
 package org.nuxeo.audit.service;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static org.nuxeo.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
 import static org.nuxeo.audit.listener.StreamAuditEventListener.STREAM_NAME;
+import static org.nuxeo.audit.service.extension.ExtendedInfoDescriptor.ALL_EVENTS;
+import static org.nuxeo.common.stream.MapMultis.eachIf;
 import static org.nuxeo.ecm.core.schema.FacetNames.SYSTEM_DOCUMENT;
 
 import java.io.Serializable;
@@ -34,7 +38,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import jakarta.el.ELException;
@@ -48,6 +51,7 @@ import org.nuxeo.audit.api.LogEntryBuilder;
 import org.nuxeo.audit.mem.MemAuditBackendFactory;
 import org.nuxeo.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor;
+import org.nuxeo.audit.service.extension.AuditRouteDescriptor;
 import org.nuxeo.audit.service.extension.EventDescriptor;
 import org.nuxeo.audit.service.extension.ExtendedInfoDescriptor;
 import org.nuxeo.ecm.core.api.DocumentModel;
@@ -67,6 +71,7 @@ import org.nuxeo.lib.stream.log.Name;
 import org.nuxeo.runtime.RuntimeMessage;
 import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.model.ComponentContext;
+import org.nuxeo.runtime.model.ComponentInstance;
 import org.nuxeo.runtime.model.ComponentStartOrders;
 import org.nuxeo.runtime.model.DefaultComponent;
 import org.nuxeo.runtime.stream.StreamService;
@@ -94,9 +99,14 @@ public class AuditComponent extends DefaultComponent implements AuditService {
 
     protected static final String BACKEND_FACTORY_EXT_POINT = "backendFactory";
 
+    /** @deprecated since 2025.16, use {@link #ROUTES_EXT_POINT} instead */
+    @Deprecated(since = "2025.16", forRemoval = true)
     protected static final String EVENT_EXT_POINT = "event";
 
     protected static final String EXTENDED_INFO_EXT_POINT = "extendedInfo";
+
+    /** @since 2025.16 */
+    protected static final String ROUTES_EXT_POINT = "routes";
 
     protected final Map<String, AuditBackendFactory<?>> auditBackendFactories = new HashMap<>();
 
@@ -122,6 +132,39 @@ public class AuditComponent extends DefaultComponent implements AuditService {
     }
 
     @Override
+    @SuppressWarnings("removal")
+    @Deprecated(since = "2025.16", forRemoval = true) // method will be removed when EventDescriptor will be removed
+    public void registerContribution(Object contribution, String xp, ComponentInstance component) {
+        if (EVENT_EXT_POINT.equals(xp)) {
+            var eventDescriptor = (EventDescriptor) contribution;
+            register(ROUTES_EXT_POINT, eventDescriptor.toAuditRoute());
+            eventDescriptor.toExtendedInfos().forEach(extendedInfo -> register(EXTENDED_INFO_EXT_POINT, extendedInfo));
+            Framework.getRuntime()
+                     .getMessageHandler()
+                     .addMessage(new RuntimeMessage(RuntimeMessage.Level.WARNING,
+                             "The extension point: %s is deprecated, use extension points: %s and %s instead".formatted(
+                                     EVENT_EXT_POINT, ROUTES_EXT_POINT, EXTENDED_INFO_EXT_POINT),
+                             RuntimeMessage.Source.EXTENSION, component.getName().getName()));
+        } else {
+            super.registerContribution(contribution, xp, component);
+        }
+    }
+
+    @Override
+    @SuppressWarnings("removal")
+    @Deprecated(since = "2025.16", forRemoval = true) // method will be removed when EventDescriptor will be removed
+    public void unregisterContribution(Object contribution, String xp, ComponentInstance component) {
+        if (EVENT_EXT_POINT.equals(xp)) {
+            var eventDescriptor = (EventDescriptor) contribution;
+            unregister(ROUTES_EXT_POINT, eventDescriptor.toAuditRoute());
+            eventDescriptor.toExtendedInfos()
+                           .forEach(extendedInfo -> unregister(EXTENDED_INFO_EXT_POINT, extendedInfo));
+        } else {
+            super.unregisterContribution(contribution, xp, component);
+        }
+    }
+
+    @Override
     public int getApplicationStartedOrder() {
         return ComponentStartOrders.AUDIT;
     }
@@ -131,20 +174,21 @@ public class AuditComponent extends DefaultComponent implements AuditService {
         // pre-compute global extendedInfo mappers
         var extendedInfoDescriptors = this.<ExtendedInfoDescriptor> getDescriptors(EXTENDED_INFO_EXT_POINT)
                                           .stream()
-                                          .filter(ExtendedInfoDescriptor::isEnabled)
-                                          .toList();
+                                          .collect(groupingBy(ExtendedInfoDescriptor::getEvent, toList()));
         // register auditable event names and their specific extendedInfo mappers
         eventExtendedInfoMappers.putAll(
-                this.<EventDescriptor> getDescriptors(EVENT_EXT_POINT)
+                this.<AuditRouteDescriptor> getDescriptors(ROUTES_EXT_POINT)
                     .stream()
-                    .filter(EventDescriptor::isEnabled)
+                    .filter(route -> DEFAULT_AUDIT_BACKEND.equals(route.getBackendName()))
+                    .mapMulti(eachIf(AuditRouteDescriptor::getEvents, AuditRouteDescriptor.EventDescriptor::isEnabled))
                     .peek(eventDescriptor -> log.debug("Registered event: {}", eventDescriptor::getName))
-                    .collect(toMap(EventDescriptor::getName,
-                            // compute the extendedInfo mappers for each registered events
-                            eventDescriptor -> Stream.concat(extendedInfoDescriptors.stream(),
-                                    eventDescriptor.getExtendedInfoDescriptors().stream())
-                                                     .collect(Collectors.toMap(ExtendedInfoDescriptor::getKey,
-                                                             Function.identity(), ExtendedInfoDescriptor::merge))
+                    .collect(toMap(AuditRouteDescriptor.EventDescriptor::getName,
+                            // merge all extended info mappers with specific ones
+                            eventDescriptor -> Stream.concat(
+                                    extendedInfoDescriptors.getOrDefault(ALL_EVENTS, List.of()).stream(),
+                                    extendedInfoDescriptors.getOrDefault(eventDescriptor.getName(), List.of()).stream())
+                                                     .collect(toMap(ExtendedInfoDescriptor::getKey, Function.identity(),
+                                                             ExtendedInfoDescriptor::merge))
                                                      .values()
                                                      .stream()
                                                      // specific mapper can disable global one
