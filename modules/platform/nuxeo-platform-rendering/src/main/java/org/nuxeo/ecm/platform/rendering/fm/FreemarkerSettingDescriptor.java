@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024-2026 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,34 @@
  * Contributors:
  *     Kevin Leturc <kevin.leturc@hyland.com>
  */
-package org.nuxeo.ecm.webengine;
+package org.nuxeo.ecm.platform.rendering.fm;
 
-import org.nuxeo.runtime.test.runner.Deploy;
-import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.RunnerFeature;
-import org.nuxeo.runtime.test.runner.RuntimeFeature;
+import org.nuxeo.common.xmap.annotation.XNode;
+import org.nuxeo.common.xmap.annotation.XObject;
+import org.nuxeo.runtime.model.Descriptor;
 
 /**
- * @since 2025.0
+ * @since 2025.14
  */
-@Deploy("org.nuxeo.ecm.platform.rendering")
-@Deploy("org.nuxeo.ecm.platform.web.common")
-@Deploy("org.nuxeo.ecm.webengine.core")
-@Features(RuntimeFeature.class)
-public class WebEngineCoreFeature implements RunnerFeature {
+@XObject("setting")
+public class FreemarkerSettingDescriptor implements Descriptor {
+
+    @XNode("@name")
+    protected String name;
+
+    @XNode
+    protected String value;
+
+    @Override
+    public String getId() {
+        return name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

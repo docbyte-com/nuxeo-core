@@ -36,6 +36,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.io.CoreIOFeature;
 import org.nuxeo.ecm.core.test.ServletContainerTransactionalFeature;
+import org.nuxeo.ecm.webengine.WebEngineCoreFeature;
 import org.nuxeo.runtime.cluster.ClusterFeature;
 import org.nuxeo.runtime.test.runner.ConsoleLogLevelThreshold;
 import org.nuxeo.runtime.test.runner.Deploy;
@@ -54,11 +55,9 @@ import com.fasterxml.jackson.dataformat.xml.XmlFactory;
  * @since 2025.0
  */
 @RunWith(FeaturesRunner.class)
-@Features({ ServletContainerTransactionalFeature.class, CoreIOFeature.class, ClusterFeature.class, LogFeature.class,
-        LogCaptureFeature.class })
-@Deploy("org.nuxeo.ecm.platform.web.common")
+@Features({ ServletContainerTransactionalFeature.class, CoreIOFeature.class, ClusterFeature.class,
+        WebEngineCoreFeature.class, LogFeature.class, LogCaptureFeature.class })
 @Deploy("org.nuxeo.ecm.webengine.rest")
-@Deploy("org.nuxeo.ecm.webengine.core")
 @Deploy("org.nuxeo.ecm.webengine.core.test")
 @LoggerLevel(klass = TransactionHelper.class, level = "OFF") // mute No transaction associated with current thread
 @SuppressWarnings("unchecked")
