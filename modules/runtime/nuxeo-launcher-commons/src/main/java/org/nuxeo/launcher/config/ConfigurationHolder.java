@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2020 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2020-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
  * Contributors:
  *     Kevin Leturc <kleturc@nuxeo.com>
  */
-
 package org.nuxeo.launcher.config;
 
 import static java.util.Arrays.asList;
@@ -33,7 +32,6 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.codec.CryptoProperties;
@@ -304,7 +302,7 @@ public class ConfigurationHolder {
      * @return the names of the included templates (ie: name of template directory)
      */
     public List<String> getIncludedTemplateNames() {
-        return templates.stream().map(Path::getFileName).map(Path::toString).collect(Collectors.toUnmodifiableList());
+        return templates.stream().map(Path::getFileName).map(Path::toString).toList();
     }
 
     /**

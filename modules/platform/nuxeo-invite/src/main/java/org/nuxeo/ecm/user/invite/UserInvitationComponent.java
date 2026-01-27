@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,10 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
  * Contributors:
- * Nuxeo - initial API and implementation
+ *     Nuxeo - initial API and implementation
  */
-
 package org.nuxeo.ecm.user.invite;
 
 import static org.apache.commons.lang3.StringUtils.isBlank;
@@ -37,6 +37,7 @@ import java.util.Set;
 import jakarta.mail.MessagingException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.ecm.core.api.CoreSession;
@@ -286,7 +287,7 @@ public class UserInvitationComponent extends DefaultComponent implements UserInv
                            .build());
                 target.setACP(acp, true);
                 // test Validation Method
-            } else if (StringUtils.equals(EMAIL.toString(), validationMethod)) {
+            } else if (Strings.CS.equals(EMAIL.toString(), validationMethod)) {
                 sendValidationEmail(additionnalInfo, doc);
             }
 

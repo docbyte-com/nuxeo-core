@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,7 +122,7 @@ public class SendMailTest {
         emailsResult.assertSender("test@nuxeo.org", 1);
         emailsResult.assertRecipient("bs@nuxeo.com", 1);
         assertTrue(emailsResult.hasSubject("test mail"));
-        MailMessage msg = emailsResult.getMails().get(0);
+        MailMessage msg = emailsResult.getMails().getFirst();
         assertNotNull(msg.getDate());
         // Check variable replacement in body
         String expectedContent = "<h3>Current doc: /src</h3>" //

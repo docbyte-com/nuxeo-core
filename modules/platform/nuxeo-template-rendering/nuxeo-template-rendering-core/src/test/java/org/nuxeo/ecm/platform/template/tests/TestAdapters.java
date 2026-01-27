@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011-2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,7 +94,8 @@ public class TestAdapters {
 
         // Test template based doc
 
-        DocumentModel testDoc = session.createDocumentModel(root.getPathAsString(), "templatedDoc", "TemplateBasedFile");
+        DocumentModel testDoc = session.createDocumentModel(root.getPathAsString(), "templatedDoc",
+                "TemplateBasedFile");
         testDoc.setProperty("dublincore", "title", "MyTestDoc");
         testDoc = session.createDocument(testDoc);
 
@@ -106,7 +107,7 @@ public class TestAdapters {
         List<String> templateNames = adapter.getTemplateNames();
         assertNotNull(templateNames);
         assertEquals(1, templateNames.size());
-        assertEquals(templateSource.getName(), templateNames.get(0));
+        assertEquals(templateSource.getName(), templateNames.getFirst());
 
         testDoc = adapter.initializeFromTemplate(templateSource.getName(), true);
 
@@ -114,14 +115,14 @@ public class TestAdapters {
         List<TemplateInput> copiedParams = adapter.getParams(templateSource.getName());
         assertNotNull(copiedParams);
         assertEquals(1, copiedParams.size());
-        assertEquals("field1", copiedParams.get(0).getName());
-        assertEquals("Value1", copiedParams.get(0).getStringValue());
+        assertEquals("field1", copiedParams.getFirst().getName());
+        assertEquals("Value1", copiedParams.getFirst().getStringValue());
 
         // check update
-        copiedParams.get(0).setStringValue("newValue");
+        copiedParams.getFirst().setStringValue("newValue");
         adapter.saveParams(templateSource.getName(), copiedParams, true);
         copiedParams = adapter.getParams(templateSource.getName());
-        assertEquals("newValue", copiedParams.get(0).getStringValue());
+        assertEquals("newValue", copiedParams.getFirst().getStringValue());
 
         // create a second template doc
         DocumentModel template2 = session.createDocumentModel(root.getPathAsString(), "template2", "TemplateSource");

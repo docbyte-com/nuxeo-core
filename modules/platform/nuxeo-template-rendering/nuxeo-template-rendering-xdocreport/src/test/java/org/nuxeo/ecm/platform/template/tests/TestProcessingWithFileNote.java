@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2011-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,8 +134,8 @@ public class TestProcessingWithFileNote {
         // System.out.println(params);
         assertEquals(1, params.size());
 
-        params.get(0).setType(InputType.Content);
-        params.get(0).setSource(ContentInputType.HtmlPreview.getValue());
+        params.getFirst().setType(InputType.Content);
+        params.getFirst().setSource(ContentInputType.HtmlPreview.getValue());
 
         templateDoc = source.saveParams(params, true);
 

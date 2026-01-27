@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
  *     Nuxeo - initial API and implementation
  *     bstefanescu, jcarsique
  *     Anahide Tchertchian
- *
  */
 package org.nuxeo.common.utils;
 
@@ -356,7 +355,7 @@ public class TextTemplate {
         freemarkerConfiguration = new Configuration(Configuration.VERSION_2_3_30);
         // declare the decrypt method to be allowed to decrypt variables in nxftl
         freemarkerConfiguration.setSharedVariable("decrypt", (TemplateMethodModelEx) arguments -> {
-            String value = StringUtils.defaultIfBlank(arguments.get(0).toString(), "");
+            String value = StringUtils.defaultIfBlank(arguments.getFirst().toString(), "");
             // check if the given parameter is still a variable (ie: the parameter is an encrypted variable)
             var matcher = PATTERN.matcher(value);
             if (matcher.matches()) {
@@ -379,7 +378,7 @@ public class TextTemplate {
             currentMap = freemarkerVars;
             currentString = "";
             for (int i = 0; i < keyparts.length - 1; i++) {
-                currentString = currentString + ("".equals(currentString) ? "" : ".") + keyparts[i];
+                currentString = currentString + (StringUtils.isBlank(currentString) ? "" : ".") + keyparts[i];
                 if (!currentMap.containsKey(keyparts[i])) {
                     Map<String, Object> nextMap = new HashMap<>();
                     currentMap.put(keyparts[i], nextMap);

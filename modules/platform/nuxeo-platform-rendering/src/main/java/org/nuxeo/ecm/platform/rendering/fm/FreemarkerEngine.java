@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,7 @@
  *
  * Contributors:
  *     bstefanescu
- *
- * $Id$
  */
-
 package org.nuxeo.ecm.platform.rendering.fm;
 
 import java.io.IOException;
@@ -79,7 +76,7 @@ public class FreemarkerEngine implements RenderingEngine {
 
     public FreemarkerEngine(Configuration cfg, ResourceLocator locator) {
         wrapper = new DocumentObjectWrapper(this);
-        this.cfg = cfg == null ? new Configuration() : cfg;
+        this.cfg = cfg == null ? new Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) : cfg;
         this.cfg.setWhitespaceStripping(true);
         this.cfg.setLocalizedLookup(false);
         this.cfg.setClassicCompatible(true);

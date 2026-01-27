@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2011 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,18 +18,17 @@
  */
 package org.nuxeo.ecm.automation.core.test;
 
+import static org.junit.Assert.assertEquals;
+
 import java.net.URL;
 import java.util.List;
 
 import jakarta.inject.Inject;
 
-import org.junit.runner.RunWith;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
-
+import org.junit.runner.RunWith;
 import org.nuxeo.ecm.automation.AutomationService;
 import org.nuxeo.ecm.automation.OperationChain;
 import org.nuxeo.ecm.automation.OperationContext;

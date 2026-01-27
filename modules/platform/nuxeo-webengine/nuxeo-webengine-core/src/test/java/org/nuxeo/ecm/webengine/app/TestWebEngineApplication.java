@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2024-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2024-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -418,12 +418,12 @@ public class TestWebEngineApplication {
     }
 
     protected HttpResponse<String> executeRequest(String endpoint, UnaryOperator<HttpRequest.Builder> customizer) {
-        try {
+        try (var client = HttpClient.newHttpClient()) {
             HttpRequest.Builder builder = HttpRequest.newBuilder(
                     new URI("http://localhost:" + servletContainerFeature.getPort() + endpoint))
                                                      .setHeader("Content-Type", "application/json");
             HttpRequest request = customizer.andThen(HttpRequest.Builder::build).apply(builder);
-            return HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
+            return client.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (URISyntaxException | IOException | InterruptedException e) {
             throw new AssertionError("Unexpected exception", e);
         }

@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -97,7 +97,7 @@ public class TestTemplateSourceTypeBindings {
         return result;
     }
 
-    protected TemplateSourceDocument createWebTemplateDoc(String name) throws Exception {
+    protected TemplateSourceDocument createWebTemplateDoc(String name) {
 
         DocumentModel root = session.getRootDocument();
 
