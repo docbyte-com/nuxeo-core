@@ -6,6 +6,7 @@
   <service>
     <!-- @deprecated since 2025.16, default audit backend should be explicitly retrieved from AuditService -->
     <provide interface="org.nuxeo.audit.service.AuditBackend" />
+    <provide interface="org.nuxeo.audit.service.AuditRouter" />
     <provide interface="org.nuxeo.audit.service.AuditService" />
   </service>
 

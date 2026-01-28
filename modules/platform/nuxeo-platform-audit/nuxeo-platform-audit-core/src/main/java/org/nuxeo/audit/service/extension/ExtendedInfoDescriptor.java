@@ -21,14 +21,13 @@ package org.nuxeo.audit.service.extension;
 import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 
+import java.util.Objects;
+
 import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XObject;
 import org.nuxeo.runtime.model.Descriptor;
-
-import java.util.Objects;
 
 /**
  * Extended info descriptor
@@ -118,13 +117,10 @@ public class ExtendedInfoDescriptor implements Descriptor {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+        if (!(obj instanceof ExtendedInfoDescriptor other)) {
+            return false;
         }
-        if (obj instanceof ExtendedInfoDescriptor other) {
-            return Objects.equals(getId(), other.getId());
-        }
-        return false;
+        return Objects.equals(getId(), other.getId());
     }
 
     @Override

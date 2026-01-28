@@ -21,33 +21,42 @@ package org.nuxeo.audit.service;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 import static org.nuxeo.audit.impl.StreamAuditWriter.COMPUTATION_NAME;
 import static org.nuxeo.audit.listener.StreamAuditEventListener.STREAM_NAME;
 import static org.nuxeo.audit.service.extension.ExtendedInfoDescriptor.ALL_EVENTS;
 import static org.nuxeo.common.stream.MapMultis.eachIf;
+import static org.nuxeo.common.stream.MapMultis.instanceOf;
 import static org.nuxeo.ecm.core.schema.FacetNames.SYSTEM_DOCUMENT;
 
 import java.io.Serializable;
 import java.security.Principal;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import jakarta.annotation.Nullable;
 import jakarta.el.ELException;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.el.ExpressionFactoryImpl;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.api.LogEntryBuilder;
+import org.nuxeo.audit.api.Route;
 import org.nuxeo.audit.mem.MemAuditBackendFactory;
 import org.nuxeo.audit.service.extension.AdapterDescriptor;
 import org.nuxeo.audit.service.extension.AuditBackendFactoryDescriptor;
@@ -65,6 +74,7 @@ import org.nuxeo.ecm.core.event.DeletedDocumentModel;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.impl.DocumentEventContext;
+import org.nuxeo.ecm.core.uidgen.UIDGeneratorService;
 import org.nuxeo.ecm.platform.el.ExpressionContext;
 import org.nuxeo.ecm.platform.el.ExpressionEvaluator;
 import org.nuxeo.lib.stream.log.Name;
@@ -79,7 +89,7 @@ import org.nuxeo.runtime.stream.StreamService;
 /**
  * @since 2025.0
  */
-public class AuditComponent extends DefaultComponent implements AuditService {
+public class AuditComponent extends DefaultComponent implements AuditRouter, AuditService {
 
     private static final Logger log = LogManager.getLogger(AuditComponent.class);
 
@@ -94,6 +104,13 @@ public class AuditComponent extends DefaultComponent implements AuditService {
     public static final String DISABLE_AUDIT_LOGGER = "disableAuditLogger";
 
     public static final String FORCE_AUDIT_FACET = "ForceAudit";
+
+    /** @since 2025.16 */
+    public static final String STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP = "nuxeo.stream.audit.virtual.events.enabled";
+
+    protected static final String SEQUENCE_NAME = "audit";
+
+    protected static final String VIRTUAL_EVENT = "virtualEventCreated";
 
     protected static final String ADAPTER_EXT_POINT = "adapter";
 
@@ -112,7 +129,12 @@ public class AuditComponent extends DefaultComponent implements AuditService {
 
     protected final Map<String, List<ExtendedInfoMapper>> eventExtendedInfoMappers = new HashMap<>();
 
+    /** @since 2025.16 */
+    protected final List<Route> routes = new ArrayList<>();
+
     protected final ExpressionEvaluator expressionEvaluator = new ExpressionEvaluator(new ExpressionFactoryImpl());
+
+    protected Boolean handleVirtualEvents;
 
     // --------------
     // Component APIs
@@ -179,8 +201,8 @@ public class AuditComponent extends DefaultComponent implements AuditService {
         eventExtendedInfoMappers.putAll(
                 this.<AuditRouteDescriptor> getDescriptors(ROUTES_EXT_POINT)
                     .stream()
-                    .filter(route -> DEFAULT_AUDIT_BACKEND.equals(route.getBackendName()))
                     .mapMulti(eachIf(AuditRouteDescriptor::getEvents, AuditRouteDescriptor.EventDescriptor::isEnabled))
+                    .distinct()
                     .peek(eventDescriptor -> log.debug("Registered event: {}", eventDescriptor::getName))
                     .collect(toMap(AuditRouteDescriptor.EventDescriptor::getName,
                             // merge all extended info mappers with specific ones
@@ -196,6 +218,14 @@ public class AuditComponent extends DefaultComponent implements AuditService {
                                                      .map(descriptor -> new ExtendedInfoMapper(descriptor.getKey(),
                                                              descriptor.getExpression()))
                                                      .toList())));
+        // register audit routes
+        routes.addAll(this.<AuditRouteDescriptor> getDescriptors(ROUTES_EXT_POINT).stream().map(descriptor -> {
+            var eventNames = descriptor.streamEvents()
+                                       .filter(AuditRouteDescriptor.EventDescriptor::isEnabled)
+                                       .map(AuditRouteDescriptor.EventDescriptor::getName)
+                                       .collect(toSet());
+            return Route.of(descriptor.getBackendName(), logEntry -> eventNames.contains(logEntry.getEventId()));
+        }).toList());
         // register auditBackendFactories
         auditBackendFactories.putAll( //
                 this.<AuditBackendFactoryDescriptor> getDescriptors(BACKEND_FACTORY_EXT_POINT)
@@ -218,6 +248,74 @@ public class AuditComponent extends DefaultComponent implements AuditService {
     public void stop(ComponentContext context) throws InterruptedException {
         eventExtendedInfoMappers.clear();
         auditBackendFactories.clear();
+        routes.clear();
+    }
+
+    // ----------------
+    // AuditRouter APIs
+    // ----------------
+
+    /** @since 2025.16 */
+    @Override
+    public List<LogEntry> computeLogEntries(Event event) {
+        if (eventExtendedInfoMappers.containsKey(event.getName())) {
+            LogEntry logEntry = buildEntryFromEvent(event);
+            return logEntry == null ? List.of() : List.of(logEntry);
+        } else if (handleVirtualEvents() && VIRTUAL_EVENT.equals(event.getName())) {
+            return extractVirtualEvents(event.getContext().getArguments());
+        }
+        return List.of();
+    }
+
+    protected boolean handleVirtualEvents() {
+        if (handleVirtualEvents == null) {
+            handleVirtualEvents = Framework.isBooleanPropertyTrue(STREAM_AUDIT_VIRTUAL_EVENTS_ENABLED_PROP);
+        }
+        return handleVirtualEvents;
+    }
+
+    protected List<LogEntry> extractVirtualEvents(Object[] args) {
+        if (ArrayUtils.isEmpty(args)) {
+            return List.of();
+        }
+        return Arrays.stream(args).mapMulti(instanceOf(LogEntry.class)).toList();
+    }
+
+    @Override
+    public void routeToBackends(List<LogEntry> logEntries) {
+        routeToBackends(logEntries, routes);
+    }
+
+    @Override
+    public void routeToBackends(List<LogEntry> logEntries, List<Route> routes) {
+        if (logEntries.isEmpty()) {
+            return;
+        }
+        log.debug("Writing {} log entries to audit backend(s).", logEntries::size);
+        var sequencer = Framework.getService(UIDGeneratorService.class).getSequencer();
+        List<Long> block = sequencer.getNextBlock(SEQUENCE_NAME, logEntries.size());
+        Map<String, Set<LogEntry>> logEntriesByBackend = new HashMap<>();
+        for (int i = 0; i < logEntries.size(); i++) {
+            // first fill entry id and log date
+            LogEntry entry = logEntries.get(i).builder().id(block.get(i)).logDate(new Date()).build();
+            // second evaluate the routes
+            for (var route : routes) {
+                if (route.test(entry)) {
+                    logEntriesByBackend.computeIfAbsent(route.getBackendName(), k -> new LinkedHashSet<>()).add(entry);
+                }
+            }
+        }
+        // finally insert to backends
+        for (var mapEntry : logEntriesByBackend.entrySet()) {
+            var backendName = mapEntry.getKey();
+            var entries = mapEntry.getValue();
+            log.debug("Inserting to backend: {} following log entries: {}", () -> backendName,
+                    () -> entries.stream()
+                                 .map(entry -> "{id=%s,logDate=%s,eventId=%s}".formatted(entry.getId(),
+                                         entry.getLogDate(), entry.getEventId()))
+                                 .collect(Collectors.joining(", ", "[", "]")));
+            getAuditBackend(backendName).insertLogs(entries);
+        }
     }
 
     // -----------------
@@ -225,17 +323,19 @@ public class AuditComponent extends DefaultComponent implements AuditService {
     // -----------------
 
     @Override
+    @SuppressWarnings("removal") // remove on deprecation removal
     public Set<String> getAuditableEventNames() {
         return Collections.unmodifiableSet(eventExtendedInfoMappers.keySet());
     }
 
     @Override
+    @SuppressWarnings("removal") // remove on deprecation removal
     public List<ExtendedInfoMapper> getExtendedInfoMappers(String eventName) {
         return eventExtendedInfoMappers.getOrDefault(eventName, List.of());
     }
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({ "unchecked", "removal" })
     public <B extends AuditBackend> B getAuditBackend(String name) {
         var factory = auditBackendFactories.get(name);
         if (factory == null) {
@@ -245,10 +345,15 @@ public class AuditComponent extends DefaultComponent implements AuditService {
         if (backend == null) {
             throw new NuxeoException("No AuditBackend configured for name: " + name);
         }
+        if (backend instanceof AbstractAuditBackend abstractBackend) {
+            abstractBackend.setName(name);
+        }
         return backend;
     }
 
     @Override
+    @Nullable
+    @SuppressWarnings("removal") // turn into protected on deprecation removal
     public LogEntry buildEntryFromEvent(Event event) {
         EventContext ctx = event.getContext();
         String eventName = event.getName();
@@ -340,7 +445,8 @@ public class AuditComponent extends DefaultComponent implements AuditService {
             expressionEvaluator.bindValue(context, "principal", principal);
         }
 
-        populateExtendedInfo(builder, source, context, getExtendedInfoMappers(builder.eventId()));
+        populateExtendedInfo(builder, source, context,
+                eventExtendedInfoMappers.getOrDefault(builder.eventId(), List.of()));
 
         if (eventContext != null) {
             @SuppressWarnings("unchecked")

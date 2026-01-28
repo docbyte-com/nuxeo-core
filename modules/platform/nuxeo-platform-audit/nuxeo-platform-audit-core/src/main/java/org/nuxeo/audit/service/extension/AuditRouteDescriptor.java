@@ -26,7 +26,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
 import org.nuxeo.common.xmap.annotation.XObject;
@@ -62,6 +65,11 @@ public class AuditRouteDescriptor implements Descriptor {
 
     public List<EventDescriptor> getEvents() {
         return Collections.unmodifiableList(events);
+    }
+
+    /** @since 2025.16 */
+    public Stream<EventDescriptor> streamEvents() {
+        return events.stream();
     }
 
     @Override
@@ -112,6 +120,24 @@ public class AuditRouteDescriptor implements Descriptor {
             merged.name = name; // we merge based on name, so no name merging needed
             merged.enabled = firstNonNull(other.enabled, enabled);
             return merged;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof EventDescriptor other)) {
+                return false;
+            }
+            return Objects.equals(name, other.name);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(name);
+        }
+
+        @Override
+        public String toString() {
+            return ToStringBuilder.reflectionToString(this);
         }
     }
 }

@@ -42,6 +42,7 @@ import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.ecm.platform.query.api.PageProvider;
 import org.nuxeo.ecm.platform.query.api.PageProviderDefinition;
 import org.nuxeo.ecm.platform.query.api.PageProviderService;
+import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
 import org.nuxeo.runtime.test.runner.FeaturesRunner;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
@@ -53,6 +54,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
  */
 @RunWith(FeaturesRunner.class)
 @Features({ AuditFeature.class, CoreFeature.class })
+@Deploy("org.nuxeo.audit.test.test:OSGI-INF/test-audit-history-pageprovider-route-contrib.xml")
 public class TestAuditDocumentHistoryPageProvider {
 
     @Inject

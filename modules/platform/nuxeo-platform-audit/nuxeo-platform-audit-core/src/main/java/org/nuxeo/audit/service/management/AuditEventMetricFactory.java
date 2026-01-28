@@ -22,6 +22,7 @@ import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
 
 import javax.management.ObjectName;
 
+import org.nuxeo.audit.service.AuditComponent;
 import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.ecm.platform.audit.service.NXAuditEventsService;
 import org.nuxeo.runtime.api.Framework;
@@ -66,7 +67,7 @@ public class AuditEventMetricFactory implements ResourceFactory {
 
     @Override
     public void registerResources() {
-        for (String name : Framework.getService(AuditService.class).getAuditableEventNames()) {
+        for (String name : ((AuditComponent) Framework.getService(AuditService.class)).getAuditableEventNames()) {
             doRegisterResource(name);
         }
     }

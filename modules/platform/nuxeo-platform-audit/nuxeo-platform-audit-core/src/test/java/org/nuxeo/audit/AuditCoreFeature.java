@@ -22,13 +22,16 @@ import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.function.IntFunction;
 
 import jakarta.inject.Inject;
 
 import org.nuxeo.audit.api.LogEntry;
+import org.nuxeo.audit.api.Route;
 import org.nuxeo.audit.service.AuditBackend;
 import org.nuxeo.audit.service.AuditCleanerFeature;
+import org.nuxeo.audit.service.AuditRouter;
 import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.directory.test.DirectoryFeature;
 import org.nuxeo.ecm.core.BaseCoreFeature;
@@ -48,6 +51,7 @@ import com.google.inject.Binder;
  */
 @Deploy("org.nuxeo.runtime.metrics")
 @Deploy("org.nuxeo.ecm.platform.audit")
+@Deploy("org.nuxeo.ecm.core.test:OSGI-INF/test-default-sequencer-contrib.xml")
 @Features({ AuditCleanerFeature.class, BaseCoreFeature.class, DirectoryFeature.class })
 public class AuditCoreFeature implements RunnerFeature {
 
@@ -91,12 +95,11 @@ public class AuditCoreFeature implements RunnerFeature {
 
     /** @since 2025.16 */
     public void generateLogEntries(String backendName, int nbEntries, IntFunction<LogEntry> generator) {
-        var backend = Framework.getService(AuditService.class).getAuditBackend(backendName);
         var entries = new ArrayList<LogEntry>();
         for (int i = 0; i < nbEntries; i++) {
             entries.add(generator.apply(i));
         }
-        backend.addLogEntries(entries);
+        Framework.getService(AuditRouter.class).routeToBackends(entries, List.of(Route.allEventsTo(backendName)));
         transactionalFeature.nextTransaction();
     }
 
