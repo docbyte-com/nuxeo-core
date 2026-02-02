@@ -350,6 +350,23 @@ public interface Session<T extends QueryFilter> {
      */
 
     /**
+     * Property to enable session reconnection when borrowed from pool.
+     * <p>
+     * When enabled, sessions borrowed from the pool will have their database connection refreshed to ensure they have a
+     * valid connection for the new transaction. This fixes connection lifecycle issues with DBCP managed connections.
+     *
+     * @since 2025.14
+     */
+    String PROP_SESSION_POOL_RECONNECT_ENABLED = "org.nuxeo.session.pool.reconnect.enabled";
+
+    /**
+     * Default value for {@link #PROP_SESSION_POOL_RECONNECT_ENABLED}.
+     *
+     * @since 2025.14
+     */
+    String PROP_SESSION_POOL_RECONNECT_DEFAULT = "true";
+
+    /**
      * Reconnects the session's underlying connection if needed.
      * <p>
      * This is called when a session is borrowed from the pool to ensure the connection is valid.
