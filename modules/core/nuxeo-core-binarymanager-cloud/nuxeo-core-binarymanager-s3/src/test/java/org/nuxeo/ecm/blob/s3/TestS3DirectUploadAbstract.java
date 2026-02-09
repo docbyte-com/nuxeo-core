@@ -189,6 +189,12 @@ public abstract class TestS3DirectUploadAbstract {
         test("s3", 1024);
     }
 
+    // NXP-33505
+    @Test
+    public void testKeyWithVersionSeparator() {
+        test("s3", "key-foo@bar", 1024);
+    }
+
     @Test
     public void testMultipart() {
         test("s3", MULTIPART_THRESHOLD * 2);
@@ -243,7 +249,11 @@ public abstract class TestS3DirectUploadAbstract {
         } else {
             key = "key-" + System.nanoTime(); // with "-" to denote temporary digest
         }
-        // generate unique key and and random content of give size
+        test(handlerName, key, size);
+    }
+
+    protected void test(String handlerName, String key, int size) {
+        // generate unique key and random content of given size
         String name = "name" + System.nanoTime();
         byte[] content = generateRandomBytes(size);
         String expectedDigest = DigestUtils.md5Hex(content);
