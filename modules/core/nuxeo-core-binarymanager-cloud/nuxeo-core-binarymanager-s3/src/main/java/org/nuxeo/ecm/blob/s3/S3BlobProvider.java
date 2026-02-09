@@ -134,11 +134,6 @@ public class S3BlobProvider extends CloudBlobProvider<S3BlobStoreConfiguration> 
         config.close();
     }
 
-    @Override
-    protected String getDigestAlgorithm() {
-        return config.digestConfiguration.digestAlgorithm;
-    }
-
     /** Checks if the bucket exists (used in health check probes). */
     public boolean canAccessBucket() {
         try {

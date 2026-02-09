@@ -65,6 +65,7 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
@@ -72,7 +73,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.DefaultRetention;
+import software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationResponse;
 import software.amazon.awssdk.services.s3.model.ObjectLockConfiguration;
@@ -391,6 +394,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     protected String userAgentSuffix;
 
+    protected final boolean isBucketVersioningEnabled;
+
     public S3BlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         cloudFront = new CloudFrontConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
@@ -451,6 +456,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         // For compat
         s3RetentionEnabled = retentionEnabled;
 
+        isBucketVersioningEnabled = computeVersioningEnabled();
+
         var storageClassProperty = getProperty(STORAGE_CLASS_PROPERTY);
         if (isNotBlank(storageClassProperty)) {
             storageClass = StorageClass.fromValue(storageClassProperty.toUpperCase());
@@ -462,6 +469,27 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         }
         log.info("Object will be stored with S3 {} storage class", storageClass);
         transferManager = createTransferManager();
+    }
+
+    @Override
+    protected boolean isVersioningEnabled() {
+        return isBucketVersioningEnabled;
+    }
+
+    protected boolean computeVersioningEnabled() {
+        try {
+            GetBucketVersioningResponse response = amazonS3.getBucketVersioning(b -> b.bucket(bucketName));
+            // if versioning is suspended, created objects won't have versions
+            return BucketVersioningStatus.ENABLED.equals(response.status());
+        } catch (SdkServiceException e) {
+            if (e.statusCode() == HttpStatus.SC_NOT_IMPLEMENTED) {
+                // minio does not implement versioning
+                log.warn("Versioning not implemented for bucket: {}: {}", () -> bucketName, e::getMessage);
+                log.debug(e, e);
+                return false;
+            }
+            throw e;
+        }
     }
 
     protected S3Client createSyncClient() {
