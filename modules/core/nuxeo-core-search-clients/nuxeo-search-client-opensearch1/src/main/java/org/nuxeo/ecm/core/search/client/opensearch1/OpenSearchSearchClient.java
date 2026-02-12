@@ -99,6 +99,7 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
             case HIGHLIGHT -> true;
             case AGGREGATE -> true;
             case MULTI_REPOSITORIES -> true;
+            default -> false;
         };
     }
 
