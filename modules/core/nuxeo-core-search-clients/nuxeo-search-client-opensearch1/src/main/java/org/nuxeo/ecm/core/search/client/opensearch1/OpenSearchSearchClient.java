@@ -95,11 +95,11 @@ public class OpenSearchSearchClient extends AbstractSearchClient {
     @Override
     public boolean hasCapability(Capability capability) {
         return switch (capability) {
+            case INIT_INDEX -> true;
             case INDEXING -> true;
             case HIGHLIGHT -> true;
             case AGGREGATE -> true;
             case MULTI_REPOSITORIES -> true;
-            default -> false;
         };
     }
 
