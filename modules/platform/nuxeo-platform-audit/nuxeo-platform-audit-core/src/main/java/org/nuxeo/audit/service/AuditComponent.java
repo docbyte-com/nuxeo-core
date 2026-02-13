@@ -18,6 +18,7 @@
  */
 package org.nuxeo.audit.service;
 
+import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
@@ -43,6 +44,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -220,11 +222,20 @@ public class AuditComponent extends DefaultComponent implements AuditRouter, Aud
                                                      .toList())));
         // register audit routes
         routes.addAll(this.<AuditRouteDescriptor> getDescriptors(ROUTES_EXT_POINT).stream().map(descriptor -> {
-            var eventNames = descriptor.streamEvents()
-                                       .filter(AuditRouteDescriptor.EventDescriptor::isEnabled)
-                                       .map(AuditRouteDescriptor.EventDescriptor::getName)
-                                       .collect(toSet());
-            return Route.of(descriptor.getBackendName(), logEntry -> eventNames.contains(logEntry.getEventId()));
+            // compute the route based on contribution: predicates AND event names
+            // predicates are ORed between them and default to true if none
+            var contributedPredicate = descriptor.streamPredicates()
+                                                 .map(AuditRouteDescriptor.PredicateDescriptor::instantiatePredicate)
+                                                 .reduce(Predicate::or)
+                                                 .orElse(logEntry -> true);
+            // event names are ORed between them and default to all if none
+            var eventNamePredicate = descriptor.streamEvents()
+                                               .filter(AuditRouteDescriptor.EventDescriptor::isEnabled)
+                                               .map(AuditRouteDescriptor.EventDescriptor::getName)
+                                               .collect(collectingAndThen(toSet(),
+                                                       eventNames -> (Predicate<LogEntry>) logEntry -> eventNames.isEmpty()
+                                                               || eventNames.contains(logEntry.getEventId())));
+            return Route.of(descriptor.getBackendName(), contributedPredicate.and(eventNamePredicate));
         }).toList());
         // register auditBackendFactories
         auditBackendFactories.putAll( //

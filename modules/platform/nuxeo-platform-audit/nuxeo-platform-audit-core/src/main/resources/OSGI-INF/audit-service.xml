@@ -48,7 +48,9 @@
     <documentation>
       Allows to register audit routes for log entry backend storage location.
       <p />
-      A route is composed of a backend name and a list of events to forward to this backend.
+      A route is basically composed of a backend name and a list of events to forward to this backend.
+      <p />
+      Such routes also register the events to convert to log entries that will later be routed to backends.
 
       <programlisting>
         <extension target="org.nuxeo.audit.service.AuditComponent" point="routes">
@@ -59,6 +61,25 @@
           </route>
         </extension>
       </programlisting>
+      <p />
+      A route can also be composed of a backend name and a list of predicates.
+      <p />
+      Such routes don't register events to convert to log entries, they only act at backend routing layer.
+
+      <programlisting>
+        <extension target="org.nuxeo.audit.service.AuditComponent" point="routes">
+          <route name="documentCategory">
+            <backend name="default" />
+            <predicate class="org.nuxeo.audit.service.route.CategoryLogEntryPredicate">
+              <property name="category">eventDocumentCategory</property>
+            </predicate>
+          </route>
+        </extension>
+      </programlisting>
+      <p />
+      The events and predicates can be combined, they are computed as AND when routing log entries to backends. The OR
+      combination is achieved by declaring several routes with the same backend. Keep in mind that event conversion is
+      only done for events registered in routes.
     </documentation>
 
     <object class="org.nuxeo.audit.service.extension.AuditRouteDescriptor" />

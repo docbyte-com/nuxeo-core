@@ -29,6 +29,7 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 import static org.nuxeo.audit.service.AuditBackend.Capability.EXTENDED_INFO_SEARCH;
 import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
+import static org.nuxeo.drive.service.NuxeoDriveEvents.EVENT_CATEGORY;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.IMPACTED_USERNAME_PROPERTY;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.asc;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.desc;
@@ -127,7 +128,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         // need to be invalidated: let's make sure we perform a
         // query with the actual active roots.
         for (LogEntry entry : entries) {
-            if (NuxeoDriveEvents.EVENT_CATEGORY.equals(entry.getCategory())) {
+            if (EVENT_CATEGORY.equals(entry.getCategory())) {
                 log.debug("Detected sync root change for user '{}' in audit log:"
                         + " invalidating the root cache and refetching the changes.", principalName);
                 NuxeoDriveManager driveManager = Framework.getService(NuxeoDriveManager.class);
@@ -285,7 +286,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
             isPlatformEventsList.add(or(isRootList));
         }
         var isPlatformEvents = and(isPlatformEventsList);
-        var isDriveEvents = and(eq(LOG_CATEGORY, "NuxeoDrive"), noteq(LOG_EVENT_ID, "rootUnregistered"));
+        var isDriveEvents = and(eq(LOG_CATEGORY, EVENT_CATEGORY), noteq(LOG_EVENT_ID, "rootUnregistered"));
         var queryBuilder = new AuditQueryBuilder().predicate(eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
                                                   // interesting events
                                                   .and(or(isPlatformEvents, isDriveEvents))

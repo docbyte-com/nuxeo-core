@@ -86,6 +86,12 @@
       <event name="rootRegistered" />
       <event name="rootUnregistered" />
     </route>
+    <route name="nuxeoDriveVirtualEvents">
+      <backend name="default" />
+      <predicate class="org.nuxeo.audit.service.route.CategoryLogEntryPredicate">
+        <property name="category">NuxeoDrive</property>
+      </predicate>
+    </route>
   </extension>
 
 </component>
