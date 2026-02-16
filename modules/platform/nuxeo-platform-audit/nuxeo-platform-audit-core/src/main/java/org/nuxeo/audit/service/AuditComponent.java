@@ -492,6 +492,12 @@ public class AuditComponent extends DefaultComponent implements AuditRouter, Aud
                 }
                 continue;
             } catch (ELException e) {
+                if (Framework.isDevModeSet() || log.isInfoEnabled()) {
+                    if (source == null && !exp.startsWith("${source.")) { // global mapper on source registered
+                        log.warn("Unable to evaluate expression: {} for log entry: {}", () -> exp, builder::build,
+                                () -> e);
+                    }
+                }
                 continue;
             }
             if (value == null) {
