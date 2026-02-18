@@ -20,17 +20,13 @@ package org.nuxeo.ecm.blob.azure;
 
 import static org.nuxeo.ecm.blob.azure.AzureBlobProvider.STORE_SCROLL_NAME;
 
-import org.junit.runner.RunWith;
 import org.nuxeo.ecm.core.blob.AbstractTestBlobScroll;
-import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.test.runner.FeaturesRunner;
 
 /**
  * @since 2023.6
  */
-@RunWith(FeaturesRunner.class)
-@Features({ CoreFeature.class, AzureBlobProviderFeature.class })
+@Features(AzureBlobProviderFeature.class)
 public class TestAzureBlobScroll extends AbstractTestBlobScroll {
 
     @Override

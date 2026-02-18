@@ -25,7 +25,6 @@
     <module>nuxeo-drive-server</module>
     <module>nuxeo-duoweb-authentication</module>
     <module>nuxeo-easyshare-core</module>
-    <module>nuxeo-elasticsearch</module>
     <module>nuxeo-features-test</module>
     <module>nuxeo-fsexporter</module>
     <module>nuxeo-invite</module>
