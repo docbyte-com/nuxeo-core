@@ -106,7 +106,7 @@ public class StreamIntrospectionPlantUMLWriter extends AbstractPlantUMLWriter<St
         if (computationMetric == null || computationMetric.failure() == null) {
             pumlPrinter.writeStartComponent(computationIdentifier);
         } else {
-            pumlPrinter.writeStartComponent(computationIdentifier, "failure");
+            pumlPrinter.writeStartComponent(computationIdentifier, null, "failure");
         }
         pumlPrinter.writeFreeText("%s on %s".formatted(computation.name(), metadata.nodeId()));
         pumlPrinter.writeTextSeparator();
