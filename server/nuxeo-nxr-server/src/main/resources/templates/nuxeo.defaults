@@ -23,7 +23,7 @@ nuxeo.allowed.hosts=
 org.nuxeo.ecm.contextPath=/core
 
 org.nuxeo.ecm.product.name=Docbyte
-org.nuxeo.ecm.product.version=2016.2.0-SNAPSHOT
+org.nuxeo.ecm.product.version=2026.2.0-SNAPSHOT
 
 # Various other default values
 #nuxeo.db.host=
