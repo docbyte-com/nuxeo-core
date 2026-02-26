@@ -167,7 +167,7 @@ public abstract class BaseSession implements Session, EntrySource {
     protected String getPrefixedFieldName(String fieldName) {
         Field field = directory.getSchemaFieldMap().get(fieldName);
         if (field == null) {
-            log.info("No schema field found for field: {}", fieldName);
+            log.debug("No schema field found for field: {}", fieldName);
             return null;
         }
         return field.getName().getPrefixedName();
