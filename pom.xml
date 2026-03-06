@@ -93,7 +93,7 @@
     <box.api.version>1.1.0</box.api.version>
     <pdfbox.version>3.0.6</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.42.4</aws.version>
+    <aws.version>2.42.6</aws.version>
     <gcp.version>2.64.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
     <jackson.bom.version>2.21.1</jackson.bom.version>
@@ -2921,7 +2921,7 @@
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.53.1</version>
+        <version>3.54.0</version>
       </dependency>
 
       <dependency>
@@ -3773,7 +3773,7 @@
       <dependency>
         <groupId>software.amazon.awssdk.crt</groupId>
         <artifactId>aws-crt</artifactId>
-        <version>0.43.4</version>
+        <version>0.43.5</version>
       </dependency>
       <dependency>
         <groupId>software.amazon.jdbc</groupId>
@@ -4231,7 +4231,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.59.0</version>
+        <version>1.60.1</version>
       </dependency>
 
       <!-- Nashorn -->
@@ -4832,7 +4832,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.4.0</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>net.sf.alchim</groupId>
