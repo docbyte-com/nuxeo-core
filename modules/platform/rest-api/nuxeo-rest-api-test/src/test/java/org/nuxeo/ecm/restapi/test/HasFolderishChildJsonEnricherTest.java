@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016-2025 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,9 @@
  * limitations under the License.
  *
  * Contributors:
- *     Guillaume Renard <grenard@nuxeo.com>
+ *     Guillaume Renard
  */
-package org.nuxeo.ecm.core.io.marshallers.json.enrichers;
+package org.nuxeo.ecm.restapi.test;
 
 import jakarta.inject.Inject;
 
@@ -29,53 +29,54 @@ import org.nuxeo.ecm.core.io.marshallers.json.AbstractJsonWriterTest;
 import org.nuxeo.ecm.core.io.marshallers.json.JsonAssert;
 import org.nuxeo.ecm.core.io.marshallers.json.document.DocumentModelJsonWriter;
 import org.nuxeo.ecm.core.io.registry.context.RenderingContext.CtxBuilder;
-import org.nuxeo.ecm.core.test.CoreFeature;
+import org.nuxeo.ecm.core.test.CoreSearchFeature;
+import org.nuxeo.ecm.restapi.server.enrichers.HasFolderishChildJsonEnricher;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
-import org.nuxeo.runtime.transaction.TransactionHelper;
+import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 /**
- * @since 8.10
+ * @since 2025.17
  */
-@Features(CoreFeature.class)
-@Deploy("org.nuxeo.ecm.core.io:OSGI-INF/doc-type-contrib.xml")
-@Deprecated(since = "2025.17", forRemoval = true)
+@Features(CoreSearchFeature.class)
+@Deploy("org.nuxeo.ecm.platform.restapi.server:OSGI-INF/json-enrichers-contrib.xml")
 public class HasFolderishChildJsonEnricherTest
         extends AbstractJsonWriterTest.Local<DocumentModelJsonWriter, DocumentModel> {
 
     @Inject
-    private CoreSession session;
+    protected CoreSession session;
+
+    @Inject
+    protected TransactionalFeature txFeature;
 
     @Before
     public void setup() {
-        DocumentModel document = session.createDocumentModel("/", "child1", "MyFolder");
-        document = session.createDocument(document);
-        document = session.createDocumentModel("/", "child2", "MyFolder");
-        document = session.createDocument(document);
-        document = session.createDocumentModel("/", "child3", "CSDoc");
-        document = session.createDocument(document);
+        var document = session.createDocumentModel("/", "child1", "Folder");
+        session.createDocument(document);
+        document = session.createDocumentModel("/", "child2", "Folder");
+        session.createDocument(document);
+        document = session.createDocumentModel("/", "child3", "File");
+        session.createDocument(document);
+        txFeature.nextTransaction();
     }
 
     @Test
     public void test() throws Exception {
-        TransactionHelper.commitOrRollbackTransaction();
-        TransactionHelper.startTransaction();
-
-        DocumentModel root = session.getDocument(new PathRef("/"));
+        var root = session.getDocument(new PathRef("/"));
         JsonAssert json = jsonAssert(root, CtxBuilder.enrichDoc(HasFolderishChildJsonEnricher.NAME).get());
         json = json.has("contextParameters").isObject();
         json.properties(1);
         json = json.has(HasFolderishChildJsonEnricher.NAME).isBool();
         json.isEquals(true);
 
-        DocumentModel child1 = session.getDocument(new PathRef("/child1"));
+        var child1 = session.getDocument(new PathRef("/child1"));
         json = jsonAssert(child1, CtxBuilder.enrichDoc(HasFolderishChildJsonEnricher.NAME).get());
         json = json.has("contextParameters").isObject();
         json.properties(1);
         json = json.has(HasFolderishChildJsonEnricher.NAME).isBool();
         json.isEquals(false);
 
-        DocumentModel child3 = session.getDocument(new PathRef("/child3"));
+        var child3 = session.getDocument(new PathRef("/child3"));
         json = jsonAssert(child3, CtxBuilder.enrichDoc(HasFolderishChildJsonEnricher.NAME).get());
         json = json.has("contextParameters").isObject();
         json.properties(1);

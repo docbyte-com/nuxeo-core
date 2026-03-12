@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2016 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,9 @@
  * limitations under the License.
  *
  * Contributors:
- *     Guillaume Renard <grenard@nuxeo.com>
+ *     Guillaume Renard
  */
-
-package org.nuxeo.ecm.core.io.marshallers.json.enrichers;
+package org.nuxeo.ecm.restapi.server.enrichers;
 
 import static org.nuxeo.ecm.core.io.registry.reflect.Instantiations.SINGLETON;
 import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
@@ -25,18 +24,24 @@ import static org.nuxeo.ecm.core.io.registry.reflect.Priorities.REFERENCE;
 import java.io.IOException;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
-import org.nuxeo.ecm.core.io.registry.context.RenderingContext.SessionWrapper;
+import org.nuxeo.ecm.core.io.marshallers.json.enrichers.AbstractJsonEnricher;
+import org.nuxeo.ecm.core.io.registry.context.RenderingContext;
 import org.nuxeo.ecm.core.io.registry.reflect.Setup;
 import org.nuxeo.ecm.core.query.sql.NXQL;
+import org.nuxeo.ecm.core.search.SearchQuery;
+import org.nuxeo.ecm.core.search.SearchService;
+import org.nuxeo.runtime.api.Framework;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 
 /**
- * @since 8.10
- * @deprecated since 2025.17, replaced by org.nuxeo.ecm.restapi.server.enrichers.HasFolderishChildJsonEnricher
+ * Enricher that tells whether a "Folderish" document has at least one "Folderish" child document.
+ * <p>
+ * This enricher leverages the {@link SearchService}.
+ *
+ * @since 2025.17
  */
 @Setup(mode = SINGLETON, priority = REFERENCE)
-@Deprecated(since = "2025.17", forRemoval = true)
 public class HasFolderishChildJsonEnricher extends AbstractJsonEnricher<DocumentModel> {
 
     public static final String NAME = "hasFolderishChild";
@@ -51,12 +56,16 @@ public class HasFolderishChildJsonEnricher extends AbstractJsonEnricher<Document
             jg.writeBooleanField(NAME, false);
             return;
         }
-        try (SessionWrapper wrapper = ctx.getSession(document)) {
+        try (RenderingContext.SessionWrapper wrapper = ctx.getSession(document)) {
             String fetchFolderishChildQuery = "SELECT * FROM Document WHERE ecm:mixinType = 'Folderish'"
                     + " AND ecm:mixinType != 'HiddenInNavigation' AND ecm:isTrashed = 0" + " AND ecm:parentId = "
                     + NXQL.escapeString(document.getId());
             // Limit result set to 1 as we just want to know if there's at least one Folderish child
-            boolean hasChildren = !wrapper.getSession().queryProjection(fetchFolderishChildQuery, 1, 0).isEmpty();
+            boolean hasChildren = Framework.getService(SearchService.class)
+                                           .search(SearchQuery.builder(fetchFolderishChildQuery, wrapper.getSession())
+                                                              .limit(1)
+                                                              .build())
+                                           .getHitsCount() > 0;
             jg.writeBooleanField(NAME, hasChildren);
         }
     }
