@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2023 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2023-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,6 +38,7 @@ import org.apache.commons.io.output.NullOutputStream;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.utils.ByteSize;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.AbstractBlobGarbageCollector;
 import org.nuxeo.ecm.core.blob.AbstractBlobStore;
@@ -48,7 +49,6 @@ import org.nuxeo.ecm.core.blob.BlobWriteContext;
 import org.nuxeo.ecm.core.blob.ByteRange;
 import org.nuxeo.ecm.core.blob.KeyStrategy;
 import org.nuxeo.ecm.core.blob.KeyStrategyDigest;
-import org.nuxeo.ecm.core.blob.KeyStrategyDocId;
 import org.nuxeo.ecm.core.blob.binary.BinaryGarbageCollector;
 
 import com.google.api.gax.paging.Page;
@@ -78,15 +78,13 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     protected final Storage storage;
 
-    protected final int chunkSize;
+    protected final ByteSize chunkSize;
 
     protected final boolean allowByteRange;
 
     protected final GoogleStorageBlobStoreConfiguration config;
 
     protected final BinaryGarbageCollector gc;
-
-    protected final boolean useVersion;
 
     public GoogleStorageBlobStore(String blobProviderId, String name, GoogleStorageBlobStoreConfiguration config,
             KeyStrategy keyStrategy) {
@@ -99,7 +97,6 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
         this.allowByteRange = config.getBooleanProperty(ALLOW_BYTE_RANGE);
         this.chunkSize = config.chunkSize;
         this.gc = new GoogleStorageBlobGarbageCollector();
-        useVersion = keyStrategy instanceof KeyStrategyDocId && config.isBucketVersioningEnabled;
     }
 
     @Override
@@ -116,7 +113,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
 
     @Override
     public boolean hasVersioning() {
-        return useVersion;
+        return config.useVersion();
     }
 
     @Override
@@ -141,11 +138,12 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
                 CopyWriter writer = storage.copy(Storage.CopyRequest.newBuilder()
                                                                     .setSource(srcGsKey.blobId())
                                                                     .setTarget(gsKey.blobId())
+                                                                    .setMegabytesCopiedPerChunk(chunkSize.toMebibytes())
                                                                     .build());
                 Blob blob = writer.getResult();
                 if (blob != null) {
                     var blobId = blob.getBlobId();
-                    if (useVersion) {
+                    if (hasVersioning()) {
                         resultKey = key + VER_SEP + blobId.getGeneration();
                     } else {
                         resultKey = key;
@@ -198,7 +196,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
             } else {
                 try {
                     var uploadResult = storage.createFrom(gsKey.blobInfo(), file);
-                    resultKey = useVersion ? key + VER_SEP + uploadResult.getGeneration() : key;
+                    resultKey = hasVersioning() ? key + VER_SEP + uploadResult.getGeneration() : key;
                 } catch (IOException e) {
                     throw new NuxeoException(e);
                 }
@@ -323,7 +321,7 @@ public class GoogleStorageBlobStore extends AbstractBlobStore {
             log.debug("Storing blob with digest: {} to GCS", key);
             try {
                 var uploadResult = storage.createFrom(gsKey.blobInfo(), file);
-                var resultKey = useVersion ? key + VER_SEP + uploadResult.getGeneration() : key;
+                var resultKey = hasVersioning() ? key + VER_SEP + uploadResult.getGeneration() : key;
                 log.debug("Stored blob with key: {} to GCS in {}ms", resultKey, System.currentTimeMillis() - t0);
                 return resultKey;
             } catch (IOException e) {

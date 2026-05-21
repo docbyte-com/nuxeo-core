@@ -48,7 +48,7 @@ ARG SCM_REF
 ARG VERSION
 
 ARG EL_VERSION=9
-ARG LIBREOFFICE_VERSION=7.5.8
+ARG LIBREOFFICE_VERSION=7.5.9.2
 ARG TARGETPLATFORM
 
 LABEL org.nuxeo.build-tag=$BUILD_TAG
@@ -91,7 +91,7 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     # ps is not included in the base oraclelinux image
     procps \
     unzip \
-    vim-enhanced-8.2.2637-22.0.1.el9_6 \
+    vim-enhanced-8.2.2637-23.0.1.el9_7 \
     wget \
     # Install Java before LibreOffice that depends on it
     zulu21-jdk \

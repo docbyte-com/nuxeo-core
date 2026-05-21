@@ -14,6 +14,7 @@
 
   <modules>
     <module>nuxeo-adobe-connector-package</module>
+    <module>nuxeo-amazon-jdbc-package</module>
     <module>nuxeo-amazon-s3-package</module>
     <module>nuxeo-audit-mongodb-package</module>
     <module>nuxeo-audit-opensearch1-package</module>

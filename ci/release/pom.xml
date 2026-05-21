@@ -3,7 +3,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo</groupId>
     <artifactId>nuxeo-ecm</artifactId>
-    <version>2016.2.0-SNAPSHOT</version>
+    <version>2026.2.0-SNAPSHOT</version>
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
@@ -16,6 +16,11 @@
     <dependency>
       <groupId>cloud.docbyte.nuxeo.packages</groupId>
       <artifactId>nuxeo-adobe-connector-package</artifactId>
+      <type>zip</type>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.packages</groupId>
+      <artifactId>nuxeo-amazon-jdbc-package</artifactId>
       <type>zip</type>
     </dependency>
     <dependency>

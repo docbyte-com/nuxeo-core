@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
  */
 package org.nuxeo.ecm.core.storage;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.common.function.ThrowableFunction.asFunction;
 
 import java.io.File;
@@ -39,7 +40,6 @@ import java.util.stream.Stream;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.nuxeo.common.utils.TextTemplate;
 import org.nuxeo.launcher.commons.DatabaseDriverException;
 import org.nuxeo.launcher.config.ConfigurationConstants;
 import org.nuxeo.launcher.config.ConfigurationException;
@@ -59,16 +59,6 @@ public class DBCheck implements BackingChecker {
     protected static final String PARAM_DB_DRIVER = "nuxeo.db.driver";
 
     protected static final String PARAM_DB_JDBC_URL = "nuxeo.db.jdbc.url";
-
-    protected static final String PARAM_DB_HOST = "nuxeo.db.host";
-
-    protected static final String PARAM_DB_PORT = "nuxeo.db.port";
-
-    protected static final String PARAM_DB_NAME = "nuxeo.db.name";
-
-    protected static final String PARAM_DB_USER = "nuxeo.db.user";
-
-    protected static final String PARAM_DB_PWD = "nuxeo.db.password";
 
     @Override
     public boolean accepts(ConfigurationHolder configHolder) {
@@ -97,30 +87,31 @@ public class DBCheck implements BackingChecker {
     public void checkDatabaseConnection(ConfigurationHolder configHolder)
             throws ConfigurationException, DatabaseDriverException, SQLException {
         String databaseTemplate = configHolder.getIncludedDBTemplateName();
-        String dbName = configHolder.getProperty(PARAM_DB_NAME);
-        String dbUser = configHolder.getProperty(PARAM_DB_USER);
-        String dbPassword = configHolder.getProperty(PARAM_DB_PWD);
-        String dbHost = configHolder.getProperty(PARAM_DB_HOST);
-        String dbPort = configHolder.getProperty(PARAM_DB_PORT);
-
         Path databaseTemplateDir = configHolder.getTemplatesPath().resolve(databaseTemplate);
+
         String classname = configHolder.getProperty(PARAM_DB_DRIVER);
         String connectionUrl = configHolder.getProperty(PARAM_DB_JDBC_URL);
         // Load driver class from template or default lib directory
         Driver driver = lookupDriver(configHolder, databaseTemplateDir, classname);
         // Test db connection
         DriverManager.registerDriver(driver);
-        Properties ttProps = new Properties();
-        ttProps.put(PARAM_DB_HOST, dbHost);
-        ttProps.put(PARAM_DB_PORT, dbPort);
-        ttProps.put(PARAM_DB_NAME, dbName);
-        ttProps.put(PARAM_DB_USER, dbUser);
-        ttProps.put(PARAM_DB_PWD, dbPassword);
-        TextTemplate tt = new TextTemplate(ttProps);
+
+        var tt = configHolder.instantiateTemplateParser().keepEncryptedAsVar(false);
         String url = tt.processText(connectionUrl);
+
         Properties conProps = new Properties();
-        conProps.put("user", dbUser);
-        conProps.put("password", dbPassword);
+        for (var key : configHolder.stringPropertyNames()) {
+            if (key.startsWith("nuxeo.datasource.checker.properties.")) {
+                String value = configHolder.getProperty(key);
+                if (isNotBlank(value)) {
+                    String propValue = tt.processText(value);
+                    if (isNotBlank(propValue)) {
+                        String propKey = key.substring("nuxeo.datasource.checker.properties.".length());
+                        conProps.put(propKey, propValue);
+                    }
+                }
+            }
+        }
         log.debug("Testing URL: {} with: {}", url, conProps);
         Connection con = driver.connect(url, conProps);
         con.close();

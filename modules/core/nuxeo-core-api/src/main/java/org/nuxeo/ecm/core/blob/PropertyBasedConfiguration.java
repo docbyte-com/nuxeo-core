@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,13 +18,16 @@
  */
 package org.nuxeo.ecm.core.blob;
 
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-
+import java.time.Duration;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
+import java.util.Optional;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.nuxeo.common.utils.ByteSize;
+import org.nuxeo.common.utils.DurationUtils;
 import org.nuxeo.runtime.api.Framework;
 
 /**
@@ -47,63 +50,112 @@ public class PropertyBasedConfiguration {
 
     /** Gets a string property. */
     public String getProperty(String propertyName) {
-        return getProperty(propertyName, null);
+        return getOptionalProperty(propertyName).orElse(null);
     }
 
-    /** Gets a string property, or the given default if undefined or blank. */
+    /**
+     * Gets a string property, or the given default if undefined or blank.
+     * 
+     * @deprecated since 2025.11, use {@link #getOptionalProperty} instead
+     */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public String getProperty(String propertyName, String defaultValue) {
-        String propValue = properties.get(propertyName);
-        if (isNotBlank(propValue)) {
-            return propValue;
-        }
-        if (systemPropertyPrefix != null) {
-            propValue = Framework.getProperty(systemPropertyPrefix + "." + propertyName);
-            if (isNotBlank(propValue)) {
-                return propValue;
-            }
-        }
-        return defaultValue;
+        return getOptionalProperty(propertyName).orElse(defaultValue);
     }
 
     /** Gets a long property, or -1 if undefined or blank. */
     public long getLongProperty(String key) {
-        String s = getProperty(key);
-        long value = -1;
-        if (!isBlank(s)) {
-            try {
-                value = Long.parseLong(s.trim());
-            } catch (NumberFormatException e) {
-                log.error("Cannot parse long " + key + ": " + s);
-            }
-        }
-        return value;
+        return getOptionalLongProperty(key).orElse(-1L);
     }
 
     /** Gets an integer property, or -1 if undefined or blank. */
     public int getIntProperty(String key) {
-        return getIntProperty(key, -1);
+        return getOptionalIntegerProperty(key).orElse(-1);
     }
 
     /**
      * Gets an integer property, or the given default if undefined or blank.
      *
      * @since 2023.5
+     * @deprecated since 2025.11, use {@link #getOptionalIntegerProperty} instead
      */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public int getIntProperty(String key, int defaultValue) {
-        String s = getProperty(key);
-        if (!isBlank(s)) {
-            try {
-                return Integer.parseInt(s.trim());
-            } catch (NumberFormatException e) {
-                log.error("Cannot parse integer " + key + ": " + s);
-            }
-        }
-        return defaultValue;
+        return getOptionalIntegerProperty(key).orElse(defaultValue);
     }
 
     /** Gets a boolean property. */
     public boolean getBooleanProperty(String key) {
         return Boolean.parseBoolean(getProperty(key));
+    }
+
+    /**
+     * @since 2025.11
+     */
+    public Optional<ByteSize> getOptionalByteSizeProperty(String key) {
+        return getOptionalProperty(key).map(s -> {
+            try {
+                return ByteSize.parse(s);
+            } catch (NumberFormatException e) {
+                log.error("Cannot parse byte size {}: {} ", key, s);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * @since 2025.10
+     */
+    public Optional<Duration> getOptionalDurationProperty(String key) {
+        return getOptionalProperty(key).map(s -> {
+            try {
+                return DurationUtils.parse(s);
+            } catch (DateTimeParseException e) {
+                log.error("Cannot parse duration {}: {} ", key, s);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * @since 2025.10
+     */
+    public Optional<Integer> getOptionalIntegerProperty(String key) {
+        return getOptionalProperty(key).map(s -> {
+            try {
+                return Integer.parseInt(s);
+            } catch (NumberFormatException e) {
+                log.error("Cannot parse int {}: {} ", key, s);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * @since 2025.10
+     */
+    public Optional<Long> getOptionalLongProperty(String key) {
+        return getOptionalProperty(key).map(s -> {
+            try {
+                return Long.parseLong(s);
+            } catch (NumberFormatException e) {
+                log.error("Cannot parse long {}: {} ", key, s);
+                return null;
+            }
+        });
+    }
+
+    /**
+     * @since 2025.10
+     */
+    public Optional<String> getOptionalProperty(String propertyName) {
+        return Optional.ofNullable(properties.get(propertyName)).filter(StringUtils::isNotBlank).or(() -> {
+            if (systemPropertyPrefix == null) {
+                return Optional.empty();
+            }
+            return Optional.ofNullable(Framework.getProperty(systemPropertyPrefix + "." + propertyName))
+                           .filter(StringUtils::isNotBlank);
+        }).map(String::trim);
     }
 
 }

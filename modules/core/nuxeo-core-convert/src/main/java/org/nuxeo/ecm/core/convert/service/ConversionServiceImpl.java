@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2006-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2006-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -207,7 +207,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
      */
     @Deprecated(since = "2025.0", forRemoval = true)
     public static int getMaxCacheSizeInKB() {
-        return (int) getConversionService().getConvertCacheDescriptor().getMaxSizeKB();
+        return (int) getConversionService().getConvertCacheDescriptor().getMaxSize().toKibibytes();
     }
 
     /**
@@ -615,7 +615,7 @@ public class ConversionServiceImpl extends DefaultComponent implements Conversio
         gcExecutor = Executors.newSingleThreadScheduledExecutor(
                 ThreadFactories.newThreadFactory("Nuxeo-Convert-GC", true));
         long rateInSeconds = cacheDescriptor.getGcRate().toSeconds();
-        gcExecutor.scheduleAtFixedRate(new ConversionCacheGCTask(cacheDescriptor.getMaxSizeKB()), rateInSeconds,
+        gcExecutor.scheduleAtFixedRate(new ConversionCacheGCTask(cacheDescriptor.getMaxSize()), rateInSeconds,
                 rateInSeconds, TimeUnit.SECONDS);
     }
 

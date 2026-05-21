@@ -76,6 +76,12 @@
       <artifactId>nuxeo-core-storage-dbs</artifactId>
     </dependency>
 
+    <!-- Test libraries -->
+    <dependency>
+      <groupId>org.awaitility</groupId>
+      <artifactId>awaitility</artifactId>
+    </dependency>
+
     <!-- Nuxeo test libraries -->
     <dependency>
       <groupId>cloud.docbyte.nuxeo.runtime</groupId>
