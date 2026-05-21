@@ -72,7 +72,25 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.ObjectLockLegalHoldStatus;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+import software.amazon.awssdk.services.s3.model.StorageClass;
+import software.amazon.awssdk.transfer.s3.model.CompletedCopy;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.Copy;
+import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
 import software.amazon.encryption.s3.S3EncryptionClientException;
 
@@ -243,10 +261,11 @@ public class S3BlobStore extends AbstractBlobStore {
             if (config.useServerSideEncryption) {
                 if (isNotBlank(config.serverSideKMSKeyID)) {
                     // SSE-KMS
-                    b.ssekmsKeyId(config.serverSideKMSKeyID);
+                    b.serverSideEncryption(ServerSideEncryption.AWS_KMS).ssekmsKeyId(config.serverSideKMSKeyID);
+
                 } else {
                     // SSE-S3
-                    b.sseCustomerAlgorithm(ServerSideEncryption.AES256.toString());
+                    b.serverSideEncryption(ServerSideEncryption.AES256);
                 }
             }
             setMetadata(b, blobContext);
@@ -258,7 +277,7 @@ public class S3BlobStore extends AbstractBlobStore {
             FileUpload fileUpload = config.transferManager.uploadFile(uploadFileRequestBuilder.build());
             CompletedFileUpload uploadResult = fileUpload.completionFuture().join();
             // if we don't want to use versions, ignore them even though the bucket may be versioned
-            String versionId = useVersion ? uploadResult.response().versionId() : null;
+            String versionId = hasVersioning() ? uploadResult.response().versionId() : null;
             if (log.isDebugEnabled()) {
                 long dtms = System.currentTimeMillis() - t0;
                 log.debug("Wrote s3://{}/{} in {}ms", bucketName, bucketKey, dtms);
