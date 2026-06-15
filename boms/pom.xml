@@ -12,6 +12,7 @@
 
   <modules>
     <module>nuxeo-opensearch1-bom</module>
+    <module>nuxeo-opensearch2-bom</module>
   </modules>
 
 </project>

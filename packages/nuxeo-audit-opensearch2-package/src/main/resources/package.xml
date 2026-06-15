@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package type="addon" name="nuxeo-audit-opensearch2" version="@VERSION@">
+  <title>Audit OpenSearch 2.x Backend</title>
+  <description>
+    This package sets up OpenSearch 2.x as a backend for audit logs.
+  </description>
+  <vendor>Nuxeo</vendor>
+  <target-platform>
+    <name>@DISTRIBUTION_NAME@</name>
+    <version>@VERSION@</version>
+  </target-platform>
+  <optional-dependencies>
+    <package>nuxeo-opensearch2-embed</package>
+  </optional-dependencies>
+  <conflicts>
+    <package>nuxeo-audit-opensearch1</package>
+  </conflicts>
+  <license>Apache 2.0</license>
+  <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+</package>

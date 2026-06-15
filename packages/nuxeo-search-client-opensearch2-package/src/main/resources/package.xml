@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package type="addon" name="nuxeo-search-client-opensearch2" version="@VERSION@">
+  <title>Search Client OpenSearch 2.x</title>
+  <description>
+    This package sets up OpenSearch 2.x as default Search Client to index and search documents.
+  </description>
+  <vendor>Nuxeo</vendor>
+  <target-platform>
+    <name>@DISTRIBUTION_NAME@</name>
+    <version>@VERSION@</version>
+  </target-platform>
+  <optional-dependencies>
+    <package>nuxeo-opensearch2-embed</package>
+  </optional-dependencies>
+  <conflicts>
+    <package>nuxeo-search-client-opensearch1</package>
+  </conflicts>
+  <license>Apache 2.0</license>
+  <license-url>http://www.apache.org/licenses/LICENSE-2.0</license-url>
+</package>

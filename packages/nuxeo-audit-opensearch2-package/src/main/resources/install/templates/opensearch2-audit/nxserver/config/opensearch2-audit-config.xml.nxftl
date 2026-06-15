@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<component name="org.nuxeo.audit.opensearch2.contrib">
+
+  <extension target="org.nuxeo.runtime.opensearch2.OpenSearchComponent" point="client">
+    <client id="audit/default">
+<#if "${(nuxeo.opensearch2.embed.enabled)!}" == "true" && "${nuxeo.audit.backend.default.opensearch2.client.server}" == "">
+      <embedServer>${nuxeo.opensearch2.embed.name}</embedServer>
+<#else>
+      <server>${nuxeo.audit.backend.default.opensearch2.client.server}</server>
+</#if>
+      <connectionTimeout>${nuxeo.audit.backend.default.opensearch2.client.connectionTimeout}</connectionTimeout>
+      <socketTimeout>${nuxeo.audit.backend.default.opensearch2.client.socketTimeout}</socketTimeout>
+      <sslCertificateVerification>${nuxeo.audit.backend.default.opensearch2.client.sslCertificateVerification}</sslCertificateVerification>
+<#if (nuxeo.audit.backend.default.opensearch2.client.username)?has_content>
+      <username>${nuxeo.audit.backend.default.opensearch2.client.username}</username>
+      <password>${nuxeo.audit.backend.default.opensearch2.client.password}</password>
+</#if>
+<#if (nuxeo.audit.backend.default.opensearch2.client.trustStore.type)?has_content>
+      <trustStore type="${nuxeo.audit.backend.default.opensearch2.client.trustStore.type}">
+        <path>${nuxeo.audit.backend.default.opensearch2.client.trustStore.path}</path>
+        <password>${nuxeo.audit.backend.default.opensearch2.client.trustStore.password}</password>
+      </trustStore>
+</#if>
+<#if (nuxeo.audit.backend.default.opensearch2.client.keyStore.type)?has_content>
+      <keyStore type="${nuxeo.audit.backend.default.opensearch2.client.keyStore.type}">
+        <path>${nuxeo.audit.backend.default.opensearch2.client.keyStore.path}</path>
+        <password>${nuxeo.audit.backend.default.opensearch2.client.keyStore.password}</password>
+      </keyStore>
+</#if>
+    </client>
+  </extension>
+
+  <require>org.nuxeo.audit.opensearch2.backend.contrib</require>
+  <extension target="org.nuxeo.runtime.opensearch2.OpenSearchComponent" point="index">
+    <index name="${nuxeo.audit.backend.default.opensearch2.index.name}">
+      <client id="audit/default" />
+      <mapping file="opensearch2-audit-mapping.json" />
+      <settings file="opensearch2-audit-settings.json" />
+    </index>
+  </extension>
+
+</component>

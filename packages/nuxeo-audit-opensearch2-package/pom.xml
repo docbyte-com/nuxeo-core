@@ -1,0 +1,36 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>cloud.docbyte.nuxeo.packages</groupId>
+    <artifactId>nuxeo-packages</artifactId>
+    <version>2025.3-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>nuxeo-audit-opensearch2-package</artifactId>
+  <packaging>zip</packaging>
+  <name>Nuxeo Audit OpenSearch 2.x Package</name>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.nuxeo.opensearch2</groupId>
+      <artifactId>nuxeo-platform-audit-opensearch2</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.nuxeo.opensearch2</groupId>
+      <artifactId>nuxeo-runtime-opensearch2</artifactId>
+    </dependency>
+  </dependencies>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo</groupId>
+        <artifactId>nuxeo-opensearch2-bom</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+</project>

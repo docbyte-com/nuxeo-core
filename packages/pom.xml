@@ -17,6 +17,7 @@
     <module>nuxeo-amazon-s3-package</module>
     <module>nuxeo-audit-mongodb-package</module>
     <module>nuxeo-audit-opensearch1-package</module>
+    <module>nuxeo-audit-opensearch2-package</module>
     <module>nuxeo-audit-sql-package</module>
     <module>nuxeo-audit-storage-directory-package</module>
     <module>nuxeo-cas2-login-package</module>
@@ -48,6 +49,7 @@
     <module>nuxeo-scan-importer-package</module>
     <module>nuxeo-scim-v2-package</module>
     <module>nuxeo-search-client-opensearch1-package</module>
+    <module>nuxeo-search-client-opensearch2-package</module>
     <module>nuxeo-shibboleth-login-package</module>
     <module>nuxeo-signature-package</module>
     <module>nuxeo-template-rendering-package</module>

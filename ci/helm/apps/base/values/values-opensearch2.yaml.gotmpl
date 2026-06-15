@@ -1,0 +1,28 @@
+image:
+  tag: 2.19.4
+clusterName: opensearch
+replicas: 1
+singleNode: true
+persistence:
+  enabled: false
+resources:
+  requests:
+    cpu: "1"
+    memory: "4Gi"
+  limits:
+    memory: "4Gi"
+opensearchJavaOpts: "-Xmx2g -Xms2g"
+config:
+  opensearch.yml:
+    plugins:
+      security:
+        disabled: true
+labels: {{- toYaml .Values.global.labels | nindent 2 }}
+  dev.nuxeo.com/app: opensearch
+  dev.nuxeo.com/resource: pod
+service:
+  labels: {{- toYaml .Values.global.labels | nindent 4 }}
+    dev.nuxeo.com/app: opensearch
+    dev.nuxeo.com/resource: service
+maxUnavailable: 0
+{{- toYaml .Values.global.selectors | nindent 0 }}
