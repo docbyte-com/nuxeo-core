@@ -14,10 +14,48 @@
     <dependencies>
       <dependency>
         <groupId>org.nuxeo.opensearch2</groupId>
-        <artifactId>nuxeo-opensearch2-parent</artifactId>
+        <artifactId>nuxeo-runtime-opensearch2</artifactId>
         <version>${opensearch2.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.opensearch2</groupId>
+        <artifactId>nuxeo-platform-audit-opensearch2</artifactId>
+        <version>${opensearch2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.nuxeo.opensearch2</groupId>
+        <artifactId>nuxeo-search-client-opensearch2</artifactId>
+        <version>${opensearch2.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.client</groupId>
+        <artifactId>opensearch-java</artifactId>
+        <version>${opensearch2.java.client.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch</groupId>
+        <artifactId>opensearch</artifactId>
+        <version>${opensearch2.library.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.plugin</groupId>
+        <artifactId>transport-netty4-client</artifactId>
+        <version>${opensearch2.library.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.plugin</groupId>
+        <artifactId>analysis-common</artifactId>
+        <version>${opensearch2.library.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.opensearch.plugin</groupId>
+        <artifactId>transport-reactor-netty4-client</artifactId>
+        <version>${opensearch2.library.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.httpcomponents.client5</groupId>
+        <artifactId>httpclient5</artifactId>
+        <version>${apache.httpclient5.version}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
