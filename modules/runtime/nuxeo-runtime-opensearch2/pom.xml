@@ -1,0 +1,108 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+    <artifactId>nuxeo-runtime-parent</artifactId>
+    <version>2025.3-SNAPSHOT</version>
+  </parent>
+
+  <!-- Same coordinates as the upstream Nuxeo JAR so this artifact replaces it in the build -->
+  <groupId>org.nuxeo.opensearch2</groupId>
+  <artifactId>nuxeo-runtime-opensearch2</artifactId>
+  <version>${nuxeo.platform.version}</version>
+  <name>Nuxeo Runtime OpenSearch 2.x</name>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>software.amazon.awssdk</groupId>
+        <artifactId>bom</artifactId>
+        <version>${aws.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <!-- Upstream Nuxeo OS2 JAR — compile classpath only; classes are unpacked into target/classes below -->
+    <dependency>
+      <groupId>org.nuxeo.opensearch2</groupId>
+      <artifactId>nuxeo-runtime-opensearch2</artifactId>
+      <version>${opensearch2.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- Nuxeo APIs needed by the patched classes -->
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.common</groupId>
+      <artifactId>nuxeo-common</artifactId>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.runtime</groupId>
+      <artifactId>nuxeo-runtime</artifactId>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- HC5 transport -->
+    <dependency>
+      <groupId>org.apache.httpcomponents.client5</groupId>
+      <artifactId>httpclient5</artifactId>
+      <version>${apache.httpclient5.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- opensearch-java client -->
+    <dependency>
+      <groupId>org.opensearch.client</groupId>
+      <artifactId>opensearch-java</artifactId>
+      <version>${opensearch2.java.client.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+    <!-- AWS SDK for IAM/SigV4 signing -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>auth</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>signer</artifactId>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.nuxeo.opensearch2</groupId>
+                  <artifactId>nuxeo-runtime-opensearch2</artifactId>
+                  <version>${opensearch2.version}</version>
+                  <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                  <!-- Exclude only the classes we provide locally -->
+                  <excludes>
+                    **/OpenSearchHttpClient5Factory.class,
+                    **/OpenSearchClientConfig.class,
+                    **/OpenSearchClientConfig$Store.class,
+                    META-INF/maven/**
+                  </excludes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

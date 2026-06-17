@@ -15,7 +15,7 @@
       <dependency>
         <groupId>org.nuxeo.opensearch2</groupId>
         <artifactId>nuxeo-runtime-opensearch2</artifactId>
-        <version>${opensearch2.version}</version>
+        <version>${nuxeo.platform.version}</version>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.opensearch2</groupId>
