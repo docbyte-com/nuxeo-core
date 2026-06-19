@@ -35,7 +35,7 @@ mv /usr/local/bin/docker /usr/bin/docker
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
-curl -f -L https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-25.tar.gz  | tar -C /opt -vxf
+curl -f -L https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-25.tar.gz  | tar -C /opt -xz
 cd  /opt/ImageMagick-7.1.2-25
 ./configure --without-x
 sudo make && sudo make install
