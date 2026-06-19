@@ -4,8 +4,10 @@ DIR=`pwd`
 
 yum install -y ghostscript
 yum install -y \
-  ImageMagick \
   libwpd-tools \
+  libpng-devel \
+  libjpeg-devel \
+  libtiff-devel \
   perl \
   perl-Archive-Zip \
   poppler-utils \
@@ -17,7 +19,6 @@ yum install -y \
   aspell \
   google-noto-cjk-fonts
 
-identify -version
 
 export LIBREOFFICE_VERSION=7.5.8
 
@@ -33,6 +34,13 @@ mv /usr/local/bin/docker /usr/bin/docker
 
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
+
+curl -f -L wget http://www.imagemagick.org/download/ImageMagick.tar.gz  | tar -C /opt -vxf
+cd  /opt/ImageMagick
+./configure --without-x
+sudo make && sudo make install
+
+identify -version
 
 curl -f -L https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.59.tar.gz/download | tar -C /opt -xzv
 cd /opt/Image-ExifTool-13.59/
