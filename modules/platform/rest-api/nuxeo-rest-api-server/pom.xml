@@ -70,6 +70,10 @@
       <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
       <artifactId>nuxeo-thumbnail</artifactId>
     </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-user-preferences-api</artifactId>
+    </dependency>
 
     <!-- Test libraries -->
     <dependency>

@@ -24,5 +24,9 @@
       <groupId>cloud.docbyte.nuxeo.ecm.localconf</groupId>
       <artifactId>nuxeo-localconf-simple</artifactId>
     </dependency>
+    <dependency>
+      <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+      <artifactId>nuxeo-user-preferences-api</artifactId>
+    </dependency>
   </dependencies>
 </project>
