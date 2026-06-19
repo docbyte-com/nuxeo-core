@@ -74,6 +74,7 @@ import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -332,7 +333,7 @@ public class S3BlobStore extends AbstractBlobStore {
         String objectKey;
         String versionId;
         int seppos;
-        if (useVersion && (seppos = key.indexOf(VER_SEP)) > 0) {
+        if (this.hasVersioning() && (seppos = key.indexOf(VER_SEP)) > 0) {
             objectKey = key.substring(0, seppos);
             versionId = key.substring(seppos + 1);
         } else {
