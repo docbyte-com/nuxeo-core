@@ -75,7 +75,7 @@ public class TestShibbolethAuthenticationService {
         var request = MockHttpServletRequest.init();
         logoutURL = service.getLogoutURL(request.mock());
 
-        encodedRedirectUrl = URLEncoder.encode("http://localhost:8080/nuxeo/home.html", UTF_8);
+        encodedRedirectUrl = URLEncoder.encode("http://localhost:8080/core/home.html", UTF_8);
         assertEquals("https://host/Shibboleth.sso/Logout?return=" + encodedRedirectUrl, logoutURL);
     }
 
