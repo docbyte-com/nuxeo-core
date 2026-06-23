@@ -5,7 +5,7 @@
   <parent>
     <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
     <artifactId>nuxeo-rest-api-parent</artifactId>
-    <version>2026.2.0-SNAPSHOT</version>
+    <version>2026.3.0-SNAPSHOT</version>
   </parent>
 
   <artifactId>nuxeo-rest-opensearch1-passthrough</artifactId>
@@ -15,8 +15,8 @@
   <dependencies>
     <!-- Java specifications -->
     <dependency>
-      <groupId>jakarta.validation</groupId>
-      <artifactId>jakarta.validation-api</artifactId>
+      <groupId>jakarta.annotation</groupId>
+      <artifactId>jakarta.annotation-api</artifactId>
     </dependency>
 
     <!-- Libraries -->

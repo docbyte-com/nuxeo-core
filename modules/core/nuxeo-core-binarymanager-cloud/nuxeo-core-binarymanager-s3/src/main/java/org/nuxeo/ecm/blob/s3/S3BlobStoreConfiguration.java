@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2019-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.ALLOW_BYTE_RANGE;
 import static org.nuxeo.ecm.core.blob.BlobProviderDescriptor.RECORD;
-import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStricMode;
+import static org.nuxeo.ecm.core.model.BaseSession.isRetentionStrictMode;
 import static software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode.COMPLIANCE;
 import static software.amazon.awssdk.services.s3.model.ObjectLockRetentionMode.GOVERNANCE;
 
@@ -52,6 +52,7 @@ import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.common.Environment;
+import org.nuxeo.common.utils.ByteSize;
 import org.nuxeo.ecm.blob.CloudBlobStoreConfiguration;
 import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.blob.PathStrategy;
@@ -64,6 +65,7 @@ import org.nuxeo.runtime.services.config.ConfigurationService;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
@@ -71,7 +73,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
+import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.DefaultRetention;
+import software.amazon.awssdk.services.s3.model.GetBucketVersioningResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectLockConfigurationResponse;
 import software.amazon.awssdk.services.s3.model.ObjectLockConfiguration;
@@ -206,7 +210,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * @deprecated since 2025.0, merged with {@link #MINIMUM_UPLOAD_PART_SIZE_DEFAULT}
      */
     @Deprecated(since = "2025.0")
-    public static final long MULTIPART_COPY_PART_SIZE_DEFAULT = 5L * 1024 * 1024; // 5 MB;
+    public static final long MULTIPART_COPY_PART_SIZE_DEFAULT = ByteSize.ofMebibytes(5).bytes();
 
     /**
      * The Framework property to define the multipart copy threshold.
@@ -219,12 +223,14 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /**
      * The default value for the multipart copy threshold.
+     * <p>
+     * AWS SDK default.
      *
      * @since 2021.11
      * @deprecated since 2025.0, merged with {@link #MULTIPART_UPLOAD_THRESHOLD_DEFAULT}
      */
     @Deprecated(since = "2025.0")
-    public static final long MULTIPART_COPY_THRESHOLD_DEFAULT = 5L * 1024 * 1024 * 1024; // AWS SDK default = 5 GB
+    public static final long MULTIPART_COPY_THRESHOLD_DEFAULT = ByteSize.ofGibibytes(5).bytes();
 
     /**
      * The Framework property to define the multipart upload threshold.
@@ -235,10 +241,12 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /**
      * The default value for the multipart upload threshold.
+     * <p>
+     * AWS SDK default.
      *
      * @since 2021.11
      */
-    public static final long MULTIPART_UPLOAD_THRESHOLD_DEFAULT = 16L * 1024 * 1024; // AWS SDK default = 16 MB;
+    public static final long MULTIPART_UPLOAD_THRESHOLD_DEFAULT = ByteSize.ofMebibytes(16).bytes();
 
     /**
      * The Framework property to define the minimum upload part size.
@@ -249,10 +257,12 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /**
      * The default value for the minimum upload part size.
+     * <p>
+     * AWS SDK default.
      *
      * @since 2021.11
      */
-    public static final long MINIMUM_UPLOAD_PART_SIZE_DEFAULT = 5L * 1024 * 1024; // AWS SDK default = 5 MB
+    public static final long MINIMUM_UPLOAD_PART_SIZE_DEFAULT = ByteSize.ofMebibytes(5).bytes();
 
     /**
      * The Framework property to define the transfer manager thread pool size.
@@ -289,7 +299,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /** @since 2025.8 */
     public static final List<StorageClass> SUPPORTED_STORAGE_CLASS = List.of(StorageClass.STANDARD,
-            StorageClass.INTELLIGENT_TIERING);
+            StorageClass.INTELLIGENT_TIERING, StorageClass.GLACIER_IR, StorageClass.STANDARD_IA,
+            StorageClass.ONEZONE_IA);
 
     public final CloudFrontConfiguration cloudFront;
 
@@ -361,9 +372,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      */
     protected URI endpointOverride;
 
-    protected long minimumPartSizeInBytes;
+    protected ByteSize minimumPartSize;
 
-    protected long multipartUploadThreshold;
+    protected ByteSize multipartUploadThreshold;
 
     protected KeyPair clientSideEncryptionKeyPair;
 
@@ -383,6 +394,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     protected String userAgentSuffix;
 
+    protected final boolean isBucketVersioningEnabled;
+
     public S3BlobStoreConfiguration(Map<String, String> properties) throws IOException {
         super(SYSTEM_PROPERTY_PREFIX, properties);
         cloudFront = new CloudFrontConfiguration(SYSTEM_PROPERTY_PREFIX, properties);
@@ -398,9 +411,10 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             useServerSideEncryption = false;
             serverSideKMSKeyID = null;
         }
-        minimumPartSizeInBytes = getLongProperty(MINIMUM_UPLOAD_PART_SIZE_PROPERTY, MINIMUM_UPLOAD_PART_SIZE_DEFAULT);
-        multipartUploadThreshold = getLongProperty(MULTIPART_UPLOAD_THRESHOLD_PROPERTY,
-                MULTIPART_UPLOAD_THRESHOLD_DEFAULT);
+        minimumPartSize = getOptionalByteSizeProperty(MINIMUM_UPLOAD_PART_SIZE_PROPERTY).orElseGet(
+                () -> new ByteSize(MINIMUM_UPLOAD_PART_SIZE_DEFAULT));
+        multipartUploadThreshold = getOptionalByteSizeProperty(MULTIPART_UPLOAD_THRESHOLD_PROPERTY).orElseGet(
+                () -> new ByteSize(MULTIPART_UPLOAD_THRESHOLD_DEFAULT));
         maxConcurrency = getIntProperty(CONCURRENCY_MAX_PROPERTY);
         targetThroughputInGbps = getLongProperty(TARGET_THROUGHPUT_IN_GBPS_PROPERTY);
         maxConnections = getIntProperty(CONNECTION_MAX_PROPERTY);
@@ -442,6 +456,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         // For compat
         s3RetentionEnabled = retentionEnabled;
 
+        isBucketVersioningEnabled = computeVersioningEnabled();
+
         var storageClassProperty = getProperty(STORAGE_CLASS_PROPERTY);
         if (isNotBlank(storageClassProperty)) {
             storageClass = StorageClass.fromValue(storageClassProperty.toUpperCase());
@@ -453,6 +469,27 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         }
         log.info("Object will be stored with S3 {} storage class", storageClass);
         transferManager = createTransferManager();
+    }
+
+    @Override
+    protected boolean isVersioningEnabled() {
+        return isBucketVersioningEnabled;
+    }
+
+    protected boolean computeVersioningEnabled() {
+        try {
+            GetBucketVersioningResponse response = amazonS3.getBucketVersioning(b -> b.bucket(bucketName));
+            // if versioning is suspended, created objects won't have versions
+            return BucketVersioningStatus.ENABLED.equals(response.status());
+        } catch (SdkServiceException e) {
+            if (e.statusCode() == HttpStatus.SC_NOT_IMPLEMENTED) {
+                // minio does not implement versioning
+                log.warn("Versioning not implemented for bucket: {}: {}", () -> bucketName, e::getMessage);
+                log.debug(e, e);
+                return false;
+            }
+            throw e;
+        }
     }
 
     protected S3Client createSyncClient() {
@@ -499,8 +536,8 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
         S3CrtAsyncClientBuilder s3AsyncClientBuilder = S3AsyncClient.crtBuilder(); // NOSONAR
         s3AsyncClientBuilder.region(region)
                             .credentialsProvider(awsCredentialsProvider)
-                            .minimumPartSizeInBytes(minimumPartSizeInBytes)
-                            .thresholdInBytes(multipartUploadThreshold)
+                            .minimumPartSizeInBytes(minimumPartSize.bytes())
+                            .thresholdInBytes(multipartUploadThreshold.bytes())
                             .forcePathStyle(getBooleanProperty(PATHSTYLEACCESS_PROPERTY))
                             .accelerate(getBooleanProperty(ACCELERATE_MODE_PROPERTY))
                             .endpointOverride(endpointOverride)
@@ -637,7 +674,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
             return Optional.ofNullable(olc.rule())
                            .map(ObjectLockRule::defaultRetention)
                            .map(DefaultRetention::mode)
-                           .orElse(isRetentionStricMode() ? COMPLIANCE : GOVERNANCE);
+                           .orElse(isRetentionStrictMode() ? COMPLIANCE : GOVERNANCE);
         } catch (S3Exception e) {
             if (e.statusCode() == HttpStatus.SC_NOT_FOUND) {
                 return null;
@@ -663,7 +700,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
      * @since 2021.11
      * @deprecated since 2025.0, unused
      */
-    @Deprecated(since = "2025.0")
+    @Deprecated(since = "2025.0", forRemoval = true)
     public static long getMultipartCopyPartSize() {
         // backward compatibility with configuration service property
         ConfigurationService configurationService = Framework.getService(ConfigurationService.class);
@@ -679,7 +716,9 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
 
     /**
      * @since 2021.11
+     * @deprecated since 2025.11, use {@link #getOptionalLongProperty(String)} instead
      */
+    @Deprecated(since = "2025.11", forRemoval = true)
     public static long getLongProperty(String key, long defaultValue) {
         var value = Framework.getProperty(key);
         if (value == null) {
@@ -850,7 +889,7 @@ public class S3BlobStoreConfiguration extends CloudBlobStoreConfiguration {
     }
 
     protected S3TransferManager createTransferManager() {
-        int threadPoolSize = getIntProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY,
+        int threadPoolSize = getOptionalIntegerProperty(TRANSFER_MANAGER_THREAD_POOL_SIZE_PROPERTY).orElse(
                 TRANSFER_MANAGER_THREAD_POOL_SIZE_DEFAULT);
         ThreadPoolExecutor executor = new ThreadPoolExecutor(0, threadPoolSize, 60, TimeUnit.SECONDS,
                 new LinkedBlockingQueue<>(1_000),

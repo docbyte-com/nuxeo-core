@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012 Nuxeo SA (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.LogEntry;
-import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.NuxeoDriveContribException;
 import org.nuxeo.drive.adapter.RootlessItemException;
@@ -40,6 +40,7 @@ import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.blobholder.BlobHolder;
 import org.nuxeo.ecm.core.api.event.CoreEventConstants;
 import org.nuxeo.ecm.core.api.event.DocumentEventTypes;
+import org.nuxeo.ecm.core.api.trash.TrashService;
 import org.nuxeo.ecm.core.event.Event;
 import org.nuxeo.ecm.core.event.EventContext;
 import org.nuxeo.ecm.core.event.EventListener;
@@ -75,10 +76,7 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
 
     @Override
     public void handleEvent(Event event) {
-        DocumentEventContext ctx;
-        if (event.getContext() instanceof DocumentEventContext) {
-            ctx = (DocumentEventContext) event.getContext();
-        } else {
+        if (!(event.getContext() instanceof DocumentEventContext ctx)) {
             // Not interested in events that are not related to documents
             return;
         }
@@ -87,24 +85,30 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
             // Not interested in system documents
             return;
         }
+        String eventName = event.getName();
         DocumentModel docForLogEntry = doc;
-        if (DocumentEventTypes.BEFORE_DOC_UPDATE.equals(event.getName())) {
+        if (DocumentEventTypes.BEFORE_DOC_UPDATE.equals(eventName)) {
             docForLogEntry = handleBeforeDocUpdate(ctx, doc);
             if (docForLogEntry == null) {
                 return;
             }
         }
-        if (DocumentEventTypes.ABOUT_TO_REMOVE.equals(event.getName()) && !handleAboutToRemove(doc)) {
+        if (DocumentEventTypes.ABOUT_TO_REMOVE.equals(eventName) && !handleAboutToRemove(doc)) {
+            return;
+        }
+        if (DocumentEventTypes.ABOUT_TO_MOVE.equals(eventName) && !handleAboutToMove(doc, ctx)) {
             return;
         }
         log.debug("NuxeoDriveFileSystemDeletionListener handling {} event for {}", event::getName, () -> doc);
         // Virtual event name
         String virtualEventName;
-        if (DocumentEventTypes.BEFORE_DOC_SECU_UPDATE.equals(event.getName())
-                || NuxeoDriveEvents.GROUP_UPDATED.equals(event.getName())) {
+        if (DocumentEventTypes.BEFORE_DOC_SECU_UPDATE.equals(eventName)
+                || NuxeoDriveEvents.GROUP_UPDATED.equals(eventName)) {
             virtualEventName = NuxeoDriveEvents.SECURITY_UPDATED_EVENT;
-        } else if (DocumentEventTypes.ABOUT_TO_MOVE.equals(event.getName())) {
+        } else if (DocumentEventTypes.ABOUT_TO_MOVE.equals(eventName)) {
             virtualEventName = NuxeoDriveEvents.MOVED_EVENT;
+        } else if (DocumentEventTypes.ABOUT_TO_REMOVE.equals(eventName)) {
+            virtualEventName = NuxeoDriveEvents.ABOUT_TO_REMOVE_EVENT;
         } else {
             virtualEventName = NuxeoDriveEvents.DELETED_EVENT;
         }
@@ -143,10 +147,22 @@ public class NuxeoDriveFileSystemDeletionListener implements EventListener {
         return !doc.isTrashed();
     }
 
+    protected boolean handleAboutToMove(DocumentModel doc, DocumentEventContext ctx) {
+        // Move of document ready to be trashed or untrashed should not be marked as FS deletion to avoid duplicates
+        // This happens when adding or removing the "_.trashed" suffix to a document's name before actually trashing
+        // or untrashing it
+        TrashService trashService = Framework.getService(TrashService.class);
+        if (trashService.isMangledName(doc.getName())) {
+            return false;
+        }
+        String newName = (String) ctx.getProperty(CoreEventConstants.DESTINATION_NAME);
+        return newName == null || !trashService.isMangledName(newName);
+    }
+
     protected void fireVirtualEventLogEntries(DocumentModel doc, String eventName, NuxeoPrincipal principal,
             String impactedUserName, CoreSession session) {
 
-        if (Framework.getService(AuditBackend.class) == null) {
+        if (Framework.getService(AuditService.class) == null) {
             // The log is not deployed (probably in unittest)
             return;
         }

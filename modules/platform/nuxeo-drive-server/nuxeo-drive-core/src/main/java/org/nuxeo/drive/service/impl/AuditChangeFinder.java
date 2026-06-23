@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2012-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2012-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ import static org.nuxeo.audit.api.LogEntryConstants.LOG_EXTENDED;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_ID;
 import static org.nuxeo.audit.api.LogEntryConstants.LOG_REPOSITORY_ID;
 import static org.nuxeo.audit.service.AuditBackend.Capability.EXTENDED_INFO_SEARCH;
+import static org.nuxeo.audit.service.AuditComponent.DEFAULT_AUDIT_BACKEND;
+import static org.nuxeo.drive.service.NuxeoDriveEvents.EVENT_CATEGORY;
 import static org.nuxeo.drive.service.NuxeoDriveEvents.IMPACTED_USERNAME_PROPERTY;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.asc;
 import static org.nuxeo.ecm.core.query.sql.model.OrderByExprs.desc;
@@ -53,6 +55,7 @@ import org.apache.logging.log4j.Logger;
 import org.nuxeo.audit.api.AuditQueryBuilder;
 import org.nuxeo.audit.api.LogEntry;
 import org.nuxeo.audit.service.AuditBackend;
+import org.nuxeo.audit.service.AuditService;
 import org.nuxeo.drive.adapter.FileSystemItem;
 import org.nuxeo.drive.adapter.RootlessItemException;
 import org.nuxeo.drive.adapter.impl.AbstractFileSystemItem;
@@ -125,7 +128,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
         // need to be invalidated: let's make sure we perform a
         // query with the actual active roots.
         for (LogEntry entry : entries) {
-            if (NuxeoDriveEvents.EVENT_CATEGORY.equals(entry.getCategory())) {
+            if (EVENT_CATEGORY.equals(entry.getCategory())) {
                 log.debug("Detected sync root change for user '{}' in audit log:"
                         + " invalidating the root cache and refetching the changes.", principalName);
                 NuxeoDriveManager driveManager = Framework.getService(NuxeoDriveManager.class);
@@ -156,6 +159,13 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                 log.debug("Found extended info in audit log entry: document has been deleted, moved,"
                         + " is an unregistered synchronization root or its security has been updated,"
                         + " we just know the FileSystemItem id and name.");
+                // Ignore trashed documents to which the current user doesn't have access
+                if ("deleted".equals(entry.getEventId()) && !session.exists(docRef)) {
+                    log.debug(
+                            "Document {} ({}) doesn't exist, it has been removed or the current user doesn't have access to it, not adding entry to the change summary.",
+                            entry::getDocPath, () -> docRef);
+                    continue;
+                }
                 boolean isChangeSet = false;
                 // First try to adapt the document as a FileSystemItem to provide it to the FileSystemItemChange entry,
                 // only in the case of a move or a security update.
@@ -184,8 +194,9 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                             "Document {} ({}) doesn't exist or is not adaptable as a FileSystemItem, only providing the FileSystemItem id and name to the FileSystemItemChange entry.",
                             entry::getDocPath, () -> docRef);
                     String eventId;
-                    if (NuxeoDriveEvents.MOVED_EVENT.equals(entry.getEventId())) {
-                        // Move to a non synchronization root
+                    if (NuxeoDriveEvents.MOVED_EVENT.equals(entry.getEventId())
+                            || NuxeoDriveEvents.ABOUT_TO_REMOVE_EVENT.equals(entry.getEventId())) {
+                        // Move to a non synchronization root or an unauthorized folder, or permanent removal
                         eventId = NuxeoDriveEvents.DELETED_EVENT;
                     } else {
                         // Deletion, unregistration or security update
@@ -244,7 +255,9 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
     @Override
     public long getUpperBound() {
         var queryBuilder = new AuditQueryBuilder().order(desc(LOG_ID)).limit(1);
-        List<LogEntry> entries = Framework.getService(AuditBackend.class).queryLogs(queryBuilder);
+        List<LogEntry> entries = Framework.getService(AuditService.class)
+                                          .getAuditBackend(DEFAULT_AUDIT_BACKEND)
+                                          .queryLogs(queryBuilder);
         if (entries.isEmpty()) {
             log.debug("Found no audit log entries, returning -1");
             return -1;
@@ -273,7 +286,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
             isPlatformEventsList.add(or(isRootList));
         }
         var isPlatformEvents = and(isPlatformEventsList);
-        var isDriveEvents = and(eq(LOG_CATEGORY, "NuxeoDrive"), noteq(LOG_EVENT_ID, "rootUnregistered"));
+        var isDriveEvents = and(eq(LOG_CATEGORY, EVENT_CATEGORY), noteq(LOG_EVENT_ID, "rootUnregistered"));
         var queryBuilder = new AuditQueryBuilder().predicate(eq(LOG_REPOSITORY_ID, session.getRepositoryName()))
                                                   // interesting events
                                                   .and(or(isPlatformEvents, isDriveEvents))
@@ -283,7 +296,7 @@ public class AuditChangeFinder implements FileSystemChangeFinder {
                                                   .order(desc(LOG_EVENT_DATE))
                                                   .limit(limit);
         String principalName = session.getPrincipal().getName();
-        var auditBackend = Framework.getService(AuditBackend.class);
+        var auditBackend = Framework.getService(AuditService.class).getAuditBackend(DEFAULT_AUDIT_BACKEND);
         if (auditBackend.hasCapability(EXTENDED_INFO_SEARCH)) {
             // is current user
             queryBuilder.and(or(isnull(LOG_EXTENDED + '/' + IMPACTED_USERNAME_PROPERTY),

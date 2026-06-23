@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2014-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2014-2025 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,25 @@
  */
 package org.nuxeo.ecm.platform.auth.saml;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLConfiguration.SKEW_TIME_MS;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLConstants.HTTP_PARAMETER_SAML_REQUEST;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLConstants.HTTP_PARAMETER_SAML_RESPONSE;
+import static org.nuxeo.ecm.platform.auth.saml.SAMLConstants.HTTP_SESSION_SAML_SESSION;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.assertSAMLMessage;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.encodeSAMLMessage;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.extractQueryParam;
 import static org.nuxeo.ecm.platform.auth.saml.SAMLFeature.format;
-import static org.nuxeo.ecm.platform.auth.saml.SAMLUtils.SAML_SESSION_KEY;
-import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_REQUEST;
-import static org.nuxeo.ecm.platform.auth.saml.processor.binding.SAMLInboundBinding.SAML_RESPONSE;
 import static org.nuxeo.ecm.platform.ui.web.auth.NXAuthConstants.LOGIN_ERROR;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -42,6 +45,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,7 +106,7 @@ public class SAMLAuthenticatorTest {
                         </saml2p:AuthnRequest>
                         """,
                 AuthnRequest::getID, format(AuthnRequest::getIssueInstant));
-        var actual = extractQueryParam(redirectURL, SAML_REQUEST);
+        var actual = extractQueryParam(redirectURL, HTTP_PARAMETER_SAML_REQUEST);
         assertSAMLMessage(expected, actual);
     }
 
@@ -121,7 +125,7 @@ public class SAMLAuthenticatorTest {
                         </saml2p:AuthnRequest>
                         """,
                 AuthnRequest::getID, format(AuthnRequest::getIssueInstant));
-        var actual = extractQueryParam(loginURL, SAML_REQUEST);
+        var actual = extractQueryParam(loginURL, HTTP_PARAMETER_SAML_REQUEST);
         assertSAMLMessage(expected, actual);
     }
 
@@ -181,7 +185,7 @@ public class SAMLAuthenticatorTest {
                 </samlp:Response>
                 """.formatted("_" + UUID.randomUUID(), now, "_" + UUID.randomUUID(), now, now, now);
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
-        requestHandler.whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse);
+        requestHandler.whenGetParameterThenReturn(HTTP_PARAMETER_SAML_RESPONSE, encodedSamlResponse);
 
         var responseHandler = MockHttpServletResponse.init();
 
@@ -193,7 +197,7 @@ public class SAMLAuthenticatorTest {
         var redirectUri = requestHandler.getSessionAttributeValue(NXAuthConstants.START_PAGE_SAVE_KEY);
         assertEquals("/relay", redirectUri);
 
-        Cookie cookie = responseHandler.getCookie(SAML_SESSION_KEY);
+        Cookie cookie = responseHandler.getCookie(HTTP_SESSION_SAML_SESSION);
         assertNotNull(cookie);
         assertTrue(cookie.isHttpOnly());
     }
@@ -214,8 +218,9 @@ public class SAMLAuthenticatorTest {
         var encodedSamlRequest = encodeSAMLMessage(samlRequest);
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
-                                                   .whenGetParameterThenReturn(SAML_REQUEST, encodedSamlRequest)
-                                                   .whenGetCookieThenReturn(SAML_SESSION_KEY,
+                                                   .whenGetParameterThenReturn(HTTP_PARAMETER_SAML_REQUEST,
+                                                           encodedSamlRequest)
+                                                   .whenGetCookieThenReturn(HTTP_SESSION_SAML_SESSION,
                                                            "sessionId|user@dummy|format");
         var responseHandler = MockHttpServletResponse.init();
 
@@ -228,7 +233,6 @@ public class SAMLAuthenticatorTest {
         HttpServletRequest req = mock(HttpServletRequest.class);
         HttpServletResponse resp = mock(HttpServletResponse.class);
 
-        // TODO check url
         String url = "http://localhost:8080/login";
         var samlResponse = """
                 <samlp:LogoutResponse xmlns:samlp="urn:oasis:names:tc:SAML:2.0:protocol"
@@ -253,7 +257,7 @@ public class SAMLAuthenticatorTest {
     @Test
     public void testLogoutRequest() {
         var requestHandler = MockHttpServletRequest.init()
-                                                   .whenGetCookieThenReturn(SAML_SESSION_KEY,
+                                                   .whenGetCookieThenReturn(HTTP_SESSION_SAML_SESSION,
                                                            "sessionId|user@dummy|format");
         var responseHandler = MockHttpServletResponse.init();
 
@@ -269,7 +273,7 @@ public class SAMLAuthenticatorTest {
                         </saml2p:LogoutRequest>
                         """,
                 LogoutRequest::getID, format(LogoutRequest::getIssueInstant));
-        var actual = extractQueryParam(logoutURL, SAML_REQUEST);
+        var actual = extractQueryParam(logoutURL, HTTP_PARAMETER_SAML_REQUEST);
         assertSAMLMessage(expected, actual);
     }
 
@@ -323,7 +327,8 @@ public class SAMLAuthenticatorTest {
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
-                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
+                                                   .whenGetParameterThenReturn(HTTP_PARAMETER_SAML_RESPONSE,
+                                                           encodedSamlResponse)
                                                    .whenGetParameterThenReturn("RelayState", "/relay");
         var responseHandler = MockHttpServletResponse.init();
 
@@ -381,11 +386,83 @@ public class SAMLAuthenticatorTest {
         var encodedSamlResponse = encodeSAMLMessage(samlResponse);
 
         var requestHandler = MockHttpServletRequest.init("POST", "http://localhost:8080/login")
-                                                   .whenGetParameterThenReturn(SAML_RESPONSE, encodedSamlResponse)
+                                                   .whenGetParameterThenReturn(HTTP_PARAMETER_SAML_RESPONSE,
+                                                           encodedSamlResponse)
                                                    .whenGetParameterThenReturn("RelayState", "/relay");
         var responseHandler = MockHttpServletResponse.init();
 
         UserIdentificationInfo info = samlAuth.handleRetrieveIdentity(requestHandler.mock(), responseHandler.mock());
         assertNull(info);
+    }
+
+    // NXP-33506
+    @Test
+    public void testAuthRequestWithRequestedUrlParameter() {
+        var requestHandler = MockHttpServletRequest.init()
+                                                   .whenGetParameterThenReturn(NXAuthConstants.REQUESTED_URL, "ui/");
+
+        var loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
+
+        assertTrue(loginURL.startsWith("http://dummy/SSORedirect"));
+        // Verify that RelayState contains the requested URL
+        var relayState = extractQueryParam(loginURL, "RelayState");
+        assertEquals("ui/", relayState);
+    }
+
+    // NXP-33506
+    @Test
+    public void testAuthRequestParameterOverridesSession() {
+        var requestHandler = MockHttpServletRequest.init()
+                                                   .whenGetParameterThenReturn(NXAuthConstants.REQUESTED_URL, "ui/new")
+                                                   .whenGetSessionAttributeThenReturn(
+                                                           NXAuthConstants.START_PAGE_SAVE_KEY, "ui/old");
+
+        var loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
+
+        var relayState = extractQueryParam(loginURL, "RelayState");
+        assertEquals("ui/new", relayState); // Should use parameter, not session
+    }
+
+    // NXP-33506
+    @Test
+    public void testAuthRequestAttributeOverridesSession() {
+        var requestHandler = MockHttpServletRequest.init()
+                                                   .whenGetAttributeThenReturn(NXAuthConstants.REQUESTED_URL,
+                                                           "ui/attribute")
+                                                   .whenGetSessionAttributeThenReturn(
+                                                           NXAuthConstants.START_PAGE_SAVE_KEY, "ui/session");
+
+        var loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
+
+        var relayState = extractQueryParam(loginURL, "RelayState");
+        assertEquals("ui/attribute", relayState); // Should use attribute, not session
+    }
+
+    // NXP-33506
+    @Test
+    public void testAuthRequestFallsBackToSession() {
+        var requestHandler = MockHttpServletRequest.init()
+                                                   .whenGetSessionAttributeThenReturn(
+                                                           NXAuthConstants.START_PAGE_SAVE_KEY, "ui/session");
+
+        var loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
+
+        var relayState = extractQueryParam(loginURL, "RelayState");
+        assertEquals("ui/session", relayState); // Should fall back to session
+    }
+
+    // NXP-33506
+    @Test
+    public void testAuthRequestWithNoRequestedUrl() {
+        var requestHandler = MockHttpServletRequest.init();
+
+        var loginURL = samlAuth.computeUrl(requestHandler.mock(), null);
+
+        assertTrue(loginURL.startsWith("http://dummy/SSORedirect"));
+        // Verify that there's no RelayState in the URL
+        var relayStatePresent = URLEncodedUtils.parse(URI.create(loginURL), UTF_8)
+                                               .stream()
+                                               .anyMatch(param -> "RelayState".equals(param.getName()));
+        assertFalse(relayStatePresent);
     }
 }

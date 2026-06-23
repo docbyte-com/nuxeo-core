@@ -39,14 +39,12 @@ import org.nuxeo.ecm.core.blob.ManagedBlob;
 import org.nuxeo.ecm.core.bulk.message.BulkStatus;
 import org.nuxeo.ecm.core.test.CoreFeature;
 import org.nuxeo.runtime.api.Framework;
-import org.nuxeo.runtime.test.runner.BlacklistComponent;
 import org.nuxeo.runtime.test.runner.Features;
 
 /**
  * @since 2023.5
  */
 @Features(CoreFeature.class)
-@BlacklistComponent("org.nuxeo.ecm.core.storage.cloud.requestcontroller.service.contrib")
 public abstract class AbstractTestFullGCOrphanBlobsRecord extends AbstractTestFullGCOrphanBlobs {
 
     @Override
@@ -69,7 +67,8 @@ public abstract class AbstractTestFullGCOrphanBlobsRecord extends AbstractTestFu
 
         // We are testing record provider
         // blob versioning is enabled and blob key has the ${docId}@{versionId} pattern
-        assertTrue(blobKey.startsWith(blobProvider.blobProviderId + ":" + doc.getId() + KeyStrategy.VER_SEP));
+        assertTrue("Unexpected blobKey: %s".formatted(blobKey),
+                blobKey.startsWith(blobProvider.blobProviderId + ":" + doc.getId() + KeyStrategy.VER_SEP));
 
         BulkStatus status = triggerAndWaitGC(RECORDS_PARAM);
         assertNotNull(status);

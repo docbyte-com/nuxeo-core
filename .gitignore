@@ -19,10 +19,13 @@ bin
 .mylar
 .idea
 .run
+.vscode
+.cursor
 *.iml
 *.ipr
 *.iws
 *.ids
+*.vscode
 .pydevproject
 .factorypath
 .java-version

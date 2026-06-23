@@ -121,7 +121,8 @@ public class TestBlobKeysBulkMigrator {
         var afterState = migrationService.getStatus(MIGRATION_ID).getState();
         assertEquals(MIGRATION_AFTER_STATE, afterState);
         assertEquals(NB_DOCS_WITHOUT_CONTENT, getNbFilesWithoutBlobKeys());
-        assertBlobKeysCapability(true);
+        // the capability is updated asynchronously by the migrator thread after the state is persisted
+        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> assertBlobKeysCapability(true));
     }
 
     @Test

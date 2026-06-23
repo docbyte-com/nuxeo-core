@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>cloud.docbyte.nuxeo</groupId>
   <artifactId>nuxeo-ecm</artifactId>
-  <version>2026.2.0-SNAPSHOT</version>
+  <version>2026.3.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Nuxeo ECM Projects</name>
   <description>Nuxeo ECM Platform and related components.</description>
@@ -56,7 +56,8 @@
     <!-- <license.useMissingFile>true</license.useMissingFile> -->
     <!-- <license.missingFile>src/main/license/THIRD-PARTY.properties</license.missingFile> -->
 
-    <nuxeo.platform.version>2016.2.0-SNAPSHOT</nuxeo.platform.version>
+
+    <nuxeo.platform.version>2026.3.0-SNAPSHOT</nuxeo.platform.version>
     <nuxeo.distribution.name>lts</nuxeo.distribution.name>
     <nuxeo.platform.javadoc.version>${project.version}</nuxeo.platform.javadoc.version>
 
@@ -67,10 +68,10 @@
     <ant.assembly.version>2.1.7</ant.assembly.version>
     <nuxeo.ftest.version>1.8.10</nuxeo.ftest.version>
 
-    <tomcat.version>10.1.47</tomcat.version>
+    <tomcat.version>10.1.52</tomcat.version>
     <opensearch1.version>1.3.20</opensearch1.version>
-    <netty.version>4.2.6.Final</netty.version>
-    <netty.boringssl.version>2.0.74.Final</netty.boringssl.version>
+    <netty.version>4.2.10.Final</netty.version>
+    <netty.boringssl.version>2.0.75.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
     <guice.version>7.0.0</guice.version>
@@ -79,41 +80,43 @@
     <apache.httpasyncclient.version>4.1.5</apache.httpasyncclient.version>
     <apache.httpcore.version>4.4.16</apache.httpcore.version>
     <apache.httpcomponents.version>4.5.14</apache.httpcomponents.version>
-    <apache.poi.version>5.4.1</apache.poi.version>
+    <apache.poi.version>5.5.1</apache.poi.version>
     <jodreport.version>2.4.0</jodreport.version>
-    <jxls.version>3.0.0</jxls.version>
-    <keycloak.version>25.0.3</keycloak.version>
-    <xdocreport.version>2.1.0</xdocreport.version>
+    <jxls.version>3.1.0</jxls.version>
+    <keycloak.version>26.5.5</keycloak.version>
+    <keycloak.policy.enforcer.version>26.0.8</keycloak.policy.enforcer.version>
+    <keycloak.adapters.version>25.0.3</keycloak.adapters.version>
+    <xdocreport.version>2.2.0</xdocreport.version>
     <google.http.client.version>1.47.1</google.http.client.version>
     <google.oauth.client.version>1.39.0</google.oauth.client.version>
-    <google.api.client.version>2.8.1</google.api.client.version>
+    <google.api.client.version>2.9.0</google.api.client.version>
     <google.api.drive.version>v2-rev20201130-1.31.0</google.api.drive.version>
     <box.api.version>1.1.0</box.api.version>
-    <pdfbox.version>3.0.5</pdfbox.version>
+    <pdfbox.version>3.0.7</pdfbox.version>
     <pdfbox.jbig2.version>3.0.4</pdfbox.jbig2.version>
-    <aws.version>2.35.5</aws.version>
-    <gcp.version>2.58.1</gcp.version>
+    <aws.version>2.42.14</aws.version>
+    <gcp.version>2.64.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
-    <jackson.bom.version>2.20.0</jackson.bom.version>
-    <bouncycastle.version>1.82</bouncycastle.version>
-    <avro.version>1.12.0</avro.version>
+    <jackson.bom.version>2.21.1</jackson.bom.version>
+    <bouncycastle.version>1.83</bouncycastle.version>
+    <avro.version>1.12.1</avro.version>
     <restlet.version>2.4.4</restlet.version>
     <jmock.version>2.13.1</jmock.version>
     <wro4j.version>2.1.1</wro4j.version>
     <xalan.version>2.7.3</xalan.version>
     <scim.v2.sdk.version>3.2.0</scim.v2.sdk.version>
-    <jaxb.version>4.0.6</jaxb.version>
+    <jaxb.version>4.0.7</jaxb.version>
 
     <!-- deprecated property since removal of maven-nuxeo-plugin execution -->
     <eclipseVersion>${project.version}</eclipseVersion>
     <org.ops4j.pax.version>4.14.0</org.ops4j.pax.version>
-    <org.apache.log4j.version>2.25.2</org.apache.log4j.version>
+    <org.apache.log4j.version>2.25.3</org.apache.log4j.version>
     <org.slf4j.version>1.7.36</org.slf4j.version>
     <gatling.version>3.12.0</gatling.version>
     <gatling-plugin.version>4.11.0</gatling-plugin.version>
-    <scala.version>2.13.17</scala.version>
+    <scala.version>2.13.18</scala.version>
     <scala-logging.version>3.9.6</scala-logging.version>
-    <scala-maven-plugin.version>4.9.6</scala-maven-plugin.version>
+    <scala-maven-plugin.version>4.9.10</scala-maven-plugin.version>
 
     <nuxeo.skip.enforcer>true</nuxeo.skip.enforcer>
 
@@ -145,19 +148,18 @@
     </it.modules.argLine>
 
     <!-- MongoDB -->
-    <mongo.java.driver.version>5.6.1</mongo.java.driver.version>
+    <mongo.java.driver.version>5.6.4</mongo.java.driver.version>
     <quartz.mongodb.version>2.3.0</quartz.mongodb.version>
 
-    <kafka.version>3.9.1</kafka.version>
-    <confluent.version>7.9.4</confluent.version>
-    <metrics.version>5.0.5</metrics.version>
-    <amqp.client.version>5.26.0</amqp.client.version>
-      <maven.surefire.version>2.22.2</maven.surefire.version>
+    <kafka.version>3.9.2</kafka.version>
+    <confluent.version>7.9.5</confluent.version>
+    <metrics.version>5.0.6</metrics.version>
+    <amqp.client.version>5.29.0</amqp.client.version>
     <opencensus.version>0.31.1</opencensus.version>
-    <prometheus.client.version>0.16.0</prometheus.client.version>
-    <protobuf.java.version>4.32.1</protobuf.java.version>
-    <opensaml.version>5.1.6</opensaml.version>
-    <quartz.version>2.5.0</quartz.version>
+    <prometheus.client.version>0.11.0</prometheus.client.version>
+    <protobuf.java.version>4.34.0</protobuf.java.version>
+    <opensaml.version>5.2.1</opensaml.version>
+    <quartz.version>2.5.2</quartz.version>
   </properties>
 
   <dependencyManagement>
@@ -167,210 +169,210 @@
         <artifactId>nuxeo-ecm</artifactId>
         <type>zip</type>
         <classifier>tools</classifier>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <!-- Nuxeo Common -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.common</groupId>
         <artifactId>nuxeo-common-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.common</groupId>
         <artifactId>nuxeo-common</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Runtime -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-launcher-commons</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-launcher-commons</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-datasource</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-datasource</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-deploy</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-jtajca</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-aws</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-mongodb</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-opensearch1-embed</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-kv</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-kv</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-pubsub</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-launcher</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-log4j</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-connect-standalone</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-connect-standalone</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-metrics</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-management</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-osgi</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-osgi</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-reload</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.lib.runtime</groupId>
         <artifactId>nuxeo-runtime-tomcat-adapter</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-stream</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-stream</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.lib.stream</groupId>
         <artifactId>nuxeo-stream</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-cluster</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-cluster</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
@@ -379,659 +381,660 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-migration</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.runtime</groupId>
         <artifactId>nuxeo-runtime-migration</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Core -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-bulk</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-bulk</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-convert-plugins</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-event</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-event</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-jtajca</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-jtajca</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-management-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mimetype</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-persistence</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-query</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-query</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-schema</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-schema</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-search</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-search</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-search-client-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-search-client-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-dbs</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-dbs</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mem</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mem</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.lib.core</groupId>
         <artifactId>nuxeo-core-storage-sql-extensions</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql-management</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-storage-sql-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-mongodb</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-cache</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-cache</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-el</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Services -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-mail-amazon-ses</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-actions-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-commandline-executor</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-content-template-manager</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-convert</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-ldap</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-sql</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-sql</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-multi</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-directory-types-contrib</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-dublincore</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-filemanager</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-filemanager</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-htmlsanitizer</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-cas2</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-cleartrust</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-deputy</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-digest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-openid</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-mod_sso</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-portal-sso</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-shibboleth</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-token-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-jwt</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-jwt</artifactId>
         <type>test-jar</type>
         <scope>test</scope>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-kerberos</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-keycloak</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-login-saml2</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-usermapper</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-usermapper</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-scim-v2</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-management</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-oauth1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-query-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendering</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-search-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-types</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-uidgen-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-url</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-usermanager</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-versioning-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-versioning-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-web-common</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-web-common</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-invite</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-permissions</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-collections-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-collections-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
@@ -1040,516 +1043,522 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-wro</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-web-resources-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo DM -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-default-config</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-webapp-types</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo WebEngine -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-base</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.webengine</groupId>
         <artifactId>nuxeo-webengine-invite</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Features -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-admin-center-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-connect-client-wrapper</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-connect-update</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-features</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-features</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-scripting</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-scripting</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.automation</groupId>
         <artifactId>nuxeo-automation-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-features-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-directory-storage</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-mongodb</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-opensearch1</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-sql</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-sql</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audit-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-rest-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-comment-workflow</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-csv-export</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-imaging-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-thumbnail</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-thumbnail</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-io-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-io-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.localconf</groupId>
         <artifactId>nuxeo-localconf-simple</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-mail</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-notification</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-notification</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-preview-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-preview-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-publisher</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-core-listener</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-default-config</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-relations-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-tag</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-task-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-task-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-task-automation</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-userpreferences</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-userworkspace</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
-        <artifactId>nuxeo-platform-virtualnavigation-core-contrib</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cloud.docbyte.nuxeo.elasticsearch</groupId>
-        <artifactId>nuxeo-elasticsearch-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
-        <type>test-jar</type>
+        <version>${nuxeo.platform.version}</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-task-core</artifactId>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-task-automation</artifactId>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-userpreferences</artifactId>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-userworkspace</artifactId>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-platform-virtualnavigation-core-contrib</artifactId>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-api-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-rest-opensearch1-passthrough</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-search-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-search-rest-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-rendition-publisher</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-user-preferences-api</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-user-preferences-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
+        <artifactId>nuxeo-user-preferences-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-user-profile</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Language extensions -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang-ext</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-lang-ext-incomplete</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- CMIS -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-bindings</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-impl</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-opencmis-tests</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
 
@@ -1557,125 +1566,126 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-xml-parser</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-scan</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-scan-xml-parser</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-importer-stream</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Document Routing -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-default</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-test</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>${nuxeo.platform.version}</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.routing</groupId>
         <artifactId>nuxeo-routing-rest-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Audio -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-audio-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Video -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-video-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Suggest Box -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-suggestbox-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Digital Asset Management -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.dam</groupId>
         <artifactId>nuxeo-dam</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Quota -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-quota</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Binary Metadata -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-binary-metadata</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-binary-metadata</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
@@ -1684,240 +1694,250 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-config</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-signature-core-dependencies</artifactId>
         <type>pom</type>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Multi Tenant Management -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.multi.tenant</groupId>
         <artifactId>nuxeo-multi-tenant-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Binary Managers -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-common</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-common</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-s3</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-s3</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-azure</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.core</groupId>
         <artifactId>nuxeo-core-binarymanager-gcp</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Template rendering -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
+        <artifactId>nuxeo-template-rendering-core</artifactId>
+        <version>${nuxeo.platform.version}</version>
+        <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-xdocreport</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-jxls</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-deckjs</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.template.rendering</groupId>
         <artifactId>nuxeo-template-rendering-core-dependencies</artifactId>
         <type>pom</type>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- CSV -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.csv</groupId>
         <artifactId>nuxeo-csv-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Tree snapshot -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-tree-snapshot-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Drive -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core-dependencies</artifactId>
         <type>pom</type>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-elasticsearch</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-rest-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-drive-operations</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- DMK -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-dmk-adaptor</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Easyshare -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-easyshare-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- DEPRECATED FS Exporter -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.io</groupId>
         <artifactId>nuxeo-fsexporter</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- DuoWeb Authentication -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.duoweb.authentication</groupId>
         <artifactId>nuxeo-duoweb-authentication</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Live Connect -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.liveconnect</groupId>
         <artifactId>nuxeo-liveconnect</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.liveconnect</groupId>
         <artifactId>nuxeo-liveconnect</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
 
       <!-- PDF Utils -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-platform-pdf-utils</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Target platforms -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-api</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-io</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-rest</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.utils</groupId>
         <artifactId>nuxeo-target-platforms-sample</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- JSF to Web UI -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.web.ui</groupId>
         <artifactId>nuxeo-jsf-to-web-ui</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
 
@@ -1925,45 +1945,45 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-adobe-connector-core</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- WOPI -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm</groupId>
         <artifactId>nuxeo-wopi</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
       </dependency>
 
       <!-- Nuxeo Distribution -->
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-nxr-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-nxr-server</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>pom</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ecm.distribution</groupId>
         <artifactId>nuxeo-server-tomcat</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo</groupId>
         <artifactId>nuxeo-launcher</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <classifier>jar-with-dependencies</classifier>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.ftests</groupId>
         <artifactId>nuxeo-functional-tests</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
 
@@ -1971,247 +1991,253 @@
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-adobe-connector-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
+        <type>zip</type>
+      </dependency>
+      <dependency>
+        <groupId>cloud.docbyte.nuxeo.packages</groupId>
+        <artifactId>nuxeo-amazon-jdbc-package</artifactId>
+        <version>${nuxeo.platform.version}</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-amazon-s3-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-mongodb-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-opensearch1-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-sql-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-audit-storage-directory-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-cas2-login-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-csv-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-drive-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-duoweb-authentication-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-easyshare-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-fsexporter-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-google-storage-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-imap-connector-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-importer-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-jsf-to-web-ui-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-kerberos-authentication-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-keycloak-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-lang-ext-incomplete-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-liveconnect-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mail-amazon-ses-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mariadb-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-microsoft-azure-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mssql-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-multi-tenant-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-mysql-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-openid-login-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-opensearch1-embed-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-oracle-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-quota-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-saml2-login-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-scan-importer-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-scim-v2-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-search-client-opensearch1-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-shibboleth-login-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-signature-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-template-rendering-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-tree-snapshot-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-uidgen-opensearch1-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-uidgen-sql-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
       <dependency>
         <groupId>cloud.docbyte.nuxeo.packages</groupId>
         <artifactId>nuxeo-wopi-package</artifactId>
-        <version>2016.2.0-SNAPSHOT</version>
+        <version>2026.3.0-SNAPSHOT</version>
         <type>zip</type>
       </dependency>
 
@@ -2249,6 +2275,7 @@
         <artifactId>nuxeo-connect-client</artifactId>
         <version>${nuxeo.connect.client.version}</version>
         <type>test-jar</type>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>org.nuxeo.connect</groupId>
@@ -2366,7 +2393,7 @@
       <dependency>
         <groupId>jakarta.xml.bind</groupId>
         <artifactId>jakarta.xml.bind-api</artifactId>
-        <version>4.0.4</version>
+        <version>4.0.5</version>
       </dependency>
       <dependency>
         <groupId>com.sun.xml.bind</groupId>
@@ -2381,7 +2408,7 @@
       <dependency>
         <groupId>jakarta.xml.ws</groupId>
         <artifactId>jakarta.xml.ws-api</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.3</version>
       </dependency>
 
       <!-- commons -->
@@ -2394,17 +2421,17 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-exec</artifactId>
-        <version>1.5.0</version>
+        <version>1.6.0</version>
       </dependency>
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.20.0</version>
+        <version>2.21.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.19.0</version>
+        <version>3.20.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2414,7 +2441,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-text</artifactId>
-        <version>1.14.0</version>
+        <version>1.15.0</version>
       </dependency>
       <!-- Keep the dependency for external libraries -->
       <dependency>
@@ -2440,7 +2467,7 @@
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
-        <version>1.3.5</version>
+        <version>1.3.6</version>
         <exclusions>
           <!-- we use official jakarta.servlet:jakarta.servlet-api instead -->
           <exclusion>
@@ -2464,7 +2491,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.19.0</version>
+        <version>1.21.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -2474,22 +2501,22 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-jexl3</artifactId>
-        <version>3.5.0</version>
+        <version>3.6.2</version>
       </dependency>
       <dependency>
         <groupId>commons-cli</groupId>
         <artifactId>commons-cli</artifactId>
-        <version>1.10.0</version>
+        <version>1.11.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-pool2</artifactId>
-        <version>2.12.1</version>
+        <version>2.13.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-dbcp2</artifactId>
-        <version>2.13.0-NX02</version>
+        <version>2.14.0-NX01</version>
       </dependency>
       <dependency>
         <!-- not used by Nuxeo anymore, but needed by some dependencies -->
@@ -2533,7 +2560,7 @@
       <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.14.0</version>
+        <version>2.14.1</version>
       </dependency>
       <!-- specify a jna version compatible with ARM architecture, required by MariaDB, OpenSearch -->
       <dependency>
@@ -2790,7 +2817,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.27.6</version>
+        <version>3.27.7</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -2885,7 +2912,7 @@
       <dependency>
         <groupId>org.yaml</groupId>
         <artifactId>snakeyaml</artifactId>
-        <version>2.5</version>
+        <version>2.6</version>
       </dependency>
       <dependency>
         <groupId>antlr</groupId>
@@ -2895,24 +2922,24 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.8</version>
+        <version>42.7.10</version>
       </dependency>
       <!-- fix transitive dependency of org.postgresql:postgresql to avoid multiple versions in dependency graph -->
       <dependency>
         <groupId>org.checkerframework</groupId>
         <artifactId>checker-qual</artifactId>
-        <version>3.51.1</version>
+        <version>3.54.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.mysql</groupId>
         <artifactId>mysql-connector-j</artifactId>
-        <version>9.4.0</version>
+        <version>9.6.0</version>
       </dependency>
       <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
-        <version>3.5.6</version>
+        <version>3.5.7</version>
       </dependency>
       <!-- Informative declarations, Oracle drivers are not publicly available. -->
       <dependency>
@@ -2942,7 +2969,7 @@
       <dependency>
         <groupId>com.microsoft.sqlserver</groupId>
         <artifactId>mssql-jdbc</artifactId>
-        <version>7.4.1.jre12</version>
+        <version>10.2.4.jre11</version>
       </dependency>
       <dependency>
         <groupId>org.jmock</groupId>
@@ -3136,7 +3163,7 @@
       <dependency>
         <groupId>com.fasterxml.uuid</groupId>
         <artifactId>java-uuid-generator</artifactId>
-        <version>5.1.1</version>
+        <version>5.2.0</version>
       </dependency>
 
       <dependency>
@@ -3158,7 +3185,7 @@
       <dependency>
         <groupId>com.google.errorprone</groupId>
         <artifactId>error_prone_annotations</artifactId>
-        <version>2.42.0</version>
+        <version>2.48.0</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -3529,7 +3556,7 @@
         <!-- not used by the platform, keep it if third party leveraged it -->
         <groupId>commons-validator</groupId>
         <artifactId>commons-validator</artifactId>
-        <version>1.10.0</version>
+        <version>1.10.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -3541,7 +3568,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.20.0</version>
+        <version>5.23.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3639,7 +3666,7 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
 
       <dependency>
@@ -3736,7 +3763,7 @@
       <dependency>
         <groupId>org.apache.xbean</groupId>
         <artifactId>xbean-naming</artifactId>
-        <version>4.27</version>
+        <version>4.30</version>
       </dependency>
 
       <dependency>
@@ -3749,12 +3776,17 @@
       <dependency>
         <groupId>software.amazon.encryption.s3</groupId>
         <artifactId>amazon-s3-encryption-client-java</artifactId>
-        <version>3.4.0</version>
+        <version>3.6.1</version>
       </dependency>
       <dependency>
         <groupId>software.amazon.awssdk.crt</groupId>
         <artifactId>aws-crt</artifactId>
-        <version>0.39.0</version>
+        <version>0.43.8</version>
+      </dependency>
+      <dependency>
+        <groupId>software.amazon.jdbc</groupId>
+        <artifactId>aws-advanced-jdbc-wrapper</artifactId>
+        <version>2.6.8</version>
       </dependency>
       <dependency>
         <groupId>com.google.cloud</groupId>
@@ -3792,18 +3824,18 @@
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-api</artifactId>
-        <version>1.76.0</version>
+        <version>1.79.0</version>
       </dependency>
       <dependency>
         <groupId>io.grpc</groupId>
         <artifactId>grpc-context</artifactId>
-        <version>1.76.0</version>
+        <version>1.79.0</version>
       </dependency>
 
       <dependency>
         <groupId>com.azure</groupId>
         <artifactId>azure-storage-blob</artifactId>
-        <version>12.31.3</version>
+        <version>12.33.2</version>
       </dependency>
 
       <dependency>
@@ -3838,7 +3870,7 @@
       <dependency>
         <groupId>org.ops4j.pax.url</groupId>
         <artifactId>pax-url-aether</artifactId>
-        <version>2.6.17</version>
+        <version>2.7.0</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -3864,12 +3896,18 @@
         <artifactId>jsonassert</artifactId>
         <version>1.5.3</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>com.vaadin.external.google</groupId>
+            <artifactId>android-json</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
 
       <dependency>
         <groupId>org.xmlunit</groupId>
         <artifactId>xmlunit-assertj3</artifactId>
-        <version>2.10.4</version>
+        <version>2.11.0</version>
         <scope>test</scope>
       </dependency>
 
@@ -3990,7 +4028,7 @@
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-jakarta-servlet-filter-adapter</artifactId>
-        <version>${keycloak.version}</version>
+        <version>${keycloak.adapters.version}</version>
         <exclusions>
           <exclusion>
             <!-- use bouncycastle jdk15on instead of jdk18on -->
@@ -4005,12 +4043,32 @@
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-jakarta-servlet-adapter-spi</artifactId>
+        <version>${keycloak.adapters.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-adapter-core</artifactId>
+        <version>${keycloak.adapters.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
         <artifactId>keycloak-tomcat-adapter</artifactId>
+        <version>${keycloak.adapters.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-core</artifactId>
         <version>${keycloak.version}</version>
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-common</artifactId>
+        <version>${keycloak.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.keycloak</groupId>
+        <artifactId>keycloak-adapter-spi</artifactId>
         <version>${keycloak.version}</version>
       </dependency>
       <dependency>
@@ -4021,7 +4079,7 @@
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-policy-enforcer</artifactId>
-        <version>${keycloak.version}</version>
+        <version>${keycloak.policy.enforcer.version}</version>
       </dependency>
 
       <dependency>
@@ -4100,7 +4158,7 @@
       <dependency>
         <groupId>com.squareup.okio</groupId>
         <artifactId>okio-jvm</artifactId>
-        <version>3.16.1</version>
+        <version>3.17.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.thrift</groupId>
@@ -4111,7 +4169,7 @@
       <dependency>
         <groupId>com.google.auto.value</groupId>
         <artifactId>auto-value</artifactId>
-        <version>1.11.0</version>
+        <version>1.11.1</version>
       </dependency>
       <!-- fix transitive dependency of io.opencensus:opencensus-impl to avoid multiple versions in dependency graph -->
       <dependency>
@@ -4149,7 +4207,7 @@
       <dependency>
         <groupId>com.auth0</groupId>
         <artifactId>java-jwt</artifactId>
-        <version>4.5.0</version>
+        <version>4.5.1</version>
       </dependency>
       <dependency>
         <groupId>com.beetstra.jutf7</groupId>
@@ -4161,13 +4219,14 @@
       <dependency>
         <groupId>com.google.code.externalsortinginjava</groupId>
         <artifactId>externalsortinginjava</artifactId>
-        <version>0.6.2</version>
+        <version>0.6.6</version>
       </dependency>
 
       <dependency>
         <groupId>org.awaitility</groupId>
         <artifactId>awaitility</artifactId>
         <version>4.3.0</version>
+        <scope>test</scope>
       </dependency>
 
       <!-- Datadog -->
@@ -4186,7 +4245,7 @@
       <dependency>
         <groupId>com.datadoghq</groupId>
         <artifactId>dd-trace-api</artifactId>
-        <version>1.54.0</version>
+        <version>1.60.1</version>
       </dependency>
 
       <!-- Nashorn -->
@@ -4199,22 +4258,22 @@
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-analysis</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-commons</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-tree</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
       <dependency>
         <groupId>org.ow2.asm</groupId>
         <artifactId>asm-util</artifactId>
-        <version>9.9</version>
+        <version>9.9.1</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -4422,12 +4481,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-shade-plugin</artifactId>
-          <version>3.6.1</version>
+          <version>3.6.2</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.4.2</version>
+          <version>3.5.0</version>
           <configuration>
             <archive>
               <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
@@ -4441,7 +4500,7 @@
           <!-- For addons packaging UI resources -->
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-antrun-plugin</artifactId>
-          <version>3.1.0</version>
+          <version>3.2.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -4488,7 +4547,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
-          <version>3.9.0</version>
+          <version>3.10.0</version>
           <configuration>
             <ignoredUnusedDeclaredDependencies>
               <artifact>org.apache.logging.log4j:log4j-api</artifact>
@@ -4508,22 +4567,22 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.5.4</version>
+          <version>3.5.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-report-plugin</artifactId>
-          <version>3.5.4</version>
+          <version>3.5.5</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.5.4</version>
+          <version>3.5.5</version>
           <dependencies>
             <dependency>
               <groupId>org.apache.maven.surefire</groupId>
               <artifactId>surefire-junit47</artifactId>
-              <version>3.5.4</version>
+              <version>3.5.5</version>
             </dependency>
           </dependencies>
           <configuration>
@@ -4573,12 +4632,12 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.14.1</version>
+          <version>3.15.0</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-source-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>3.4.0</version>
         </plugin>
         <plugin>
           <groupId>org.nuxeo.build</groupId>
@@ -4595,7 +4654,7 @@
         </plugin>
         <plugin>
           <artifactId>maven-assembly-plugin</artifactId>
-          <version>3.7.1</version>
+          <version>3.8.0</version>
         </plugin>
         <plugin>
           <artifactId>maven-help-plugin</artifactId>
@@ -4604,7 +4663,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>versions-maven-plugin</artifactId>
-          <version>2.19.1</version>
+          <version>2.21.0</version>
           <configuration>
             <outputFile>${project.build.directory}/outdated-dependencies.txt</outputFile>
             <rulesUri>file:///${session.executionRootDirectory}/versions-rules.xml</rulesUri>
@@ -4787,7 +4846,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-resources-plugin</artifactId>
-          <version>3.3.1</version>
+          <version>3.5.0</version>
         </plugin>
         <plugin>
           <groupId>net.sf.alchim</groupId>
@@ -4806,7 +4865,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-war-plugin</artifactId>
-          <version>3.4.0</version>
+          <version>3.5.1</version>
         </plugin>
         <plugin>
           <groupId>org.jboss.tattletale</groupId>
@@ -4835,12 +4894,12 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>properties-maven-plugin</artifactId>
-          <version>1.2.1</version>
+          <version>1.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.owasp</groupId>
           <artifactId>dependency-check-maven</artifactId>
-          <version>12.1.6</version>
+          <version>12.2.0</version>
           <!-- run manually with mvn -nsu -Pdistrib org.owasp:dependency-check-maven:aggregate -->
           <!-- report file is in target/dependency-check-report.html -->
           <configuration>
@@ -4858,7 +4917,7 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>license-maven-plugin</artifactId>
-          <version>2.7.0</version>
+          <version>2.7.1</version>
           <configuration>
             <!-- <generateBundle>true</generateBundle> -->
             <!-- <verbose>true</verbose> -->
@@ -5054,17 +5113,17 @@
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>buildnumber-maven-plugin</artifactId>
-          <version>3.2.1</version>
+          <version>3.3.0</version>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>exec-maven-plugin</artifactId>
-          <version>3.6.1</version>
+          <version>3.6.3</version>
         </plugin>
         <plugin>
           <groupId>io.fabric8</groupId>
           <artifactId>docker-maven-plugin</artifactId>
-          <version>0.46.0</version>
+          <version>0.48.1</version>
           <extensions>true</extensions>
         </plugin>
       </plugins>
