@@ -233,6 +233,10 @@ public abstract class MongoDBAbstractSearchBuilder {
             // TODO use inverse operators?
             case MongoDBOperators.LT, MongoDBOperators.GT, MongoDBOperators.LTE, MongoDBOperators.GTE ->
                 new Document(MongoDBOperators.NOT, ob);
+            // NOT (field $elemMatch E) -> field $not ($elemMatch E)
+            // (negated existence over a correlated wildcard, e.g. NXQL
+            // NOT (list/*1/a = x AND list/*1/b = y); also matches documents without the field)
+            case MongoDBOperators.ELEM_MATCH -> new Document(MongoDBOperators.NOT, ob);
             default -> throw new QueryParseException("Unknown operator for NOT: " + key);
         };
     }
