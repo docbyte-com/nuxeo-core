@@ -163,7 +163,7 @@ public class SecurityService extends DefaultComponent {
             ) {
                 permissions = permissions
                         .stream()
-                        .filter(p -> p.equalsIgnoreCase(SecurityConstants.REMOVE))
+                        .filter(p -> !p.equalsIgnoreCase(SecurityConstants.REMOVE))
                         .collect(Collectors.toSet());
             }
             return permissions;

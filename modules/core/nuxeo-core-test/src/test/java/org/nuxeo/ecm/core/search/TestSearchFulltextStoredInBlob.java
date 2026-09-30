@@ -51,6 +51,7 @@ import org.nuxeo.runtime.test.runner.TransactionalFeature;
 
 @Ignore("Disable as depends on OpenSearch local instance")
 @Features(FulltextStoredInBlobFeature.class)
+@ConditionalIgnore(condition = IgnoreIfSearchClientDoesNotHaveIndexingCapability.class)
 public class TestSearchFulltextStoredInBlob extends TestSearchFulltextEnabled {
 
     @Inject

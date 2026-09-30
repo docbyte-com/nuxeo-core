@@ -21,9 +21,9 @@
       <changeTokenEnabled>${nuxeo.changetoken.enabled}</changeTokenEnabled>
       <indexing>
 <#if "${nuxeo.db.type}" == "postgresql">
-        <fulltext disabled="${nuxeo.vcs.fulltext.disabled}"
-                  storedInBlob="${nuxeo.vcs.fulltext.storedInBlob}"
-                  searchDisabled="${nuxeo.vcs.fulltext.search.disabled}"
+        <fulltext disabled="${nuxeo.fulltext.disabled}"
+                  storedInBlob="${nuxeo.fulltext.storedInBlob}"
+                  searchDisabled="${nuxeo.fulltext.search.disabled}"
                   analyzer="${nuxeo.vcs.fulltext.analyzer.language}">
           <index name="default">
             <!-- all props implied -->
@@ -36,9 +36,9 @@
           </index>
         </fulltext>
 <#elseif "${nuxeo.db.type}" == "oracle">
-        <fulltext disabled="${nuxeo.vcs.fulltext.disabled}"
-                  storedInBlob="${nuxeo.vcs.fulltext.storedInBlob}"
-                  searchDisabled="${nuxeo.vcs.fulltext.search.disabled}">
+        <fulltext disabled="${nuxeo.fulltext.disabled}"
+                  storedInBlob="${nuxeo.fulltext.storedInBlob}"
+                  searchDisabled="${nuxeo.fulltext.search.disabled}">
           <index name="default">
             <!-- all props implied -->
           </index>
@@ -57,9 +57,9 @@
           http://download.oracle.com/docs/cd/B19306_01/text.102/b14218/cdatadic.htm
         -->
 <#elseif "${nuxeo.db.type}" == "mssql">
-        <fulltext disabled="${nuxeo.vcs.fulltext.disabled}"
-                  storedInBlob="${nuxeo.vcs.fulltext.storedInBlob}"
-                  searchDisabled="${nuxeo.vcs.fulltext.search.disabled}"
+        <fulltext disabled="${nuxeo.fulltext.disabled}"
+                  storedInBlob="${nuxeo.fulltext.storedInBlob}"
+                  searchDisabled="${nuxeo.fulltext.search.disabled}"
                   analyzer="${nuxeo.vcs.fulltext.analyzer.language}">
           <index name="default">
             <!-- all props implied -->
@@ -70,9 +70,9 @@
        </fulltext>
 <#elseif "${nuxeo.db.type}" == "mysql">
         <!-- For MySQL -->
-        <fulltext disabled="${nuxeo.vcs.fulltext.disabled}"
-                  storedInBlob="${nuxeo.vcs.fulltext.storedInBlob}"
-                  searchDisabled="${nuxeo.vcs.fulltext.search.disabled}">
+        <fulltext disabled="${nuxeo.fulltext.disabled}"
+                  storedInBlob="${nuxeo.fulltext.storedInBlob}"
+                  searchDisabled="${nuxeo.fulltext.search.disabled}">
           <index name="default">
             <!-- all props implied -->
           </index>
@@ -85,8 +85,8 @@
         </fulltext>
 <#else>
         <!-- for H2 -->
-        <fulltext disabled="${nuxeo.vcs.fulltext.disabled}"
-                  storedInBlob="${nuxeo.vcs.fulltext.storedInBlob}"
+        <fulltext disabled="${nuxeo.fulltext.disabled}"
+                  storedInBlob="${nuxeo.fulltext.storedInBlob}"
                   searchDisabled="true">
           <index name="default">
             <!-- all props implied -->
