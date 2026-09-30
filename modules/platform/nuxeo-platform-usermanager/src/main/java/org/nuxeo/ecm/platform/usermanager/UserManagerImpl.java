@@ -117,6 +117,13 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     public static final String USERMODIFIED_EVENT_ID = "user_modified";
 
+    /**
+     * Event fired when a user's password has been changed.
+     *
+     * @since 2025.18
+     */
+    public static final String USER_PASSWORD_CHANGED_EVENT_ID = "user_password_changed";
+
     /** Used by JaasCacheFlusher. */
     public static final String GROUPCHANGED_EVENT_ID = "group_changed";
 
@@ -652,15 +659,8 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     protected NuxeoPrincipal getPrincipalUsingCache(String username) {
-        NuxeoPrincipal ret = (NuxeoPrincipal) principalCache.get(username);
-        if (ret == null) {
-            ret = getPrincipal(username, null);
-            if (ret == null) {
-                return null;
-            }
-            ((CacheManagement) principalCache).putLocal(username, ret);
-        }
-        return ((NuxeoPrincipalImpl) ret).cloneTransferable(); // should not return cached principal
+        var ret = principalCache.computeIfAbsent(username, () -> getPrincipal(username, null));
+        return ret == null ? null : ((NuxeoPrincipalImpl) ret).cloneTransferable();
     }
 
     @Override
@@ -821,15 +821,73 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     }
 
     /**
-     * @since 8.2
+     * Fires a core event for the given user.
+     *
+     * @param userId the user id
+     * @param eventId the event identifier
+     * @param additionalEventProperties additional properties to propagate to the event context, or {@code null}
+     * @since 2025.18
      */
+    protected void notifyCoreUserChanged(String userId, String eventId,
+            Map<String, Serializable> additionalEventProperties) {
+        fireUnboundEvent(userId, eventId, additionalEventProperties);
+    }
+
+    /**
+     * Fires a core event for the given group.
+     *
+     * @param groupId the group id
+     * @param eventId the event identifier
+     * @param ancestorGroupIds ancestor group ids
+     * @param additionalEventProperties additional properties to propagate to the event context, or {@code null}
+     * @since 2025.18
+     */
+    protected void notifyCoreGroupChanged(String groupId, String eventId, List<String> ancestorGroupIds,
+            Map<String, Serializable> additionalEventProperties) {
+        var properties = new HashMap<String, Serializable>();
+        if (ancestorGroupIds != null) {
+            properties.put(ANCESTOR_GROUPS_PROPERTY_KEY, (Serializable) ancestorGroupIds);
+        }
+        if (additionalEventProperties != null) {
+            properties.putAll(additionalEventProperties);
+        }
+        fireUnboundEvent(groupId, eventId, properties);
+    }
+
+    /**
+     * @since 2025.18
+     */
+    protected void fireUnboundEvent(String userOrGroupId, String eventId,
+            Map<String, Serializable> additionalEventProperties) {
+        var eventProperties = new HashMap<String, Serializable>();
+        eventProperties.put(DocumentEventContext.CATEGORY_PROPERTY_KEY, USER_GROUP_CATEGORY);
+        eventProperties.put(ID_PROPERTY_KEY, userOrGroupId);
+        if (additionalEventProperties != null) {
+            eventProperties.putAll(additionalEventProperties);
+        }
+        var principal = NuxeoPrincipal.getCurrent();
+        var envContext = new UnboundEventContext(principal, eventProperties);
+        envContext.setProperties(eventProperties);
+        var eventProducer = Framework.getService(EventProducer.class);
+        eventProducer.fireEvent(envContext.newEvent(eventId));
+    }
+
+    /**
+     * @since 8.2
+     * @deprecated since 2025.18, use {@link #notifyCoreUserChanged(String, String, Map)} or
+     *             {@link #notifyCoreGroupChanged(String, String, List, Map)} instead
+     */
+    @Deprecated(since = "2025.18", forRemoval = true)
     protected void notifyCore(String userOrGroupId, String eventId) {
         notifyCore(userOrGroupId, eventId, null);
     }
 
     /**
      * @since 9.2
+     * @deprecated since 2025.18, use {@link #notifyCoreUserChanged(String, String, Map)} or
+     *             {@link #notifyCoreGroupChanged(String, String, List, Map)} instead
      */
+    @Deprecated(since = "2025.18", forRemoval = true)
     protected void notifyCore(String userOrGroupId, String eventId, List<String> ancestorGroupIds) {
         Map<String, Serializable> eventProperties = new HashMap<>();
         eventProperties.put(DocumentEventContext.CATEGORY_PROPERTY_KEY, USER_GROUP_CATEGORY);
@@ -851,11 +909,22 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public void notifyUserChanged(String userName, String eventId) {
+        notifyUserChanged(userName, eventId, null);
+    }
+
+    @Override
+    public void notifyUserChanged(DocumentModel userDoc, String eventId) {
+        var userName = getUserId(userDoc);
+        notifyUserChanged(userName, eventId, userDoc.getContextData());
+    }
+
+    protected void notifyUserChanged(String userName, String eventId,
+            Map<String, Serializable> additionalEventProperties) {
         invalidatePrincipal(userName);
         notifyRuntime(userName, USERCHANGED_EVENT_ID);
         if (eventId != null) {
             notifyRuntime(userName, eventId);
-            notifyCore(userName, eventId);
+            notifyCoreUserChanged(userName, eventId, additionalEventProperties);
         }
     }
 
@@ -867,16 +936,31 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
     @Override
     public void notifyGroupChanged(String groupName, String eventId, List<String> ancestorGroupNames) {
+        notifyGroupChanged(groupName, eventId, ancestorGroupNames, null);
+    }
+
+    @Override
+    public void notifyGroupChanged(DocumentModel groupDoc, String eventId, List<String> ancestorGroupNames) {
+        var groupName = getGroupId(groupDoc);
+        notifyGroupChanged(groupName, eventId, ancestorGroupNames, groupDoc.getContextData());
+    }
+
+    protected void notifyGroupChanged(String groupName, String eventId, List<String> ancestorGroupNames,
+            Map<String, Serializable> additionalEventProperties) {
         invalidateAllPrincipals();
         notifyRuntime(groupName, GROUPCHANGED_EVENT_ID);
         if (eventId != null) {
             notifyRuntime(groupName, eventId);
-            notifyCore(groupName, eventId, ancestorGroupNames);
+            notifyCoreGroupChanged(groupName, eventId, ancestorGroupNames, additionalEventProperties);
         }
     }
 
     protected void invalidateAllPrincipals() {
         if (useCache()) {
+            if (log.isTraceEnabled()) {
+                long size = principalCache instanceof CacheManagement cm ? cm.getSize() : -1;
+                log.trace("Invalidating all principals cache, size: {}", size, new Throwable("stack trace"));
+            }
             principalCache.invalidateAll();
         }
     }
@@ -909,27 +993,11 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         }
     }
 
-    protected String getGroupId(DocumentModel groupModel) {
-        Object groupIdValue = groupModel.getProperty(groupSchemaName, groupIdField);
-        if (groupIdValue != null && !(groupIdValue instanceof String)) {
-            throw new NuxeoException("Invalid group id " + groupIdValue);
-        }
-        return (String) groupIdValue;
-    }
-
     protected void checkUserId(DocumentModel userModel) {
         Object userIdValue = userModel.getProperty(userSchemaName, userIdField);
         if (userIdValue != null) {
             userModel.setProperty(userSchemaName, userIdField, userIdValue.toString().trim());
         }
-    }
-
-    protected String getUserId(DocumentModel userModel) {
-        Object userIdValue = userModel.getProperty(userSchemaName, userIdField);
-        if (userIdValue != null && !(userIdValue instanceof String)) {
-            throw new NuxeoException("Invalid user id " + userIdValue);
-        }
-        return (String) userIdValue;
     }
 
     @Override
@@ -992,41 +1060,71 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
     protected QueryBuilder getQueryForPattern(String pattern, String dirName, Map<String, MatchType> searchFields,
             OrderByExpr orderBy) {
         QueryBuilder queryBuilder = new QueryBuilder();
-        if (!StringUtils.isBlank(pattern)) {
-            // build query
-            pattern = pattern.trim().toLowerCase();
-            String likePattern;
-            if (!useSearchEscapeCompat()) {
-                // replace characters that are meaningful in a LIKE pattern
-                likePattern = pattern.replace("\\", "\\\\");
-                likePattern = likePattern.replace("%", "\\%");
-                likePattern = likePattern.replace("_", "\\_");
-            } else {
-                // compat: don't do any escaping
-                likePattern = pattern;
-            }
-            List<Predicate> predicates = new ArrayList<>();
-            for (Entry<String, MatchType> fieldEntry : searchFields.entrySet()) {
-                String key = fieldEntry.getKey();
-                Predicate predicate;
-                if (fieldEntry.getValue() == MatchType.SUBSTRING) {
-                    Directory dir = dirService.getDirectory(dirName);
-                    SubstringMatchType substringMatchType = dir.getDescriptor().getSubstringMatchType();
-                    String value = switch (substringMatchType) {
-                        case subany -> '%' + likePattern + '%';
-                        case subinitial -> likePattern + '%';
-                        case subfinal -> '%' + likePattern;
-                    };
-                    predicate = Predicates.ilike(key, value);
-                } else { // MatchType.EXACT
-                    predicate = Predicates.eq(key, pattern);
-                }
-                predicates.add(predicate);
-            }
-            queryBuilder.filter(new MultiExpression(Operator.OR, predicates));
+        MultiExpression predicate = getSearchPredicate(pattern, dirName, searchFields);
+        if (predicate != null) {
+            queryBuilder.filter(predicate);
         }
         queryBuilder.order(orderBy);
         return queryBuilder;
+    }
+
+    /**
+     * Builds a predicate matching directory entries against the given search pattern.
+     * <p>
+     * The predicate is the disjunction (OR) of one sub-predicate per search field, honoring the directory's
+     * {@link SubstringMatchType} ({@code subinitial}, {@code subany} or {@code subfinal}) for
+     * {@link MatchType#SUBSTRING} fields.
+     *
+     * @param pattern the search pattern
+     * @param dirName the directory name
+     * @param searchFields the search fields mapped to their match type
+     * @return the search predicate, or {@code null} if {@code pattern} is blank
+     * @since 2025.22
+     */
+    protected MultiExpression getSearchPredicate(String pattern, String dirName, Map<String, MatchType> searchFields) {
+        if (StringUtils.isBlank(pattern)) {
+            return null;
+        }
+        pattern = pattern.trim().toLowerCase();
+        String likePattern;
+        if (!useSearchEscapeCompat()) {
+            // replace characters that are meaningful in a LIKE pattern
+            likePattern = pattern.replace("\\", "\\\\");
+            likePattern = likePattern.replace("%", "\\%");
+            likePattern = likePattern.replace("_", "\\_");
+        } else {
+            // compat: don't do any escaping
+            likePattern = pattern;
+        }
+        List<Predicate> predicates = new ArrayList<>();
+        for (Entry<String, MatchType> fieldEntry : searchFields.entrySet()) {
+            String key = fieldEntry.getKey();
+            Predicate predicate;
+            if (fieldEntry.getValue() == MatchType.SUBSTRING) {
+                Directory dir = dirService.getDirectory(dirName);
+                SubstringMatchType substringMatchType = dir.getDescriptor().getSubstringMatchType();
+                String value = switch (substringMatchType) {
+                    case subany -> '%' + likePattern + '%';
+                    case subinitial -> likePattern + '%';
+                    case subfinal -> '%' + likePattern;
+                };
+                predicate = Predicates.ilike(key, value);
+            } else { // MatchType.EXACT
+                predicate = Predicates.eq(key, pattern);
+            }
+            predicates.add(predicate);
+        }
+        return new MultiExpression(Operator.OR, predicates);
+    }
+
+    @Override
+    public MultiExpression getUserSearchPredicate(String pattern) {
+        return getSearchPredicate(pattern, userDirectoryName, userSearchFields);
+    }
+
+    @Override
+    public MultiExpression getGroupSearchPredicate(String pattern) {
+        return getSearchPredicate(pattern, groupDirectoryName, groupSearchFields);
     }
 
     @Override
@@ -1259,7 +1357,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                 throw new GroupAlreadyExistsException();
             }
             groupModel = groupDir.createEntry(groupModel);
-            notifyGroupChanged(groupId, GROUPCREATED_EVENT_ID);
+            notifyGroupChanged(groupModel, GROUPCREATED_EVENT_ID, null);
             return groupModel;
 
         }
@@ -1401,7 +1499,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
             syncDigestAuthPassword(clearUsername, clearPassword);
 
-            notifyUserChanged(userId, USERCREATED_EVENT_ID);
+            notifyUserChanged(userModel, USERCREATED_EVENT_ID);
             return userModel;
 
         }
@@ -1439,6 +1537,18 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
         }
     }
 
+    /**
+     * Checks whether the password field has been modified on the given user model.
+     *
+     * @since 2025.18
+     */
+    protected boolean isPasswordDirty(DocumentModel userModel) {
+        var schema = dirService.getDirectorySchema(userDirectoryName);
+        var passwordField = getUserDirectory().getPasswordField();
+        var passwordProperty = userModel.getPropertyObject(schema, passwordField);
+        return passwordProperty.isDirty();
+    }
+
     @Override
     public void updateUser(DocumentModel userModel, DocumentModel context) {
         String userId = getUserId(userModel);
@@ -1467,6 +1577,8 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
             checkPasswordValidity(userModel);
 
+            boolean passwordChanged = isPasswordDirty(userModel);
+
             String clearUsername = (String) userModel.getProperty(schema, userDir.getIdField());
             String clearPassword = (String) userModel.getProperty(schema, userDir.getPasswordField());
 
@@ -1474,7 +1586,10 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
 
             syncDigestAuthPassword(clearUsername, clearPassword);
 
-            notifyUserChanged(userId, USERMODIFIED_EVENT_ID);
+            notifyUserChanged(userModel, USERMODIFIED_EVENT_ID);
+            if (passwordChanged) {
+                notifyUserChanged(userModel, USER_PASSWORD_CHANGED_EVENT_ID);
+            }
         }
     }
 
@@ -1525,7 +1640,7 @@ public class UserManagerImpl implements UserManager, MultiTenantUserManager, Adm
                 throw new DirectoryException("group does not exist: " + groupId);
             }
             groupDir.updateEntry(groupModel);
-            notifyGroupChanged(groupId, GROUPMODIFIED_EVENT_ID);
+            notifyGroupChanged(groupModel, GROUPMODIFIED_EVENT_ID, null);
         }
     }
 
