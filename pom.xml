@@ -1951,7 +1951,7 @@
 
       <!-- WebDAV -->
       <dependency>
-        <groupId>org.nuxeo.ecm.platform</groupId>
+        <groupId>cloud.docbyte.nuxeo.ecm.platform</groupId>
         <artifactId>nuxeo-webdav</artifactId>
         <version>${nuxeo.platform.version}</version>
       </dependency>
