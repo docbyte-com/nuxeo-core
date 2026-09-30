@@ -347,9 +347,7 @@ public class S3BlobStore extends AbstractBlobStore {
         try {
             log.debug("Reading {}", debugObject);
 
-            GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
-                    .bucket(bucketName)
-                    .key(bucketKey);
+            GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder().bucket(bucketName).key(bucketKey);
 
             if (versionId != null) {
                 requestBuilder.versionId(versionId);
