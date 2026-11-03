@@ -99,7 +99,7 @@
     <aws.version>2.44.9</aws.version>
     <gcp.version>2.68.0</gcp.version>
     <jackson1.version>1.9.13</jackson1.version>
-    <jackson.bom.version>2.22.0</jackson.bom.version>
+    <jackson.bom.version>2.22.1</jackson.bom.version>
     <bouncycastle.version>1.84</bouncycastle.version>
     <avro.version>1.12.1</avro.version>
     <restlet.version>2.4.4</restlet.version>
@@ -2939,7 +2939,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.11</version>
+        <version>42.7.13</version>
       </dependency>
       <!-- fix transitive dependency of org.postgresql:postgresql to avoid multiple versions in dependency graph -->
       <dependency>
