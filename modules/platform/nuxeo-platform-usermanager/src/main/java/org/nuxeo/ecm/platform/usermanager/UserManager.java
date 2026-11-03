@@ -26,9 +26,11 @@ import java.util.regex.Pattern;
 
 import org.nuxeo.ecm.core.api.DocumentModel;
 import org.nuxeo.ecm.core.api.DocumentModelList;
+import org.nuxeo.ecm.core.api.NuxeoException;
 import org.nuxeo.ecm.core.api.NuxeoGroup;
 import org.nuxeo.ecm.core.api.NuxeoPrincipal;
 import org.nuxeo.ecm.core.api.security.ACP;
+import org.nuxeo.ecm.core.query.sql.model.MultiExpression;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
 import org.nuxeo.ecm.platform.usermanager.exceptions.GroupAlreadyExistsException;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
@@ -41,6 +43,14 @@ import org.nuxeo.runtime.services.event.EventListener;
  * @author Benjamin Jalon
  */
 public interface UserManager extends Authenticator, EventListener, Serializable {
+
+    /**
+     * Context data key for the HTTP session ID of the user performing the operation. Can be set on a user
+     * {@link DocumentModel} before calling {@link #updateUser} to propagate session information through events.
+     *
+     * @since 2025.18
+     */
+    String USER_HTTP_SESSION_ID_KEY = "userHttpSessionId";
 
     enum MatchType {
         EXACT, SUBSTRING
@@ -165,6 +175,21 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
      */
     DocumentModelList searchUsers(QueryBuilder queryBuilder);
 
+    /**
+     * Returns a predicate matching user directory entries against the given search pattern.
+     * <p>
+     * The predicate is built from the configured {@link #getUserSearchFields() user search fields} and honors the user
+     * directory's {@link org.nuxeo.ecm.directory.BaseDirectoryDescriptor.SubstringMatchType substring match type}
+     * ({@code subinitial}, {@code subany} or {@code subfinal}) for {@link MatchType#SUBSTRING} fields.
+     *
+     * @param pattern the search pattern
+     * @return the search predicate, or {@code null} if {@code pattern} is blank
+     * @since 2025.22
+     */
+    default MultiExpression getUserSearchPredicate(String pattern) {
+        throw new UnsupportedOperationException();
+    }
+
     String getUserListingMode();
 
     String getUserSortField();
@@ -194,6 +219,21 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
      * @since 10.3
      */
     DocumentModelList searchGroups(QueryBuilder queryBuilder);
+
+    /**
+     * Returns a predicate matching group directory entries against the given search pattern.
+     * <p>
+     * The predicate is built from the configured {@link #getGroupSearchFields() group search fields} and honors the
+     * group directory's {@link org.nuxeo.ecm.directory.BaseDirectoryDescriptor.SubstringMatchType substring match type}
+     * ({@code subinitial}, {@code subany} or {@code subfinal}) for {@link MatchType#SUBSTRING} fields.
+     *
+     * @param pattern the search pattern
+     * @return the search predicate, or {@code null} if {@code pattern} is blank
+     * @since 2025.22
+     */
+    default MultiExpression getGroupSearchPredicate(String pattern) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Creates a group from given model
@@ -303,6 +343,22 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
     String getUserIdField();
 
     /**
+     * Returns the user id of the given user document model, using the configured user schema and id field.
+     *
+     * @param userModel the user document model
+     * @return the user id
+     * @throws NuxeoException if the id value is not a String
+     * @since 2025.18
+     */
+    default String getUserId(DocumentModel userModel) {
+        var userIdValue = userModel.getProperty(getUserSchemaName(), getUserIdField());
+        if (userIdValue != null && !(userIdValue instanceof String)) {
+            throw new NuxeoException("Invalid user id " + userIdValue);
+        }
+        return (String) userIdValue;
+    }
+
+    /**
      * Gets the user email field.
      *
      * @return the user email field.
@@ -341,6 +397,22 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
      * @since 5.2M4
      */
     String getGroupIdField();
+
+    /**
+     * Returns the group id of the given group document model, using the configured group schema and id field.
+     *
+     * @param groupModel the group document model
+     * @return the group id
+     * @throws NuxeoException if the id value is not a String
+     * @since 2025.18
+     */
+    default String getGroupId(DocumentModel groupModel) {
+        var groupIdValue = groupModel.getProperty(getGroupSchemaName(), getGroupIdField());
+        if (groupIdValue != null && !(groupIdValue instanceof String)) {
+            throw new NuxeoException("Invalid group id " + groupIdValue);
+        }
+        return (String) groupIdValue;
+    }
 
     /**
      * Returns the group label field.
@@ -450,6 +522,22 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
     void notifyUserChanged(String userName, String eventId);
 
     /**
+     * Notifies that the given user has changed with the given event:
+     * <ul>
+     * <li>At the runtime level so that the JaasCacheFlusher listener can make sure the principal cache is reset.</li>
+     * <li>At the core level, passing the user id as the {@code "id"} property of the fired event and propagating the
+     * document's {@link DocumentModel#getContextData() contextData} as additional event context properties.</li>
+     * </ul>
+     *
+     * @param userDoc the user document model
+     * @param eventId the event identifier
+     * @since 2025.18
+     */
+    default void notifyUserChanged(DocumentModel userDoc, String eventId) {
+        notifyUserChanged(getUserId(userDoc), eventId);
+    }
+
+    /**
      * Notifies that the given group has changed with the given event:
      * <ul>
      * <li>At the runtime level so that the JaasCacheFlusher listener can make sure the principal cache is reset.</li>
@@ -476,5 +564,25 @@ public interface UserManager extends Authenticator, EventListener, Serializable 
      * @since 9.2
      */
     void notifyGroupChanged(String groupName, String eventId, List<String> ancestorGroupNames);
+
+    /**
+     * Notifies that the given group has changed with the given event:
+     * <ul>
+     * <li>At the runtime level so that the JaasCacheFlusher listener can make sure the principal cache is reset.</li>
+     * <li>At the core level, passing the group id as the {@code "id"} property of the fired event and propagating the
+     * document's {@link DocumentModel#getContextData() contextData} as additional event context properties.</li>
+     * </ul>
+     * <p>
+     * The {@code ancestorGroupNames} list must contain the ancestor groups of the given group, or {@code null}. It can
+     * be computed by calling {@link #getAncestorGroups(String)}.
+     *
+     * @param groupDoc the group document model
+     * @param eventId the event identifier
+     * @param ancestorGroupNames ancestor group names, or {@code null}
+     * @since 2025.18
+     */
+    default void notifyGroupChanged(DocumentModel groupDoc, String eventId, List<String> ancestorGroupNames) {
+        notifyGroupChanged(getGroupId(groupDoc), eventId, ancestorGroupNames);
+    }
 
 }

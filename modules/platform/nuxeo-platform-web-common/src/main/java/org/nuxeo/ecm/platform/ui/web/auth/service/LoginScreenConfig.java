@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2013-2024 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2013-2026 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ package org.nuxeo.ecm.platform.ui.web.auth.service;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.collections4.MapUtils.emptyIfNull;
 import static org.apache.commons.lang3.BooleanUtils.isNotTrue;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
+import static org.apache.commons.lang3.ObjectUtils.getIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.net.URLDecoder;
@@ -37,7 +35,6 @@ import java.util.Map;
 
 import jakarta.ws.rs.core.UriBuilder;
 
-import org.nuxeo.common.Environment;
 import org.nuxeo.common.xmap.XMap;
 import org.nuxeo.common.xmap.annotation.XNode;
 import org.nuxeo.common.xmap.annotation.XNodeList;
@@ -55,6 +52,8 @@ import org.nuxeo.runtime.model.Descriptor;
 @XObject("loginScreenConfig")
 public class LoginScreenConfig implements Descriptor {
 
+    /** @deprecated since 2025.21, the nuxeo.com news page is no longer available */
+    @Deprecated(since = "2025.21", forRemoval = true)
     public static final String NUXEO_NEWS_URL = "//www.nuxeo.com/login-page-embedded-1/";
 
     /** @since 8.4 */
@@ -235,7 +234,7 @@ public class LoginScreenConfig implements Descriptor {
     }
 
     public boolean getDisplayNews() {
-        return isNotTrue(removeNews) && isNotBlank(internalGetNewsIframeUrl());
+        return isNotTrue(removeNews) && isNotBlank(newsIframeUrl);
     }
 
     public Boolean getFieldAutocomplete() {
@@ -289,24 +288,20 @@ public class LoginScreenConfig implements Descriptor {
         newsIframeFullUrl = null;
     }
 
+    /** @deprecated since 2025.21, use {@link #getNewsIframeUrl()} instead */
+    @Deprecated(since = "2025.21", forRemoval = true)
     protected String internalGetNewsIframeUrl() {
-        return firstNonNull(newsIframeUrl, NUXEO_NEWS_URL);
+        return newsIframeUrl;
     }
 
     public String getNewsIframeUrl() {
         if (newsIframeFullUrl == null) {
-            UriBuilder newsIFrameBuilder = UriBuilder.fromPath(internalGetNewsIframeUrl());
-            if (NUXEO_NEWS_URL.equals(internalGetNewsIframeUrl())) {
-                newsIFrameBuilder.queryParam(Environment.PRODUCT_VERSION,
-                        Framework.getProperty(Environment.PRODUCT_VERSION))
-                                 .queryParam(Environment.DISTRIBUTION_VERSION,
-                                         Framework.getProperty(Environment.DISTRIBUTION_VERSION))
-                                 .queryParam(Environment.DISTRIBUTION_PACKAGE,
-                                         Framework.getProperty(Environment.DISTRIBUTION_PACKAGE));
+            if (newsIframeUrl == null) {
+                return null;
             }
-            newsIframeFullUrl = newsIFrameBuilder.build().toString();
+            newsIframeFullUrl = URLDecoder.decode(UriBuilder.fromPath(newsIframeUrl).build().toString(), UTF_8);
         }
-        return URLDecoder.decode(newsIframeFullUrl, UTF_8);
+        return newsIframeFullUrl;
     }
 
     /**
@@ -350,46 +345,32 @@ public class LoginScreenConfig implements Descriptor {
     public Descriptor merge(Descriptor o) {
         var other = (LoginScreenConfig) o;
         var merged = new LoginScreenConfig();
-        merged.newsIframeUrl = defaultIfNull(other.newsIframeUrl, newsIframeUrl);
-        merged.headerStyle = defaultIfNull(other.headerStyle, headerStyle);
-        merged.footerStyle = defaultIfNull(other.footerStyle, footerStyle);
-        merged.bodyBackgroundStyle = defaultIfNull(other.bodyBackgroundStyle, bodyBackgroundStyle);
-        merged.loginBoxBackgroundStyle = defaultIfNull(other.loginBoxBackgroundStyle, loginBoxBackgroundStyle);
-        merged.loginBoxWidth = defaultIfNull(other.loginBoxWidth, loginBoxWidth);
-        merged.disableBackgroundSizeCover = defaultIfNull(other.disableBackgroundSizeCover, disableBackgroundSizeCover);
-        merged.logoAlt = defaultIfNull(other.logoAlt, logoAlt);
-        merged.logoHeight = defaultIfNull(other.logoHeight, logoHeight);
-        merged.logoUrl = defaultIfNull(other.logoUrl, logoUrl);
-        merged.logoWidth = defaultIfNull(other.logoWidth, logoWidth);
-        merged.fieldAutocomplete = defaultIfNull(other.fieldAutocomplete, fieldAutocomplete);
-        merged.videos = defaultIfNull(other.videos, videos);
-        merged.loop = defaultIfNull(other.loop, loop);
-        merged.removeNews = defaultIfNull(other.removeNews, removeNews);
-        merged.muted = defaultIfNull(other.muted, muted);
-        merged.loginButtonBackgroundColor = defaultIfNull(other.loginButtonBackgroundColor, loginButtonBackgroundColor);
-        merged.backgroundImage = defaultIfNull(other.backgroundImage, backgroundImage);
+        merged.newsIframeUrl = getIfNull(other.newsIframeUrl, newsIframeUrl);
+        merged.headerStyle = getIfNull(other.headerStyle, headerStyle);
+        merged.footerStyle = getIfNull(other.footerStyle, footerStyle);
+        merged.bodyBackgroundStyle = getIfNull(other.bodyBackgroundStyle, bodyBackgroundStyle);
+        merged.loginBoxBackgroundStyle = getIfNull(other.loginBoxBackgroundStyle, loginBoxBackgroundStyle);
+        merged.loginBoxWidth = getIfNull(other.loginBoxWidth, loginBoxWidth);
+        merged.disableBackgroundSizeCover = getIfNull(other.disableBackgroundSizeCover, disableBackgroundSizeCover);
+        merged.logoAlt = getIfNull(other.logoAlt, logoAlt);
+        merged.logoHeight = getIfNull(other.logoHeight, logoHeight);
+        merged.logoUrl = getIfNull(other.logoUrl, logoUrl);
+        merged.logoWidth = getIfNull(other.logoWidth, logoWidth);
+        merged.fieldAutocomplete = getIfNull(other.fieldAutocomplete, fieldAutocomplete);
+        merged.videos = getIfNull(other.videos, videos);
+        merged.loop = getIfNull(other.loop, loop);
+        merged.removeNews = getIfNull(other.removeNews, removeNews);
+        merged.muted = getIfNull(other.muted, muted);
+        merged.loginButtonBackgroundColor = getIfNull(other.loginButtonBackgroundColor, loginButtonBackgroundColor);
+        merged.backgroundImage = getIfNull(other.backgroundImage, backgroundImage);
 
         // handle providers merge
-        var providersMap = new HashMap<String, LoginProviderLink>();
-        emptyIfNull(providers).forEach(provider -> providersMap.put(provider.getName(), provider));
-        emptyIfNull(other.providers).forEach(
-                provider -> providersMap.compute(provider.getName(), (name, previousProvider) -> {
-                    if (previousProvider == null) {
-                        return provider;
-                    } else if (provider.remove) {
-                        return null;
-                    } else {
-                        return previousProvider.merge(provider);
-                    }
-                }));
-        merged.providers = new ArrayList<>(providersMap.values());
+        merged.providers = Descriptor.merge(other.providers, providers);
 
         // handle startupPages merge
-        merged.startupPages = new HashMap<>(emptyIfNull(startupPages));
-        emptyIfNull(other.startupPages).forEach(
-                (key, value) -> merged.startupPages.merge(key, value, LoginStartupPage::merge));
+        merged.startupPages = Descriptor.merge(other.startupPages, startupPages);
 
-        merged.defaultLocale = defaultIfNull(other.defaultLocale, defaultLocale);
+        merged.defaultLocale = getIfNull(other.defaultLocale, defaultLocale);
 
         var supportedLocalesSet = new HashSet<String>();
         if (!Boolean.FALSE.equals(other.isAppendSupportedLocales())) { // true by default

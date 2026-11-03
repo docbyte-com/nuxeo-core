@@ -13,6 +13,7 @@ nuxeo-ecm (root)
 │   ├── runtime/             # ~27 modules - Core runtime, OSGi, streams, Kafka, MongoDB driver, KV store
 │   ├── core/                # ~29 modules - Document model, storage engines (SQL, MongoDB, DBS, mem), bulk ops, binary managers
 │   └── platform/            # ~96 modules - High-level services: REST API, audit, auth, automation, workflows, Drive, CMIS
+├── parent/                  # Re-exportable parent POM for out-of-tree builds (addons, customer projects)
 ├── server/                  # Server distribution (Tomcat-based launcher, NXR assembly)
 ├── packages/                # ~43 Nuxeo marketplace packages
 ├── ftests/                  # ~35 functional test modules (tiered: Tier5, Tier6, Tier7)
@@ -24,6 +25,7 @@ nuxeo-ecm (root)
 
 ```
 nuxeo-ecm (root, org.nuxeo)             # All dependency versions managed here
+├── nuxeo-parent (org.nuxeo)             # Re-exportable parent for external projects
 └── nuxeo-modules (org.nuxeo)
       ├── nuxeo-runtime-parent           # Parent for all runtime modules
       ├── nuxeo-core-parent              # Parent for all core modules
@@ -249,7 +251,7 @@ import static org.apache.commons.collections4.ListUtils.union;
 public MyDescriptor merge(Descriptor o) {
     var other = (MyDescriptor) o;
     var merged = new MyDescriptor();
-    merged.name = name;                                          // identity field - keep from this
+    merged.name = getIfNull(other.name, name);                   // identity field - prefer other if non-null
     merged.label = defaultIfBlank(other.label, label);           // String: take other if non-blank
     merged.enabled = getIfNull(other.enabled, enabled);          // Object/Boolean: take other if non-null
     merged.items = union(items, other.items);                    // Lists (primitives): concatenation
@@ -257,16 +259,11 @@ public MyDescriptor merge(Descriptor o) {
 }
 ```
 
-For lists of nested `Descriptor` objects, use a map-based merge on `getId()` to recursively merge matching entries:
+For lists or maps of nested `Descriptor` objects, use the static `Descriptor.merge()` helpers, which handle id-based recursive merging and `doesRemove()`:
 
 ```java
-@SuppressWarnings("unchecked")
-protected <D extends Descriptor> List<D> merge(List<D> first, List<D> second) {
-    var map = new HashMap<String, D>();
-    first.forEach(d -> map.put(d.getId(), d));
-    second.forEach(d -> map.merge(d.getId(), d, (prev, cur) -> (D) prev.merge(cur)));
-    return new ArrayList<>(map.values());
-}
+merged.children = Descriptor.merge(other.children, children);              // List<D extends Descriptor>
+merged.childrenByKey = Descriptor.merge(other.childrenByKey, childrenByKey); // Map<String, D extends Descriptor>
 ```
 
 ### Extension Contributions (XML)

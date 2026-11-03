@@ -22,6 +22,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -42,6 +43,11 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.SerializationUtils;
@@ -59,10 +65,14 @@ import org.nuxeo.ecm.core.api.security.impl.ACPImpl;
 import org.nuxeo.ecm.core.query.sql.model.OrderByExprs;
 import org.nuxeo.ecm.core.query.sql.model.Predicates;
 import org.nuxeo.ecm.core.query.sql.model.QueryBuilder;
+import org.nuxeo.ecm.core.storage.mongodb.IgnoreIfDBSMongoDBRepository;
+import org.nuxeo.ecm.core.storage.sql.IgnoreIfVCSRepository;
 import org.nuxeo.ecm.directory.DirectoryException;
 import org.nuxeo.ecm.platform.usermanager.exceptions.GroupAlreadyExistsException;
 import org.nuxeo.ecm.platform.usermanager.exceptions.UserAlreadyExistsException;
+import org.nuxeo.runtime.api.Framework;
 import org.nuxeo.runtime.api.login.LoginComponent;
+import org.nuxeo.runtime.test.runner.ConditionalIgnore;
 import org.nuxeo.runtime.test.runner.Deploy;
 
 /**
@@ -924,6 +934,18 @@ public class TestUserManager extends UserManagerTestCase {
         assertFalse(principal1.isMemberOf("group1"));
     }
 
+    /**
+     * A null username must return null rather than throwing.
+     *
+     * @since 2025.21
+     */
+    @Test
+    public void testGetPrincipalNullUsername() {
+        assertNull(userManager.getPrincipal(null));
+        assertNull(userManager.getPrincipal(null, true));
+        assertNull(userManager.getPrincipal(null, false));
+    }
+
     @Test
     public void testPasswordAuthenticate() {
         assertTrue(userManager.checkUsernamePassword("Administrator", "Administrator"));
@@ -1511,6 +1533,134 @@ public class TestUserManager extends UserManagerTestCase {
         QueryBuilder queryBuilder = um.getQueryForPattern(pattern, um.getUserDirectoryName(), um.userSearchFields,
                 um.getUserOrderBy());
         return queryBuilder.predicate().toString();
+    }
+
+    /** @since 2025.22 */
+    @Test
+    public void testGetUserSearchPredicateSubinitial() {
+        // userDirectory uses the default substring match type: subinitial
+        // user search fields default to {username, firstName, lastName} (all SUBSTRING, see
+        // UserService#recomputeUserManager), backed by a HashMap so iteration order is not guaranteed
+        String predicate = userManager.getUserSearchPredicate("foo").toString();
+        assertTrue(predicate, predicate.contains("firstName ILIKE 'foo%'"));
+        assertTrue(predicate, predicate.contains("lastName ILIKE 'foo%'"));
+        assertTrue(predicate, predicate.contains("username ILIKE 'foo%'"));
+    }
+
+    /** @since 2025.22 */
+    @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "SQL-only test variant")
+    @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-user-directory-substring-match-subany-sql.xml")
+    public void testGetUserSearchPredicateSubanySQL() {
+        assertSubanyPredicate();
+    }
+
+    /** @since 2025.22 */
+    @Test
+    @ConditionalIgnore(condition = IgnoreIfVCSRepository.class, cause = "MongoDB-only test variant")
+    @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-user-directory-substring-match-subany-mongodb.xml")
+    public void testGetUserSearchPredicateSubanyMongoDB() {
+        assertSubanyPredicate();
+    }
+
+    /** @since 2025.22 */
+    @Test
+    @ConditionalIgnore(condition = IgnoreIfDBSMongoDBRepository.class, cause = "SQL-only test variant")
+    @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-user-directory-substring-match-subfinal-sql.xml")
+    public void testGetUserSearchPredicateSubfinalSQL() {
+        assertSubfinalPredicate();
+    }
+
+    /** @since 2025.22 */
+    @Test
+    @ConditionalIgnore(condition = IgnoreIfVCSRepository.class, cause = "MongoDB-only test variant")
+    @Deploy("org.nuxeo.ecm.platform.usermanager.tests:test-usermanager-user-directory-substring-match-subfinal-mongodb.xml")
+    public void testGetUserSearchPredicateSubfinalMongoDB() {
+        assertSubfinalPredicate();
+    }
+
+    protected void assertSubanyPredicate() {
+        String predicate = userManager.getUserSearchPredicate("foo").toString();
+        assertTrue(predicate, predicate.contains("firstName ILIKE '%foo%'"));
+        assertTrue(predicate, predicate.contains("lastName ILIKE '%foo%'"));
+        assertTrue(predicate, predicate.contains("username ILIKE '%foo%'"));
+    }
+
+    protected void assertSubfinalPredicate() {
+        String predicate = userManager.getUserSearchPredicate("foo").toString();
+        assertTrue(predicate, predicate.contains("firstName ILIKE '%foo'"));
+        assertTrue(predicate, predicate.contains("lastName ILIKE '%foo'"));
+        assertTrue(predicate, predicate.contains("username ILIKE '%foo'"));
+    }
+
+    /** @since 2025.22 */
+    @Test
+    public void testGetUserSearchPredicateBlankPattern() {
+        assertNull(userManager.getUserSearchPredicate(null));
+        assertNull(userManager.getUserSearchPredicate(""));
+        assertNull(userManager.getUserSearchPredicate("   "));
+    }
+
+    /** @since 2025.22 */
+    @Test
+    public void testGetGroupSearchPredicate() {
+        // groupDirectory uses the default substring match type: subinitial
+        // group search fields default to {groupname, grouplabel} (both SUBSTRING, see UserService.recomputeUserManager)
+        String predicate = userManager.getGroupSearchPredicate("foo").toString();
+        assertTrue(predicate, predicate.contains("groupname ILIKE 'foo%'"));
+        assertTrue(predicate, predicate.contains("grouplabel ILIKE 'foo%'"));
+        assertNull(userManager.getGroupSearchPredicate(null));
+        assertNull(userManager.getGroupSearchPredicate(""));
+    }
+
+    /**
+     * Tests that concurrent getPrincipal calls return independent copies under
+     * {@link UserManagerImpl#getPrincipalUsingCache}. Does not assert single-flight loading.
+     *
+     * @since 2025.20
+     */
+    @Test
+    public void testConcurrentGetPrincipal() throws Exception {
+        int threadCount = 10;
+        // Ensure cache is empty
+        userManager.getPrincipal("Administrator").getAllGroups(); // warm up
+        ((UserManagerImpl) userManager).principalCache.invalidateAll();
+
+        CountDownLatch startLatch = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        try {
+            List<Future<NuxeoPrincipal>> futures = new ArrayList<>();
+            for (int i = 0; i < threadCount; i++) {
+                futures.add(executor.submit(() -> {
+                    startLatch.await();
+                    return Framework.doPrivileged(() -> userManager.getPrincipal("Administrator"));
+                }));
+            }
+
+            // Release all threads at once
+            startLatch.countDown();
+
+            List<NuxeoPrincipal> results = new ArrayList<>();
+            for (Future<NuxeoPrincipal> future : futures) {
+                results.add(future.get(30, TimeUnit.SECONDS));
+            }
+
+            assertEquals(threadCount, results.size());
+            // All results should be non-null and independent copies
+            for (NuxeoPrincipal principal : results) {
+                assertNotNull(principal);
+                assertEquals("Administrator", principal.getName());
+            }
+            // Verify they are different object instances (deep copies)
+            for (int i = 0; i < results.size() - 1; i++) {
+                for (int j = i + 1; j < results.size(); j++) {
+                    assertNotSame(results.get(i), results.get(j));
+                }
+            }
+        } finally {
+            executor.shutdownNow();
+            executor.awaitTermination(5, TimeUnit.SECONDS);
+        }
     }
 
 }
