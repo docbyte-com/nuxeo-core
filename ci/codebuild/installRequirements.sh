@@ -34,11 +34,15 @@ mv /usr/local/bin/docker /usr/bin/docker
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
 
-curl -f -L https://sourceforge.net/projects/exiftool/files/Image-ExifTool-13.45.tar.gz/download | tar -C /opt -xzv
-cd /opt/Image-ExifTool-13.45/
-
-perl Makefile.PL
-sudo make install
+# ExifTool from CPAN: SourceForge and exiftool.org drop older versions (13.45 now gives a 404), CPAN keeps them.
+# A failed install stops the build here, not an hour later in the binary-metadata tests.
+EXIFTOOL_VERSION=13.55
+curl -f -L https://cpan.metacpan.org/authors/id/E/EX/EXIFTOOL/Image-ExifTool-${EXIFTOOL_VERSION}.tar.gz | tar -C /opt -xz \
+  && cd /opt/Image-ExifTool-${EXIFTOOL_VERSION}/ \
+  && perl Makefile.PL \
+  && sudo make install \
+  && exiftool -ver \
+  || { echo "ExifTool ${EXIFTOOL_VERSION} did not install" >&2; return 1 2>/dev/null || exit 1; }
 
 docker-compose --version
 
