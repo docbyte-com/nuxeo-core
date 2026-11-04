@@ -4,8 +4,10 @@ DIR=`pwd`
 
 yum install -y ghostscript
 yum install -y \
-  ImageMagick \
   libwpd-tools \
+  libpng-devel \
+  libjpeg-devel \
+  libtiff-devel \
   perl \
   perl-Archive-Zip \
   poppler-utils \
@@ -17,7 +19,6 @@ yum install -y \
   aspell \
   google-noto-cjk-fonts
 
-identify -version
 
 export LIBREOFFICE_VERSION=7.5.8
 
@@ -33,6 +34,14 @@ mv /usr/local/bin/docker /usr/bin/docker
 
 curl -f -L https://johnvansickle.com/ffmpeg/old-releases/ffmpeg-5.1.1-amd64-static.tar.xz | tar -C /opt -xJv
 export PATH="$PATH:/opt/ffmpeg-5.1.1-amd64-static/"
+
+# ImageMagick 7 from source, as on release/2026.3: yum's ImageMagick 6 lacks the image delegates the picture tests need.
+curl -f -L https://github.com/ImageMagick/ImageMagick/archive/refs/tags/7.1.2-25.tar.gz  | tar -C /opt -xz
+cd  /opt/ImageMagick-7.1.2-25
+./configure --without-x
+sudo make && sudo make install
+
+identify -version
 
 # ExifTool from CPAN: SourceForge and exiftool.org drop older versions (13.45 now gives a 404), CPAN keeps them.
 # A failed install stops the build here, not an hour later in the binary-metadata tests.
