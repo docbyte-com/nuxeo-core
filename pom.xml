@@ -70,7 +70,9 @@
 
     <tomcat.version>10.1.52</tomcat.version>
     <opensearch1.version>1.3.20</opensearch1.version>
-    <netty.version>4.2.15.Final</netty.version>
+    <!-- DBVAULT-2717: 4.2.18+ fixes the netty-handler / codec-http / codec-dns / resolver-dns advisories
+         (DoS, HTTP request smuggling, DNS cache poisoning); keep at or above 4.2.19 -->
+    <netty.version>4.2.19.Final</netty.version>
     <netty.boringssl.version>2.0.75.Final</netty.boringssl.version>
     <apacheds.version>1.5.1</apacheds.version>
     <apachedshared.version>0.9.7</apachedshared.version>
