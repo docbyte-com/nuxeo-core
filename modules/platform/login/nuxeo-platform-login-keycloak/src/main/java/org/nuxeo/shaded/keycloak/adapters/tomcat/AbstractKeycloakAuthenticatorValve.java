@@ -264,7 +264,8 @@ public abstract class AbstractKeycloakAuthenticatorValve extends FormAuthenticat
 
     public boolean keycloakRestoreRequest(Request request) {
         try {
-            return restoreRequest(request, request.getSessionInternal());
+            // since Tomcat 10.1.59 restoreRequest returns an AuthenticationResult instead of a boolean
+            return restoreRequest(request, request.getSessionInternal()).getAuthenticated();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

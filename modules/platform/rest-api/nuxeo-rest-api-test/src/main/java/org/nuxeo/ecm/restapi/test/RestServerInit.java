@@ -100,6 +100,9 @@ public class RestServerInit implements RepositoryInit {
         DocumentModel doc = session.createDocumentModel("/folder_2", "file", "File");
         doc.setPropertyValue("dc:title", "File");
         doc = session.createDocument(doc);
+        // audit history is sorted by eventDate only: make sure documentModified gets a later eventDate than
+        // documentCreated, otherwise their order is undefined (flaky AuditTest)
+        waitForNextMillisecond();
         // upload file blob
         File fieldAsJsonFile = FileUtils.getResourceFileFromContext("blob.json");
         try {
@@ -127,8 +130,14 @@ public class RestServerInit implements RepositoryInit {
         }
     }
 
-    private void createUsersAndGroups(UserManager um) throws UserAlreadyExistsException,
-            GroupAlreadyExistsException {
+    private static void waitForNextMillisecond() {
+        var now = System.currentTimeMillis();
+        while (System.currentTimeMillis() <= now) {
+            Thread.onSpinWait();
+        }
+    }
+
+    private void createUsersAndGroups(UserManager um) throws UserAlreadyExistsException, GroupAlreadyExistsException {
 
         // Create some groups
         for (int idx = 0; idx < 4; idx++) {
@@ -156,8 +165,7 @@ public class RestServerInit implements RepositoryInit {
         createUser(um, "foouser", "Foo", "Foo");
     }
 
-    private void createGroup(UserManager um, String groupId, String groupLabel) throws
-            GroupAlreadyExistsException {
+    private void createGroup(UserManager um, String groupId, String groupLabel) throws GroupAlreadyExistsException {
         NuxeoGroup group = um.getGroup(groupId);
         if (group != null) {
             um.deleteGroup(groupId);
