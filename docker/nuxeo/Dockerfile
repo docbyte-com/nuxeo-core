@@ -94,7 +94,7 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     vim-enhanced-8.2.2637-23.0.1.el9_7 \
     wget \
     # Install Java before LibreOffice that depends on it
-    zulu21-jdk \
+    zulu21-jdk-21.0.13.1 \
   # Install ImageMagick 7 from our yum-public repository in packages.nuxeo.com
   && dnf -y --exclude=python3-setuptools install ImageMagick7-7.1.1.47-1.el9.remi \
   # Install LibreOffice, only for amd64 since not available for arm64
