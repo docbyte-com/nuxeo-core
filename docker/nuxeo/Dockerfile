@@ -94,7 +94,7 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
     vim-enhanced-8.2.2637-23.0.1.el9_7 \
     wget \
     # Install Java before LibreOffice that depends on it
-    zulu21-jdk-21.0.13.1 \
+    zulu21-jdk \
   # Install ImageMagick 7 from our yum-public repository in packages.nuxeo.com
   && dnf -y --exclude=python3-setuptools install ImageMagick7-7.1.1.47-1.el9.remi \
   # Install LibreOffice, only for amd64 since not available for arm64
@@ -108,6 +108,14 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
   && dnf clean all \
   && rm -rf /var/cache \
   && find /var/log -type f -delete
+
+# Fail the build when the installed JDK is older than the minimum safe version, so the image
+# keeps picking up newer Zulu security releases but never ships a known-vulnerable one.
+# 21.0.13.1 is the first build fixing CVE-2026-114938 (Java2Shell): raise it with the next JDK CVE.
+ARG MIN_ZULU21_VERSION=21.0.13.1
+RUN installed=$(rpm -q --queryformat '%{VERSION}' zulu21-jdk) \
+  && printf '%s\n%s\n' "$MIN_ZULU21_VERSION" "$installed" | sort --version-sort --check=quiet \
+  || { echo "zulu21-jdk $installed is older than the required $MIN_ZULU21_VERSION" >&2; exit 1; }
 
 # Remove perl-Net-SSLeay example private key
 RUN rm /usr/share/doc/perl-Net-SSLeay/examples/server_key.pem
