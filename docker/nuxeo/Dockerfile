@@ -109,8 +109,19 @@ RUN --mount=type=secret,id=nuxeo-public,target=/etc/yum.repos.d/nuxeo-public.rep
   && rm -rf /var/cache \
   && find /var/log -type f -delete
 
-# Remove perl-Net-SSLeay example private key
-RUN rm /usr/share/doc/perl-Net-SSLeay/examples/server_key.pem
+# Fail the build when the installed JDK is older than the minimum safe version, so the image
+# keeps picking up newer Zulu security releases but never ships a known-vulnerable one.
+# 21.0.13.1 is the first build fixing CVE-2026-114938 (Java2Shell): raise it with the next JDK CVE.
+ARG MIN_ZULU21_VERSION=21.0.13.1
+RUN installed=$(rpm -q --queryformat '%{VERSION}' zulu21-jdk) \
+  && printf '%s\n%s\n' "$MIN_ZULU21_VERSION" "$installed" | sort --version-sort --check=quiet \
+  || { echo "zulu21-jdk $installed is older than the required $MIN_ZULU21_VERSION" >&2; exit 1; }
+
+# Remove perl-Net-SSLeay example private key, wherever the installed package puts it
+# perl-Net-SSLeay 1.94-4.el9 and newer no longer ship it, so tolerate it being absent
+RUN if rpm -q --quiet perl-Net-SSLeay; then \
+    rpm -ql perl-Net-SSLeay | grep '/server_key\.pem$' | xargs -r rm -f; \
+  fi
 
 # Remove setuid/setgid binaries from images for security
 RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true
