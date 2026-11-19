@@ -117,8 +117,11 @@ RUN installed=$(rpm -q --queryformat '%{VERSION}' zulu21-jdk) \
   && printf '%s\n%s\n' "$MIN_ZULU21_VERSION" "$installed" | sort --version-sort --check=quiet \
   || { echo "zulu21-jdk $installed is older than the required $MIN_ZULU21_VERSION" >&2; exit 1; }
 
-# Remove perl-Net-SSLeay example private key
-RUN rm /usr/share/doc/perl-Net-SSLeay/examples/server_key.pem
+# Remove perl-Net-SSLeay example private key, wherever the installed package puts it
+# perl-Net-SSLeay 1.94-4.el9 and newer no longer ship it, so tolerate it being absent
+RUN if rpm -q --quiet perl-Net-SSLeay; then \
+    rpm -ql perl-Net-SSLeay | grep '/server_key\.pem$' | xargs -r rm -f; \
+  fi
 
 # Remove setuid/setgid binaries from images for security
 RUN find / -ignore_readdir_race -perm 6000 -type f -exec chmod a-s {} \; || true
